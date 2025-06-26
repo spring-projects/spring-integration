@@ -19,6 +19,7 @@ package org.springframework.integration.jms;
 import io.micrometer.observation.ObservationRegistry;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -145,6 +146,12 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		super.setApplicationContext(applicationContext);
 		this.endpoint.setApplicationContext(applicationContext);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+		this.endpoint.setBeanFactory(beanFactory);
 	}
 
 	@Override

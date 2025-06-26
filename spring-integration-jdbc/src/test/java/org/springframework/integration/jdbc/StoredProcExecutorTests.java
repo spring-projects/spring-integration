@@ -59,7 +59,7 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 		DataSource datasource = mock(DataSource.class);
 
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(storedProcExecutor::afterPropertiesSet)
 				.withMessage("You must either provide a "
@@ -87,7 +87,7 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		storedProcExecutor.afterPropertiesSet();
 
 		assertThat(storedProcExecutor.getStoredProcedureNameExpressionAsString())
@@ -101,7 +101,7 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
 		storedProcExecutor.setStoredProcedureName("123");
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		storedProcExecutor.afterPropertiesSet();
 
 		assertThat(storedProcExecutor.getStoredProcedureName()).isEqualTo("123");
@@ -244,7 +244,7 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
 

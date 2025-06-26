@@ -92,7 +92,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("String data"));
 		assertThat(file.exists()).isTrue();
@@ -111,7 +111,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("byte[] data".getBytes()));
 		assertThat(file.exists()).isTrue();
@@ -128,7 +128,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
@@ -149,7 +149,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		File srcFile = new File(UUID.randomUUID() + ".txt");

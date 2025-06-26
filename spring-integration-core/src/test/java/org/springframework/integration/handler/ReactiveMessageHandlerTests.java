@@ -51,7 +51,7 @@ class ReactiveMessageHandlerTests implements TestApplicationContextAware {
 	void messageHandledOnSubscribe() {
 		assertThat(handled.get()).isFalse();
 		TestReactiveMessageHandler handler = new TestReactiveMessageHandler();
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("");
 		handler.handleMessage(message).subscribe();
@@ -64,7 +64,7 @@ class ReactiveMessageHandlerTests implements TestApplicationContextAware {
 		TestReactiveMessageHandler handler = new TestReactiveMessageHandler();
 		handler.setShouldTrack(true);
 		handler.setComponentName("test-message-handler");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("");
 		handler.handleMessage(message).subscribe();

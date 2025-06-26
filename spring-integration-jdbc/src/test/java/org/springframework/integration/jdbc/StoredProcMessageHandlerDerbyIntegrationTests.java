@@ -77,10 +77,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(CONTEXT);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -103,10 +103,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(CONTEXT);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -130,10 +130,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(CONTEXT);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -160,10 +160,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		procedureParameters.add(new ProcedureParameter("email", null, "payload.email.toUpperCase()"));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(CONTEXT);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		Message<User> message = new GenericMessage<>(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
@@ -190,10 +190,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		procedureParameters.add(new ProcedureParameter("email", "static_email", null));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
-		storedProcExecutor.setBeanFactory(CONTEXT);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(CONTEXT);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		Message<User> message =

@@ -71,7 +71,7 @@ public class TcpNetConnectionSupportTests implements TestApplicationContextAware
 				latch2.countDown();
 			}
 		});
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();

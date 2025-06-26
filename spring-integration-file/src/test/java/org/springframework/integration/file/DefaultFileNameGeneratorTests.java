@@ -36,7 +36,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void defaultHeaderNamePresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo("foo");
@@ -45,7 +45,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void defaultHeaderNameNotPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
@@ -54,7 +54,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void defaultHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, 123)
 				.build();
 		String filename = generator.generateFileName(message);
@@ -64,7 +64,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNamePresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
@@ -74,7 +74,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNameNotPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
@@ -84,7 +84,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", 123).build();
 		String filename = generator.generateFileName(message);
@@ -94,7 +94,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void filePayloadPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		File payload = new File("/some/path/foo");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		String filename = generator.generateFileName(message);
@@ -104,7 +104,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void defaultHeaderNameTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
@@ -114,7 +114,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNameTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader("foo", "bar").build();
@@ -125,7 +125,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customExpressionTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setExpression("'foobar'");
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
@@ -136,7 +136,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNameTakesPrecedenceOverDefault() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "ignore")
 				.setHeader("foo", "bar").build();
@@ -147,7 +147,7 @@ public class DefaultFileNameGeneratorTests implements TestApplicationContextAwar
 	@Test
 	public void customHeaderNameTakesPrecedenceOverFilePayloadAndDefault() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(CONTEXT);
+		generator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		generator.setHeaderName("foo");
 		File payload = new File("/some/path/ignore1");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "ignore2")

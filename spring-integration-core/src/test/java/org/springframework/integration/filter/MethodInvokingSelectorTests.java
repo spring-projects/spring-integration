@@ -38,7 +38,7 @@ public class MethodInvokingSelectorTests implements TestApplicationContextAware 
 	@Test
 	public void acceptedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>("should accept"))).isTrue();
 	}
 
@@ -47,14 +47,14 @@ public class MethodInvokingSelectorTests implements TestApplicationContextAware 
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>("should accept"))).isTrue();
 	}
 
 	@Test
 	public void rejectedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>(99))).isFalse();
 	}
 
@@ -63,14 +63,14 @@ public class MethodInvokingSelectorTests implements TestApplicationContextAware 
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>(99))).isFalse();
 	}
 
 	@Test
 	public void noArgMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "noArgs");
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>("test"))).isTrue();
 	}
 
@@ -79,14 +79,14 @@ public class MethodInvokingSelectorTests implements TestApplicationContextAware 
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("noArgs");
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(selector.accept(new GenericMessage<>("test"))).isTrue();
 	}
 
 	@Test
 	public void voidReturningMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "returnVoid");
-		selector.setBeanFactory(CONTEXT);
+		selector.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> selector.accept(new GenericMessage<>("test")));
 	}

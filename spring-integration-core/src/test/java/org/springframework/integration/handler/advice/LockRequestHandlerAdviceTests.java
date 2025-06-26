@@ -77,7 +77,7 @@ public class LockRequestHandlerAdviceTests implements TestApplicationContextAwar
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test1", messagePostProcessor);
 		Future<Object> test2 =
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test2", messagePostProcessor);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(test1.get(10, TimeUnit.SECONDS)).isEqualTo("test1-1");
 		assertThat(test2.get(10, TimeUnit.SECONDS)).isEqualTo("test2-1");
 

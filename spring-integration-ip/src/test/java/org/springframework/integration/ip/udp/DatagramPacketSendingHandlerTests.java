@@ -121,7 +121,7 @@ public class DatagramPacketSendingHandlerTests implements TestApplicationContext
 		listening.await(10000, TimeUnit.MILLISECONDS);
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort.get(), true, true, "localhost", 0, 5000);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		waitAckListening(handler);

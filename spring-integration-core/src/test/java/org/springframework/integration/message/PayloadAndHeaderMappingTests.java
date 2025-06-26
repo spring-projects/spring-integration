@@ -21,17 +21,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.handler.annotation.Header;
@@ -49,23 +44,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  * @since 1.0.3
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class PayloadAndHeaderMappingTests {
-
-	private static final ConfigurableApplicationContext applicationContext = TestUtils.createTestApplicationContext();
+public class PayloadAndHeaderMappingTests implements TestApplicationContextAware {
 
 	private TestBean bean;
-
-	@BeforeAll
-	public static void start() {
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		applicationContext.getBeanFactory().registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
-		applicationContext.refresh();
-	}
-
-	@AfterAll
-	public static void stop() {
-		applicationContext.close();
-	}
 
 	@BeforeEach
 	public void setup() {
@@ -711,7 +692,7 @@ public class PayloadAndHeaderMappingTests {
 	private ServiceActivatingHandler getHandler(String methodName, Class<?>... types) throws Exception {
 		ServiceActivatingHandler serviceActivatingHandler =
 				new ServiceActivatingHandler(bean, TestBean.class.getMethod(methodName, types));
-		serviceActivatingHandler.setBeanFactory(applicationContext);
+		serviceActivatingHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivatingHandler.afterPropertiesSet();
 		return serviceActivatingHandler;
 	}

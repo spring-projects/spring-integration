@@ -462,14 +462,14 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 	public void testFailoverCachedWithGateway() {
 		final TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setBeanName("server");
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		DirectChannel inChannel = new DirectChannel();
 		inChannel.setBeanName("inChannel");
 		TcpInboundGateway inbound = new TcpInboundGateway();
 		inbound.setConnectionFactory(server);
 		inbound.setRequestChannel(inChannel);
-		inbound.setBeanFactory(CONTEXT);
+		inbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		inbound.afterPropertiesSet();
 		inChannel.subscribe(new BridgeHandler());
 		inbound.start();
@@ -481,7 +481,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		// Cache
 		CachingClientConnectionFactory cachingClient = new CachingClientConnectionFactory(client, 2);
 		cachingClient.setBeanName("cache");
-		cachingClient.setBeanFactory(CONTEXT);
+		cachingClient.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		cachingClient.afterPropertiesSet();
 
 		// Failover
@@ -489,7 +489,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		clientFactories.add(cachingClient);
 		FailoverClientConnectionFactory failoverClient = new FailoverClientConnectionFactory(clientFactories);
 		failoverClient.setSingleUse(true);
-		failoverClient.setBeanFactory(CONTEXT);
+		failoverClient.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		failoverClient.afterPropertiesSet();
 
 		TcpOutboundGateway outbound = new TcpOutboundGateway();
@@ -497,7 +497,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("replyChannel");
 		outbound.setReplyChannel(replyChannel);
-		outbound.setBeanFactory(CONTEXT);
+		outbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		outbound.afterPropertiesSet();
 		outbound.start();
 

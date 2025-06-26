@@ -53,7 +53,7 @@ public class MailHeaderEnricherTests implements TestApplicationContextAware {
 	public void literalValues() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.literalValuesInput);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		Map<String, Object> headers = result.getHeaders();
 		assertThat(headers.get(MailHeaders.TO)).isEqualTo("test.to");
@@ -70,7 +70,7 @@ public class MailHeaderEnricherTests implements TestApplicationContextAware {
 	public void expressions() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.expressionsInput);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertThat(headers.get(MailHeaders.TO)).isEqualTo("foo.to");

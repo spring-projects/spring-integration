@@ -74,7 +74,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		gateway.setRequestDestinationName("foo");
 		gateway.setUseReplyContainer(true);
 		gateway.setReplyContainerProperties(new ReplyContainerProperties());
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.beanName"))
 				.isEqualTo("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
@@ -165,7 +165,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		gateway.setReplyDestinationExpression(new ValueExpression<>(replyQ));
 		QueueChannel queueChannel = new QueueChannel();
 		gateway.setOutputChannel(queueChannel);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setReceiveTimeout(60000);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -211,7 +211,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		gateway.setReplyDestinationName(replyQ);
 		QueueChannel queueChannel = new QueueChannel();
 		gateway.setOutputChannel(queueChannel);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setReceiveTimeout(60000);
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.afterPropertiesSet();

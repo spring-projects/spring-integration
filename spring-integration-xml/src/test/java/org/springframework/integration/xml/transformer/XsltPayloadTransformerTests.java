@@ -77,7 +77,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 	@BeforeEach
 	public void setUp() throws Exception {
 		this.testTransformer = new XsltPayloadTransformer(getXslTemplates());
-		this.testTransformer.setBeanFactory(CONTEXT);
+		this.testTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.testTransformer.setAlwaysUseResultFactory(false);
 		this.testTransformer.afterPropertiesSet();
 	}
@@ -143,7 +143,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 		Integer returnValue = 13;
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslTemplates(), new StubResultTransformer(returnValue));
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer
 				.doTransform(new GenericMessage<>(new StringSource(docAsString)));
@@ -156,7 +156,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslResourceThatOutputsText(), new StubResultTransformer(returnValue),
 						"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer.doTransform(new GenericMessage<>(new StringSource(this.docAsString)));
 		assertThat(transformed)
@@ -168,7 +168,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 	public void testXsltPayloadWithBadTransformerFactoryClassName() throws IOException {
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslResourceThatOutputsText(), "foo.bar.Baz");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalStateException()
 				.isThrownBy(transformer::afterPropertiesSet)
 				.withCauseExactlyInstanceOf(ClassNotFoundException.class);
@@ -191,7 +191,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 	public void testXsltWithImports() {
 		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
 		assertThat(transformed).and(this.outputAsString).areIdentical();
@@ -203,7 +203,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);
@@ -218,7 +218,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new DomResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);
@@ -232,7 +232,7 @@ public class XsltPayloadTransformerTests implements TestApplicationContextAware 
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);

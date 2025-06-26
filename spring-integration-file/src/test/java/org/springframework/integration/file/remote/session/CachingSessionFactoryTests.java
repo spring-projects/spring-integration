@@ -87,7 +87,7 @@ public class CachingSessionFactoryTests implements TestApplicationContextAware {
 		CachingSessionFactory<Object> ccf = new CachingSessionFactory<>(factory);
 		RemoteFileTemplate<Object> template = new RemoteFileTemplate<>(ccf);
 		template.setFileNameExpression(new LiteralExpression("foo"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessagingException.class)

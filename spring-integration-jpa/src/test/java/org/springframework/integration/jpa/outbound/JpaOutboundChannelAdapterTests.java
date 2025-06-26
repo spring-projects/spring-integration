@@ -79,7 +79,7 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
-		jpaExecutor.setBeanFactory(CONTEXT);
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -111,7 +111,7 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 		assertThat(results1.size() == 3).isTrue();
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
-		jpaExecutor.setBeanFactory(CONTEXT);
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -145,7 +145,7 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
 		jpaExecutor.setPersistMode(PersistMode.PERSIST);
-		jpaExecutor.setBeanFactory(CONTEXT);
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -157,7 +157,7 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 
 		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
-		jpaOutboundChannelAdapter.setBeanFactory(CONTEXT);
+		jpaOutboundChannelAdapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaOutboundChannelAdapter.afterPropertiesSet();
 
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);

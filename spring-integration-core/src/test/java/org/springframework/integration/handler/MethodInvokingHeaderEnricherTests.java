@@ -47,7 +47,7 @@ public class MethodInvokingHeaderEnricherTests implements TestApplicationContext
 	public void emptyHeadersOnRequest() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(true);
@@ -62,7 +62,7 @@ public class MethodInvokingHeaderEnricherTests implements TestApplicationContext
 	public void overwriteFalseByDefault() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("bar", "XYZ").build();
@@ -76,7 +76,7 @@ public class MethodInvokingHeaderEnricherTests implements TestApplicationContext
 	public void overwriteFalseExplicit() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(false);
@@ -91,7 +91,7 @@ public class MethodInvokingHeaderEnricherTests implements TestApplicationContext
 	public void overwriteTrue() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(true);
@@ -108,7 +108,7 @@ public class MethodInvokingHeaderEnricherTests implements TestApplicationContext
 						new StaticHeaderValueMessageProcessor<>("foo")));
 
 		try {
-			enricher.setBeanFactory(CONTEXT);
+			enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			enricher.afterPropertiesSet();
 			fail("BeanInitializationException expected");
 		}

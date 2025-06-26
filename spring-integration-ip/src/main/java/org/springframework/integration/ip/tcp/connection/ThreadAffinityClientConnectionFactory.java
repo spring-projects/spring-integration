@@ -111,6 +111,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
 		this.connectionFactory.setBeanFactory(beanFactory);
 	}
 

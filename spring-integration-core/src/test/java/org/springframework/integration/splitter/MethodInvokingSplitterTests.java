@@ -154,7 +154,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageBuilderList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -241,7 +241,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -323,7 +323,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -350,7 +350,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new ListSplitter(), "split");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -389,7 +389,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new StreamSplitter(), "split");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -470,7 +470,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -495,7 +495,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(annotatedBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -520,7 +520,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
@@ -542,7 +542,7 @@ public class MethodInvokingSplitterTests implements TestApplicationContextAware 
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
 		MethodInvokingSplitter methodInvokingSplitter = new MethodInvokingSplitter(this.testBean, splittingMethod);
-		methodInvokingSplitter.setBeanFactory(CONTEXT);
+		methodInvokingSplitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		methodInvokingSplitter.afterPropertiesSet();
 		return methodInvokingSplitter;
 	}

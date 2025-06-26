@@ -41,7 +41,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testSetStaticParameters() {
 		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(null);
 		assertThat(source.hasValue("foo")).isTrue();
@@ -51,7 +51,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 
 	@Test
 	void testMapInput() {
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("foo")).isTrue();
@@ -61,7 +61,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 
 	@Test
 	void testListOfMapsInput() {
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -74,7 +74,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 
 	@Test
 	void testMapInputWithExpression() {
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
@@ -86,7 +86,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testMapInputWithMappedExpression() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("spam")).isTrue();
@@ -99,7 +99,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 		this.factory.setParameterExpressions(
 				Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
 		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
 		assertThat(source.hasValue("spam")).isTrue();
@@ -110,7 +110,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testListOfMapsInputWithExpression() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -124,9 +124,9 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testListOfMapsInputWithExpressionAndTypes() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.setSqlParameterTypes(Collections.singletonMap("spam", Types.SQLXML));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -140,7 +140,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testListOfMapsInputWithExpressionAndEmptyTypes() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.setSqlParameterTypes(Collections.emptyMap());
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
@@ -155,7 +155,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicat
 	@Test
 	void testNullValue() {
 		this.factory.setStaticParameters(Collections.singletonMap("foo", null));
-		this.factory.setBeanFactory(CONTEXT);
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(null);
 		assertThat(source.hasValue("foo")).isTrue();

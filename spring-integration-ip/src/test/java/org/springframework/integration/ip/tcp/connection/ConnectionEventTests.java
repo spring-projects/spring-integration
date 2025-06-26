@@ -203,7 +203,7 @@ public class ConnectionEventTests implements TestApplicationContextAware {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(message -> ((MessageChannel) message.getHeaders().getReplyChannel()).send(message));
 		gw.setRequestChannel(requestChannel);
-		gw.setBeanFactory(CONTEXT);
+		gw.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gw.start();
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader(IpHeaders.CONNECTION_ID, "bar")

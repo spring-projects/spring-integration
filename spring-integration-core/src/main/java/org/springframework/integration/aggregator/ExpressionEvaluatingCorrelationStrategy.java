@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.Objects;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -52,7 +54,7 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 	}
 
 	public Object getCorrelationKey(Message<?> message) {
-		return this.processor.processMessage(message);
+		return Objects.requireNonNull(this.processor.processMessage(message));
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

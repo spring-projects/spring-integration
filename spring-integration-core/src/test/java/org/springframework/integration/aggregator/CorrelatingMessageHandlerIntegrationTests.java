@@ -54,7 +54,7 @@ public class CorrelatingMessageHandlerIntegrationTests implements TestApplicatio
 		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setSendTimeout(-1);
-		defaultHandler.setBeanFactory(CONTEXT);
+		defaultHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		defaultHandler.afterPropertiesSet();
 	}
 

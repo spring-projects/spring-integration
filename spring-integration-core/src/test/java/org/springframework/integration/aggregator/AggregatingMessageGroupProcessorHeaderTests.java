@@ -53,8 +53,8 @@ public class AggregatingMessageGroupProcessorHeaderTests implements TestApplicat
 
 	@BeforeEach
 	public void setup() {
-		this.defaultProcessor.setBeanFactory(CONTEXT);
-		this.methodInvokingProcessor.setBeanFactory(CONTEXT);
+		this.defaultProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		this.methodInvokingProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
 	@Test

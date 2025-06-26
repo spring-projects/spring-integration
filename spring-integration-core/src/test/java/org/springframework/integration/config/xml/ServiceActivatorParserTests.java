@@ -215,7 +215,7 @@ public class ServiceActivatorParserTests implements TestApplicationContextAware 
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(channel);
 
 		return template.convertSendAndReceive(payload, Object.class);

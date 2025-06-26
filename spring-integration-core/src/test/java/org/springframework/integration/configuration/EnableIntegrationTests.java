@@ -456,7 +456,7 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(false);
 		this.controlBusChannel.send(new GenericMessage<>("pausable.start"));
 		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(true);

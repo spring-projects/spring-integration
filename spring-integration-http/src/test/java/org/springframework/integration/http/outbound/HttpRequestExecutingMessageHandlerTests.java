@@ -96,7 +96,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 	@BeforeEach
 	void setUp() {
-		CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+		TEST_INTEGRATION_CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
 				.forReadOnlyDataBinding()
 				.build());
 	}
@@ -876,7 +876,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	}
 
 	private void setBeanFactory(HttpRequestExecutingMessageHandler handler) {
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
 	private HttpHeaders setUpMocksToCaptureSentHeaders(RestTemplate restTemplate) throws IOException {

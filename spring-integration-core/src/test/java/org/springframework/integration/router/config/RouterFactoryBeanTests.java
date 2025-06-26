@@ -18,10 +18,8 @@ package org.springframework.integration.router.config;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.RouterFactoryBean;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
@@ -48,8 +46,6 @@ public class RouterFactoryBeanTests {
 		fb.setDefaultOutputChannelName("bar");
 		QueueChannel bar = new QueueChannel();
 		testApplicationContext.registerBean("bar", bar);
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		testApplicationContext.registerBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
 		fb.setBeanFactory(testApplicationContext);
 		MessageHandler handler = fb.getObject();
 		this.routeAttempted = false;

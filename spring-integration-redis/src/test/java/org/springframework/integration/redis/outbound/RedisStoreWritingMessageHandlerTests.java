@@ -78,7 +78,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -107,7 +107,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -135,7 +135,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -161,7 +161,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -192,7 +192,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -233,7 +233,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -275,7 +275,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -319,7 +319,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -351,7 +351,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<String, Double> presidents = new HashMap<>();
@@ -395,7 +395,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<>();
@@ -440,7 +440,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<>();
@@ -463,7 +463,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -475,7 +475,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.SET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -487,7 +487,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -500,7 +500,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.MAP);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			handler.afterPropertiesSet();
 		}
@@ -519,7 +519,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestAp
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.PROPERTIES);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			handler.afterPropertiesSet();
 		}

@@ -90,10 +90,10 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 				new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
-		fGenerator.setBeanFactory(CONTEXT);
+		fGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fGenerator.setExpression("payload.name + '.test'");
 		handler.setFileNameGenerator(fGenerator);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp", new File("."));
@@ -118,11 +118,11 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<SftpClient.DirEntry> handler =
 				new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
-		fGenerator.setBeanFactory(CONTEXT);
+		fGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<>("String data"));
@@ -144,11 +144,11 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 		FileTransferringMessageHandler<SftpClient.DirEntry> handler =
 				new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
-		fGenerator.setBeanFactory(CONTEXT);
+		fGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<>("byte[] data".getBytes()));
@@ -216,7 +216,7 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 				new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setAutoCreateDirectory(true);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("/foo/bar/baz"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<>();
 		doAnswer(invocation -> {

@@ -255,7 +255,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			}
 
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
 		MessageProperties props = new MessageProperties();
@@ -312,7 +312,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			}
 
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
 		MessageProperties props = new MessageProperties();
@@ -351,7 +351,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 		adapter.setRecoveryCallback(recoveryCallback);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
@@ -384,7 +384,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			recoveredError.set(cause);
 			recoveredLatch.countDown();
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		org.springframework.amqp.core.Message amqpMessage =
@@ -414,7 +414,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 		adapter.setRecoveryCallback(recoveryCallback);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
@@ -447,7 +447,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			recoveredError.set(cause);
 			recoveredLatch.countDown();
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		org.springframework.amqp.core.Message amqpMessage =
@@ -474,7 +474,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
@@ -501,7 +501,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		gateway.setRequestChannel(out);
 		gateway.setBindSourceMessage(true);
 		gateway.setReplyTimeout(0);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
@@ -530,7 +530,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		adapter.setOutputChannel(out);
 		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS_WITH_HEADERS);
 		adapter.setHeaderNameForBatchedHeaders("some_batch_headers");
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
 		MessageProperties messageProperties = new MessageProperties();
@@ -554,7 +554,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
 		MessageProperties messageProperties = new MessageProperties();
@@ -575,7 +575,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock());
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setRetryTemplate(new RetryTemplate());
 		adapter.setMessageRecoverer((message, cause) -> {
 		});
@@ -592,7 +592,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		adapter.setMessageRecoverer((message, cause) -> {
 		});
 		adapter.setRecoveryCallback(context -> null);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalStateException()
 				.isThrownBy(adapter::afterPropertiesSet)
 				.withMessageStartingWith("Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, " +
@@ -622,7 +622,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 
 		});
 		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		MessageProperties messageProperties = new MessageProperties();
 		messageProperties.setContentType("text/plain");
@@ -679,7 +679,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			}
 
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		MessageProperties messageProperties = new MessageProperties();
 		messageProperties.setContentType("text/plain");
@@ -724,7 +724,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		adapter.setRetryTemplate(new RetryTemplate());
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 		adapter.setRecoveryCallback(recoveryCallback);
 		adapter.afterPropertiesSet();
@@ -777,7 +777,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 			recoveredError.set(cause);
 			recoveredLatch.countDown();
 		});
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		ChannelAwareBatchMessageListener listener = (ChannelAwareBatchMessageListener) container.getMessageListener();
 		MessageProperties messageProperties = new MessageProperties();

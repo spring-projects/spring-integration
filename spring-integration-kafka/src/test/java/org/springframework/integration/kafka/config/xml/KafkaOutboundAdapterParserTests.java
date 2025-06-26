@@ -119,7 +119,7 @@ class KafkaOutboundAdapterParserTests implements TestApplicationContextAware {
 		given(pf.getConfigurationProperties()).willReturn(props);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.setSync(true);

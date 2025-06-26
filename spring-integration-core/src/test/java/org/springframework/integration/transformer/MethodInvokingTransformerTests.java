@@ -44,7 +44,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = new GenericMessage<>("foo");
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("FOO!");
@@ -54,7 +54,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void simplePayloadConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("FOO!");
@@ -65,7 +65,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("123!");
@@ -75,7 +75,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void typeConversionConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("123!");
@@ -86,7 +86,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -97,7 +97,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void headerAnnotationConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "headerTest");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -120,7 +120,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 99).build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("foo99");
@@ -131,7 +131,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("foonull");
@@ -142,7 +142,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("messageReturnValueTest", Message.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("test");
@@ -152,7 +152,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void messageReturnValueConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "messageReturnValueTest");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo("test");
@@ -164,7 +164,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("propertyPayloadTest", Properties.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
@@ -185,7 +185,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void propertiesPayloadConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyPayloadTest");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
@@ -205,7 +205,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 	void nullReturningMethod() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "nullReturnValueTest");
-		transformer.setBeanFactory(CONTEXT);
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		GenericMessage<String> message = new GenericMessage<>("test");
 		Message<?> result = transformer.transform(message);
 		assertThat(result).isNull();
@@ -220,7 +220,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		HeaderEnricher transformer = new HeaderEnricher();
 		transformer.setDefaultOverwrite(true);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, testMethod);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.setMessageProcessor(processor);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
@@ -240,7 +240,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		HeaderEnricher transformer = new HeaderEnricher();
 		MethodInvokingMessageProcessor processor =
 				new MethodInvokingMessageProcessor(testBean, "propertyEnricherTest");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.setMessageProcessor(processor);
 		transformer.setDefaultOverwrite(true);
 		Message<String> message = MessageBuilder.withPayload("test")

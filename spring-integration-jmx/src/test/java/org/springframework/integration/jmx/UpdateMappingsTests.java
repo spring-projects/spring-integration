@@ -79,7 +79,7 @@ public class UpdateMappingsTests implements TestApplicationContextAware {
 	@Test
 	public void testChangeRouterMappings() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setReceiveTimeout(1000);
 		Properties newMapping = new Properties();
 		newMapping.setProperty("foo", "bar");
@@ -112,7 +112,7 @@ public class UpdateMappingsTests implements TestApplicationContextAware {
 	@Test
 	public void testJmx() throws Exception {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setReceiveTimeout(1000);
 		Set<ObjectName> names = this.server.queryNames(ObjectName
 						.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),

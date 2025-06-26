@@ -377,7 +377,7 @@ public class FtpServerOutboundTests extends FtpTestSupport implements TestApplic
 	public void testRawGETWithTemplate() {
 		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(this.ftpSessionFactory);
 		template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
 		assertThat(template.get(new GenericMessage<>("ftpSource/ ftpSource1.txt"),

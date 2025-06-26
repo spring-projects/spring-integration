@@ -45,7 +45,7 @@ public class CorrelationStrategyAdapterTests implements TestApplicationContextAw
 	public void testMethodName() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(), "getKey");
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -54,7 +54,7 @@ public class CorrelationStrategyAdapterTests implements TestApplicationContextAw
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(),
 						ReflectionUtils.findMethod(SimpleMessageCorrelator.class, "getKey", Message.class));
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -62,7 +62,7 @@ public class CorrelationStrategyAdapterTests implements TestApplicationContextAw
 	public void testCorrelationStrategyAdapterPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimplePojoCorrelator(), "getKey");
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("foo");
 	}
 
@@ -70,7 +70,7 @@ public class CorrelationStrategyAdapterTests implements TestApplicationContextAw
 	public void testHeaderPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleHeaderCorrelator(), "getKey");
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -78,7 +78,7 @@ public class CorrelationStrategyAdapterTests implements TestApplicationContextAw
 	public void testHeadersPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new MultiHeaderCorrelator(),
 				ReflectionUtils.findMethod(MultiHeaderCorrelator.class, "getKey", String.class, String.class));
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("bd");
 	}
 

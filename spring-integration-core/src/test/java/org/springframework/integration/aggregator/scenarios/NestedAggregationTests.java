@@ -67,7 +67,7 @@ public class NestedAggregationTests implements TestApplicationContextAware {
 	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout, Message<?> input) {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(timeout);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		@SuppressWarnings("unchecked")
 		Message<List<String>> message = (Message<List<String>>) messagingTemplate.sendAndReceive(channel, input);

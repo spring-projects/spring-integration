@@ -46,7 +46,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
@@ -67,7 +67,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
@@ -97,7 +97,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 				return null;
 			}
 		};
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(test);
@@ -124,7 +124,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -157,7 +157,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -195,7 +195,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -233,7 +233,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -251,7 +251,7 @@ public class ServiceActivatorMethodResolutionTests implements TestApplicationCon
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>(new KafkaNull()));

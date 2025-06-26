@@ -87,7 +87,7 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	private void testAllData(FileListFilter<String> filter, boolean nullFilter) throws IOException {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		if (filter != null) {
 			streamer.setFilter(filter);
@@ -145,7 +145,7 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	public void testAllDataMaxFetch() throws Exception {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.setFilter(new AcceptOnceFileListFilter<>());
 		streamer.afterPropertiesSet();
@@ -177,7 +177,7 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	public void testExceptionOnFetch() {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();
@@ -188,13 +188,13 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	@Test
 	public void testLineByLine() throws Exception {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
 		streamer.start();
 		QueueChannel out = new QueueChannel();
 		FileSplitter splitter = new FileSplitter();
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.setOutputChannel(out);
 		splitter.afterPropertiesSet();
 		Message<InputStream> receivedStream = streamer.receive();
@@ -236,7 +236,7 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	@Test
 	public void testStopAdapterRemovesUnprocessed() {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
 		streamer.start();
@@ -251,7 +251,7 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 	@Test
 	public void testFilterReversedOnBadFetch() {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(CONTEXT);
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();

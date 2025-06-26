@@ -63,7 +63,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	public void sendOnly() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -90,7 +90,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	public void sendOnlyViewExpression() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
 		controller.setViewExpression(viewExpression);
@@ -126,7 +126,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -162,7 +162,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -196,7 +196,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -228,7 +228,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setReplyKey("myReply");
@@ -264,7 +264,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setExtractReplyPayload(false);
@@ -299,7 +299,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 			}
 		};
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.afterPropertiesSet();
 		controller.start();
@@ -341,7 +341,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		final HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -410,7 +410,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setReplyKey("cookiesReply");
 		controller.setExtractReplyPayload(true);
 		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1'][0].value"));
-		controller.setBeanFactory(CONTEXT);
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.afterPropertiesSet();
 		controller.start();
 

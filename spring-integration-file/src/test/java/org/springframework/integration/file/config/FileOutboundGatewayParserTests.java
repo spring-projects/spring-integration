@@ -140,7 +140,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	public void gatewayWithIgnoreMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final String expectedFileContent = "Initial File Content:";
 		final File testFile = new File(tempFolder, "fileToAppend.txt");
@@ -172,7 +172,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	public void gatewayWithFailMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeChannel);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "Initial File Content:";
 
@@ -200,7 +200,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	public void gatewayWithFailModeLowercase() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeLowercaseChannel);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "Initial File Content:";
 
@@ -229,7 +229,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	@Test
 	public void gatewayWithAppendMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setDefaultDestination(this.gatewayWithAppendModeChannel);
 
 		String expectedFileContent = "Initial File Content:String content:";
@@ -266,7 +266,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithReplaceModeChannel);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "String content:";
 

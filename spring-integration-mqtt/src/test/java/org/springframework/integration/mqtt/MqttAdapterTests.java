@@ -156,7 +156,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 
 		MqttPahoMessageHandler handler = new MqttPahoMessageHandler("foo", "bar", factory);
 		handler.setDefaultTopic("mqtt-foo");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 
@@ -212,7 +212,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 
 		var handler = new MqttPahoMessageHandler(clientManager);
 		handler.setDefaultTopic("mqtt-foo");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 
@@ -242,7 +242,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 				.willReturn(subscribeToken);
 
 		var adapter = new MqttPahoMessageDrivenChannelAdapter(clientManager, "mqtt-foo");
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		// when
@@ -315,7 +315,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<>();
 		willAnswer(invocation -> {
@@ -560,7 +560,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		adapter.setOutputChannel(new NullChannel());
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
@@ -580,7 +580,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("client", factory);
 		adapter.setDefaultTopic("foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		return adapter;
 	}

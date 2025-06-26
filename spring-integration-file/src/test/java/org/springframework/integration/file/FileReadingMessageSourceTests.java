@@ -64,7 +64,7 @@ class FileReadingMessageSourceTests implements TestApplicationContextAware {
 		this.source = new FileReadingMessageSource(comparator);
 		this.source.setDirectory(inputDirectoryMock);
 		this.source.setLocker(locker);
-		this.source.setBeanFactory(CONTEXT);
+		this.source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.source.afterPropertiesSet();
 	}
 

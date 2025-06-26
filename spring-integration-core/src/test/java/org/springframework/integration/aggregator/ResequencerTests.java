@@ -58,7 +58,7 @@ public class ResequencerTests implements TestApplicationContextAware {
 	@BeforeEach
 	public void configureResequencer() {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
-		this.resequencer.setBeanFactory(CONTEXT);
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 	}
 
@@ -87,7 +87,7 @@ public class ResequencerTests implements TestApplicationContextAware {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
-		this.resequencer.setBeanFactory(CONTEXT);
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 
 		QueueChannel replyChannel = new QueueChannel();
@@ -108,7 +108,7 @@ public class ResequencerTests implements TestApplicationContextAware {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
 		this.resequencer.setCorrelationStrategy(message -> "A");
-		this.resequencer.setBeanFactory(CONTEXT);
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 
 		//Message<?> message0 = MessageBuilder.withPayload("0").setSequenceNumber(0).build();

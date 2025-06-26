@@ -166,7 +166,7 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 		};
 		server.setApplicationEventPublisher(publisher);
 		server.registerListener(message -> false);
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();

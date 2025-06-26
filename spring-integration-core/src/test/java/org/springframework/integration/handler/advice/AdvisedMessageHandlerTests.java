@@ -131,7 +131,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(CONTEXT);
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("'foo'");
@@ -151,7 +151,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 
 		});
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// advice with success
@@ -227,7 +227,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(CONTEXT);
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("1/0");
@@ -236,7 +236,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// failing advice with success
@@ -288,7 +288,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(CONTEXT);
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("1/0");
@@ -297,7 +297,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// failing advice with failure
@@ -362,7 +362,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		doFail.set(true);
@@ -436,7 +436,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -469,7 +469,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -539,7 +539,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -573,7 +573,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -607,13 +607,13 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 			}
 		});
 		advice.setRetryTemplate(retryTemplate);
-		advice.setBeanFactory(CONTEXT);
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.afterPropertiesSet();
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -646,7 +646,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 			throw new RuntimeException("intentional");
 		});
 
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setAdviceChain(adviceChain);
 		handler.afterPropertiesSet();
 
@@ -676,7 +676,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(CONTEXT);
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 //		MessagingException / RuntimeException
 		expressionAdvice.setOnFailureExpressionString("#exception.cause.message");
 		expressionAdvice.setReturnFailureExpressionResult(true);
@@ -696,7 +696,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		});
 
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<>("test"));
@@ -723,7 +723,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(CONTEXT);
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		expressionAdvice.setOnFailureExpressionString("#exception.message");
 		expressionAdvice.setFailureChannel(errors);
 
@@ -734,7 +734,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		});
 
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		assertThatException()
@@ -803,7 +803,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		QueueChannel errors = new QueueChannel();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(CONTEXT);
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		expressionAdvice.setOnFailureExpressionString("'foo'");
 		expressionAdvice.setFailureChannel(errors);
 
@@ -840,7 +840,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(exec, t -> {
 		}));
-		consumer.setBeanFactory(CONTEXT);
+		consumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
 		consumer.start();
@@ -893,7 +893,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 			}
 		});
 		filter.setAdviceChain(adviceChain);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
 		assertThat(discardedWithinAdvice.get()).isNotNull();
@@ -920,7 +920,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		});
 		filter.setAdviceChain(adviceChain);
 		filter.setDiscardWithinAdvice(false);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled.get()).isTrue();
@@ -971,7 +971,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -1013,14 +1013,14 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		RetryTemplate retryTemplate = new RetryTemplate();
 		retryTemplate.registerListener(new MetricsRetryListener(meterRegistry));
 		advice.setRetryTemplate(retryTemplate);
-		advice.setBeanFactory(CONTEXT);
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.afterPropertiesSet();
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanName("testEndpoint");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");

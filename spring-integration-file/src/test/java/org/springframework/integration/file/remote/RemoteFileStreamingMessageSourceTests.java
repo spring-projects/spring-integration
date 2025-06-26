@@ -67,7 +67,7 @@ public class RemoteFileStreamingMessageSourceTests implements TestApplicationCon
 				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, comparator);
 
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(CONTEXT);
+		testRemoteFileStreamingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
@@ -101,7 +101,7 @@ public class RemoteFileStreamingMessageSourceTests implements TestApplicationCon
 
 		testRemoteFileStreamingMessageSource.setFilter(fileListFilter);
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(CONTEXT);
+		testRemoteFileStreamingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive(-1)).isNull();

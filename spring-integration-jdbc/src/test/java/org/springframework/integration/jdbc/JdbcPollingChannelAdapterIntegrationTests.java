@@ -144,7 +144,7 @@ public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicatio
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id in (:id)");
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -173,7 +173,7 @@ public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicatio
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -203,7 +203,7 @@ public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicatio
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -233,7 +233,7 @@ public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicatio
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");

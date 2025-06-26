@@ -73,7 +73,7 @@ public class RemoteFileTemplateTests implements TestApplicationContextAware {
 		SessionFactory<Object> sessionFactory = mock(SessionFactory.class);
 		this.template = new RemoteFileTemplate<>(sessionFactory);
 		this.template.setRemoteDirectoryExpression(new LiteralExpression("/foo"));
-		this.template.setBeanFactory(CONTEXT);
+		this.template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.template.afterPropertiesSet();
 		this.session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(this.session);

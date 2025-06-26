@@ -39,7 +39,7 @@ public class ExpressionEvaluatingMessageSourceTests implements TestApplicationCo
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<String> source =
 				new ExpressionEvaluatingMessageSource<String>(expression, String.class);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = source.receive();
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -50,7 +50,7 @@ public class ExpressionEvaluatingMessageSourceTests implements TestApplicationCo
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<Integer> source =
 				new ExpressionEvaluatingMessageSource<Integer>(expression, Integer.class);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(() -> source.receive())
 				.isInstanceOf(ConversionFailedException.class);
 	}

@@ -94,7 +94,7 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 		taskScheduler.afterPropertiesSet();
 		delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
 		delayHandler.setOutputChannel(output);
-		delayHandler.setBeanFactory(CONTEXT);
+		delayHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 	}
@@ -442,7 +442,7 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 		this.delayHandler.setOutputChannel(output);
 		this.delayHandler.setDefaultDelay(200);
 		this.delayHandler.setMessageStore(messageGroupStore);
-		this.delayHandler.setBeanFactory(CONTEXT);
+		this.delayHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		startDelayerHandler();
 
 		waitForLatch(10000);

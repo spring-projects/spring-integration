@@ -45,7 +45,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -62,7 +62,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -81,7 +81,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -97,7 +97,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(CONTEXT);
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -113,7 +113,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		splitter.setOutputChannel(testChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
@@ -132,7 +132,7 @@ public class CorrelationIdTests implements TestApplicationContextAware {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		splitter.setOutputChannel(testChannel);
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);

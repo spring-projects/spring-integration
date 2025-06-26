@@ -95,7 +95,7 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 		handler.setBeanFactory(this.context);
 		handler.afterPropertiesSet();
 		PollingConsumer endpoint = new PollingConsumer(sourceChannel, handler);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.context.registerEndpoint("testEndpoint", endpoint);
 		this.context.refresh();
 		sourceChannel.send(message);
@@ -159,9 +159,9 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 		handler1.setOutputChannel(outputChannel1);
 		handler2.setOutputChannel(outputChannel2);
 		PollingConsumer endpoint1 = new PollingConsumer(inputChannel, handler1);
-		endpoint1.setBeanFactory(CONTEXT);
+		endpoint1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		PollingConsumer endpoint2 = new PollingConsumer(inputChannel, handler2);
-		endpoint2.setBeanFactory(CONTEXT);
+		endpoint2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.context.registerEndpoint("testEndpoint1", endpoint1);
 		this.context.registerEndpoint("testEndpoint2", endpoint2);
 		this.context.refresh();
@@ -247,7 +247,7 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(errorChannel, handler);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.context.registerEndpoint("testEndpoint", endpoint);
 		this.context.refresh();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));

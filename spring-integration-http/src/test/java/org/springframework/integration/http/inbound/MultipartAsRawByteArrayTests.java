@@ -53,7 +53,7 @@ public class MultipartAsRawByteArrayTests implements TestApplicationContextAware
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
-		gw.setBeanFactory(CONTEXT);
+		gw.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gw.setRequestPayloadTypeClass(byte[].class);
 		gw.afterPropertiesSet();
 		gw.start();

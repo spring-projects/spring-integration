@@ -49,7 +49,7 @@ public class MethodInvokingMessageHandlerTests implements TestApplicationContext
 	@Test
 	public void validMethod() {
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "validMethod");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatNoException()
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")));
 	}

@@ -255,7 +255,7 @@ public class ErrorMessageExceptionTypeRouterTests implements TestApplicationCont
 	public void testInvalidMapping() {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setApplicationContext(this.context);
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		try {
 			router.setChannelMapping("foo", "fooChannel");

@@ -98,7 +98,7 @@ public class SimpleWebServiceOutboundGatewayTests implements TestApplicationCont
 			SoapMessage soapMessage = (SoapMessage) message;
 			soapActionFromCallback.set(soapMessage.getSoapAction());
 		});
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		String soapActionHeaderValue = "testAction";
 		String request = "<test>foo</test>";
@@ -141,7 +141,7 @@ public class SimpleWebServiceOutboundGatewayTests implements TestApplicationCont
 	public void testAttachments() throws Exception {
 		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 
@@ -201,7 +201,7 @@ public class SimpleWebServiceOutboundGatewayTests implements TestApplicationCont
 	public void testDomPoxMessageFactory() throws Exception {
 		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 

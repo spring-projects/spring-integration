@@ -48,7 +48,7 @@ public class TcpSenderTests implements TestApplicationContextAware {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.registerListener(msg -> false);
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
 			if (event instanceof TcpConnectionServerListeningEvent) {
@@ -67,7 +67,7 @@ public class TcpSenderTests implements TestApplicationContextAware {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -147,7 +147,7 @@ public class TcpSenderTests implements TestApplicationContextAware {
 
 		});
 		client.setSingleUse(true);
-		client.setBeanFactory(CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		TcpConnectionSupport conn = client.getConnection();

@@ -87,7 +87,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -117,7 +117,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
 		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

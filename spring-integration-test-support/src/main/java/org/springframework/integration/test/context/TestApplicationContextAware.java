@@ -21,13 +21,36 @@ import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.integration.test.util.TestUtils;
 
+/**
+ * Utility interface for test classes that require access to a shared
+ * {@link org.springframework.context.ApplicationContext} initialized via
+ * {@link TestUtils#createTestApplicationContext()}.
+ * <p>
+ * This interface provides default {@code @BeforeAll} and {@code @AfterAll}
+ * lifecycle hooks to initialize and close the test application context
+ * once per test class.
+ * <p>
+ * It ensures that:
+ * <ul>
+ *   <li>The context is refreshed exactly once before any test runs.</li>
+ *   <li>Any redundant refresh attempts are caught and suppressed (unless caused by an unrelated issue).</li>
+ *   <li>The context is properly closed after all tests complete.</li>
+ * </ul>
+ * <p>
+ * To use this interface, a test class simply needs to implement it.
+ *
+ * @author Glenn Renfro
+ *
+ * @since 7.0
+ */
 public interface TestApplicationContextAware {
-	TestUtils.TestApplicationContext CONTEXT = TestUtils.createTestApplicationContext();
+
+	TestUtils.TestApplicationContext TEST_INTEGRATION_CONTEXT = TestUtils.createTestApplicationContext();
 
 	@BeforeAll
 	static void beforeAll() {
 		try {
-			CONTEXT.refresh();
+			TEST_INTEGRATION_CONTEXT.refresh();
 		}
 		catch (IllegalStateException ex) {
 			if (!ex.getMessage().contains("just call 'refresh' once")) {
@@ -42,7 +65,7 @@ public interface TestApplicationContextAware {
 
 	@AfterAll
 	static void tearDown() {
-		CONTEXT.close();
+		TEST_INTEGRATION_CONTEXT.close();
 	}
 
 }

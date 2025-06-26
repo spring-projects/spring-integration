@@ -104,7 +104,7 @@ public class MessageProducerSupportTests implements TestApplicationContextAware 
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		SuccessfulErrorService errorService = new SuccessfulErrorService();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(errorService);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 		MessageProducerSupport mps = new MessageProducerSupport() {

@@ -151,7 +151,7 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 		source.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 

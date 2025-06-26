@@ -41,7 +41,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 	@Test
 	public void testValidMethod() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("validMethod");
 		Message<?> result = source.receive();
@@ -56,7 +56,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 		headerExpressions.put("foo", new LiteralExpression("abc"));
 		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("new Integer(123)"));
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("validMethod");
 		source.setHeaderExpressions(headerExpressions);
@@ -71,7 +71,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 	@Test
 	public void testNoMatchingMethodName() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("noMatchingMethod");
 		assertThatThrownBy(() -> source.receive())
@@ -81,7 +81,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 	@Test
 	public void testInvalidMethodWithArg() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithArg");
 		assertThatThrownBy(() -> source.receive())
@@ -91,7 +91,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 	@Test
 	public void testInvalidMethodWithNoReturnValue() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithNoReturnValue");
 		assertThatThrownBy(() -> source.receive())
@@ -101,7 +101,7 @@ public class MethodInvokingMessageSourceTests implements TestApplicationContextA
 	@Test
 	public void testNullReturningMethodReturnsNullMessage() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setObject(new TestBean());
 		source.setMethodName("nullReturningMethod");
 		Message<?> message = source.receive();

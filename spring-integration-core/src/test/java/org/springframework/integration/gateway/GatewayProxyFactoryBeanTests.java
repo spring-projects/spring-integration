@@ -436,14 +436,14 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 
 	private BeanFactory getBeanFactory() {
 		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		CONTEXT.registerBean("taskScheduler", taskScheduler);
-		return CONTEXT;
+		TEST_INTEGRATION_CONTEXT.registerBean("taskScheduler", taskScheduler);
+		return TEST_INTEGRATION_CONTEXT;
 	}
 
 	@Test
 	public void testIdHeaderOverrideHeaderExpression() {
 		GatewayProxyFactoryBean<?> gpfb = new GatewayProxyFactoryBean<>();
-		gpfb.setBeanFactory(CONTEXT);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		GatewayMethodMetadata meta = new GatewayMethodMetadata();
 		meta.setHeaderExpressions(Collections.singletonMap(MessageHeaders.ID, new LiteralExpression("bar")));
@@ -458,7 +458,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	public void testIdHeaderOverrideGatewayHeaderAnnotation() {
 		GatewayProxyFactoryBean<HeadersOverwriteService> gpfb =
 				new GatewayProxyFactoryBean<>(HeadersOverwriteService.class);
-		gpfb.setBeanFactory(CONTEXT);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(gpfb::afterPropertiesSet)
@@ -468,7 +468,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	@Test
 	public void testTimeStampHeaderOverrideParamHeaderAnnotation() {
 		GatewayProxyFactoryBean<HeadersParamService> gpfb = new GatewayProxyFactoryBean<>(HeadersParamService.class);
-		gpfb.setBeanFactory(CONTEXT);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(gpfb::afterPropertiesSet)

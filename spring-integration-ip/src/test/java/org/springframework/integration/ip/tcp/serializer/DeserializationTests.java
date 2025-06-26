@@ -321,14 +321,14 @@ public class DeserializationTests implements TestApplicationContextAware {
 		});
 		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
 		serverNio.setDeserializer(lengthHeaderSerializer);
-		serverNio.setBeanFactory(CONTEXT);
+		serverNio.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serverNio.setSerializer(serializer);
 		serverNio.afterPropertiesSet();
 		TcpInboundGateway in = new TcpInboundGateway();
 		in.setConnectionFactory(serverNio);
 		QueueChannel serverSideChannel = new QueueChannel();
 		in.setRequestChannel(serverSideChannel);
-		in.setBeanFactory(CONTEXT);
+		in.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		in.afterPropertiesSet();
 		in.start();
 		TestingUtilities.waitListening(serverNio, null);
@@ -338,14 +338,14 @@ public class DeserializationTests implements TestApplicationContextAware {
 		clientNio.setSerializer(serializer);
 		clientNio.setDeserializer(deserializer);
 		clientNio.setSoTimeout(500);
-		clientNio.setBeanFactory(CONTEXT);
+		clientNio.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		clientNio.afterPropertiesSet();
 		final TcpOutboundGateway out = new TcpOutboundGateway();
 		out.setConnectionFactory(clientNio);
 		QueueChannel outputChannel = new QueueChannel();
 		out.setOutputChannel(outputChannel);
 		out.setRemoteTimeout(60000);
-		out.setBeanFactory(CONTEXT);
+		out.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		out.afterPropertiesSet();
 		out.start();
 		Runnable command = () -> {
@@ -378,13 +378,13 @@ public class DeserializationTests implements TestApplicationContextAware {
 		serverNio.setSerializer(serializer);
 		serverNio.setApplicationEventPublisher(event -> {
 		});
-		serverNio.setBeanFactory(CONTEXT);
+		serverNio.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serverNio.afterPropertiesSet();
 		TcpInboundGateway in = new TcpInboundGateway();
 		in.setConnectionFactory(serverNio);
 		QueueChannel serverSideChannel = new QueueChannel();
 		in.setRequestChannel(serverSideChannel);
-		in.setBeanFactory(CONTEXT);
+		in.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		in.afterPropertiesSet();
 		in.start();
 		TestingUtilities.waitListening(serverNio, null);
@@ -392,7 +392,7 @@ public class DeserializationTests implements TestApplicationContextAware {
 		clientNio.setSerializer(serializer);
 		clientNio.setDeserializer(new ByteArrayRawSerializer(true));
 		clientNio.setSoTimeout(1000);
-		clientNio.setBeanFactory(CONTEXT);
+		clientNio.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		clientNio.setApplicationEventPublisher(event -> {
 		});
 		clientNio.afterPropertiesSet();
@@ -401,7 +401,7 @@ public class DeserializationTests implements TestApplicationContextAware {
 		QueueChannel outputChannel = new QueueChannel();
 		out.setOutputChannel(outputChannel);
 		out.setRemoteTimeout(60000);
-		out.setBeanFactory(CONTEXT);
+		out.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		out.afterPropertiesSet();
 		out.start();
 		Runnable command = () -> {

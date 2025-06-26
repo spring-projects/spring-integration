@@ -82,7 +82,7 @@ public class StoredProcJavaConfigTests implements TestApplicationContextAware {
 		assertThat(received).isNull();
 		MessagingTemplate template = new MessagingTemplate(this.control);
 		template.convertAndSend("'storedProc.inboundChannelAdapter'.stop");
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(template.convertSendAndReceive(
 				"'storedProc.inboundChannelAdapter'.isRunning", Boolean.class))
 				.isFalse();

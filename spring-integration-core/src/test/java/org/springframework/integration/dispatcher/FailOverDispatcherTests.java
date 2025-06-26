@@ -188,7 +188,7 @@ public class FailOverDispatcherTests implements TestApplicationContextAware {
 
 	private static ServiceActivatingHandler createConsumer(Object object) {
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(object);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		return handler;
 	}

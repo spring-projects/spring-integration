@@ -100,7 +100,7 @@ public class LoggingHandlerTests implements TestApplicationContextAware {
 	public void testDontEvaluateIfNotEnabled() {
 		LoggingHandler loggingHandler = new LoggingHandler("INFO");
 		loggingHandler.setLoggerName("test.logging.handler");
-		loggingHandler.setBeanFactory(CONTEXT);
+		loggingHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		loggingHandler.afterPropertiesSet();
 
 		LogAccessor logAccessor = TestUtils.getPropertyValue(loggingHandler, "messageLogger", LogAccessor.class);
@@ -119,7 +119,7 @@ public class LoggingHandlerTests implements TestApplicationContextAware {
 	@SuppressWarnings("unchecked")
 	public void testChangeLevel() {
 		LoggingHandler loggingHandler = new LoggingHandler(Level.INFO);
-		loggingHandler.setBeanFactory(CONTEXT);
+		loggingHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		loggingHandler.afterPropertiesSet();
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);

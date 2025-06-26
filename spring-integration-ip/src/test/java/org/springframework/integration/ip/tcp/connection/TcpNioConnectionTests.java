@@ -778,7 +778,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 	@Test
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = newTcpNioServerConnectionFactory();
-		cf.setBeanFactory(CONTEXT);
+		cf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch reading = new CountDownLatch(1);
 		final StopWatch watch = new StopWatch();
 		cf.setDeserializer(is -> {
@@ -835,7 +835,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				latch.countDown();
 				return false;
 			});
-			server.setBeanFactory(CONTEXT);
+			server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			server.afterPropertiesSet();
 			server.start();
 			assertThat(serverReadyLatch.await(10, TimeUnit.SECONDS)).isTrue();

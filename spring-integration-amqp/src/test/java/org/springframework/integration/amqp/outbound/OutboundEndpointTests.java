@@ -76,7 +76,7 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 		endpoint.setRoutingKey("bar");
 		endpoint.setDelayExpressionString("42");
 		endpoint.setBeanFactory(mock(BeanFactory.class));
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -111,7 +111,7 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 		gateway.setDelayExpressionString("42");
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setOutputChannel(new NullChannel());
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);

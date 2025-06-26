@@ -101,7 +101,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		enricher.setPropertyExpressions(expressions);
 		enricher.setRequiresReply(true);
 		enricher.setBeanName("Enricher");
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		final AbstractReplyProducingMessageHandler handler =
@@ -120,7 +120,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 
 				};
 
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		final PollingConsumer consumer = new PollingConsumer(requestChannel, handler);
@@ -134,7 +134,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		taskScheduler.afterPropertiesSet();
 
 		consumer.setTaskScheduler(taskScheduler);
-		consumer.setBeanFactory(CONTEXT);
+		consumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 
@@ -161,7 +161,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
 		enricher.setRequestTimeout(requestTimeout);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -193,7 +193,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -209,7 +209,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatIllegalStateException()
 				.isThrownBy(enricher::afterPropertiesSet)
@@ -219,7 +219,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 	@Test
 	public void setNullReplyTimeout() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> enricher.setReplyTimeout(null))
@@ -229,7 +229,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 	@Test
 	public void setNullRequestTimeout() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> enricher.setRequestTimeout(null))
@@ -244,7 +244,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
@@ -257,7 +257,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 	public void testContentEnricherWithNullRequestChannel() {
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(new QueueChannel());
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatIllegalStateException()
 				.isThrownBy(enricher::afterPropertiesSet)
@@ -282,7 +282,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("child.name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("test");
@@ -313,7 +313,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -344,7 +344,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		TargetUser target = new TargetUser();
@@ -378,7 +378,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		UncloneableTargetUser target = new UncloneableTargetUser();
@@ -394,7 +394,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 	@Test
 	public void testLifeCycleMethodsWithoutRequestChannel() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		enricher.afterPropertiesSet();
 
@@ -416,7 +416,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		enricher.afterPropertiesSet();
 
@@ -469,7 +469,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		propertyExpressions.put("name", parser.parseExpression("payload.name + ' target'"));
 
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(CONTEXT);
+		enricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		enricher.afterPropertiesSet();
 
 		final Target target = new Target("replace me");
@@ -487,7 +487,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		contentEnricher.setHeaderExpressions(
 				Collections.singletonMap(MessageHeaders.TIMESTAMP, new StaticHeaderValueMessageProcessor<>("foo")));
 
-		contentEnricher.setBeanFactory(CONTEXT);
+		contentEnricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(contentEnricher::afterPropertiesSet)
@@ -500,7 +500,7 @@ public class ContentEnricherTests implements TestApplicationContextAware {
 		contentEnricher.setNullResultHeaderExpressions(
 				Collections.singletonMap(MessageHeaders.ID, new StaticHeaderValueMessageProcessor<>("foo")));
 
-		contentEnricher.setBeanFactory(CONTEXT);
+		contentEnricher.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(contentEnricher::afterPropertiesSet)

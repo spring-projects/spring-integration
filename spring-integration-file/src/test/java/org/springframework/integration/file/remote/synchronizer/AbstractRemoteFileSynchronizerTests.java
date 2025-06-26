@@ -144,7 +144,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 	public void testDefaultFilter() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
@@ -163,7 +163,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
 		sync.setFilter(null);
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
@@ -261,7 +261,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		remoteDirs.add("dir2");
 		sync.setRemoteDirectoryExpression(new SupplierExpression<>(remoteDirs::poll));
 		sync.setLocalFilenameGeneratorExpressionString("#remoteDirectory+'/'+#root");
-		sync.setBeanFactory(CONTEXT);
+		sync.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		sync.afterPropertiesSet();
 
 		sync.synchronizeToLocalDirectory(localDir);
@@ -294,7 +294,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		source.setMaxFetchSize(1);
 		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
 		source.setAutoCreateLocalDirectory(true);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setBeanName("fooSource");
 		return source;
 	}
@@ -335,7 +335,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		};
 		sync.setFilter(new AcceptOnceFileListFilter<>());
 		sync.setRemoteDirectory("foo");
-		sync.setBeanFactory(CONTEXT);
+		sync.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		return sync;
 	}
 

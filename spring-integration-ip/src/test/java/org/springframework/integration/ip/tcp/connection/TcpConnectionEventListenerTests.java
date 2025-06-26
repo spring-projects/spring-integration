@@ -43,9 +43,9 @@ public class TcpConnectionEventListenerTests implements TestApplicationContextAw
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
 		eventProducer.setEventTypes(TcpConnectionEvent.class);
-		CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+		TEST_INTEGRATION_CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
 				mock(ApplicationEventMulticaster.class));
-		eventProducer.setBeanFactory(CONTEXT);
+		eventProducer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
@@ -81,9 +81,9 @@ public class TcpConnectionEventListenerTests implements TestApplicationContextAw
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
 		eventProducer.setEventTypes(FooEvent.class, BarEvent.class);
-		CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+		TEST_INTEGRATION_CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
 				mock(ApplicationEventMulticaster.class));
-		eventProducer.setBeanFactory(CONTEXT);
+		eventProducer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);

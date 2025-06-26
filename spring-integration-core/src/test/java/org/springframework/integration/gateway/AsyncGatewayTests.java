@@ -61,7 +61,7 @@ public class AsyncGatewayTests implements TestApplicationContextAware {
 	@Test
 	public void futureWithMessageReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
-		requestChannel.setBeanFactory(CONTEXT);
+		requestChannel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
 		setupProxyFactory(requestChannel, proxyFactory);
@@ -378,7 +378,7 @@ public class AsyncGatewayTests implements TestApplicationContextAware {
 		proxyFactory.setDefaultRequestChannel(messageChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		proxyFactory.setBeanFactory(CONTEXT);
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
 	private record CustomFuture(String result, Thread thread) implements Future<String> {

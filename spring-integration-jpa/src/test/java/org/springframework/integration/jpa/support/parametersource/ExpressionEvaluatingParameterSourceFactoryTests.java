@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExpressionEvaluatingParameterSourceFactoryTests implements TestApplicationContextAware {
 
 	private final ExpressionEvaluatingParameterSourceFactory factory =
-			new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+			new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 
 	@Test
 	public void testSetStaticParameters() {

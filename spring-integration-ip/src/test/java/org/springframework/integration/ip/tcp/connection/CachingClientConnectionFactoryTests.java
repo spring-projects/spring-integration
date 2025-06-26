@@ -733,7 +733,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		gate.setOutputChannel(outputChannel);
 		gate.setBeanFactory(mock(BeanFactory.class));
 		gate.setRemoteTimeout(20_000);
-		gate.setBeanFactory(CONTEXT);
+		gate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gate.afterPropertiesSet();
 		LogAccessor logger = spy(TestUtils.getPropertyValue(gate, "logger", LogAccessor.class));
 		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);

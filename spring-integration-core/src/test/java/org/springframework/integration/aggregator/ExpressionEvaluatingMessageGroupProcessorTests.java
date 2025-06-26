@@ -59,7 +59,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests implements TestAppli
 	public void testProcessAndSendWithSizeExpressionEvaluated() {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root.size()");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessageGroup(group);
 		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
@@ -70,9 +70,9 @@ public class ExpressionEvaluatingMessageGroupProcessorTests implements TestAppli
 	public void testProcessAndCheckHeaders() {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessageGroup(group);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
 		assertThat(resultMessage.getHeaders().get("foo")).isEqualTo("bar");
@@ -82,7 +82,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests implements TestAppli
 	public void testProcessAndSendWithProjectionExpressionEvaluated() {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("![payload]");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessageGroup(group);
 		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
@@ -100,7 +100,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests implements TestAppli
 	public void testProcessAndSendWithFilterAndProjectionExpressionEvaluated() {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("?[payload>2].![payload]");
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessageGroup(group);
 		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
@@ -117,7 +117,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests implements TestAppli
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor(String.format("T(%s).sum(?[payload>2].![payload])",
 				getClass().getName()));
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessageGroup(group);
 		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();

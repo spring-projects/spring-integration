@@ -67,12 +67,12 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport implements TestAp
 	public void testINT3412AppendStatRmdir() {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
-		fileNameGenerator.setBeanFactory(CONTEXT);
+		fileNameGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fileNameGenerator.setExpression("'foobar.txt'");
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		template.execute(session -> {
 			session.mkdir("foo/");
@@ -125,7 +125,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport implements TestAp
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(this.sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("/"));
 		template.setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST_AND_DIRS);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		File file = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
 		FileOutputStream fileOutputStream = new FileOutputStream(file);

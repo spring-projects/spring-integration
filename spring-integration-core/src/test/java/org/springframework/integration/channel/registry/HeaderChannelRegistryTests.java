@@ -98,7 +98,7 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 	public void testReplace() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.input);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("foo"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:foo");
@@ -113,7 +113,7 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 	public void testReplaceTtl() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputTtl);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("ttl"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
@@ -128,7 +128,7 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 	public void testReplaceCustomTtl() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputCustomTtl);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> requestMessage = MessageBuilder.withPayload("ttl")
 				.setHeader("channelTTL", 180000)
 				.build();
@@ -173,7 +173,7 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 	public void testReplaceError() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputPolled);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("bar"));
 		assertThat(reply).isNotNull();
 		assertThat(reply instanceof ErrorMessage).isTrue();

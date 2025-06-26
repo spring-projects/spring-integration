@@ -54,7 +54,7 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 
 	@BeforeEach
 	void setUp() {
-		CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+		TEST_INTEGRATION_CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
 				.forReadOnlyDataBinding()
 				.build());
 	}
@@ -70,7 +70,7 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 					uriHolder.set(uri);
 					throw new RuntimeException("intentional");
 				});
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
 		try {
@@ -100,7 +100,7 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 					uriHolder.set(uri);
 					throw new RuntimeException("intentional");
 				});
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		try {
 			handler.handleMessage(new GenericMessage<Object>("bar"));

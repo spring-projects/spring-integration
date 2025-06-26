@@ -68,13 +68,13 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 			return false;
 		});
 		server.setApplicationEventPublisher(publisher);
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).getObject();
 		client.setApplicationEventPublisher(publisher);
-		client.setBeanFactory(CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		client.getConnection().send(new GenericMessage<>("foo"));

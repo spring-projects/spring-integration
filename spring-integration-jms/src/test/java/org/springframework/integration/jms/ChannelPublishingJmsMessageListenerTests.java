@@ -61,7 +61,7 @@ public class ChannelPublishingJmsMessageListenerTests implements TestApplication
 		listener.setRequestChannel(requestChannel);
 		listener.setMessageConverter(new TestMessageConverter());
 		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
-		listener.setBeanFactory(CONTEXT);
+		listener.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		listener.afterPropertiesSet();
 		assertThatExceptionOfType(InvalidDestinationException.class)
 				.isThrownBy(() -> listener.onMessage(jmsMessage, session));
@@ -85,7 +85,7 @@ public class ChannelPublishingJmsMessageListenerTests implements TestApplication
 			}
 
 		});
-		listener.setBeanFactory(CONTEXT);
+		listener.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		listener.afterPropertiesSet();
 		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.onMessage(jmsMessage, mock(Session.class));

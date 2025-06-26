@@ -47,7 +47,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -83,7 +83,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(false);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -111,7 +111,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 	public void receiveAndDontSetDeleteWithUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -139,7 +139,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 	public void receiveAndDontSetDeleteWithoutUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
-		receiver.setBeanFactory(CONTEXT);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

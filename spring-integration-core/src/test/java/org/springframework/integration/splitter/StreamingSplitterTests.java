@@ -58,7 +58,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 	public void splitToIterator_sequenceSizeInLastMessageHeader() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -81,7 +81,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 						.build();
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -102,7 +102,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 	public void splitToIterator_allMessagesSent() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -114,7 +114,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 	public void splitToIterable_allMessagesSent() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IterableTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -126,7 +126,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 	public void splitToIterator_allMessagesContainSequenceNumber() {
 		final int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -141,7 +141,7 @@ public class StreamingSplitterTests implements TestApplicationContextAware {
 	public void splitWithMassiveReplyMessages_allMessagesSent() {
 		final int messageQuantity = 100000;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(CONTEXT);
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();

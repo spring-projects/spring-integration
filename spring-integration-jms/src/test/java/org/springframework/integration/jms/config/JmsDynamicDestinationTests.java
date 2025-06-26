@@ -77,7 +77,7 @@ public class JmsDynamicDestinationTests extends ActiveMQMultiContextTests implem
 		Message<?> message1 = MessageBuilder.withPayload("test-1").setHeader("destinationNumber", 1).build();
 		Message<?> message2 = MessageBuilder.withPayload("test-2").setHeader("destinationNumber", 2).build();
 		MessagingTemplate template = new MessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result1 = template.sendAndReceive(gatewayChannel, message1);
 		Message<?> result2 = template.sendAndReceive(gatewayChannel, message2);
 		assertThat(result1).isNotNull();

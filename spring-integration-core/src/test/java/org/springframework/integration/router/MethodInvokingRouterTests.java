@@ -52,7 +52,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new GenericMessage<>("bar");
@@ -70,7 +70,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
 		router.setChannelResolver(channelResolver);
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("bar");
 		router.handleMessage(message);
@@ -90,7 +90,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
 		router.setChannelResolver(channelResolver);
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader("targetChannel", "foo").build();
@@ -127,7 +127,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	}
 
 	private void doTestChannelNameResolutionByMessage(MethodInvokingRouter router) {
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -176,7 +176,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		Message<String> fooMessage = new GenericMessage<>("foo");
 		Message<String> barMessage = new GenericMessage<>("bar");
@@ -225,7 +225,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -274,7 +274,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -328,7 +328,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -382,7 +382,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -436,7 +436,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -491,7 +491,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -546,7 +546,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
 
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
@@ -593,7 +593,7 @@ public class MethodInvokingRouterTests implements TestApplicationContextAware {
 		router.setChannelResolver(channelResolver);
 		router.setChannelMapping(String.class.getName(), "stringsChannel");
 		router.setChannelMapping(Integer.class.getName(), "numbersChannel");
-		router.setBeanFactory(CONTEXT);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		router.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
 		router.handleMessage(message);

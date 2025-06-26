@@ -49,21 +49,21 @@ public class ExpressionEvaluatingReleaseStrategyTests implements TestApplication
 	@Test
 	public void testCompletedWithSizeSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("#root.size()==5");
-		strategy.setBeanFactory(CONTEXT);
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==5].empty");
-		strategy.setBeanFactory(CONTEXT);
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelReturnsNotCompleted() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==6].empty");
-		strategy.setBeanFactory(CONTEXT);
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isFalse();
 	}
 

@@ -122,7 +122,7 @@ public abstract class TestUtils {
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
 		ErrorHandler errorHandler = new MessagePublishingErrorHandler(context);
-		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10); // NOSONAR
+		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
 		scheduler.setErrorHandler(errorHandler);
 		registerBean("taskScheduler", scheduler, context);
 		registerBean("integrationConversionService", new DefaultFormattingConversionService(), context);

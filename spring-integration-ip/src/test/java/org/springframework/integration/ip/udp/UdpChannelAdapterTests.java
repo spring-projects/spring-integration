@@ -234,7 +234,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 				"localhost", port, false, true,
 				"localhost",
 				0, 5000);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
@@ -327,7 +327,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();

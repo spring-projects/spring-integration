@@ -71,7 +71,7 @@ public class CorrelatingMessageHandlerTests implements TestApplicationContextAwa
 		outputChannel = mock(MessageChannel.class);
 		handler = new AggregatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 	}
 

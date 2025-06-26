@@ -257,7 +257,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		assertThat(result.get()).isNotNull();
@@ -271,7 +271,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<Message<?>> result = template.asyncSendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result.get()).isNotNull();
@@ -305,7 +305,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive("test");
 		assertThat(result.get()).isNotNull();
@@ -320,7 +320,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive(channel, "test");
 		assertThat(result.get()).isNotNull();
@@ -354,7 +354,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive(123, new TestMessagePostProcessor());
 		assertThat(result.get()).isNotNull();
@@ -369,7 +369,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive(channel, "test", new TestMessagePostProcessor());
 		assertThat(result.get()).isNotNull();
@@ -402,7 +402,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(10000));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		assertThatExceptionOfType(TimeoutException.class)
@@ -414,7 +414,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(-1));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		assertThatExceptionOfType(ExecutionException.class)
@@ -428,7 +428,7 @@ public class AsyncMessagingTemplateTests implements TestApplicationContextAware 
 		EchoHandler handler = new EchoHandler(10000);
 		channel.subscribe(handler);
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 

@@ -28,10 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
@@ -245,8 +243,6 @@ public class MessagingGatewayTests implements TestApplicationContextAware {
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new MyErrorService());
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		this.applicationContext.registerBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
 		handler.setBeanFactory(this.applicationContext);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
@@ -276,8 +272,6 @@ public class MessagingGatewayTests implements TestApplicationContextAware {
 		MyOneWayErrorService myOneWayErrorService = new MyOneWayErrorService();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(myOneWayErrorService);
 		handler.setBeanFactory(this.applicationContext);
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		this.applicationContext.registerBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
@@ -288,7 +282,7 @@ public class MessagingGatewayTests implements TestApplicationContextAware {
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
-		this.messagingGateway.setBeanFactory(CONTEXT);
+		this.messagingGateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 

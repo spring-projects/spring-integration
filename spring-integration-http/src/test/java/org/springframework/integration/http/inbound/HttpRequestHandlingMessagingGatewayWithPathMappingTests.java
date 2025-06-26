@@ -65,7 +65,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
@@ -107,7 +107,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
@@ -153,7 +153,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(CONTEXT);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");

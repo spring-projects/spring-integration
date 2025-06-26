@@ -86,7 +86,7 @@ public class HibernateJpaOperationsTests implements TestApplicationContextAware 
 		assertThat(students.size() == 3).isTrue();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdate("update Student s " +
@@ -105,7 +105,7 @@ public class HibernateJpaOperationsTests implements TestApplicationContextAware 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudent", source);
@@ -121,7 +121,7 @@ public class HibernateJpaOperationsTests implements TestApplicationContextAware 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ExpressionEvaluatingParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNativeQuery("update Student " +
@@ -178,7 +178,7 @@ public class HibernateJpaOperationsTests implements TestApplicationContextAware 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudentNativeQuery", source);

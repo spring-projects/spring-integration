@@ -499,7 +499,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setDiscardChannel(discardChannel);
 		handler.setExpireTimeout(1);
 
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessageInternal(MessageBuilder.withPayload("test").setCorrelationId("test").build());
 		Thread.sleep(100);
@@ -518,7 +518,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setDiscardChannel(discardChannel);
 		handler.setExpireTimeout(100);
 		handler.setExpireDuration(Duration.ofMillis(10));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);

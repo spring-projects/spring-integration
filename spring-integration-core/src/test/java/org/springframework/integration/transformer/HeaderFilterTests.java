@@ -84,7 +84,7 @@ public class HeaderFilterTests implements TestApplicationContextAware {
 	@Test
 	public void testIdHeaderRemoval() {
 		HeaderFilter filter = new HeaderFilter("foo", MessageHeaders.ID);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			filter.afterPropertiesSet();
 			fail("BeanInitializationException expected");
@@ -98,7 +98,7 @@ public class HeaderFilterTests implements TestApplicationContextAware {
 	@Test
 	public void testTimestampHeaderRemoval() {
 		HeaderFilter filter = new HeaderFilter(MessageHeaders.TIMESTAMP);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			filter.afterPropertiesSet();
 			fail("BeanInitializationException expected");
@@ -112,7 +112,7 @@ public class HeaderFilterTests implements TestApplicationContextAware {
 	@Test
 	public void testIdPatternRemoval() {
 		HeaderFilter filter = new HeaderFilter("*", MessageHeaders.ID);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.setPatternMatch(true);
 		try {
 			filter.afterPropertiesSet();
@@ -128,7 +128,7 @@ public class HeaderFilterTests implements TestApplicationContextAware {
 	public void testPatternRemoval() {
 		HeaderFilter filter = new HeaderFilter("time*");
 		filter.setPatternMatch(true);
-		filter.setBeanFactory(CONTEXT);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("time", new Date())

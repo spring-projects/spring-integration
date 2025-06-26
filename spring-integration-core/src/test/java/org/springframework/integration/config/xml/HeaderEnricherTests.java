@@ -283,7 +283,7 @@ public class HeaderEnricherTests implements TestApplicationContextAware {
 
 	private static MessagingTemplate createMessagingTemplate() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		return template;
 	}
 

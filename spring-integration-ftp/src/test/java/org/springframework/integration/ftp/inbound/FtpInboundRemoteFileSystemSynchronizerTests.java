@@ -107,14 +107,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = expressionParser.parseExpression("'subdir/' + #this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
-		synchronizer.setBeanFactory(CONTEXT);
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		FtpInboundFileSynchronizingMessageSource ms = new FtpInboundFileSynchronizingMessageSource(synchronizer);
 
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
-		ms.setBeanFactory(CONTEXT);
+		ms.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
 		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();
@@ -179,7 +179,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setRemoteDirectory("remote-test-dir");
 
-		synchronizer.setBeanFactory(CONTEXT);
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		synchronizer.synchronizeToLocalDirectory(localDirectory);

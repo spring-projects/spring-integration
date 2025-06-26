@@ -64,7 +64,7 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 	public void autoCreateForInboundEnabledByDefault() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		assertThat(new File(INBOUND_PATH).exists()).isTrue();
@@ -76,7 +76,7 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
 		source.setAutoCreateDirectory(false);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		assertThatIllegalArgumentException()
 				.isThrownBy(source::start);
@@ -86,7 +86,7 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 	public void autoCreateForOutboundEnabledByDefault() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
 				new File(OUTBOUND_PATH));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		assertThat(new File(OUTBOUND_PATH).exists()).isTrue();
 	}
@@ -95,7 +95,7 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 	public void autoCreateForOutboundDisabled() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
 				new File(OUTBOUND_PATH));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setAutoCreateDirectory(false);
 		assertThatIllegalArgumentException()
 				.isThrownBy(handler::afterPropertiesSet);

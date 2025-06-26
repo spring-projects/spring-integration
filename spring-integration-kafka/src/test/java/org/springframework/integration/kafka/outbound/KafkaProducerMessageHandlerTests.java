@@ -161,7 +161,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setSendTimeout(50_000);
 		handler.setSync(true);
 		handler.afterPropertiesSet();
@@ -219,7 +219,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -250,7 +250,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -289,7 +289,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		PollableChannel successes = new QueueChannel();
 		handler.setSendSuccessChannel(successes);
 		handler.afterPropertiesSet();
@@ -327,7 +327,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		});
 		PollableChannel failures = new QueueChannel();
 		handler.setSendFailureChannel(failures);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		message = MessageBuilder.withPayload("bar")
 				.setHeader(KafkaHeaders.TOPIC, "foo")
@@ -380,7 +380,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setHeaderMapper(new DefaultKafkaHeaderMapper("!*"));
 		handler.afterPropertiesSet();
 
@@ -434,7 +434,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		template.start();
 		assertThat(assigned.await(30, TimeUnit.SECONDS)).isTrue();
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		handler.afterPropertiesSet();
@@ -485,7 +485,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -547,7 +547,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
-		inbound.setBeanFactory(CONTEXT);
+		inbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -590,7 +590,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		template.setTransactionIdPrefix("overridden.tx.id.");
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -613,7 +613,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		try {
@@ -693,7 +693,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
-		inbound.setBeanFactory(CONTEXT);
+		inbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -741,7 +741,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(
@@ -764,7 +764,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -788,7 +788,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		template.setMessageConverter(converter);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ProducerRecordCreator creator = mock(ProducerRecordCreator.class);
 		ProducerRecord recordFromCreator = mock(ProducerRecord.class);
 		given(creator.create(any(), any(), any(), any(), any(), any(), any())).willReturn(recordFromCreator);

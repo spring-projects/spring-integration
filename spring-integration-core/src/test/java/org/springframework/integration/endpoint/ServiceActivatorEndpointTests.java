@@ -87,7 +87,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 		channelResolver.addChannel("testChannel", channel);
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setReplyChannelName("testChannel").build();
@@ -113,7 +113,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("replyChannel2", replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReplyChannel(replyChannel1).build();
@@ -157,7 +157,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new TestNullReplyBean(), "handle");
 		endpoint.setOutputChannel(channel);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
@@ -170,7 +170,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new TestNullReplyBean(), "handle");
 		endpoint.setRequiresReply(true);
 		endpoint.setOutputChannel(channel);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		assertThatThrownBy(() -> endpoint.handleMessage(message))
@@ -188,7 +188,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 						return message;
 					}
 				}, "handle");
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 
 		Message<String> message = MessageBuilder.withPayload("test")
@@ -210,7 +210,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 								.setCorrelationId("ABC-123").build();
 					}
 				}, "handle");
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 
 		Message<String> message = MessageBuilder.withPayload("test")
@@ -225,7 +225,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 	@Test
 	public void testBeanFactoryPopulation() {
 		ServiceActivatingHandler endpoint = this.createEndpoint();
-		BeanFactory mock = CONTEXT;
+		BeanFactory mock = TEST_INTEGRATION_CONTEXT;
 		endpoint.setBeanFactory(mock);
 		endpoint.afterPropertiesSet();
 		Object beanFactory = TestUtils.getPropertyValue(endpoint, "processor.beanFactory");
@@ -235,7 +235,7 @@ public class ServiceActivatorEndpointTests implements TestApplicationContextAwar
 
 	private ServiceActivatingHandler createEndpoint() {
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new TestBean(), "handle");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		return handler;
 	}

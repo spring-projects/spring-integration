@@ -63,7 +63,7 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests implements TestAp
 		Expression expression = factoryBean.getObject();
 		ExpressionEvaluatingMessageSource<Object> source =
 				new ExpressionEvaluatingMessageSource<>(expression, Object.class);
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.setHeaderExpressions(headerExpressions);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);

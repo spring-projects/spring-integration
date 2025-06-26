@@ -43,7 +43,7 @@ public class HeaderAnnotationTransformerTests implements TestApplicationContextA
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -59,7 +59,7 @@ public class HeaderAnnotationTransformerTests implements TestApplicationContextA
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -75,7 +75,7 @@ public class HeaderAnnotationTransformerTests implements TestApplicationContextA
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -91,7 +91,7 @@ public class HeaderAnnotationTransformerTests implements TestApplicationContextA
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -107,7 +107,7 @@ public class HeaderAnnotationTransformerTests implements TestApplicationContextA
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setNotPropagatedHeaders(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();

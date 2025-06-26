@@ -88,7 +88,7 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 				FileReadingMessageSource.WatchEventType.MODIFY,
 				FileReadingMessageSource.WatchEventType.DELETE);
 		fileReadingMessageSource.setWatchDirPredicate(path -> !path.getFileName().toString().equals("skipped"));
-		fileReadingMessageSource.setBeanFactory(CONTEXT);
+		fileReadingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
 

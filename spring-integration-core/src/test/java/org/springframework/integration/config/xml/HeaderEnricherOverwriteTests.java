@@ -156,7 +156,7 @@ public class HeaderEnricherOverwriteTests implements TestApplicationContextAware
 		MessageChannel channel = this.context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
 		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(42);

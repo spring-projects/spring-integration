@@ -79,7 +79,7 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests imp
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setAutoCreateDirectory(true);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("hello"));
 		assertFileExists(file);

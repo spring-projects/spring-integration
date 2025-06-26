@@ -561,7 +561,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 		JdbcMessageStore pooledMessageStore = new JdbcMessageStore(poolingDataSource);
 
 		CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
-		collectionArgumentResolver.setBeanFactory(CONTEXT);
+		collectionArgumentResolver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Method methodForCollectionOfPayloads = getClass().getMethod("methodForCollectionOfPayloads", Collection.class);
 		MethodParameter methodParameter = SynthesizingMethodParameter.forExecutable(methodForCollectionOfPayloads, 0);
 

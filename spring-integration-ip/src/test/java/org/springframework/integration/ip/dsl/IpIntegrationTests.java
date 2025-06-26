@@ -136,19 +136,19 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").getObject();
 		assertThat(server.getComponentName()).isEqualTo("server");
 		server.setApplicationEventPublisher(publisher);
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		TcpReceivingChannelAdapter inbound = Tcp.inboundAdapter(server).getObject();
 		QueueChannel received = new QueueChannel();
 		inbound.setOutputChannel(received);
-		inbound.setBeanFactory(CONTEXT);
+		inbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		TestingUtilities.waitListening(server, null);
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).id("client").getObject();
 		assertThat(client.getComponentName()).isEqualTo("client");
 		client.setApplicationEventPublisher(publisher);
-		client.setBeanFactory(CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).getObject();
 		handler.start();
@@ -168,7 +168,7 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 		this.client1.start();
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.clientTcpFlowInput);
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		assertThat(messagingTemplate.convertSendAndReceive("junk", String.class)).isEqualTo("error:non-convertible");

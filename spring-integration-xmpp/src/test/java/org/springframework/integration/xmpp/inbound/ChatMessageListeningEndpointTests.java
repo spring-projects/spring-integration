@@ -94,7 +94,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 
 		assertThat(packetListSet.size()).isEqualTo(0);
 		endpoint.setOutputChannel(new QueueChannel());
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		assertThat(packetListSet.size()).isEqualTo(1);
@@ -111,9 +111,9 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 
 	@Test
 	public void testWithImplicitXmppConnection() {
-		CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
+		TEST_INTEGRATION_CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
 		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
@@ -129,7 +129,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 	@Test
 	public void testWithErrorChannel() throws Exception {
 		XMPPConnection connection = mock(XMPPConnection.class);
-		CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
+		TEST_INTEGRATION_CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 
 		DirectChannel outChannel = new DirectChannel();
@@ -137,7 +137,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 			throw new RuntimeException("ooops");
 		});
 		PollableChannel errorChannel = new QueueChannel();
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.setOutputChannel(outChannel);
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
@@ -163,7 +163,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 		SpelExpressionParser parser = new SpelExpressionParser();
 		endpoint.setPayloadExpression(parser.parseExpression("#root"));
 		endpoint.setOutputChannel(inputChannel);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
@@ -234,7 +234,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 		Expression payloadExpression = new SpelExpressionParser().parseExpression("#extension.json");
 		endpoint.setPayloadExpression(payloadExpression);
 		endpoint.setOutputChannel(inputChannel);
-		endpoint.setBeanFactory(CONTEXT);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 

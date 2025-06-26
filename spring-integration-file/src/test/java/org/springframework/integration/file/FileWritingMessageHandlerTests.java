@@ -104,7 +104,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 				new FileOutputStream(sourceFile, false));
 
 		this.handler = new FileWritingMessageHandler(this.outputDirectory);
-		this.handler.setBeanFactory(CONTEXT);
+		this.handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.handler.setApplicationContext(new GenericApplicationContext());
 		this.handler.afterPropertiesSet();
 
@@ -274,7 +274,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(handler::afterPropertiesSet)
 				.withMessageContaining("[/foo] could not be created");
@@ -498,7 +498,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
 		handler.setOutputChannel(new NullChannel());
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setFlushInterval(30000);
 		handler.afterPropertiesSet();
 		handler.start();
@@ -583,7 +583,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
 		handler.setOutputChannel(new NullChannel());
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setFlushInterval(10);
 		handler.setFlushWhenIdle(false);
 		handler.afterPropertiesSet();

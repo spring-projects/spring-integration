@@ -61,7 +61,7 @@ public class ExpressionEvaluatingCorrelationStrategyTests implements TestApplica
 		ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = parser.parseExpression("payload.substring(0,1)");
 		strategy = new ExpressionEvaluatingCorrelationStrategy(expression);
-		strategy.setBeanFactory(CONTEXT);
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object correlationKey = strategy.getCorrelationKey(new GenericMessage<String>("bla"));
 		assertThat(correlationKey).isInstanceOf(String.class);
 		assertThat((String) correlationKey).isEqualTo("b");

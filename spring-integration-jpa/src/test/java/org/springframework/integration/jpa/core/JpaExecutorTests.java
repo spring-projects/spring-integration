@@ -58,7 +58,7 @@ public class JpaExecutorTests implements TestApplicationContextAware {
 	@Autowired
 	protected EntityManager entityManager;
 
-	private BeanFactory beanFactory = CONTEXT;
+	private BeanFactory beanFactory = TEST_INTEGRATION_CONTEXT;
 
 	/**
 	 * In this test, the {@link JpaExecutor}'s poll method will be called without
@@ -68,7 +68,7 @@ public class JpaExecutorTests implements TestApplicationContextAware {
 	@Test
 	public void testExecutePollWithNoEntityClassSpecified() {
 		JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
-		jpaExecutor.setBeanFactory(CONTEXT);
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		assertThatIllegalStateException()
@@ -161,14 +161,14 @@ public class JpaExecutorTests implements TestApplicationContextAware {
 	private JpaExecutor getJpaExecutorForMessageAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "payload['firstName']")));
 		executor.setParameterSourceFactory(factory);
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(false);
-		executor.setBeanFactory(CONTEXT);
+		executor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		executor.afterPropertiesSet();
 		return executor;
 	}
@@ -176,14 +176,14 @@ public class JpaExecutorTests implements TestApplicationContextAware {
 	private JpaExecutor getJpaExecutorForPayloadAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "#this")));
 		executor.setParameterSourceFactory(factory);
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(true);
-		executor.setBeanFactory(CONTEXT);
+		executor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		executor.afterPropertiesSet();
 		return executor;
 	}

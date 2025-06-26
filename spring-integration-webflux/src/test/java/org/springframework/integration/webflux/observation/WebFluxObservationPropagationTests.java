@@ -137,7 +137,7 @@ public class WebFluxObservationPropagationTests implements TestApplicationContex
 	@Test
 	void observationIsPropagatedWebFluxClientRequestReply() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		String result =
 				messagingTemplate
 						.convertSendAndReceive(this.webFluxRequestReplyClientFlowInput, "test", String.class);

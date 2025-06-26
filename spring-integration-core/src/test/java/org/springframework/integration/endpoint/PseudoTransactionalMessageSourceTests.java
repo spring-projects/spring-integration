@@ -63,7 +63,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
-		syncProcessor.setBeanFactory(CONTEXT);
+		syncProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		PollableChannel queueChannel = new QueueChannel();
 		syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
 		syncProcessor.setBeforeCommitChannel(queueChannel);
@@ -159,7 +159,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
-		syncProcessor.setBeanFactory(CONTEXT);
+		syncProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		PollableChannel queueChannel = new QueueChannel();
 		syncProcessor.setAfterRollbackChannel(queueChannel);
 		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
@@ -204,7 +204,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 					new ExpressionEvaluatingTransactionSynchronizationProcessor();
-			syncProcessor.setBeanFactory(CONTEXT);
+			syncProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
 			syncProcessor.setBeforeCommitChannel(queueChannel);
 			syncProcessor.setAfterCommitChannel(queueChannel);
@@ -251,7 +251,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 						new ExpressionEvaluatingTransactionSynchronizationProcessor();
-				syncProcessor.setBeanFactory(CONTEXT);
+				syncProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 				syncProcessor.setAfterRollbackChannel(queueChannel);
 				syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 
@@ -294,7 +294,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 					new ExpressionEvaluatingTransactionSynchronizationProcessor();
-			syncProcessor.setBeanFactory(CONTEXT);
+			syncProcessor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			syncProcessor.setAfterRollbackChannel(queueChannel);
 			syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 

@@ -104,13 +104,13 @@ public class SftpInboundRemoteFileSystemSynchronizerTests implements TestApplica
 		filters.add(patternFilter);
 		CompositeFileListFilter<SftpClient.DirEntry> filter = new CompositeFileListFilter<>(filters);
 		synchronizer.setFilter(filter);
-		synchronizer.setBeanFactory(CONTEXT);
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
-		ms.setBeanFactory(CONTEXT);
+		ms.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.test$"));
 		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();

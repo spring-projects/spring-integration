@@ -85,9 +85,9 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 		};
 
 		MessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
-		((MethodInvokingMessageHandler) testSubscriber).setBeanFactory(CONTEXT);
+		((MethodInvokingMessageHandler) testSubscriber).setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
-		reactiveConsumer.setBeanFactory(CONTEXT);
+		reactiveConsumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -144,7 +144,7 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 		});
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
-		reactiveConsumer.setBeanFactory(CONTEXT);
+		reactiveConsumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -199,7 +199,7 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 		publisher = publisher.log(Loggers.getLogger(ReactiveStreamsConsumerTests.class));
 		dfa.setPropertyValue("publisher", publisher);
 
-		reactiveConsumer.setBeanFactory(CONTEXT);
+		reactiveConsumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -306,7 +306,7 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 				};
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, messageHandler);
-		reactiveConsumer.setBeanFactory(CONTEXT);
+		reactiveConsumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 

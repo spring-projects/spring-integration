@@ -132,7 +132,7 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		adapter.setOutputChannel(new QueueChannel());
 
 		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		containerProps = TestUtils.getPropertyValue(container, "containerProperties", ContainerProperties.class);

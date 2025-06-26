@@ -46,7 +46,7 @@ public class ControlBusParserTests implements TestApplicationContextAware {
 	public void testControlMessageToChannelMetrics() {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setBeanFactory(CONTEXT);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object value = messagingTemplate.convertSendAndReceive(control, "@cb.isRunning()", Object.class);
 		assertThat(value).isEqualTo(Boolean.TRUE);
 	}

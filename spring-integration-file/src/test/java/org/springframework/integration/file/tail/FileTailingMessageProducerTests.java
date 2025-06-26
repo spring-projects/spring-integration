@@ -167,7 +167,7 @@ public class FileTailingMessageProducerTests implements TestApplicationContextAw
 
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setIdleEventInterval(10);
-		adapter.setBeanFactory(CONTEXT);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 

@@ -50,7 +50,7 @@ public class StopStartTests extends ActiveMQMultiContextTests implements TestApp
 	@Test
 	public void test() {
 		MessagingTemplate template = new MessagingTemplate(this.test);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.outGateway.start();
 		assertThat(template.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		this.outGateway.stop();

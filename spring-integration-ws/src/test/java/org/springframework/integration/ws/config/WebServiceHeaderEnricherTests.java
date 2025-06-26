@@ -54,7 +54,7 @@ public class WebServiceHeaderEnricherTests implements TestApplicationContextAwar
 	@Test
 	public void literalValue() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(literalValueInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
@@ -64,7 +64,7 @@ public class WebServiceHeaderEnricherTests implements TestApplicationContextAwar
 	@Test
 	public void expression() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(expressionInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();

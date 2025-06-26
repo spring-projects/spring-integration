@@ -470,8 +470,8 @@ class WebFluxRequestExecutingMessageHandlerTests implements TestApplicationConte
 		reactiveHandler.setReplyPayloadToFlux(true);
 		Expression expr = new SpelExpressionParser().parseExpression("{name:{first:'Nikola'}}");
 		reactiveHandler.setAttributeVariablesExpression(expr);
-		reactiveHandler.setBeanFactory(CONTEXT);
-		CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+		reactiveHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		TEST_INTEGRATION_CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
 				.forReadOnlyDataBinding()
 				.build());
 		reactiveHandler.afterPropertiesSet();

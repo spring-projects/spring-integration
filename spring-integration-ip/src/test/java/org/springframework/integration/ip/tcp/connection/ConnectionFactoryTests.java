@@ -101,7 +101,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				openEventThread.set(Thread.currentThread());
 			}
 		});
-		server.setBeanFactory(CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
@@ -223,7 +223,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 	@Test
 	public void testEarlyCloseNio() throws Exception {
 		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
-		factory.setBeanFactory(CONTEXT);
+		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
 	}
 

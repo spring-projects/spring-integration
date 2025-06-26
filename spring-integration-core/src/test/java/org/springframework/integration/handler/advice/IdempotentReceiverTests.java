@@ -80,7 +80,7 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 		ConcurrentMetadataStore store = new SimpleMetadataStore();
 		ExpressionEvaluatingMessageProcessor<String> idempotentKeyStrategy =
 				new ExpressionEvaluatingMessageProcessor<>(new SpelExpressionParser().parseExpression("payload"));
-		BeanFactory beanFactory = CONTEXT;
+		BeanFactory beanFactory = TEST_INTEGRATION_CONTEXT;
 		idempotentKeyStrategy.setBeanFactory(beanFactory);
 		IdempotentReceiverInterceptor idempotentReceiverInterceptor =
 				new IdempotentReceiverInterceptor(new MetadataStoreSelector(idempotentKeyStrategy, store));

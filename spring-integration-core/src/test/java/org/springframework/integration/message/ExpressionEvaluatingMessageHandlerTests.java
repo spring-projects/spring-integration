@@ -50,7 +50,7 @@ public class ExpressionEvaluatingMessageHandlerTests implements TestApplicationC
 	public void validExpression() {
 		Expression expression = parser.parseExpression("T(System).out.println(payload)");
 		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("test"));
 	}
@@ -59,7 +59,7 @@ public class ExpressionEvaluatingMessageHandlerTests implements TestApplicationC
 	public void validExpressionWithNoArgs() {
 		Expression expression = parser.parseExpression("T(System).out.println()");
 		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("test"));
 	}
@@ -68,7 +68,7 @@ public class ExpressionEvaluatingMessageHandlerTests implements TestApplicationC
 	public void validExpressionWithSomeArgs() {
 		Expression expression = parser.parseExpression("T(System).out.write(payload.bytes, 0, headers.offset)");
 		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		HashMap<String, Object> headers = new HashMap<String, Object>();
 		headers.put("offset", 4);
@@ -80,7 +80,7 @@ public class ExpressionEvaluatingMessageHandlerTests implements TestApplicationC
 		Message<?> message = new GenericMessage<Float>(.1f);
 		Expression expression = parser.parseExpression("T(System).out.printf('$%4.2f', payload)");
 		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> handler.handleMessage(message))

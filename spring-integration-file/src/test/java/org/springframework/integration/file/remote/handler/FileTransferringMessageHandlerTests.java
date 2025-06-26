@@ -71,7 +71,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("''"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -94,7 +94,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
 		handler.setTemporaryRemoteDirectoryExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -117,7 +117,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -131,7 +131,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		Session<F> session = mock(Session.class);
 		when(sf.getSession()).thenReturn(session);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setRemoteDirectoryExpressionString("headers['path']");
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> handler.setTemporaryFileSuffix(null));
@@ -149,7 +149,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
 		handler.setUseTemporaryFileName(false);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -163,7 +163,7 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		CachingSessionFactory<F> csf = new CachingSessionFactory<F>(sf, 2);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(csf);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Session<F> session1 = newSession();
 		Session<F> session2 = newSession();
 		Session<F> session3 = newSession();

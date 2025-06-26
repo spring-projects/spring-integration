@@ -72,7 +72,7 @@ public class AggregatorTests  implements TestApplicationContextAware {
 	@BeforeEach
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
-		this.aggregator.setBeanFactory(CONTEXT);
+		this.aggregator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.aggregator.setApplicationEventPublisher(event -> expiryEvents.add((MessageGroupExpiredEvent) event));
 		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();

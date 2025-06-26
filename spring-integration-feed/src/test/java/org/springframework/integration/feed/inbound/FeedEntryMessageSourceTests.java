@@ -87,7 +87,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 				};
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(urlResource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 	}
@@ -97,7 +97,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "foo");
 		source.setBeanName("feedReader");
-		source.setBeanFactory(CONTEXT);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		Message<SyndEntry> message1 = source.receive();
 		Message<SyndEntry> message2 = source.receive();
@@ -120,7 +120,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
@@ -139,7 +139,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 	}
@@ -154,7 +154,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -179,7 +179,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 		assertThat(feedEntrySource.receive()).isNull();
@@ -193,7 +193,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -213,7 +213,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		// now test that what's been read is read AGAIN
 		feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(CONTEXT);
+		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		entry1 = feedEntrySource.receive().getPayload();
 		entry2 = feedEntrySource.receive().getPayload();

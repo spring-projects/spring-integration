@@ -53,7 +53,7 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 	@Test
 	public void zipString() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(CONTEXT);
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		zipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		zipTransformer.afterPropertiesSet();
 
@@ -86,7 +86,7 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 	@Test
 	public void zipStringCollection() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(CONTEXT);
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		zipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		zipTransformer.afterPropertiesSet();
 
@@ -144,7 +144,7 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 	@Test
 	public void zipStringToFile() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(CONTEXT);
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		zipTransformer.afterPropertiesSet();
 
 		final String stringToCompress = "Hello World";
@@ -173,7 +173,7 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 	public void zipFile() {
 
 		ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(CONTEXT);
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		zipTransformer.setDeleteFiles(true);
 		zipTransformer.afterPropertiesSet();
 
@@ -214,7 +214,7 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 		files.add(testFile4);
 
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(CONTEXT);
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		zipTransformer.afterPropertiesSet();
 
 		final Message<Collection<File>> message = MessageBuilder.withPayload(files).build();

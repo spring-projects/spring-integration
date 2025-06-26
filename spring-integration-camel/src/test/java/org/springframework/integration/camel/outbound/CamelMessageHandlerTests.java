@@ -59,7 +59,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport implements TestAp
 
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
 		camelMessageHandler.setEndpointUri("direct:simple");
-		camelMessageHandler.setBeanFactory(CONTEXT);
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.afterPropertiesSet();
 
 		camelMessageHandler.handleMessage(messageUnderTest);
@@ -96,7 +96,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport implements TestAp
 		camelMessageHandler.setEndpointUriExpression(new FunctionExpression<>(m -> "direct:simple"));
 		camelMessageHandler.setExchangePatternExpression(spelExpressionParser.parseExpression("headers.exchangePattern"));
 		camelMessageHandler.setHeaderMapper(headerMapper);
-		camelMessageHandler.setBeanFactory(CONTEXT);
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.afterPropertiesSet();
 
 		camelMessageHandler.handleMessage(messageUnderTest);
@@ -127,7 +127,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport implements TestAp
 
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
 		camelMessageHandler.setEndpointUri("direct:simple");
-		camelMessageHandler.setBeanFactory(CONTEXT);
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.setAsync(true);
 		camelMessageHandler.afterPropertiesSet();
 
@@ -160,7 +160,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport implements TestAp
 		producerTemplate.setDefaultEndpointUri("direct:simple");
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(producerTemplate);
 		camelMessageHandler.setExchangePattern(ExchangePattern.InOut);
-		camelMessageHandler.setBeanFactory(CONTEXT);
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.setAsync(true);
 		camelMessageHandler.afterPropertiesSet();
 

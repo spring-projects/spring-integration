@@ -66,7 +66,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void multiThreadsUUIDToStringConversion() throws Exception {
 		Method method = TestService.class.getMethod("headerId", String.class, String.class);
 		final MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ExecutorService exec = Executors.newFixedThreadPool(100);
 		processor.processMessage(new GenericMessage<>("foo"));
 		for (int i = 0; i < 100; i++) {
@@ -81,7 +81,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void optionalHeader() throws Exception {
 		Method method = TestService.class.getMethod("optionalHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("foo"));
 		assertThat(result).isNull();
 	}
@@ -90,7 +90,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void requiredHeaderNotProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")));
 	}
@@ -99,7 +99,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void requiredHeaderNotProvidedOnSecondMessage() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
 				.setHeader("num", 123).build();
 		GenericMessage<String> messageWithoutHeader = new GenericMessage<>("foo");
@@ -115,7 +115,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", 123).build();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo(123);
 	}
@@ -124,7 +124,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar").build();
 
@@ -136,7 +136,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", 123).build();
 		Object result = processor.processMessage(message);
@@ -147,7 +147,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithOptionalAndRequiredHeaderAndBothHeadersProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", 123)
 				.setHeader("prop", "bar")
@@ -160,7 +160,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithPropertiesMethodAndHeadersAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("propertiesHeaders", Properties.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class)).isFalse();
@@ -185,7 +185,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithPropertiesAndObjectMethod() throws Exception {
 		Method method = TestService.class.getMethod("propertiesHeadersAndPayload", Properties.class, Object.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object result = processor.processMessage(message);
@@ -199,7 +199,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithMapAndObjectMethod() throws Exception {
 		Method method = TestService.class.getMethod("mapHeadersAndPayload", Map.class, Object.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Map<?, ?> result = (Map<?, ?>) processor.processMessage(message);
@@ -215,7 +215,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithPropertiesMethodAndPropertiesPayload() throws Exception {
 		Method method = TestService.class.getMethod("propertiesPayload", Properties.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
@@ -231,7 +231,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithMapMethodAndHeadersAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("mapHeaders", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("attrib1", 123)
 				.setHeader("attrib2", 456).build();
@@ -244,7 +244,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageWithMapMethodAndMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapPayload", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Map<String, Integer> payload = new HashMap<>();
 		payload.put("attrib1", 88);
 		payload.put("attrib2", 99);
@@ -262,7 +262,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 		Message<?> message = this.getMessage();
 		Method method = TestService.class.getMethod("headerAnnotationWithExpression", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo("monday");
 	}
@@ -272,7 +272,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		Method method = TestService.class.getMethod("irrelevantAnnotation", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo("foo");
 	}
@@ -287,7 +287,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 				String.class,
 				Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object[] parameters = (Object[]) processor.processMessage(message);
 		assertThat(parameters).isNotNull();
 		assertThat(parameters.length).isEqualTo(5);
@@ -302,7 +302,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapOnly", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
 		assertThat(result instanceof Map).isTrue();
@@ -313,7 +313,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToPayloadArg() throws Exception {
 		Method method = TestService.class.getMethod("payloadAnnotationFirstName", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
 		assertThat(result instanceof String).isTrue();
@@ -324,7 +324,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToPayloadArgs() throws Exception {
 		Method method = TestService.class.getMethod("payloadAnnotationFullName", String.class, String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo("oleg zhurakousky");
@@ -334,7 +334,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToPayloadArgsHeaderArgs() throws Exception {
 		Method method = TestService.class.getMethod("payloadArgAndHeaderArg", String.class, String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("day", "monday").build();
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo("olegmonday");
@@ -351,7 +351,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToHeadersWithExpressions() throws Exception {
 		Method method = TestService.class.getMethod("headersWithExpressions", String.class, String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Employee employee = new Employee("John", "Doe");
 		Message<?> message = MessageBuilder.withPayload("payload").setHeader("emp", employee).build();
 		Object result = processor.processMessage(message);
@@ -362,7 +362,7 @@ public class MethodInvokingMessageProcessorAnnotationTests implements TestApplic
 	public void fromMessageToHyphenatedHeaderName() throws Exception {
 		Method method = TestService.class.getMethod("headerNameWithHyphen", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.setBeanFactory(CONTEXT);
+		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("payload").setHeader("foo-bar", "abc").build();
 		Object result = processor.processMessage(message);
 		assertThat(result).isEqualTo("ABC");

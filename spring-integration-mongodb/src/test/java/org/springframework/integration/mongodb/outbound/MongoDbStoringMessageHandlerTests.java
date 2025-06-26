@@ -81,7 +81,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApp
 	void validateMessageHandlingWithDefaultCollection() {
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -98,7 +98,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApp
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -119,7 +119,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApp
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		handler.setMongoConverter(converter);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -141,7 +141,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApp
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(writingTemplate);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);

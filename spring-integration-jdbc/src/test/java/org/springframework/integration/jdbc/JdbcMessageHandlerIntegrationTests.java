@@ -71,7 +71,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public void testSimpleStaticInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (1, 0, 'foo')");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
@@ -85,7 +85,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public void testSimpleDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (1, 0, :payload)");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
@@ -97,7 +97,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public void testInsertBatch() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (:payload, 0, :payload)");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
@@ -119,9 +119,9 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 		ExpressionEvaluatingSqlParameterSourceFactory sqlParameterSourceFactory =
 				new ExpressionEvaluatingSqlParameterSourceFactory();
 		sqlParameterSourceFactory.setParameterExpressions(Map.of("id", "headers.id", "payload", "payload"));
-		sqlParameterSourceFactory.setBeanFactory(CONTEXT);
+		sqlParameterSourceFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<GenericMessage<String>> payload =
@@ -154,7 +154,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 			ps.setObject(1, requestMessage.getPayload());
 			setterInvoked.set(true);
 		});
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
@@ -171,7 +171,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 			ps.setObject(1, requestMessage.getPayload());
 			ps.setObject(2, requestMessage.getPayload());
 		});
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
@@ -190,7 +190,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public void testIdHeaderDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		String id = message.getHeaders().getId().toString();
@@ -207,7 +207,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public void testDottedHeaderDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (:headers[business.id], 0, :payload)");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("business.id", "FOO").build();
 		handler.handleMessage(message);

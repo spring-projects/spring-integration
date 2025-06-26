@@ -69,11 +69,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport implements Test
 		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'foobar.txt'");
-		fileNameGenerator.setBeanFactory(CONTEXT);
+		fileNameGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("/foo/"));
 		template.setUseTemporaryFileName(false);
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 
 		template.execute(session -> {
@@ -111,11 +111,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport implements Test
 		CachingSessionFactory<SftpClient.DirEntry> sessionFactory = new CachingSessionFactory<>(sessionFactory(), 1);
 		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression(""));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setUseTemporaryFileName(false);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'test.file'");
-		fileNameGenerator.setBeanFactory(CONTEXT);
+		fileNameGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setFileNameGenerator(fileNameGenerator);
 		template.afterPropertiesSet();
 

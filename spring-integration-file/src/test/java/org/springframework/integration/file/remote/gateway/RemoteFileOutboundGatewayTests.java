@@ -841,12 +841,12 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 
 		};
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpressionString("'foo/'");
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -872,12 +872,12 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 				.exists(anyString());
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -932,12 +932,12 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 				.exists(anyString());
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		handler.setBeanFactory(CONTEXT);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		gw.setFileExistsModeExpressionString("headers[\"file.exists.mode\"]");
@@ -992,7 +992,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", "payload");
 		gw.afterPropertiesSet();
@@ -1019,7 +1019,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(CONTEXT);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", null);
 		gw.setOptions("-R");
@@ -1177,14 +1177,14 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
-			this.setBeanFactory(CONTEXT);
+			this.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			remoteFileTemplateExplicitlySet(false);
 		}
 
 		TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
 				String expression) {
 			super(remoteFileTemplate, command, expression);
-			this.setBeanFactory(CONTEXT);
+			this.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		}
 
 		@Override
