@@ -18,6 +18,8 @@ package org.springframework.integration.aop;
 
 import java.time.Duration;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -67,7 +69,7 @@ public class SimpleActiveIdleReceiveMessageAdvice implements ReceiveMessageAdvic
 	}
 
 	@Override
-	public Message<?> afterReceive(Message<?> result, Object source) {
+	public @Nullable Message<?> afterReceive(@Nullable Message<?> result, Object source) {
 		if (result == null) {
 			this.trigger.setDuration(this.idlePollPeriod);
 		}

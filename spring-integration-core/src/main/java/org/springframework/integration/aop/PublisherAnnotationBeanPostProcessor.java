@@ -16,19 +16,22 @@
 
 package org.springframework.integration.aop;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.autoproxy.AbstractBeanFactoryAwareAdvisingPostProcessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.util.Assert;
 
 /**
  * Post-processes beans that contain the
  * method-level @{@link org.springframework.integration.annotation.Publisher} annotation.
  * <p>
  * Only one bean instance of this processor can be declared in the application context, manual
- * or automatic by thr framework via annotation or XML processing.
+ * or automatic by the framework via annotation or XML processing.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -42,10 +45,18 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
 		implements BeanNameAware, SmartInitializingSingleton {
 
-	private String defaultChannelName;
+	/**
+	 * This value is optional and may be {@code null}, indicating that no default channel
+	 * is configured and message routing must be handled explicitly elsewhere.  For example:
+	 * {@link MessagePublishingInterceptor} can accept a null value for this attribute.
+	 *
+	 */
+	private @Nullable String defaultChannelName;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	/**
@@ -60,6 +71,7 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 
 	@Override
 	public void setBeanName(String name) {
+		Assert.notNull(name, "'name' must not be null");
 		this.beanName = name;
 	}
 

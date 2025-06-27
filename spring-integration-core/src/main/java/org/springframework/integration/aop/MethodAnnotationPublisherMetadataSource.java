@@ -80,7 +80,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	}
 
 	@Override
-	public String getChannelName(Method method) {
+	public @Nullable String getChannelName(Method method) {
 		return this.channels.computeIfAbsent(method,
 				method1 -> {
 					String channelName = getAnnotationValue(method, this.channelAttributeName);
@@ -92,7 +92,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	}
 
 	@Override
-	public Expression getExpressionForPayload(Method method) {
+	public @Nullable Expression getExpressionForPayload(Method method) {
 		return this.payloadExpressions.computeIfAbsent(method,
 				method1 -> {
 					Expression payloadExpression = null;
@@ -141,7 +141,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		return this.headersExpressions.computeIfAbsent(method,
 				method1 -> {
 					Map<String, Expression> headerExpressions = new HashMap<>();
-					String[] parameterNames = this.parameterNameDiscoverer.getParameterNames(method);
+					@Nullable String[] parameterNames = this.parameterNameDiscoverer.getParameterNames(method);
 					Annotation[][] annotationArray = method.getParameterAnnotations();
 					for (int i = 0; i < annotationArray.length; i++) {
 						Annotation[] parameterAnnotations = annotationArray[i];

@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
@@ -66,7 +68,7 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 	}
 
 	@Override
-	public Expression getExpressionForPayload(Method method) {
+	public @Nullable Expression getExpressionForPayload(Method method) {
 		for (Map.Entry<String, Expression> entry : this.payloadExpressionMap.entrySet()) {
 			if (PatternMatchUtils.simpleMatch(entry.getKey(), method.getName())) {
 				return entry.getValue();
@@ -76,7 +78,7 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 	}
 
 	@Override
-	public Map<String, Expression> getExpressionsForHeaders(Method method) {
+	public @Nullable Map<String, Expression> getExpressionsForHeaders(Method method) {
 		return this.headerExpressionMap
 				.entrySet()
 				.stream()
@@ -87,7 +89,7 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 	}
 
 	@Override
-	public String getChannelName(Method method) {
+	public @Nullable String getChannelName(Method method) {
 		for (Map.Entry<String, String> entry : this.channelMap.entrySet()) {
 			if (PatternMatchUtils.simpleMatch(entry.getKey(), method.getName())) {
 				return entry.getValue();
