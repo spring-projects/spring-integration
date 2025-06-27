@@ -44,8 +44,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 
 	private final Lock lock = new ReentrantLock();
 
-	@SuppressWarnings("NullAway.Init")
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private volatile boolean throwExceptionOnLateReplySet;
 
@@ -96,10 +95,12 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 			this.lock.lock();
 			try {
 				if (!this.throwExceptionOnLateReplySet) {
-					IntegrationProperties integrationProperties = IntegrationContextUtils
-							.getIntegrationProperties(this.beanFactory);
-					super.setThrowExceptionOnLateReply(
-							integrationProperties.isMessagingTemplateThrowExceptionOnLateReply());
+					if (this.beanFactory != null) {
+						IntegrationProperties integrationProperties =
+								IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+						super.setThrowExceptionOnLateReply(
+								integrationProperties.isMessagingTemplateThrowExceptionOnLateReply());
+					}
 					this.throwExceptionOnLateReplySet = true;
 				}
 			}

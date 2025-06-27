@@ -153,14 +153,14 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		DirectChannel requestChannel = new DirectChannel();
 		BeanFactory beanFactory = mock();
 		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+		when(beanFactory.getBean(eq("taskScheduler"), Mockito.<Class<TaskScheduler>>any()))
 				.thenReturn(taskScheduler);
 		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
 		when(beanFactory.containsBean(eq("integrationEvaluationContext")))
 				.thenReturn(true);
-		when(beanFactory.getBean(eq("integrationEvaluationContext"), any(Class.class)))
+		when(beanFactory.getBean(eq("integrationEvaluationContext"), Mockito.<Class<StandardEvaluationContext>>any()))
 				.thenReturn(evaluationContext);
 
 		QueueChannel nullChannel = new QueueChannel();
@@ -543,7 +543,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		assertThat(gateways.get(sendMethod).getRequestChannel()).isEqualTo(beanFactory.getBean("requestChannel"));
 	}
 
-	public static void throwTestException() throws TestException {
+	public static void throwTestException() throws Exception {
 		throw new TestException();
 	}
 

@@ -242,6 +242,7 @@ public class ChannelTests {
 		amqpTemplate.setMessageConverter(messageConverter);
 		PointToPointSubscribableAmqpChannel channel = new PointToPointSubscribableAmqpChannel("testConvertFail",
 				new SimpleMessageListenerContainer(this.connectionFactory), amqpTemplate);
+		channel.setBeanFactory(mock());
 		channel.afterPropertiesSet();
 		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener",
 				MessageListener.class);

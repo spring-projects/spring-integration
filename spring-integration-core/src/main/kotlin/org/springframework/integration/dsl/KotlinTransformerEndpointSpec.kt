@@ -51,7 +51,7 @@ class KotlinTransformerEndpointSpec(override val delegate: TransformerEndpointSp
 	 * @param <P> the input type.
 	 * @param <T> the output type.
 	 */
-	fun <P, T> transformer(transformer: GenericTransformer<P, T>) {
+	fun <P: Any, T: Any> transformer(transformer: GenericTransformer<P, T>) {
 		this.delegate.transformer(transformer)
 	}
 

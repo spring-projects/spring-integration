@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.MapAccessor;
@@ -36,7 +37,6 @@ import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -139,7 +139,8 @@ public class RemoteFileStreamingMessageSourceTests implements TestApplicationCon
 				.thenReturn(true);
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
-		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName), any(Class.class)))
+		when(beanFactory
+				.getBean(eq(integrationEvaluationContextBeanName), Mockito.<Class<StandardEvaluationContext>>any()))
 				.thenReturn(evaluationContext);
 		return beanFactory;
 	}

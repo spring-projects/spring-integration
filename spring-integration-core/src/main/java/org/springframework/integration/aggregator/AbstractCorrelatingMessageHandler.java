@@ -117,6 +117,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private MessageGroupProcessor outputProcessor;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageGroupStore messageStore;
 
 	private CorrelationStrategy correlationStrategy;

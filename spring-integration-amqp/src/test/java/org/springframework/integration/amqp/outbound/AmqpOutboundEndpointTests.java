@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,7 +46,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -72,6 +72,9 @@ import static org.mockito.Mockito.verify;
 @RabbitAvailable
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class AmqpOutboundEndpointTests {
+
+	@Autowired
+	BeanFactory beanFactory;
 
 	@Autowired
 	private MessageChannel pcRequestChannel;
@@ -173,10 +176,10 @@ public class AmqpOutboundEndpointTests {
 		this.multiSendChannel.send(message);
 		org.springframework.amqp.core.Message m = receive(template);
 		assertThat(m).isNotNull();
-		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("foo");
+		assertThat(new String(m.getBody(), StandardCharsets.UTF_8)).isEqualTo("foo");
 		m = receive(template);
 		assertThat(m).isNotNull();
-		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("bar");
+		assertThat(new String(m.getBody(), StandardCharsets.UTF_8)).isEqualTo("bar");
 	}
 
 	@Test
@@ -192,12 +195,8 @@ public class AmqpOutboundEndpointTests {
 		PollableChannel nacks = new QueueChannel();
 		endpoint.setConfirmNackChannel(nacks);
 		endpoint.setConfirmCorrelationExpressionString("headers.id");
-		endpoint.setBeanFactory(mock(BeanFactory.class));
-		ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
-		endpoint.setTaskScheduler(sched);
 		endpoint.setConfirmTimeout(100);
-		sched.afterPropertiesSet();
-		endpoint.setTaskScheduler(sched);
+		endpoint.setBeanFactory(beanFactory);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		endpoint.handleMessage(message);
@@ -213,7 +212,6 @@ public class AmqpOutboundEndpointTests {
 				.isSameAs(message.getHeaders().getId());
 		assertThat(((NackedAmqpMessageException) nack.getPayload()).getNackReason()).isEqualTo("Confirm timed out");
 		endpoint.stop();
-		sched.destroy();
 	}
 
 	@Test

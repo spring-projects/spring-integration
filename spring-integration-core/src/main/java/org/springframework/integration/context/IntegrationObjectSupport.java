@@ -62,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Stefan Ferstl
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public abstract class IntegrationObjectSupport implements ComponentSourceAware, NamedComponent,
 		ApplicationContextAware, BeanFactoryAware, InitializingBean, ExpressionCapable {
@@ -70,9 +71,9 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 
 	private static final IdGenerator ID_GENERATOR = new AlternativeJdkIdGenerator();
 
-	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
+	protected final LogAccessor logger = new LogAccessor(getClass());
 
-	@SuppressWarnings("NullAway.Init")
+	@Nullable
 	private DestinationResolver<MessageChannel> channelResolver;
 
 	@SuppressWarnings("NullAway.Init")
@@ -95,8 +96,9 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
-	@SuppressWarnings("NullAway.Init")
-	private MessageBuilderFactory messageBuilderFactory;
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private boolean messageBuilderFactoryExplicitlySet;
 
 	@Nullable
 	private Expression expression;
@@ -226,13 +228,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	@Override
 	public final void afterPropertiesSet() {
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		if (this.messageBuilderFactory == null) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			else {
-				this.messageBuilderFactory = new DefaultMessageBuilderFactory();
-			}
+		if (!this.messageBuilderFactoryExplicitlySet) {
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 		}
 		if (this.beanSource == null && this.beanName != null
 				&& this.beanFactory instanceof ConfigurableListableBeanFactory configurableListableBeanFactory
@@ -280,35 +277,34 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	protected TaskScheduler getTaskScheduler() {
-		if (this.taskScheduler == null && this.beanFactory != null) {
-			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
+		TaskScheduler taskSchedulerToUse = this.taskScheduler;
+		if (taskSchedulerToUse == null) {
+			taskSchedulerToUse = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
+			this.taskScheduler = taskSchedulerToUse;
 		}
-		Assert.notNull(this.taskScheduler, "'taskScheduler' must not be null");
-		return this.taskScheduler;
+		return taskSchedulerToUse;
 	}
 
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
-		if (this.channelResolver == null) {
-			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+		DestinationResolver<MessageChannel> channelResolverToUse = this.channelResolver;
+		if (channelResolverToUse == null) {
+			channelResolverToUse = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+			this.channelResolver = channelResolverToUse;
 		}
-		return this.channelResolver;
-	}
-
-	@Nullable
-	public ConversionService getConversionService() {
-		if (this.conversionService == null && this.beanFactory != null) {
-			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
-			if (this.conversionService == null) {
-				this.logger.debug(() -> "Unable to attempt conversion of Message payload types. Component '" +
-						getComponentName() + "' has no explicit ConversionService reference, " +
-						"and there is no 'integrationConversionService' bean within the context.");
-			}
-		}
-		return this.conversionService;
+		return channelResolverToUse;
 	}
 
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
+	}
+
+	public ConversionService getConversionService() {
+		ConversionService conversionServiceToUse = this.conversionService;
+		if (conversionServiceToUse == null) {
+			conversionServiceToUse = IntegrationUtils.getConversionService(this.beanFactory);
+			this.conversionService = conversionServiceToUse;
+		}
+		return conversionServiceToUse;
 	}
 
 	/**
@@ -316,8 +312,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	 * {@link ApplicationContext} is available.
 	 * @return The id, or null if there is no application context.
 	 */
-	@Nullable
-	public String getApplicationContextId() {
+	public @Nullable String getApplicationContextId() {
 		return this.applicationContext == null ? null : this.applicationContext.getId();
 	}
 
@@ -337,14 +332,12 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (this.messageBuilderFactory == null) {
-			this.messageBuilderFactory = new DefaultMessageBuilderFactory();
-		}
 		return this.messageBuilderFactory;
 	}
 
 	public void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
 		this.messageBuilderFactory = messageBuilderFactory;
+		this.messageBuilderFactoryExplicitlySet = true;
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.SocketFactory;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -266,9 +267,10 @@ public class SyslogReceivingChannelAdapterTests {
 	private BeanFactory getBeanFactory() {
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+		when(beanFactory.getBean(eq("taskScheduler"), Mockito.<Class<TaskScheduler>>any()))
 				.thenReturn(taskScheduler);
 		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
 		return beanFactory;
 	}
+
 }

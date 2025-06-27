@@ -46,7 +46,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -68,8 +68,7 @@ import static org.mockito.Mockito.spy;
  *
  */
 @RabbitAvailable(queues = {"asyncQ1", "asyncRQ1"})
-@LogLevels(categories = "org.springframework.amqp", level = "trace")
-class AsyncAmqpGatewayTests {
+class AsyncAmqpGatewayTests implements TestApplicationContextAware {
 
 	@Test
 	void testConfirmsAndReturns() throws Exception {
@@ -131,7 +130,7 @@ class AsyncAmqpGatewayTests {
 		gateway.setConfirmCorrelationExpressionString("#this");
 		gateway.setExchangeName("");
 		gateway.setRoutingKey("asyncQ1");
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 

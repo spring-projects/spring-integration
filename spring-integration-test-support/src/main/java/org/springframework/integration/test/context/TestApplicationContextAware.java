@@ -40,6 +40,7 @@ import org.springframework.integration.test.util.TestUtils;
  * To use this interface, a test class simply needs to implement it.
  *
  * @author Glenn Renfro
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -54,12 +55,8 @@ public interface TestApplicationContextAware {
 		}
 		catch (IllegalStateException ex) {
 			if (!ex.getMessage().contains("just call 'refresh' once")) {
-				throw new RuntimeException(ex);
+				throw ex;
 			}
-
-		}
-		catch (Exception ex) {
-			throw new RuntimeException(ex);
 		}
 	}
 

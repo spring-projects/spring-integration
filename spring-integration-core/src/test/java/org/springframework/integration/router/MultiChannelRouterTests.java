@@ -22,22 +22,21 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  */
-public class MultiChannelRouterTests {
+public class MultiChannelRouterTests implements TestApplicationContextAware {
 
 	@Test
 	public void routeWithChannelMapping() {
@@ -50,10 +49,15 @@ public class MultiChannelRouterTests {
 				};
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
+
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("channel1", channel1);
 		channelResolver.addChannel("channel2", channel2);
+
 		router.setChannelResolver(channelResolver);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		router.afterPropertiesSet();
+
 		Message<String> message = new GenericMessage<>("test");
 		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
@@ -74,6 +78,9 @@ public class MultiChannelRouterTests {
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		router.afterPropertiesSet();
+
 		Message<String> message = new GenericMessage<>("test");
 		assertThatThrownBy(() -> router.handleMessage(message)).isInstanceOf(MessagingException.class);
 	}
@@ -87,7 +94,9 @@ public class MultiChannelRouterTests {
 						return Collections.singletonList("noSuchChannel");
 					}
 				};
-		router.setBeanFactory(mock(BeanFactory.class));
+		router.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		router.afterPropertiesSet();
+
 		Message<String> message = new GenericMessage<>("test");
 		assertThatThrownBy(() -> router.handleMessage(message))
 				.isInstanceOf(MessagingException.class);

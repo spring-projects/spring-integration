@@ -19,6 +19,7 @@ package org.springframework.integration.channel.registry;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -50,7 +51,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -289,7 +289,8 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 				.thenReturn(true);
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
-		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName), any(Class.class)))
+		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName),
+				Mockito.<Class<StandardEvaluationContext>>any()))
 				.thenReturn(evaluationContext);
 		return beanFactory;
 	}

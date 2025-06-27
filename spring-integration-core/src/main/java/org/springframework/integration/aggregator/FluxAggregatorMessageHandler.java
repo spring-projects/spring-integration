@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * {@link #start()} method.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.2
  */
@@ -146,7 +147,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	/**
 	 * Configure a {@link CorrelationStrategy} to determine a group key from the incoming messages.
-	 * By default a {@link HeaderAttributeCorrelationStrategy} is used against a
+	 * By default, a {@link HeaderAttributeCorrelationStrategy} is used against a
 	 * {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} header value.
 	 * @param correlationStrategy the {@link CorrelationStrategy} to use.
 	 */
@@ -159,7 +160,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * Configure a transformation {@link Function} to apply for a {@link Flux} window to emit.
 	 * Requires a {@link Mono} result with a {@link Message} as value as a combination result
 	 * of the incoming {@link Flux} for window.
-	 * By default a {@link Flux} for window is fully wrapped into a message with headers copied
+	 * By default, a {@link Flux} for window is fully wrapped into a message with headers copied
 	 * from the first message in window. Such a {@link Flux} in the payload has to be subscribed
 	 * and consumed downstream.
 	 * @param combineFunction the {@link Function} to use for result windows transformation.

@@ -32,26 +32,24 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
- * processed is delegated to a {@link org.springframework.integration.aggregator.ReleaseStrategy ReleaseStrategy}.
- * When a message can be processed it is up to the client to take care of the locking (potentially from the
- * ReleaseStrategy's
- * {@link org.springframework.integration.aggregator.ReleaseStrategy#canRelease(org.springframework.integration.store.MessageGroup) canRelease(..)}
- * method).
+ * This Endpoint serves as a barrier for messages that should not be processed yet.
+ * The decision when a message can be processed is delegated to a {@link ReleaseStrategy}.
+ * When a message can be processed it is up to the client to take care of the locking
+ * (potentially from the {@link ReleaseStrategy#canRelease(MessageGroup)} method).
  * <p>
- * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples the receiver and the
- * sender. It can
- * be applied in scenarios where completion of a message group is not well defined but only a certain amount of messages
- * for any given correlation key may be processed at a time.
+ * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples
+ * the receiver and the sender.
+ * It can be applied in scenarios where completion of a message group is not well-defined
+ * but only a certain amount of messages for any given correlation key may be processed at a time.
  * <p>
- * The messages will be stored in a {@link org.springframework.integration.store.MessageGroupStore MessageStore}
- * for each correlation key.
+ * The messages will be stored in a {@link MessageGroupStore} for each correlation key.
  *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Glenn Renfro
  *
  * @see AbstractCorrelatingMessageHandler
  */
@@ -61,10 +59,10 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	private final MessageGroupStore store;
 
-	@Nullable
+	@SuppressWarnings("NullAway.Init")
 	private CorrelationStrategy correlationStrategy;
 
-	@Nullable
+	@SuppressWarnings("NullAway.Init")
 	private ReleaseStrategy releaseStrategy;
 
 	public CorrelatingMessageBarrier() {
@@ -91,7 +89,13 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		this.releaseStrategy = releaseStrategy;
 	}
 
-	@SuppressWarnings("NullAway")
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
+		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
@@ -108,10 +112,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		return existingLock == null ? correlationKey : existingLock;
 	}
 
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings("unchecked")
 	@Override
-	@Nullable
-	public Message<Object> receive() {
+	public @Nullable Message<Object> receive() {
 		for (Object key : this.correlationLocks.keySet()) {
 			Object lock = getLock(key);
 			synchronized (lock) {
@@ -133,13 +136,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 			}
 		}
 		return null;
-	}
-
-	@Override
-	protected void onInit() {
-		super.onInit();
-		Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
-		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
 	}
 
 	private void remove(Object key) {
