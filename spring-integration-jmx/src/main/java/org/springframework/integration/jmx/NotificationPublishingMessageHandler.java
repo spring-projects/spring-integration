@@ -62,7 +62,8 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	private @Nullable String defaultNotificationType;
 
-	private @Nullable OutboundMessageMapper<Notification> notificationMapper;
+	@SuppressWarnings("NullAway.Init")
+	private OutboundMessageMapper<Notification> notificationMapper;
 
 	/**
 	 * Construct an instance based on the provided object name.
@@ -94,7 +95,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * will be passed as the 'userData' of the Notification.
 	 * @param notificationMapper The notification mapper.
 	 */
-	public void setNotificationMapper(@Nullable OutboundMessageMapper<Notification> notificationMapper) {
+	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
 		this.notificationMapper = notificationMapper;
 	}
 
@@ -140,7 +141,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.state(this.notificationMapper != null, "'notificationMapper' must not be null");
 		this.delegate.publish(Objects.requireNonNull(this.notificationMapper.fromMessage(message)));
 	}
 

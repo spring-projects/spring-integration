@@ -31,7 +31,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,9 +71,11 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
+	@SuppressWarnings("NullAway.Init")
+	private BeanExpressionResolver resolver;
 
-	private @Nullable BeanExpressionContext expressionContext;
+	@SuppressWarnings("NullAway.Init")
+	private BeanExpressionContext expressionContext;
 
 	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
@@ -81,13 +83,14 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-		if (beanFactory instanceof ConfigurableListableBeanFactory configurableListableBeanFactory) {
-			var beanExpressionResolver = configurableListableBeanFactory.getBeanExpressionResolver();
-			if (beanExpressionResolver != null) {
-				this.resolver = beanExpressionResolver;
-			}
-			this.expressionContext = new BeanExpressionContext(configurableListableBeanFactory, null);
+		Assert.isInstanceOf(ConfigurableBeanFactory.class, this.beanFactory);
+		var configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
+		var beanExpressionResolver = configurableBeanFactory.getBeanExpressionResolver();
+		if (beanExpressionResolver == null) {
+			beanExpressionResolver = new StandardBeanExpressionResolver(configurableBeanFactory.getBeanClassLoader());
 		}
+		this.resolver = beanExpressionResolver;
+		this.expressionContext = new BeanExpressionContext(configurableBeanFactory, null);
 	}
 
 	@Override
@@ -130,7 +133,6 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 		if (StringUtils.hasText(server)) {
 			MBeanServer bean;
 			if (server.startsWith("#{") && server.endsWith("}")) {
-				Assert.state(this.expressionContext != null, "'expressionContext' must not be null");
 				bean = (MBeanServer) this.resolver.evaluate(server, this.expressionContext);
 			}
 			else {
