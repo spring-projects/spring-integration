@@ -36,11 +36,11 @@ import org.springframework.expression.Expression;
  */
 public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 
-	private @Nullable volatile String channelName;
+	private @Nullable String channelName;
 
-	private @Nullable volatile Expression payloadExpression;
+	private @Nullable Expression payloadExpression;
 
-	private @Nullable volatile Map<String, Expression> headerExpressions;
+	private @Nullable Map<String, Expression> headerExpressions;
 
 	public void setChannelName(String channelName) {
 		this.channelName = channelName;
