@@ -106,7 +106,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	@Override
 	public Object process(Collection<? extends Message<?>> messages) {
 		Object object = this.evaluateExpression(this.expression, messages, this.expectedType);
-		Assert.state(object != null, "The evaluation of the expression returned a null. Null result is not expected:" + this.expression);
+		Assert.state(object != null, "The evaluation of the expression returned a null. Null result is not expected: " + this.expression);
 		return object;
 	}
 
