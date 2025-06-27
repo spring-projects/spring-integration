@@ -33,6 +33,8 @@ import javax.management.NotificationListener;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -55,13 +57,13 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private final AtomicBoolean listenerRegisteredOnStartup = new AtomicBoolean();
 
-	private MBeanServerConnection server;
+	private @Nullable MBeanServerConnection server;
 
-	private ObjectName[] mBeanObjectNames;
+	private @Nullable ObjectName @Nullable[] mBeanObjectNames;
 
-	private NotificationFilter filter;
+	private @Nullable NotificationFilter filter;
 
-	private Object handback;
+	private @Nullable Object handback;
 
 	/**
 	 * Provide a reference to the MBeanServer where the notification
@@ -108,7 +110,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 * sent to this producer's output channel.
 	 */
 	@Override
-	public void handleNotification(Notification notification, Object handback) {
+	public void handleNotification(Notification notification, @Nullable Object handback) {
 		this.logger.info(() -> "received notification: " + notification + ", and handback: " + handback);
 		AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().withPayload(notification);
 		if (handback != null) {
@@ -148,7 +150,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
 		try {
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
-			if (objectNames.size() < 1) {
+			if (objectNames.isEmpty()) {
 				this.logger.error(() -> "No MBeans found matching ObjectName pattern(s): " +
 						Arrays.toString(this.mBeanObjectNames));
 			}
@@ -195,7 +197,9 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	protected Collection<ObjectName> retrieveMBeanNames() {
 		List<ObjectName> objectNames = new ArrayList<>();
-		for (ObjectName pattern : this.mBeanObjectNames) {
+		Assert.notNull(this.server, "MBeanServer is required.");
+		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
+		for (@Nullable ObjectName pattern : this.mBeanObjectNames) {
 			Set<ObjectInstance> mBeanInfos;
 			try {
 				mBeanInfos = this.server.queryMBeans(pattern, null);
@@ -203,7 +207,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			catch (IOException e) {
 				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 			}
-			if (mBeanInfos.size() == 0) {
+			if (mBeanInfos.isEmpty()) {
 				this.logger.debug(() -> "No MBeans found matching pattern: " + pattern);
 			}
 			for (ObjectInstance instance : mBeanInfos) {

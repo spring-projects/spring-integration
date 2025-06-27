@@ -35,6 +35,8 @@ import javax.management.JMException;
 import javax.management.ObjectName;
 import javax.management.modelmbean.ModelMBean;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
@@ -72,7 +74,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -114,6 +115,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private final IntegrationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	private final Map<Object, AtomicLong> anonymousHandlerCounters = new HashMap<>();
@@ -124,7 +126,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private final Map<String, IntegrationInboundManagement> sources = new HashMap<>();
 
-	private final Map<IntegrationInboundManagement, ManageableLifecycle> sourceLifecycles = new HashMap<>();
+	private final Map<IntegrationInboundManagement, @Nullable ManageableLifecycle> sourceLifecycles = new HashMap<>();
 
 	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<>();
 
@@ -353,9 +355,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
 			if (messageSource instanceof IntegrationInboundManagement) {
 				IntegrationInboundManagement monitor = extractTarget(messageSource);
-				registerSource(monitor);
-				this.sourceLifecycles.put(monitor, pollingChannelAdapter);
-				this.runtimeBeans.add(monitor);
+				if (monitor != null) {
+					registerSource(monitor);
+					this.sourceLifecycles.put(monitor, pollingChannelAdapter);
+					this.runtimeBeans.add(monitor);
+				}
 				return;
 			}
 		}
@@ -411,9 +415,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		}
 	}
 
-	private MessageHandler handlerInAnonymousWrapper(final Object bean) {
+	private @Nullable MessageHandler handlerInAnonymousWrapper(@Nullable final Object bean) {
 		if (bean != null && bean.getClass().isAnonymousClass()) {
-			final AtomicReference<MessageHandler> wrapped = new AtomicReference<>();
+			final AtomicReference<@Nullable MessageHandler> wrapped = new AtomicReference<>();
 			ReflectionUtils.doWithFields(bean.getClass(), field -> {
 				field.setAccessible(true);
 				Object handler = field.get(bean);
@@ -635,11 +639,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return this.sources.keySet().toArray(String[]::new);
 	}
 
-	public IntegrationInboundManagement getSource(String name) {
+	public @Nullable IntegrationInboundManagement getSource(String name) {
 		return this.sources.get(name);
 	}
 
-	public IntegrationManagement getChannel(String name) {
+	public @Nullable IntegrationManagement getChannel(String name) {
 		return this.channels.get(name);
 	}
 
@@ -759,7 +763,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T extractTarget(Object bean) {
+	private <T> @Nullable T extractTarget(@Nullable Object bean) {
 		if (!(bean instanceof Advised advised)) {
 			return (T) bean;
 		}
@@ -867,7 +871,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private IntegrationManagement buildMessageHandlerMetrics(
 			IntegrationManagement monitor2,
-			String name, String source, IntegrationConsumer endpoint) {
+			@Nullable String name, String source, @Nullable IntegrationConsumer endpoint) {
 
 		String managedType = source;
 		String managedName = name;
@@ -876,7 +880,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			managedName = getInternalComponentName(managedName);
 			managedType = "internal";
 		}
-		if (managedName != null && name.startsWith(IntegrationContextUtils.BASE_PACKAGE)) {
+		if (managedName != null && managedName.startsWith(IntegrationContextUtils.BASE_PACKAGE) && endpoint != null) {
 			MessageChannel inputChannel = endpoint.getInputChannel();
 			if (inputChannel != null) {
 				managedName = buildAnonymousManagedName(this.anonymousHandlerCounters, inputChannel);
@@ -943,7 +947,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return messageSourceMetrics;
 	}
 
-	private AbstractEndpoint getEndpointForMonitor(IntegrationInboundManagement source2) {
+	private @Nullable AbstractEndpoint getEndpointForMonitor(IntegrationInboundManagement source2) {
 		for (AbstractEndpoint endpoint : this.applicationContext.getBeansOfType(AbstractEndpoint.class).values()) {
 			Object target = null;
 			if (source2 instanceof MessagingGatewaySupport && endpoint.equals(source2)) {
@@ -960,8 +964,8 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private IntegrationInboundManagement buildMessageSourceMetricsIfAny(
-			IntegrationInboundManagement source2, String name,
-			String source, Object endpoint) {
+			IntegrationInboundManagement source2, @Nullable String name,
+			String source, @Nullable Object endpoint) {
 
 		String managedType = source;
 		String managedName = name;

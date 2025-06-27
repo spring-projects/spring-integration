@@ -34,6 +34,7 @@ import javax.management.openmbean.TabularData;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -61,7 +62,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 	@Override
 	public Object convert(MBeanServerConnection connection, ObjectInstance instance) {
-		Map<String, Object> attributeMap = new HashMap<>();
+		Map<String, @Nullable Object> attributeMap = new HashMap<>();
 
 		try {
 			ObjectName objName = instance.getObjectName();
@@ -109,7 +110,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 		return attributeMap;
 	}
 
-	private Object checkAndConvert(Object input) {
+	private @Nullable Object checkAndConvert(@Nullable Object input) {
 		Object converted = null;
 		if (input instanceof CompositeData) {
 			converted = convertFromCompositeData((CompositeData) input);
@@ -129,9 +130,9 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 		}
 	}
 
-	private Object convertFromArray(Object input) {
+	private @Nullable Object convertFromArray(Object input) {
 		if (CompositeData.class.isAssignableFrom(input.getClass().getComponentType())) {
-			List<Object> converted = new ArrayList<>();
+			List<@Nullable Object> converted = new ArrayList<>();
 			int length = Array.getLength(input);
 			for (int i = 0; i < length; i++) {
 				Object value = checkAndConvert(Array.get(input, i));
@@ -146,15 +147,15 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 		return null;
 	}
 
-	private Object convertFromCompositeData(CompositeData data) {
+	private @Nullable Object convertFromCompositeData(CompositeData data) {
 		if (data.getCompositeType().isArray()) {
 			// TODO? I haven't found an example where this gets thrown - but need to test it on Tomcat/Jetty or
 			// something
-			LOGGER.warn("(data.getCompositeType().isArray for " + data.toString());
+			LOGGER.warn("(data.getCompositeType().isArray for " + data);
 			return null;
 		}
 		else {
-			Map<String, Object> returnable = new HashMap<>();
+			Map<String, @Nullable Object> returnable = new HashMap<>();
 			Set<String> keys = data.getCompositeType().keySet();
 			for (String key : keys) {
 				// we don't need to repeat name of this as an attribute
@@ -168,14 +169,14 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 		}
 	}
 
-	private Object convertFromTabularData(TabularData data) {
+	private @Nullable Object convertFromTabularData(TabularData data) {
 		if (data.getTabularType().isArray()) {
 			// TODO? I haven't found an example where this gets thrown, so might not be required
-			LOGGER.warn("TabularData.isArray for " + data.toString());
+			LOGGER.warn("TabularData.isArray for " + data);
 			return null;
 		}
 		else {
-			Map<Object, Object> returnable = new HashMap<>();
+			Map<Object, @Nullable Object> returnable = new HashMap<>();
 			@SuppressWarnings("unchecked")
 			Set<List<?>> keySet = (Set<List<?>>) data.keySet();
 			for (List<?> keys : keySet) {

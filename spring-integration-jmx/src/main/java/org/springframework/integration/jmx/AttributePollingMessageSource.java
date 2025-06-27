@@ -20,6 +20,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.MessagingException;
@@ -35,11 +37,11 @@ import org.springframework.util.Assert;
  */
 public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
 
-	private volatile ObjectName objectName;
+	private volatile @Nullable ObjectName objectName;
 
-	private volatile String attributeName;
+	private volatile @Nullable String attributeName;
 
-	private volatile MBeanServerConnection server;
+	private volatile @Nullable MBeanServerConnection server;
 
 	/**
 	 * Provide the MBeanServer where the JMX MBean has been registered.

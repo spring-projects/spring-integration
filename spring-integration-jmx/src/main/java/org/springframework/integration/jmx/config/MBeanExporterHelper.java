@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,7 +58,7 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 			@SuppressWarnings("unchecked")
 			Collection<String> autoCreateChannelCandidatesNames =
 					(Collection<String>) new DirectFieldAccessor(bean).getPropertyValue("channelNames");
-			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
+			this.siBeanNames.addAll(Objects.requireNonNull(autoCreateChannelCandidatesNames));
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
 				autoCreateChannelCandidatesNames
 						.stream().
@@ -79,8 +80,7 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 			this.mBeanExportersForExcludes.forEach(mBeanExporter -> mBeanExporter.addExcludedBean(beanName));
 		}
 
-		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
-			MBeanExporter mBeanExporter = (MBeanExporter) bean;
+		if (bean instanceof MBeanExporter mBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			this.mBeanExportersForExcludes.add(mBeanExporter);
 			this.siBeanNames.forEach(mBeanExporter::addExcludedBean);
 		}

@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
@@ -46,7 +48,7 @@ import org.springframework.util.StringValueResolver;
  */
 public class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
 
-	private StringValueResolver valueResolver;
+	private @Nullable StringValueResolver valueResolver;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -57,7 +59,7 @@ public class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource 
 	}
 
 	@Override
-	public ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
+	public @Nullable ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
 		MergedAnnotation<IntegrationManagedResource> ann =
 				MergedAnnotations.from(beanClass, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY)
 						.get(IntegrationManagedResource.class)
