@@ -91,9 +91,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		this.releaseStrategy = releaseStrategy;
 	}
 
+	@SuppressWarnings("NullAway")
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Assert.notNull(correlationKey, "The correlation key is required");
 		Object lock = getLock(correlationKey);
@@ -108,7 +108,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		return existingLock == null ? correlationKey : existingLock;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	@Override
 	@Nullable
 	public Message<Object> receive() {
@@ -117,10 +117,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 			synchronized (lock) {
 				MessageGroup group = this.store.getMessageGroup(key);
 				//group might be removed by another thread
-				Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
 				if (group != null && this.releaseStrategy.canRelease(group)) {
 					Message<?> nextMessage = null;
-
 					Iterator<Message<?>> messages = group.getMessages().iterator();
 					if (messages.hasNext()) {
 						nextMessage = messages.next();
@@ -135,6 +133,13 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
+		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
 	}
 
 	private void remove(Object key) {
