@@ -23,13 +23,15 @@ import java.util.Map;
 
 import javax.management.MBeanServer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,23 +65,32 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	 */
 	public static final String MBEAN_EXPORTER_NAME = "integrationMbeanExporter";
 
+	@SuppressWarnings("NullAway.Init")
 	private AnnotationAttributes attributes;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
+	@SuppressWarnings("NullAway.Init")
+	private BeanExpressionResolver resolver;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanExpressionContext expressionContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			this.resolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
-			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
+		Assert.isInstanceOf(ConfigurableBeanFactory.class, this.beanFactory);
+		var configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
+		var beanExpressionResolver = configurableBeanFactory.getBeanExpressionResolver();
+		if (beanExpressionResolver == null) {
+			beanExpressionResolver = new StandardBeanExpressionResolver(configurableBeanFactory.getBeanClassLoader());
 		}
+		this.resolver = beanExpressionResolver;
+		this.expressionContext = new BeanExpressionContext(configurableBeanFactory, null);
 	}
 
 	@Override
@@ -89,10 +100,12 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableIntegrationMBeanExport.class.getName());
-		this.attributes = AnnotationAttributes.fromMap(map);
-		Assert.notNull(this.attributes, () ->
+		@Nullable Map<String, @Nullable Object> map = importMetadata.getAnnotationAttributes(
+				EnableIntegrationMBeanExport.class.getName());
+		AnnotationAttributes attributes = AnnotationAttributes.fromMap(map);
+		Assert.notNull(attributes, () ->
 				"@EnableIntegrationMBeanExport is not present on importing class " + importMetadata.getClassName());
+		this.attributes = attributes;
 	}
 
 	@Bean(name = MBEAN_EXPORTER_NAME)
@@ -108,9 +121,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	private void setupDomain(IntegrationMBeanExporter exporter) {
 		String defaultDomain = this.attributes.getString("defaultDomain");
-		if (this.environment != null) {
-			defaultDomain = this.environment.resolvePlaceholders(defaultDomain);
-		}
+		defaultDomain = this.environment.resolvePlaceholders(defaultDomain);
 		if (StringUtils.hasText(defaultDomain)) {
 			exporter.setDefaultDomain(defaultDomain);
 		}
@@ -118,9 +129,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	private void setupServer(IntegrationMBeanExporter exporter) {
 		String server = this.attributes.getString("server");
-		if (this.environment != null) {
-			server = this.environment.resolvePlaceholders(server);
-		}
+		server = this.environment.resolvePlaceholders(server);
 		if (StringUtils.hasText(server)) {
 			MBeanServer bean;
 			if (server.startsWith("#{") && server.endsWith("}")) {

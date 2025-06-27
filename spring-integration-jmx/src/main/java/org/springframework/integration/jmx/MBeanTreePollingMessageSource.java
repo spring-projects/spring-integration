@@ -26,6 +26,8 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -42,9 +44,9 @@ import org.springframework.util.Assert;
  */
 public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object> {
 
-	private volatile MBeanServerConnection server;
+	private volatile @Nullable MBeanServerConnection server;
 
-	private volatile ObjectName queryName = null;
+	private volatile @Nullable ObjectName queryName = null;
 
 	private volatile QueryExp queryExpression = ObjectName.WILDCARD;
 

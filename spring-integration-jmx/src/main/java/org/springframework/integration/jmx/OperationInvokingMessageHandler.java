@@ -32,6 +32,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.util.ClassUtils;
@@ -69,9 +71,9 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	private final MBeanServerConnection server;
 
-	private ObjectName defaultObjectName;
+	private @Nullable ObjectName defaultObjectName;
 
-	private String operationName;
+	private @Nullable String operationName;
 
 	private boolean expectReply = true;
 
@@ -90,7 +92,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 * available on the Message being handled.
 	 * @param objectName The object name.
 	 */
-	public void setObjectName(String objectName) {
+	public void setObjectName(@Nullable String objectName) {
 		try {
 			if (objectName != null) {
 				this.defaultObjectName = ObjectNameManager.getInstance(objectName);
@@ -131,7 +133,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		ObjectName objectName = resolveObjectName(requestMessage);
 		String operation = resolveOperationName(requestMessage);
 		Map<String, Object> paramsFromMessage = resolveParameters(requestMessage);
@@ -157,7 +159,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		}
 	}
 
-	private Object invokeOperation(Message<?> requestMessage, ObjectName objectName, String operation,
+	private @Nullable Object invokeOperation(Message<?> requestMessage, ObjectName objectName, String operation,
 			Map<String, Object> paramsFromMessage) throws JMException, IOException {
 
 		MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);

@@ -27,20 +27,11 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  *
  */
-
-/**
- *
- *
- */
 @ManagedResource
 public class SimpleDynamicRouter {
 
 	private final Map<String, String> channelMappings = new HashMap<String, String>();
 
-	/**
-	 *
-	 * @param channelMappings
-	 */
 	public SimpleDynamicRouter(Map<String, String> channelMappings) {
 		Assert.notEmpty(channelMappings, "you must provide at least one channel mappings");
 		for (String key : channelMappings.keySet()) {
@@ -48,35 +39,19 @@ public class SimpleDynamicRouter {
 		}
 	}
 
-	/**
-	 *
-	 * @param key
-	 * @param channelName
-	 */
 	@ManagedOperation
 	public void addChannelMapping(String key, String channelName) {
 		this.channelMappings.put(key, channelName);
 	}
 
-	/**
-	 *
-	 * @param key
-	 */
 	public void removeChannelMapping(String key) {
 		this.channelMappings.remove(key);
 	}
 
-	/**
-	 *
-	 */
 	public Map<String, String> getChannelMappings() {
 		return channelMappings;
 	}
 
-	/**
-	 *
-	 * @param key
-	 */
 	public String route(Object key) {
 		String className = key.getClass().getName();
 		return this.channelMappings.get(className);

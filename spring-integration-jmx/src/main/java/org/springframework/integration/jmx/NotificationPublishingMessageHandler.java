@@ -17,10 +17,13 @@
 package org.springframework.integration.jmx;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.Notification;
 import javax.management.ObjectName;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -34,7 +37,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.ObjectNameManager;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -58,8 +60,9 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	private final ObjectName objectName;
 
-	private String defaultNotificationType;
+	private @Nullable String defaultNotificationType;
 
+	@SuppressWarnings("NullAway.Init")
 	private OutboundMessageMapper<Notification> notificationMapper;
 
 	/**
@@ -92,7 +95,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * will be passed as the 'userData' of the Notification.
 	 * @param notificationMapper The notification mapper.
 	 */
-	public void setNotificationMapper(@Nullable OutboundMessageMapper<Notification> notificationMapper) {
+	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
 		this.notificationMapper = notificationMapper;
 	}
 
@@ -138,7 +141,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		this.delegate.publish(this.notificationMapper.fromMessage(message));
+		this.delegate.publish(Objects.requireNonNull(this.notificationMapper.fromMessage(message)));
 	}
 
 	/**
@@ -149,7 +152,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	@IntegrationManagedResource
 	public static class PublisherDelegate implements NotificationPublisherAware {
 
-		private NotificationPublisher notificationPublisher;
+		private @Nullable NotificationPublisher notificationPublisher;
 
 		@Override
 		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {

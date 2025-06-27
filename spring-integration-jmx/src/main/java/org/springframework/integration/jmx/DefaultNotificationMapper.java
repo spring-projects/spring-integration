@@ -21,8 +21,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.management.Notification;
 import javax.management.ObjectName;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -64,7 +65,7 @@ class DefaultNotificationMapper implements OutboundMessageMapper<Notification> {
 		return notification;
 	}
 
-	private String resolveNotificationType(Message<?> message) {
+	private @Nullable String resolveNotificationType(Message<?> message) {
 		String type = message.getHeaders().get(JmxHeaders.NOTIFICATION_TYPE, String.class);
 		return (type != null) ? type : this.defaultNotificationType;
 	}
