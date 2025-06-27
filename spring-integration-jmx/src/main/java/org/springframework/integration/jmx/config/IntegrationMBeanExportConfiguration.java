@@ -100,11 +100,11 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		@Nullable Map<String, @Nullable Object> map = importMetadata.getAnnotationAttributes(
-				EnableIntegrationMBeanExport.class.getName());
+		Map<String, @Nullable Object> map =
+				importMetadata.getAnnotationAttributes(EnableIntegrationMBeanExport.class.getName());
 		AnnotationAttributes attributes = AnnotationAttributes.fromMap(map);
 		Assert.notNull(attributes, () ->
-				"@EnableIntegrationMBeanExport is not present on importing class " + importMetadata.getClassName());
+				"@EnableIntegrationMBeanExport is not present on importing class: " + importMetadata.getClassName());
 		this.attributes = attributes;
 	}
 

@@ -42,8 +42,7 @@ class DefaultNotificationMapper implements OutboundMessageMapper<Notification> {
 
 	private final ObjectName sourceObjectName;
 
-	@Nullable
-	private final String defaultNotificationType;
+	private final @Nullable String defaultNotificationType;
 
 	private final AtomicLong sequence = new AtomicLong();
 

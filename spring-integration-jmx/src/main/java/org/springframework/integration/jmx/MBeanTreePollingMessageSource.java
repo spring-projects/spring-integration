@@ -38,17 +38,19 @@ import org.springframework.util.Assert;
  *
  * @author Stuart Williams
  * @author Gary Russell
+ * @author Artme Bilan
  *
  * @since 3.0
  *
  */
 public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object> {
 
-	private volatile @Nullable MBeanServerConnection server;
+	@SuppressWarnings("NullAway.Init")
+	private MBeanServerConnection server;
 
-	private volatile @Nullable ObjectName queryName = null;
+	private @Nullable ObjectName queryName = null;
 
-	private volatile QueryExp queryExpression = ObjectName.WILDCARD;
+	private QueryExp queryExpression = ObjectName.WILDCARD;
 
 	private final MBeanObjectConverter converter;
 
@@ -57,31 +59,6 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	 */
 	public MBeanTreePollingMessageSource(MBeanObjectConverter converter) {
 		this.converter = converter;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "jmx:tree-polling-channel-adapter";
-	}
-
-	@Override
-	protected Object doReceive() {
-		Assert.notNull(this.server, "MBeanServer is required");
-		try {
-			Map<String, Object> beans = new HashMap<>();
-			Set<ObjectInstance> results = this.server.queryMBeans(this.queryName, this.queryExpression);
-
-			for (ObjectInstance instance : results) {
-				Object result = this.converter.convert(this.server, instance);
-				beans.put(instance.getObjectName().getCanonicalName(), result);
-			}
-
-			return beans;
-
-		}
-		catch (Exception e) {
-			throw new MessagingException("Failed to retrieve tree snapshot", e);
-		}
 	}
 
 	/**
@@ -100,8 +77,8 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 		try {
 			setQueryNameReference(ObjectName.getInstance(queryName));
 		}
-		catch (MalformedObjectNameException e) {
-			throw new IllegalArgumentException(e);
+		catch (MalformedObjectNameException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 
@@ -130,6 +107,36 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	 */
 	public void setQueryExpressionReference(QueryExp queryExpression) {
 		this.queryExpression = queryExpression;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "jmx:tree-polling-channel-adapter";
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.server, "MBeanServer is required");
+	}
+
+	@Override
+	protected @Nullable Object doReceive() {
+		try {
+			Map<String, Object> beans = new HashMap<>();
+			Set<ObjectInstance> results = this.server.queryMBeans(this.queryName, this.queryExpression);
+
+			for (ObjectInstance instance : results) {
+				Object result = this.converter.convert(this.server, instance);
+				beans.put(instance.getObjectName().getCanonicalName(), result);
+			}
+
+			return beans;
+
+		}
+		catch (Exception ex) {
+			throw new MessagingException("Failed to retrieve tree snapshot", ex);
+		}
 	}
 
 }

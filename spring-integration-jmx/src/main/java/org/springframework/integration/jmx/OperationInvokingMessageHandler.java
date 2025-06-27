@@ -98,8 +98,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 				this.defaultObjectName = ObjectNameManager.getInstance(objectName);
 			}
 		}
-		catch (MalformedObjectNameException e) {
-			throw new IllegalArgumentException(e);
+		catch (MalformedObjectNameException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 

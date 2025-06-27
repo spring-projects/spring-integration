@@ -127,7 +127,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private final Map<String, IntegrationInboundManagement> sources = new HashMap<>();
 
-	private final Map<IntegrationInboundManagement, @Nullable ManageableLifecycle> sourceLifecycles = new HashMap<>();
+	private final Map<IntegrationInboundManagement, ManageableLifecycle> sourceLifecycles = new HashMap<>();
 
 	private final Set<Lifecycle> inboundLifecycleMessageProducers = new HashSet<>();
 
@@ -371,7 +371,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private void registerProducer(MessageProducer messageProducer) {
 		Lifecycle target = extractTarget(messageProducer);
-		if (!(target instanceof AbstractMessageProducingHandler)) {
+		if (!(target instanceof AbstractMessageProducingHandler) && target != null) {
 			this.inboundLifecycleMessageProducers.add(target);
 		}
 	}
@@ -930,9 +930,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		String endpointName = null;
 		String source = "endpoint";
 		AbstractEndpoint endpoint = getEndpointForMonitor(source2);
-		this.sourceLifecycles.put(source2, endpoint);
 
 		if (endpoint != null) {
+			this.sourceLifecycles.put(source2, endpoint);
 			endpointName = endpoint.getBeanName();
 		}
 		if (endpointName != null && endpointName.startsWith('_' + IntegrationContextUtils.BASE_PACKAGE)) {

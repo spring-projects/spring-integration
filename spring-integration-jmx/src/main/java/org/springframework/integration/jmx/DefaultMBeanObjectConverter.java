@@ -182,9 +182,8 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 			for (List<?> keys : keySet) {
 				CompositeData cd = data.get(keys.toArray());
 				Object value = checkAndConvert(cd);
-				if (keys.size() == 1 && (value instanceof Map) && ((Map<?, ?>) value).size() == 2) {
+				if (keys.size() == 1 && (value instanceof Map<?, ?> valueMap) && valueMap.size() == 2) {
 					Object actualKey = keys.get(0);
-					Map<?, ?> valueMap = (Map<?, ?>) value;
 					if (valueMap.containsKey("key") && valueMap.containsKey("value")
 							&& actualKey.equals(valueMap.get("key"))) {
 						returnable.put(valueMap.get("key"), valueMap.get("value"));

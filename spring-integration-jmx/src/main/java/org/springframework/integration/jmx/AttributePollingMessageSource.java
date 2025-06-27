@@ -33,19 +33,23 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilna
+ *
  * @since 2.0
  */
 public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
 
-	private volatile @Nullable ObjectName objectName;
+	@SuppressWarnings("NullAway.Init")
+	private ObjectName objectName;
 
-	private volatile @Nullable String attributeName;
+	@SuppressWarnings("NullAway.Init")
+	private String attributeName;
 
-	private volatile @Nullable MBeanServerConnection server;
+	@SuppressWarnings("NullAway.Init")
+	private MBeanServerConnection server;
 
 	/**
 	 * Provide the MBeanServer where the JMX MBean has been registered.
-	 *
 	 * @param server The MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
@@ -54,21 +58,19 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 
 	/**
 	 * Specify the String value of the JMX MBean's {@link ObjectName}.
-	 *
 	 * @param objectName The object name.
 	 */
 	public void setObjectName(String objectName) {
 		try {
 			this.objectName = ObjectNameManager.getInstance(objectName);
 		}
-		catch (MalformedObjectNameException e) {
-			throw new IllegalArgumentException(e);
+		catch (MalformedObjectNameException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 
 	/**
 	 * Specify the name of the attribute to be retrieved.
-	 *
 	 * @param attributeName The attribute name.
 	 */
 	public void setAttributeName(String attributeName) {
@@ -80,14 +82,19 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 		return "jmx:attribute-polling-channel-adapter";
 	}
 
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.server, "MBeanServer is required");
+		Assert.notNull(this.objectName, "object name is required");
+		Assert.notNull(this.attributeName, "attribute name is required");
+	}
+
 	/**
 	 * Retrieves the JMX attribute value.
 	 */
 	@Override
-	protected Object doReceive() {
-		Assert.notNull(this.server, "MBeanServer is required");
-		Assert.notNull(this.objectName, "object name is required");
-		Assert.notNull(this.attributeName, "attribute name is required");
+	protected @Nullable Object doReceive() {
 		try {
 			return this.server.getAttribute(this.objectName, this.attributeName);
 		}

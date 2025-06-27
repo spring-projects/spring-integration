@@ -57,9 +57,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private final AtomicBoolean listenerRegisteredOnStartup = new AtomicBoolean();
 
-	private @Nullable MBeanServerConnection server;
+	@SuppressWarnings("NullAway.Init")
+	private MBeanServerConnection server;
 
-	private @Nullable ObjectName @Nullable[] mBeanObjectNames;
+	@SuppressWarnings("NullAway.Init")
+	private ObjectName[] mBeanObjectNames;
 
 	private @Nullable NotificationFilter filter;
 
@@ -125,6 +127,13 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		return "jmx:notification-listening-channel-adapter";
 	}
 
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.server, "MBeanServer is required.");
+		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
+	}
+
 	/**
 	 * The {@link NotificationListener} might not be registered on {@link #start()}
 	 * because the {@code MBeanExporter} might not been started yet.
@@ -146,8 +155,6 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			return;
 		}
 		this.logger.debug("Registering to receive notifications");
-		Assert.notNull(this.server, "MBeanServer is required.");
-		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
 		try {
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.isEmpty()) {
@@ -172,21 +179,19 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	@Override
 	protected void doStop() {
 		this.logger.debug("Unregistering notifications");
-		if (this.server != null && this.mBeanObjectNames != null) {
-			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
-			for (ObjectName objectName : objectNames) {
-				try {
-					this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
-				}
-				catch (InstanceNotFoundException ex) {
-					this.logger.error(ex, "Failed to find MBean instance.");
-				}
-				catch (ListenerNotFoundException ex) {
-					this.logger.error(ex, "Failed to find NotificationListener.");
-				}
-				catch (IOException ex) {
-					this.logger.error(ex, "IOException on MBeanServerConnection.");
-				}
+		Collection<ObjectName> objectNames = this.retrieveMBeanNames();
+		for (ObjectName objectName : objectNames) {
+			try {
+				this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
+			}
+			catch (InstanceNotFoundException ex) {
+				this.logger.error(ex, "Failed to find MBean instance.");
+			}
+			catch (ListenerNotFoundException ex) {
+				this.logger.error(ex, "Failed to find NotificationListener.");
+			}
+			catch (IOException ex) {
+				this.logger.error(ex, "IOException on MBeanServerConnection.");
 			}
 		}
 	}
@@ -197,9 +202,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	protected Collection<ObjectName> retrieveMBeanNames() {
 		List<ObjectName> objectNames = new ArrayList<>();
-		Assert.notNull(this.server, "MBeanServer is required.");
-		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
-		for (@Nullable ObjectName pattern : this.mBeanObjectNames) {
+		for (ObjectName pattern : this.mBeanObjectNames) {
 			Set<ObjectInstance> mBeanInfos;
 			try {
 				mBeanInfos = this.server.queryMBeans(pattern, null);
