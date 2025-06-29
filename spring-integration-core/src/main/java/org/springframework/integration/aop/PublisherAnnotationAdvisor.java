@@ -18,9 +18,11 @@ package org.springframework.integration.aop;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.MethodMatcher;
@@ -73,7 +75,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 	 * @param defaultChannelName the default channel name.
 	 * @since 4.0.3
 	 */
-	public void setDefaultChannelName(String defaultChannelName) {
+	public void setDefaultChannelName(@Nullable String defaultChannelName) {
 		this.interceptor.setDefaultChannelName(defaultChannelName);
 	}
 
@@ -104,7 +106,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 				result.union(cpc).union(mpc);
 			}
 		}
-		return result;
+		return Objects.requireNonNull(result);
 	}
 
 	private static final class MetaAnnotationMatchingPointcut implements Pointcut {
@@ -133,7 +135,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		 * (can be <code>null</code>)
 		 */
 		MetaAnnotationMatchingPointcut(
-				Class<? extends Annotation> classAnnotationType, Class<? extends Annotation> methodAnnotationType) {
+				@Nullable Class<? extends Annotation> classAnnotationType, @Nullable Class<? extends Annotation> methodAnnotationType) {
 
 			Assert.isTrue((classAnnotationType != null || methodAnnotationType != null),
 					"Either Class annotation type or Method annotation type needs to be specified (or both)");

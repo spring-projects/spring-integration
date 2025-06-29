@@ -59,6 +59,7 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 
 	private final boolean registerDefaults;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	/**

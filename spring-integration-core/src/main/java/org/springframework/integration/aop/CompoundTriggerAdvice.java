@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aop;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.messaging.Message;
@@ -56,7 +58,7 @@ public class CompoundTriggerAdvice
 	 * @return the message or null
 	 */
 	@Override
-	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+	public @Nullable Message<?> afterReceive(@Nullable Message<?> result, MessageSource<?> source) {
 		if (result == null) {
 			this.compoundTrigger.setOverride(this.override);
 		}

@@ -19,6 +19,8 @@ package org.springframework.integration.aop;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -55,7 +57,7 @@ interface PublisherMetadataSource {
 	 * @param method The Method.
 	 * @return The channel name.
 	 */
-	String getChannelName(Method method);
+	@Nullable String getChannelName(Method method);
 
 	/**
 	 * Returns the SpEL expression to be evaluated for creating the Message
@@ -64,7 +66,7 @@ interface PublisherMetadataSource {
 	 * @return rhe payload expression.
 	 * @since 5.0.4
 	 */
-	Expression getExpressionForPayload(Method method);
+	@Nullable Expression getExpressionForPayload(Method method);
 
 	/**
 	 * Returns the map of expression strings to be evaluated for any headers
@@ -73,6 +75,6 @@ interface PublisherMetadataSource {
 	 * @param method The Method.
 	 * @return The header expressions.
 	 */
-	Map<String, Expression> getExpressionsForHeaders(Method method);
+	@Nullable Map<String, Expression> getExpressionsForHeaders(Method method);
 
 }

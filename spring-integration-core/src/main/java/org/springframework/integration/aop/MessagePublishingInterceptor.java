@@ -19,9 +19,11 @@ package org.springframework.integration.aop;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -64,12 +66,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final PublisherMetadataSource metadataSource;
 
+	@Nullable
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	@Nullable
 	private String defaultChannelName;
 
 	private volatile boolean messageBuilderFactorySet;
@@ -85,7 +90,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	 * @param defaultChannelName the default channel name.
 	 * @since 4.0.3
 	 */
-	public void setDefaultChannelName(String defaultChannelName) {
+	public void setDefaultChannelName(@Nullable String defaultChannelName) {
 		this.defaultChannelName = defaultChannelName;
 	}
 
@@ -100,24 +105,22 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;
 	}
 
 	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
+	public final @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		initMessagingTemplateIfAny();
 		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
+		Class<?> targetClass = AopUtils.getTargetClass(Objects.requireNonNull(invocation.getThis()));
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
-		String[] argumentNames = resolveArgumentNames(method);
+		@Nullable String[] argumentNames = resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
-		if (invocation.getArguments().length > 0 && argumentNames != null) {
-			Map<Object, Object> argumentMap = new HashMap<>();
+		if (invocation.getArguments().length > 0  && argumentNames != null) {
+			Map<@Nullable Object, @Nullable Object> argumentMap = new HashMap<>();
 			for (int i = 0; i < argumentNames.length; i++) {
 				if (invocation.getArguments().length <= i) {
 					break;
@@ -152,7 +155,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		}
 	}
 
-	private String[] resolveArgumentNames(Method method) {
+	private @Nullable String @Nullable [] resolveArgumentNames(Method method) {
 		return this.parameterNameDiscoverer.getParameterNames(method);
 	}
 
@@ -187,7 +190,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		}
 	}
 
-	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
+	private @Nullable Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
 		Map<String, Expression> headerExpressionMap = this.metadataSource.getExpressionsForHeaders(method);
 		if (headerExpressionMap != null) {
 			return ExpressionEvalMap.from(headerExpressionMap)

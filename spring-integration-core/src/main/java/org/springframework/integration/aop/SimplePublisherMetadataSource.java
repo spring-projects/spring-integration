@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 
 /**
@@ -34,18 +36,18 @@ import org.springframework.expression.Expression;
  */
 public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 
-	private volatile String channelName;
+	private @Nullable String channelName;
 
-	private volatile Expression payloadExpression;
+	private @Nullable Expression payloadExpression;
 
-	private volatile Map<String, Expression> headerExpressions;
+	private @Nullable Map<String, Expression> headerExpressions;
 
 	public void setChannelName(String channelName) {
 		this.channelName = channelName;
 	}
 
 	@Override
-	public String getChannelName(Method method) {
+	public @Nullable String getChannelName(Method method) {
 		return this.channelName;
 	}
 
@@ -54,7 +56,7 @@ public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 	}
 
 	@Override
-	public Expression getExpressionForPayload(Method method) {
+	public @Nullable Expression getExpressionForPayload(Method method) {
 		return this.payloadExpression;
 	}
 
@@ -67,7 +69,7 @@ public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 	}
 
 	@Override
-	public Map<String, Expression> getExpressionsForHeaders(Method method) {
+	public @Nullable Map<String, Expression> getExpressionsForHeaders(Method method) {
 		return this.headerExpressions;
 	}
 
