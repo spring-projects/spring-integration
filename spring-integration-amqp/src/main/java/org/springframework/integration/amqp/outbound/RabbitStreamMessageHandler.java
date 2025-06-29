@@ -29,6 +29,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -79,6 +80,7 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	public RabbitStreamMessageHandler(RabbitStreamOperations streamOperations) {
 		Assert.notNull(streamOperations, "'streamOperations' cannot be null");
 		this.streamOperations = streamOperations;
+		this.sendFailureChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 	}
 
 	/**
@@ -120,7 +122,9 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set to true to wait for a confirmation.
+	 * Set to true to wait for a confirmation. Note that if sync is set to {@code true}, this sets both
+	 * {@link RabbitStreamMessageHandler#sendFailureChannel sendFailureChannel} and
+	 * {@link RabbitStreamMessageHandler#sendFailureChannelName sendFailureChannelName} to null.
 	 * @param sync true to wait.
 	 * @see #setConfirmTimeout(long)
 	 */
@@ -176,11 +180,15 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 		if (this.sendFailureChannel != null) {
 			return this.sendFailureChannel;
 		}
-		else if (this.sendFailureChannelName != null) {
-			this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
-			return this.sendFailureChannel;
-		}
-		return null;
+		this.sendFailureChannel = getChannelResolver()
+				.resolveDestination(getSendFailureChannelNameOrDefault());
+		return this.sendFailureChannel;
+	}
+
+	protected String getSendFailureChannelNameOrDefault() {
+		return this.sendFailureChannelName == null ?
+				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME :
+				sendFailureChannelName;
 	}
 
 	protected @Nullable MessageChannel getSendSuccessChannel() {
