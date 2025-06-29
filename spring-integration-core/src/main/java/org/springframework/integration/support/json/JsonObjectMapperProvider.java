@@ -28,6 +28,7 @@ package org.springframework.integration.support.json;
  *
  * @since 3.0
  *
+ * @see JacksonJsonObjectMapper
  * @see Jackson2JsonObjectMapper
  */
 public final class JsonObjectMapperProvider {
@@ -58,7 +59,7 @@ public final class JsonObjectMapperProvider {
 	 * @since 4.2.7
 	 */
 	public static boolean jsonAvailable() {
-		return JacksonPresent.isJackson2Present();
+		return JacksonPresent.isJackson3Present() || JacksonPresent.isJackson2Present();
 	}
 
 }

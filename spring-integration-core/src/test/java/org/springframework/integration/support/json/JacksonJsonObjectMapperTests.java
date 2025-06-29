@@ -30,7 +30,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -53,8 +52,6 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.datatype.joda.JodaModule;
 import tools.jackson.module.kotlin.KotlinModule;
 
-import org.springframework.util.ClassUtils;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -63,14 +60,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @since 7.0
  */
-class JacksonJsonObjectMapperTest {
+class JacksonJsonObjectMapperTests {
 
-	private static final boolean JODA_MODULE_PRESENT =
-			ClassUtils.isPresent("tools.jackson.datatype.joda.JodaModule", null);
+	private static final JacksonModule JODA_MODULE = new JodaModule();
 
-	private static final boolean KOTLIN_MODULE_PRESENT =
-			ClassUtils.isPresent("kotlin.Unit", null) &&
-					ClassUtils.isPresent("tools.jackson.module.kotlin.KotlinModule", null);
+	private static final JacksonModule KOTLIN_MODULE = new KotlinModule.Builder().build();
 
 	private JacksonJsonObjectMapper mapper;
 
@@ -230,7 +224,7 @@ class JacksonJsonObjectMapperTest {
 	public void testJodaWithJodaModule() throws Exception {
 		ObjectMapper objectMapper = mapper.getObjectMapper();
 		Set<String> registeredModules = getModuleNames(objectMapper.getRegisteredModules());
-		assertThat(registeredModules.contains(JodaModuleProvider.MODULE.getModuleName())).isTrue();
+		assertThat(registeredModules.contains(JODA_MODULE.getModuleName())).isTrue();
 
 		org.joda.time.DateTime jodaDateTime = new DateTime(2000, 1, 1, 0, 0, DateTimeZone.UTC);
 		JodaData data = new JodaData("John", jodaDateTime);
@@ -249,7 +243,7 @@ class JacksonJsonObjectMapperTest {
 		JacksonJsonObjectMapper mapper = new JacksonJsonObjectMapper(customMapper);
 
 		Set<String> registeredModules = getModuleNames(mapper.getObjectMapper().getRegisteredModules());
-		assertThat(registeredModules.contains(JodaModuleProvider.MODULE.getModuleName())).isFalse();
+		assertThat(registeredModules.contains(JODA_MODULE.getModuleName())).isFalse();
 
 		org.joda.time.DateTime jodaDateTime = new DateTime(2000, 1, 1, 0, 0, DateTimeZone.UTC);
 		JodaData data = new JodaData("John", jodaDateTime);
@@ -268,27 +262,8 @@ class JacksonJsonObjectMapperTest {
 				.collect(Collectors.toUnmodifiableSet());
 	}
 
-	private static final class JodaModuleProvider {
-
-		private static final JacksonModule MODULE = new JodaModule();
-
-	}
-
-	private static final class KotlinModuleProvider {
-
-		private static final JacksonModule MODULE = new KotlinModule.Builder().build();
-
-	}
-
 	private List<JacksonModule> collectWellKnownModulesIfAvailable() {
-		List<JacksonModule> modules = new ArrayList<>();
-		if (JODA_MODULE_PRESENT) {
-			modules.add(JodaModuleProvider.MODULE);
-		}
-		if (KOTLIN_MODULE_PRESENT) {
-			modules.add(KotlinModuleProvider.MODULE);
-		}
-		return modules;
+		return List.of(JODA_MODULE, KOTLIN_MODULE);
 	}
 
 	private record TestData(String name, Optional<String> email, Optional<Integer> age) {
