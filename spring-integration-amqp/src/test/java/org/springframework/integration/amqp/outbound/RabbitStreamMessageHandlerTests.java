@@ -34,6 +34,7 @@ import org.springframework.integration.amqp.dsl.RabbitStream;
 import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 
@@ -157,6 +158,75 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 		Mockito.verify(errorChannel, new Times(1));
 		ErrorMessage errorMessage = captor.getValue();
 		Assertions.assertNotNull(errorMessage);
+	}
+
+	@Test
+	void errorChanelSync() {
+		Environment env = Environment.builder()
+				.lazyInitialization(true)
+				.port(RabbitTestContainer.streamPort())
+				.build();
+		try {
+			env.deleteStream("stream.stream");
+		} catch (Exception e) {
+		}
+		env.streamCreator().stream("stream.stream").create();
+		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
+
+		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
+				.sync(true)
+				.getObject();
+
+		SecureRandom random = new SecureRandom();
+		// Default stream frame size is 1mb
+		byte[] messageTooBig = new byte[1100000];
+		random.nextBytes(messageTooBig);
+
+		Assertions.assertThrows(MessageHandlingException.class, () -> handler.handleMessage(MessageBuilder.withPayload(streamTemplate.messageBuilder()
+						.addData(messageTooBig)
+						.build())
+				.build()));
+	}
+
+	@Test
+	void defaultFailureChannel() {
+		Environment env = Environment.builder()
+				.lazyInitialization(true)
+				.port(RabbitTestContainer.streamPort())
+				.build();
+		try {
+			env.deleteStream("stream.stream");
+		} catch (Exception e) {
+		}
+		env.streamCreator().stream("stream.stream").create();
+		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
+
+		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
+				.getObject();
+
+		String failureChannelName = handler.getSendFailureChannelNameOrDefault();
+		Assertions.assertEquals("errorChannel", failureChannelName);
+	}
+
+	@Test
+	void setFailureChannelName() {
+		Environment env = Environment.builder()
+				.lazyInitialization(true)
+				.port(RabbitTestContainer.streamPort())
+				.build();
+		try {
+			env.deleteStream("stream.stream");
+		} catch (Exception e) {
+		}
+		env.streamCreator().stream("stream.stream").create();
+		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
+
+		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
+				.getObject();
+		handler.setSendFailureChannelName("SomethingElse");
+
+		String failureChannelName = handler.getSendFailureChannelNameOrDefault();
+		Assertions.assertEquals("SomethingElse", failureChannelName);
 	}
 
 }

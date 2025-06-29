@@ -128,10 +128,6 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	 */
 	public void setSync(boolean sync) {
 		this.sync = sync;
-		if (sync) {
-			this.sendFailureChannelName = null;
-			this.sendFailureChannel = null;
-		}
 	}
 
 	/**
@@ -182,11 +178,15 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 		if (this.sendFailureChannel != null) {
 			return this.sendFailureChannel;
 		}
-		else if (this.sendFailureChannelName != null) {
-			this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
-			return this.sendFailureChannel;
-		}
-		return null;
+		this.sendFailureChannel = getChannelResolver()
+				.resolveDestination(getSendFailureChannelNameOrDefault());
+		return this.sendFailureChannel;
+	}
+
+	protected String getSendFailureChannelNameOrDefault() {
+		return this.sendFailureChannelName == null ?
+				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME :
+				sendFailureChannelName;
 	}
 
 	protected MessageChannel getSendSuccessChannel() {
