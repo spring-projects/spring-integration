@@ -120,12 +120,18 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set to true to wait for a confirmation.
+	 * Set to true to wait for a confirmation. Note that if sync is set to {@code true}, this sets both
+	 * {@link RabbitStreamMessageHandler#sendFailureChannel sendFailureChannel} and
+	 * {@link RabbitStreamMessageHandler#sendFailureChannelName sendFailureChannelName} to null.
 	 * @param sync true to wait.
 	 * @see #setConfirmTimeout(long)
 	 */
 	public void setSync(boolean sync) {
 		this.sync = sync;
+		if (sync) {
+			this.sendFailureChannelName = null;
+			this.sendFailureChannel = null;
+		}
 	}
 
 	/**
