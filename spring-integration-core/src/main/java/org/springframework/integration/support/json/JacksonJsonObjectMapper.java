@@ -89,7 +89,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 			this.objectMapper.writeValue(writer, value);
 		}
 		catch (JacksonException e) {
-		throw new IOException(e);
+			throw new IOException(e);
 		}
 	}
 
@@ -122,7 +122,12 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 			// Otherwise the input might not be valid JSON, fallback to TextNode with ObjectMapper.valueToTree()
 		}
 
-		return this.objectMapper.valueToTree(json);
+		try {
+			return this.objectMapper.valueToTree(json);
+		}
+		catch (JacksonException e) {
+			throw new IOException(e);
+		}
 	}
 
 	@Override
