@@ -67,12 +67,12 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTests  implements TestApplicationContextAware {
+public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTests
+		implements TestApplicationContextAware {
 
 	@Test
 	public void testNet() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -176,7 +176,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		for (int i = 0; i < 1000; i++) {
 			socket.getOutputStream().write(("Test" + i + "\r\n").getBytes());
 		}
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		for (int i = 0; i < 1000; i++) {
 			Message<?> message = channel.receive(10000);
 			assertThat(message).isNotNull();
@@ -190,8 +190,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	@Test
 	public void testNetShared() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -258,8 +257,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	@Test
 	public void testNetSingleNoOutbound() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -320,10 +318,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.stop();
 	}
 
-	/**
-	 * @param is
-	 * @param buff
-	 */
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();
@@ -332,8 +326,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	@Test
 	public void testNetSingleShared() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -424,7 +417,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		adapter.setOutputChannel(channel);
 		TestingUtilities.waitListening(scf, null);
 		int port = scf.getPort();
-		List<Socket> sockets = new LinkedList<Socket>();
+		List<Socket> sockets = new LinkedList<>();
 		for (int i = 100; i < 200; i++) {
 			Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 			socket1.setSoTimeout(2000);
@@ -446,24 +439,21 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	@Test
 	public void testNetInterceptors() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		interceptorsGuts(scf);
 		scf.stop();
 	}
 
 	@Test
 	public void testNetSingleNoOutboundInterceptors() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		singleNoOutboundInterceptorsGuts(scf);
 		scf.stop();
 	}
 
 	@Test
 	public void testNetSingleSharedInterceptors() throws Exception {
-		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		singleSharedInterceptorsGuts(scf);
 		scf.stop();
 	}
@@ -564,7 +554,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
 		// with single use, results may come back in a different order
-		Set<Object> results = new HashSet<Object>();
+		Set<Object> results = new HashSet<>();
 		results.add(message.getPayload());
 		message = channel.receive(10000);
 		assertThat(message).isNotNull();
