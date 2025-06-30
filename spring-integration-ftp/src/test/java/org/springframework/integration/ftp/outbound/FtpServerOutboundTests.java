@@ -47,10 +47,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -71,7 +71,6 @@ import org.springframework.integration.ftp.server.SessionOpenedEvent;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
-import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -99,7 +98,7 @@ import static org.mockito.Mockito.verify;
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class FtpServerOutboundTests extends FtpTestSupport implements TestApplicationContextAware {
+public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Autowired
 	private SessionFactory<FTPFile> ftpSessionFactory;
@@ -376,8 +375,7 @@ public class FtpServerOutboundTests extends FtpTestSupport implements TestApplic
 	@Test
 	public void testRawGETWithTemplate() {
 		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(this.ftpSessionFactory);
-		template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
-		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		template.setFileNameExpression(new FunctionExpression<Message<?>>(Message::getPayload));
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
 		assertThat(template.get(new GenericMessage<>("ftpSource/ ftpSource1.txt"),
@@ -846,7 +844,9 @@ public class FtpServerOutboundTests extends FtpTestSupport implements TestApplic
 					else if (event.getSession().getClientAddress().equals(this.clientAddress)) {
 						this.events.add(event);
 					}
-					if (event instanceof SessionClosedEvent) {
+					if (event instanceof SessionClosedEvent
+							&& event.getSession().getClientAddress().equals(this.clientAddress)) {
+
 						this.latch.countDown();
 					}
 				}
