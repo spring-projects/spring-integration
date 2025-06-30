@@ -17,7 +17,6 @@
 package org.springframework.integration.jmx.config;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,10 +25,13 @@ import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.integration.config.ChannelInitializer;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.MBeanExporter;
@@ -42,23 +44,32 @@ import org.springframework.jmx.export.MBeanExporter;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.1
  *
  */
-class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered {
+class MBeanExporterHelper implements BeanFactoryAware, DestructionAwareBeanPostProcessor, Ordered {
 
 	private final Queue<MBeanExporter> mBeanExportersForExcludes = new ConcurrentLinkedQueue<>();
 
 	private final Set<String> siBeanNames = ConcurrentHashMap.newKeySet();
 
+	@SuppressWarnings("NullAway.Init")
+	private volatile BeanFactory beanFactory;
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if ("$autoCreateChannelCandidates".equals(beanName)) {
-			@SuppressWarnings("unchecked")
-			Collection<String> autoCreateChannelCandidatesNames =
-					(Collection<String>) new DirectFieldAccessor(bean).getPropertyValue("channelNames");
-			this.siBeanNames.addAll(Objects.requireNonNull(autoCreateChannelCandidatesNames));
+		if (IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME.equals(beanName)) {
+			var channelCandidatesCollector = this.beanFactory.getBean(beanName,
+					ChannelInitializer.AutoCreateCandidatesCollector.class);
+			Collection<String> autoCreateChannelCandidatesNames = channelCandidatesCollector.channelNames();
+			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
 				autoCreateChannelCandidatesNames
 						.stream().
