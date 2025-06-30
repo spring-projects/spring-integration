@@ -25,10 +25,11 @@ import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.integration.config.ChannelInitializer;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.MBeanExporter;
@@ -41,6 +42,7 @@ import org.springframework.jmx.export.MBeanExporter;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.1
  *
@@ -53,10 +55,9 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if ("$autoCreateChannelCandidates".equals(beanName)) {
-			@SuppressWarnings("unchecked")
-			Collection<String> autoCreateChannelCandidatesNames =
-					(Collection<String>) new DirectFieldAccessor(bean).getPropertyValue("channelNames");
+		if (IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME.equals(beanName)) {
+			var channelCandidatesCollector = (ChannelInitializer.AutoCreateCandidatesCollector) bean;
+			Collection<String> autoCreateChannelCandidatesNames = channelCandidatesCollector.channelNames();
 			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
 				autoCreateChannelCandidatesNames
@@ -79,8 +80,7 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 			this.mBeanExportersForExcludes.forEach(mBeanExporter -> mBeanExporter.addExcludedBean(beanName));
 		}
 
-		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
-			MBeanExporter mBeanExporter = (MBeanExporter) bean;
+		if (bean instanceof MBeanExporter mBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			this.mBeanExportersForExcludes.add(mBeanExporter);
 			this.siBeanNames.forEach(mBeanExporter::addExcludedBean);
 		}
