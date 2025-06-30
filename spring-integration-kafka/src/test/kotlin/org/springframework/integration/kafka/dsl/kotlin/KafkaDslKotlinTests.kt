@@ -47,6 +47,7 @@ import org.springframework.kafka.requestreply.ReplyingKafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper
 import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -71,6 +72,7 @@ import java.util.stream.Stream
 
 @SpringJUnitConfig
 @DirtiesContext
+@EmbeddedKafka
 class KafkaDslKotlinTests {
 
 	companion object {
@@ -205,7 +207,7 @@ class KafkaDslKotlinTests {
 
 		var fromSource: Any? = null
 
-		@Value("\${spring.global.embedded.kafka.brokers}")
+		@Value("\${spring.kafka.bootstrap-servers}")
 		lateinit var embeddedKafkaBrokers: String
 
 		@Bean

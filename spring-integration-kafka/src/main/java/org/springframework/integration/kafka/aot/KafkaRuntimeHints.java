@@ -18,6 +18,8 @@ package org.springframework.integration.kafka.aot;
 
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
@@ -37,7 +39,7 @@ import org.springframework.util.ReflectionUtils;
 class KafkaRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
-	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 		ReflectionHints reflectionHints = hints.reflection();
 
 		// Java DSL does not register beans during AOT phase, so @Reflective is not reachable from Pausable

@@ -71,6 +71,7 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -97,6 +98,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EmbeddedKafka
 public class KafkaDslTests {
 
 	private static final Log log = LogFactory.getLog(KafkaDslTests.class);
@@ -275,7 +277,7 @@ public class KafkaDslTests {
 
 		private Object fromSource;
 
-		@Value("${spring.global.embedded.kafka.brokers}")
+		@Value("${spring.kafka.bootstrap-servers}")
 		String embeddedKafkaBrokers;
 
 		@Bean
