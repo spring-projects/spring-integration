@@ -25,8 +25,6 @@ import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -49,25 +47,16 @@ import org.springframework.jmx.export.MBeanExporter;
  * @since 2.1
  *
  */
-class MBeanExporterHelper implements BeanFactoryAware, DestructionAwareBeanPostProcessor, Ordered {
+class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered {
 
 	private final Queue<MBeanExporter> mBeanExportersForExcludes = new ConcurrentLinkedQueue<>();
 
 	private final Set<String> siBeanNames = ConcurrentHashMap.newKeySet();
 
-	@SuppressWarnings("NullAway.Init")
-	private volatile BeanFactory beanFactory;
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME.equals(beanName)) {
-			var channelCandidatesCollector = this.beanFactory.getBean(beanName,
-					ChannelInitializer.AutoCreateCandidatesCollector.class);
+			var channelCandidatesCollector = (ChannelInitializer.AutoCreateCandidatesCollector) bean;
 			Collection<String> autoCreateChannelCandidatesNames = channelCandidatesCollector.channelNames();
 			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
