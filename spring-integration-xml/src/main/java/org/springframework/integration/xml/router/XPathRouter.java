@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 import org.w3c.dom.DOMException;
@@ -42,9 +43,9 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathRouter extends AbstractMappingMessageRouter {
 
-	private final XPathExpression xPathExpression;
+	private final NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
 
-	private NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
+	private final XPathExpression xPathExpression;
 
 	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
@@ -116,7 +117,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	protected List<Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		if (this.evaluateAsString) {
-			return Collections.singletonList(this.xPathExpression.evaluateAsString(node));
+			return Collections.singletonList(Objects.requireNonNull(this.xPathExpression.evaluateAsString(node)));
 		}
 		else {
 			return this.xPathExpression.evaluate(node, this.nodeMapper);
