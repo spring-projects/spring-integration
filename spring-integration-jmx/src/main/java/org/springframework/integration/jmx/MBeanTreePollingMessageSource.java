@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Stuart Williams
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 3.0
  *

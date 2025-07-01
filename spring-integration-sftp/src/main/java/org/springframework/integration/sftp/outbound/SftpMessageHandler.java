@@ -32,7 +32,7 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
  * Subclass of {@link FileTransferringMessageHandler} for SFTP.
  *
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 4.3
  *

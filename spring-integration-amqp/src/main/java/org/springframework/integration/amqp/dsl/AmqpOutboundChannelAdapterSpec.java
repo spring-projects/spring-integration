@@ -22,7 +22,7 @@ import org.springframework.amqp.core.AmqpTemplate;
  * Spec for an outbound AMQP channel adapter.
  *
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 5.3
  *

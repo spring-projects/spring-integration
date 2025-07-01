@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
- * @author Arte Bilan
+ * @author Artem Bilan
  */
 @LongRunningTest
 public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMultiContextTests {

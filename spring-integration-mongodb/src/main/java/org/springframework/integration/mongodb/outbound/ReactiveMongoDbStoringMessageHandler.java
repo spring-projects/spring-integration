@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * collection is identified by evaluation of the {@link #collectionNameExpression}.
  *
  * @author David Turanski
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 5.3
  */

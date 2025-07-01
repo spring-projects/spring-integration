@@ -28,7 +28,7 @@ import org.springframework.integration.config.ServiceActivatorFactoryBean;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 public class ServiceActivatorParser extends AbstractDelegatingConsumerEndpointParser {
 
