@@ -27,7 +27,6 @@ import com.rabbitmq.stream.Message;
 import com.rabbitmq.stream.OffsetSpecification;
 import com.rabbitmq.stream.codec.SimpleCodec;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -41,7 +40,7 @@ import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 import org.springframework.rabbit.stream.producer.StreamSendException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
@@ -151,10 +150,7 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 		StreamSendException streamException = new StreamSendException("Test Error Code", 99);
 		errorFuture.completeExceptionally(streamException);
 		ErrorMessage errorMessage = (ErrorMessage) errorChannel.receive(1000);
-		assertThat(errorMessage).isNotNull();
-		Throwable caughtException = errorMessage.getPayload();
-		assertThat(caughtException).isInstanceOf(StreamSendException.class);
-		assertThat(caughtException).isEqualTo(streamException);
+		assertThat(errorMessage).extracting(org.springframework.messaging.Message::getPayload).isEqualTo(streamException);
 	}
 
 	@Test
@@ -176,7 +172,8 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 						.addData(new byte[1])
 						.build())
 				.build();
-		assertThatThrownBy(() -> handler.handleMessage(testMessage))
-				.isInstanceOf(MessageHandlingException.class);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(testMessage));
 	}
+
 }
