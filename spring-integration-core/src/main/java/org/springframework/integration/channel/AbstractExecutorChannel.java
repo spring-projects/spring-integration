@@ -61,10 +61,6 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 
 	protected @Nullable Executor executor;
 
-	/**
-	 * {@code @SuppressWarnings} was used the dispatcher is initialized in each of the implementations in the {@link AbstractExecutorChannel}.   And each implementation
-	 * utilizes a unique implementation of the {@link AbstractDispatcher}.
-	 */
 	@SuppressWarnings("NullAway.Init")
 	protected AbstractDispatcher dispatcher;
 

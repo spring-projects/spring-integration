@@ -34,7 +34,6 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.util.Assert;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -163,9 +162,9 @@ public class NullChannel implements PollableChannel,
 		return true;
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
-			Assert.state(this.metricsCaptor != null, "metricsCaptor not must not be null");
 			this.successTimer =
 					this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 							.tag("type", "channel")
@@ -201,8 +200,8 @@ public class NullChannel implements PollableChannel,
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private CounterFacade buildReceiveCounter() {
-		Assert.state(this.metricsCaptor != null, "metricsCaptor not must not be null");
 		return this.metricsCaptor
 				.counterBuilder(RECEIVE_COUNTER_NAME)
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())

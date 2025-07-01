@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import java.util.Objects;
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -47,10 +45,11 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 	private static final int DEFAULT_SEND_TIMEOUT = 1000;
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private static final ErrorMessageStrategy DEFAULT_ERROR_MESSAGE_STRATEGY = (ex, attrs) -> {
-		if (ex instanceof MessagingExceptionWrapper) {
-			return new ErrorMessage(Objects.requireNonNull(ex.getCause()),
-					Objects.requireNonNull(((MessagingExceptionWrapper) ex).getFailedMessage()));
+		if (ex instanceof MessagingExceptionWrapper messagingExceptionWrapper) {
+			return new ErrorMessage(messagingExceptionWrapper.getCause(),
+					messagingExceptionWrapper.getFailedMessage());
 		}
 		else {
 			return new ErrorMessage(ex);
@@ -69,7 +68,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		setChannelResolver(channelResolver);
 	}
 
-	public void setDefaultErrorChannel(@Nullable MessageChannel defaultErrorChannel) {
+	public void setDefaultErrorChannel(MessageChannel defaultErrorChannel) {
 		setChannel(defaultErrorChannel);
 	}
 

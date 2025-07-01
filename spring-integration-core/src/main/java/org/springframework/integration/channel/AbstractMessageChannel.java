@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -236,7 +235,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	@Override
 	public ChannelInterceptor removeInterceptor(int index) {
-		return Objects.requireNonNull(this.interceptors.remove(index));
+		return this.interceptors.remove(index);
 	}
 
 	/**
@@ -391,17 +390,18 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			Message<?> messageToSendInternal = messageToSend;
 			if (message instanceof ErrorMessage errorMessage) {
 				messageToSendInternal =
-						new ErrorMessage(errorMessage.getPayload(),
+						(errorMessage.getOriginalMessage() != null) ? new ErrorMessage(errorMessage.getPayload(),
 								messageToSend.getHeaders(),
-								Objects.requireNonNull(errorMessage.getOriginalMessage()));
+								errorMessage.getOriginalMessage()) : new ErrorMessage(errorMessage.getPayload(),
+								messageToSend.getHeaders());
 			}
 			return sendInternal(messageToSendInternal, timeout);
 		});
 		return Boolean.TRUE.equals(observe);
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private boolean sendWithMetrics(Message<?> message, long timeout) {
-		Assert.state(this.metricsCaptor != null, "The metricsCaptor must not be null");
 		SampleFacade sample = this.metricsCaptor.start();
 		try {
 			boolean sent = sendInternal(message, timeout);
@@ -468,8 +468,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private TimerFacade buildSendTimer(boolean success, String exception) {
-		Assert.state(this.metricsCaptor != null, "The metricsCaptor must not be null");
 		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
@@ -677,7 +677,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		@Nullable
 		public ChannelInterceptor remove(int index) {
 			ChannelInterceptor removed = this.interceptors.remove(index);
 			if (removed != null) {

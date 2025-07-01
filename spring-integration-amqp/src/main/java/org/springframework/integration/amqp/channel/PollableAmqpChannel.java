@@ -20,7 +20,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.Nullable;
@@ -328,7 +327,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		if (interceptor instanceof ExecutorChannelInterceptor) {
 			this.executorInterceptorsSize--;
 		}
-		return Objects.requireNonNull(interceptor);
+		return interceptor;
 	}
 
 	@Override
