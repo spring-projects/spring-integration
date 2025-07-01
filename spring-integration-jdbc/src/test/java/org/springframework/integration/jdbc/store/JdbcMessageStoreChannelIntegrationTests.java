@@ -36,7 +36,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -98,7 +97,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	public void testSendAndActivate() throws Exception {
 		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
-		assertThat(Service.messages.size()).isEqualTo(1);
+		assertThat(Service.messages).hasSize(1);
 	}
 
 	@Test
@@ -124,7 +123,6 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test
-	@Repeat(2)
 	public void testTransactionalSendAndReceive() throws Exception {
 
 		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
@@ -168,7 +166,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	protected void waitForMessage() throws InterruptedException {
 		int n = 0;
-		while (Service.messages.size() == 0) {
+		while (Service.messages.isEmpty()) {
 			if (n++ > 200) {
 				fail("Message not received by Service");
 			}
@@ -223,7 +221,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		assertThat(Service.messages.size()).isEqualTo(0);
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
-		assertThat(stopWatch.getTotalTimeMillis() < 1000).as("Timed out waiting for receive").isTrue();
+		assertThat(stopWatch.getTotalTimeMillis()).as("Timed out waiting for receive").isLessThan(1000);
 
 	}
 

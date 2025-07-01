@@ -25,11 +25,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,8 +65,7 @@ public class FileReadingMessageSourceIntegrationTests {
 
 	@Test
 	public void configured() {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(pollableFileSource);
-		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
+		assertThat(TestUtils.getPropertyValue(this.pollableFileSource, "directory")).isEqualTo(inputDir);
 	}
 
 	@Test
@@ -107,7 +105,6 @@ public class FileReadingMessageSourceIntegrationTests {
 	}
 
 	@Test
-	@Repeat(5)
 	public void concurrentProcessing() {
 		CountDownLatch go = new CountDownLatch(1);
 		Runnable successfulConsumer = () -> {
@@ -148,26 +145,21 @@ public class FileReadingMessageSourceIntegrationTests {
 	 * @return a latch that will be counted down once all threads have run their
 	 *		 runnable.
 	 */
-	private CountDownLatch doConcurrently(int numberOfThreads, final Runnable runnable, final CountDownLatch start) {
+	private CountDownLatch doConcurrently(int numberOfThreads, Runnable runnable, CountDownLatch start) {
 		final CountDownLatch started = new CountDownLatch(numberOfThreads);
 		final CountDownLatch done = new CountDownLatch(numberOfThreads);
 		for (int i = 0; i < numberOfThreads; i++) {
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					started.countDown();
-					try {
-						started.await();
-						start.await();
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					runnable.run();
-					done.countDown();
+			new Thread(() -> {
+				started.countDown();
+				try {
+					started.await();
+					start.await();
 				}
-
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				runnable.run();
+				done.countDown();
 			}).start();
 		}
 		return done;

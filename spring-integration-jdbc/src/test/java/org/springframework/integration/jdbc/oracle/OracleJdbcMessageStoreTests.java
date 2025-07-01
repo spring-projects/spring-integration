@@ -45,7 +45,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Repeat;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -260,7 +259,7 @@ public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 
 		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
 		assertThat(template.queryForList(
-				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '" + uuidGroupId + "'").size() == 0).isTrue();
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '" + uuidGroupId + "'")).isEmpty();
 	}
 
 	@Test
@@ -397,7 +396,6 @@ public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 	@Test
 	@Transactional
 	@Rollback(false)
-	@Repeat(20)
 	public void testSameMessageToMultipleGroups() {
 		final String group1Id = "group1";
 		final String group2Id = "group2";
@@ -437,7 +435,6 @@ public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 	@Test
 	@Transactional
 	@Rollback(false)
-	@Repeat(20)
 	public void testSameMessageAndGroupToMultipleRegions() {
 		final String groupId = "myGroup";
 		final String region1 = "region1";
