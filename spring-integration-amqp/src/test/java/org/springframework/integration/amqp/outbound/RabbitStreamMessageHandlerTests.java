@@ -179,29 +179,4 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 		assertThatThrownBy(() -> handler.handleMessage(testMessage))
 				.isInstanceOf(MessageHandlingException.class);
 	}
-
-	@Test
-	void defaultFailureChannel() {
-		Environment env = Mockito.mock(Environment.class);
-		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
-
-		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
-				.getObject();
-
-		String failureChannelName = handler.getSendFailureChannelNameOrDefault();
-		assertThat(failureChannelName).isEqualTo("errorChannel");
-	}
-
-	@Test
-	void setFailureChannelName() {
-		Environment env = Mockito.mock(Environment.class);
-		RabbitStreamTemplate streamTemplate = new RabbitStreamTemplate(env, "stream.stream");
-
-		RabbitStreamMessageHandler handler = RabbitStream.outboundStreamAdapter(streamTemplate)
-				.getObject();
-		handler.setSendFailureChannelName("SomethingElse");
-
-		String failureChannelName = handler.getSendFailureChannelNameOrDefault();
-		assertThat(failureChannelName).isEqualTo("SomethingElse");
-	}
 }

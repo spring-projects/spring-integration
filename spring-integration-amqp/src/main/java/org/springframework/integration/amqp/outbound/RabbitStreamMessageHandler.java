@@ -175,26 +175,18 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	}
 
 	protected @Nullable MessageChannel getSendFailureChannel() {
-		if (this.sendFailureChannel != null) {
-			return this.sendFailureChannel;
-		}
-		if (this.sync) {
-			if (this.sendFailureChannelName != null) {
-				this.sendFailureChannel = getChannelResolver()
-						.resolveDestination(sendFailureChannelName);
+		if (sendFailureChannel == null) {
+			if (sync && sendFailureChannelName != null) {
+				this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
+			}
+			else if (!sync) {
+				String sendFailureChannelNameToUse = sendFailureChannelName == null
+						? IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME
+						: sendFailureChannelName;
+				this.sendFailureChannel = getChannelResolver().resolveDestination(sendFailureChannelNameToUse);
 			}
 		}
-		else {
-			this.sendFailureChannel = getChannelResolver()
-					.resolveDestination(getSendFailureChannelNameOrDefault());
-		}
-		return this.sendFailureChannel;
-	}
-
-	protected String getSendFailureChannelNameOrDefault() {
-		return this.sendFailureChannelName == null ?
-				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME :
-				sendFailureChannelName;
+		return sendFailureChannel;
 	}
 
 	protected @Nullable MessageChannel getSendSuccessChannel() {
