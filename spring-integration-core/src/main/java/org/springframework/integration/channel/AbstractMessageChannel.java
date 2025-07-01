@@ -95,28 +95,27 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
-	@Nullable
-	private MessageSenderObservationConvention observationConvention;
+	private @Nullable MessageSenderObservationConvention observationConvention;
 
 	private boolean shouldTrack = false;
 
 	private Class<?>[] datatypes = new Class<?>[0];
 
-	private MessageConverter messageConverter;
+	private @Nullable MessageConverter messageConverter;
 
 	private boolean loggingEnabled = true;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
-	private TimerFacade failureTimer;
+	private @Nullable TimerFacade failureTimer;
 
-	private volatile String fullChannelName;
+	private volatile @Nullable String fullChannelName;
 
 	private volatile boolean applicationRunning;
 
-	private volatile Lifecycle applicationRunningController;
+	private volatile @Nullable Lifecycle applicationRunningController;
 
 	@Override
 	public String getComponentType() {
@@ -235,7 +234,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		return this.interceptors.remove(index);
 	}
@@ -391,16 +389,19 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Boolean observe = observation.observe(() -> {
 			Message<?> messageToSendInternal = messageToSend;
 			if (message instanceof ErrorMessage errorMessage) {
+				Message<?> originalMessage = errorMessage.getOriginalMessage();
 				messageToSendInternal =
-						new ErrorMessage(errorMessage.getPayload(),
+						(originalMessage != null) ? new ErrorMessage(errorMessage.getPayload(),
 								messageToSend.getHeaders(),
-								errorMessage.getOriginalMessage());
+								originalMessage) : new ErrorMessage(errorMessage.getPayload(),
+								messageToSend.getHeaders());
 			}
 			return sendInternal(messageToSendInternal, timeout);
 		});
 		return Boolean.TRUE.equals(observe);
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private boolean sendWithMetrics(Message<?> message, long timeout) {
 		SampleFacade sample = this.metricsCaptor.start();
 		try {
@@ -468,6 +469,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private TimerFacade buildSendTimer(boolean success, String exception) {
 		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
@@ -676,12 +678,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		@Nullable
 		public ChannelInterceptor remove(int index) {
 			ChannelInterceptor removed = this.interceptors.remove(index);
-			if (removed != null) {
-				this.size--;
-			}
+			this.size--;
 			return removed;
 		}
 

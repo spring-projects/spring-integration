@@ -67,7 +67,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	private long reaperDelay;
 
-	private volatile ScheduledFuture<?> reaperScheduledFuture;
+	private volatile @Nullable ScheduledFuture<?> reaperScheduledFuture;
 
 	private volatile boolean running;
 
@@ -147,8 +147,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		this.lock.lock();
 		try {
 			this.running = false;
-			if (this.reaperScheduledFuture != null) {
-				this.reaperScheduledFuture.cancel(true);
+			ScheduledFuture<?> reaperScheduledFutureToCancel = this.reaperScheduledFuture;
+			if (reaperScheduledFutureToCancel != null) {
+				reaperScheduledFutureToCancel.cancel(true);
 				this.reaperScheduledFuture = null;
 			}
 			this.explicitlyStopped = true;
@@ -221,8 +222,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	public void runReaper() {
 		this.lock.lock();
 		try {
-			if (this.reaperScheduledFuture != null) {
-				this.reaperScheduledFuture.cancel(true);
+			ScheduledFuture<?> reaperScheduledFutureToCancel = this.reaperScheduledFuture;
+			if (reaperScheduledFutureToCancel != null) {
+				reaperScheduledFutureToCancel.cancel(true);
 				this.reaperScheduledFuture = null;
 			}
 

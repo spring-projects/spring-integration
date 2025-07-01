@@ -322,7 +322,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	public @Nullable ChannelInterceptor removeInterceptor(int index) {
+	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
 			this.executorInterceptorsSize--;

@@ -45,9 +45,11 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 	private static final int DEFAULT_SEND_TIMEOUT = 1000;
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private static final ErrorMessageStrategy DEFAULT_ERROR_MESSAGE_STRATEGY = (ex, attrs) -> {
-		if (ex instanceof MessagingExceptionWrapper) {
-			return new ErrorMessage(ex.getCause(), ((MessagingExceptionWrapper) ex).getFailedMessage());
+		if (ex instanceof MessagingExceptionWrapper messagingExceptionWrapper) {
+			return new ErrorMessage(messagingExceptionWrapper.getCause(),
+					messagingExceptionWrapper.getFailedMessage());
 		}
 		else {
 			return new ErrorMessage(ex);
@@ -66,7 +68,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		setChannelResolver(channelResolver);
 	}
 
-	public void setDefaultErrorChannel(@Nullable MessageChannel defaultErrorChannel) {
+	public void setDefaultErrorChannel(MessageChannel defaultErrorChannel) {
 		setChannel(defaultErrorChannel);
 	}
 

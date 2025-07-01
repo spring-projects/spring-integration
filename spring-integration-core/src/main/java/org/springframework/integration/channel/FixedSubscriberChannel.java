@@ -45,6 +45,7 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 
 	private final MessageHandler handler;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	public FixedSubscriberChannel() {

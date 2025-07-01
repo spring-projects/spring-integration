@@ -60,13 +60,14 @@ public class NullChannel implements PollableChannel,
 
 	private boolean loggingEnabled = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -161,6 +162,7 @@ public class NullChannel implements PollableChannel,
 		return true;
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
 			this.successTimer =
@@ -176,7 +178,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public Message<?> receive() {
+	public @Nullable Message<?> receive() {
 		if (this.loggingEnabled) {
 			LOG.debug("receive called on null channel");
 		}
@@ -185,7 +187,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public Message<?> receive(long timeout) {
+	public @Nullable Message<?> receive(long timeout) {
 		return receive();
 	}
 
@@ -198,6 +200,7 @@ public class NullChannel implements PollableChannel,
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private CounterFacade buildReceiveCounter() {
 		return this.metricsCaptor
 				.counterBuilder(RECEIVE_COUNTER_NAME)

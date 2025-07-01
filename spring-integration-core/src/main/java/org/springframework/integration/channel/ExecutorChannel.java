@@ -49,7 +49,7 @@ import org.springframework.util.ErrorHandler;
  */
 public class ExecutorChannel extends AbstractExecutorChannel {
 
-	private final LoadBalancingStrategy loadBalancingStrategy;
+	private final @Nullable LoadBalancingStrategy loadBalancingStrategy;
 
 	private Predicate<Exception> failoverStrategy = (exception) -> true;
 

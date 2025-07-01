@@ -1,5 +1,5 @@
 /**
  * Provides classes representing various channel types.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.channel;

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -65,7 +66,8 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 * sent to this channel.
 	 */
 	public PartitionedChannel(int partitionCount) {
-		this(partitionCount, (message) -> message.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+		this(partitionCount, (message) ->
+				Objects.requireNonNull(message.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID)));
 	}
 
 	/**

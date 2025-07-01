@@ -59,13 +59,15 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractExecutorChannel extends AbstractSubscribableChannel
 		implements ExecutorChannelInterceptorAware {
 
-	protected Executor executor; // NOSONAR
+	protected @Nullable Executor executor;
 
-	protected AbstractDispatcher dispatcher; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected AbstractDispatcher dispatcher;
 
-	protected Integer maxSubscribers; // NOSONAR
+	@Nullable
+	protected Integer maxSubscribers;
 
-	protected int executorInterceptorsSize; // NOSONAR
+	protected int executorInterceptorsSize;
 
 	public AbstractExecutorChannel(@Nullable Executor executor) {
 		this.executor = executor;
@@ -117,7 +119,6 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
@@ -167,7 +168,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 				if (!CollectionUtils.isEmpty(interceptorStack)) {
 					triggerAfterMessageHandled(message, ex, interceptorStack);
 				}
-				if (ex instanceof MessagingException) { // NOSONAR
+				if (ex instanceof MessagingException) {
 					throw new MessagingExceptionWrapper(message, (MessagingException) ex);
 				}
 				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
@@ -195,7 +196,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 							logger.debug(() -> executorInterceptor.getClass().getSimpleName()
 									+ " returned null from beforeHandle, i.e. precluding the send.");
 						}
-						triggerAfterMessageHandled(null, null, interceptorStack);
+						triggerAfterMessageHandled(message, null, interceptorStack);
 						return null;
 					}
 					interceptorStack.add(executorInterceptor);
@@ -204,13 +205,13 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 			return theMessage;
 		}
 
-		private void triggerAfterMessageHandled(@Nullable Message<?> message, @Nullable Exception ex,
+		private void triggerAfterMessageHandled(Message<?> message, @Nullable Exception ex,
 				Deque<ExecutorChannelInterceptor> interceptorStack) {
 			Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
 			while (iterator.hasNext()) {
 				ExecutorChannelInterceptor interceptor = iterator.next();
 				try {
-					interceptor.afterMessageHandled(message, AbstractExecutorChannel.this, //NOSONAR
+					interceptor.afterMessageHandled(message, AbstractExecutorChannel.this,
 							this.delegate.getMessageHandler(), ex);
 				}
 				catch (Throwable ex2) { //NOSONAR
