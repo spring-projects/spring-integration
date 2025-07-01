@@ -23,8 +23,7 @@ import java.util.List;
 
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
@@ -37,13 +36,12 @@ import org.springframework.integration.smb.session.SmbFileInfo;
  * Message source for streaming SMB remote file contents.
  *
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  * @since 6.0
  *
  */
 public class SmbStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<SmbFile> {
-
-	private static final Log logger = LogFactory.getLog(SmbStreamingMessageSource.class);
 
 	/**
 	 * Construct an instance with the supplied template.
@@ -61,7 +59,7 @@ public class SmbStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	 * @param comparator the comparator.
 	 */
 	@SuppressWarnings("this-escape")
-	public SmbStreamingMessageSource(RemoteFileTemplate<SmbFile> template, Comparator<SmbFile> comparator) {
+	public SmbStreamingMessageSource(RemoteFileTemplate<SmbFile> template, @Nullable Comparator<SmbFile> comparator) {
 		super(template, comparator);
 		doSetFilter(new SmbPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "smbStreamingMessageSource"));
 	}
@@ -83,10 +81,10 @@ public class SmbStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	@Override
 	protected boolean isDirectory(SmbFile file) {
 		try {
-			return file != null && file.isDirectory();
+			return file.isDirectory();
 		}
 		catch (SmbException se) {
-			logger.error("Unable to determine if this SmbFile represents a directory", se);
+			logger.error(se, "Unable to determine if this SmbFile represents a directory");
 			return false;
 		}
 	}

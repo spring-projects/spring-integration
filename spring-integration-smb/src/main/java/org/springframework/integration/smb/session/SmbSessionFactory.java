@@ -23,6 +23,7 @@ import jcifs.CIFSContext;
 import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
@@ -40,7 +41,7 @@ public class SmbSessionFactory extends SmbConfig implements SessionFactory<SmbFi
 
 	private static final Log logger = LogFactory.getLog(SmbSessionFactory.class);
 
-	private CIFSContext context = null;
+	private @Nullable CIFSContext context;
 
 	public SmbSessionFactory() {
 		logger.debug("New " + getClass().getName() + " created.");

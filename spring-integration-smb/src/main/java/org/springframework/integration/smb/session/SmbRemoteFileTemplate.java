@@ -21,10 +21,10 @@ import java.util.List;
 import jcifs.smb.NtStatus;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * The SMB-specific {@link RemoteFileTemplate} implementation.
@@ -83,8 +83,7 @@ public class SmbRemoteFileTemplate extends RemoteFileTemplate<SmbFile> {
 		return !NOT_DIRTY_STATUSES.contains(status);
 	}
 
-	@Nullable
-	private static SmbException findSmbException(Throwable ex) {
+	private static @Nullable SmbException findSmbException(@Nullable Throwable ex) {
 		if (ex == null || ex instanceof SmbException) {
 			return (SmbException) ex;
 		}

@@ -23,6 +23,7 @@ import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.util.Assert;
@@ -94,21 +95,19 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 	 * users have the necessary permissions to access objects based on these entries.
 	 * A readable, formatted list of security descriptor entries and associated
 	 * permissions will be returned by this implementation.
-	 *
 	 * <pre>
 	 * WNET\alice - Deny Write, Deny Modify, Direct - This folder only
 	 * SYSTEM - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
 	 * WNET\alice - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
 	 * Administrators - Allow Read, Allow Write, Allow Modify, Allow Execute, Allow Delete, Inherited - This folder only
 	 * </pre>
-	 *
 	 * @return a list of Access Control Entry (ACE) objects representing the security
 	 * descriptor entry and permissions associated with this file or directory.
 	 * @see jcifs.ACE
 	 * @see jcifs.SID
 	 */
 	@Override
-	public String getPermissions() {
+	public @Nullable String getPermissions() {
 		ACE[] aces;
 		try {
 			aces = this.smbFile.getSecurity(true);

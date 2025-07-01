@@ -45,7 +45,7 @@ public class SmbSimplePatternFileListFilter extends AbstractSimplePatternFileLis
 	 */
 	@Override
 	protected String getFilename(SmbFile file) {
-		return (file != null) ? file.getName() : null;
+		return file.getName();
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileOutputStream;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.file.remote.session.Session;
@@ -335,7 +336,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return the path created or null
 	 * @throws IOException on error conditions returned by a CIFS server
 	 */
-	String mkdirs(String _path) throws IOException {
+	@Nullable String mkdirs(String _path) throws IOException {
 		int idxPath = _path.lastIndexOf(SMB_FILE_SEPARATOR);
 		if (idxPath > -1) {
 			String path = _path.substring(0, idxPath + 1);
@@ -448,7 +449,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return SmbFile object for path
 	 * @throws IOException in case of I/O errors
 	 */
-	private SmbFile createSmbFileObject(String path, Boolean isDirectory) throws IOException {
+	private SmbFile createSmbFileObject(String path, @Nullable Boolean isDirectory) throws IOException {
 
 		final String cleanedPath = StringUtils.cleanPath(path);
 

@@ -42,16 +42,21 @@ import org.springframework.util.StringUtils;
  */
 public class SmbConfig {
 
+	@SuppressWarnings("NullAway.Init")
 	private String host;
 
 	private int port;
 
+	@SuppressWarnings("NullAway.Init")
 	private String domain;
 
+	@SuppressWarnings("NullAway.Init")
 	private String username;
 
+	@SuppressWarnings("NullAway.Init")
 	private String password;
 
+	@SuppressWarnings("NullAway.Init")
 	private String shareAndDir;
 
 	/**

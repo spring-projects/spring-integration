@@ -43,7 +43,7 @@ public class SmbInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	@Override
 	protected boolean isFile(SmbFile _file) {
 		try {
-			return _file != null && _file.isFile();
+			return _file.isFile();
 		}
 		catch (Exception _ex) {
 			logger.warn("Unable to get resource status [" + _file + "].", _ex);
@@ -53,7 +53,7 @@ public class SmbInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	@Override
 	protected String getFilename(SmbFile _file) {
-		return _file != null ? _file.getName() : null;
+		return _file.getName();
 	}
 
 	@Override

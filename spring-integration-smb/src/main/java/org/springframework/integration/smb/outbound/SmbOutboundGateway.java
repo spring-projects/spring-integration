@@ -22,6 +22,7 @@ import java.util.List;
 
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -30,7 +31,6 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbFileInfo;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * Outbound Gateway for performing remote file operations via SMB.

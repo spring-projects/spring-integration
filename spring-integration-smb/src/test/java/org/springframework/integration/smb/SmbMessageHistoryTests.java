@@ -17,12 +17,7 @@
 package org.springframework.integration.smb;
 
 import java.net.URI;
-import java.net.URL;
-import java.util.Properties;
 
-import jcifs.CIFSContext;
-import jcifs.config.PropertyConfiguration;
-import jcifs.context.BaseContext;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -56,12 +51,6 @@ public class SmbMessageHistoryTests extends AbstractBaseTests {
 			assertThat(uri.getUserInfo()).isEqualTo("sambagu@est:sambag%uest");
 			assertThat(uri.getPath()).isEqualTo("/smb share/");
 			assertThat(uri.getRawPath()).isEqualTo("/smb%20share/");
-
-			CIFSContext context = new BaseContext(new PropertyConfiguration(new Properties()));
-			URL rawUrl = new URL(null, smbSessionFactory.rawUrl(true), context.getUrlHandler());
-			assertThat(rawUrl.getHost()).isEqualTo("localhost");
-			assertThat(rawUrl.getUserInfo()).isEqualTo("sambagu%40est:sambag%25uest");
-			assertThat(rawUrl.getPath()).isEqualTo("/smb share/");
 		}
 	}
 

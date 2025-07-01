@@ -50,7 +50,7 @@ public class SmbRegexPatternFileListFilter extends AbstractRegexPatternFileListF
 	 */
 	@Override
 	protected String getFilename(SmbFile file) {
-		return (file != null ? file.getName() : null);
+		return file.getName();
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import jcifs.smb.SmbFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
@@ -38,7 +39,8 @@ public class SmbInboundFileSynchronizingMessageSource extends AbstractInboundFil
 	}
 
 	public SmbInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<SmbFile> _synchronizer,
-			Comparator<File> _comparator) {
+			@Nullable Comparator<File> _comparator) {
+
 		super(_synchronizer, _comparator);
 	}
 

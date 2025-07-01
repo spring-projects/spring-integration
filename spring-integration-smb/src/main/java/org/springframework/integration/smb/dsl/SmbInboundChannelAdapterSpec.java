@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import jcifs.smb.SmbFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.dsl.RemoteFileInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -31,7 +32,6 @@ import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizer;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SmbInboundFileSynchronizingMessageSource}.
