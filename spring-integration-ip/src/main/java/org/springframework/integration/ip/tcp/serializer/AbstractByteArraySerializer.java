@@ -29,7 +29,7 @@ import org.springframework.core.serializer.Serializer;
  * reconstruct a byte array from an arbitrary stream.
  *
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 2.0
  *

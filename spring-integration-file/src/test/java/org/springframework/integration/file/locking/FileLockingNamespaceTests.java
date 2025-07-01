@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 @SpringJUnitConfig
 @DirtiesContext

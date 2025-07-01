@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 		implements SubscribableChannel, SubscribableChannelManagement {

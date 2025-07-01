@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 2.0
  */

@@ -29,7 +29,7 @@ import org.springframework.integration.support.management.ManageableLifecycle;
  *
  * @author Marius Bogoevici
  * @author Dave Syer
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware, ManageableLifecycle {
 

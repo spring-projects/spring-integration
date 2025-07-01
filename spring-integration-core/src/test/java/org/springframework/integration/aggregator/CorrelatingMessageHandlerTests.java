@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Iwein Fuld
  * @author Dave Syer
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 public class CorrelatingMessageHandlerTests implements TestApplicationContextAware {
 

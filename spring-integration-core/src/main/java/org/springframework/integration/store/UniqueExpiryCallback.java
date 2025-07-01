@@ -23,7 +23,7 @@ package org.springframework.integration.store;
  * class is present in the expire callbacks.
  *
  * @author Meherzad Lahewala
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 5.0.10
  */

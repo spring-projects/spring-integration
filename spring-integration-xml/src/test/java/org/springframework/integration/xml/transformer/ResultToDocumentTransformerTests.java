@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Jonas Partner
- * @author Artme Bilan
+ * @author Artem Bilan
  */
 public class ResultToDocumentTransformerTests {
 
