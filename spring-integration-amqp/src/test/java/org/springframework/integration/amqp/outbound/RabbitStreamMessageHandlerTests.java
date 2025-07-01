@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Gary Russell
  * @author Chris Bono
  * @author Artem Bilan
+ * @author Ryan Riley
  *
  * @since 6.0
  */
