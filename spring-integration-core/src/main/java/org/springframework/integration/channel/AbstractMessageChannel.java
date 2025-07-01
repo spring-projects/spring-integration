@@ -389,10 +389,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Boolean observe = observation.observe(() -> {
 			Message<?> messageToSendInternal = messageToSend;
 			if (message instanceof ErrorMessage errorMessage) {
+				Message<?> originalMessage = errorMessage.getOriginalMessage();
 				messageToSendInternal =
-						(errorMessage.getOriginalMessage() != null) ? new ErrorMessage(errorMessage.getPayload(),
+						(originalMessage != null) ? new ErrorMessage(errorMessage.getPayload(),
 								messageToSend.getHeaders(),
-								errorMessage.getOriginalMessage()) : new ErrorMessage(errorMessage.getPayload(),
+								originalMessage) : new ErrorMessage(errorMessage.getPayload(),
 								messageToSend.getHeaders());
 			}
 			return sendInternal(messageToSendInternal, timeout);
@@ -679,9 +680,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		public ChannelInterceptor remove(int index) {
 			ChannelInterceptor removed = this.interceptors.remove(index);
-			if (removed != null) {
-				this.size--;
-			}
+			this.size--;
 			return removed;
 		}
 

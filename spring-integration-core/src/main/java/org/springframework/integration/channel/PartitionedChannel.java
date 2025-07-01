@@ -66,7 +66,8 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 * sent to this channel.
 	 */
 	public PartitionedChannel(int partitionCount) {
-		this(partitionCount, (message) -> Objects.requireNonNull(message.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID)));
+		this(partitionCount, (message) ->
+				Objects.requireNonNull(message.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID)));
 	}
 
 	/**
