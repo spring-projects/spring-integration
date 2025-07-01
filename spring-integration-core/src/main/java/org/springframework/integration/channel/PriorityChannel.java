@@ -135,7 +135,7 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	@Override
-	protected Message<?> doReceive(long timeout) {
+	protected @Nullable Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
 			if (!this.useMessageStore) {
@@ -148,7 +148,7 @@ public class PriorityChannel extends QueueChannel {
 
 	private static final class SequenceFallbackComparator implements Comparator<Message<?>> {
 
-		private final Comparator<Message<?>> targetComparator;
+		private final @Nullable Comparator<Message<?>> targetComparator;
 
 		SequenceFallbackComparator(@Nullable Comparator<Message<?>> targetComparator) {
 			this.targetComparator = targetComparator;

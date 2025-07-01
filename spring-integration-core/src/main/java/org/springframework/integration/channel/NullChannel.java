@@ -34,6 +34,7 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.util.Assert;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -60,13 +61,14 @@ public class NullChannel implements PollableChannel,
 
 	private boolean loggingEnabled = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -163,6 +165,7 @@ public class NullChannel implements PollableChannel,
 
 	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
+			Assert.state(this.metricsCaptor != null, "metricsCaptor not must not be null");
 			this.successTimer =
 					this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 							.tag("type", "channel")
@@ -176,7 +179,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public Message<?> receive() {
+	public @Nullable Message<?> receive() {
 		if (this.loggingEnabled) {
 			LOG.debug("receive called on null channel");
 		}
@@ -185,7 +188,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	public Message<?> receive(long timeout) {
+	public @Nullable Message<?> receive(long timeout) {
 		return receive();
 	}
 
@@ -199,6 +202,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	private CounterFacade buildReceiveCounter() {
+		Assert.state(this.metricsCaptor != null, "metricsCaptor not must not be null");
 		return this.metricsCaptor
 				.counterBuilder(RECEIVE_COUNTER_NAME)
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())

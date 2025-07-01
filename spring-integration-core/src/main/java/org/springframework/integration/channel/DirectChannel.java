@@ -39,7 +39,7 @@ public class DirectChannel extends AbstractSubscribableChannel {
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private volatile Integer maxSubscribers;
+	private volatile @Nullable Integer maxSubscribers;
 
 	/**
 	 * Create a channel with default {@link RoundRobinLoadBalancingStrategy}.

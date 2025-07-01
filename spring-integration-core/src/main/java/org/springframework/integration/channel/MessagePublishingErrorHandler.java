@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -47,7 +49,8 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 	private static final ErrorMessageStrategy DEFAULT_ERROR_MESSAGE_STRATEGY = (ex, attrs) -> {
 		if (ex instanceof MessagingExceptionWrapper) {
-			return new ErrorMessage(ex.getCause(), ((MessagingExceptionWrapper) ex).getFailedMessage());
+			return new ErrorMessage(Objects.requireNonNull(ex.getCause()),
+					Objects.requireNonNull(((MessagingExceptionWrapper) ex).getFailedMessage()));
 		}
 		else {
 			return new ErrorMessage(ex);

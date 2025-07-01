@@ -183,7 +183,6 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {

@@ -48,7 +48,7 @@ public class ChannelPurger {
 
 	private final QueueChannel[] channels;
 
-	private final MessageSelector selector;
+	private final @Nullable MessageSelector selector;
 
 	public ChannelPurger(QueueChannel... channels) {
 		this(null, channels);

@@ -40,7 +40,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel implements 
 
 	private final boolean requireSubscribers;
 
-	private ErrorHandler errorHandler;
+	private @Nullable ErrorHandler errorHandler;
 
 	private boolean ignoreFailures;
 

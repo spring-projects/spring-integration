@@ -45,7 +45,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 	private int executorInterceptorsSize;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
@@ -186,7 +186,6 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {

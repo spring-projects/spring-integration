@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -95,28 +96,27 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
-	@Nullable
-	private MessageSenderObservationConvention observationConvention;
+	private @Nullable MessageSenderObservationConvention observationConvention;
 
 	private boolean shouldTrack = false;
 
 	private Class<?>[] datatypes = new Class<?>[0];
 
-	private MessageConverter messageConverter;
+	private @Nullable MessageConverter messageConverter;
 
 	private boolean loggingEnabled = true;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
-	private TimerFacade failureTimer;
+	private @Nullable TimerFacade failureTimer;
 
-	private volatile String fullChannelName;
+	private volatile @Nullable String fullChannelName;
 
 	private volatile boolean applicationRunning;
 
-	private volatile Lifecycle applicationRunningController;
+	private volatile @Nullable Lifecycle applicationRunningController;
 
 	@Override
 	public String getComponentType() {
@@ -235,9 +235,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
-		return this.interceptors.remove(index);
+		return Objects.requireNonNull(this.interceptors.remove(index));
 	}
 
 	/**
@@ -394,7 +393,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				messageToSendInternal =
 						new ErrorMessage(errorMessage.getPayload(),
 								messageToSend.getHeaders(),
-								errorMessage.getOriginalMessage());
+								Objects.requireNonNull(errorMessage.getOriginalMessage()));
 			}
 			return sendInternal(messageToSendInternal, timeout);
 		});
@@ -402,6 +401,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	private boolean sendWithMetrics(Message<?> message, long timeout) {
+		Assert.state(this.metricsCaptor != null, "The metricsCaptor must not be null");
 		SampleFacade sample = this.metricsCaptor.start();
 		try {
 			boolean sent = sendInternal(message, timeout);
@@ -469,6 +469,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	private TimerFacade buildSendTimer(boolean success, String exception) {
+		Assert.state(this.metricsCaptor != null, "The metricsCaptor must not be null");
 		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
