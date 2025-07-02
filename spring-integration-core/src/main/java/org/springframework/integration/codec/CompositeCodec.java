@@ -37,7 +37,7 @@ public class CompositeCodec implements Codec {
 
 	private final Codec defaultCodec;
 
-	private final @Nullable Map<Class<?>, Codec> delegates;
+	private final Map<Class<?>, Codec> delegates;
 
 	public CompositeCodec(@Nullable Map<Class<?>, Codec> delegates, Codec defaultCodec) {
 		Assert.notNull(defaultCodec, "'defaultCodec' cannot be null");
@@ -96,7 +96,7 @@ public class CompositeCodec implements Codec {
 	}
 
 	private @Nullable Codec findDelegate(Class<?> type) {
-		if (this.delegates == null) {
+		if (this.delegates.isEmpty()) {
 			return null;
 		}
 
