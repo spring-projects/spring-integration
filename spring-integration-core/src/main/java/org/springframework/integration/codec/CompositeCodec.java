@@ -39,14 +39,17 @@ public class CompositeCodec implements Codec {
 
 	private final @Nullable Map<Class<?>, Codec> delegates;
 
-	public CompositeCodec(Map<Class<?>, Codec> delegates, Codec defaultCodec) {
+	public CompositeCodec(@Nullable Map<Class<?>, Codec> delegates, Codec defaultCodec) {
 		Assert.notNull(defaultCodec, "'defaultCodec' cannot be null");
 		this.defaultCodec = defaultCodec;
+		if (delegates == null) {
+			delegates = Map.of();
+		}
 		this.delegates = new HashMap<Class<?>, Codec>(delegates);
 	}
 
 	public CompositeCodec(Codec defaultCodec) {
-		this(Map.of(), defaultCodec);
+		this(null, defaultCodec);
 	}
 
 	@Override
