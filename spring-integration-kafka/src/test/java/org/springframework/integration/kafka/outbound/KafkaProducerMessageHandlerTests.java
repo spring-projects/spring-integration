@@ -728,6 +728,7 @@ class KafkaProducerMessageHandlerTests {
 		given(template.getProducerFactory()).willReturn(mock(ProducerFactory.class));
 		KafkaProducerMessageHandler<String, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setTopicExpression(new LiteralExpression("topic"));
+		handler.setBeanFactory(mock());
 		handler.handleMessage(new GenericMessage<>("foo"));
 		verify(template, never()).executeInTransaction(any());
 		verify(template).send(any(ProducerRecord.class));
