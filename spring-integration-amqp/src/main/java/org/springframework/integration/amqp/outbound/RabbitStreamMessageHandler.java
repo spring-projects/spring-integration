@@ -27,6 +27,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Chris Bono
+ * @author Ryan Riley
  * @since 6.0
  *
  */
@@ -171,14 +173,14 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	}
 
 	protected MessageChannel getSendFailureChannel() {
-		if (this.sendFailureChannel != null) {
-			return this.sendFailureChannel;
+		if (this.sendFailureChannel == null && (this.sendFailureChannelName != null || !this.sync)) {
+			String sendFailureChannelNameToUse = this.sendFailureChannelName;
+			if (sendFailureChannelNameToUse == null) {
+				sendFailureChannelNameToUse = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
+			}
+			this.sendFailureChannel = getChannelResolver().resolveDestination(sendFailureChannelNameToUse);
 		}
-		else if (this.sendFailureChannelName != null) {
-			this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
-			return this.sendFailureChannel;
-		}
-		return null;
+		return this.sendFailureChannel;
 	}
 
 	protected MessageChannel getSendSuccessChannel() {
