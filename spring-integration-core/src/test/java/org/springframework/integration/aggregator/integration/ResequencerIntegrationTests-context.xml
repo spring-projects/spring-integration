@@ -7,14 +7,16 @@
 
 
 	<int:resequencer id="resequencerLight" input-channel="resequencerLightInput" output-channel="outputChannel"
-					 release-partial-sequences="true"/>
+					 release-partial-sequences="true" correlation-strategy="customCorrelationStrategy"
+					 release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<int:channel id="outputChannel">
 		<int:queue/>
 	</int:channel>
 
 	<int:resequencer id="resequencerDeep" input-channel="resequencerDeepInput" output-channel="outputChannel"
-					 release-partial-sequences="true"/>
+					 release-partial-sequences="true" correlation-strategy="customCorrelationStrategy"
+					 release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<int:service-activator id="customResequencer" ref="resequencer"
 						   input-channel="inputChannel" output-channel="outputChannel"/>
@@ -40,4 +42,6 @@
 
 	<bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
+	<bean id="sequenceSizeReleaseStrategy"
+		  class="org.springframework.integration.aggregator.SequenceSizeReleaseStrategy"/>
 </beans>

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -65,7 +66,7 @@ public class TransactionSynchronizationFactoryParser extends
 		return syncFactoryBuilder.getBeanDefinition();
 	}
 
-	private void processSubElement(Element element, ParserContext parserContext, BeanDefinitionBuilder expressionProcessor, String elementPrefix) {
+	private void processSubElement(@Nullable Element element, ParserContext parserContext, BeanDefinitionBuilder expressionProcessor, String elementPrefix) {
 		if (element != null) {
 			String expression = element.getAttribute("expression");
 			String channel = element.getAttribute("channel");
@@ -88,7 +89,7 @@ public class TransactionSynchronizationFactoryParser extends
 		}
 	}
 
-	private boolean elementsNotDefined(Element... elements) {
+	private boolean elementsNotDefined(@Nullable Element... elements) {
 		for (Object element : elements) {
 			if (element != null) {
 				return false;

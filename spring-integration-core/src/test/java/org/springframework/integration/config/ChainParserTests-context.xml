@@ -125,7 +125,7 @@
 
 	<chain id="subComponentsIdSupport1" input-channel="subComponentsIdSupport1Channel">
 		<splitter id="splitterWithinChain"/>
-		<resequencer id="resequencerWithinChain"/>
+		<resequencer id="resequencerWithinChain" correlation-strategy="errorChannel" release-strategy="errorChannel"/>
 		<enricher id="enricherWithinChain" requires-reply="false">
 			<property name="foo" value="bar"/>
 		</enricher>

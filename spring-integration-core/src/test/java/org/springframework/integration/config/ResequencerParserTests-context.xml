@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd">
@@ -17,7 +17,8 @@
 		<queue capacity="5"/>
 	</channel>
 
-	<resequencer id="defaultResequencer" input-channel="inputChannel"/>
+	<resequencer id="defaultResequencer" input-channel="inputChannel" correlation-strategy="errorChannel"
+				 release-strategy="errorChannel"/>
 
 	<channel id="inputChannel2"/>
 
@@ -30,42 +31,48 @@
 	<channel id="inputChannel6"/>
 
 	<resequencer id="completelyDefinedResequencer"
-		input-channel="inputChannel2"
-		output-channel="outputChannel"
-		discard-channel="discardChannel"
-		send-timeout="86420000"
-		send-partial-result-on-expiry="true"
-		empty-group-min-timeout="60000"
-		release-partial-sequences="true"/>
+				 input-channel="inputChannel2"
+				 output-channel="outputChannel"
+				 discard-channel="discardChannel"
+				 send-timeout="86420000"
+				 send-partial-result-on-expiry="true"
+				 empty-group-min-timeout="60000"
+				 release-partial-sequences="true" correlation-strategy="errorChannel"
+				 release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<resequencer id="resequencerWithCorrelationStrategyRefOnly"
-		input-channel="inputChannel3"
-		correlation-strategy="testCorrelationStrategy"/>
+				 input-channel="inputChannel3"
+				 correlation-strategy="testCorrelationStrategy" release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<resequencer id="resequencerWithCorrelationStrategyRefAndMethod"
-		input-channel="inputChannel4"
-		correlation-strategy="testCorrelationStrategyPojo"
-		correlation-strategy-method="foo"/>
+				 input-channel="inputChannel4"
+				 correlation-strategy="testCorrelationStrategyPojo"
+				 correlation-strategy-method="foo" release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<resequencer id="resequencerWithReleaseStrategyRefOnly"
-		input-channel="inputChannel5"
-		release-strategy="testReleaseStrategy"/>
+				 input-channel="inputChannel5"
+				 correlation-strategy="testCorrelationStrategyPojo"
+				 release-strategy="testReleaseStrategy"/>
 
 	<resequencer id="resequencerWithReleaseStrategyRefAndMethod"
-		input-channel="inputChannel6"
-		expire-groups-upon-timeout="true"
-		release-strategy="testReleaseStrategyPojo"
-		release-strategy-method="bar"/>
+				 input-channel="inputChannel6"
+				 expire-groups-upon-timeout="true"
+				 correlation-strategy="testCorrelationStrategyPojo"
+				 release-strategy="testReleaseStrategyPojo"
+				 release-strategy-method="bar"/>
 
 	<beans:bean id="testCorrelationStrategy"
-		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
+				class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
 
 	<beans:bean id="testCorrelationStrategyPojo"
-		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategyPojo"/>
+				class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategyPojo"/>
 
 	<beans:bean id="testReleaseStrategy"
-		class="org.springframework.integration.config.ResequencerParserTests$TestReleaseStrategy" />
+				class="org.springframework.integration.config.ResequencerParserTests$TestReleaseStrategy"/>
 
 	<beans:bean id="testReleaseStrategyPojo"
-		class="org.springframework.integration.config.ResequencerParserTests$TestReleaseStrategyPojo" />
+				class="org.springframework.integration.config.ResequencerParserTests$TestReleaseStrategyPojo"/>
+
+	<beans:bean id="sequenceSizeReleaseStrategy"
+				class="org.springframework.integration.aggregator.SequenceSizeReleaseStrategy"/>
 </beans:beans>

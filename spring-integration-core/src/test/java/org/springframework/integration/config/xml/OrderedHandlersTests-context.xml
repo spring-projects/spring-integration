@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd">
@@ -15,13 +15,14 @@
 		<header name="foo" value="bar"/>
 	</header-enricher>
 
-	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/> 
+	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/>
 
 	<object-to-string-transformer id="endpoint13" input-channel="channel" order="13"/>
 
 	<filter id="endpoint8" input-channel="channel" ref="bean" method="filter" order="8"/>
 
-	<resequencer id="endpoint10" input-channel="channel" order="10"/>
+	<resequencer id="endpoint10" input-channel="channel" order="10" release-strategy="sequenceSizeReleaseStrategy"
+				 correlation-strategy="testCorrelationStrategy"/>
 
 	<chain id="endpoint6" input-channel="channel" order="6">
 		<service-activator ref="bean"/>
@@ -41,4 +42,8 @@
 
 	<beans:bean id="bean" class="org.springframework.integration.config.xml.OrderedHandlersTests$TestBean"/>
 
+	<beans:bean id="sequenceSizeReleaseStrategy"
+				class="org.springframework.integration.aggregator.SequenceSizeReleaseStrategy"/>
+	<beans:bean id="testCorrelationStrategy"
+				class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
 </beans:beans>

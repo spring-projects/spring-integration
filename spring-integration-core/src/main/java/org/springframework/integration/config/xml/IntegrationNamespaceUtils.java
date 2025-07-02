@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -273,7 +274,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param parserContext the current context
 	 * @return the text from the attribute or element or null
 	 */
-	public static String getTextFromAttributeOrNestedElement(Element element, String name,
+	public static @Nullable String getTextFromAttributeOrNestedElement(Element element, String name,
 			ParserContext parserContext) {
 
 		String attr = element.getAttribute(name);
@@ -286,10 +287,10 @@ public abstract class IntegrationNamespaceUtils {
 		if (!StringUtils.hasText(attr) && childElement == null) {
 			return null;
 		}
-		return StringUtils.hasText(attr) ? attr : childElement.getTextContent();
+		return StringUtils.hasText(attr) ? attr : Objects.requireNonNull(childElement).getTextContent();
 	}
 
-	public static BeanComponentDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext) {
+	public static @Nullable BeanComponentDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext) {
 		// parses out the inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
 		BeanComponentDefinition innerComponentDefinition = null;
@@ -297,7 +298,8 @@ public abstract class IntegrationNamespaceUtils {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
-			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder); // NOSONAR never null
+			Assert.state(bdHolder != null, "bdHolder must not be null");
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
 			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());
 		}
@@ -322,7 +324,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param replyHeaderValue The reply header value.
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
-			ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
+			ParserContext parserContext, Class<?> headerMapperClass, @Nullable String replyHeaderValue) {
 
 		configureHeaderMapper(element, rootBuilder, parserContext,
 				BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass), replyHeaderValue);
@@ -425,7 +427,7 @@ public abstract class IntegrationNamespaceUtils {
 		return txDefinitionBuilder.getBeanDefinition();
 	}
 
-	public static String[] generateAlias(Element element) {
+	public static String @Nullable [] generateAlias(Element element) {
 		String[] handlerAlias = null;
 		String id = element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE);
 		if (StringUtils.hasText(id)) {
@@ -434,21 +436,21 @@ public abstract class IntegrationNamespaceUtils {
 		return handlerAlias;
 	}
 
-	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+	public static void configureAndSetAdviceChainIfPresent(@Nullable Element adviceChainElement, @Nullable Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
 
 		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, false, parentBeanDefinition, parserContext);
 	}
 
-	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement,
-			Element txElement, boolean handleMessageAdvice, BeanDefinition parentBeanDefinition,
+	public static void configureAndSetAdviceChainIfPresent(@Nullable Element adviceChainElement,
+			@Nullable Element txElement, boolean handleMessageAdvice, BeanDefinition parentBeanDefinition,
 			ParserContext parserContext) {
 
 		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, handleMessageAdvice,
 				parentBeanDefinition, parserContext, "adviceChain");
 	}
 
-	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+	public static void configureAndSetAdviceChainIfPresent(@Nullable Element adviceChainElement, @Nullable Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext, String propertyName) {
 
 		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, false, parentBeanDefinition,
@@ -456,7 +458,7 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+	public static void configureAndSetAdviceChainIfPresent(@Nullable Element adviceChainElement, @Nullable Element txElement,
 			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext,
 			String propertyName) {
 
@@ -468,14 +470,14 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
+	public static ManagedList configureAdviceChain(@Nullable Element adviceChainElement, @Nullable Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
 
 		return configureAdviceChain(adviceChainElement, txElement, false, parentBeanDefinition, parserContext);
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
+	public static ManagedList configureAdviceChain(@Nullable Element adviceChainElement, @Nullable Element txElement,
 			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext) {
 
 		ManagedList adviceChain = new ManagedList();
@@ -492,7 +494,7 @@ public abstract class IntegrationNamespaceUtils {
 					if ("bean".equals(localName)) {
 						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
 								childElement, parentBeanDefinition);
-						parserContext.registerBeanComponent(new BeanComponentDefinition(holder)); // NOSONAR never null
+						parserContext.registerBeanComponent(new BeanComponentDefinition(Objects.requireNonNull(holder)));
 						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
 					}
 					else if (REF_ATTRIBUTE.equals(localName)) {
@@ -514,7 +516,7 @@ public abstract class IntegrationNamespaceUtils {
 		return adviceChain;
 	}
 
-	public static BeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
+	public static @Nullable BeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
 			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
 
 		Assert.hasText(valueElementName, "'valueElementName' must not be empty");
@@ -546,7 +548,7 @@ public abstract class IntegrationNamespaceUtils {
 		return expressionDef;
 	}
 
-	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
+	public static @Nullable BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
 
 		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
 
@@ -614,25 +616,22 @@ public abstract class IntegrationNamespaceUtils {
 			else {
 				candidates = (ManagedMap<String, String>) argumentValue.getValue();
 			}
-			candidates.put(handlerBeanName, channelName); // NOSONAR never null
+			Objects.requireNonNull(candidates).put(handlerBeanName, channelName);
 		}
 	}
 
 	public static void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
 			String expressionAttribute, String beanProperty, String adapterClass, Element element,
-			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+			BeanDefinitionBuilder builder, @Nullable BeanMetadataElement processor, ParserContext parserContext) {
 
 		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
 				adapterClass, element, processor, parserContext);
-
-		if (adapter != null) {
-			builder.addPropertyValue(beanProperty, adapter);
-		}
+		builder.addPropertyValue(beanProperty, adapter);
 	}
 
 	public static void injectConstructorWithAdapter(String beanRefAttribute, String methodRefAttribute,
 			String expressionAttribute, String adapterClass, Element element,
-			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+			BeanDefinitionBuilder builder, @Nullable BeanMetadataElement processor, ParserContext parserContext) {
 
 		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
 				adapterClass, element, processor, parserContext);
@@ -642,8 +641,8 @@ public abstract class IntegrationNamespaceUtils {
 		}
 	}
 
-	private static BeanMetadataElement constructAdapter(String beanRefAttribute, String methodRefAttribute,
-			String expressionAttribute, String adapterClass, Element element, BeanMetadataElement processor,
+	private static @Nullable BeanMetadataElement constructAdapter(String beanRefAttribute, String methodRefAttribute,
+			String expressionAttribute, String adapterClass, Element element, @Nullable BeanMetadataElement processor,
 			ParserContext parserContext) {
 
 		final String beanRef = element.getAttribute(beanRefAttribute);

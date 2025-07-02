@@ -18,6 +18,7 @@ package org.springframework.integration.cassandra.config.xml;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -91,7 +92,7 @@ public final class CassandraParserUtils {
 
 	}
 
-	public static boolean areMutuallyExclusive(String query, BeanDefinition statementExpressionDef,
+	public static boolean areMutuallyExclusive(@Nullable String query, @Nullable BeanDefinition statementExpressionDef,
 			String ingestQuery) {
 
 		return !StringUtils.hasText(query) && statementExpressionDef == null && !StringUtils.hasText(ingestQuery)

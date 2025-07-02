@@ -18,7 +18,9 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -46,7 +48,7 @@ import org.springframework.util.xml.DomUtils;
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 
 	@Override
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		Map<String, Object> propertyAccessors = new ManagedMap<>();
 		Map<String, Object> indexAccessors = new ManagedMap<>();
 		parseTargetedAccessors(element, parserContext, propertyAccessors);
@@ -96,7 +98,7 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 			else {
 				BeanReference propertyAccessorRef =
 						(BeanReference) delegate.parsePropertySubElement(accessorElement, null);
-				accessorName = propertyAccessorRef.getBeanName(); // NOSONAR not null
+				accessorName = Objects.requireNonNull(propertyAccessorRef).getBeanName();
 				accessor = propertyAccessorRef;
 			}
 			accessorsMap.put(accessorName, accessor);

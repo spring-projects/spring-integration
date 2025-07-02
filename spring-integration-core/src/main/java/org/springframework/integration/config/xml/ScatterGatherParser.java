@@ -16,9 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Objects;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -29,6 +32,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.scattergather.ScatterGatherHandler;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -82,7 +86,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 	}
 
 	private void scatter(ParserContext parserContext, String scatterChannel, boolean hasScatterChannel,
-			Element scatterer, boolean hasScatterer, BeanDefinitionBuilder builder,
+			@Nullable Element scatterer, boolean hasScatterer, BeanDefinitionBuilder builder,
 			AbstractBeanDefinition scatterGatherDefinition, String id) {
 
 		if (hasScatterChannel) {
@@ -94,15 +98,16 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 				scattererDefinition = new RootBeanDefinition(RecipientListRouter.class);
 			}
 			else {
-				scattererDefinition = SCATTERER_PARSER.parse(scatterer,
+				scattererDefinition = SCATTERER_PARSER.parse(Objects.requireNonNull(scatterer),
 						new ParserContext(parserContext.getReaderContext(), parserContext.getDelegate(),
 								scatterGatherDefinition));
 			}
-
+			Assert.state(scatterer != null, "scatterer must not be null");
 			String scattererId = id + ".scatterer";
 			if (hasScatterer && scatterer.hasAttribute(ID_ATTRIBUTE)) {
 				scattererId = scatterer.getAttribute(ID_ATTRIBUTE);
 			}
+			Assert.state(scattererDefinition != null, "scattererDefinition must not be null");
 
 			if (!scatterer.hasAttribute("apply-sequence")) {
 				scattererDefinition.getPropertyValues().addPropertyValue("applySequence", true);
@@ -124,18 +129,19 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 				gatherer = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().newDocument().createElement("aggregator");
 			}
 			catch (ParserConfigurationException e) {
-				parserContext.getReaderContext().error(e.getMessage(), element);
-				// NOSONAR below to prevent a false positive in SONAR for a null gatherer
+				parserContext.getReaderContext().error(
+						e.getMessage() == null ? "Invalid Parser Configuration" : e.getMessage(), element);
 			}
 		}
+		Assert.state(gatherer != null, "gatherer must not be null");
 		gathererDefinition = GATHERER_PARSER.parse(gatherer, // NOSONAR
 				new ParserContext(parserContext.getReaderContext(),
 						parserContext.getDelegate(), scatterGatherDefinition));
 		String gathererId = id + ".gatherer";
-		if (gatherer != null && gatherer.hasAttribute(ID_ATTRIBUTE)) {
+		if (gatherer.hasAttribute(ID_ATTRIBUTE)) {
 			gathererId = gatherer.getAttribute(ID_ATTRIBUTE);
 		}
-		parserContext.getRegistry().registerBeanDefinition(gathererId, gathererDefinition); // NOSONAR not null
+		parserContext.getRegistry().registerBeanDefinition(gathererId, Objects.requireNonNull(gathererDefinition));
 		builder.addConstructorArgValue(new RuntimeBeanReference(gathererId));
 	}
 

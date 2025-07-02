@@ -18,7 +18,9 @@ package org.springframework.integration.config.xml;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -78,16 +80,16 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	 * @param parserContext The parser context.
 	 * @return The bean definition builder.
 	 */
-	protected abstract BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
+	protected abstract @Nullable BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
 
 	protected String getInputChannelAttributeName() {
 		return "input-channel";
 	}
 
 	@Override
-	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected final @Nullable AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = parseHandler(element, parserContext);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "output-channel",
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(Objects.requireNonNull(handlerBuilder), element, "output-channel",
 				"outputChannelName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
 
@@ -140,9 +142,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		String handlerBeanName =
 				BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
-		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
 		parserContext.registerBeanComponent(
-				new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
+				new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName,
+						IntegrationNamespaceUtils.generateAlias(element)));
 
 		builder.addPropertyReference("handler", handlerBeanName);
 
@@ -194,13 +196,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			if (vh == null) { //although it should never happen if it does we can fix it
 				caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
 			}
-
 			@SuppressWarnings("unchecked")
 			Collection<String> channelCandidateNames =
-					(Collection<String>) caValues.getArgumentValue(0, Collection.class)
+					(Collection<String>) Objects.requireNonNull(caValues.getArgumentValue(0, Collection.class))
 							.getValue(); // NOSONAR see comment above
-			channelCandidateNames.add(inputChannelName); // NOSONAR
-
+			Objects.requireNonNull(channelCandidateNames).add(inputChannelName); // NOSONAR
 			consumerEndpointBuilder.addDependsOn(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 		}
 		else {

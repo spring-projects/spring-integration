@@ -9,8 +9,14 @@
 
 	<channel id="in"/>
 
-	<resequencer input-channel="in" output-channel="out" release-partial-sequences="true"/>
+	<resequencer input-channel="in" output-channel="out" release-partial-sequences="true"
+				 release-strategy="sequenceSizeReleaseStrategy" correlation-strategy="testCorrelationStrategy"/>
 
 	<channel id="out"/>
 
+	<beans:bean id="sequenceSizeReleaseStrategy"
+				class="org.springframework.integration.aggregator.SequenceSizeReleaseStrategy"/>
+
+	<beans:bean id="testCorrelationStrategy"
+				class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
 </beans:beans>

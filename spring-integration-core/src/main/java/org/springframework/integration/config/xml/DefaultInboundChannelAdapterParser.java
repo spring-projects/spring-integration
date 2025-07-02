@@ -17,7 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -33,6 +35,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.expression.DynamicExpression;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -46,8 +49,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	@Override // NOSONAR complexity
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) { // NOSONAR
+	@Override
+	protected @Nullable BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;
 		BeanComponentDefinition innerBeanDef =
@@ -65,7 +68,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		boolean hasExpressionElement = expressionElement != null;
 		boolean hasMethod = StringUtils.hasText(methodName);
 
-		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) { // NOSONAR
+		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
 		}
@@ -76,6 +79,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 								+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
+			Assert.state(innerBeanDef != null, "No inner bean definition found"); //Required because JSpecify does not know how to use handle a preparsed boolean
 			if (hasMethod) {
 				result = parseMethodInvokingSource(innerBeanDef, methodName, element, parserContext);
 			}
@@ -91,6 +95,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 								+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
+			Assert.state(scriptElement != null, "No script element found");
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationContextUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
@@ -135,7 +140,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		return sourceBuilder.getBeanDefinition();
 	}
 
-	private BeanMetadataElement parseExpression(String expressionString, Element expressionElement, Element element,
+	private BeanMetadataElement parseExpression(String expressionString, @Nullable Element expressionElement, Element element,
 			ParserContext parserContext) {
 
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder
@@ -150,7 +155,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		else {
 			BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					DynamicExpression.class);
-			String key = expressionElement.getAttribute("key");
+			String key = Objects.requireNonNull(expressionElement).getAttribute("key");
 			String expressionSourceReference = expressionElement.getAttribute("source");
 			dynamicExpressionBuilder.addConstructorArgValue(key);
 			dynamicExpressionBuilder.addConstructorArgReference(expressionSourceReference);

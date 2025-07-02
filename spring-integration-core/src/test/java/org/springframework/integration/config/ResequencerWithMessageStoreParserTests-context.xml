@@ -13,8 +13,15 @@
 		<queue capacity="5"/>
 	</channel>
 
-	<resequencer id="resequencer" input-channel="input" output-channel="output" message-store="messageStore"/>
+	<resequencer id="resequencer" input-channel="input" output-channel="output" message-store="messageStore"
+				 correlation-strategy="testCorrelationStrategy" release-strategy="sequenceSizeReleaseStrategy"/>
 
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
+	<beans:bean id="sequenceSizeReleaseStrategy"
+				class="org.springframework.integration.aggregator.SequenceSizeReleaseStrategy"/>
+	<beans:bean id="testCorrelationStrategy"
+				class="org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy">
+		<beans:constructor-arg value="correlationId"/>
+	</beans:bean>
 </beans:beans>

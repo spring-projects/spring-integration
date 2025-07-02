@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.MutablePropertyValues;
@@ -62,6 +63,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		String channelName = element.getAttribute("channel");
 		if (!StringUtils.hasText(channelName)) {
@@ -88,7 +90,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		return beanDefinition;
 	}
 
-	private String createDirectChannel(Element element, ParserContext parserContext) {
+	private @Nullable String createDirectChannel(Element element, ParserContext parserContext) {
 		if (parserContext.isNested()) {
 			return null;
 		}

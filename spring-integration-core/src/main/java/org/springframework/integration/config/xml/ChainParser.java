@@ -18,10 +18,12 @@ package org.springframework.integration.config.xml;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -65,7 +67,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected @Nullable BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 
 		if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
@@ -100,7 +102,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}
 				else {
-					handlerList.add(childBeanMetadata);
+					handlerList.add(Objects.requireNonNull(childBeanMetadata));
 				}
 			}
 		}
@@ -123,7 +125,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return id;
 	}
 
-	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
+	private @Nullable BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
 			BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
@@ -149,7 +151,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			}
 		}
 
-		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName); // NOSONAR never null
+		Objects.requireNonNull(holder).getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName); // NOSONAR never null
 
 		if (hasId) {
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());

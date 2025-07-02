@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.TypedStringValue;
@@ -44,7 +45,7 @@ import org.springframework.util.xml.DomUtils;
 public class PointToPointChannelParser extends AbstractChannelParser {
 
 	@Override
-	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+	protected @Nullable BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
 		Element queueElement;
 		String fixedSubscriberChannel = element.getAttribute("fixed-subscriber");

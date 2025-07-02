@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Objects;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -51,7 +53,7 @@ public class GlobalWireTapParser extends GlobalChannelInterceptorParser {
 						.iterator()
 						.next()
 						.getValue();
-		return wireTapBean.getBeanName() + ".globalChannelInterceptor"; // NOSONAR never null
+		return Objects.requireNonNull(wireTapBean).getBeanName() + ".globalChannelInterceptor";
 	}
 
 }

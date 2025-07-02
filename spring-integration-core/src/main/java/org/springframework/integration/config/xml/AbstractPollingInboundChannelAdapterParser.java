@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -59,6 +60,7 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		}
 		else {
 			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);
+			throw new IllegalStateException("sourceBeanName must not be null");
 		}
 
 		adapterBuilder.addPropertyReference("source", sourceBeanName);
@@ -79,6 +81,6 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	 * @param parserContext The parser context.
 	 * @return The bean metadata element.
 	 */
-	protected abstract BeanMetadataElement parseSource(Element element, ParserContext parserContext);
+	protected abstract @Nullable BeanMetadataElement parseSource(Element element, ParserContext parserContext);
 
 }

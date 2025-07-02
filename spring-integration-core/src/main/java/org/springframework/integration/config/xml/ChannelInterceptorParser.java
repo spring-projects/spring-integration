@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.Assert;
 
 /**
  * A helper class for parsing the sub-elements of a channel's
@@ -60,7 +62,7 @@ public class ChannelInterceptorParser {
 				if ("bean".equals(localName)) {
 					BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 					BeanDefinitionHolder holder = delegate.parseBeanDefinitionElement(childElement);
-					holder = delegate.decorateBeanDefinitionIfRequired(childElement, holder); // NOSONAR never null
+					holder = delegate.decorateBeanDefinitionIfRequired(childElement, Objects.requireNonNull(holder));
 					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 					interceptors.add(new RuntimeBeanReference(holder.getBeanName()));
 				}
@@ -74,6 +76,7 @@ public class ChannelInterceptorParser {
 						parserContext.getReaderContext().error(
 								"unsupported interceptor element '" + localName + "'", childElement);
 					}
+					Assert.state(parser != null, "no parser registered for '" + localName + "'");
 					String interceptorBeanName = parser.parse(childElement, parserContext);
 					interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 				}
