@@ -45,6 +45,10 @@ public class CompositeCodec implements Codec {
 		this.delegates = new HashMap<Class<?>, Codec>(delegates);
 	}
 
+	public CompositeCodec(Codec defaultCodec) {
+		this(Map.of(), defaultCodec);
+	}
+
 	@Override
 	public void encode(Object object, OutputStream outputStream) throws IOException {
 		Assert.notNull(object, "cannot encode a null object");
