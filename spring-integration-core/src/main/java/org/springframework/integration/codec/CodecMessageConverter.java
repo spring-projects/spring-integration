@@ -18,6 +18,8 @@ package org.springframework.integration.codec;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -57,7 +59,7 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		Assert.isInstanceOf(byte[].class, payload);
 		try {
 			Message<?> decoded = (Message<?>) this.codec.decode((byte[]) payload, this.messageClass);

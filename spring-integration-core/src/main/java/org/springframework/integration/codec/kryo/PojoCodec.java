@@ -23,6 +23,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
+import org.jspecify.annotations.Nullable;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import org.springframework.util.CollectionUtils;
@@ -39,7 +40,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class PojoCodec extends AbstractKryoCodec {
 
-	private final CompositeKryoRegistrar kryoRegistrar;
+	private final @Nullable CompositeKryoRegistrar kryoRegistrar;
 
 	private final boolean useReferences;
 
@@ -52,7 +53,7 @@ public class PojoCodec extends AbstractKryoCodec {
 	 * Create an instance with a single KryoRegistrar.
 	 * @param kryoRegistrar the registrar.
 	 */
-	public PojoCodec(KryoRegistrar kryoRegistrar) {
+	public PojoCodec(@Nullable KryoRegistrar kryoRegistrar) {
 		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null, true);
 	}
 
@@ -72,7 +73,7 @@ public class PojoCodec extends AbstractKryoCodec {
 	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical).
 	 * The default is 'true' which is less performant but more flexible.
 	 */
-	public PojoCodec(KryoRegistrar kryoRegistrar, boolean useReferences) {
+	public PojoCodec(@Nullable KryoRegistrar kryoRegistrar, boolean useReferences) {
 		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null, useReferences);
 	}
 
@@ -82,7 +83,7 @@ public class PojoCodec extends AbstractKryoCodec {
 	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical).
 	 * The default is 'true' which is less performant but more flexible.
 	 */
-	public PojoCodec(List<KryoRegistrar> kryoRegistrars, boolean useReferences) {
+	public PojoCodec(@Nullable List<KryoRegistrar> kryoRegistrars, boolean useReferences) {
 		this.kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
 				new CompositeKryoRegistrar(kryoRegistrars);
 		this.useReferences = useReferences;

@@ -18,6 +18,7 @@ package org.springframework.integration.channel.interceptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -50,16 +51,19 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 
 	private static final Log LOGGER = LogFactory.getLog(WireTap.class);
 
-	private final MessageSelector selector;
+	private final @Nullable MessageSelector selector;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageChannel channel;
 
-	private String channelName;
+	private @Nullable String channelName;
 
 	private long timeout = 0;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageBuilderFactory messageBuilderFactory;
 
 	private volatile boolean running = true;
@@ -78,7 +82,7 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 	 * @param selector the selector that must accept a message for it to be
 	 * sent to the intercepting channel
 	 */
-	public WireTap(MessageChannel channel, MessageSelector selector) {
+	public WireTap(MessageChannel channel, @Nullable MessageSelector selector) {
 		Assert.notNull(channel, "channel must not be null");
 		this.channel = channel;
 		this.selector = selector;
@@ -103,7 +107,7 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 	 * sent to the intercepting channel
 	 * @since 4.3
 	 */
-	public WireTap(String channelName, MessageSelector selector) {
+	public WireTap(String channelName, @Nullable MessageSelector selector) {
 		Assert.hasText(channelName, "channelName must not be empty");
 		this.channelName = channelName;
 		this.selector = selector;
