@@ -116,6 +116,7 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  * @author Biju Kunjummen
  * @author Artem Bilan
  * @author Tom van den Berge
+ * @author Ryan Riley
  *
  * @since 5.4
  */
@@ -543,7 +544,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaMessageDrivenChannelAdapter inbound = new KafkaMessageDrivenChannelAdapter<>(container);
 		DirectChannel channel = new DirectChannel();
 		inbound.setOutputChannel(channel);
+		DirectChannel sendFailureChannel = new DirectChannel();
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setSendFailureChannel(sendFailureChannel);
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
@@ -689,7 +692,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaMessageDrivenChannelAdapter inbound = new KafkaMessageDrivenChannelAdapter<>(container);
 		DirectChannel channel = new DirectChannel();
 		inbound.setOutputChannel(channel);
+		DirectChannel sendFailureChannel = new DirectChannel();
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setSendFailureChannel(sendFailureChannel);
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
