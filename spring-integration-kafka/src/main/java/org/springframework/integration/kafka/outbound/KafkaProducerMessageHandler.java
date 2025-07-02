@@ -38,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -89,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Biju Kunjummen
  * @author Tom van den Berge
+ * @author Ryan Riley
  *
  * @since 5.4
  */
@@ -434,16 +436,15 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return this.isGateway ? "kafka:outbound-gateway" : "kafka:outbound-channel-adapter";
 	}
 
-	@Nullable
-	protected MessageChannel getSendFailureChannel() {
-		if (this.sendFailureChannel != null) {
-			return this.sendFailureChannel;
+	protected @Nullable MessageChannel getSendFailureChannel() {
+		if (this.sendFailureChannel == null && (this.sendFailureChannelName != null || !this.sync)) {
+			String sendFailureChannelNameToUse = this.sendFailureChannelName;
+			if (sendFailureChannelNameToUse == null) {
+				sendFailureChannelNameToUse = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
+			}
+			this.sendFailureChannel = getChannelResolver().resolveDestination(sendFailureChannelNameToUse);
 		}
-		else if (this.sendFailureChannelName != null) {
-			this.sendFailureChannel = getChannelResolver().resolveDestination(this.sendFailureChannelName);
-			return this.sendFailureChannel;
-		}
-		return null;
+		return this.sendFailureChannel;
 	}
 
 	protected @Nullable MessageChannel getSendSuccessChannel() {
