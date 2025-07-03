@@ -41,7 +41,7 @@ public class CompositeCodec implements Codec {
 	public CompositeCodec(Map<Class<?>, Codec> delegates, Codec defaultCodec) {
 		this.defaultCodec = defaultCodec;
 		Assert.notEmpty(delegates, "delegates must not be empty");
-		this.delegates = new HashMap<Class<?>, Codec>(delegates);
+		this.delegates = new HashMap<>(delegates);
 	}
 
 	/**
