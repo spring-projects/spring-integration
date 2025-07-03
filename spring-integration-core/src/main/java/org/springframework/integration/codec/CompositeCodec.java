@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 /**
  * A Codec that can delegate to one out of many Codecs, each mapped to a class.
  * @author David Turanski
+ * @author Glenn Renfro
  * @since 4.2
  */
 public class CompositeCodec implements Codec {

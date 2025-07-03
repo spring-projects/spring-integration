@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author David Turanski
+ * @author Glenn Renfro
  * @since 4.2
  */
 public class CompositeCodecTests {
