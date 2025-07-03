@@ -21,7 +21,6 @@ import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.SocketFactory;
@@ -56,6 +55,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gengwu Zhao
+ * @author Glenn Renfro
  * @since 2.0
  *
  */
@@ -67,7 +67,8 @@ public class TcpMessageMapperTests {
 
 	@BeforeEach
 	public void setup() {
-		Map<Class<?>, Codec> codecs = new HashMap<>();
+		MessageCodec messageCodec = new MessageCodec();
+		Map<Class<?>, Codec> codecs = Map.of(messageCodec.getClass(), messageCodec);
 		this.codec = new CompositeCodec(codecs, new MessageCodec());
 	}
 

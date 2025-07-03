@@ -23,14 +23,13 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
 
 /**
  * A Codec that can delegate to one out of many Codecs, each mapped to a class.
  * @author David Turanski
+ * @author Glenn Renfro
  * @since 4.2
  */
 public class CompositeCodec implements Codec {
@@ -41,9 +40,14 @@ public class CompositeCodec implements Codec {
 
 	public CompositeCodec(Map<Class<?>, Codec> delegates, Codec defaultCodec) {
 		this.defaultCodec = defaultCodec;
-		this.delegates = new HashMap<Class<?>, Codec>(delegates);
+		Assert.notEmpty(delegates, "delegates must not be empty");
+		this.delegates = new HashMap<>(delegates);
 	}
 
+	/**
+	 * @deprecated since 7.0 in favor of {@link #CompositeCodec(Map, Codec)}.
+	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public CompositeCodec(Codec defaultCodec) {
 		this(Map.of(), defaultCodec);
 	}
@@ -52,38 +56,20 @@ public class CompositeCodec implements Codec {
 	public void encode(Object object, OutputStream outputStream) throws IOException {
 		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputStream' cannot be null");
-		Codec codec = findDelegate(object.getClass());
-		if (codec != null) {
-			codec.encode(object, outputStream);
-		}
-		else {
-			this.defaultCodec.encode(object, outputStream);
-		}
+		findDelegate(object.getClass()).encode(object, outputStream);
 	}
 
 	@Override
 	public byte[] encode(Object object) throws IOException {
 		Assert.notNull(object, "cannot encode a null object");
-		Codec codec = findDelegate(object.getClass());
-		if (codec != null) {
-			return codec.encode(object);
-		}
-		else {
-			return this.defaultCodec.encode(object);
-		}
+		return findDelegate(object.getClass()).encode(object);
 	}
 
 	@Override
 	public <T> T decode(InputStream inputStream, Class<T> type) throws IOException {
 		Assert.notNull(inputStream, "'inputStream' cannot be null");
 		Assert.notNull(type, "'type' cannot be null");
-		Codec codec = findDelegate(type);
-		if (codec != null) {
-			return codec.decode(inputStream, type);
-		}
-		else {
-			return this.defaultCodec.decode(inputStream, type);
-		}
+		return findDelegate(type).decode(inputStream, type);
 	}
 
 	@Override
@@ -91,13 +77,13 @@ public class CompositeCodec implements Codec {
 		return decode(new ByteArrayInputStream(bytes), type);
 	}
 
-	private @Nullable Codec findDelegate(Class<?> type) {
-		if (this.delegates.isEmpty()) {
-			return null;
-		}
-
+	private Codec findDelegate(Class<?> type) {
 		Class<?> clazz = ClassUtils.findClosestMatch(type, this.delegates.keySet(), false);
-		return this.delegates.get(clazz);
+		Codec codec = this.delegates.get(clazz);
+		if (codec == null) {
+			codec = this.defaultCodec;
+		}
+		return codec;
 	}
 
 }
