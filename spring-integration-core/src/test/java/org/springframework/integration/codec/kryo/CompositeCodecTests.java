@@ -19,13 +19,13 @@ package org.springframework.integration.codec.kryo;
 import java.io.IOException;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.codec.CompositeCodec;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author David Turanski
@@ -34,23 +34,54 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class CompositeCodecTests {
 
-	private Codec codec;
-
-	@BeforeEach
-	public void setup() {
-		PojoCodec pojoCodec = new PojoCodec();
-		Map<Class<?>, Codec> codecs = Map.of(pojoCodec.getClass(), pojoCodec);
-		this.codec = new CompositeCodec(codecs, new PojoCodec(
-				new KryoClassListRegistrar(SomeClassWithNoDefaultConstructors.class)));
+	@Test
+	void testWithCodecDelegates() throws IOException {
+		Codec codec = getFullyQualifiedCodec();
+		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
+		SomeClassWithNoDefaultConstructors foo2 = codec.decode(
+				codec.encode(foo),
+				SomeClassWithNoDefaultConstructors.class);
+		assertThat(foo2).isEqualTo(foo);
 	}
 
 	@Test
-	public void testPojoSerialization() throws IOException {
+	void testWithCodecDefault() throws IOException {
+		Codec codec = getFullyQualifiedCodec();
+		AnotherClassWithNoDefaultConstructors foo = new AnotherClassWithNoDefaultConstructors("hello", 123);
+		AnotherClassWithNoDefaultConstructors foo2 = codec.decode(
+				codec.encode(foo),
+				AnotherClassWithNoDefaultConstructors.class);
+		assertThat(foo2).isEqualTo(foo);
+	}
+
+	@Test
+	void testWithUnRegisteredClass() throws IOException {
+		// Verify that the default encodes and decodes properly
+		Codec codec = onlyDefaultCodec();
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
-		SomeClassWithNoDefaultConstructors foo2 = this.codec.decode(
-				this.codec.encode(foo),
+		SomeClassWithNoDefaultConstructors foo2 = codec.decode(
+				codec.encode(foo),
 				SomeClassWithNoDefaultConstructors.class);
 		assertThat(foo2).isEqualTo(foo);
+
+		// Verify that an exception is thrown if an unknown type is to be encoded.
+		assertThatIllegalArgumentException().isThrownBy(() -> codec.decode(
+				codec.encode(foo),
+				AnotherClassWithNoDefaultConstructors.class));
+	}
+
+	private static Codec getFullyQualifiedCodec() {
+		Map<Class<?>, Codec> codecs = Map.of(SomeClassWithNoDefaultConstructors.class, new PojoCodec(
+				new KryoClassListRegistrar(SomeClassWithNoDefaultConstructors.class)));
+		return new CompositeCodec(codecs, new PojoCodec(
+				new KryoClassListRegistrar(AnotherClassWithNoDefaultConstructors.class)));
+	}
+
+	private static Codec onlyDefaultCodec() {
+		PojoCodec pojoCodec = new PojoCodec();
+		Map<Class<?>, Codec> codecs = Map.of(pojoCodec.getClass(), pojoCodec);
+		return new CompositeCodec(codecs, new PojoCodec(
+				new KryoClassListRegistrar(SomeClassWithNoDefaultConstructors.class)));
 	}
 
 	static class SomeClassWithNoDefaultConstructors {
@@ -70,6 +101,35 @@ public class CompositeCodecTests {
 				return false;
 			}
 			SomeClassWithNoDefaultConstructors that = (SomeClassWithNoDefaultConstructors) other;
+			return (this.val1.equals(that.val1) && this.val2 == that.val2);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = this.val1.hashCode();
+			result = 31 * result + this.val2;
+			return result;
+		}
+
+	}
+
+	static class AnotherClassWithNoDefaultConstructors {
+
+		private String val1;
+
+		private int val2;
+
+		AnotherClassWithNoDefaultConstructors(String val1, int val2) {
+			this.val1 = val1;
+			this.val2 = val2;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof AnotherClassWithNoDefaultConstructors)) {
+				return false;
+			}
+			AnotherClassWithNoDefaultConstructors that = (AnotherClassWithNoDefaultConstructors) other;
 			return (this.val1.equals(that.val1) && this.val2 == that.val2);
 		}
 
