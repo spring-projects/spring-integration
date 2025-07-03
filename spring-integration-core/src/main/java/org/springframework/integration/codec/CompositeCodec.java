@@ -44,15 +44,9 @@ public class CompositeCodec implements Codec {
 	}
 
 	/**
-	 * @since 7.0
-	 *
-	 * @deprecated This constructor is deprecated because the delegates map must contain at least one entry.
-	 * Creating a {@code CompositeCodec} without any delegates is not a valid use case, as there would be
-	 * no codecs to delegate to for encoding or decoding operations. Please use the constructor that accepts
-	 * a non-empty delegates map to ensure proper delegation behavior.
-	 *
+	 * @deprecated since 7.0 in favor of {@link #CompositeCodec(Map, Codec)}.
 	 */
-	@Deprecated
+	@Deprecated(since = "7.0", forRemoval = true)
 	public CompositeCodec(Codec defaultCodec) {
 		this(Map.of(), defaultCodec);
 	}
@@ -83,7 +77,6 @@ public class CompositeCodec implements Codec {
 	}
 
 	private Codec findDelegate(Class<?> type) {
-		Assert.state(!this.delegates.isEmpty(), "Delegates must not be empty");
 		Class<?> clazz = ClassUtils.findClosestMatch(type, this.delegates.keySet(), false);
 		Codec codec = this.delegates.get(clazz);
 		if (codec == null) {
