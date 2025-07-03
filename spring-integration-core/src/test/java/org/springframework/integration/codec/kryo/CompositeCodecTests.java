@@ -17,7 +17,6 @@
 package org.springframework.integration.codec.kryo;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,8 @@ public class CompositeCodecTests {
 
 	@BeforeEach
 	public void setup() {
-		Map<Class<?>, Codec> codecs = new HashMap<>();
+		PojoCodec pojoCodec = new PojoCodec();
+		Map<Class<?>, Codec> codecs = Map.of(pojoCodec.getClass(), pojoCodec);
 		this.codec = new CompositeCodec(codecs, new PojoCodec(
 				new KryoClassListRegistrar(SomeClassWithNoDefaultConstructors.class)));
 	}
