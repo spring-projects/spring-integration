@@ -52,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
@@ -61,17 +62,18 @@ import static org.awaitility.Awaitility.await;
  * @author Artem Bilan
  * @author Auke Zaaiman
  * @author Darryl Smith
+ * @author Alastair Mailer
  *
  * @since 3.0.2
  */
-public class SftpSessionFactoryTests {
+class SftpSessionFactoryTests {
 
 	/*
 	 * Verify the socket is closed if the channel.connect() fails.
 	 * INT-3305
 	 */
 	@Test
-	public void testConnectFailSocketOpen() throws Exception {
+	void testConnectFailSocketOpen() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -118,7 +120,7 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
-	public void concurrentGetSessionDoesntCauseFailure() throws Exception {
+	void concurrentGetSessionDoesntCauseFailure() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -338,6 +340,35 @@ public class SftpSessionFactoryTests {
 
 			executorService.shutdown();
 			assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+
+			sftpSessionFactory.destroy();
+		}
+	}
+
+	/*
+	 * Verify the socket is closed if authentication fails.
+	 */
+	@Test
+	void noClientSessionLeakOnAuthError() throws Exception {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> false);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory();
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+
+			assertThatIllegalStateException()
+					.isThrownBy(sftpSessionFactory::getSession)
+					.withCauseInstanceOf(SshException.class)
+					.withStackTraceContaining("No more authentication methods available");
+
+			await().untilAsserted(() -> assertThat(server.getActiveSessions()).hasSize(0));
 
 			sftpSessionFactory.destroy();
 		}
