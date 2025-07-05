@@ -79,6 +79,7 @@ import org.springframework.util.Assert;
  * @author Christian Tzolov
  * @author Adama Sorho
  * @author Darryl Smith
+ * @author Alastair Mailer
  *
  * @since 2.0
  */
@@ -351,7 +352,12 @@ public class DefaultSftpSessionFactory
 						.verify(verifyTimeout)
 						.getSession();
 
-		clientSession.auth().verify(verifyTimeout);
+		try {
+			clientSession.auth().verify(verifyTimeout);
+		} catch (IOException e) {
+			clientSession.close();
+			throw e;
+		}
 
 		return clientSession;
 	}

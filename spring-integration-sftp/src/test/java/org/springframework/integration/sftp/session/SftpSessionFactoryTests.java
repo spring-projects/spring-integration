@@ -61,6 +61,7 @@ import static org.awaitility.Awaitility.await;
  * @author Artem Bilan
  * @author Auke Zaaiman
  * @author Darryl Smith
+ * @author Alastair Mailer
  *
  * @since 3.0.2
  */
@@ -340,6 +341,57 @@ public class SftpSessionFactoryTests {
 			assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
 			sftpSessionFactory.destroy();
+		}
+	}
+
+	/*
+	 * Verify the socket is closed if authentication fails.
+	 */
+	@Test
+	public void testAuthFailSocketOpen() throws Exception {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.start();
+
+			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
+			f.setHost("localhost");
+			f.setPort(server.getPort());
+			f.setUser("user");
+			// No authentication provided, will result in authentication failure
+			f.setAllowUnknownKeys(true);
+
+			int n = 0;
+			while (true) {
+				try {
+					f.getSession();
+					fail("Expected Exception");
+				}
+				catch (Exception e) {
+					if (e instanceof IllegalStateException && "failed to create SFTP Session".equals(e.getMessage())) {
+						if (e.getCause() instanceof IllegalStateException) {
+							if (e.getCause().getCause() instanceof ConnectException) {
+								assertThat(n++ < 100).as("Server failed to start in 10 seconds").isTrue();
+								Thread.sleep(100);
+								continue;
+							}
+						}
+					}
+					assertThat(e).isInstanceOf(IllegalStateException.class);
+					assertThat(e.getCause()).isInstanceOf(SshException.class);
+					assertThat(e.getCause().getMessage()).isEqualTo("No more authentication methods available");
+					break;
+				}
+			}
+
+			n = 0;
+			while (n++ < 100 && server.getActiveSessions().size() > 0) {
+				Thread.sleep(100);
+			}
+
+			assertThat(server.getActiveSessions().size()).isEqualTo(0);
+
+			f.destroy();
 		}
 	}
 
