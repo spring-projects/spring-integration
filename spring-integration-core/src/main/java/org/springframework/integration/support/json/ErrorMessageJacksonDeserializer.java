@@ -16,10 +16,11 @@
 
 package org.springframework.integration.support.json;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.type.TypeFactory;
+import java.io.IOException;
+
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
@@ -28,9 +29,9 @@ import org.springframework.messaging.support.ErrorMessage;
 /**
  * The {@link MessageJacksonDeserializer} implementation for the {@link ErrorMessage}.
  *
- * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
- * @since 7.0
+ * @since 4.3.10
  */
 public class ErrorMessageJacksonDeserializer extends MessageJacksonDeserializer<ErrorMessage> {
 
@@ -39,13 +40,13 @@ public class ErrorMessageJacksonDeserializer extends MessageJacksonDeserializer<
 	@SuppressWarnings("this-escape")
 	public ErrorMessageJacksonDeserializer() {
 		super(ErrorMessage.class);
-		setPayloadType(TypeFactory.createDefaultInstance().constructType(Throwable.class));
+		setPayloadType(TypeFactory.defaultInstance().constructType(Throwable.class));
 	}
 
 	@Override
 	protected ErrorMessage buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
-			DeserializationContext ctxt) throws JacksonException {
-		Message<?> originalMessage = getMapper().readValue(root.get("originalMessage").traverse(ctxt), Message.class);
+			DeserializationContext ctxt) throws IOException {
+		Message<?> originalMessage = getMapper().readValue(root.get("originalMessage").traverse(), Message.class);
 		return new ErrorMessage((Throwable) payload, headers, originalMessage);
 	}
 

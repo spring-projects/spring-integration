@@ -33,11 +33,11 @@ import org.springframework.util.MimeType;
  *
  * @since 5.4
  */
-public class MimeTypeJackson2Serializer extends StdSerializer<MimeType> {
+public class MimeTypeSerializer extends StdSerializer<MimeType> {
 
 	private static final long serialVersionUID = 1L;
 
-	public MimeTypeJackson2Serializer() {
+	public MimeTypeSerializer() {
 		super(MimeType.class);
 	}
 

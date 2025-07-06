@@ -16,38 +16,33 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 
 /**
- * The {@link MessageJackson2Deserializer} implementation for the {@link AdviceMessage}.
+ * The {@link MessageJackson3Deserializer} implementation for the {@link AdviceMessage}.
  *
- * @author Artem Bilan
- * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  *
- * @since 4.3.10
+ * @since 7.0
  */
-public class AdviceMessageJackson2Deserializer extends MessageJackson2Deserializer<AdviceMessage<?>> {
-
-	private static final long serialVersionUID = 1L;
+public class AdviceMessageJackson3Deserializer extends MessageJackson3Deserializer<AdviceMessage<?>> {
 
 	@SuppressWarnings("unchecked")
-	public AdviceMessageJackson2Deserializer() {
+	public AdviceMessageJackson3Deserializer() {
 		super((Class<AdviceMessage<?>>) (Class<?>) AdviceMessage.class);
 	}
 
 	@Override
 	protected AdviceMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
-			DeserializationContext ctxt) throws IOException {
-		Message<?> inputMessage = getMapper().readValue(root.get("inputMessage").traverse(), Message.class);
-		return new AdviceMessage<>(payload, (MessageHeaders) headers, inputMessage);
+			DeserializationContext ctxt) throws JacksonException {
+		Message<?> inputMessage = getMapper().readValue(root.get("inputMessage").traverse(ctxt), Message.class);
+		return new AdviceMessage<>(payload, headers, inputMessage);
 	}
 
 }

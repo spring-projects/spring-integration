@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 7.0
  */
-class JacksonMessagingAwareMapperUtilsTests {
+class JacksonMessagingUtilsTests {
 
 	private static final JacksonModule JODA_MODULE = new JodaModule();
 
@@ -52,7 +52,7 @@ class JacksonMessagingAwareMapperUtilsTests {
 
 	@BeforeEach
 	void setUp() {
-		mapper = JacksonMessagingAwareMapperUtils.messagingAwareMapper();
+		mapper = JacksonMessagingUtils.messagingAwareMapper();
 	}
 
 	@Test

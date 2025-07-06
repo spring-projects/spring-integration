@@ -16,34 +16,31 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.support.GenericMessage;
 
 /**
- * The {@link MessageJackson2Deserializer} implementation for the {@link GenericMessage}.
+ * The {@link MessageJackson3Deserializer} implementation for the {@link MutableMessage}.
  *
- * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
- * @since 4.3.10
+ * @since 7.0
  */
-public class GenericMessageJackson2Deserializer extends MessageJackson2Deserializer<GenericMessage<?>> {
-
-	private static final long serialVersionUID = 1L;
+public class MutableMessageJackson3Deserializer extends MessageJackson3Deserializer<MutableMessage<?>> {
 
 	@SuppressWarnings("unchecked")
-	public GenericMessageJackson2Deserializer() {
-		super((Class<GenericMessage<?>>) (Class<?>) GenericMessage.class);
+	public MutableMessageJackson3Deserializer() {
+		super((Class<MutableMessage<?>>) (Class<?>) MutableMessage.class);
 	}
 
 	@Override
-	protected GenericMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
-			DeserializationContext ctxt) throws IOException {
-		return new GenericMessage<Object>(payload, headers);
+	protected MutableMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
+			DeserializationContext ctxt) throws JacksonException {
+		return new MutableMessage<Object>(payload, headers);
 	}
 
 }

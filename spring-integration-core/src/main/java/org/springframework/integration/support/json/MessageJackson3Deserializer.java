@@ -16,18 +16,18 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.deser.std.StdNodeBasedDeserializer;
+import tools.jackson.databind.jsontype.TypeDeserializer;
+import tools.jackson.databind.type.TypeFactory;
 
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
@@ -38,19 +38,17 @@ import org.springframework.util.Assert;
  *
  * @param <T> the message type.
  *
- * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
- * @since 4.3.10
+ * @since 7.0
  */
-public abstract class MessageJackson2Deserializer<T extends Message<?>> extends StdNodeBasedDeserializer<T> {
+public abstract class MessageJackson3Deserializer<T extends Message<?>> extends StdNodeBasedDeserializer<T> {
 
-	private static final long serialVersionUID = 1L;
-
-	private JavaType payloadType = TypeFactory.defaultInstance().constructType(Object.class);
+	private JavaType payloadType = TypeFactory.createDefaultInstance().constructType(Object.class);
 
 	private ObjectMapper mapper = new ObjectMapper();
 
-	protected MessageJackson2Deserializer(Class<T> targetType) {
+	protected MessageJackson3Deserializer(Class<T> targetType) {
 		super(targetType);
 	}
 
@@ -70,20 +68,20 @@ public abstract class MessageJackson2Deserializer<T extends Message<?>> extends 
 
 	@Override
 	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt, TypeDeserializer td)
-			throws IOException {
+			throws JacksonException {
 
 		return super.deserialize(jp, ctxt);
 	}
 
 	@Override
-	public T convert(JsonNode root, DeserializationContext ctxt) throws IOException {
-		Map<String, Object> headers = this.mapper.readValue(root.get("headers").traverse(),
-				TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class));
-		Object payload = this.mapper.readValue(root.get("payload").traverse(), this.payloadType);
+	public T convert(JsonNode root, DeserializationContext ctxt) throws JacksonException {
+		Map<String, Object> headers = this.mapper.readValue(root.get("headers").traverse(ctxt),
+				TypeFactory.createDefaultInstance().constructMapType(HashMap.class, String.class, Object.class));
+		Object payload = this.mapper.readValue(root.get("payload").traverse(ctxt), this.payloadType);
 		return buildMessage(new MutableMessageHeaders(headers), payload, root, ctxt);
 	}
 
 	protected abstract T buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
-			DeserializationContext ctxt) throws IOException;
+			DeserializationContext ctxt) throws JacksonException;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-present the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,41 @@
 
 package org.springframework.integration.support.json;
 
+import java.util.HashMap;
+
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.jsontype.TypeSerializer;
 import tools.jackson.databind.ser.std.StdSerializer;
 
-import org.springframework.util.MimeType;
+import org.springframework.messaging.MessageHeaders;
 
 /**
- * Simple {@link StdSerializer} extension to represent a {@link MimeType} object in the
- * target JSON as a plain string.
+ * A Jackson {@link StdSerializer} implementation to serialize {@link MessageHeaders}
+ * as a {@link HashMap}.
+ * <p>
+ * This technique is much reliable during deserialization, especially when the
+ * {@code typeId} property is used to store the type.
  *
  * @author Jooyoung Pyoung
  *
  * @since 7.0
  */
-public class MimeTypeJacksonSerializer extends StdSerializer<MimeType> {
+public class MessageHeadersJackson3Serializer extends StdSerializer<MessageHeaders> {
 
-	private static final long serialVersionUID = 1L;
-
-	public MimeTypeJacksonSerializer() {
-		super(MimeType.class);
+	public MessageHeadersJackson3Serializer() {
+		super(MessageHeaders.class);
 	}
 
 	@Override
-	public void serializeWithType(MimeType value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
+	public void serializeWithType(MessageHeaders value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
 		serialize(value, gen, ctxt);
 	}
 
 	@Override
-	public void serialize(MimeType value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
-		gen.writeString(value.toString());
+	public void serialize(MessageHeaders value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
+		gen.writePOJO(new HashMap<>(value));
 	}
 
 }

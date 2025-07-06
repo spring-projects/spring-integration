@@ -16,7 +16,6 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,16 +23,19 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DatabindContext;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.MapperConfig;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DatabindContext;
+import tools.jackson.databind.DefaultTyping;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.MapperConfig;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.TypeIdResolver;
+import tools.jackson.databind.jsontype.impl.DefaultTypeResolverBuilder;
+import tools.jackson.databind.module.SimpleModule;
 
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
@@ -46,15 +48,12 @@ import org.springframework.messaging.support.GenericMessage;
  * <p>Provides custom serializers/deserializers for Spring messaging types
  * and validates deserialization against trusted package patterns.
  *
- * @author Artem Bilan
- * @author Gary Russell
  * @author Jooyoung Pyoung
- *
- * @since 3.0
+ * @since 7.0
  */
-public final class Jackson2MessagingAwareMapperUtils {
+public final class JacksonMessagingUtils {
 
-	private Jackson2MessagingAwareMapperUtils() {
+	private JacksonMessagingUtils() {
 	}
 
 	/**
@@ -64,35 +63,34 @@ public final class Jackson2MessagingAwareMapperUtils {
 	 * @param trustedPackages the trusted Java packages for deserialization.
 	 * @return the mapper.
 	 * @throws IllegalStateException if an implementation is not available.
-	 * @since 4.3.10
+	 * @since 7.0
 	 */
 	public static ObjectMapper messagingAwareMapper(String... trustedPackages) {
-		if (JacksonPresent.isJackson2Present()) {
-			ObjectMapper mapper = new Jackson2JsonObjectMapper().getObjectMapper();
-
-			mapper.setDefaultTyping(new AllowListTypeResolverBuilder(trustedPackages));
-
-			GenericMessageJackson2Deserializer genericMessageDeserializer = new GenericMessageJackson2Deserializer();
-			genericMessageDeserializer.setMapper(mapper);
-
-			ErrorMessageJackson2Deserializer errorMessageDeserializer = new ErrorMessageJackson2Deserializer();
-			errorMessageDeserializer.setMapper(mapper);
-
-			AdviceMessageJackson2Deserializer adviceMessageDeserializer = new AdviceMessageJackson2Deserializer();
-			adviceMessageDeserializer.setMapper(mapper);
-
-			MutableMessageJackson2Deserializer mutableMessageDeserializer = new MutableMessageJackson2Deserializer();
-			mutableMessageDeserializer.setMapper(mapper);
+		if (JacksonPresent.isJackson3Present()) {
+			GenericMessageJackson3Deserializer genericMessageDeserializer = new GenericMessageJackson3Deserializer();
+			ErrorMessageJackson3Deserializer errorMessageDeserializer = new ErrorMessageJackson3Deserializer();
+			AdviceMessageJackson3Deserializer adviceMessageDeserializer = new AdviceMessageJackson3Deserializer();
+			MutableMessageJackson3Deserializer mutableMessageDeserializer = new MutableMessageJackson3Deserializer();
 
 			SimpleModule simpleModule = new SimpleModule()
-					.addSerializer(new MessageHeadersJackson2Serializer())
-					.addSerializer(new MimeTypeJackson2Serializer())
+					.addSerializer(new MessageHeadersJackson3Serializer())
+					.addSerializer(new MimeTypeJackson3Serializer())
 					.addDeserializer(GenericMessage.class, genericMessageDeserializer)
 					.addDeserializer(ErrorMessage.class, errorMessageDeserializer)
 					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
 					.addDeserializer(MutableMessage.class, mutableMessageDeserializer);
 
-			mapper.registerModule(simpleModule);
+			ObjectMapper mapper = JsonMapper.builder()
+					.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
+					.setDefaultTyping(new AllowListTypeResolverBuilder(trustedPackages))
+					.addModules(simpleModule)
+					.build();
+
+			genericMessageDeserializer.setMapper(mapper);
+			errorMessageDeserializer.setMapper(mapper);
+			adviceMessageDeserializer.setMapper(mapper);
+			mutableMessageDeserializer.setMapper(mapper);
+
 			return mapper;
 		}
 		else {
@@ -101,15 +99,12 @@ public final class Jackson2MessagingAwareMapperUtils {
 	}
 
 	/**
-	 * An implementation of {@link ObjectMapper.DefaultTypeResolverBuilder}
+	 * An implementation of {@link DefaultTypeResolverBuilder}
 	 * that wraps a default {@link TypeIdResolver} to the {@link AllowListTypeIdResolver}.
 	 *
-	 * @author Rob Winch
-	 * @author Artem Bilan
-	 * @author Filip Hanik
-	 * @author Gary Russell
+	 * @author Jooyoung Pyoung
 	 */
-	private static final class AllowListTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
+	private static final class AllowListTypeResolverBuilder extends DefaultTypeResolverBuilder {
 
 		@Serial
 		private static final long serialVersionUID = 1L;
@@ -117,26 +112,21 @@ public final class Jackson2MessagingAwareMapperUtils {
 		private final String[] trustedPackages;
 
 		AllowListTypeResolverBuilder(String... trustedPackages) {
-			super(ObjectMapper.DefaultTyping.NON_FINAL,
-					//we do explicit validation in the TypeIdResolver
-					BasicPolymorphicTypeValidator.builder()
-							.allowIfSubType(Object.class)
-							.build());
+			super(
+					BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build(),
+					DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY
+			);
 
 			this.trustedPackages =
 					trustedPackages != null ? Arrays.copyOf(trustedPackages, trustedPackages.length) : null;
-
-			init(JsonTypeInfo.Id.CLASS, null)
-					.inclusion(JsonTypeInfo.As.PROPERTY);
 		}
 
 		@Override
-		protected TypeIdResolver idResolver(MapperConfig<?> config,
-											JavaType baseType,
-											PolymorphicTypeValidator subtypeValidator,
+		protected TypeIdResolver idResolver(DatabindContext ctxt,
+											JavaType baseType, PolymorphicTypeValidator subtypeValidator,
 											Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
 
-			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
+			TypeIdResolver result = super.idResolver(ctxt, baseType, subtypeValidator, subtypes, forSer, forDeser);
 			return new AllowListTypeIdResolver(result, this.trustedPackages);
 		}
 
@@ -147,8 +137,7 @@ public final class Jackson2MessagingAwareMapperUtils {
 	 * and throws an IllegalStateException if the class being looked up is not trusted,
 	 * does not provide an explicit mixin mappings.
 	 *
-	 * @author Rob Winch
-	 * @author Artem Bilan
+	 * @author Jooyoung Pyoung
 	 */
 	private static final class AllowListTypeIdResolver implements TypeIdResolver {
 
@@ -172,35 +161,35 @@ public final class Jackson2MessagingAwareMapperUtils {
 		}
 
 		@Override
-		public void init(JavaType baseType) {
+		public void init(JavaType baseType) throws JacksonException {
 			this.delegate.init(baseType);
 		}
 
 		@Override
-		public String idFromValue(Object value) {
-			return this.delegate.idFromValue(value);
+		public String idFromValue(DatabindContext ctxt, Object value) throws JacksonException {
+			return this.delegate.idFromValue(ctxt, value);
 		}
 
 		@Override
-		public String idFromValueAndType(Object value, Class<?> suggestedType) {
-			return this.delegate.idFromValueAndType(value, suggestedType);
+		public String idFromValueAndType(DatabindContext ctxt, Object value, Class<?> suggestedType) throws JacksonException {
+			return this.delegate.idFromValueAndType(ctxt, value, suggestedType);
 		}
 
 		@Override
-		public String idFromBaseType() {
-			return this.delegate.idFromBaseType();
+		public String idFromBaseType(DatabindContext ctxt) throws JacksonException {
+			return this.delegate.idFromBaseType(ctxt);
 		}
 
 		@Override
-		public JavaType typeFromId(DatabindContext context, String id) throws IOException {
-			DeserializationConfig config = (DeserializationConfig) context.getConfig();
-			JavaType result = this.delegate.typeFromId(context, id);
+		public JavaType typeFromId(DatabindContext ctxt, String id) throws JacksonException {
+			JavaType result = this.delegate.typeFromId(ctxt, id);
 
 			Package aPackage = result.getRawClass().getPackage();
 			if (aPackage == null || isTrustedPackage(aPackage.getName())) {
 				return result;
 			}
 
+			MapperConfig<?> config = ctxt.getConfig();
 			boolean isExplicitMixin = config.findMixInClassFor(result.getRawClass()) != null;
 			if (isExplicitMixin) {
 				return result;

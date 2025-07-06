@@ -51,7 +51,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.json.Jackson2MessagingAwareMapperUtils;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -391,7 +391,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testJsonSerialization() {
-		ObjectMapper mapper = Jackson2MessagingAwareMapperUtils.messagingAwareMapper();
+		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
@@ -442,7 +442,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 						"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
 						"is not in the trusted packages:");
 
-		mapper = Jackson2MessagingAwareMapperUtils.messagingAwareMapper(getClass().getPackage().getName());
+		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());
 
 		serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
@@ -452,7 +452,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		assertThat(messageGroup.size()).isEqualTo(1);
 		assertThat(messageGroup.getMessages().iterator().next()).isEqualTo(fooMessage);
 
-		mapper = Jackson2MessagingAwareMapperUtils.messagingAwareMapper("*");
+		mapper = JacksonJsonUtils.messagingAwareMapper("*");
 
 		serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);

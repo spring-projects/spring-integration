@@ -45,7 +45,7 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
-import org.springframework.integration.support.json.Jackson2MessagingAwareMapperUtils;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -138,7 +138,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(
-				Jackson2MessagingAwareMapperUtils.messagingAwareMapper("org.springframework"));
+				JacksonJsonUtils.messagingAwareMapper("org.springframework"));
 		DefaultPahoMessageConverter converter = new DefaultPahoMessageConverter();
 		converter.setBytesMessageMapper(mapper);
 		adapter.setConverter(converter);

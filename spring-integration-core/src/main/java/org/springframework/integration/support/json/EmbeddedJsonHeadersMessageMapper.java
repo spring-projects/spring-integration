@@ -70,13 +70,12 @@ import org.springframework.messaging.support.GenericMessage;
  * </pre>
  * <p>
  * To add more packages, create an object mapper using
- * {@link Jackson2MessagingAwareMapperUtils#messagingAwareMapper(String...)}.
+ * {@link JacksonJsonUtils#messagingAwareMapper(String...)}.
  * <p>
  * A constructor is provided allowing the provision of such a configured object mapper.
  *
  * @author Gary Russell
  * @author Artem Bilan
- * @author Jooyoung Pyoung
  *
  * @since 5.0
  *
@@ -110,7 +109,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * @see PatternMatchUtils#smartMatch(String, String...)
 	 */
 	public EmbeddedJsonHeadersMessageMapper(String... headerPatterns) {
-		this(Jackson2MessagingAwareMapperUtils.messagingAwareMapper(), headerPatterns);
+		this(JacksonJsonUtils.messagingAwareMapper(), headerPatterns);
 	}
 
 	/**
