@@ -16,12 +16,11 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.jsontype.TypeSerializer;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 import org.springframework.util.MimeType;
 
@@ -29,28 +28,26 @@ import org.springframework.util.MimeType;
  * Simple {@link StdSerializer} extension to represent a {@link MimeType} object in the
  * target JSON as a plain string.
  *
- * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
- * @since 5.4
+ * @since 7.0
  */
-public class MimeTypeSerializer extends StdSerializer<MimeType> {
+public class MimeTypeJacksonSerializer extends StdSerializer<MimeType> {
 
 	private static final long serialVersionUID = 1L;
 
-	public MimeTypeSerializer() {
+	public MimeTypeJacksonSerializer() {
 		super(MimeType.class);
 	}
 
 	@Override
-	public void serializeWithType(MimeType value, JsonGenerator generator, SerializerProvider serializers,
-			TypeSerializer typeSer) throws IOException {
-
-		serialize(value, generator, serializers);
+	public void serializeWithType(MimeType value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
+		serialize(value, gen, ctxt);
 	}
 
 	@Override
-	public void serialize(MimeType value, JsonGenerator generator, SerializerProvider provider) throws IOException {
-		generator.writeString(value.toString());
+	public void serialize(MimeType value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
+		gen.writeString(value.toString());
 	}
 
 }

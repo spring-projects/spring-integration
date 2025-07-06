@@ -34,7 +34,7 @@ import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.Jackson2MessagingAwareMapperUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -182,7 +182,7 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 	@Test
 	void testJsonSerialization() {
 		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
-		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
+		ObjectMapper mapper = Jackson2MessagingAwareMapperUtils.messagingAwareMapper();
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 

@@ -16,10 +16,9 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
@@ -27,9 +26,9 @@ import org.springframework.integration.support.MutableMessageHeaders;
 /**
  * The {@link MessageJacksonDeserializer} implementation for the {@link MutableMessage}.
  *
- * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
- * @since 4.3.10
+ * @since 7.0
  */
 public class MutableMessageJacksonDeserializer extends MessageJacksonDeserializer<MutableMessage<?>> {
 
@@ -42,7 +41,7 @@ public class MutableMessageJacksonDeserializer extends MessageJacksonDeserialize
 
 	@Override
 	protected MutableMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
-			DeserializationContext ctxt) throws IOException {
+			DeserializationContext ctxt) throws JacksonException {
 		return new MutableMessage<Object>(payload, headers);
 	}
 

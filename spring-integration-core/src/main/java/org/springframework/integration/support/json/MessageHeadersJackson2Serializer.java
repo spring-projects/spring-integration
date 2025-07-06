@@ -16,13 +16,13 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.IOException;
 import java.util.HashMap;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import org.springframework.messaging.MessageHeaders;
 
@@ -33,26 +33,27 @@ import org.springframework.messaging.MessageHeaders;
  * This technique is much reliable during deserialization, especially when the
  * {@code typeId} property is used to store the type.
  *
- * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
- * @since 7.0
+ * @since 4.3.10
  */
-public class MessageHeadersJacksonSerializer extends StdSerializer<MessageHeaders> {
+public class MessageHeadersJackson2Serializer extends StdSerializer<MessageHeaders> {
 
 	private static final long serialVersionUID = 1L;
 
-	public MessageHeadersJacksonSerializer() {
+	public MessageHeadersJackson2Serializer() {
 		super(MessageHeaders.class);
 	}
 
 	@Override
-	public void serializeWithType(MessageHeaders value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
-		serialize(value, gen, ctxt);
+	public void serializeWithType(MessageHeaders value, JsonGenerator gen, SerializerProvider serializers,
+			TypeSerializer typeSer) throws IOException {
+		serialize(value, gen, serializers);
 	}
 
 	@Override
-	public void serialize(MessageHeaders value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
-		gen.writePOJO(new HashMap<>(value));
+	public void serialize(MessageHeaders value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+		gen.writeObject(new HashMap<String, Object>(value));
 	}
 
 }
