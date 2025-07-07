@@ -49,7 +49,8 @@ public class CompositeCodec implements Codec {
 	 */
 	@Deprecated(since = "7.0", forRemoval = true)
 	public CompositeCodec(Codec defaultCodec) {
-		this(Map.of(), defaultCodec);
+		this.defaultCodec = defaultCodec;
+		this.delegates = Map.of();
 	}
 
 	@Override
@@ -79,11 +80,7 @@ public class CompositeCodec implements Codec {
 
 	private Codec findDelegate(Class<?> type) {
 		Class<?> clazz = ClassUtils.findClosestMatch(type, this.delegates.keySet(), false);
-		Codec codec = this.delegates.get(clazz);
-		if (codec == null) {
-			codec = this.defaultCodec;
-		}
-		return codec;
+		return clazz == null ? this.defaultCodec : this.delegates.getOrDefault(clazz, this.defaultCodec);
 	}
 
 }
