@@ -18,6 +18,7 @@ package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -26,7 +27,6 @@ import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link MessageChannelSpec} for an {@link AbstractJmsChannel}.

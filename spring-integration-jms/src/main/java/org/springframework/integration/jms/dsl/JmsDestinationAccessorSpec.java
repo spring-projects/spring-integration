@@ -17,11 +17,11 @@
 package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
-import org.springframework.lang.Nullable;
 
 /**
  * A base {@link IntegrationComponentSpec} for {@link JmsDestinationAccessor}s.

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms.util;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.StringUtils;
 
 /**
@@ -42,7 +44,7 @@ public abstract class JmsAdapterUtils {
 
 	public static final int DUPS_OK_ACKNOWLEDGE = 3;
 
-	public static Integer parseAcknowledgeMode(String acknowledge) {
+	public static @Nullable Integer parseAcknowledgeMode(@Nullable String acknowledge) {
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = AUTO_ACKNOWLEDGE;
 			if (SESSION_TRANSACTED_STRING.equals(acknowledge)) {

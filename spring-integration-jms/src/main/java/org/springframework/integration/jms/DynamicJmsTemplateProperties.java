@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * @author Mark Fisher
  * @author Artem Bilan
@@ -24,22 +26,22 @@ package org.springframework.integration.jms;
  */
 abstract class DynamicJmsTemplateProperties {
 
-	private static final ThreadLocal<Integer> PRIORITY_HOLDER = new ThreadLocal<>();
+	private static final ThreadLocal<@Nullable Integer> PRIORITY_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Long> RECEIVE_TIMEOUT_HOLDER = new ThreadLocal<>();
+	private static final ThreadLocal<@Nullable Long> RECEIVE_TIMEOUT_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Integer> DELIVER_MODE_HOLDER = new ThreadLocal<>();
+	private static final ThreadLocal<@Nullable Integer> DELIVER_MODE_HOLDER = new ThreadLocal<>();
 
-	private static final ThreadLocal<Long> TIME_TO_LIVE_HOLDER = new ThreadLocal<>();
+	private static final ThreadLocal<@Nullable Long> TIME_TO_LIVE_HOLDER = new ThreadLocal<>();
 
 	private DynamicJmsTemplateProperties() {
 	}
 
-	public static Integer getPriority() {
+	public static @Nullable Integer getPriority() {
 		return PRIORITY_HOLDER.get();
 	}
 
-	public static void setPriority(Integer priority) {
+	public static void setPriority(@Nullable Integer priority) {
 		PRIORITY_HOLDER.set(priority);
 	}
 
@@ -47,7 +49,7 @@ abstract class DynamicJmsTemplateProperties {
 		PRIORITY_HOLDER.remove();
 	}
 
-	public static Long getReceiveTimeout() {
+	public static @Nullable Long getReceiveTimeout() {
 		return RECEIVE_TIMEOUT_HOLDER.get();
 	}
 
@@ -59,7 +61,7 @@ abstract class DynamicJmsTemplateProperties {
 		RECEIVE_TIMEOUT_HOLDER.remove();
 	}
 
-	public static Integer getDeliveryMode() {
+	public static @Nullable Integer getDeliveryMode() {
 		return DELIVER_MODE_HOLDER.get();
 	}
 
@@ -71,7 +73,7 @@ abstract class DynamicJmsTemplateProperties {
 		DELIVER_MODE_HOLDER.remove();
 	}
 
-	public static Long getTimeToLive() {
+	public static @Nullable Long getTimeToLive() {
 		return TIME_TO_LIVE_HOLDER.get();
 	}
 

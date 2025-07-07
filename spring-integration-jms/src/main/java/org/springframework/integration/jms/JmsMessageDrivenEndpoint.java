@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -48,7 +49,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 	private final ChannelPublishingJmsMessageListener listener;
 
-	private String sessionAcknowledgeMode;
+	private @Nullable String sessionAcknowledgeMode;
 
 	private boolean shutdownContainerOnStop = true;
 
@@ -175,7 +176,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	}
 
 	@Override
-	public void setObservationConvention(MessageReceiverObservationConvention observationConvention) {
+	public void setObservationConvention(@Nullable MessageReceiverObservationConvention observationConvention) {
 		super.setObservationConvention(observationConvention);
 		this.listener.setReceiverObservationConvention(observationConvention);
 	}
@@ -218,7 +219,8 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 				this.listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
 			}
 		}
-		this.listener.setComponentName(getComponentName());
+		String componentName = getComponentName();
+		this.listener.setComponentName(componentName == null ? "jms-message-listener" : componentName);
 	}
 
 	@Override

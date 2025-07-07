@@ -54,10 +54,12 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 	private final AbstractMessageListenerContainer container;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractDispatcher dispatcher;
 
 	private volatile boolean initialized;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Integer maxSubscribers;
 
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
@@ -238,7 +240,9 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 					}
 				}
 				else {
-					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
+					throw messageToSend != null
+							? new MessageDeliveryException(messageToSend, exceptionMessage, e)
+							: new MessageDeliveryException(exceptionMessage);
 				}
 			}
 			catch (Exception e) {

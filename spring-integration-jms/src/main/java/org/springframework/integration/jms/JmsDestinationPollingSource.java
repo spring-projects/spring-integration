@@ -19,6 +19,7 @@ package org.springframework.integration.jms;
 import java.util.Map;
 
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
@@ -43,15 +44,15 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 
 	private final JmsTemplate jmsTemplate;
 
-	private volatile Destination destination;
+	private volatile @Nullable Destination destination;
 
-	private volatile String destinationName;
+	private volatile @Nullable String destinationName;
 
-	private volatile String messageSelector;
+	private volatile @Nullable String messageSelector;
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
-	private volatile String sessionAcknowledgeMode;
+	private volatile @Nullable String sessionAcknowledgeMode;
 
 	private volatile boolean extractPayload = true;
 
@@ -121,7 +122,7 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		jakarta.jms.Message jmsMessage = doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
@@ -147,7 +148,7 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 		}
 	}
 
-	private jakarta.jms.Message doReceiveJmsMessage() {
+	private jakarta.jms.@Nullable Message doReceiveJmsMessage() {
 		jakarta.jms.Message jmsMessage;
 		if (this.destination != null) {
 			jmsMessage = this.jmsTemplate.receiveSelected(this.destination, this.messageSelector);

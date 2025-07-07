@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -132,7 +133,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 	}
 
 	@Override
-	public void setObservationConvention(MessageRequestReplyReceiverObservationConvention observationConvention) {
+	public void setObservationConvention(@Nullable MessageRequestReplyReceiverObservationConvention observationConvention) {
 		super.setObservationConvention(observationConvention);
 		this.endpoint.getListener().setRequestReplyObservationConvention(observationConvention);
 	}
@@ -156,7 +157,8 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 
 	@Override
 	protected void onInit() {
-		this.endpoint.setComponentName(getComponentName());
+		String componentName = getComponentName();
+		this.endpoint.setComponentName(componentName == null ? "jms-inbound-gateway" : componentName);
 		this.endpoint.afterPropertiesSet();
 	}
 
