@@ -22,6 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpHeaders;
@@ -60,11 +62,12 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile CountDownLatch connectionLatch;
 
-	private volatile WebSocketSession clientSession;
+	private volatile @Nullable WebSocketSession clientSession;
 
-	private volatile Throwable openConnectionException;
+	private volatile @Nullable Throwable openConnectionException;
 
 	private volatile boolean connecting;
 
@@ -121,7 +124,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	 * @return the {@link #clientSession}, if established.
 	 */
 	@Override
-	public WebSocketSession getSession(String sessionId) {
+	public WebSocketSession getSession(@Nullable String sessionId) {
 		if (isRunning()) {
 			if (!isConnected() && !this.connecting) {
 				stop();

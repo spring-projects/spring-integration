@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
@@ -71,7 +73,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
 	private final boolean client;
 
-	private List<MessageConverter> messageConverters;
+	private @Nullable List<MessageConverter> messageConverters;
 
 	private boolean mergeWithDefaultConverters = false;
 

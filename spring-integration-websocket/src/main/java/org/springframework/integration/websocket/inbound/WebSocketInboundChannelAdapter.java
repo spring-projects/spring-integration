@@ -23,6 +23,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
@@ -101,15 +103,16 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private final AtomicReference<Class<?>> payloadType = new AtomicReference<>(String.class);
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher eventPublisher;
 
-	private List<MessageConverter> messageConverters;
+	private @Nullable List<MessageConverter> messageConverters;
 
 	private boolean mergeWithDefaultConverters = false;
 
 	private boolean useBroker;
 
-	private AbstractBrokerMessageHandler brokerHandler;
+	private @Nullable AbstractBrokerMessageHandler brokerHandler;
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
@@ -324,6 +327,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 		else {
 			if (this.useBroker) {
+				Assert.notNull(this.brokerHandler, "brokerHandler is required");
 				this.brokerHandler.handleMessage(message);
 			}
 			else {
@@ -335,8 +339,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 	}
 
-	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, StompCommand stompCommand,
-			SimpMessageType messageType) {
+	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, @Nullable StompCommand stompCommand,
+			@Nullable SimpMessageType messageType) {
 
 		return (messageType == null // NOSONAR pretty simple logic
 				|| SimpMessageType.MESSAGE.equals(messageType)
@@ -346,8 +350,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 				&& !checkDestinationPrefix(headerAccessor.getDestination());
 	}
 
-	private boolean checkDestinationPrefix(String destination) {
+	private boolean checkDestinationPrefix(@Nullable String destination) {
 		if (this.useBroker) {
+			Assert.notNull(this.brokerHandler, "brokerHandler is required");
 			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
 			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
 				return false;
@@ -374,7 +379,10 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	private void produceMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
-		Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
+		Class<?> targetType = this.payloadType.get();
+		Assert.notNull(targetType, "payloadType must not be null");
+
+		Object payload = this.messageConverter.fromMessage(message, targetType);
 		Assert.state(payload != null,
 				() -> "The message converter '" + this.messageConverter +
 						"' produced no payload for message '" + message +

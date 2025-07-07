@@ -49,10 +49,13 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 
 	private final Map<WebSocketHandler, List<String>> dynamicRegistrations = new HashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private TaskScheduler sockJsTaskScheduler;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile IntegrationDynamicWebSocketHandlerMapping dynamicHandlerMapping;
 
 	IntegrationServletWebSocketHandlerRegistry() {
@@ -124,6 +127,7 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 
 	private static final class DynamicHandlerRegistrationProxy implements WebSocketHandlerRegistry {
 
+		@SuppressWarnings("NullAway.Init")
 		private IntegrationDynamicWebSocketHandlerRegistration registration;
 
 		DynamicHandlerRegistrationProxy() {
@@ -141,6 +145,7 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 	private static final class IntegrationDynamicWebSocketHandlerRegistration
 			extends ServletWebSocketHandlerRegistration {
 
+		@SuppressWarnings("NullAway.Init")
 		private WebSocketHandler handler;
 
 		IntegrationDynamicWebSocketHandlerRegistration() {

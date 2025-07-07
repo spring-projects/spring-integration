@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpAttributesContextHolder;
@@ -100,7 +102,7 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 	}
 
 	@Override
-	public String resolveSessionId(Message<?> message) {
+	public @Nullable String resolveSessionId(Message<?> message) {
 		return SimpMessageHeaderAccessor.getSessionId(message.getHeaders());
 	}
 

@@ -27,9 +27,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -80,14 +80,13 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	private final List<String> supportedProtocols = new ArrayList<>();
 
-	private WebSocketListener messageListener;
+	private @Nullable WebSocketListener messageListener;
 
 	private int sendTimeLimit = DEFAULT_SEND_TIME_LIMIT;
 
 	private int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
 
-	@Nullable
-	private ConcurrentWebSocketSessionDecorator.OverflowStrategy sendBufferOverflowStrategy;
+	private ConcurrentWebSocketSessionDecorator.@Nullable OverflowStrategy sendBufferOverflowStrategy;
 
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
@@ -107,7 +106,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	 * @see ConcurrentWebSocketSessionDecorator
 	 */
 	public void setSendBufferOverflowStrategy(
-			@Nullable ConcurrentWebSocketSessionDecorator.OverflowStrategy overflowStrategy) {
+			ConcurrentWebSocketSessionDecorator.@Nullable OverflowStrategy overflowStrategy) {
 
 		this.sendBufferOverflowStrategy = overflowStrategy;
 	}
@@ -155,7 +154,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		return Collections.unmodifiableMap(this.sessions);
 	}
 
-	public WebSocketSession getSession(String sessionId) {
+	public WebSocketSession getSession(@Nullable String sessionId) {
 		WebSocketSession session = this.sessions.get(sessionId);
 		Assert.notNull(session, () -> "Session not found for id '" + sessionId + "'");
 		return session;

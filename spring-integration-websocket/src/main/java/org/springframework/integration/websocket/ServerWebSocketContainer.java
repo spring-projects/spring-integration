@@ -18,6 +18,8 @@ package org.springframework.integration.websocket;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.JavaUtils;
@@ -48,6 +50,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  */
@@ -56,20 +59,22 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	private final String[] paths;
 
+	@SuppressWarnings("NullAway.Init")
 	private HandshakeHandler handshakeHandler;
 
-	private HandshakeInterceptor[] interceptors;
+	private HandshakeInterceptor @Nullable [] interceptors;
 
-	private WebSocketHandlerDecoratorFactory[] decoratorFactories;
+	private WebSocketHandlerDecoratorFactory @Nullable [] decoratorFactories;
 
-	private SockJsServiceOptions sockJsServiceOptions;
+	private @Nullable SockJsServiceOptions sockJsServiceOptions;
 
-	private String[] origins;
+	private String @Nullable [] origins;
 
 	private boolean autoStartup = true;
 
 	private int phase = 0;
 
+	@SuppressWarnings("NullAway.Init")
 	private TaskScheduler sockJsTaskScheduler;
 
 	public ServerWebSocketContainer(String... paths) {
@@ -160,11 +165,19 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		}
 
 		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
-				.setHandshakeHandler(this.handshakeHandler)
-				.addInterceptors(this.interceptors)
-				.setAllowedOrigins(this.origins);
+				.setHandshakeHandler(this.handshakeHandler);
 
+		configureRegistration(registration);
 		configureSockJsOptionsIfAny(registration);
+	}
+
+	private void configureRegistration(WebSocketHandlerRegistration registration) {
+		if (this.interceptors != null) {
+			registration.addInterceptors(this.interceptors);
+		}
+		if (this.origins != null) {
+			registration.setAllowedOrigins(this.origins);
+		}
 	}
 
 	private void configureSockJsOptionsIfAny(WebSocketHandlerRegistration registration) {
@@ -256,27 +269,27 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	 */
 	public static class SockJsServiceOptions {
 
-		private TaskScheduler taskScheduler;
+		private @Nullable TaskScheduler taskScheduler;
 
-		private String clientLibraryUrl;
+		private @Nullable String clientLibraryUrl;
 
-		private Integer streamBytesLimit;
+		private @Nullable Integer streamBytesLimit;
 
-		private Boolean sessionCookieNeeded;
+		private @Nullable Boolean sessionCookieNeeded;
 
-		private Long heartbeatTime;
+		private @Nullable Long heartbeatTime;
 
-		private Long disconnectDelay;
+		private @Nullable Long disconnectDelay;
 
-		private Integer httpMessageCacheSize;
+		private @Nullable Integer httpMessageCacheSize;
 
-		private Boolean webSocketEnabled;
+		private @Nullable Boolean webSocketEnabled;
 
-		private TransportHandler[] transportHandlers;
+		private TransportHandler @Nullable [] transportHandlers;
 
-		private SockJsMessageCodec messageCodec;
+		private @Nullable SockJsMessageCodec messageCodec;
 
-		private Boolean suppressCors;
+		private @Nullable Boolean suppressCors;
 
 		public SockJsServiceOptions setTaskScheduler(TaskScheduler taskScheduler) {
 			this.taskScheduler = taskScheduler;
