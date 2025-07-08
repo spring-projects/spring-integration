@@ -17,6 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -177,7 +178,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 		}
 	}
 
-	private static Integer parseAcknowledgeMode(Element ele, ParserContext parserContext) {
+	private static @Nullable Integer parseAcknowledgeMode(Element ele, ParserContext parserContext) {
 		String acknowledge = ele.getAttribute(ACKNOWLEDGE_ATTRIBUTE);
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;

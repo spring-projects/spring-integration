@@ -54,10 +54,12 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 	private final AbstractMessageListenerContainer container;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractDispatcher dispatcher;
 
 	private volatile boolean initialized;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Integer maxSubscribers;
 
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
@@ -207,6 +209,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		@Override
 		public void onMessage(jakarta.jms.Message message) {
 			Message<?> messageToSend = null;

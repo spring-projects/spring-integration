@@ -20,11 +20,12 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -44,9 +45,9 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
 public class PollableJmsChannel extends AbstractJmsChannel
 		implements PollableChannel, ExecutorChannelInterceptorAware {
 
-	private String messageSelector;
+	private @Nullable String messageSelector;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	private volatile int executorInterceptorsSize;
 
@@ -195,7 +196,6 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
-	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {

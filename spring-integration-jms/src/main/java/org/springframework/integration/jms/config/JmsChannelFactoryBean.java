@@ -23,6 +23,7 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 import jakarta.jms.ExceptionListener;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -60,64 +61,66 @@ import org.springframework.util.StringUtils;
 public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel>
 		implements SmartLifecycle, BeanNameAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractJmsChannel channel;
 
-	private volatile List<ChannelInterceptor> interceptors;
+	private volatile @Nullable List<ChannelInterceptor> interceptors;
 
 	private final boolean messageDriven;
 
 	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
 
-	private Class<? extends AbstractMessageListenerContainer> containerType;
+	private @Nullable Class<? extends AbstractMessageListenerContainer> containerType;
 
 	private boolean acceptMessagesWhileStopping;
 
 	private boolean autoStartup = true;
 
-	private String cacheLevelName;
+	private @Nullable String cacheLevelName;
 
-	private Integer cacheLevel;
+	private @Nullable Integer cacheLevel;
 
-	private String clientId;
+	private @Nullable String clientId;
 
-	private String concurrency;
+	private @Nullable String concurrency;
 
-	private Integer concurrentConsumers;
+	private @Nullable Integer concurrentConsumers;
 
-	private ConnectionFactory connectionFactory;
+	private @Nullable ConnectionFactory connectionFactory;
 
-	private Destination destination;
+	private @Nullable Destination destination;
 
-	private String destinationName;
+	private @Nullable String destinationName;
 
-	private DestinationResolver destinationResolver;
+	private @Nullable DestinationResolver destinationResolver;
 
-	private String durableSubscriptionName;
+	private @Nullable String durableSubscriptionName;
 
-	private ErrorHandler errorHandler;
+	private @Nullable ErrorHandler errorHandler;
 
-	private ExceptionListener exceptionListener;
+	private @Nullable ExceptionListener exceptionListener;
 
-	private Boolean exposeListenerSession;
+	private @Nullable Boolean exposeListenerSession;
 
-	private Integer idleTaskExecutionLimit;
+	private @Nullable Integer idleTaskExecutionLimit;
 
-	private Integer maxConcurrentConsumers;
+	private @Nullable Integer maxConcurrentConsumers;
 
-	private Integer maxMessagesPerTask;
+	private @Nullable Integer maxMessagesPerTask;
 
-	private String messageSelector;
+	private @Nullable String messageSelector;
 
-	private Integer phase;
+	private @Nullable Integer phase;
 
-	private Boolean pubSubDomain;
+	private @Nullable Boolean pubSubDomain;
 
 	private boolean pubSubNoLocal;
 
-	private Long receiveTimeout;
+	private @Nullable Long receiveTimeout;
 
-	private Long recoveryInterval;
+	private @Nullable Long recoveryInterval;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private boolean subscriptionShared;
@@ -134,13 +137,13 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private boolean subscriptionDurable;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
-	private PlatformTransactionManager transactionManager;
+	private @Nullable PlatformTransactionManager transactionManager;
 
-	private String transactionName;
+	private @Nullable String transactionName;
 
-	private Integer transactionTimeout;
+	private @Nullable Integer transactionTimeout;
 
 	private int maxSubscribers = Integer.MAX_VALUE;
 
@@ -448,8 +451,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			dmlc.setPubSubNoLocal(this.pubSubNoLocal);
 			JavaUtils.INSTANCE
 					.acceptIfNotNull(this.receiveTimeout, dmlc::setReceiveTimeout)
-					.acceptIfNotNull(this.recoveryInterval, dmlc::setRecoveryInterval);
-			dmlc.setTaskExecutor(this.taskExecutor);
+					.acceptIfNotNull(this.recoveryInterval, dmlc::setRecoveryInterval)
+					.acceptIfNotNull(this.taskExecutor, dmlc::setTaskExecutor);
 			dmlc.setTransactionManager(this.transactionManager);
 			JavaUtils.INSTANCE
 					.acceptIfNotNull(this.transactionName, dmlc::setTransactionName)
@@ -458,9 +461,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		else if (container instanceof SimpleMessageListenerContainer smlc) {
 			JavaUtils.INSTANCE
 					.acceptIfHasText(this.concurrency, smlc::setConcurrency)
-					.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers);
+					.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers)
+					.acceptIfNotNull(this.taskExecutor, smlc::setTaskExecutor);
 			smlc.setPubSubNoLocal(this.pubSubNoLocal);
-			smlc.setTaskExecutor(this.taskExecutor);
 		}
 		return container;
 	}
@@ -510,7 +513,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	}
 
 	@Override
-	protected void destroyInstance(AbstractJmsChannel instance) {
+	protected void destroyInstance(@Nullable AbstractJmsChannel instance) {
 		this.channel.destroy();
 	}
 

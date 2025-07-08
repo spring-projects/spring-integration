@@ -26,6 +26,7 @@ import jakarta.jms.InvalidDestinationException;
 import jakarta.jms.JMSException;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -56,7 +57,6 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -96,9 +96,9 @@ public class ChannelPublishingJmsMessageListener
 
 	private boolean extractReplyPayload = true;
 
-	private Object defaultReplyDestination;
+	private @Nullable Object defaultReplyDestination;
 
-	private String correlationKey;
+	private @Nullable String correlationKey;
 
 	private long replyTimeToLive = jakarta.jms.Message.DEFAULT_TIME_TO_LIVE;
 
@@ -110,14 +110,16 @@ public class ChannelPublishingJmsMessageListener
 
 	private DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
-	private Expression replyToExpression;
+	private @Nullable Expression replyToExpression;
 
 	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	/**
@@ -174,7 +176,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	@Override
-	public String getComponentName() {
+	public @Nullable String getComponentName() {
 		return this.gatewayDelegate.getComponentName();
 	}
 
@@ -563,7 +565,7 @@ public class ChannelPublishingJmsMessageListener
 	 * @see #setDefaultReplyTopicName
 	 * @see #setDestinationResolver
 	 */
-	private Destination resolveDefaultReplyDestination(Session session) throws JMSException {
+	private @Nullable Destination resolveDefaultReplyDestination(Session session) throws JMSException {
 		if (this.defaultReplyDestination instanceof Destination destination) {
 			return destination;
 		}
@@ -600,7 +602,7 @@ public class ChannelPublishingJmsMessageListener
 
 	private class GatewayDelegate extends MessagingGatewaySupport {
 
-		private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+		private static final ThreadLocal<@Nullable AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 		@Nullable
 		private RetryOperations retryTemplate;
@@ -621,7 +623,9 @@ public class ChannelPublishingJmsMessageListener
 				else {
 					this.retryTemplate.execute(
 							context -> {
-								StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage).incrementAndGet();
+								var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
+								Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
+								deliveryAttempt.incrementAndGet();
 								setAttributesIfNecessary(jmsMessage, requestMessage);
 								send(requestMessage);
 								return null;
@@ -635,7 +639,7 @@ public class ChannelPublishingJmsMessageListener
 			}
 		}
 
-		private Message<?> sendAndReceiveMessage(jakarta.jms.Message jmsMessage, Message<?> requestMessage) {
+		private @Nullable Message<?> sendAndReceiveMessage(jakarta.jms.Message jmsMessage, Message<?> requestMessage) {
 			try {
 				if (this.retryTemplate == null) {
 					setAttributesIfNecessary(jmsMessage, requestMessage);
@@ -644,7 +648,9 @@ public class ChannelPublishingJmsMessageListener
 				else {
 					return this.retryTemplate.execute(
 							context -> {
-								StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage).incrementAndGet();
+								var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
+								Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
+								deliveryAttempt.incrementAndGet();
 								setAttributesIfNecessary(jmsMessage, requestMessage);
 								return sendAndReceiveMessage(requestMessage);
 							}, this.recoveryCallback);

@@ -46,6 +46,7 @@ import jakarta.jms.TemporaryTopic;
 import jakarta.jms.Topic;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -110,17 +111,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final Lock lifeCycleMonitor = new ReentrantLock();
 
-	private Destination requestDestination;
+	private @Nullable Destination requestDestination;
 
-	private String requestDestinationName;
+	private @Nullable String requestDestinationName;
 
-	private ExpressionEvaluatingMessageProcessor<?> requestDestinationExpressionProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<?> requestDestinationExpressionProcessor;
 
-	private Destination replyDestination;
+	private @Nullable Destination replyDestination;
 
-	private String replyDestinationName;
+	private @Nullable String replyDestinationName;
 
-	private ExpressionEvaluatingMessageProcessor<?> replyDestinationExpressionProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<?> replyDestinationExpressionProcessor;
 
 	private DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
@@ -138,21 +139,22 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private boolean explicitQosEnabled;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConnectionFactory connectionFactory;
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
-	private String correlationKey;
+	private @Nullable String correlationKey;
 
 	private boolean extractRequestPayload = true;
 
 	private boolean extractReplyPayload = true;
 
-	private GatewayReplyListenerContainer replyContainer;
+	private @Nullable GatewayReplyListenerContainer replyContainer;
 
-	private ReplyContainerProperties replyContainerProperties;
+	private @Nullable ReplyContainerProperties replyContainerProperties;
 
 	private boolean useReplyContainer;
 
@@ -164,11 +166,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private volatile boolean initialized;
 
-	private volatile ScheduledFuture<?> reaper;
+	private volatile @Nullable ScheduledFuture<?> reaper;
 
 	private volatile boolean wasStopped;
 
-	private volatile ScheduledFuture<?> idleTask;
+	private volatile @Nullable ScheduledFuture<?> idleTask;
 
 	private volatile long lastSend;
 
@@ -638,8 +640,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 							container::setRecoveryInterval)
 					.acceptIfHasText(this.replyContainerProperties.getSessionAcknowledgeModeName(),
 							acknowledgeModeName -> {
-								Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(
-										this.replyContainerProperties.getSessionAcknowledgeModeName());
+								Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(acknowledgeModeName);
 								if (acknowledgeMode != null) {
 									if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 										container.setSessionTransacted(true);
@@ -732,7 +733,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	protected Object handleRequestMessage(final Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(final Message<?> requestMessage) {
 		if (!this.initialized) {
 			afterPropertiesSet();
 		}
@@ -751,7 +752,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 							this.replyContainer.start();
 							this.idleTask =
 									getTaskScheduler()
-											.scheduleAtFixedRate(new IdleContainerStopper(),
+											.scheduleAtFixedRate(new IdleContainerStopper(this.replyContainer),
 													Duration.ofMillis(this.idleReplyContainerTimeout / 2));
 						}
 					}
@@ -807,7 +808,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Object sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private @Nullable Object sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
 		Connection connection = createConnection(); // NOSONAR - closed in ConnectionFactoryUtils.
 		Session session = null;
 		Destination replyTo = this.replyContainer.getReplyDestination();
@@ -861,7 +863,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private jakarta.jms.Message sendAndReceiveWithoutContainer(Message<?> requestMessage) throws JMSException {
+	private jakarta.jms.@Nullable Message sendAndReceiveWithoutContainer(Message<?> requestMessage) throws JMSException {
 		Connection connection = createConnection(); // NOSONAR - closed in ConnectionFactoryUtils.
 		Session session = null;
 		Destination replyTo = null;
@@ -915,7 +917,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * Creates the MessageConsumer before sending the request Message since we are generating
 	 * our own correlationId value for the MessageSelector.
 	 */
-	private jakarta.jms.Message doSendAndReceiveWithGeneratedCorrelationId(Destination reqDestination,
+	private jakarta.jms.@Nullable Message doSendAndReceiveWithGeneratedCorrelationId(Destination reqDestination,
 			jakarta.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		MessageProducer messageProducer = null;
 		try {
@@ -949,7 +951,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	/**
 	 * Creates the MessageConsumer before sending the request Message since we do not need any correlation.
 	 */
-	private jakarta.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(Destination reqDestination,
+	private jakarta.jms.@Nullable Message doSendAndReceiveWithTemporaryReplyToDestination(Destination reqDestination,
 			jakarta.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 
 		MessageProducer messageProducer = null;
@@ -970,7 +972,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * Creates the MessageConsumer after sending the request Message since we need
 	 * the MessageID for correlation with a MessageSelector.
 	 */
-	private jakarta.jms.Message doSendAndReceiveWithMessageIdCorrelation(Destination reqDestination,
+	private jakarta.jms.@Nullable Message doSendAndReceiveWithMessageIdCorrelation(Destination reqDestination,
 			jakarta.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 
 		if (replyTo instanceof Topic) {
@@ -1007,7 +1009,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * If the replyTo is not temporary, and the connection is lost while waiting for a reply, reconnect for
 	 * up to receiveTimeout.
 	 */
-	private jakarta.jms.Message retryableReceiveReply(Session session, Destination replyTo, // NOSONAR
+	private jakarta.jms.@Nullable Message retryableReceiveReply(Session session, Destination replyTo, // NOSONAR
 			String messageSelector) throws JMSException {
 
 		Connection consumerConnection = null; //NOSONAR
@@ -1071,7 +1073,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Object doSendAndReceiveAsync(Destination reqDestination, jakarta.jms.Message jmsRequest, Session session,
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private @Nullable Object doSendAndReceiveAsync(Destination reqDestination, jakarta.jms.Message jmsRequest, Session session,
 			int priority) throws JMSException {
 
 		String correlation = null;
@@ -1120,7 +1123,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private jakarta.jms.Message doSendAndReceiveAsyncDefaultCorrelation(Destination reqDestination,
+	private jakarta.jms.@Nullable Message doSendAndReceiveAsyncDefaultCorrelation(Destination reqDestination,
 			jakarta.jms.Message jmsRequest, Session session, int priority) throws JMSException {
 
 		String correlation = null;
@@ -1162,7 +1165,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private jakarta.jms.Message obtainReplyFromContainer(String correlationId,
+	private jakarta.jms.@Nullable Message obtainReplyFromContainer(String correlationId,
 			LinkedBlockingQueue<jakarta.jms.Message> replyQueue) {
 
 		jakarta.jms.Message reply = null;
@@ -1228,7 +1231,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private jakarta.jms.Message receiveReplyMessage(MessageConsumer messageConsumer) throws JMSException {
+	private jakarta.jms.@Nullable Message receiveReplyMessage(MessageConsumer messageConsumer) throws JMSException {
 		return (this.receiveTimeout >= 0) ? messageConsumer.receive(this.receiveTimeout) : messageConsumer.receive();
 	}
 
@@ -1237,7 +1240,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * Ignores any other {@link Destination} type and also ignores any
 	 * {@link JMSException}s that may be thrown when attempting to delete.
 	 */
-	private void deleteDestinationIfTemporary(Destination destination) {
+	private void deleteDestinationIfTemporary(@Nullable Destination destination) {
 		try {
 			if (destination instanceof TemporaryQueue temporaryQueue) {
 				temporaryQueue.delete();
@@ -1345,7 +1348,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private static class GatewayReplyListenerContainer extends DefaultMessageListenerContainer {
 
-		private volatile Destination replyDestination;
+		private volatile @Nullable Destination replyDestination;
 
 		GatewayReplyListenerContainer() {
 		}
@@ -1491,7 +1494,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private class IdleContainerStopper implements Runnable {
 
-		IdleContainerStopper() {
+		private final GatewayReplyListenerContainer replyContainer;
+
+		IdleContainerStopper(GatewayReplyListenerContainer replyContainer) {
+			this.replyContainer = replyContainer;
 		}
 
 		@Override
@@ -1500,12 +1506,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			try {
 				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
 						JmsOutboundGateway.this.idleReplyContainerTimeout
-						&& JmsOutboundGateway.this.replies.size() == 0 &&
-						JmsOutboundGateway.this.replyContainer.isRunning()) {
+						&& JmsOutboundGateway.this.replies.isEmpty() &&
+						this.replyContainer.isRunning()) {
 
 					logger.debug(() -> getComponentName() + ": Stopping idle reply container.");
-					JmsOutboundGateway.this.replyContainer.stop();
-					JmsOutboundGateway.this.idleTask.cancel(false);
+					this.replyContainer.stop();
+					ScheduledFuture<?> idleTask = JmsOutboundGateway.this.idleTask;
+					if (idleTask != null) {
+						idleTask.cancel(false);
+					}
 					JmsOutboundGateway.this.idleTask = null;
 				}
 			}
@@ -1518,31 +1527,31 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	public static class ReplyContainerProperties {
 
-		private Boolean sessionTransacted;
+		private @Nullable Boolean sessionTransacted;
 
-		private Integer sessionAcknowledgeMode;
+		private @Nullable Integer sessionAcknowledgeMode;
 
-		private String sessionAcknowledgeModeName;
+		private @Nullable String sessionAcknowledgeModeName;
 
-		private Long receiveTimeout;
+		private @Nullable Long receiveTimeout;
 
-		private Long recoveryInterval;
+		private @Nullable Long recoveryInterval;
 
-		private Integer cacheLevel;
+		private @Nullable Integer cacheLevel;
 
-		private Integer concurrentConsumers;
+		private @Nullable Integer concurrentConsumers;
 
-		private Integer maxConcurrentConsumers;
+		private @Nullable Integer maxConcurrentConsumers;
 
-		private Integer maxMessagesPerTask;
+		private @Nullable Integer maxMessagesPerTask;
 
-		private Integer idleConsumerLimit;
+		private @Nullable Integer idleConsumerLimit;
 
-		private Integer idleTaskExecutionLimit;
+		private @Nullable Integer idleTaskExecutionLimit;
 
-		private Executor taskExecutor;
+		private @Nullable Executor taskExecutor;
 
-		public String getSessionAcknowledgeModeName() {
+		public @Nullable String getSessionAcknowledgeModeName() {
 			return this.sessionAcknowledgeModeName;
 		}
 
@@ -1550,7 +1559,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.sessionAcknowledgeModeName = sessionAcknowledgeModeName;
 		}
 
-		public Boolean isSessionTransacted() {
+		public @Nullable Boolean isSessionTransacted() {
 			return this.sessionTransacted;
 		}
 
@@ -1558,7 +1567,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.sessionTransacted = sessionTransacted;
 		}
 
-		public Integer getSessionAcknowledgeMode() {
+		public @Nullable Integer getSessionAcknowledgeMode() {
 			return this.sessionAcknowledgeMode;
 		}
 
@@ -1566,7 +1575,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 		}
 
-		public Long getReceiveTimeout() {
+		public @Nullable Long getReceiveTimeout() {
 			return this.receiveTimeout;
 		}
 
@@ -1574,7 +1583,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.receiveTimeout = receiveTimeout;
 		}
 
-		public Long getRecoveryInterval() {
+		public @Nullable Long getRecoveryInterval() {
 			return this.recoveryInterval;
 		}
 
@@ -1582,7 +1591,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.recoveryInterval = recoveryInterval;
 		}
 
-		public Integer getCacheLevel() {
+		public @Nullable Integer getCacheLevel() {
 			return this.cacheLevel;
 		}
 
@@ -1590,7 +1599,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.cacheLevel = cacheLevel;
 		}
 
-		public Integer getConcurrentConsumers() {
+		public @Nullable Integer getConcurrentConsumers() {
 			return this.concurrentConsumers;
 		}
 
@@ -1598,7 +1607,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.concurrentConsumers = concurrentConsumers;
 		}
 
-		public Integer getMaxConcurrentConsumers() {
+		public @Nullable Integer getMaxConcurrentConsumers() {
 			return this.maxConcurrentConsumers;
 		}
 
@@ -1606,7 +1615,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.maxConcurrentConsumers = maxConcurrentConsumers;
 		}
 
-		public Integer getMaxMessagesPerTask() {
+		public @Nullable Integer getMaxMessagesPerTask() {
 			return this.maxMessagesPerTask;
 		}
 
@@ -1614,7 +1623,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.maxMessagesPerTask = maxMessagesPerTask;
 		}
 
-		public Integer getIdleConsumerLimit() {
+		public @Nullable Integer getIdleConsumerLimit() {
 			return this.idleConsumerLimit;
 		}
 
@@ -1622,7 +1631,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.idleConsumerLimit = idleConsumerLimit;
 		}
 
-		public Integer getIdleTaskExecutionLimit() {
+		public @Nullable Integer getIdleTaskExecutionLimit() {
 			return this.idleTaskExecutionLimit;
 		}
 
@@ -1634,7 +1643,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.taskExecutor = taskExecutor;
 		}
 
-		public Executor getTaskExecutor() {
+		public @Nullable Executor getTaskExecutor() {
 			return this.taskExecutor;
 		}
 

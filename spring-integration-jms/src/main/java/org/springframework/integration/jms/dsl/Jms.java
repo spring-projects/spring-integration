@@ -18,12 +18,12 @@ package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
-import org.springframework.lang.Nullable;
 
 /**
  * Factory class for JMS components.

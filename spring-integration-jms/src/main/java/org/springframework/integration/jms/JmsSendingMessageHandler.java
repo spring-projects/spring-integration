@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -43,20 +44,21 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 	private final JmsTemplate jmsTemplate;
 
-	private Destination destination;
+	private @Nullable Destination destination;
 
-	private String destinationName;
+	private @Nullable String destinationName;
 
 	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 	private boolean extractPayload = true;
 
-	private ExpressionEvaluatingMessageProcessor<?> destinationExpressionProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<?> destinationExpressionProcessor;
 
-	private Expression deliveryModeExpression;
+	private @Nullable Expression deliveryModeExpression;
 
-	private Expression timeToLiveExpression;
+	private @Nullable Expression timeToLiveExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
@@ -192,7 +194,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private Object determineDestination(Message<?> message) {
+	private @Nullable Object determineDestination(Message<?> message) {
 		if (this.destination != null) {
 			return this.destination;
 		}
@@ -211,7 +213,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		return null;
 	}
 
-	private void send(Object destination, Object objectToSend, MessagePostProcessor messagePostProcessor) {
+	private void send(@Nullable Object destination, Object objectToSend, MessagePostProcessor messagePostProcessor) {
 		if (destination instanceof Destination destinationObj) {
 			this.jmsTemplate.convertAndSend(destinationObj, objectToSend, messagePostProcessor);
 		}

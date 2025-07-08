@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import jakarta.jms.ConnectionFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -51,7 +52,7 @@ public class DynamicJmsTemplate extends JmsTemplate {
 	}
 
 	@Override
-	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+	public void setConnectionFactory(@Nullable ConnectionFactory connectionFactory) {
 		super.setConnectionFactory(connectionFactory);
 		if (!this.receiveTimeoutExplicitlySet) {
 			if (connectionFactory instanceof CachingConnectionFactory cachingConnectionFactory &&
