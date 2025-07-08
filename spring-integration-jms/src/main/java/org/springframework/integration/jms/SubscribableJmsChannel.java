@@ -209,6 +209,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		@Override
 		public void onMessage(jakarta.jms.Message message) {
 			Message<?> messageToSend = null;
@@ -240,9 +241,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 					}
 				}
 				else {
-					throw messageToSend != null
-							? new MessageDeliveryException(messageToSend, exceptionMessage, e)
-							: new MessageDeliveryException(exceptionMessage);
+					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
 				}
 			}
 			catch (Exception e) {

@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.observation.ObservationRegistry;
@@ -114,7 +115,8 @@ public class ChannelPublishingJmsMessageListener
 
 	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
-	private @Nullable BeanFactory beanFactory;
+	@SuppressWarnings("NullAway.Init")
+	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
@@ -175,8 +177,8 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	@Override
-	public @Nullable String getComponentName() {
-		return this.gatewayDelegate.getComponentName();
+	public String getComponentName() {
+		return Objects.requireNonNull(this.gatewayDelegate.getComponentName());
 	}
 
 	@Override

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import java.util.Objects;
+
 import io.micrometer.observation.ObservationRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -157,8 +159,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 
 	@Override
 	protected void onInit() {
-		String componentName = getComponentName();
-		this.endpoint.setComponentName(componentName == null ? "jms-inbound-gateway" : componentName);
+		this.endpoint.setComponentName(Objects.requireNonNull(getComponentName()));
 		this.endpoint.afterPropertiesSet();
 	}
 

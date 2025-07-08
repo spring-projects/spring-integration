@@ -21,7 +21,6 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -753,7 +752,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 							this.replyContainer.start();
 							this.idleTask =
 									getTaskScheduler()
-											.scheduleAtFixedRate(new IdleContainerStopper(),
+											.scheduleAtFixedRate(new IdleContainerStopper(this.replyContainer),
 													Duration.ofMillis(this.idleReplyContainerTimeout / 2));
 						}
 					}
@@ -809,10 +808,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private @Nullable Object sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
 		Connection connection = createConnection(); // NOSONAR - closed in ConnectionFactoryUtils.
 		Session session = null;
-		Assert.notNull(this.replyContainer, "'replyContainer' must not be null");
 		Destination replyTo = this.replyContainer.getReplyDestination();
 		try {
 			session = createSession(connection);
@@ -1074,6 +1073,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private @Nullable Object doSendAndReceiveAsync(Destination reqDestination, jakarta.jms.Message jmsRequest, Session session,
 			int priority) throws JMSException {
 
@@ -1082,7 +1082,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		try {
 			messageProducer = session.createProducer(reqDestination);
 			correlation = this.gatewayCorrelation + "_" + this.correlationId.incrementAndGet();
-			Assert.notNull(this.correlationKey, "'correlationKey' must not be null");
 			if (this.correlationKey.equals("JMSCorrelationID")) {
 				jmsRequest.setJMSCorrelationID(correlation);
 			}
@@ -1113,7 +1112,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 				return future;
 			}
 			else {
-				return obtainReplyFromContainer(correlation, Objects.requireNonNull(replyQueue));
+				return obtainReplyFromContainer(correlation, replyQueue);
 			}
 		}
 		finally {
@@ -1495,7 +1494,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private class IdleContainerStopper implements Runnable {
 
-		IdleContainerStopper() {
+		private final GatewayReplyListenerContainer replyContainer;
+
+		IdleContainerStopper(GatewayReplyListenerContainer replyContainer) {
+			this.replyContainer = replyContainer;
 		}
 
 		@Override
@@ -1505,11 +1507,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
 						JmsOutboundGateway.this.idleReplyContainerTimeout
 						&& JmsOutboundGateway.this.replies.isEmpty() &&
-						Objects.requireNonNull(JmsOutboundGateway.this.replyContainer).isRunning()) {
+						this.replyContainer.isRunning()) {
 
 					logger.debug(() -> getComponentName() + ": Stopping idle reply container.");
-					JmsOutboundGateway.this.replyContainer.stop();
-					Objects.requireNonNull(JmsOutboundGateway.this.idleTask).cancel(false);
+					this.replyContainer.stop();
+					ScheduledFuture<?> idleTask = JmsOutboundGateway.this.idleTask;
+					if (idleTask != null) {
+						idleTask.cancel(false);
+					}
 					JmsOutboundGateway.this.idleTask = null;
 				}
 			}

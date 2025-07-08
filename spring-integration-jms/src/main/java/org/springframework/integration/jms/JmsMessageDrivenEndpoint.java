@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import java.util.Objects;
+
 import io.micrometer.observation.ObservationRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -219,8 +221,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 				this.listenerContainer.setSessionAcknowledgeMode(acknowledgeMode);
 			}
 		}
-		String componentName = getComponentName();
-		this.listener.setComponentName(componentName == null ? "jms-message-listener" : componentName);
+		this.listener.setComponentName(Objects.requireNonNull(getComponentName()));
 	}
 
 	@Override
