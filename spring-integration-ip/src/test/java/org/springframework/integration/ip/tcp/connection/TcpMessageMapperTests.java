@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.codec.CodecMessageConverter;
-import org.springframework.integration.codec.CompositeCodec;
 import org.springframework.integration.codec.kryo.MessageCodec;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -67,12 +67,11 @@ public class TcpMessageMapperTests {
 
 	@BeforeEach
 	public void setup() {
-		MessageCodec messageCodec = new MessageCodec();
-		Map<Class<?>, Codec> codecs = Map.of(messageCodec.getClass(), messageCodec);
-		this.codec = new CompositeCodec(codecs, new MessageCodec());
+		this.codec = new MessageCodec();
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testToMessage() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
@@ -90,6 +89,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testToMessageWithContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
@@ -111,6 +111,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testToMessageWithCustomContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
@@ -142,6 +143,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testToMessageSequence() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
@@ -217,6 +219,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testToMessageSequenceNewWithCustomHeader() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper() {
 
@@ -340,11 +343,12 @@ public class TcpMessageMapperTests {
 		MapJsonSerializer serializer = new MapJsonSerializer();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.serialize(map, baos);
-		assertThat(new String(baos.toByteArray(), "UTF-8"))
+		assertThat(baos.toString(StandardCharsets.UTF_8))
 				.isEqualTo("{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n");
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testMapMessageConvertingInboundJson() throws Exception {
 		String json = "{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n";
 		MapMessageConverter converter = new MapMessageConverter();
@@ -364,6 +368,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testMapMessageConvertingBothWaysJava() throws Exception {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
@@ -390,6 +395,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testCodecMessageConvertingBothWaysJava() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
@@ -410,6 +416,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("NullAway")
 	public void testWithBytesMapper() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
