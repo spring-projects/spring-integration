@@ -43,7 +43,7 @@ public class CompositeCodec implements Codec {
 		this.delegates = new HashMap<Class<?>, Codec>(delegates);
 	}
 
-	@Deprecated(since = "6.4", forRemoval = true)
+	@Deprecated(since = "6.4.6", forRemoval = true)
 	public CompositeCodec(Codec defaultCodec) {
 		this.defaultCodec = defaultCodec;
 		this.delegates = Map.of();
