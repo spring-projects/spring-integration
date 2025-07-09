@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
-	<context:property-placeholder properties-ref="props"/>
+	<context:property-placeholder properties-ref="props" />
 
 	<util:properties id="props">
 		<prop key="cluster.1">cluster</prop>
@@ -17,25 +17,22 @@
 		<prop key="cluster.3">clusterX</prop>
 	</util:properties>
 
-	<int:inbound-channel-adapter id="in" channel="foo" expression="'foo'" role="cluster" auto-startup="false">
-		<int:poller fixed-delay="60000"/>
+	<int:inbound-channel-adapter id="in" channel="foo"  expression="'foo'" role="cluster" auto-startup="false">
+		<int:poller fixed-delay="60000" />
 	</int:inbound-channel-adapter>
 
-	<int:channel id="foo"/>
+	<int:channel id="foo" />
 
-	<int:outbound-channel-adapter id="out1" channel="foo" role="cluster" auto-startup="false" ref="sink" method="foo"/>
+	<int:outbound-channel-adapter id="out1" channel="foo" role="cluster" auto-startup="false" ref="sink" method="foo" />
 
-	<int:outbound-channel-adapter id="out2" channel="foo" role="${cluster.1}" auto-startup="false" ref="sink"
-								  method="foo"/>
+	<int:outbound-channel-adapter id="out2" channel="foo" role="${cluster.1}" auto-startup="false" ref="sink" method="foo" />
 
-	<int:outbound-channel-adapter id="out3" channel="foo" role="${cluster.2}" auto-startup="false" ref="sink"
-								  method="foo"/>
+	<int:outbound-channel-adapter id="out3" channel="foo" role="${cluster.2}" auto-startup="false" ref="sink" method="foo" />
 
-	<int:outbound-channel-adapter id="out4" channel="foo" role="${cluster.3}" auto-startup="false" ref="sink"
-								  method="foo"/>
+	<int:outbound-channel-adapter id="out4" channel="foo" role="${cluster.3}" auto-startup="false" ref="sink" method="foo" />
 
-	<bean id="sink" class="org.springframework.integration.config.xml.EndpointRoleParserTests$Sink"/>
+	<bean id="sink" class="org.springframework.integration.config.xml.EndpointRoleParserTests$Sink" />
 
-	<int:bridge id="bridge" input-channel="foo" output-channel="nullChannel" role="cluster" auto-startup="false"/>
+	<int:bridge id="bridge" input-channel="foo" output-channel="nullChannel" role="cluster" auto-startup="false" />
 
 </beans>

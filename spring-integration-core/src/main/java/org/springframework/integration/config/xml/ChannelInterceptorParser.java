@@ -30,7 +30,6 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.Assert;
 
 /**
  * A helper class for parsing the sub-elements of a channel's
@@ -75,8 +74,9 @@ public class ChannelInterceptorParser {
 					if (parser == null) {
 						parserContext.getReaderContext().error(
 								"unsupported interceptor element '" + localName + "'", childElement);
+						// Redundant Exception is here to satisfy NullAway warning parser.parse statement below.
+						throw new IllegalStateException("unsupported interceptor element '" + localName + "'");
 					}
-					Assert.state(parser != null, "no parser registered for '" + localName + "'");
 					String interceptorBeanName = parser.parse(childElement, parserContext);
 					interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 				}

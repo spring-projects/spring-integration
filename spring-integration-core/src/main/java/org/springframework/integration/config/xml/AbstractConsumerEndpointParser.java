@@ -80,7 +80,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	 * @param parserContext The parser context.
 	 * @return The bean definition builder.
 	 */
-	protected abstract @Nullable BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
+	protected abstract BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
 
 	protected String getInputChannelAttributeName() {
 		return "input-channel";
@@ -180,6 +180,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void registerChannelForCreation(ParserContext parserContext, String inputChannelName,
 			BeanDefinitionBuilder consumerEndpointBuilder) {
 
@@ -198,9 +199,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			@SuppressWarnings("unchecked")
 			Collection<String> channelCandidateNames =
-					(Collection<String>) Objects.requireNonNull(caValues.getArgumentValue(0, Collection.class))
-							.getValue(); // NOSONAR see comment above
-			Objects.requireNonNull(channelCandidateNames).add(inputChannelName); // NOSONAR
+					(Collection<String>) caValues.getArgumentValue(0, Collection.class)
+							.getValue();
+			channelCandidateNames.add(inputChannelName);
 			consumerEndpointBuilder.addDependsOn(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 		}
 		else {

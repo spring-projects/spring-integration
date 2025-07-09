@@ -40,7 +40,7 @@ import org.springframework.util.xml.DomUtils;
 abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected final @Nullable BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected final BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getFactoryBeanClassName());
 		BeanComponentDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element,
@@ -66,7 +66,6 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			parserContext.getReaderContext().error(
 					"Only one of 'ref' or 'expression' is permitted, not both, on element " +
 							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-			return null;
 		}
 		else if (hasRef) {
 			builder.addPropertyReference("targetObject", ref);
@@ -78,7 +77,6 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
 					"or inner bean (<bean/>) definition is required for element " +
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-			return null;
 		}
 		methodAttribute(element, parserContext, source, builder, innerDefinition, hasRef, hasExpression,
 				expressionElement);

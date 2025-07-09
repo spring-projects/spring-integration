@@ -298,8 +298,7 @@ public abstract class IntegrationNamespaceUtils {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
-			Assert.state(bdHolder != null, "bdHolder must not be null");
-			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, Objects.requireNonNull(bdHolder));
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
 			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());
 		}
@@ -626,7 +625,9 @@ public abstract class IntegrationNamespaceUtils {
 
 		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
 				adapterClass, element, processor, parserContext);
-		builder.addPropertyValue(beanProperty, adapter);
+		if (adapter != null) {
+			builder.addPropertyValue(beanProperty, adapter);
+		}
 	}
 
 	public static void injectConstructorWithAdapter(String beanRefAttribute, String methodRefAttribute,

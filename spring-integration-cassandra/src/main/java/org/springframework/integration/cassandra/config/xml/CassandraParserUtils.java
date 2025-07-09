@@ -92,7 +92,7 @@ public final class CassandraParserUtils {
 
 	}
 
-	public static boolean areMutuallyExclusive(@Nullable String query, @Nullable BeanDefinition statementExpressionDef,
+	public static boolean areMutuallyExclusive(String query, @Nullable BeanDefinition statementExpressionDef,
 			String ingestQuery) {
 
 		return !StringUtils.hasText(query) && statementExpressionDef == null && !StringUtils.hasText(ingestQuery)

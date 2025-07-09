@@ -62,8 +62,8 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		return id;
 	}
 
-	@Override
 	@SuppressWarnings("NullAway")
+	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		String channelName = element.getAttribute("channel");
 		if (!StringUtils.hasText(channelName)) {

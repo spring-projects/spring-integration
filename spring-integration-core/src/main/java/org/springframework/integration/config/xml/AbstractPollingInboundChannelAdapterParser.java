@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
+import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -60,9 +60,8 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		}
 		else {
 			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);
-			throw new IllegalStateException("sourceBeanName must not be null");
 		}
-
+		Assert.state(sourceBeanName != null, "'sourceBeanName' must not be null");
 		adapterBuilder.addPropertyReference("source", sourceBeanName);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "send-timeout");
@@ -81,6 +80,6 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	 * @param parserContext The parser context.
 	 * @return The bean metadata element.
 	 */
-	protected abstract @Nullable BeanMetadataElement parseSource(Element element, ParserContext parserContext);
+	protected abstract BeanMetadataElement parseSource(Element element, ParserContext parserContext);
 
 }

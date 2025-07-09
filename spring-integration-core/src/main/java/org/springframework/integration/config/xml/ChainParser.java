@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -67,7 +66,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
-	protected @Nullable BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 
 		if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
@@ -92,7 +91,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 						parserContext.getReaderContext().error("A bean definition is already registered for " +
 										"beanName: '" + handlerBeanName + "' within the current <chain>.",
 								element);
-						return null;
 					}
 				}
 				if ("gateway".equals(child.getLocalName())) {
@@ -125,7 +123,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return id;
 	}
 
-	private @Nullable BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
+	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
 			BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
@@ -144,7 +142,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
-				return null;
 			}
 			else {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
