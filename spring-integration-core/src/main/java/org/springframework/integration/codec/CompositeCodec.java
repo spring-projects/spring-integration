@@ -43,8 +43,14 @@ public class CompositeCodec implements Codec {
 		this.delegates = new HashMap<Class<?>, Codec>(delegates);
 	}
 
+	/**
+	 * @param defaultCodec codec for fallback
+	 * @deprecated since 6.4.6 in favor of {@link #CompositeCodec(Map, Codec)} with provided delegates.
+	 */
+	@Deprecated(since = "6.4.6", forRemoval = true)
 	public CompositeCodec(Codec defaultCodec) {
-		this(null, defaultCodec);
+		this.defaultCodec = defaultCodec;
+		this.delegates = Map.of();
 	}
 
 	@Override
