@@ -20,6 +20,7 @@ import java.io.Serial;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -53,6 +54,21 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public final class JacksonMessagingUtils {
 
+	/**
+	 * The packages to trust on JSON deserialization by default.
+	 */
+	public static final List<String> DEFAULT_TRUSTED_PACKAGES =
+			List.of(
+					"java.util",
+					"java.lang",
+					"org.springframework.messaging.support",
+					"org.springframework.integration.support",
+					"org.springframework.integration.message",
+					"org.springframework.integration.store",
+					"org.springframework.integration.history",
+					"org.springframework.integration.handler"
+			);
+
 	private JacksonMessagingUtils() {
 	}
 
@@ -67,14 +83,14 @@ public final class JacksonMessagingUtils {
 	 */
 	public static ObjectMapper messagingAwareMapper(String... trustedPackages) {
 		if (JacksonPresent.isJackson3Present()) {
-			GenericMessageJackson3Deserializer genericMessageDeserializer = new GenericMessageJackson3Deserializer();
-			ErrorMessageJackson3Deserializer errorMessageDeserializer = new ErrorMessageJackson3Deserializer();
-			AdviceMessageJackson3Deserializer adviceMessageDeserializer = new AdviceMessageJackson3Deserializer();
-			MutableMessageJackson3Deserializer mutableMessageDeserializer = new MutableMessageJackson3Deserializer();
+			GenericMessageJsonDeserializer genericMessageDeserializer = new GenericMessageJsonDeserializer();
+			ErrorMessageJsonDeserializer errorMessageDeserializer = new ErrorMessageJsonDeserializer();
+			AdviceMessageJsonDeserializer adviceMessageDeserializer = new AdviceMessageJsonDeserializer();
+			MutableMessageJsonDeserializer mutableMessageDeserializer = new MutableMessageJsonDeserializer();
 
 			SimpleModule simpleModule = new SimpleModule()
-					.addSerializer(new MessageHeadersJackson3Serializer())
-					.addSerializer(new MimeTypeJackson3Serializer())
+					.addSerializer(new MessageHeadersJsonSerializer())
+					.addSerializer(new MimeTypeJsonSerializer())
 					.addDeserializer(GenericMessage.class, genericMessageDeserializer)
 					.addDeserializer(ErrorMessage.class, errorMessageDeserializer)
 					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
@@ -143,7 +159,7 @@ public final class JacksonMessagingUtils {
 
 		private final TypeIdResolver delegate;
 
-		private final Set<String> trustedPackages = new LinkedHashSet<>(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES);
+		private final Set<String> trustedPackages = new LinkedHashSet<>(DEFAULT_TRUSTED_PACKAGES);
 
 		AllowListTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;

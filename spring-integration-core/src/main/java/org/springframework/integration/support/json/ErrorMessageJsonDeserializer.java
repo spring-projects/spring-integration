@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,33 @@ package org.springframework.integration.support.json;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.type.TypeFactory;
 
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
- * The {@link MessageJackson3Deserializer} implementation for the {@link GenericMessage}.
+ * The {@link MessageJsonDeserializer} implementation for the {@link ErrorMessage}.
  *
  * @author Jooyoung Pyoung
  *
  * @since 7.0
  */
-public class GenericMessageJackson3Deserializer extends MessageJackson3Deserializer<GenericMessage<?>> {
+public class ErrorMessageJsonDeserializer extends MessageJsonDeserializer<ErrorMessage> {
 
-	@SuppressWarnings("unchecked")
-	public GenericMessageJackson3Deserializer() {
-		super((Class<GenericMessage<?>>) (Class<?>) GenericMessage.class);
+	@SuppressWarnings("this-escape")
+	public ErrorMessageJsonDeserializer() {
+		super(ErrorMessage.class);
+		setPayloadType(TypeFactory.createDefaultInstance().constructType(Throwable.class));
 	}
 
 	@Override
-	protected GenericMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
+	protected ErrorMessage buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
 			DeserializationContext ctxt) throws JacksonException {
-		return new GenericMessage<Object>(payload, headers);
+
+		Message<?> originalMessage = getMapper().readValue(root.get("originalMessage").traverse(ctxt), Message.class);
+		return new ErrorMessage((Throwable) payload, headers, originalMessage);
 	}
 
 }

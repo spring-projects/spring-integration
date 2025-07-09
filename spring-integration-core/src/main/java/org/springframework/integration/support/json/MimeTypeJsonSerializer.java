@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,16 @@ import org.springframework.util.MimeType;
  *
  * @since 7.0
  */
-public class MimeTypeJackson3Serializer extends StdSerializer<MimeType> {
+public class MimeTypeJsonSerializer extends StdSerializer<MimeType> {
 
-	public MimeTypeJackson3Serializer() {
+	public MimeTypeJsonSerializer() {
 		super(MimeType.class);
 	}
 
 	@Override
-	public void serializeWithType(MimeType value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
+	public void serializeWithType(MimeType value, JsonGenerator gen, SerializationContext ctxt,
+			TypeSerializer typeSer) throws JacksonException {
+
 		serialize(value, gen, ctxt);
 	}
 

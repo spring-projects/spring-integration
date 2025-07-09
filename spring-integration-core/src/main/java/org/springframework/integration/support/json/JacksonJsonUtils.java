@@ -146,9 +146,9 @@ public final class JacksonJsonUtils {
 
 		@Override
 		protected TypeIdResolver idResolver(MapperConfig<?> config,
-											JavaType baseType,
-											PolymorphicTypeValidator subtypeValidator,
-											Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
+				JavaType baseType,
+				PolymorphicTypeValidator subtypeValidator,
+				Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
 
 			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
 			return new AllowListTypeIdResolver(result, this.trustedPackages);
@@ -168,7 +168,7 @@ public final class JacksonJsonUtils {
 
 		private final TypeIdResolver delegate;
 
-		private final Set<String> trustedPackages = new LinkedHashSet<>(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES);
+		private final Set<String> trustedPackages = new LinkedHashSet<>(DEFAULT_TRUSTED_PACKAGES);
 
 		AllowListTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
 			this.delegate = delegate;

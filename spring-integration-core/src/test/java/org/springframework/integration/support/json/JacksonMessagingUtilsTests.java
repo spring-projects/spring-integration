@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.json;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -44,10 +45,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class JacksonMessagingUtilsTests {
 
-	private static final JacksonModule JODA_MODULE = new JodaModule();
-
-	private static final JacksonModule KOTLIN_MODULE = new KotlinModule.Builder().build();
-
 	private ObjectMapper mapper;
 
 	@BeforeEach
@@ -56,11 +53,16 @@ class JacksonMessagingUtilsTests {
 	}
 
 	@Test
-	void shouldAutoDiscoverAllWellKnownModules() {
-		Set<String> collectedModuleNames = getModuleNames(collectWellKnownModulesIfAvailable());
+	void shouldIncludeWellKnownModules() {
+		List<JacksonModule> wellKnownModules = Arrays.asList(
+				new JodaModule(),
+				new KotlinModule.Builder().build()
+		);
 
-		Set<String> autoModuleNames = getModuleNames(mapper.getRegisteredModules());
-		assertThat(autoModuleNames).containsAll(collectedModuleNames);
+		Set<String> wellKnownModuleNames = getModuleNames(wellKnownModules);
+		Set<String> registeredModuleNames = getModuleNames(mapper.getRegisteredModules());
+
+		assertThat(registeredModuleNames).containsAll(wellKnownModuleNames);
 	}
 
 	@Test
@@ -136,10 +138,6 @@ class JacksonMessagingUtilsTests {
 		return modules.stream()
 				.map(JacksonModule::getModuleName)
 				.collect(Collectors.toUnmodifiableSet());
-	}
-
-	private List<JacksonModule> collectWellKnownModulesIfAvailable() {
-		return List.of(JODA_MODULE, KOTLIN_MODULE);
 	}
 
 }

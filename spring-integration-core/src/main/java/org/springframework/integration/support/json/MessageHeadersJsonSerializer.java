@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,14 +37,16 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @since 7.0
  */
-public class MessageHeadersJackson3Serializer extends StdSerializer<MessageHeaders> {
+public class MessageHeadersJsonSerializer extends StdSerializer<MessageHeaders> {
 
-	public MessageHeadersJackson3Serializer() {
+	public MessageHeadersJsonSerializer() {
 		super(MessageHeaders.class);
 	}
 
 	@Override
-	public void serializeWithType(MessageHeaders value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) throws JacksonException {
+	public void serializeWithType(MessageHeaders value, JsonGenerator gen, SerializationContext ctxt,
+			TypeSerializer typeSer) throws JacksonException {
+
 		serialize(value, gen, ctxt);
 	}
 

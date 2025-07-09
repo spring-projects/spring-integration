@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,28 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 
-import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
- * The {@link MessageJackson3Deserializer} implementation for the {@link AdviceMessage}.
+ * The {@link MessageJsonDeserializer} implementation for the {@link GenericMessage}.
  *
  * @author Jooyoung Pyoung
  *
  * @since 7.0
  */
-public class AdviceMessageJackson3Deserializer extends MessageJackson3Deserializer<AdviceMessage<?>> {
+public class GenericMessageJsonDeserializer extends MessageJsonDeserializer<GenericMessage<?>> {
 
 	@SuppressWarnings("unchecked")
-	public AdviceMessageJackson3Deserializer() {
-		super((Class<AdviceMessage<?>>) (Class<?>) AdviceMessage.class);
+	public GenericMessageJsonDeserializer() {
+		super((Class<GenericMessage<?>>) (Class<?>) GenericMessage.class);
 	}
 
 	@Override
-	protected AdviceMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
+	protected GenericMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
 			DeserializationContext ctxt) throws JacksonException {
-		Message<?> inputMessage = getMapper().readValue(root.get("inputMessage").traverse(ctxt), Message.class);
-		return new AdviceMessage<>(payload, headers, inputMessage);
+
+		return new GenericMessage<>(payload, headers);
 	}
 
 }

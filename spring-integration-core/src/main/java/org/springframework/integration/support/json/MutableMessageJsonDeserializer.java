@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,32 +19,29 @@ package org.springframework.integration.support.json;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.type.TypeFactory;
 
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.ErrorMessage;
 
 /**
- * The {@link MessageJackson3Deserializer} implementation for the {@link ErrorMessage}.
+ * The {@link MessageJsonDeserializer} implementation for the {@link MutableMessage}.
  *
  * @author Jooyoung Pyoung
  *
  * @since 7.0
  */
-public class ErrorMessageJackson3Deserializer extends MessageJackson3Deserializer<ErrorMessage> {
+public class MutableMessageJsonDeserializer extends MessageJsonDeserializer<MutableMessage<?>> {
 
-	@SuppressWarnings("this-escape")
-	public ErrorMessageJackson3Deserializer() {
-		super(ErrorMessage.class);
-		setPayloadType(TypeFactory.createDefaultInstance().constructType(Throwable.class));
+	@SuppressWarnings("unchecked")
+	public MutableMessageJsonDeserializer() {
+		super((Class<MutableMessage<?>>) (Class<?>) MutableMessage.class);
 	}
 
 	@Override
-	protected ErrorMessage buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
+	protected MutableMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
 			DeserializationContext ctxt) throws JacksonException {
-		Message<?> originalMessage = getMapper().readValue(root.get("originalMessage").traverse(ctxt), Message.class);
-		return new ErrorMessage((Throwable) payload, headers, originalMessage);
+
+		return new MutableMessage<>(payload, headers);
 	}
 
 }

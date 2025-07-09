@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,13 +42,13 @@ import org.springframework.util.Assert;
  *
  * @since 7.0
  */
-public abstract class MessageJackson3Deserializer<T extends Message<?>> extends StdNodeBasedDeserializer<T> {
+public abstract class MessageJsonDeserializer<T extends Message<?>> extends StdNodeBasedDeserializer<T> {
 
 	private JavaType payloadType = TypeFactory.createDefaultInstance().constructType(Object.class);
 
 	private ObjectMapper mapper = new ObjectMapper();
 
-	protected MessageJackson3Deserializer(Class<T> targetType) {
+	protected MessageJsonDeserializer(Class<T> targetType) {
 		super(targetType);
 	}
 
@@ -76,7 +76,7 @@ public abstract class MessageJackson3Deserializer<T extends Message<?>> extends 
 	@Override
 	public T convert(JsonNode root, DeserializationContext ctxt) throws JacksonException {
 		Map<String, Object> headers = this.mapper.readValue(root.get("headers").traverse(ctxt),
-				TypeFactory.createDefaultInstance().constructMapType(HashMap.class, String.class, Object.class));
+				this.mapper.getTypeFactory().constructMapType(HashMap.class, String.class, Object.class));
 		Object payload = this.mapper.readValue(root.get("payload").traverse(ctxt), this.payloadType);
 		return buildMessage(new MutableMessageHeaders(headers), payload, root, ctxt);
 	}
