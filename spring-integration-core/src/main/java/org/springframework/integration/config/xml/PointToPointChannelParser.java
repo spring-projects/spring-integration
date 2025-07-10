@@ -78,7 +78,6 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 						"The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.",
 						element);
 			}
-
 			Assert.state(builder != null, "builder must not be null");
 			return builder;
 		}

@@ -142,9 +142,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		String handlerBeanName =
 				BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
+		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
 		parserContext.registerBeanComponent(
-				new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName,
-						IntegrationNamespaceUtils.generateAlias(element)));
+				new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
 
 		builder.addPropertyReference("handler", handlerBeanName);
 
