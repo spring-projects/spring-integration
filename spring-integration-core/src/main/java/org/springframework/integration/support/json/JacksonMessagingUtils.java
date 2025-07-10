@@ -83,7 +83,7 @@ public final class JacksonMessagingUtils {
 	 * @throws IllegalStateException if an implementation is not available.
 	 * @since 7.0
 	 */
-	public static ObjectMapper messagingAwareMapper(String... trustedPackages) {
+	public static ObjectMapper messagingAwareMapper(String @Nullable ... trustedPackages) {
 		if (JacksonPresent.isJackson3Present()) {
 			GenericMessageJsonDeserializer genericMessageDeserializer = new GenericMessageJsonDeserializer();
 			ErrorMessageJsonDeserializer errorMessageDeserializer = new ErrorMessageJsonDeserializer();
