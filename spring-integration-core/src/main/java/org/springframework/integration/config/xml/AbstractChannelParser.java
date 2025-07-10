@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.Objects;
-
-import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.aop.scope.ScopedProxyUtils;
@@ -47,7 +44,7 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = this.buildBeanDefinition(element, parserContext);
-		AbstractBeanDefinition beanDefinition = Objects.requireNonNull(builder).getBeanDefinition();
+		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 		String datatypeAttr = element.getAttribute("datatype");
 		String messageConverter = element.getAttribute("message-converter");
@@ -110,6 +107,6 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	 * @param parserContext The parser context.
 	 * @return The bean definition builder.
 	 */
-	protected abstract @Nullable BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext);
+	protected abstract BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext);
 
 }

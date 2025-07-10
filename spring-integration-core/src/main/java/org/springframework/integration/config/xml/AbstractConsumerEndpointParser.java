@@ -18,7 +18,6 @@ package org.springframework.integration.config.xml;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -89,7 +88,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	@Override
 	protected final @Nullable AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = parseHandler(element, parserContext);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(Objects.requireNonNull(handlerBuilder), element, "output-channel",
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "output-channel",
 				"outputChannelName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
 
