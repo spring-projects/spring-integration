@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.jspecify.annotations.Nullable;
 
@@ -69,6 +68,7 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  *
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  */
@@ -101,7 +101,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private final MessageChannel subProtocolHandlerChannel;
 
-	private final AtomicReference<Class<?>> payloadType = new AtomicReference<>(String.class);
+	private Class<?> payloadType = String.class;
 
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher eventPublisher;
@@ -166,7 +166,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	 */
 	public void setPayloadType(Class<?> payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null");
-		this.payloadType.set(payloadType);
+		this.payloadType = payloadType;
 	}
 
 	/**
@@ -306,7 +306,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		return active;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"}) // Dataflow analysis limitation
 	private void handleMessageAndSend(final Message<?> message) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
 		StompCommand stompCommand = (StompCommand) headerAccessor.getHeader("stompCommand");
@@ -327,7 +327,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 		else {
 			if (this.useBroker) {
-				Assert.notNull(this.brokerHandler, "brokerHandler is required");
 				this.brokerHandler.handleMessage(message);
 			}
 			else {
@@ -350,9 +349,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 				&& !checkDestinationPrefix(headerAccessor.getDestination());
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private boolean checkDestinationPrefix(@Nullable String destination) {
 		if (this.useBroker) {
-			Assert.notNull(this.brokerHandler, "brokerHandler is required");
 			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
 			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
 				return false;
@@ -379,14 +378,11 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	private void produceMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
-		Class<?> targetType = this.payloadType.get();
-		Assert.notNull(targetType, "payloadType must not be null");
-
-		Object payload = this.messageConverter.fromMessage(message, targetType);
+		Object payload = this.messageConverter.fromMessage(message, this.payloadType);
 		Assert.state(payload != null,
 				() -> "The message converter '" + this.messageConverter +
 						"' produced no payload for message '" + message +
-						"' and expected payload type: " + this.payloadType.get());
+						"' and expected payload type: " + this.payloadType);
 		Message<Object> messageToSend =
 				getMessageBuilderFactory()
 						.withPayload(payload)

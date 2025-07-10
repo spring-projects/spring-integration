@@ -59,23 +59,21 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	private final String[] paths;
 
-	@SuppressWarnings("NullAway.Init")
-	private HandshakeHandler handshakeHandler;
+	private @Nullable HandshakeHandler handshakeHandler;
 
-	private HandshakeInterceptor @Nullable [] interceptors;
+	private HandshakeInterceptor[] interceptors = new HandshakeInterceptor[0];
 
 	private WebSocketHandlerDecoratorFactory @Nullable [] decoratorFactories;
 
 	private @Nullable SockJsServiceOptions sockJsServiceOptions;
 
-	private String @Nullable [] origins;
+	private String[] origins = new String[0];
 
 	private boolean autoStartup = true;
 
 	private int phase = 0;
 
-	@SuppressWarnings("NullAway.Init")
-	private TaskScheduler sockJsTaskScheduler;
+	private @Nullable TaskScheduler sockJsTaskScheduler;
 
 	public ServerWebSocketContainer(String... paths) {
 		Assert.notEmpty(paths, "'paths' must not be empty");
@@ -149,7 +147,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		this.sockJsTaskScheduler = sockJsTaskScheduler;
 	}
 
-	public TaskScheduler getSockJsTaskScheduler() {
+	public @Nullable TaskScheduler getSockJsTaskScheduler() {
 		return this.sockJsTaskScheduler;
 	}
 
@@ -164,6 +162,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 			}
 		}
 
+		Assert.notNull(this.handshakeHandler, "'handshakeHandler' must not be null");
 		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
 				.setHandshakeHandler(this.handshakeHandler);
 
@@ -240,8 +239,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	public void start() {
 		this.lock.lock();
 		try {
-			if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
-				((Lifecycle) this.handshakeHandler).start();
+			if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && !isRunning()) {
+				lifeCycleHandler.start();
 			}
 		}
 		finally {
@@ -251,15 +250,15 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	@Override
 	public void stop() {
-		if (isRunning()) {
-			((Lifecycle) this.handshakeHandler).stop();
+		if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && isRunning()) {
+			lifeCycleHandler.stop();
 		}
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (isRunning()) {
-			((Lifecycle) this.handshakeHandler).stop();
+		if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && isRunning()) {
+			lifeCycleHandler.stop();
 		}
 		callback.run();
 	}

@@ -21,7 +21,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Julian Koch
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  */
@@ -193,7 +193,7 @@ public class WebSocketParserTests {
 		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverters")).isNull();
 		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "defaultConverters"))
 				.isEqualTo(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverter.converters"));
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", AtomicReference.class).get())
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", Class.class))
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "useBroker", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "brokerHandler"))
@@ -218,7 +218,7 @@ public class WebSocketParserTests {
 				.isEqualTo(2000L);
 		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "phase")).isEqualTo(200);
 		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", AtomicReference.class).get())
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", Class.class))
 				.isEqualTo(Integer.class);
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.customInboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
