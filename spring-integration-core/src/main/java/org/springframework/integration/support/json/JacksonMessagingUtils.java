@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DatabindContext;
 import tools.jackson.databind.DefaultTyping;
@@ -50,6 +51,7 @@ import org.springframework.messaging.support.GenericMessage;
  * and validates deserialization against trusted package patterns.
  *
  * @author Jooyoung Pyoung
+ *
  * @since 7.0
  */
 public final class JacksonMessagingUtils {
@@ -97,7 +99,7 @@ public final class JacksonMessagingUtils {
 					.addDeserializer(MutableMessage.class, mutableMessageDeserializer);
 
 			ObjectMapper mapper = JsonMapper.builder()
-					.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
+					.findAndAddModules(JacksonMessagingUtils.class.getClassLoader())
 					.setDefaultTyping(new AllowListTypeResolverBuilder(trustedPackages))
 					.addModules(simpleModule)
 					.build();
@@ -125,9 +127,9 @@ public final class JacksonMessagingUtils {
 		@Serial
 		private static final long serialVersionUID = 1L;
 
-		private final String[] trustedPackages;
+		private final String @Nullable [] trustedPackages;
 
-		AllowListTypeResolverBuilder(String... trustedPackages) {
+		AllowListTypeResolverBuilder(String @Nullable ... trustedPackages) {
 			super(
 					BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build(),
 					DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY
@@ -161,7 +163,7 @@ public final class JacksonMessagingUtils {
 
 		private final Set<String> trustedPackages = new LinkedHashSet<>(DEFAULT_TRUSTED_PACKAGES);
 
-		AllowListTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
+		AllowListTypeIdResolver(TypeIdResolver delegate, String @Nullable ... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
 				for (String trustedPackage : trustedPackages) {
