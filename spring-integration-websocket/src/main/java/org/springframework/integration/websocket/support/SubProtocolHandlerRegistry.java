@@ -73,7 +73,7 @@ public final class SubProtocolHandlerRegistry {
 	}
 
 	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers,
-			SubProtocolHandler defaultProtocolHandler) {
+			@Nullable SubProtocolHandler defaultProtocolHandler) {
 
 		Assert.state(!CollectionUtils.isEmpty(protocolHandlers) || defaultProtocolHandler != null,
 				"One of 'protocolHandlers' or 'defaultProtocolHandler' must be provided");

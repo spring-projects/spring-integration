@@ -61,13 +61,13 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	private @Nullable HandshakeHandler handshakeHandler;
 
-	private HandshakeInterceptor[] interceptors = new HandshakeInterceptor[0];
+	private HandshakeInterceptor[] interceptors = {};
 
 	private WebSocketHandlerDecoratorFactory @Nullable [] decoratorFactories;
 
 	private @Nullable SockJsServiceOptions sockJsServiceOptions;
 
-	private String[] origins = new String[0];
+	private String[] origins = {};
 
 	private boolean autoStartup = true;
 
@@ -171,19 +171,16 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	}
 
 	private void configureRegistration(WebSocketHandlerRegistration registration) {
-		if (this.interceptors != null) {
-			registration.addInterceptors(this.interceptors);
-		}
-		if (this.origins != null) {
-			registration.setAllowedOrigins(this.origins);
-		}
+		registration.addInterceptors(this.interceptors);
+		registration.setAllowedOrigins(this.origins);
 	}
 
 	private void configureSockJsOptionsIfAny(WebSocketHandlerRegistration registration) {
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
 			JavaUtils.INSTANCE
-					.acceptIfCondition(this.sockJsServiceOptions.taskScheduler == null,
+					.acceptIfCondition(this.sockJsServiceOptions.taskScheduler == null &&
+									this.sockJsTaskScheduler != null,
 							this.sockJsTaskScheduler, this.sockJsServiceOptions::setTaskScheduler)
 					.acceptIfNotNull(this.sockJsServiceOptions.webSocketEnabled,
 							sockJsServiceRegistration::setWebSocketEnabled)
