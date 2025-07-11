@@ -23,6 +23,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -38,6 +39,7 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  *
  * @author Andy Wilkinson
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  *
@@ -50,18 +52,28 @@ public final class SubProtocolHandlerRegistry {
 
 	private final Map<String, SubProtocolHandler> protocolHandlers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-	private final SubProtocolHandler defaultProtocolHandler;
+	private final @Nullable SubProtocolHandler defaultProtocolHandler;
 
 	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers) {
-		this(protocolHandlers, null);
+		configureProtocolHandlers(protocolHandlers);
+
+		if (this.protocolHandlers.size() == 1) {
+			this.defaultProtocolHandler = this.protocolHandlers.values().iterator().next();
+		}
+		else {
+			this.defaultProtocolHandler = null;
+		}
 	}
 
 	public SubProtocolHandlerRegistry(SubProtocolHandler defaultProtocolHandler) {
-		this(null, defaultProtocolHandler);
+		this.defaultProtocolHandler = defaultProtocolHandler;
+
+		List<String> protocols = defaultProtocolHandler.getSupportedProtocols();
+		populateProtocolsForHandler(defaultProtocolHandler, protocols);
 	}
 
 	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers,
-			SubProtocolHandler defaultProtocolHandler) {
+			@Nullable SubProtocolHandler defaultProtocolHandler) {
 
 		Assert.state(!CollectionUtils.isEmpty(protocolHandlers) || defaultProtocolHandler != null,
 				"One of 'protocolHandlers' or 'defaultProtocolHandler' must be provided");
@@ -135,7 +147,7 @@ public final class SubProtocolHandlerRegistry {
 	 * @return The sessionId or {@code null}, if no one {@link SubProtocolHandler}
 	 * can't resolve it against provided {@code message}.
 	 */
-	public String resolveSessionId(Message<?> message) {
+	public @Nullable String resolveSessionId(Message<?> message) {
 		for (SubProtocolHandler handler : this.protocolHandlers.values()) {
 			String sessionId = handler.resolveSessionId(message);
 			if (sessionId != null) {

@@ -21,7 +21,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -67,6 +68,7 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  *
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  */
@@ -99,17 +101,18 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private final MessageChannel subProtocolHandlerChannel;
 
-	private final AtomicReference<Class<?>> payloadType = new AtomicReference<>(String.class);
+	private Class<?> payloadType = String.class;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher eventPublisher;
 
-	private List<MessageConverter> messageConverters;
+	private @Nullable List<MessageConverter> messageConverters;
 
 	private boolean mergeWithDefaultConverters = false;
 
 	private boolean useBroker;
 
-	private AbstractBrokerMessageHandler brokerHandler;
+	private @Nullable AbstractBrokerMessageHandler brokerHandler;
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
@@ -163,7 +166,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	 */
 	public void setPayloadType(Class<?> payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null");
-		this.payloadType.set(payloadType);
+		this.payloadType = payloadType;
 	}
 
 	/**
@@ -303,7 +306,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		return active;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"}) // Dataflow analysis limitation
 	private void handleMessageAndSend(final Message<?> message) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
 		StompCommand stompCommand = (StompCommand) headerAccessor.getHeader("stompCommand");
@@ -335,8 +338,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 	}
 
-	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, StompCommand stompCommand,
-			SimpMessageType messageType) {
+	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, @Nullable StompCommand stompCommand,
+			@Nullable SimpMessageType messageType) {
 
 		return (messageType == null // NOSONAR pretty simple logic
 				|| SimpMessageType.MESSAGE.equals(messageType)
@@ -346,7 +349,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 				&& !checkDestinationPrefix(headerAccessor.getDestination());
 	}
 
-	private boolean checkDestinationPrefix(String destination) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private boolean checkDestinationPrefix(@Nullable String destination) {
 		if (this.useBroker) {
 			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
 			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
@@ -374,11 +378,11 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	private void produceMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
-		Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
+		Object payload = this.messageConverter.fromMessage(message, this.payloadType);
 		Assert.state(payload != null,
 				() -> "The message converter '" + this.messageConverter +
 						"' produced no payload for message '" + message +
-						"' and expected payload type: " + this.payloadType.get());
+						"' and expected payload type: " + this.payloadType);
 		Message<Object> messageToSend =
 				getMessageBuilderFactory()
 						.withPayload(payload)

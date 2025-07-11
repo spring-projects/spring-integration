@@ -18,6 +18,8 @@ package org.springframework.integration.websocket;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.JavaUtils;
@@ -48,6 +50,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Jooyoung Pyoung
  *
  * @since 4.1
  */
@@ -56,21 +59,21 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	private final String[] paths;
 
-	private HandshakeHandler handshakeHandler;
+	private @Nullable HandshakeHandler handshakeHandler;
 
-	private HandshakeInterceptor[] interceptors;
+	private HandshakeInterceptor[] interceptors = {};
 
-	private WebSocketHandlerDecoratorFactory[] decoratorFactories;
+	private WebSocketHandlerDecoratorFactory @Nullable [] decoratorFactories;
 
-	private SockJsServiceOptions sockJsServiceOptions;
+	private @Nullable SockJsServiceOptions sockJsServiceOptions;
 
-	private String[] origins;
+	private String[] origins = {};
 
 	private boolean autoStartup = true;
 
 	private int phase = 0;
 
-	private TaskScheduler sockJsTaskScheduler;
+	private @Nullable TaskScheduler sockJsTaskScheduler;
 
 	public ServerWebSocketContainer(String... paths) {
 		Assert.notEmpty(paths, "'paths' must not be empty");
@@ -144,7 +147,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		this.sockJsTaskScheduler = sockJsTaskScheduler;
 	}
 
-	public TaskScheduler getSockJsTaskScheduler() {
+	public @Nullable TaskScheduler getSockJsTaskScheduler() {
 		return this.sockJsTaskScheduler;
 	}
 
@@ -159,19 +162,25 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 			}
 		}
 
+		Assert.notNull(this.handshakeHandler, "'handshakeHandler' must not be null");
 		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
-				.setHandshakeHandler(this.handshakeHandler)
-				.addInterceptors(this.interceptors)
-				.setAllowedOrigins(this.origins);
+				.setHandshakeHandler(this.handshakeHandler);
 
+		configureRegistration(registration);
 		configureSockJsOptionsIfAny(registration);
+	}
+
+	private void configureRegistration(WebSocketHandlerRegistration registration) {
+		registration.addInterceptors(this.interceptors);
+		registration.setAllowedOrigins(this.origins);
 	}
 
 	private void configureSockJsOptionsIfAny(WebSocketHandlerRegistration registration) {
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
 			JavaUtils.INSTANCE
-					.acceptIfCondition(this.sockJsServiceOptions.taskScheduler == null,
+					.acceptIfCondition(this.sockJsServiceOptions.taskScheduler == null &&
+									this.sockJsTaskScheduler != null,
 							this.sockJsTaskScheduler, this.sockJsServiceOptions::setTaskScheduler)
 					.acceptIfNotNull(this.sockJsServiceOptions.webSocketEnabled,
 							sockJsServiceRegistration::setWebSocketEnabled)
@@ -227,8 +236,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	public void start() {
 		this.lock.lock();
 		try {
-			if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
-				((Lifecycle) this.handshakeHandler).start();
+			if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && !isRunning()) {
+				lifeCycleHandler.start();
 			}
 		}
 		finally {
@@ -238,15 +247,15 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	@Override
 	public void stop() {
-		if (isRunning()) {
-			((Lifecycle) this.handshakeHandler).stop();
+		if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && isRunning()) {
+			lifeCycleHandler.stop();
 		}
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (isRunning()) {
-			((Lifecycle) this.handshakeHandler).stop();
+		if (this.handshakeHandler instanceof Lifecycle lifeCycleHandler && isRunning()) {
+			lifeCycleHandler.stop();
 		}
 		callback.run();
 	}
@@ -256,27 +265,27 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	 */
 	public static class SockJsServiceOptions {
 
-		private TaskScheduler taskScheduler;
+		private @Nullable TaskScheduler taskScheduler;
 
-		private String clientLibraryUrl;
+		private @Nullable String clientLibraryUrl;
 
-		private Integer streamBytesLimit;
+		private @Nullable Integer streamBytesLimit;
 
-		private Boolean sessionCookieNeeded;
+		private @Nullable Boolean sessionCookieNeeded;
 
-		private Long heartbeatTime;
+		private @Nullable Long heartbeatTime;
 
-		private Long disconnectDelay;
+		private @Nullable Long disconnectDelay;
 
-		private Integer httpMessageCacheSize;
+		private @Nullable Integer httpMessageCacheSize;
 
-		private Boolean webSocketEnabled;
+		private @Nullable Boolean webSocketEnabled;
 
-		private TransportHandler[] transportHandlers;
+		private TransportHandler @Nullable [] transportHandlers;
 
-		private SockJsMessageCodec messageCodec;
+		private @Nullable SockJsMessageCodec messageCodec;
 
-		private Boolean suppressCors;
+		private @Nullable Boolean suppressCors;
 
 		public SockJsServiceOptions setTaskScheduler(TaskScheduler taskScheduler) {
 			this.taskScheduler = taskScheduler;

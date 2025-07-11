@@ -120,8 +120,10 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 	static class WebSocketHandlerMappingFactoryBean extends AbstractFactoryBean<HandlerMapping> {
 
+		@SuppressWarnings("NullAway.Init")
 		private IntegrationServletWebSocketHandlerRegistry registry;
 
+		@SuppressWarnings("NullAway.Init")
 		private ThreadPoolTaskScheduler sockJsTaskScheduler;
 
 		public void setRegistry(IntegrationServletWebSocketHandlerRegistry registry) {
