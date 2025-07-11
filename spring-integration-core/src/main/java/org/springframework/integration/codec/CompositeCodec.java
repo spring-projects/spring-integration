@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
@@ -31,9 +32,18 @@ import org.springframework.util.Assert;
  * delegating encoding and decoding operations to the appropriate type-specific codec.
  * This implementation associates object types with their appropriate codecs while providing a fallback default codec
  * for unregistered types.
+ * This class uses {@code ClassUtils.findClosestMatch} to select the appropriate codec for a given object type.
+ * When multiple codecs match an object type, {@code ClassUtils.findClosestMatch} offers the
+ * {@code failOnTie} option. If {@code failOnTie} is {@code false}, it will return any one of the matching codecs.
+ * If {@code failOnTie} is {@code true} and multiple codecs match, it will throw an {@code IllegalStateException}.
+ * {@link CompositeCodec} sets {@code failOnTie} to {@code true}, so if multiple codecs match, an
+ * {@code IllegalStateException} is thrown.
+ *
  * @author David Turanski
  * @author Glenn Renfro
+ *
  * @since 4.2
+ * @see ClassUtils#findClosestMatch(Class, Set, boolean)
  */
 public class CompositeCodec implements Codec {
 

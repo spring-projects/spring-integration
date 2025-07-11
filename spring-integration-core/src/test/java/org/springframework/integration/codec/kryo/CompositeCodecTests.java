@@ -37,36 +37,36 @@ public class CompositeCodecTests {
 	@Test
 	void testWithCodecDelegates() throws IOException {
 		Codec codec = getFullyQualifiedCodec();
-		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
-		SomeClassWithNoDefaultConstructors foo2 = codec.decode(
-				codec.encode(foo),
+		SomeClassWithNoDefaultConstructors inputInstance = new SomeClassWithNoDefaultConstructors("hello", 123);
+		SomeClassWithNoDefaultConstructors outputInstance = codec.decode(
+				codec.encode(inputInstance),
 				SomeClassWithNoDefaultConstructors.class);
-		assertThat(foo2).isEqualTo(foo);
+		assertThat(outputInstance).isEqualTo(inputInstance);
 	}
 
 	@Test
 	void testWithCodecDefault() throws IOException {
 		Codec codec = getFullyQualifiedCodec();
-		AnotherClassWithNoDefaultConstructors foo = new AnotherClassWithNoDefaultConstructors("hello", 123);
-		AnotherClassWithNoDefaultConstructors foo2 = codec.decode(
-				codec.encode(foo),
+		AnotherClassWithNoDefaultConstructors inputInstance = new AnotherClassWithNoDefaultConstructors("hello", 123);
+		AnotherClassWithNoDefaultConstructors outputInstance = codec.decode(
+				codec.encode(inputInstance),
 				AnotherClassWithNoDefaultConstructors.class);
-		assertThat(foo2).isEqualTo(foo);
+		assertThat(outputInstance).isEqualTo(inputInstance);
 	}
 
 	@Test
 	void testWithUnRegisteredClass() throws IOException {
 		// Verify that the default encodes and decodes properly
 		Codec codec = onlyDefaultCodec();
-		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
-		SomeClassWithNoDefaultConstructors foo2 = codec.decode(
-				codec.encode(foo),
+		SomeClassWithNoDefaultConstructors inputInstance = new SomeClassWithNoDefaultConstructors("hello", 123);
+		SomeClassWithNoDefaultConstructors outputInstance = codec.decode(
+				codec.encode(inputInstance),
 				SomeClassWithNoDefaultConstructors.class);
-		assertThat(foo2).isEqualTo(foo);
+		assertThat(outputInstance).isEqualTo(inputInstance);
 
 		// Verify that an exception is thrown if an unknown type is to be encoded.
 		assertThatIllegalArgumentException().isThrownBy(() -> codec.decode(
-				codec.encode(foo),
+				codec.encode(inputInstance),
 				AnotherClassWithNoDefaultConstructors.class));
 	}
 
@@ -79,67 +79,13 @@ public class CompositeCodecTests {
 
 	private static Codec onlyDefaultCodec() {
 		PojoCodec pojoCodec = new PojoCodec();
-		Map<Class<?>, Codec> codecs = Map.of(pojoCodec.getClass(), pojoCodec);
+		Map<Class<?>, Codec> codecs = Map.of(java.util.Date.class, pojoCodec);
 		return new CompositeCodec(codecs, new PojoCodec(
 				new KryoClassListRegistrar(SomeClassWithNoDefaultConstructors.class)));
 	}
 
-	static class SomeClassWithNoDefaultConstructors {
+	private record SomeClassWithNoDefaultConstructors(String val1, int val2) { }
 
-		private String val1;
-
-		private int val2;
-
-		SomeClassWithNoDefaultConstructors(String val1, int val2) {
-			this.val1 = val1;
-			this.val2 = val2;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			if (!(other instanceof SomeClassWithNoDefaultConstructors)) {
-				return false;
-			}
-			SomeClassWithNoDefaultConstructors that = (SomeClassWithNoDefaultConstructors) other;
-			return (this.val1.equals(that.val1) && this.val2 == that.val2);
-		}
-
-		@Override
-		public int hashCode() {
-			int result = this.val1.hashCode();
-			result = 31 * result + this.val2;
-			return result;
-		}
-
-	}
-
-	static class AnotherClassWithNoDefaultConstructors {
-
-		private String val1;
-
-		private int val2;
-
-		AnotherClassWithNoDefaultConstructors(String val1, int val2) {
-			this.val1 = val1;
-			this.val2 = val2;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			if (!(other instanceof AnotherClassWithNoDefaultConstructors)) {
-				return false;
-			}
-			AnotherClassWithNoDefaultConstructors that = (AnotherClassWithNoDefaultConstructors) other;
-			return (this.val1.equals(that.val1) && this.val2 == that.val2);
-		}
-
-		@Override
-		public int hashCode() {
-			int result = this.val1.hashCode();
-			result = 31 * result + this.val2;
-			return result;
-		}
-
-	}
+	private record AnotherClassWithNoDefaultConstructors(String val1, int val2) { }
 
 }
