@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -65,7 +66,6 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			parserContext.getReaderContext().error(
 					"Only one of 'ref' or 'expression' is permitted, not both, on element " +
 							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-			return null;
 		}
 		else if (hasRef) {
 			builder.addPropertyReference("targetObject", ref);
@@ -77,7 +77,6 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
 					"or inner bean (<bean/>) definition is required for element " +
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-			return null;
 		}
 		methodAttribute(element, parserContext, source, builder, innerDefinition, hasRef, hasExpression,
 				expressionElement);
@@ -87,9 +86,9 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		return builder;
 	}
 
-	private void innerDefinition(Element element, ParserContext parserContext, Object source,
+	private void innerDefinition(Element element, ParserContext parserContext, @Nullable Object source,
 			BeanDefinitionBuilder builder, BeanComponentDefinition innerDefinition, boolean hasRef,
-			boolean hasExpression, Element expressionElement) {
+			boolean hasExpression, @Nullable Element expressionElement) {
 		if (hasRef || hasExpression || expressionElement != null) {
 			parserContext.getReaderContext().error(
 					"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
@@ -98,9 +97,9 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		builder.addPropertyValue("targetObject", innerDefinition);
 	}
 
-	private void scriptElement(Element element, ParserContext parserContext, Object source,
+	private void scriptElement(Element element, ParserContext parserContext, @Nullable Object source,
 			BeanDefinitionBuilder builder, boolean hasRef, boolean hasExpression, Element scriptElement,
-			Element expressionElement) {
+			@Nullable Element expressionElement) {
 		if (hasRef || hasExpression || expressionElement != null) {
 			parserContext.getReaderContext().error(
 					"Neither 'ref' nor 'expression' are permitted when an inner script element is configured on element " +
@@ -110,7 +109,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		builder.addPropertyValue("targetObject", scriptBeanDefinition);
 	}
 
-	private void expressionElement(Element element, ParserContext parserContext, Object source,
+	private void expressionElement(Element element, ParserContext parserContext, @Nullable Object source,
 			BeanDefinitionBuilder builder, boolean hasRef, boolean hasExpression, Element expressionElement) {
 		if (hasRef || hasExpression) {
 			parserContext.getReaderContext().error(
@@ -126,9 +125,9 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		builder.addPropertyValue("expression", dynamicExpressionBuilder.getBeanDefinition());
 	}
 
-	private void methodAttribute(Element element, ParserContext parserContext, Object source,
-			BeanDefinitionBuilder builder, BeanComponentDefinition innerDefinition, boolean hasRef,
-			boolean hasExpression, Element expressionElement) {
+	private void methodAttribute(Element element, ParserContext parserContext, @Nullable Object source,
+			BeanDefinitionBuilder builder, @Nullable BeanComponentDefinition innerDefinition, boolean hasRef,
+			boolean hasExpression, @Nullable Element expressionElement) {
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(method)) {
 			if (hasExpression || expressionElement != null) {

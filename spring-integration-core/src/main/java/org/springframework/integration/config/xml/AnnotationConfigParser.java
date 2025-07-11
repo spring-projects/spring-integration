@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -46,7 +47,7 @@ import org.springframework.util.xml.DomUtils;
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		ExtendedAnnotationMetadata importingClassMetadata = new ExtendedAnnotationMetadata(element);
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		new IntegrationRegistrar()
@@ -67,11 +68,11 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 		}
 
 		@Override
-		public Map<String, Object> getAnnotationAttributes(String annotationType) {
+		public @Nullable Map<String, @Nullable Object> getAnnotationAttributes(String annotationType) {
 			if (EnablePublisher.class.getName().equals(annotationType)) {
 				Element enablePublisherElement = DomUtils.getChildElementByTagName(this.element, "enable-publisher");
 				if (enablePublisherElement != null) {
-					Map<String, Object> attributes = new HashMap<>();
+					Map<String, @Nullable Object> attributes = new HashMap<>();
 					attributes.put("defaultChannel", enablePublisherElement.getAttribute("default-publisher-channel"));
 					attributes.put("proxyTargetClass", enablePublisherElement.getAttribute("proxy-target-class"));
 					attributes.put("order", enablePublisherElement.getAttribute("order"));

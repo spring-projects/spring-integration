@@ -17,7 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -70,7 +72,7 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 		return globalChannelInterceptorBuilder.getBeanDefinition();
 	}
 
-	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext) {
+	protected @Nullable Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext) {
 		BeanComponentDefinition interceptorBeanDefinition =
 				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (interceptorBeanDefinition != null) {
@@ -97,12 +99,12 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 				}
 				else {
 					BeanDefinition beanDef = delegate.parseCustomElement(child);
-					beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, // NOSONAR never null
+					beanName = BeanDefinitionReaderUtils.generateBeanName(Objects.requireNonNull(beanDef), // NOSONAR never null
 							parserContext.getRegistry());
 				}
 			}
 		}
-		return new RuntimeBeanReference(beanName);
+		return new RuntimeBeanReference(Objects.requireNonNull(beanName));
 	}
 
 }

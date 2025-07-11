@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -44,10 +45,11 @@ public class MessageHistoryParser implements BeanDefinitionParser {
 	private final MessageHistoryRegistrar messageHistoryRegistrar = new MessageHistoryRegistrar();
 
 	@Override
-	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(final Element element, ParserContext parserContext) {
 		this.messageHistoryRegistrar.registerBeanDefinitions(
 				new AnnotationMetadataAdapter() {
 
+					@SuppressWarnings("NullAway")
 					@Override
 					public Map<String, Object> getAnnotationAttributes(String annotationType) {
 						return Collections.singletonMap("value", element.getAttribute("tracked-components"));

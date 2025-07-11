@@ -15,7 +15,7 @@
 		<header name="foo" value="bar"/>
 	</header-enricher>
 
-	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/> 
+	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/>
 
 	<object-to-string-transformer id="endpoint13" input-channel="channel" order="13"/>
 

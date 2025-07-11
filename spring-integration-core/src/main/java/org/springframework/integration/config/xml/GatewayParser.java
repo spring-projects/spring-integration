@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -70,10 +72,10 @@ public class GatewayParser implements BeanDefinitionParser {
 	private static final String MAPPER_ATTR = "mapper";
 
 	@Override
-	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
 
-		final Map<String, Object> gatewayAttributes = new HashMap<>();
+		final Map<String, @Nullable Object> gatewayAttributes = new HashMap<>();
 		gatewayAttributes.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
 				element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
 		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
@@ -115,7 +117,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		}
 	}
 
-	private static void headers(Element element, Map<String, Object> gatewayAttributes) {
+	private static void headers(Element element, Map<String, @Nullable Object> gatewayAttributes) {
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
 			List<Map<String, Object>> headers = new ArrayList<>(headerElements.size());
@@ -134,7 +136,7 @@ public class GatewayParser implements BeanDefinitionParser {
 	}
 
 	private static void methods(Element element, ParserContext parserContext,
-			final Map<String, Object> gatewayAttributes) {
+			final Map<String, @Nullable Object> gatewayAttributes) {
 
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
 		if (!CollectionUtils.isEmpty(methodElements)) {
@@ -165,7 +167,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				if (!CollectionUtils.isEmpty(invocationHeaders)) {
 					Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
 
-					Map<String, Object> headerExpressions = new ManagedMap<>();
+					Map<String, @Nullable Object> headerExpressions = new ManagedMap<>();
 					for (Element headerElement : invocationHeaders) {
 						BeanDefinition expressionDef = IntegrationNamespaceUtils
 								.createExpressionDefinitionFromValueOrExpression(
@@ -184,7 +186,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		}
 	}
 
-	private static BeanDefinitionHolder buildBeanDefinition(Map<String, Object> gatewayAttributes, // NOSONAR complexity
+	private static BeanDefinitionHolder buildBeanDefinition(Map<String, @Nullable Object> gatewayAttributes, // NOSONAR complexity
 			ParserContext parserContext) {
 
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
@@ -210,7 +212,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				"'defaultHeaders' are not allowed when a 'mapper' is provided");
 
 		ConfigurableBeanFactory beanFactory = obtainBeanFactory(registry);
-		Class<?> serviceInterface = getServiceInterface((String) gatewayAttributes.get("serviceInterface"), beanFactory);
+		Class<?> serviceInterface = getServiceInterface((String) Objects.requireNonNull(gatewayAttributes.get("serviceInterface")), beanFactory);
 
 		BeanDefinitionBuilder gatewayProxyBuilder =
 				BeanDefinitionBuilder.rootBeanDefinition(GatewayProxyFactoryBean.class)
@@ -263,8 +265,8 @@ public class GatewayParser implements BeanDefinitionParser {
 		return new BeanDefinitionHolder(beanDefinition, id);
 	}
 
-	private static BeanDefinition getMethodMetadataBeanDefinition(String defaultPayloadExpression,
-			Map<String, Object>[] defaultHeaders) {
+	private static BeanDefinition getMethodMetadataBeanDefinition(@Nullable String defaultPayloadExpression,
+			@Nullable Map<String, Object> @Nullable [] defaultHeaders) {
 
 		BeanDefinitionBuilder methodMetadataBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
@@ -279,7 +281,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		if (!ObjectUtils.isEmpty(defaultHeaders)) {
 			Map<String, Object> headerExpressions = new ManagedMap<>();
 			for (Map<String, Object> header : defaultHeaders) {
-				String headerValue = (String) header.get(IntegrationNamespaceUtils.VALUE_ATTRIBUTE);
+				String headerValue = (String) Objects.requireNonNull(header).get(IntegrationNamespaceUtils.VALUE_ATTRIBUTE);
 				String headerExpression = (String) header.get(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
 				boolean hasValue = StringUtils.hasText(headerValue);
 

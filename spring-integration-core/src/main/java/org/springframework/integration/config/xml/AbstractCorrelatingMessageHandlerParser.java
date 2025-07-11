@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -65,7 +66,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String RELEASE_LOCK = "release-lock-before-send";
 
-	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
+	protected void doParse(BeanDefinitionBuilder builder, Element element, @Nullable BeanMetadataElement processor,
 			ParserContext parserContext) {
 		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE,
 				CORRELATION_STRATEGY_METHOD_ATTRIBUTE,

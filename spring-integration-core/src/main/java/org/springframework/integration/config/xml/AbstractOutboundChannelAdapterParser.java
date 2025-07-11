@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -82,7 +83,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	}
 
 	private void configureRequestHandlerAdviceChain(Element element, ParserContext parserContext,
-			BeanDefinition handlerBeanDefinition, BeanDefinitionBuilder consumerBuilder) {
+			BeanDefinition handlerBeanDefinition, @Nullable BeanDefinitionBuilder consumerBuilder) {
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);

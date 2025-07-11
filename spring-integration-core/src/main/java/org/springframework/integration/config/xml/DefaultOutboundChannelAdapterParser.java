@@ -80,7 +80,7 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(consumerExpressionString);
 			consumerBuilder.addConstructorArgValue(expressionDef);
 		}
-		else if (hasScript) {
+		else if (scriptElement != null) {
 			consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement,
 					consumerBuilder.getBeanDefinition());

@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -90,7 +91,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 						parserContext.getReaderContext().error("A bean definition is already registered for " +
 										"beanName: '" + handlerBeanName + "' within the current <chain>.",
 								element);
-						return null;
 					}
 				}
 				if ("gateway".equals(child.getLocalName())) {
@@ -100,7 +100,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}
 				else {
-					handlerList.add(childBeanMetadata);
+					handlerList.add(Objects.requireNonNull(childBeanMetadata));
 				}
 			}
 		}
@@ -142,14 +142,15 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
-				return null;
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Child BeanDefinition must not be null");
 			}
 			else {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
 			}
 		}
 
-		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName); // NOSONAR never null
+		Objects.requireNonNull(holder).getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName); // NOSONAR never null
 
 		if (hasId) {
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());

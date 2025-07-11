@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -47,7 +48,7 @@ public abstract class AbstractIntegrationNamespaceHandler extends NamespaceHandl
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	@Override
-	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+	public final @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		if (!this.initialized.getAndSet(true)) {
 			BeanDefinitionRegistry registry = parserContext.getRegistry();
 			new IntegrationRegistrar().registerBeanDefinitions(null, registry);

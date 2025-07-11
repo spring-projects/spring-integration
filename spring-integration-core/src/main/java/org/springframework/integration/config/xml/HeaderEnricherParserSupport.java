@@ -81,7 +81,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		addElementToHeaderMapping(elementName, headerName, null);
 	}
 
-	protected final void addElementToHeaderMapping(String elementName, String headerName, String headerType) {
+	protected final void addElementToHeaderMapping(String elementName, String headerName, @Nullable String headerType) {
 		this.elementToNameMap.put(elementName, headerName);
 		if (headerType != null) {
 			this.elementToTypeMap.put(elementName, headerType);
@@ -156,6 +156,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext, // NOSONAR complexity
 			String headerName, Element headerElement, String headerType, @Nullable String expressionArg,
 			String overwrite) {
@@ -220,8 +221,8 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	private BeanDefinitionBuilder valueProcessor(Element element, ParserContext parserContext, String headerName,
 			Element headerElement, String headerType, String overwrite, String value, String ref, String method,
-			String expression, Element expressionElement, boolean isValue, boolean isRef, boolean hasMethod,
-			boolean isExpression, boolean isScript, BeanDefinition innerComponentDefinition) {
+			String expression, @Nullable Element expressionElement, boolean isValue, boolean isRef, boolean hasMethod,
+			boolean isExpression, boolean isScript, @Nullable BeanDefinition innerComponentDefinition) {
 
 		boolean isCustomBean = innerComponentDefinition != null;
 
@@ -286,7 +287,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	}
 
 	private BeanDefinitionBuilder expression(Element element, ParserContext parserContext, String headerType,
-			String expression, Element expressionElement, boolean hasMethod) {
+			String expression, @Nullable Element expressionElement, boolean hasMethod) {
 
 		BeanDefinitionBuilder valueProcessorBuilder;
 		if (hasMethod) {
@@ -311,7 +312,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	private BeanDefinitionBuilder innerComponentAndMethod(Element element, ParserContext parserContext,
 			Element headerElement, String method, boolean hasMethod, boolean isScript,
-			BeanDefinition innerComponentDefinition) {
+			@Nullable BeanDefinition innerComponentDefinition) {
 
 		BeanDefinitionBuilder valueProcessorBuilder;
 		if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {

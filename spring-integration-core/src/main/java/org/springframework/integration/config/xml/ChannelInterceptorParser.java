@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -60,7 +61,7 @@ public class ChannelInterceptorParser {
 				if ("bean".equals(localName)) {
 					BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 					BeanDefinitionHolder holder = delegate.parseBeanDefinitionElement(childElement);
-					holder = delegate.decorateBeanDefinitionIfRequired(childElement, holder); // NOSONAR never null
+					holder = delegate.decorateBeanDefinitionIfRequired(childElement, Objects.requireNonNull(holder));
 					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 					interceptors.add(new RuntimeBeanReference(holder.getBeanName()));
 				}
@@ -73,6 +74,8 @@ public class ChannelInterceptorParser {
 					if (parser == null) {
 						parserContext.getReaderContext().error(
 								"unsupported interceptor element '" + localName + "'", childElement);
+						// Redundant Exception is here to satisfy NullAway warning parser.parse statement below.
+						throw new IllegalStateException("unsupported interceptor element '" + localName + "'");
 					}
 					String interceptorBeanName = parser.parse(childElement, parserContext);
 					interceptors.add(new RuntimeBeanReference(interceptorBeanName));
