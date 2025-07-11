@@ -142,7 +142,8 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
-				throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Child BeanDefinition must not be null");
 			}
 			else {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);

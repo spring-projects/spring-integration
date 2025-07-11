@@ -71,7 +71,8 @@ public class KafkaChannelParser extends AbstractChannelParser {
 				parserContext.getReaderContext().error("Either a 'container-factory' or 'message-source' is required",
 						element);
 			}
-			throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Either a 'container-factory' or 'message-source' is required");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
 		return builder;

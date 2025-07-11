@@ -59,8 +59,10 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		}
 		else {
 			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);
-			throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'");
 		}
+
 		adapterBuilder.addPropertyReference("source", sourceBeanName);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "send-timeout");

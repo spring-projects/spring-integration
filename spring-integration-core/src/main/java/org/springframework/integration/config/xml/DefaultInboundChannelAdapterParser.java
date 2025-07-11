@@ -70,14 +70,17 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
-			throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.");
 		}
 		if (hasInnerDef) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
 						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on "
 								+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>)" +
+						" is configured on element " + IntegrationNamespaceUtils.createElementDescription(element) + ".");
 			}
 			if (hasMethod) {
 				result = parseMethodInvokingSource(Objects.requireNonNull(innerBeanDef), methodName, element, parserContext);
@@ -92,7 +95,10 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is "
 								+ "configured on element "
 								+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Neither 'ref' and 'method' nor 'expression' are permitted when an inner" +
+						" script element is configured on element "
+						+ IntegrationNamespaceUtils.createElementDescription(element) + ".");
 			}
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(Objects.requireNonNull(scriptElement));
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
@@ -106,12 +112,15 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				parserContext.getReaderContext().error(
 						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner "
 								+ "<expression>.", element);
-				throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("The 'ref' and 'method' attributes can't be used with 'expression' " +
+						"attribute or inner <expression>.");
 			}
 			if (hasExpression & hasExpressionElement) {
 				parserContext.getReaderContext().error(
 						"Exactly one of the 'expression' attribute or inner <expression> is required.", element);
-				throw new IllegalStateException("This dummy exception is meant to signify to  NullAway that an the error method throws an exception");
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Exactly one of the 'expression' attribute or inner <expression> is required.");
 			}
 			result = parseExpression(expressionString, expressionElement, element, parserContext);
 		}
