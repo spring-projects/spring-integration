@@ -27,7 +27,10 @@ import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
 
 /**
- * A Codec that can delegate to one out of many Codecs, each mapped to a class.
+ * An implementation of {@link Codec} that combines multiple codecs into a single codec,
+ * delegating encoding and decoding operations to the appropriate type-specific codec.
+ * This implementation associates object types with their appropriate codecs while providing a fallback default codec
+ * for unregistered types.
  * @author David Turanski
  * @author Glenn Renfro
  * @since 4.2
@@ -42,15 +45,6 @@ public class CompositeCodec implements Codec {
 		this.defaultCodec = defaultCodec;
 		Assert.notEmpty(delegates, "delegates must not be empty");
 		this.delegates = new HashMap<>(delegates);
-	}
-
-	/**
-	 * @deprecated since 7.0 in favor of {@link #CompositeCodec(Map, Codec)}.
-	 */
-	@Deprecated(since = "7.0", forRemoval = true)
-	public CompositeCodec(Codec defaultCodec) {
-		this.defaultCodec = defaultCodec;
-		this.delegates = Map.of();
 	}
 
 	@Override
@@ -79,7 +73,7 @@ public class CompositeCodec implements Codec {
 	}
 
 	private Codec findDelegate(Class<?> type) {
-		Class<?> clazz = ClassUtils.findClosestMatch(type, this.delegates.keySet(), false);
+		Class<?> clazz = ClassUtils.findClosestMatch(type, this.delegates.keySet(), true);
 		return clazz == null ? this.defaultCodec : this.delegates.getOrDefault(clazz, this.defaultCodec);
 	}
 
