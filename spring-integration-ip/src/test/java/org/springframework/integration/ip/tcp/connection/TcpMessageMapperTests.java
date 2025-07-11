@@ -71,7 +71,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testToMessage() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
@@ -89,7 +88,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testToMessageWithContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
@@ -111,7 +109,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testToMessageWithCustomContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
@@ -143,7 +140,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testToMessageSequence() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
@@ -219,7 +215,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testToMessageSequenceNewWithCustomHeader() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper() {
 
@@ -348,7 +343,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testMapMessageConvertingInboundJson() throws Exception {
 		String json = "{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n";
 		MapMessageConverter converter = new MapMessageConverter();
@@ -368,7 +362,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testMapMessageConvertingBothWaysJava() throws Exception {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
@@ -395,7 +388,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testCodecMessageConvertingBothWaysJava() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
@@ -416,7 +408,6 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("NullAway")
 	public void testWithBytesMapper() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
