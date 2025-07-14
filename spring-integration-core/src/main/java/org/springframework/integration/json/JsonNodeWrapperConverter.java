@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,24 @@ package org.springframework.integration.json;
 import java.util.Collections;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
+import org.springframework.integration.json.JsonNodePropertyAccessor.JsonNodeWrapper;
 
 /**
  * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion
- * of {@link JsonPropertyAccessor.JsonNodeWrapper} to {@link JsonNode},
- * when the {@link JsonPropertyAccessor.JsonNodeWrapper} can be a result of the expression
- * for JSON in case of the {@link JsonPropertyAccessor} usage.
+ * of {@link JsonNodeWrapper} to {@link JsonNode},
+ * when the {@link JsonNodeWrapper} can be a result of the expression
+ * for JSON in case of the {@link JsonNodePropertyAccessor} usage.
  *
- * @author Pierre Lakreb
- * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
- * @since 5.5
- * @deprecated Since 7.0 in favor of {@link JsonNodeWrapperConverter} for Jackson 3.
+ * @since 7.0
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
+public class JsonNodeWrapperConverter implements GenericConverter {
 
 	@Override
 	public Set<ConvertiblePair> getConvertibleTypes() {

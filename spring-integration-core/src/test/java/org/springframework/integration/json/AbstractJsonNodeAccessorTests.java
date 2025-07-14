@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.springframework.integration.json;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.Expression;
@@ -34,25 +34,20 @@ import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
-import org.springframework.integration.json.JsonPropertyAccessor.ArrayNodeAsList;
-import org.springframework.integration.json.JsonPropertyAccessor.ComparableJsonNode;
+import org.springframework.integration.json.JsonNodePropertyAccessor.ArrayNodeAsList;
+import org.springframework.integration.json.JsonNodePropertyAccessor.ComparableJsonNode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
- * Abstract base class for tests involving {@link JsonPropertyAccessor} and {@link JsonIndexAccessor}.
+ * Abstract base class for tests involving {@link JsonNodePropertyAccessor} and {@link JsonArrayNodeIndexAccessor}.
  *
- * @author Eric Bottard
- * @author Artem Bilan
- * @author Paul Martin
- * @author Pierre Lakreb
- * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
- * @since 3.0
+ * @since 7.0
  */
-@Deprecated(forRemoval = true, since = "7.0")
-abstract class AbstractJsonAccessorTests {
+abstract class AbstractJsonNodeAccessorTests {
 
 	protected final SpelExpressionParser parser = new SpelExpressionParser();
 
@@ -63,7 +58,7 @@ abstract class AbstractJsonAccessorTests {
 	@BeforeEach
 	void setUpEvaluationContext() {
 		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new JsonNodeWrapperToJsonNodeConverter());
+		conversionService.addConverter(new JsonNodeWrapperConverter());
 		context.setTypeConverter(new StandardTypeConverter(conversionService));
 	}
 
@@ -76,7 +71,7 @@ abstract class AbstractJsonAccessorTests {
 
 		@Test
 		void textNode() throws Exception {
-			TextNode json = (TextNode) mapper.readTree("\"foo\"");
+			StringNode json = (StringNode) mapper.readTree("\"foo\"");
 			String result = evaluate(json, "#root", String.class);
 			assertThat(result).isEqualTo("\"foo\"");
 		}
@@ -107,7 +102,7 @@ abstract class AbstractJsonAccessorTests {
 		void arrayLookupWithIntegerIndexAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			// Have to wrap the root array because ArrayNode itself is not a List
-			Integer actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Integer.class);
+			Integer actual = evaluate(JsonNodePropertyAccessor.wrap(json), "[1]", Integer.class);
 			assertThat(actual).isEqualTo(4);
 		}
 
@@ -115,7 +110,7 @@ abstract class AbstractJsonAccessorTests {
 		void arrayLookupWithIntegerIndexForNullValueAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[3, null, 5]");
 			// Have to wrap the root array because ArrayNode itself is not a List
-			Integer actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Integer.class);
+			Integer actual = evaluate(JsonNodePropertyAccessor.wrap(json), "[1]", Integer.class);
 			assertThat(actual).isNull();
 		}
 
@@ -161,7 +156,7 @@ abstract class AbstractJsonAccessorTests {
 		void nestedArrayLookupWithIntegerIndexAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
 			// JsonNode actual = evaluate(json, "1.1", JsonNode.class); // Does not work
-			Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1][1]", Object.class);
+			Object actual = evaluate(JsonNodePropertyAccessor.wrap(json), "[1][1]", Object.class);
 			assertThat(actual).isEqualTo(5);
 		}
 

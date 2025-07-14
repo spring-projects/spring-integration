@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.json;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.ArrayNode;
 
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
@@ -28,28 +28,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
- * Tests for {@link JsonPropertyAccessor}.
+ * Tests for {@link JsonNodePropertyAccessor}.
  *
- * @author Eric Bottard
- * @author Artem Bilan
- * @author Paul Martin
- * @author Pierre Lakreb
- * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
- * @since 3.0
- * @see JsonIndexAccessorTests
+ * @since 7.0
+ * @see JsonArrayNodeIndexAccessorTests
  */
-@Deprecated(forRemoval = true, since = "7.0")
-class JsonPropertyAccessorTests extends AbstractJsonAccessorTests {
+class JsonNodePropertyAccessorTests extends AbstractJsonNodeAccessorTests {
 
 	@BeforeEach
 	void registerJsonPropertyAccessor() {
-		context.addPropertyAccessor(new JsonPropertyAccessor());
+		context.addPropertyAccessor(new JsonNodePropertyAccessor());
 	}
 
 	/**
 	 * Tests which index directly into a Jackson {@link ArrayNode}, which is not supported
-	 * by {@link JsonPropertyAccessor}.
+	 * by {@link JsonNodePropertyAccessor}.
 	 */
 	@Nested
 	class ArrayNodeTests {
@@ -79,7 +74,7 @@ class JsonPropertyAccessorTests extends AbstractJsonAccessorTests {
 		}
 
 		/**
-		 * @see AbstractJsonAccessorTests.JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
+		 * @see JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
 		 */
 		@Test
 		void nestedArrayLookupWithIntegerIndexAndThenIntegerIndex() throws Exception {

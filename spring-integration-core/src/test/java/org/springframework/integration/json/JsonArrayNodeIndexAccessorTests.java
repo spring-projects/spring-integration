@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,36 @@ package org.springframework.integration.json;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.ArrayNode;
 
-import org.springframework.integration.json.JsonPropertyAccessor.ArrayNodeAsList;
+import org.springframework.integration.json.JsonNodePropertyAccessor.ArrayNodeAsList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link JsonIndexAccessor} combined with {@link JsonPropertyAccessor}.
+ * Tests for {@link JsonArrayNodeIndexAccessor} combined with {@link JsonNodePropertyAccessor}.
  *
- * @author Sam Brannen
- * @since 6.4
- * @see JsonPropertyAccessorTests
+ * @author Jooyoung Pyoung
+ *
+ * @since 7.0
+ * @see JsonNodePropertyAccessorTests
  */
-@Deprecated(forRemoval = true, since = "7.0")
-class JsonIndexAccessorTests extends AbstractJsonAccessorTests {
+class JsonArrayNodeIndexAccessorTests extends AbstractJsonNodeAccessorTests {
 
 	@BeforeEach
 	void registerJsonAccessors() {
-		context.addIndexAccessor(new JsonIndexAccessor());
+		context.addIndexAccessor(new JsonArrayNodeIndexAccessor());
 		// We also register a JsonPropertyAccessor to ensure that the JsonIndexAccessor
 		// does not interfere with the feature set of the JsonPropertyAccessor.
-		context.addPropertyAccessor(new JsonPropertyAccessor());
+		context.addPropertyAccessor(new JsonNodePropertyAccessor());
 	}
 
 	/**
 	 * Tests which index directly into a Jackson {@link ArrayNode}, which is only supported
-	 * by {@link JsonIndexAccessor}.
+	 * by {@link JsonNodePropertyAccessor}.
 	 */
 	@Nested
 	class ArrayNodeTests {
@@ -93,7 +93,7 @@ class JsonIndexAccessorTests extends AbstractJsonAccessorTests {
 		}
 
 		/**
-		 * @see AbstractJsonAccessorTests.JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
+		 * @see JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
 		 */
 		@Test
 		@SuppressWarnings("unchecked")

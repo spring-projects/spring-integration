@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package org.springframework.integration.json;
 
-import java.io.IOException;
 import java.util.AbstractList;
 import java.util.Iterator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.NullNode;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -38,20 +38,12 @@ import org.springframework.util.StringUtils;
  * A SpEL {@link PropertyAccessor} that knows how to read properties from JSON objects.
  * <p>Uses Jackson {@link JsonNode} API for nested properties access.
  *
- * @author Eric Bottard
- * @author Artem Bilan
- * @author Paul Martin
- * @author Gary Russell
- * @author Pierre Lakreb
- * @author Vladislav Fefelov
- * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
- * @since 3.0
- * @see JsonIndexAccessor
- * @deprecated Since 7.0 in favor of {@link JsonNodePropertyAccessor} for Jackson 3.
+ * @since 7.0
+ * @see JsonArrayNodeIndexAccessor
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class JsonPropertyAccessor implements PropertyAccessor {
+public class JsonNodePropertyAccessor implements PropertyAccessor {
 
 	/**
 	 * The kind of types this can work with.
@@ -63,7 +55,9 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 					JsonNode.class
 			};
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private ObjectMapper objectMapper = JsonMapper.builder()
+			.findAndAddModules(JsonNodePropertyAccessor.class.getClassLoader())
+			.build();
 
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
@@ -72,7 +66,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
-		return SUPPORTED_CLASSES; // NOSONAR - expose internals
+		return SUPPORTED_CLASSES;
 	}
 
 	@Override
@@ -102,7 +96,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			try {
 				return this.objectMapper.readTree(content);
 			}
-			catch (JsonProcessingException e) {
+			catch (JacksonException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);
 			}
 		}
@@ -175,8 +169,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	private static Object getValue(JsonNode json) throws AccessException {
-		if (json.isTextual()) {
-			return json.textValue();
+		if (json.isString()) {
+			return json.asString();
 		}
 		else if (json.isNumber()) {
 			return json.numberValue();
@@ -191,7 +185,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			try {
 				return json.binaryValue();
 			}
-			catch (IOException e) {
+			catch (JacksonException e) {
 				throw new AccessException(
 						"Can not get content of binary value: " + json, e);
 			}
@@ -240,7 +234,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public int compareTo(ComparableJsonNode o) {
-			return this.delegate.equals(o.delegate) ? 0 : 1; // NOSONAR
+			return this.delegate.equals(o.delegate) ? 0 : 1;
 		}
 
 	}
@@ -287,7 +281,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		@Override
 		public Iterator<Object> iterator() {
 
-			return new Iterator<Object>() {
+			return new Iterator<>() {
 
 				private final Iterator<JsonNode> it = ArrayNodeAsList.this.delegate.iterator();
 
