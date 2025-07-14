@@ -16,10 +16,12 @@
 
 package org.springframework.integration.redis.outbound;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +100,7 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 	}
 
 	@Test
+	@Disabled("Until Spring Data fixes conversion to List")
 	void testMessageWithListPayload() {
 		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
 		this.handlerAdapter.handleMessage(new GenericMessage<>(messagePayload));
