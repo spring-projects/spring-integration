@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import java.util.Collection;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -85,7 +86,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	}
 
 	@Override
-	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected final @Nullable AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = parseHandler(element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "output-channel",
 				"outputChannelName");
@@ -178,6 +179,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void registerChannelForCreation(ParserContext parserContext, String inputChannelName,
 			BeanDefinitionBuilder consumerEndpointBuilder) {
 
@@ -194,13 +196,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			if (vh == null) { //although it should never happen if it does we can fix it
 				caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
 			}
-
 			@SuppressWarnings("unchecked")
 			Collection<String> channelCandidateNames =
 					(Collection<String>) caValues.getArgumentValue(0, Collection.class)
-							.getValue(); // NOSONAR see comment above
-			channelCandidateNames.add(inputChannelName); // NOSONAR
-
+							.getValue();
+			channelCandidateNames.add(inputChannelName);
 			consumerEndpointBuilder.addDependsOn(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 		}
 		else {

@@ -59,6 +59,8 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		}
 		else {
 			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'");
 		}
 
 		adapterBuilder.addPropertyReference("source", sourceBeanName);

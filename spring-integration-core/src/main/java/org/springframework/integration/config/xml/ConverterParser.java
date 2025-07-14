@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -41,7 +42,7 @@ import org.springframework.util.StringUtils;
 public class ConverterParser extends AbstractBeanDefinitionParser {
 
 	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected @Nullable AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		BeanComponentDefinition converterDefinition =
 				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);

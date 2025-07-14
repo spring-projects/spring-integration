@@ -17,7 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -46,8 +48,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	@Override // NOSONAR complexity
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) { // NOSONAR
+	@Override
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;
 		BeanComponentDefinition innerBeanDef =
@@ -65,22 +67,26 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		boolean hasExpressionElement = expressionElement != null;
 		boolean hasMethod = StringUtils.hasText(methodName);
 
-		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) { // NOSONAR
+		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.");
 		}
 		if (hasInnerDef) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
 						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on "
 								+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				return null;
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>)" +
+						" is configured on element " + IntegrationNamespaceUtils.createElementDescription(element) + ".");
 			}
 			if (hasMethod) {
-				result = parseMethodInvokingSource(innerBeanDef, methodName, element, parserContext);
+				result = parseMethodInvokingSource(Objects.requireNonNull(innerBeanDef), methodName, element, parserContext);
 			}
 			else {
-				result = innerBeanDef.getBeanDefinition();
+				result = Objects.requireNonNull(innerBeanDef).getBeanDefinition();
 			}
 		}
 		else if (hasScriptElement) {
@@ -89,9 +95,12 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is "
 								+ "configured on element "
 								+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				return null;
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Neither 'ref' and 'method' nor 'expression' are permitted when an inner" +
+						" script element is configured on element "
+						+ IntegrationNamespaceUtils.createElementDescription(element) + ".");
 			}
-			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
+			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(Objects.requireNonNull(scriptElement));
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationContextUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
 			sourceBuilder.addConstructorArgValue(scriptBeanDefinition);
@@ -103,12 +112,15 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				parserContext.getReaderContext().error(
 						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner "
 								+ "<expression>.", element);
-				return null;
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("The 'ref' and 'method' attributes can't be used with 'expression' " +
+						"attribute or inner <expression>.");
 			}
 			if (hasExpression & hasExpressionElement) {
 				parserContext.getReaderContext().error(
 						"Exactly one of the 'expression' attribute or inner <expression> is required.", element);
-				return null;
+				// This exception is meant to signal to NullAway that the error method throws an exception
+				throw new IllegalStateException("Exactly one of the 'expression' attribute or inner <expression> is required.");
 			}
 			result = parseExpression(expressionString, expressionElement, element, parserContext);
 		}
@@ -121,7 +133,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				result = sourceValue;
 			}
 		}
-		return result;
+		return Objects.requireNonNull(result);
 	}
 
 	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName,
@@ -135,7 +147,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		return sourceBuilder.getBeanDefinition();
 	}
 
-	private BeanMetadataElement parseExpression(String expressionString, Element expressionElement, Element element,
+	private BeanMetadataElement parseExpression(String expressionString, @Nullable Element expressionElement, Element element,
 			ParserContext parserContext) {
 
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder
@@ -150,7 +162,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		else {
 			BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					DynamicExpression.class);
-			String key = expressionElement.getAttribute("key");
+			String key = Objects.requireNonNull(expressionElement).getAttribute("key");
 			String expressionSourceReference = expressionElement.getAttribute("source");
 			dynamicExpressionBuilder.addConstructorArgValue(key);
 			dynamicExpressionBuilder.addConstructorArgReference(expressionSourceReference);

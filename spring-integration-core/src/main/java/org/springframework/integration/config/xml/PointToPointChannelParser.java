@@ -28,6 +28,7 @@ import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -69,7 +70,6 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		if (queueElement != null && dispatcherElement != null) {
 			parserContext.getReaderContext().error(
 					"The 'dispatcher' sub-element and any queue sub-element are mutually exclusive.", element);
-			return null;
 		}
 
 		if (queueElement != null) {
@@ -78,6 +78,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 						"The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.",
 						element);
 			}
+			Assert.state(builder != null, "builder must not be null");
 			return builder;
 		}
 

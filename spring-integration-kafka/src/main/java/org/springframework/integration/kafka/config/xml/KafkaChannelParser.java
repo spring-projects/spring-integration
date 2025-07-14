@@ -16,7 +16,6 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -39,7 +38,7 @@ import org.springframework.util.StringUtils;
 public class KafkaChannelParser extends AbstractChannelParser {
 
 	@Override
-	protected @Nullable BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String factory = element.getAttribute("container-factory");
 		boolean hasFactory = StringUtils.hasText(factory);
@@ -72,7 +71,8 @@ public class KafkaChannelParser extends AbstractChannelParser {
 				parserContext.getReaderContext().error("Either a 'container-factory' or 'message-source' is required",
 						element);
 			}
-			return null;
+			// This exception is meant to signal to NullAway that the error method throws an exception
+			throw new IllegalStateException("Either a 'container-factory' or 'message-source' is required");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
 		return builder;
