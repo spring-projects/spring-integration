@@ -39,10 +39,11 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 [[kryo]]
 == Kryo
 
-Currently, this is the only implementation of `Codec`, and it provides two kinds of `Codec`:
+Currently, this is the only implementation of `Codec`, and it provides three kinds of `Codec`:
 
 * `PojoCodec`: Used in the transformers
 * `MessageCodec`: Used in the `CodecMessageConverter`
+* `CompositeCodec`: Used in transformers
 
 The framework provides several custom serializers:
 
@@ -52,6 +53,69 @@ The framework provides several custom serializers:
 
 The first can be used with the `PojoCodec` by initializing it with the `FileKryoRegistrar`.
 The second and third are used with the `MessageCodec`, which is initialized with the `MessageKryoRegistrar`.
+
+[[composite-codec]]
+=== CompositeCodec
+The CompositeCodec is a codec that combines multiple codecs into a single codec, delegating encoding and decoding operations to the appropriate type-specific codec.
+This implementation associates object types with their appropriate codecs while providing a fallback default codec for unregistered types.
+
+An example implementation can be seen below:
+```java
+void encodeDecodeSample() {
+        Codec codec = getFullyQualifiedCodec();
+
+        //Encode and Decode a Dog Object
+        Dog dog = new Dog("Wolfy", 3, "woofwoof");
+        dog = codec.decode(
+                codec.encode(dog),
+                Dog.class);
+        System.out.println(dog);
+
+        //Encode and Decode a Cat Object
+        Cat cat = new Cat("Kitty", 2, 8);
+        cat = codec.decode(
+                codec.encode(cat),
+                Cat.class);
+        System.out.println(cat);
+
+        //Use the default code if the type being decoded and encoded is not Cat or dog.
+        Animal animal = new Animal("Badger", 5);
+        Animal animalOut = codec.decode(
+                codec.encode(animal),
+                Animal.class);
+        System.out.println(animalOut);
+}
+
+/**
+ * Create and return a {@link CompositeCodec} that associates {@code Dog} and {@code Cat}
+ * classes with their respective {@link PojoCodec} instances, while providing a default
+ * codec for {@code Animal} types.
+ * <p>
+ * @return a fully qualified {@link CompositeCodec} for {@code Dog}, {@code Cat},
+ *     and fallback for {@code Animal}
+ */
+static Codec getFullyQualifiedCodec() {
+    Map<Class<?>, Codec> codecs = new HashMap<Class<?>, Codec>();
+    codecs.put(Dog.class, new PojoCodec(new KryoClassListRegistrar(Dog.class)));
+    codecs.put(Cat.class, new PojoCodec(new KryoClassListRegistrar(Cat.class)));
+    return new CompositeCodec(codecs, new PojoCodec(
+            new KryoClassListRegistrar(Animal.class)));
+}
+
+// Records that will be encoded and decoded in this sample
+record Dog(String name, int age, String tag) {}
+record Cat(String name, int age, int lives) {}
+record Animal(String name, int age){}
+```
+
+In some cases a single type of object may return multiple codecs. In these cases an `IllegalStateException` is thrown.
+
+NOTE: This class uses `ClassUtils.findClosestMatch` to select the appropriate codec for a given object type.
+When multiple codecs match an object type, `ClassUtils.findClosestMatch` offers the `failOnTie` option.
+If `failOnTie` is `false`, it will return any one of the matching codecs.
+If `failOnTie` is `true` and multiple codecs match, it will throw an `IllegalStateException`.
+CompositeCodec` sets `failOnTie` to `true`, so if multiple codecs match, an
+`IllegalStateException` is thrown.
 
 [[customizing-kryo]]
 === Customizing Kryo
