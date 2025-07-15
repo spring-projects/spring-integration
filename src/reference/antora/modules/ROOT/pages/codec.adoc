@@ -56,7 +56,8 @@ The second and third are used with the `MessageCodec`, which is initialized with
 
 [[composite-codec]]
 === CompositeCodec
-The CompositeCodec is a codec that combines multiple codecs into a single codec, delegating encoding and decoding operations to the appropriate type-specific codec.
+
+The `CompositeCodec` is a codec that combines multiple codecs into a single codec, delegating encoding and decoding operations to the appropriate type-specific codec.
 This implementation associates object types with their appropriate codecs while providing a fallback default codec for unregistered types.
 
 An example implementation can be seen below:
@@ -108,14 +109,14 @@ record Cat(String name, int age, int lives) {}
 record Animal(String name, int age){}
 ```
 
-In some cases a single type of object may return multiple codecs. In these cases an `IllegalStateException` is thrown.
+In some cases a single type of object may return multiple codecs.
+In these cases an `IllegalStateException` is thrown.
 
 NOTE: This class uses `ClassUtils.findClosestMatch` to select the appropriate codec for a given object type.
 When multiple codecs match an object type, `ClassUtils.findClosestMatch` offers the `failOnTie` option.
 If `failOnTie` is `false`, it will return any one of the matching codecs.
 If `failOnTie` is `true` and multiple codecs match, it will throw an `IllegalStateException`.
-CompositeCodec` sets `failOnTie` to `true`, so if multiple codecs match, an
-`IllegalStateException` is thrown.
+CompositeCodec` sets `failOnTie` to `true`, so if multiple codecs match, an `IllegalStateException` is thrown.
 
 [[customizing-kryo]]
 === Customizing Kryo
