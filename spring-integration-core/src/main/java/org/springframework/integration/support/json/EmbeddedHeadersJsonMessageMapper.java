@@ -79,9 +79,9 @@ import org.springframework.messaging.support.GenericMessage;
  * @since 7.0
  *
  */
-public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapper {
+public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final ObjectMapper objectMapper;
 
@@ -97,7 +97,7 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	 * Construct an instance that embeds all headers, using the default
 	 * JSON Object mapper.
 	 */
-	public EmbeddedJsonMessageHeadersMessageMapper() {
+	public EmbeddedHeadersJsonMessageMapper() {
 		this("*");
 	}
 
@@ -107,7 +107,7 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	 * @param headerPatterns the patterns.
 	 * @see PatternMatchUtils#smartMatch(String, String...)
 	 */
-	public EmbeddedJsonMessageHeadersMessageMapper(String... headerPatterns) {
+	public EmbeddedHeadersJsonMessageMapper(String... headerPatterns) {
 		this(JacksonMessagingUtils.messagingAwareMapper(), headerPatterns);
 	}
 
@@ -116,7 +116,7 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	 * supplied JSON object mapper.
 	 * @param objectMapper the object mapper.
 	 */
-	public EmbeddedJsonMessageHeadersMessageMapper(ObjectMapper objectMapper) {
+	public EmbeddedHeadersJsonMessageMapper(ObjectMapper objectMapper) {
 		this(objectMapper, "*");
 	}
 
@@ -126,7 +126,7 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	 * @param objectMapper the object mapper.
 	 * @param headerPatterns the patterns.
 	 */
-	public EmbeddedJsonMessageHeadersMessageMapper(ObjectMapper objectMapper, String... headerPatterns) {
+	public EmbeddedHeadersJsonMessageMapper(ObjectMapper objectMapper, String... headerPatterns) {
 		this.objectMapper = objectMapper;
 		this.headerPatterns = Arrays.copyOf(headerPatterns, headerPatterns.length);
 		this.allHeaders = this.headerPatterns.length == 1 && this.headerPatterns[0].equals("*");
@@ -207,7 +207,7 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) {
 		try {
 			byte[] headers = this.objectMapper.writeValueAsBytes(headersToEncode);
-			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]); // NOSONAR
+			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
 			buffer.putInt(headers.length);
 			buffer.put(headers);
 			buffer.putInt(payload.length);
@@ -247,16 +247,16 @@ public class EmbeddedJsonMessageHeadersMessageMapper implements BytesMessageMapp
 	@Nullable
 	private Message<?> decodeNativeFormat(byte[] bytes, @Nullable Map<String, Object> headersToAdd) throws IOException {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
-		if (buffer.remaining() > 4) { // NOSONAR
+		if (buffer.remaining() > 4) {
 			int headersLen = buffer.getInt();
-			if (headersLen >= 0 && headersLen < buffer.remaining() - 4) { // NOSONAR
-				((Buffer) buffer).position(headersLen + 4); // NOSONAR
+			if (headersLen >= 0 && headersLen < buffer.remaining() - 4) {
+				((Buffer) buffer).position(headersLen + 4);
 				int payloadLen = buffer.getInt();
 				if (payloadLen != buffer.remaining()) {
 					return null;
 				}
 				else {
-					((Buffer) buffer).position(4); // NOSONAR
+					((Buffer) buffer).position(4);
 					@SuppressWarnings("unchecked")
 					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
 							Map.class);

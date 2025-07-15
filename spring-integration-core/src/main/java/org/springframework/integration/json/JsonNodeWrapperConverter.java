@@ -24,13 +24,13 @@ import tools.jackson.databind.JsonNode;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.integration.json.JsonNodePropertyAccessor.JsonNodeWrapper;
+import org.springframework.integration.json.JacksonPropertyAccessor.JsonNodeWrapper;
 
 /**
  * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion
  * of {@link JsonNodeWrapper} to {@link JsonNode},
  * when the {@link JsonNodeWrapper} can be a result of the expression
- * for JSON in case of the {@link JsonNodePropertyAccessor} usage.
+ * for JSON in case of the {@link JacksonPropertyAccessor} usage.
  *
  * @author Jooyoung Pyoung
  *

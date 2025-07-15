@@ -41,9 +41,9 @@ import org.springframework.util.StringUtils;
  * @author Jooyoung Pyoung
  *
  * @since 7.0
- * @see JsonArrayNodeIndexAccessor
+ * @see JacksonIndexAccessor
  */
-public class JsonNodePropertyAccessor implements PropertyAccessor {
+public class JacksonPropertyAccessor implements PropertyAccessor {
 
 	/**
 	 * The kind of types this can work with.
@@ -56,7 +56,7 @@ public class JsonNodePropertyAccessor implements PropertyAccessor {
 			};
 
 	private ObjectMapper objectMapper = JsonMapper.builder()
-			.findAndAddModules(JsonNodePropertyAccessor.class.getClassLoader())
+			.findAndAddModules(JacksonPropertyAccessor.class.getClassLoader())
 			.build();
 
 	public void setObjectMapper(ObjectMapper objectMapper) {

@@ -36,18 +36,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 7.0
  *
  */
-public class EmbeddedJsonMessageHeadersMessageMapperTests {
+public class EmbeddedHeadersJsonMessageMapperTests {
 
 	@Test
 	public void testEmbedAll() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertThat(mapper.toMessage(mapper.fromMessage(message))).isEqualTo(message);
 	}
 
 	@Test
 	public void testEmbedSome() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper(MessageHeaders.ID);
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper(MessageHeaders.ID);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		byte[] encodedMessage = mapper.fromMessage(message);
 		Message<?> decoded = mapper.toMessage(encodedMessage);
@@ -71,7 +71,7 @@ public class EmbeddedJsonMessageHeadersMessageMapperTests {
 
 	@Test
 	public void testBytesEmbedAll() throws Exception {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Thread.sleep(2);
 		byte[] bytes = mapper.fromMessage(message);
@@ -91,7 +91,7 @@ public class EmbeddedJsonMessageHeadersMessageMapperTests {
 
 	@Test
 	public void testBytesEmbedSome() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper("I*");
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("I*");
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes(), Collections.singletonMap("bar", "baz"));
 		byte[] bytes = mapper.fromMessage(message);
 		ByteBuffer bb = ByteBuffer.wrap(bytes);
@@ -111,7 +111,7 @@ public class EmbeddedJsonMessageHeadersMessageMapperTests {
 
 	@Test
 	public void testBytesEmbedAllJson() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
 		mapper.setRawBytes(false);
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		byte[] mappedBytes = mapper.fromMessage(message);
@@ -125,7 +125,7 @@ public class EmbeddedJsonMessageHeadersMessageMapperTests {
 
 	@Test
 	public void testBytesDecodeAll() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
 		assertThat(decoded).isEqualTo(message);
@@ -133,7 +133,7 @@ public class EmbeddedJsonMessageHeadersMessageMapperTests {
 
 	@Test
 	public void testDontMapIdButOthers() {
-		EmbeddedJsonMessageHeadersMessageMapper mapper = new EmbeddedJsonMessageHeadersMessageMapper("!" + MessageHeaders.ID, "*");
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("!" + MessageHeaders.ID, "*");
 		GenericMessage<String> message = new GenericMessage<>("foo", Collections.singletonMap("bar", "baz"));
 		byte[] encodedMessage = mapper.fromMessage(message);
 

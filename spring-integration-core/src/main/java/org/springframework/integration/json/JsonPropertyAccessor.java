@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 3.0
  * @see JsonIndexAccessor
- * @deprecated Since 7.0 in favor of {@link JsonNodePropertyAccessor} for Jackson 3.
+ * @deprecated Since 7.0 in favor of {@link JacksonPropertyAccessor} for Jackson 3.
  */
 @Deprecated(forRemoval = true, since = "7.0")
 public class JsonPropertyAccessor implements PropertyAccessor {

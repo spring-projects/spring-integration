@@ -24,7 +24,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
 
 /**
  * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion
@@ -38,19 +37,20 @@ import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper
  * @since 5.5
  * @deprecated Since 7.0 in favor of {@link JsonNodeWrapperConverter} for Jackson 3.
  */
+@SuppressWarnings("removal")
 @Deprecated(forRemoval = true, since = "7.0")
 public class JsonNodeWrapperToJsonNodeConverter implements GenericConverter {
 
 	@Override
 	public Set<ConvertiblePair> getConvertibleTypes() {
-		return Collections.singleton(new ConvertiblePair(JsonNodeWrapper.class, JsonNode.class));
+		return Collections.singleton(new ConvertiblePair(JsonPropertyAccessor.JsonNodeWrapper.class, JsonNode.class));
 	}
 
 	@Override
 	@Nullable
 	public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 		if (source != null) {
-			return targetType.getObjectType().cast(((JsonNodeWrapper<?>) source).getRealNode());
+			return targetType.getObjectType().cast(((JsonPropertyAccessor.JsonNodeWrapper<?>) source).getRealNode());
 		}
 		return null;
 	}

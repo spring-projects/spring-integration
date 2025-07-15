@@ -36,9 +36,9 @@ import org.springframework.expression.TypedValue;
  * @author Jooyoung Pyoung
  *
  * @since 7.0
- * @see JsonNodePropertyAccessor
+ * @see JacksonPropertyAccessor
  */
-public class JsonArrayNodeIndexAccessor implements IndexAccessor {
+public class JacksonIndexAccessor implements IndexAccessor {
 
 	private static final Class<?>[] SUPPORTED_CLASSES = { ArrayNode.class };
 
@@ -57,10 +57,10 @@ public class JsonArrayNodeIndexAccessor implements IndexAccessor {
 		ArrayNode arrayNode = (ArrayNode) target;
 		Integer intIndex = (Integer) index;
 		if (intIndex < 0) {
-			// negative index: get from the end of array, for compatibility with JsonNodePropertyAccessor.ArrayNodeAsList.
+			// negative index: get from the end of array, for compatibility with JacksonPropertyAccessor.ArrayNodeAsList.
 			intIndex = arrayNode.size() + intIndex;
 		}
-		return JsonNodePropertyAccessor.typedValue(arrayNode.get(intIndex));
+		return JacksonPropertyAccessor.typedValue(arrayNode.get(intIndex));
 	}
 
 	@Override

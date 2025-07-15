@@ -60,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @since 7.0
  */
-class JacksonJsonObjectMapperTests {
+public class JacksonJsonObjectMapperTests {
 
 	private static final JacksonModule JODA_MODULE = new JodaModule();
 
