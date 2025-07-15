@@ -17,7 +17,7 @@
 package org.springframework.integration.test.context;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -37,7 +37,7 @@ import org.springframework.util.PatternMatchUtils;
  */
 class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
-	private List<AbstractEndpoint> autoStartupCandidates;
+	private Set<AbstractEndpoint> autoStartupCandidates;
 
 	@Override
 	public void prepareTestInstance(TestContext testContext) {
@@ -49,8 +49,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		ApplicationContext applicationContext = testContext.getApplicationContext();
 		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
 		this.autoStartupCandidates = mockIntegrationContext.getAutoStartupCandidates();
-		this.autoStartupCandidates
-				.stream()
+		this.autoStartupCandidates.stream()
 				.filter(endpoint -> !match(endpoint.getBeanName(), patterns))
 				.peek(endpoint -> endpoint.setAutoStartup(true))
 				.forEach(AbstractEndpoint::start);
@@ -58,7 +57,9 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
 	@Override
 	public void afterTestClass(TestContext testContext) {
-		this.autoStartupCandidates.forEach(AbstractEndpoint::stop);
+		this.autoStartupCandidates.stream()
+				.peek(endpoint -> endpoint.setAutoStartup(false))
+				.forEach(AbstractEndpoint::stop);
 	}
 
 	private static boolean match(String name, String[] patterns) {
