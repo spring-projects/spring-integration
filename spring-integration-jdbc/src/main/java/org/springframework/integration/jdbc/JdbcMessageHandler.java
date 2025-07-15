@@ -30,6 +30,8 @@ import java.util.stream.StreamSupport;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
@@ -45,7 +47,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -89,13 +90,13 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final String updateSql;
 
-	private PreparedStatementCreator generatedKeysStatementCreator;
+	private @Nullable PreparedStatementCreator generatedKeysStatementCreator;
 
-	private SqlParameterSourceFactory sqlParameterSourceFactory;
+	private @Nullable SqlParameterSourceFactory sqlParameterSourceFactory;
 
 	private boolean keysGenerated;
 
-	private MessagePreparedStatementSetter preparedStatementSetter;
+	private @Nullable MessagePreparedStatementSetter preparedStatementSetter;
 
 	private boolean usePayloadAsParameterSource;
 
@@ -201,6 +202,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param keysGenerated generate key or not.
 	 * @return a generated keys for update.
 	 */
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected List<? extends Map<String, Object>> executeUpdateQuery(final Message<?> message, boolean keysGenerated) {
 		if (keysGenerated) {
 			if (this.preparedStatementSetter != null) {

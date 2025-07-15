@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc.dsl;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -111,7 +113,7 @@ public final class Jdbc {
 	 * @return the {@link JdbcOutboundGatewaySpec} instance
 	 */
 	public static JdbcOutboundGatewaySpec outboundGateway(JdbcOperations jdbcOperations, String updateQuery,
-			String selectQuery) {
+			@Nullable String selectQuery) {
 
 		return new JdbcOutboundGatewaySpec(jdbcOperations, updateQuery, selectQuery);
 	}

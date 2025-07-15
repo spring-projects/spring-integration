@@ -20,6 +20,7 @@ import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -130,20 +133,24 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private final AtomicBoolean started = new AtomicBoolean();
 
+	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
 	private String region = DEFAULT_REGION;
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
+	@SuppressWarnings("NullAway.Init")
 	private JdbcTemplate jdbcTemplate;
 
 	private AllowListDeserializingConverter deserializer;
 
 	private SerializingConverter serializer;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageRowMapper messageRowMapper;
 
+	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
 
 	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
@@ -473,7 +480,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param input Parameter may be null
 	 * @return Returns null when the input is null otherwise the UUID as String.
 	 */
-	private String getKey(Object input) {
+	private @Nullable String getKey(@Nullable Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
 
@@ -491,10 +498,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
+		Integer result = this.jdbcTemplate.queryForObject(
 				getQuery(Query.COUNT_GROUPS,
 						() -> "SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
 				Integer.class, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	/**
@@ -519,10 +527,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
+		Integer result = this.jdbcTemplate.queryForObject(
 				getQuery(Query.GROUP_SIZE,
 						() -> this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
 				Integer.class, key, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
@@ -538,8 +547,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * group id which represents the channel identifier.
 	 */
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
-		String key = getKey(groupId);
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
+		String key = Objects.requireNonNull(getKey(groupId));
 		Message<?> polledMessage = doPollForMessage(key);
 		if (polledMessage != null && !isSingleStatementForPoll() && !doRemoveMessageFromGroup(groupId, polledMessage)) {
 			return null;
@@ -558,7 +567,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param groupIdKey String representation of message group (Channel) ID
 	 * @return a message; could be null if query produced no Messages
 	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
+	protected @Nullable Message<?> doPollForMessage(String groupIdKey) {
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.jdbcTemplate);
 		MapSqlParameterSource parameters = new MapSqlParameterSource();
 

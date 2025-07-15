@@ -19,6 +19,8 @@ package org.springframework.integration.jdbc.channel;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
@@ -65,12 +67,13 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private TransactionTemplate transactionTemplate;
+	private @Nullable TransactionTemplate transactionTemplate;
 
 	private RetryTemplate retryTemplate = RetryTemplate.builder().maxAttempts(1).build();
 
 	private ErrorHandler errorHandler = ReflectionUtils::rethrowRuntimeException;
 
+	@SuppressWarnings("NullAway.Init")
 	private Executor executor;
 
 	private volatile boolean hasHandlers;
@@ -202,9 +205,10 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private Optional<?> doPollAndDispatchMessage() {
 		if (this.hasHandlers) {
-			if (this.transactionTemplate != null) {
+			TransactionTemplate transactionTemplateToUse = this.transactionTemplate;
+			if (transactionTemplateToUse != null) {
 				return this.retryTemplate.execute(context ->
-						this.transactionTemplate.execute(status ->
+						transactionTemplateToUse.execute(status ->
 								pollMessage()
 										.filter(message -> {
 											if (!this.hasHandlers) {

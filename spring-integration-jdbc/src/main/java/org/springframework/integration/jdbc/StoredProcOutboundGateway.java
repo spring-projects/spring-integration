@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -93,8 +95,8 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Map<String, Object> resultMap = this.executor.executeStoredProcedure(requestMessage);
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
+		Map<String, @Nullable Object> resultMap = this.executor.executeStoredProcedure(requestMessage);
 
 		final Object payload;
 

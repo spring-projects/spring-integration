@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jdbc.dsl;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
@@ -33,7 +35,7 @@ import org.springframework.jdbc.core.RowMapper;
  */
 public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGatewaySpec, JdbcOutboundGateway> {
 
-	protected JdbcOutboundGatewaySpec(JdbcOperations jdbcOperations, String updateQuery, String selectQuery) {
+	protected JdbcOutboundGatewaySpec(JdbcOperations jdbcOperations, String updateQuery, @Nullable String selectQuery) {
 		this.target = new JdbcOutboundGateway(jdbcOperations, updateQuery, selectQuery);
 	}
 

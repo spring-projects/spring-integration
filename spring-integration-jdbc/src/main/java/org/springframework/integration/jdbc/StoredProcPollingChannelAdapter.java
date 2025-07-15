@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -77,7 +79,7 @@ public class StoredProcPollingChannelAdapter extends AbstractMessageSource<Objec
 	 * mapped results are returned.
 	 */
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		Object payload;
 
 		Map<String, ?> resultMap = this.executor.executeStoredProcedure();

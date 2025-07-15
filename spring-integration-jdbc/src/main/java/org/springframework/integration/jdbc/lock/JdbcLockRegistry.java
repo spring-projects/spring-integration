@@ -27,6 +27,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
@@ -151,7 +153,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		}
 	}
 
-	private String pathFor(String input) {
+	private @Nullable String pathFor(@Nullable String input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
 

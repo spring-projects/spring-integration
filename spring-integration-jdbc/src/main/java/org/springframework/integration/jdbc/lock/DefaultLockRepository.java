@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -136,14 +137,19 @@ public class DefaultLockRepository
 			SELECT COUNT(REGION) FROM %sLOCK
 			""";
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private PlatformTransactionManager transactionManager;
 
+	@SuppressWarnings("NullAway.Init")
 	private TransactionTemplate defaultTransactionTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private TransactionTemplate readOnlyTransactionTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private TransactionTemplate readCommittedTransactionTemplate;
 
 	private boolean checkDatabaseOnStart = true;
@@ -393,8 +399,9 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean delete(String lock) {
-		return this.defaultTransactionTemplate.execute(
-				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id)) == 1;
+		Integer result = this.defaultTransactionTemplate.execute(
+				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id));
+		return Objects.requireNonNull(result) == 1;
 	}
 
 	@Override

@@ -28,6 +28,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,7 +43,6 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -69,14 +70,18 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<>(0);
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private int jdbcCallOperationsCacheSize = DEFAULT_CACHE_SIZE;
 
+	@SuppressWarnings("NullAway.Init")
 	private Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
 
+	@SuppressWarnings("NullAway.Init")
 	private Expression storedProcedureNameExpression;
 
 	/**
@@ -112,6 +117,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * This may be sufficient for basic use cases. For more sophisticated options
 	 * consider passing in one or more {@link ProcedureParameter}.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private SqlParameterSourceFactory sqlParameterSourceFactory;
 
 	/**
@@ -119,13 +125,14 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * shall be used as a source of parameters.
 	 * @see #setUsePayloadAsParameterSource(boolean)
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private Boolean usePayloadAsParameterSource;
 
 	/**
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
-	private List<ProcedureParameter> procedureParameters;
+	private @Nullable List<ProcedureParameter> procedureParameters;
 
 	private boolean isFunction = false;
 
@@ -241,7 +248,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * available to extract {@link ProcedureParameter} values from it.
 	 * @return Map containing the stored procedure results if any.
 	 */
-	public Map<String, Object> executeStoredProcedure() {
+	public Map<String, @Nullable Object> executeStoredProcedure() {
 		return executeStoredProcedureInternal(new Object(), evaluateExpression(null));
 	}
 
@@ -251,7 +258,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * @param message A message.
 	 * @return Map containing the stored procedure results if any.
 	 */
-	public Map<String, Object> executeStoredProcedure(Message<?> message) {
+	public Map<String, @Nullable Object> executeStoredProcedure(Message<?> message) {
 		Assert.notNull(message, "The message parameter must not be null.");
 		Assert.notNull(this.usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
 				+ "was Null. Did you call afterPropertiesSet()?");
@@ -286,7 +293,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * @param input The message is used to extract parameters for the stored procedure.
 	 * @return A map containing the return values from the Stored Procedure call if any.
 	 */
-	private Map<String, Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
+	private Map<String, @Nullable Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
 		Assert.notNull(this.sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
 				+ "was Null. Did you call afterPropertiesSet()?");
 
@@ -368,7 +375,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the name of the Stored Procedure or Function if set. Null otherwise.
 	 * */
-	public String getStoredProcedureName() {
+	public @Nullable String getStoredProcedureName() {
 		return this.storedProcedureNameExpression instanceof LiteralExpression ?
 				this.storedProcedureNameExpression.getValue(String.class) : null;
 	}
@@ -376,7 +383,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the Stored Procedure Name Expression as a String if set. Null otherwise.
 	 * */
-	public String getStoredProcedureNameExpressionAsString() {
+	public @Nullable String getStoredProcedureNameExpressionAsString() {
 		return this.storedProcedureNameExpression != null
 				? this.storedProcedureNameExpression.getExpressionString()
 				: null;
