@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
@@ -79,6 +81,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 
 	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
 
+	@Nullable
 	private static final Class<?> XPATH_CLASS;
 
 	private static final boolean JSON_PATH_PRESENT = ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", null);
@@ -98,8 +101,10 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 		}
 	}
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanDefinitionRegistry registry;
 
 	DefaultConfiguringBeanFactoryPostProcessor() {

@@ -56,6 +56,7 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	@Nullable

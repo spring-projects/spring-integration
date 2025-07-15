@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -44,7 +46,7 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 			throw new BeanDefinitionStoreException("Only one enable publisher definition " +
 					"(@EnablePublisher or <annotation-config>) can be declared in the application context.");
 		}
-		Map<String, Object> annotationAttributes =
+		Map<String, @Nullable Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
 
 		String defaultChannel =

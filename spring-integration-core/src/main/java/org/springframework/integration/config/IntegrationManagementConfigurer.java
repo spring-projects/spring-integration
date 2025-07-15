@@ -66,23 +66,26 @@ public class IntegrationManagementConfigurer
 
 	private final Set<MeterFacade> gauges = new HashSet<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private boolean defaultLoggingEnabled = true;
 
 	private volatile boolean singletonsInstantiated;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private ObjectProvider<MetricsCaptor> metricsCaptorProvider;
+	private @Nullable ObjectProvider<MetricsCaptor> metricsCaptorProvider;
 
-	private ObservationRegistry observationRegistry;
+	private @Nullable ObservationRegistry observationRegistry;
 
-	private ObjectProvider<ObservationRegistry> observationRegistryProvider;
+	private @Nullable ObjectProvider<ObservationRegistry> observationRegistryProvider;
 
-	private String[] observationPatterns;
+	@SuppressWarnings("NullAway.Init") //Creation is handled in the postProcessAfterInitialization
+	private String[]  observationPatterns;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -182,6 +185,7 @@ public class IntegrationManagementConfigurer
 		}
 	}
 
+	@SuppressWarnings("NullAway")  // is not called if the metricsCaptor is null in  afterSingletonsInstantiated.
 	private void registerComponentGauges() {
 		this.gauges.add(
 				this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,

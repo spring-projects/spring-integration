@@ -18,12 +18,14 @@ package org.springframework.integration.config;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -51,7 +53,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 
 	private static final Set<String> GENERATOR_CONTEXT_ID = new HashSet<>();
 
-	private static volatile IdGenerator theIdGenerator;
+	private static @Nullable IdGenerator theIdGenerator;
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -64,7 +66,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			if (event instanceof ContextRefreshedEvent) {
 				boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
 				if (contextHasIdGenerator && setIdGenerator(context)) {
-					IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.add(context.getId());
+					IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.add(Objects.requireNonNull(context.getId()));
 				}
 			}
 			else if (event instanceof ContextClosedEvent
@@ -88,15 +90,16 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 				this.logger.debug("using custom MessageHeaders.IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-			ReflectionUtils.makeAccessible(idGeneratorField); // NOSONAR never null
-			IdGenerator currentIdGenerator = (IdGenerator) ReflectionUtils.getField(idGeneratorField, null);
+			ReflectionUtils.makeAccessible(Objects.requireNonNull(idGeneratorField));
+			IdGenerator currentIdGenerator = (IdGenerator) ReflectionUtils.getField(Objects.requireNonNull(idGeneratorField), null);
 			if (currentIdGenerator != null) {
 				if (currentIdGenerator.equals(idGeneratorBean)) {
 					// same instance is already set, nothing needs to be done
 					return false;
 				}
 				else {
-					if (IdGeneratorConfigurer.theIdGenerator.getClass() == idGeneratorBean.getClass()) {
+					if ((IdGeneratorConfigurer.theIdGenerator != null ?
+							IdGeneratorConfigurer.theIdGenerator.getClass() : null) == idGeneratorBean.getClass()) {
 						if (this.logger.isWarnEnabled()) {
 							this.logger.warn("Another instance of " + idGeneratorBean.getClass() +
 									" has already been established; ignoring");
@@ -151,7 +154,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 	private void unsetIdGenerator() {
 		try {
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-			ReflectionUtils.makeAccessible(idGeneratorField); // NOSONAR never null
+			ReflectionUtils.makeAccessible(Objects.requireNonNull(idGeneratorField));
 			idGeneratorField.set(null, null);
 			IdGeneratorConfigurer.theIdGenerator = null;
 		}

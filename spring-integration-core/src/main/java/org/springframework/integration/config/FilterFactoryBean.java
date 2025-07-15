@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
@@ -40,10 +42,13 @@ import org.springframework.util.StringUtils;
  */
 public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
+	@Nullable
 	private volatile MessageChannel discardChannel;
 
+	@Nullable
 	private volatile Boolean throwExceptionOnRejection;
 
+	@Nullable
 	private volatile Boolean discardWithinAdvice;
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -59,7 +64,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		MessageSelector selector = null;
 		if (targetObject instanceof MessageSelector) {
 			selector = (MessageSelector) targetObject;
@@ -75,7 +80,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
+	protected void checkForIllegalTarget(Object targetObject, @Nullable String targetMethodName) {
 		if (targetObject instanceof AbstractReplyProducingMessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 			throw new IllegalArgumentException("You cannot use 'AbstractReplyProducingMessageHandler.handleMessage()' "

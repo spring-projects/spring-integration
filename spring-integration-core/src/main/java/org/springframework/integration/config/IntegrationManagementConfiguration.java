@@ -19,9 +19,11 @@ package org.springframework.integration.config;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -55,8 +57,9 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 
 	private final ControlBusCommandRegistry controlBusCommandRegistry;
 
-	private AnnotationAttributes attributes;
+	private @Nullable AnnotationAttributes attributes;
 
+	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
 
 	public IntegrationManagementConfiguration(ControlBusCommandRegistry controlBusCommandRegistry) {
@@ -70,7 +73,7 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableIntegrationManagement.class.getName());
+		Map<String, @Nullable Object> map = Objects.requireNonNull(importMetadata.getAnnotationAttributes(EnableIntegrationManagement.class.getName()));
 		this.attributes = AnnotationAttributes.fromMap(map);
 		Assert.notNull(this.attributes, () ->
 				"@EnableIntegrationManagement is not present on importing class " + importMetadata.getClassName());
@@ -86,9 +89,10 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 			ObjectProvider<ObservationRegistry> observationRegistryProvider) {
 
 		IntegrationManagementConfigurer configurer = new IntegrationManagementConfigurer();
+		String defaultLoggingEnabled = (String) Objects.requireNonNull(this.attributes).get("defaultLoggingEnabled");
 		configurer.setDefaultLoggingEnabled(
-				Boolean.parseBoolean(this.environment.resolvePlaceholders(
-						(String) this.attributes.get("defaultLoggingEnabled"))));
+				Boolean.parseBoolean(this.environment.resolvePlaceholders(defaultLoggingEnabled == null
+						? "false" : defaultLoggingEnabled)));
 		configurer.setMetricsCaptorProvider(metricsCaptorProvider);
 		String[] observationPatterns = obtainObservationPatterns();
 		if (observationPatterns.length > 0) {
@@ -100,7 +104,8 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 
 	private String[] obtainObservationPatterns() {
 		Collection<String> observationPatterns = new HashSet<>();
-		String[] patternsProperties = (String[]) this.attributes.get("observationPatterns");
+		String[] patternsProperties = (String[]) Objects.requireNonNull(this.attributes).get("observationPatterns");
+		patternsProperties = patternsProperties == null ? new String[0] : patternsProperties;
 		boolean hasAsterisk = false;
 		for (String patternProperty : patternsProperties) {
 			String patternValue = this.environment.resolvePlaceholders(patternProperty);

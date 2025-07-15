@@ -41,6 +41,7 @@ class IntegrationConfigurationReport
 
 	private static final LogAccessor LOGGER = new LogAccessor(IntegrationConfigurationReport.class);
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	@Override

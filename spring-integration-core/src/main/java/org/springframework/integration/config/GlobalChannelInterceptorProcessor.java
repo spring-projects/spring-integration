@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.beans.BeansException;
@@ -65,6 +66,7 @@ public final class GlobalChannelInterceptorProcessor
 
 	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ListableBeanFactory beanFactory;
 
 	private volatile boolean singletonsInstantiated;
@@ -156,7 +158,7 @@ public final class GlobalChannelInterceptorProcessor
 			List<GlobalChannelInterceptorWrapper> tempInterceptors,
 			GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper) {
 
-		String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+		@Nullable String[] patterns = globalChannelInterceptorWrapper.getPatterns();
 		patterns = StringUtils.trimArrayElements(patterns);
 		if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 			tempInterceptors.add(globalChannelInterceptorWrapper);

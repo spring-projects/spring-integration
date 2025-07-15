@@ -56,53 +56,54 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<AggregatingMessageHandler> {
 
+	@SuppressWarnings("NullAway.Init")
 	private Object processorBean;
 
-	private String methodName;
+	private @Nullable String methodName;
 
-	private Boolean expireGroupsUponCompletion;
+	private @Nullable Boolean expireGroupsUponCompletion;
 
-	private Long sendTimeout;
+	private @Nullable Long sendTimeout;
 
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	private LockRegistry<?> lockRegistry;
+	private @Nullable LockRegistry<?> lockRegistry;
 
-	private MessageGroupStore messageStore;
+	private @Nullable MessageGroupStore messageStore;
 
-	private CorrelationStrategy correlationStrategy;
+	private @Nullable CorrelationStrategy correlationStrategy;
 
-	private ReleaseStrategy releaseStrategy;
+	private @Nullable ReleaseStrategy releaseStrategy;
 
-	private Expression groupTimeoutExpression;
+	private @Nullable Expression groupTimeoutExpression;
 
-	private List<Advice> forceReleaseAdviceChain;
+	private @Nullable List<Advice> forceReleaseAdviceChain;
 
-	private TaskScheduler taskScheduler;
+	private @Nullable TaskScheduler taskScheduler;
 
-	private MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	private String discardChannelName;
+	private @Nullable String discardChannelName;
 
-	private Boolean sendPartialResultOnExpiry;
+	private @Nullable Boolean sendPartialResultOnExpiry;
 
-	private Boolean discardIndividuallyOnExpiry;
+	private @Nullable Boolean discardIndividuallyOnExpiry;
 
-	private Long minimumTimeoutForEmptyGroups;
+	private @Nullable Long minimumTimeoutForEmptyGroups;
 
-	private Boolean expireGroupsUponTimeout;
+	private @Nullable Boolean expireGroupsUponTimeout;
 
-	private Boolean popSequence;
+	private @Nullable Boolean popSequence;
 
-	private Boolean releaseLockBeforeSend;
+	private @Nullable Boolean releaseLockBeforeSend;
 
-	private Long expireTimeout;
+	private @Nullable Long expireTimeout;
 
-	private Long expireDuration;
+	private @Nullable Long expireDuration;
 
-	private Function<MessageGroup, Map<String, Object>> headersFunction;
+	private @Nullable Function<MessageGroup, Map<String, Object>> headersFunction;
 
-	private BiFunction<Message<?>, String, String> groupConditionSupplier;
+	private @Nullable BiFunction<Message<?>, String, String> groupConditionSupplier;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;

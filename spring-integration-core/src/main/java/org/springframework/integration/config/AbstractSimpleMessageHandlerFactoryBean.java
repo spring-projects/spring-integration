@@ -17,12 +17,14 @@
 package org.springframework.integration.config;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.AopProxyUtils;
@@ -71,29 +73,32 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private final Lock initializationMonitor = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private H handler;
+	private @Nullable H handler;
 
-	private MessageChannel outputChannel;
+	private @Nullable MessageChannel outputChannel;
 
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	private Integer order;
+	private @Nullable Integer order;
 
-	private List<Advice> adviceChain;
+	private @Nullable List<Advice> adviceChain;
 
-	private String componentName;
+	private @Nullable String componentName;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
-	private DestinationResolver<MessageChannel> channelResolver;
+	private @Nullable DestinationResolver<MessageChannel> channelResolver;
 
-	private Boolean async;
+	private @Nullable Boolean async;
 
 	private boolean initialized;
 
@@ -195,7 +200,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return this.handler;
 	}
 
-	protected final H createHandlerInternal() {
+	protected final @Nullable H createHandlerInternal() {
 		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
@@ -206,16 +211,16 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
 							this.applicationContext,
-							context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
+							context -> ((ApplicationContextAware) Objects.requireNonNull(this.handler)).setApplicationContext(this.applicationContext))
 					.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
 							getBeanFactory(),
-							factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
+							factory -> ((BeanFactoryAware) Objects.requireNonNull(this.handler)).setBeanFactory(factory))
 					.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
-							name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
+							name -> ((BeanNameAware) Objects.requireNonNull(this.handler)).setBeanName(this.beanName))
 					.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
 									&& this.applicationEventPublisher != null,
 							this.applicationEventPublisher,
-							publisher -> ((ApplicationEventPublisherAware) this.handler)
+							publisher -> ((ApplicationEventPublisherAware) Objects.requireNonNull(Objects.requireNonNull(this.handler)))
 									.setApplicationEventPublisher(publisher));
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
@@ -230,7 +235,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 							this.async,
 							asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
 					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
-							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
+							this.order, theOrder -> ((Orderable) Objects.requireNonNull(this.handler)).setOrder(theOrder));
 			this.initialized = true;
 		}
 		finally {
@@ -312,7 +317,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return true;
 	}
 
-	private static Object extractTarget(Object object) {
+	private static @Nullable Object extractTarget(@Nullable Object object) {
 		if (!(object instanceof Advised)) {
 			return object;
 		}

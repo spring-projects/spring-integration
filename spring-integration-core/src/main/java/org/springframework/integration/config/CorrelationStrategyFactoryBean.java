@@ -39,8 +39,10 @@ import org.springframework.util.StringUtils;
  */
 public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationStrategy>, InitializingBean {
 
+	@SuppressWarnings("NullAway.Init")
 	private Object target;
 
+	@SuppressWarnings("NullAway.Init")
 	private String methodName;
 
 	private CorrelationStrategy strategy =

@@ -43,7 +43,7 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	private volatile boolean expireGroupsUponCompletion = false;
 
 	public AggregatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
-			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+			@Nullable CorrelationStrategy correlationStrategy, @Nullable ReleaseStrategy releaseStrategy) {
 
 		super(processor, store, correlationStrategy, releaseStrategy);
 	}

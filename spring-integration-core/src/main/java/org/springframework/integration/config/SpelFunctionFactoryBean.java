@@ -19,6 +19,8 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanNameAware;
@@ -42,9 +44,9 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 
 	private final String functionMethodSignature;
 
-	private String functionName;
+	private @Nullable String functionName;
 
-	private Method method;
+	private @Nullable Method method;
 
 	public SpelFunctionFactoryBean(Class<?> functionClass, String functionMethodSignature) {
 		this.functionClass = functionClass;
@@ -56,7 +58,7 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 		this.functionName = name;
 	}
 
-	public String getFunctionName() {
+	public @Nullable String getFunctionName() {
 		return this.functionName;
 	}
 
@@ -74,7 +76,7 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 	}
 
 	@Override
-	public Method getObject() {
+	public @Nullable Method getObject() {
 		return this.method;
 	}
 

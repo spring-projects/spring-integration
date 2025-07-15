@@ -78,8 +78,10 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	private final List<TypeFilter> defaultFilters = new ArrayList<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ResourceLoader resourceLoader;
 
+	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
 
 	public IntegrationComponentScanRegistrar() {
