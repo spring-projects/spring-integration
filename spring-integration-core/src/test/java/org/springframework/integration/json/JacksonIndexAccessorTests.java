@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link JacksonIndexAccessor} combined with {@link JacksonPropertyAccessor}.
  *
+ * @author Sam Brannen
  * @author Jooyoung Pyoung
  *
- * @since 7.0
+ * @since 6.4
+ *
  * @see JacksonPropertyAccessorTests
  */
-public class JacksonIndexAccessorTests extends AbstractJacksonAccessorTests {
+class JacksonIndexAccessorTests extends AbstractJacksonAccessorTests {
 
 	@BeforeEach
 	void registerJsonAccessors() {

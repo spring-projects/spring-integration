@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 7.0
  */
-public class JacksonMessagingUtilsTests {
+class JacksonMessagingUtilsTests {
 
 	private ObjectMapper mapper;
 

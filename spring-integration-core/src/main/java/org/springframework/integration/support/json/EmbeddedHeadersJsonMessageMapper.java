@@ -77,7 +77,6 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Jooyoung Pyoung
  *
  * @since 7.0
- *
  */
 public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 

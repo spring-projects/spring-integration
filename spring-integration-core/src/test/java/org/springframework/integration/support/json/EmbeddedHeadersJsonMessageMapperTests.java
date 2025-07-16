@@ -34,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jooyoung Pyoung
  *
  * @since 7.0
- *
  */
 public class EmbeddedHeadersJsonMessageMapperTests {
 

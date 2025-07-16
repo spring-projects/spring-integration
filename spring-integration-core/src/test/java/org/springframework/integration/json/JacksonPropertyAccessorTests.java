@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,15 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * Tests for {@link JacksonPropertyAccessor}.
  *
+ * @author Eric Bottard
+ * @author Artem Bilan
+ * @author Paul Martin
+ * @author Pierre Lakreb
+ * @author Sam Brannen
  * @author Jooyoung Pyoung
  *
- * @since 7.0
+ * @since 3.0
+ *
  * @see JacksonIndexAccessorTests
  */
 public class JacksonPropertyAccessorTests extends AbstractJacksonAccessorTests {
