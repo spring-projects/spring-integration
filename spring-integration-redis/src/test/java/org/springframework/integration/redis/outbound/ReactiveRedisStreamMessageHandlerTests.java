@@ -25,18 +25,15 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.Address;
@@ -136,6 +133,7 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 	}
 
 	@Configuration
+	@EnableIntegration
 	public static class ReactiveRedisStreamMessageHandlerTestsContext {
 
 		@Bean
@@ -144,15 +142,8 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 		}
 
 		@Bean
-		public MessageChannel streamChannel(ReactiveMessageHandlerAdapter messageHandlerAdapter) {
-			DirectChannel directChannel = new DirectChannel();
-			directChannel.subscribe(messageHandlerAdapter);
-			directChannel.setMaxSubscribers(1);
-			return directChannel;
-		}
-
-		@Bean
-		public ReactiveRedisStreamMessageHandler streamMessageHandler(ReactiveRedisConnectionFactory redisConnectionFactory) {
+		public ReactiveRedisStreamMessageHandler streamMessageHandler(
+				ReactiveRedisConnectionFactory redisConnectionFactory) {
 
 			return new ReactiveRedisStreamMessageHandler(redisConnectionFactory, STREAM_KEY);
 		}
@@ -165,11 +156,11 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 		}
 
 		@Bean
-		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
-			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
-			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
-			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
-			return integrationEvaluationContext;
+		public MessageChannel streamChannel(ReactiveMessageHandlerAdapter messageHandlerAdapter) {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.subscribe(messageHandlerAdapter);
+			directChannel.setMaxSubscribers(1);
+			return directChannel;
 		}
 
 	}
