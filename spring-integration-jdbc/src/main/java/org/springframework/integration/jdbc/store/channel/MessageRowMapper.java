@@ -18,6 +18,7 @@ package org.springframework.integration.jdbc.store.channel;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.jdbc.core.RowMapper;
@@ -51,15 +52,9 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 	}
 
 	@Override
-	@SuppressWarnings("NullAway") // See https://github.com/uber/NullAway/issues/1075
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 		byte[] blobAsBytes = rs.getBytes("MESSAGE_BYTES");
-		if (blobAsBytes == null) {
-			return null;
-		}
-		else {
-			return (Message<?>) this.deserializer.convert(blobAsBytes);
-		}
+		return (Message<?>) this.deserializer.convert(Objects.requireNonNull(blobAsBytes));
 	}
 
 }
