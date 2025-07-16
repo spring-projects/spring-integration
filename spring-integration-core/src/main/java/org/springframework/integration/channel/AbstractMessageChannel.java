@@ -371,11 +371,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (!this.applicationRunning) {
 			throw new MessageDispatchingException(message,
 					"""
-							The application context is not ready to dispatch messages. \
+							The application context is not ready (or stopped) to dispatch messages to '%s' channel. \
 							It has to be refreshed or started first. \
 							Also, messages must not be emitted from initialization phase, \
 							like 'afterPropertiesSet()', '@PostConstruct' or bean definition methods. \
-							Consider to use 'SmartLifecycle.start()' instead.""");
+							Consider to use 'SmartLifecycle.start()' instead."""
+							.formatted(getComponentName()));
 		}
 	}
 

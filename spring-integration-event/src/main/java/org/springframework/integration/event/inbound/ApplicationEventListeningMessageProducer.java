@@ -114,23 +114,24 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 			if (contextFinished && getRequiredOutputChannel() instanceof AbstractMessageChannel) {
 				logger.warn("Messages for 'ContextStoppedEvent' or 'ContextClosedEvent' cannot be dispatched " +
-						"via 'AbstractMessageChannel' beans: the application context is in the finished state." +
+						"via 'AbstractMessageChannel' beans: the application context is in the finished state. " +
 						"Consider to use custom 'MessageChannel' implementation without dispatching logic.");
 			}
-
-			if (event.getSource() instanceof Message<?> message) {
-				sendMessage(message);
-			}
 			else {
-				Message<?> message;
-				Object result = extractObjectToSend(event);
-				if (result instanceof Message) {
-					message = (Message<?>) result;
+				if (event.getSource() instanceof Message<?> message) {
+					sendMessage(message);
 				}
 				else {
-					message = getMessageBuilderFactory().withPayload(result).build();
+					Message<?> message;
+					Object result = extractObjectToSend(event);
+					if (result instanceof Message) {
+						message = (Message<?>) result;
+					}
+					else {
+						message = getMessageBuilderFactory().withPayload(result).build();
+					}
+					sendMessage(message);
 				}
-				sendMessage(message);
 			}
 		}
 	}

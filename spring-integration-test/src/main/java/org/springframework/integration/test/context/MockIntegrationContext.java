@@ -16,11 +16,11 @@
 
 package org.springframework.integration.test.context;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import reactor.core.publisher.Mono;
 
@@ -79,7 +79,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 
 	private final MultiValueMap<String, Object> beans = new LinkedMultiValueMap<>();
 
-	private final List<AbstractEndpoint> autoStartupCandidates = new ArrayList<>();
+	private final Set<AbstractEndpoint> autoStartupCandidates = new HashSet<>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -99,8 +99,9 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 	}
 
 	private void addAutoStartupCandidates(AbstractEndpoint endpoint) {
-		endpoint.setAutoStartup(false);
-		this.autoStartupCandidates.add(endpoint);
+		if (this.autoStartupCandidates.add(endpoint)) {
+			endpoint.setAutoStartup(false);
+		}
 	}
 
 	@Override
@@ -112,8 +113,8 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 				.forEach(this::addAutoStartupCandidates);
 	}
 
-	List<AbstractEndpoint> getAutoStartupCandidates() {
-		return Collections.unmodifiableList(this.autoStartupCandidates);
+	Set<AbstractEndpoint> getAutoStartupCandidates() {
+		return Collections.unmodifiableSet(this.autoStartupCandidates);
 	}
 
 	/**

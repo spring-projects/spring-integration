@@ -76,6 +76,7 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 						ClassUtils.forName(
 								IntegrationContextUtils.BASE_PACKAGE + ".config.ApplicationRunningController", null)));
 		QueueChannel sourceChannel = new QueueChannel();
+		sourceChannel.setBeanName("sourceChannel");
 		sourceChannel.setApplicationContext(this.context);
 		QueueChannel targetChannel = new QueueChannel();
 		this.context.registerChannel("sourceChannel", sourceChannel);
@@ -84,7 +85,8 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 				.setReplyChannelName("targetChannel").build();
 		assertThatExceptionOfType(MessageDispatchingException.class)
 				.isThrownBy(() -> sourceChannel.send(message))
-				.withMessageStartingWith("The application context is not ready to dispatch messages.");
+				.withMessageStartingWith(
+						"The application context is not ready (or stopped) to dispatch messages to 'sourceChannel'");
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
@@ -106,7 +108,8 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 
 		assertThatExceptionOfType(MessageDispatchingException.class)
 				.isThrownBy(() -> sourceChannel.send(message))
-				.withMessageStartingWith("The application context is not ready to dispatch messages.");
+				.withMessageStartingWith(
+						"The application context is not ready (or stopped) to dispatch messages to 'sourceChannel'");
 	}
 
 	@Test

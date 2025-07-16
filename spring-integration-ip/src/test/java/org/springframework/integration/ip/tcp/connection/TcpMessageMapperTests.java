@@ -20,8 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.SocketFactory;
@@ -35,7 +35,6 @@ import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.codec.CodecMessageConverter;
-import org.springframework.integration.codec.CompositeCodec;
 import org.springframework.integration.codec.kryo.MessageCodec;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -56,6 +55,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gengwu Zhao
+ * @author Glenn Renfro
  * @since 2.0
  *
  */
@@ -67,8 +67,7 @@ public class TcpMessageMapperTests {
 
 	@BeforeEach
 	public void setup() {
-		Map<Class<?>, Codec> codecs = new HashMap<>();
-		this.codec = new CompositeCodec(codecs, new MessageCodec());
+		this.codec = new MessageCodec();
 	}
 
 	@Test
@@ -339,7 +338,7 @@ public class TcpMessageMapperTests {
 		MapJsonSerializer serializer = new MapJsonSerializer();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.serialize(map, baos);
-		assertThat(new String(baos.toByteArray(), "UTF-8"))
+		assertThat(baos.toString(StandardCharsets.UTF_8))
 				.isEqualTo("{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n");
 	}
 
