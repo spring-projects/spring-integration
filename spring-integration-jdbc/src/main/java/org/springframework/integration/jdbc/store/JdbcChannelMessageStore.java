@@ -20,6 +20,7 @@ import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -130,20 +133,24 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private final AtomicBoolean started = new AtomicBoolean();
 
+	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
 	private String region = DEFAULT_REGION;
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
+	@SuppressWarnings("NullAway.Init")
 	private JdbcTemplate jdbcTemplate;
 
 	private AllowListDeserializingConverter deserializer;
 
 	private SerializingConverter serializer;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageRowMapper messageRowMapper;
 
+	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
 
 	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
@@ -461,7 +468,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 		catch (@SuppressWarnings("unused") DataIntegrityViolationException ex) {
 			LOGGER.debug(() ->
-					"The Message with id [" + getKey(message.getHeaders().getId()) + "] already exists.\n" +
+					"The Message with id [" + getKey(Objects.requireNonNull(message.getHeaders().getId())) + "] already exists.\n" +
 							"Ignoring INSERT...");
 		}
 		return getMessageGroup(groupId);
@@ -470,11 +477,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Helper method that converts the channel id to a UUID using
 	 * {@link UUIDConverter#getUUID(Object)}.
-	 * @param input Parameter may be null
-	 * @return Returns null when the input is null otherwise the UUID as String.
+	 * @param input Parameter must not be null
+	 * @return Returns the UUID as String.
 	 */
 	private String getKey(Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	/**
@@ -491,10 +498,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
+		Integer result = this.jdbcTemplate.queryForObject(
 				getQuery(Query.COUNT_GROUPS,
 						() -> "SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
 				Integer.class, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	/**
@@ -519,10 +527,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
+		Integer result = this.jdbcTemplate.queryForObject(
 				getQuery(Query.GROUP_SIZE,
 						() -> this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
 				Integer.class, key, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
@@ -538,7 +547,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * group id which represents the channel identifier.
 	 */
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 		Message<?> polledMessage = doPollForMessage(key);
 		if (polledMessage != null && !isSingleStatementForPoll() && !doRemoveMessageFromGroup(groupId, polledMessage)) {
@@ -558,7 +567,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param groupIdKey String representation of message group (Channel) ID
 	 * @return a message; could be null if query produced no Messages
 	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
+	protected @Nullable Message<?> doPollForMessage(String groupIdKey) {
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.jdbcTemplate);
 		MapSqlParameterSource parameters = new MapSqlParameterSource();
 
@@ -626,7 +635,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		UUID id = messageToRemove.getHeaders().getId();
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[] {getKey(id), getKey(groupId), this.region},
+				new Object[] {getKey(Objects.requireNonNull(id)), getKey(groupId), this.region},
 				new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;

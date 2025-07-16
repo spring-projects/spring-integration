@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -34,11 +36,12 @@ import org.springframework.util.Assert;
  */
 public class ProcedureParameter {
 
+	@SuppressWarnings("NullAway.Init")
 	private String name;
 
-	private Object value;
+	private @Nullable Object value;
 
-	private String expression;
+	private @Nullable String expression;
 
 	/**
 	 * Instantiates a new Procedure Parameter.
@@ -67,7 +70,7 @@ public class ProcedureParameter {
 		this.name = name;
 	}
 
-	public Object getValue() {
+	public @Nullable Object getValue() {
 		return this.value;
 	}
 
@@ -75,7 +78,7 @@ public class ProcedureParameter {
 		this.value = value;
 	}
 
-	public String getExpression() {
+	public @Nullable String getExpression() {
 		return this.expression;
 	}
 

@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
@@ -222,7 +224,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	@Override
 	@Transactional
-	public String putIfAbsent(String key, String value) {
+	public @Nullable String putIfAbsent(String key, String value) {
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
@@ -308,7 +310,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	@Override
 	@Transactional
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		try {
 			return this.jdbcTemplate.queryForObject(this.getValueQuery, String.class, key, this.region);
@@ -321,7 +323,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	@Override
 	@Transactional
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		String oldValue;
 		try {

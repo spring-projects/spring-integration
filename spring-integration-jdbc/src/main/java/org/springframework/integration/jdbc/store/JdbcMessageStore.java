@@ -22,12 +22,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import javax.sql.DataSource;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.SmartLifecycle;
@@ -50,7 +53,6 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -384,7 +386,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> removeMessage(UUID id) {
+	public @Nullable Message<?> removeMessage(UUID id) {
 		Message<?> message = getMessage(id);
 		if (message == null) {
 			return null;
@@ -400,12 +402,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), // NOSONAR query never returns null
+		Long result = this.jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT),
 				Long.class, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
-	public Message<?> getMessage(UUID id) {
+	public @Nullable Message<?> getMessage(UUID id) {
 		List<Message<?>> list =
 				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE), this.mapper, getKey(id), this.region);
 		if (list.isEmpty()) {
@@ -415,7 +418,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public MessageMetadata getMessageMetadata(UUID id) {
+	public @Nullable MessageMetadata getMessageMetadata(UUID id) {
 		List<MessageMetadata> list =
 				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE),
 						(rs, rn) -> {
@@ -455,7 +458,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				logger.debug("The Message with id [" + id + "] already exists.\n" +
 						"Ignoring INSERT and SELECT existing...");
 			}
-			return (Message<T>) getMessage(id);
+			return Objects.requireNonNull((Message<T>) getMessage(id));
 		}
 		return message;
 	}
@@ -465,9 +468,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		String groupKey = getKey(groupId);
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupKey);
 
-		boolean groupNotExist = groupMetadata == null;
 		Timestamp createdDate =
-				groupNotExist
+				groupMetadata == null
 						? new Timestamp(System.currentTimeMillis())
 						: new Timestamp(groupMetadata.getTimestamp());
 
@@ -478,7 +480,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				Arrays.asList(messages),
 				100, // NOSONAR magic number
 				(ps, messageToAdd) -> {
-					String messageId = getKey(messageToAdd.getHeaders().getId());
+					Objects.requireNonNull(messageToAdd);
+					String messageId = getKey(Objects.requireNonNull(messageToAdd.getHeaders().getId()));
 					if (logger.isDebugEnabled()) {
 						logger.debug("Inserting message with id key=" + messageId +
 								" and created date=" + createdDate);
@@ -488,7 +491,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 					ps.setString(3, JdbcMessageStore.this.region); // NOSONAR - magic number
 				});
 
-		if (groupNotExist) {
+		if (groupMetadata == null) {
 			try {
 				doCreateMessageGroup(groupKey, createdDate);
 			}
@@ -505,25 +508,28 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_GROUPS), // NOSONAR query never returns null
+		Integer result = this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_GROUPS),
 				Integer.class, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return this.jdbcTemplate
-				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), // NOSONAR query never returns null
+		Integer result = this.jdbcTemplate
+				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS),
 						Integer.class, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return this.jdbcTemplate
-				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), // NOSONAR query never returns null
+		Integer result = this.jdbcTemplate
+				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP),
 						Integer.class, key, this.region);
+		return Objects.requireNonNull(result);
 	}
 
 	@Override
@@ -544,7 +550,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public MessageGroupMetadata getGroupMetadata(Object groupId) {
+	public @Nullable MessageGroupMetadata getGroupMetadata(Object groupId) {
 		String key = getKey(groupId);
 		try {
 			return this.jdbcTemplate.queryForObject(getQuery(Query.GET_GROUP_INFO), (rs, rowNum) -> {
@@ -578,20 +584,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				messages,
 				getRemoveBatchSize(),
 				(ps, messageToRemove) -> {
-					ps.setString(1, groupKey); // NOSONAR - magic number
-					ps.setString(2, getKey(messageToRemove.getHeaders().getId())); // NOSONAR - magic number
-					ps.setString(3, this.region); // NOSONAR - magic number
+					Objects.requireNonNull(messageToRemove);
+					ps.setString(1, groupKey);
+					ps.setString(2, getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId())));
+					ps.setString(3, this.region);
 				});
 
 		this.jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
 				getRemoveBatchSize(),
 				(ps, messageToRemove) -> {
-					String key = getKey(messageToRemove.getHeaders().getId());
-					ps.setString(1, key); // NOSONAR - magic number
-					ps.setString(2, this.region); // NOSONAR - magic number
-					ps.setString(3, key); // NOSONAR - magic number
-					ps.setString(4, this.region); // NOSONAR - magic number
+					Objects.requireNonNull(messageToRemove);
+					String key = getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
+					ps.setString(1, key);
+					ps.setString(2, this.region);
+					ps.setString(3, key);
+					ps.setString(4, this.region);
 				});
 
 		updateMessageGroup(groupKey);
@@ -676,9 +684,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected Message<?> doPollMessageFromGroup(Object groupId) {
+	protected @Nullable Message<?> doPollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
-
 		Message<?> polledMessage = doPollForMessage(key);
 		if (polledMessage != null) {
 			removeMessagesFromGroup(groupId, polledMessage);
@@ -687,8 +694,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
-		return doPollForMessage(getKey(groupId));
+	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
+		String key = getKey(groupId);
+		return doPollForMessage(key);
 	}
 
 	@Override
@@ -737,7 +745,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * @param groupIdKey String representation of message group ID
 	 * @return a message; could be null if query produced no Messages
 	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
+	protected @Nullable Message<?> doPollForMessage(String groupIdKey) {
 		List<Message<?>> messages = this.jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), this.mapper,
 				groupIdKey, this.region, groupIdKey, this.region);
 		Assert.state(messages.size() < 2,
@@ -764,7 +772,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	private String getKey(Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 }

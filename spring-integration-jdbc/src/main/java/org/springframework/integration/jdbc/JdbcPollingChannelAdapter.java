@@ -20,9 +20,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
@@ -38,7 +41,6 @@ import org.springframework.jdbc.core.SqlProvider;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -56,9 +58,10 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
+	@SuppressWarnings("NullAway.Init")
 	private RowMapper<?> rowMapper;
 
-	private SqlParameterSource sqlQueryParameterSource;
+	private @Nullable SqlParameterSource sqlQueryParameterSource;
 
 	private boolean updatePerRow = false;
 
@@ -70,7 +73,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private volatile String selectQuery;
 
-	private volatile String updateSql;
+	private volatile @Nullable String updateSql;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
@@ -113,10 +116,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param rowMapper the {@link RowMapper} to use.
 	 */
 	public void setRowMapper(@Nullable RowMapper<?> rowMapper) {
-		this.rowMapper = rowMapper;
-		if (rowMapper == null) {
-			this.rowMapper = new ColumnMapRowMapper();
-		}
+		this.rowMapper = Objects.requireNonNullElseGet(rowMapper, ColumnMapRowMapper::new);
 	}
 
 	/**
@@ -192,9 +192,9 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * mapped results are returned.
 	 */
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		List<?> payload = doPoll(this.sqlQueryParameterSource);
-		if (payload.size() < 1) {
+		if (payload.isEmpty()) {
 			payload = null;
 		}
 		if (payload != null && this.updateSql != null) {
@@ -224,6 +224,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void executeUpdateQuery(Object obj) {
 		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
 	}
@@ -239,7 +240,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		}
 
 		@Override
-		public String getSql() {
+		public @Nullable String getSql() {
 			if (this.delegate instanceof SqlProvider) {
 				return ((SqlProvider) this.delegate).getSql();
 			}

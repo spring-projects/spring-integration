@@ -21,6 +21,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.util.UUIDConverter;
@@ -50,7 +52,7 @@ import org.springframework.util.Assert;
  */
 public class ChannelMessageStorePreparedStatementSetter {
 
-	private final SerializingConverter serializer;
+	private final @Nullable SerializingConverter serializer;
 
 	/**
 	 * Instantiate a {@link ChannelMessageStorePreparedStatementSetter} with the provided

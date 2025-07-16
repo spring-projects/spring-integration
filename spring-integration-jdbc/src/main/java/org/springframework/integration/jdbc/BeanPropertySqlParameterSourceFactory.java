@@ -19,6 +19,8 @@ package org.springframework.integration.jdbc;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -69,7 +71,7 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 		}
 
 		@Override
-		public Object getValue(String paramName) throws IllegalArgumentException {
+		public @Nullable Object getValue(String paramName) throws IllegalArgumentException {
 			return this.staticParameters.containsKey(paramName)
 					? this.staticParameters.get(paramName)
 					: this.input.getValue(paramName);

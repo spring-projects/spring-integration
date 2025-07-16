@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
 import org.postgresql.PGNotification;
 import org.postgresql.jdbc.PgConnection;
 
@@ -39,7 +40,6 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -298,7 +298,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	private static String getKey(Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	/**

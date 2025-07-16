@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -41,9 +43,9 @@ import org.springframework.util.StringUtils;
  */
 public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final JdbcMessageHandler handler;
+	private final @Nullable JdbcMessageHandler handler;
 
-	private final JdbcPollingChannelAdapter poller;
+	private final @Nullable JdbcPollingChannelAdapter poller;
 
 	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
@@ -51,7 +53,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private boolean keysGenerated;
 
-	private Integer maxRows;
+	private @Nullable Integer maxRows;
 
 	/**
 	 * Construct an instance based on the provided {@link DataSource} and update SQL.
@@ -87,7 +89,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * @param updateQuery the update to execute.
 	 * @param selectQuery the select to execute.
 	 */
-	public JdbcOutboundGateway(JdbcOperations jdbcOperations, String updateQuery, String selectQuery) {
+	public JdbcOutboundGateway(JdbcOperations jdbcOperations, String updateQuery, @Nullable String selectQuery) {
 		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null.");
 
 		if (!StringUtils.hasText(updateQuery) && !StringUtils.hasText(selectQuery)) {
@@ -172,6 +174,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * @param rowMapper the {@link RowMapper} to use.
 	 */
 	public void setRowMapper(RowMapper<?> rowMapper) {
+		Assert.notNull(this.poller, "'poller' must not be null");
 		this.poller.setRowMapper(rowMapper);
 	}
 
@@ -183,7 +186,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	protected void doInit() {
 		if (this.maxRows != null) {
-			Assert.notNull(this.poller, "If you want to set 'maxRows', then you must provide a 'selectQuery'.");
+			Assert.notNull(this.poller, "'poller' must not be null when 'maxRows' is not null");
 			this.poller.setMaxRows(this.maxRows);
 		}
 

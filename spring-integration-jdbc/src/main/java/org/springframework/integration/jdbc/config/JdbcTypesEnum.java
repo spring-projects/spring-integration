@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc.config;
 
 import java.sql.Types;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -91,7 +93,7 @@ public enum JdbcTypesEnum {
 	 * @return The enumeration that matches. Returns Null of no match was found.
 	 *
 	 */
-	public static JdbcTypesEnum convertToJdbcTypesEnum(String sqlTypeAsString) {
+	public static @Nullable JdbcTypesEnum convertToJdbcTypesEnum(String sqlTypeAsString) {
 		Assert.hasText(sqlTypeAsString, "Parameter sqlTypeAsString, must not be null nor empty");
 		for (JdbcTypesEnum jdbcType : JdbcTypesEnum.values()) {
 			if (jdbcType.name().equalsIgnoreCase(sqlTypeAsString)) {

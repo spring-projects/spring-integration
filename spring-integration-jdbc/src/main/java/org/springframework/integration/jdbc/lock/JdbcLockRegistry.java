@@ -152,7 +152,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 	}
 
 	private String pathFor(String input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	@Override

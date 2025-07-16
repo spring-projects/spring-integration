@@ -51,6 +51,7 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // See https://github.com/uber/NullAway/issues/1075
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 		byte[] blobAsBytes = rs.getBytes("MESSAGE_BYTES");
 		if (blobAsBytes == null) {

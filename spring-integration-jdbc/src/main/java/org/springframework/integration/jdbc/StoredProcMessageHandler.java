@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -75,7 +77,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler {
 	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Map<String, Object> resultMap = this.executor.executeStoredProcedure(message);
+		Map<String, @Nullable Object> resultMap = this.executor.executeStoredProcedure(message);
 		if (!CollectionUtils.isEmpty(resultMap)) {
 			logger.debug(() -> String.format("The StoredProcMessageHandler ignores return "
 							+ "values, but the called Stored Procedure '%s' returned data: '%s'",
