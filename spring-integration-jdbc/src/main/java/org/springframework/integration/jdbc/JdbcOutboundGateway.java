@@ -174,7 +174,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * @param rowMapper the {@link RowMapper} to use.
 	 */
 	public void setRowMapper(RowMapper<?> rowMapper) {
-		Assert.notNull(this.poller, "If you want to set 'rowMapper', then you must provide a 'selectQuery'.");
+		Assert.notNull(this.poller, "'poller' must not be null");
 		this.poller.setRowMapper(rowMapper);
 	}
 
@@ -186,7 +186,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	protected void doInit() {
 		if (this.maxRows != null) {
-			Assert.notNull(this.poller, "If you want to set 'maxRows', then you must provide a 'selectQuery'.");
+			Assert.notNull(this.poller, "'poller' must not be null when 'maxRows' is not null");
 			this.poller.setMaxRows(this.maxRows);
 		}
 

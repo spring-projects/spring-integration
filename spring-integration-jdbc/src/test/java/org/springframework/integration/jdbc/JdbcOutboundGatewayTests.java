@@ -67,7 +67,7 @@ public class JdbcOutboundGatewayTests {
 		}
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage())
-					.isEqualTo("If you want to set 'maxRows', then you must provide a 'selectQuery'.");
+					.isEqualTo("'poller' must not be null when 'maxRows' is not null");
 		}
 
 		dataSource.shutdown();

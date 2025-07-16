@@ -465,7 +465,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
-		String groupKey = Objects.requireNonNull(getKey(groupId));
+		String groupKey = getKey(groupId);
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupKey);
 
 		Timestamp createdDate =
@@ -480,7 +480,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				Arrays.asList(messages),
 				100, // NOSONAR magic number
 				(ps, messageToAdd) -> {
-					String messageId = getKey(Objects.requireNonNull(messageToAdd).getHeaders().getId());
+					Objects.requireNonNull(messageToAdd);
+					String messageId = getKey(Objects.requireNonNull(messageToAdd.getHeaders().getId()));
 					if (logger.isDebugEnabled()) {
 						logger.debug("Inserting message with id key=" + messageId +
 								" and created date=" + createdDate);
@@ -574,7 +575,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");
 
-		final String groupKey = Objects.requireNonNull(getKey(groupId));
+		final String groupKey = getKey(groupId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Removing messages from group with group key=" + groupKey);
@@ -583,8 +584,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				messages,
 				getRemoveBatchSize(),
 				(ps, messageToRemove) -> {
+					Objects.requireNonNull(messageToRemove);
 					ps.setString(1, groupKey);
-					ps.setString(2, getKey(Objects.requireNonNull(messageToRemove).getHeaders().getId()));
+					ps.setString(2, getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId())));
 					ps.setString(3, this.region);
 				});
 
@@ -592,7 +594,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				messages,
 				getRemoveBatchSize(),
 				(ps, messageToRemove) -> {
-					String key = getKey(Objects.requireNonNull(messageToRemove).getHeaders().getId());
+					Objects.requireNonNull(messageToRemove);
+					String key = getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
 					ps.setString(1, key);
 					ps.setString(2, this.region);
 					ps.setString(3, key);
@@ -682,7 +685,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected @Nullable Message<?> doPollMessageFromGroup(Object groupId) {
-		String key = Objects.requireNonNull(getKey(groupId));
+		String key = getKey(groupId);
 		Message<?> polledMessage = doPollForMessage(key);
 		if (polledMessage != null) {
 			removeMessagesFromGroup(groupId, polledMessage);
@@ -692,7 +695,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
-		String key = Objects.requireNonNull(getKey(groupId));
+		String key = getKey(groupId);
 		return doPollForMessage(key);
 	}
 
@@ -768,8 +771,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				new Timestamp(System.currentTimeMillis()), groupId, this.region);
 	}
 
-	private @Nullable String getKey(@Nullable Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	private String getKey(Object input) {
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 }

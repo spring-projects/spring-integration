@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
@@ -115,10 +116,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param rowMapper the {@link RowMapper} to use.
 	 */
 	public void setRowMapper(@Nullable RowMapper<?> rowMapper) {
-		if (rowMapper == null) {
-			rowMapper = new ColumnMapRowMapper();
-		}
-		this.rowMapper = rowMapper;
+		this.rowMapper = Objects.requireNonNullElseGet(rowMapper, ColumnMapRowMapper::new);
 	}
 
 	/**

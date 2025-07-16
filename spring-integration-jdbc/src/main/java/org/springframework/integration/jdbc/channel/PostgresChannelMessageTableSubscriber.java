@@ -297,8 +297,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		return this.latch.getCount() > 0;
 	}
 
-	private static @Nullable String getKey(@Nullable Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	private static String getKey(Object input) {
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	/**

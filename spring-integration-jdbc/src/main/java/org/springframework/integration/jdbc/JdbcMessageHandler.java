@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -204,12 +205,13 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 */
 	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected List<? extends Map<String, Object>> executeUpdateQuery(final Message<?> message, boolean keysGenerated) {
+		MessagePreparedStatementSetter preparedStatementSetterToUse = this.preparedStatementSetter;
 		if (keysGenerated) {
-			if (this.preparedStatementSetter != null) {
-				return this.jdbcOperations.getJdbcOperations()
+			if (preparedStatementSetterToUse != null) {
+				List<Map<String, Object>> result = this.jdbcOperations.getJdbcOperations()
 						.execute(this.generatedKeysStatementCreator,
 								ps -> {
-									this.preparedStatementSetter.setValues(ps, message);
+									preparedStatementSetterToUse.setValues(ps, message);
 									ps.executeUpdate();
 									ResultSet keys = ps.getGeneratedKeys(); // NOSONAR closed in JdbcUtils
 									if (keys != null) {
@@ -223,6 +225,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 									}
 									return new LinkedList<>();
 								});
+				return Objects.requireNonNull(result);
 			}
 			else {
 				KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -238,7 +241,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 				int[] updates;
 
-				if (this.preparedStatementSetter != null) {
+				if (preparedStatementSetterToUse != null) {
 					Message<?>[] messages =
 							payloadStream
 									.map(payload -> payloadToMessage(payload, message.getHeaders()))
@@ -249,7 +252,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 								@Override
 								public void setValues(PreparedStatement ps, int i) throws SQLException {
-									JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, messages[i]);
+									preparedStatementSetterToUse.setValues(ps, messages[i]);
 								}
 
 								@Override
@@ -266,7 +269,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 											this.usePayloadAsParameterSource
 													? payload :
 													payloadToMessage(payload, message.getHeaders()))
-									.map(this.sqlParameterSourceFactory::createParameterSource)
+									.map(Objects.requireNonNull(this.sqlParameterSourceFactory)::createParameterSource)
 									.toArray(SqlParameterSource[]::new);
 
 					updates = this.jdbcOperations.batchUpdate(this.updateSql, sqlParameterSources);
@@ -283,9 +286,9 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 			else {
 				int updated;
 
-				if (this.preparedStatementSetter != null) {
+				if (preparedStatementSetterToUse != null) {
 					updated = this.jdbcOperations.getJdbcOperations()
-							.update(this.updateSql, ps -> this.preparedStatementSetter.setValues(ps, message));
+							.update(this.updateSql, ps -> preparedStatementSetterToUse.setValues(ps, message));
 				}
 				else {
 					Object parameterSource = this.usePayloadAsParameterSource ? message.getPayload() : message;

@@ -468,7 +468,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 		catch (@SuppressWarnings("unused") DataIntegrityViolationException ex) {
 			LOGGER.debug(() ->
-					"The Message with id [" + getKey(message.getHeaders().getId()) + "] already exists.\n" +
+					"The Message with id [" + getKey(Objects.requireNonNull(message.getHeaders().getId())) + "] already exists.\n" +
 							"Ignoring INSERT...");
 		}
 		return getMessageGroup(groupId);
@@ -477,11 +477,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Helper method that converts the channel id to a UUID using
 	 * {@link UUIDConverter#getUUID(Object)}.
-	 * @param input Parameter may be null
-	 * @return Returns null when the input is null otherwise the UUID as String.
+	 * @param input Parameter must not be null
+	 * @return Returns the UUID as String.
 	 */
-	private @Nullable String getKey(@Nullable Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	private String getKey(Object input) {
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	/**
@@ -548,7 +548,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@Override
 	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
-		String key = Objects.requireNonNull(getKey(groupId));
+		String key = getKey(groupId);
 		Message<?> polledMessage = doPollForMessage(key);
 		if (polledMessage != null && !isSingleStatementForPoll() && !doRemoveMessageFromGroup(groupId, polledMessage)) {
 			return null;
@@ -635,7 +635,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		UUID id = messageToRemove.getHeaders().getId();
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[] {getKey(id), getKey(groupId), this.region},
+				new Object[] {getKey(Objects.requireNonNull(id)), getKey(groupId), this.region},
 				new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
