@@ -18,73 +18,76 @@ package org.springframework.integration.json;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.ArrayNode;
 
-import org.springframework.integration.json.JsonPropertyAccessor.ArrayNodeAsList;
+import org.springframework.integration.json.JacksonPropertyAccessor.ArrayNodeAsList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link JsonIndexAccessor} combined with {@link JsonPropertyAccessor}.
+ * Tests for {@link JacksonIndexAccessor} combined with {@link JacksonPropertyAccessor}.
  *
  * @author Sam Brannen
+ * @author Jooyoung Pyoung
+ *
  * @since 6.4
- * @see JsonPropertyAccessorTests
+ *
+ * @see JacksonPropertyAccessorTests
  */
-class JsonIndexAccessorTests extends AbstractJsonAccessorTests {
+class JacksonIndexAccessorTests extends AbstractJacksonAccessorTests {
 
 	@BeforeEach
 	void registerJsonAccessors() {
-		context.addIndexAccessor(new JsonIndexAccessor());
-		// We also register a JsonPropertyAccessor to ensure that the JsonIndexAccessor
-		// does not interfere with the feature set of the JsonPropertyAccessor.
-		context.addPropertyAccessor(new JsonPropertyAccessor());
+		context.addIndexAccessor(new JacksonIndexAccessor());
+		// We also register a JacksonPropertyAccessor to ensure that the JacksonIndexAccessor
+		// does not interfere with the feature set of the JacksonPropertyAccessor.
+		context.addPropertyAccessor(new JacksonPropertyAccessor());
 	}
 
 	/**
 	 * Tests which index directly into a Jackson {@link ArrayNode}, which is only supported
-	 * by {@link JsonIndexAccessor}.
+	 * by {@link JacksonPropertyAccessor}.
 	 */
 	@Nested
 	class ArrayNodeTests {
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndex() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			Integer actual = evaluate(arrayNode, "[1]", Integer.class);
 			assertThat(actual).isEqualTo(4);
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndexForNullValue() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndexForNullValue() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, null, 5]");
 			Integer actual = evaluate(arrayNode, "[1]", Integer.class);
 			assertThat(actual).isNull();
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndex() throws Exception {
+		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			Integer actual = evaluate(arrayNode, "[-1]", Integer.class);
-			// JsonIndexAccessor allows one to index into a JSON array via a negative index.
+			// JacksonIndexAccessor allows one to index into a JSON array via a negative index.
 			assertThat(actual).isEqualTo(5);
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndexGreaterThanArrayLength() throws Exception {
+		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndexGreaterThanArrayLength() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			Integer actual = evaluate(arrayNode, "[-99]", Integer.class);
-			// Although JsonIndexAccessor allows one to index into a JSON array via a negative
+			// Although JacksonIndexAccessor allows one to index into a JSON array via a negative
 			// index, if the result of (array.length - index) is still negative, Jackson's
 			// ArrayNode.get() method returns null instead of throwing an IndexOutOfBoundsException.
 			assertThat(actual).isNull();
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndexOutOfBounds() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndexOutOfBounds() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			Integer actual = evaluate(arrayNode, "[9999]", Integer.class);
 			// Jackson's ArrayNode.get() method always returns null instead of throwing an IndexOutOfBoundsException.
@@ -92,11 +95,11 @@ class JsonIndexAccessorTests extends AbstractJsonAccessorTests {
 		}
 
 		/**
-		 * @see AbstractJsonAccessorTests.JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
+		 * @see JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
 		 */
 		@Test
 		@SuppressWarnings("unchecked")
-		void nestedArrayLookupsWithIntegerIndexes() throws Exception {
+		void nestedArrayLookupsWithIntegerIndexes() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
 
 			List<Integer> list = evaluate(arrayNode, "[0]", List.class);

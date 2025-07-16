@@ -18,14 +18,14 @@ package org.springframework.integration.json;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.Expression;
@@ -34,24 +34,25 @@ import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
-import org.springframework.integration.json.JsonPropertyAccessor.ArrayNodeAsList;
-import org.springframework.integration.json.JsonPropertyAccessor.ComparableJsonNode;
+import org.springframework.integration.json.JacksonPropertyAccessor.ArrayNodeAsList;
+import org.springframework.integration.json.JacksonPropertyAccessor.ComparableJsonNode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
- * Abstract base class for tests involving {@link JsonPropertyAccessor} and {@link JsonIndexAccessor}.
+ * Abstract base class for tests involving {@link JacksonPropertyAccessor} and {@link JacksonIndexAccessor}.
  *
  * @author Eric Bottard
  * @author Artem Bilan
  * @author Paul Martin
  * @author Pierre Lakreb
  * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
  * @since 3.0
  */
-abstract class AbstractJsonAccessorTests {
+public abstract class AbstractJacksonAccessorTests {
 
 	protected final SpelExpressionParser parser = new SpelExpressionParser();
 
@@ -62,7 +63,7 @@ abstract class AbstractJsonAccessorTests {
 	@BeforeEach
 	void setUpEvaluationContext() {
 		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new JsonNodeWrapperToJsonNodeConverter());
+		conversionService.addConverter(new JsonNodeWrapperConverter());
 		context.setTypeConverter(new StandardTypeConverter(conversionService));
 	}
 
@@ -74,26 +75,26 @@ abstract class AbstractJsonAccessorTests {
 	class JsonNodeTests {
 
 		@Test
-		void textNode() throws Exception {
-			TextNode json = (TextNode) mapper.readTree("\"foo\"");
+		void textNode() {
+			StringNode json = (StringNode) mapper.readTree("\"foo\"");
 			String result = evaluate(json, "#root", String.class);
 			assertThat(result).isEqualTo("\"foo\"");
 		}
 
 		@Test
-		void nullProperty() throws Exception {
+		void nullProperty() {
 			JsonNode json = mapper.readTree("{\"foo\": null}");
 			assertThat(evaluate(json, "foo", String.class)).isNull();
 		}
 
 		@Test
-		void missingProperty() throws Exception {
+		void missingProperty() {
 			JsonNode json = mapper.readTree(FOO_BAR_JSON);
 			assertThat(evaluate(json, "fizz", String.class)).isNull();
 		}
 
 		@Test
-		void propertyLookup() throws Exception {
+		void propertyLookup() {
 			JsonNode json1 = mapper.readTree(FOO_BAR_JSON);
 			String value1 = evaluate(json1, "foo", String.class);
 			assertThat(value1).isEqualTo("bar");
@@ -106,7 +107,7 @@ abstract class AbstractJsonAccessorTests {
 		void arrayLookupWithIntegerIndexAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			// Have to wrap the root array because ArrayNode itself is not a List
-			Integer actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Integer.class);
+			Integer actual = evaluate(JacksonPropertyAccessor.wrap(json), "[1]", Integer.class);
 			assertThat(actual).isEqualTo(4);
 		}
 
@@ -114,19 +115,19 @@ abstract class AbstractJsonAccessorTests {
 		void arrayLookupWithIntegerIndexForNullValueAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[3, null, 5]");
 			// Have to wrap the root array because ArrayNode itself is not a List
-			Integer actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Integer.class);
+			Integer actual = evaluate(JacksonPropertyAccessor.wrap(json), "[1]", Integer.class);
 			assertThat(actual).isNull();
 		}
 
 		@Test
-		void arrayLookupWithNegativeIntegerIndex() throws Exception {
+		void arrayLookupWithNegativeIntegerIndex() {
 			JsonNode json = mapper.readTree("{\"foo\": [3, 4, 5]}");
 			// ArrayNodeAsList allows one to index into a JSON array via a negative index.
 			assertThat(evaluate(json, "foo[-1]", Integer.class)).isEqualTo(5);
 		}
 
 		@Test
-		void arrayLookupWithNegativeIntegerIndexGreaterThanArrayLength() throws Exception {
+		void arrayLookupWithNegativeIntegerIndexGreaterThanArrayLength() {
 			JsonNode json = mapper.readTree("{\"foo\": [3, 4, 5]}");
 			// Although ArrayNodeAsList allows one to index into a JSON array via a negative
 			// index, if the result of (array.length - index) is still negative, Jackson's
@@ -135,14 +136,14 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void arrayLookupWithNegativeIntegerIndexForNullValue() throws Exception {
+		void arrayLookupWithNegativeIntegerIndexForNullValue() {
 			JsonNode json = mapper.readTree("{\"foo\": [3, 4, null]}");
 			// ArrayNodeAsList allows one to index into a JSON array via a negative index.
 			assertThat(evaluate(json, "foo[-1]", Integer.class)).isNull();
 		}
 
 		@Test
-		void arrayLookupWithIntegerIndexOutOfBounds() throws Exception {
+		void arrayLookupWithIntegerIndexOutOfBounds() {
 			JsonNode json = mapper.readTree("{\"foo\": [3, 4, 5]}");
 			assertThatExceptionOfType(SpelEvaluationException.class)
 					.isThrownBy(() -> evaluate(json, "foo[3]", Object.class))
@@ -150,7 +151,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void arrayLookupWithStringIndex() throws Exception {
+		void arrayLookupWithStringIndex() {
 			JsonNode json = mapper.readTree("[3, 4, 5]");
 			Integer actual = evaluate(json, "['1']", Integer.class);
 			assertThat(actual).isEqualTo(4);
@@ -159,13 +160,12 @@ abstract class AbstractJsonAccessorTests {
 		@Test
 		void nestedArrayLookupWithIntegerIndexAndExplicitWrapping() throws Exception {
 			ArrayNode json = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
-			// JsonNode actual = evaluate(json, "1.1", JsonNode.class); // Does not work
-			Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1][1]", Object.class);
+			Object actual = evaluate(JacksonPropertyAccessor.wrap(json), "[1][1]", Object.class);
 			assertThat(actual).isEqualTo(5);
 		}
 
 		@Test
-		void nestedArrayLookupWithStringIndex() throws Exception {
+		void nestedArrayLookupWithStringIndex() {
 			JsonNode json = mapper.readTree("[[3], [4, 5], []]");
 			Integer actual = evaluate(json, "['1']['1']", Integer.class);
 			assertThat(actual).isEqualTo(5);
@@ -173,7 +173,7 @@ abstract class AbstractJsonAccessorTests {
 
 		@Test
 		@SuppressWarnings("unchecked")
-		void nestedArrayLookupWithStringIndexAndThenIntegerIndex() throws Exception {
+		void nestedArrayLookupWithStringIndexAndThenIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
 
 			List<Integer> list = evaluate(arrayNode, "['0']", List.class);
@@ -188,7 +188,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void arrayProjection() throws Exception {
+		void arrayProjection() {
 			JsonNode json = mapper.readTree(FOO_BAR_ARRAY_FIZZ_JSON);
 
 			// Filter the bar array to return only the fizz value of each element (to prove that SpEL considers bar
@@ -201,7 +201,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void arraySelection() throws Exception {
+		void arraySelection() {
 			JsonNode json = mapper.readTree(FOO_BAR_ARRAY_FIZZ_JSON);
 
 			// Filter bar objects so that none match
@@ -221,7 +221,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void nestedPropertyAccessViaJsonNode() throws Exception {
+		void nestedPropertyAccessViaJsonNode() {
 			JsonNode json = mapper.readTree(FOO_BAR_FIZZ_JSON);
 
 			assertThat(evaluate(json, "foo.bar", Integer.class)).isEqualTo(4);
@@ -229,7 +229,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void noNullPointerExceptionWithCachedReadAccessor() throws Exception {
+		void noNullPointerExceptionWithCachedReadAccessor() {
 			Expression expression = parser.parseExpression("foo");
 			JsonNode json1 = mapper.readTree(FOO_BAR_JSON);
 			String value1 = expression.getValue(context, json1, String.class);
@@ -255,7 +255,7 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void nestedPropertyAccessViaJsonAsString() throws Exception {
+		void nestedPropertyAccessViaJsonAsString() {
 			String json = FOO_BAR_FIZZ_JSON;
 
 			assertThat(evaluate(json, "foo.bar", Integer.class)).isEqualTo(4);
@@ -263,34 +263,34 @@ abstract class AbstractJsonAccessorTests {
 		}
 
 		@Test
-		void jsonGetValueConversionAsJsonNode() throws Exception {
+		void jsonGetValueConversionAsJsonNode() {
 			// use JsonNode conversion
 			JsonNode node = evaluate(PROPERTY_NAMES_JSON, "property.^[name == 'value1']", JsonNode.class);
 			assertThat(node).isEqualTo(mapper.readTree("{\"name\":\"value1\"}"));
 		}
 
 		@Test
-		void jsonGetValueConversionAsObjectNode() throws Exception {
+		void jsonGetValueConversionAsObjectNode() {
 			// use ObjectNode conversion
 			ObjectNode node = evaluate(PROPERTY_NAMES_JSON, "property.^[name == 'value1']", ObjectNode.class);
 			assertThat(node).isEqualTo(mapper.readTree("{\"name\":\"value1\"}"));
 		}
 
 		@Test
-		void jsonGetValueConversionAsArrayNode() throws Exception {
+		void jsonGetValueConversionAsArrayNode() {
 			// use ArrayNode conversion
 			ArrayNode node = evaluate(PROPERTY_NAMES_JSON, "property", ArrayNode.class);
 			assertThat(node).isEqualTo(mapper.readTree("[{\"name\":\"value1\"},{\"name\":\"value2\"}]"));
 		}
 
 		@Test
-		void comparingArrayNode() throws Exception {
+		void comparingArrayNode() {
 			Boolean actual = evaluate(PROPERTIES_WITH_NAMES_JSON, "property1 eq property2", Boolean.class);
 			assertThat(actual).isTrue();
 		}
 
 		@Test
-		void comparingJsonNode() throws Exception {
+		void comparingJsonNode() {
 			Boolean actual = evaluate(PROPERTIES_WITH_NAMES_JSON, "property1[0] eq property2[0]", Boolean.class);
 			assertThat(actual).isTrue();
 		}

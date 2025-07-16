@@ -16,10 +16,10 @@
 
 package org.springframework.integration.json;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.ArrayNode;
 
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
@@ -28,60 +28,62 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
- * Tests for {@link JsonPropertyAccessor}.
+ * Tests for {@link JacksonPropertyAccessor}.
  *
  * @author Eric Bottard
  * @author Artem Bilan
  * @author Paul Martin
  * @author Pierre Lakreb
  * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
  * @since 3.0
- * @see JsonIndexAccessorTests
+ *
+ * @see JacksonIndexAccessorTests
  */
-class JsonPropertyAccessorTests extends AbstractJsonAccessorTests {
+public class JacksonPropertyAccessorTests extends AbstractJacksonAccessorTests {
 
 	@BeforeEach
 	void registerJsonPropertyAccessor() {
-		context.addPropertyAccessor(new JsonPropertyAccessor());
+		context.addPropertyAccessor(new JacksonPropertyAccessor());
 	}
 
 	/**
 	 * Tests which index directly into a Jackson {@link ArrayNode}, which is not supported
-	 * by {@link JsonPropertyAccessor}.
+	 * by {@link JacksonPropertyAccessor}.
 	 */
 	@Nested
 	class ArrayNodeTests {
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndex() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			assertIndexingNotSupported(arrayNode, "[1]");
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndexForNullValue() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndexForNullValue() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, null, 5]");
 			assertIndexingNotSupported(arrayNode, "[1]");
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndex() throws Exception {
+		void indexDirectlyIntoArrayNodeWithNegativeIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			assertIndexingNotSupported(arrayNode, "[-1]");
 		}
 
 		@Test
-		void indexDirectlyIntoArrayNodeWithIntegerIndexOutOfBounds() throws Exception {
+		void indexDirectlyIntoArrayNodeWithIntegerIndexOutOfBounds() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[3, 4, 5]");
 			assertIndexingNotSupported(arrayNode, "[9999]");
 		}
 
 		/**
-		 * @see AbstractJsonAccessorTests.JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
+		 * @see JsonNodeTests#nestedArrayLookupWithStringIndexAndThenIntegerIndex()
 		 */
 		@Test
-		void nestedArrayLookupWithIntegerIndexAndThenIntegerIndex() throws Exception {
+		void nestedArrayLookupWithIntegerIndexAndThenIntegerIndex() {
 			ArrayNode arrayNode = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
 			assertIndexingNotSupported(arrayNode, "[1][1]");
 		}

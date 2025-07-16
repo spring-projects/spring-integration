@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.json;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.node.ArrayNode;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -33,14 +33,12 @@ import org.springframework.expression.TypedValue;
  * to {@code myJsonArray[myJsonArray.length - 1]}. Furthermore, {@code null} is returned for
  * any index that is out of bounds (see {@link ArrayNode#get(int)} for details).
  *
- * @author Sam Brannen
+ * @author Jooyoung Pyoung
  *
- * @since 6.4
- * @see JsonPropertyAccessor
- * @deprecated Since 7.0 in favor of {@link JacksonIndexAccessor} for Jackson 3.
+ * @since 7.0
+ * @see JacksonPropertyAccessor
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class JsonIndexAccessor implements IndexAccessor {
+public class JacksonIndexAccessor implements IndexAccessor {
 
 	private static final Class<?>[] SUPPORTED_CLASSES = { ArrayNode.class };
 
@@ -59,10 +57,10 @@ public class JsonIndexAccessor implements IndexAccessor {
 		ArrayNode arrayNode = (ArrayNode) target;
 		Integer intIndex = (Integer) index;
 		if (intIndex < 0) {
-			// negative index: get from the end of array, for compatibility with JsonPropertyAccessor.ArrayNodeAsList.
+			// negative index: get from the end of array, for compatibility with JacksonPropertyAccessor.ArrayNodeAsList.
 			intIndex = arrayNode.size() + intIndex;
 		}
-		return JsonPropertyAccessor.typedValue(arrayNode.get(intIndex));
+		return JacksonPropertyAccessor.typedValue(arrayNode.get(intIndex));
 	}
 
 	@Override
