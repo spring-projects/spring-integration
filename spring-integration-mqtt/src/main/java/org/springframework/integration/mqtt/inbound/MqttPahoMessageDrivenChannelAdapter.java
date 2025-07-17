@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -227,7 +228,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 
 			try {
-				this.client.disconnectForcibly(getDisconnectCompletionTimeout());
+				this.client.disconnectForcibly(getQuiescentTimeout(), getDisconnectCompletionTimeout());
 				if (getConnectionInfo().isAutomaticReconnect()) {
 					MqttUtils.stopClientReconnectCycle(this.client);
 				}

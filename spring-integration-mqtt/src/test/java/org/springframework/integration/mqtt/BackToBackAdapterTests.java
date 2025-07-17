@@ -64,6 +64,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -72,6 +73,10 @@ import static org.mockito.Mockito.mock;
 @SpringJUnitConfig
 @DirtiesContext
 public class BackToBackAdapterTests implements MosquittoContainerTest {
+
+	private static final long QUIESCENT_TIMEOUT = 1;
+
+	private static final long DISCONNECT_COMPLETION_TIMEOUT = 1L;
 
 	@TempDir
 	static File folder;
@@ -110,6 +115,33 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		QueueChannel outputChannel = new QueueChannel();
 		inbound.setOutputChannel(outputChannel);
 		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.afterPropertiesSet();
+		inbound.start();
+		adapter.handleMessage(new GenericMessage<>("foo"));
+		Message<?> out = outputChannel.receive(20000);
+		assertThat(out).isNotNull();
+		adapter.stop();
+		inbound.stop();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
+		assertThat(adapter.getConnectionInfo().getServerURIs()[0]).isEqualTo(MosquittoContainerTest.mqttUrl());
+	}
+
+	@Test
+	void testSingleTopicWithQuiescentSet() {
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(MosquittoContainerTest.mqttUrl(), "si-test-out");
+		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+		adapter.start();
+		MqttPahoMessageDrivenChannelAdapter inbound =
+				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in", "mqtt-foo");
+		QueueChannel outputChannel = new QueueChannel();
+		inbound.setOutputChannel(outputChannel);
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+		inbound.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
 		inbound.setBeanFactory(mock(BeanFactory.class));
 		inbound.afterPropertiesSet();
 		inbound.start();

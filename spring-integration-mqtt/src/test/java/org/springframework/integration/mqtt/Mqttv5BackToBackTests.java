@@ -57,6 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Mikhail Polivakha
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  *
@@ -145,6 +146,23 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
 						.setHeader(MqttHeaders.TOPIC, "testTopic")
+						.build());
+
+		Message<?> receive = this.fromMqttChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(testPayload);
+	}
+
+	@Test
+	void testSharedTopicMqttv5InteractionQuiescentTimeout() {
+		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopicq");
+		this.mqttv5MessageDrivenChannelAdapter.setQuiescentTimeout(2000);
+		this.mqttv5MessageDrivenChannelAdapter.setDisconnectCompletionTimeout(2000);
+		String testPayload = "shared topic payload";
+		this.mqttOutFlowInput.send(
+				MessageBuilder.withPayload(testPayload)
+						.setHeader(MqttHeaders.TOPIC, "testTopicq")
 						.build());
 
 		Message<?> receive = this.fromMqttChannel.receive(10_000);
