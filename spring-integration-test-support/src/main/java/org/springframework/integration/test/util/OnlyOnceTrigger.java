@@ -21,6 +21,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 
@@ -52,13 +54,30 @@ public class OnlyOnceTrigger implements Trigger {
 	}
 
 	@Override
-	public Instant nextExecution(TriggerContext triggerContext) {
+	public @Nullable Instant nextExecution(TriggerContext triggerContext) {
 		if (this.hasRun.getAndSet(true)) {
 			this.latch.countDown();
 			return null;
 		}
 
 		return this.executionTime;
+	}
+
+	public void reset() {
+		this.latch = new CountDownLatch(1);
+		this.hasRun.set(false);
+	}
+
+	public void await() {
+		try {
+			if (!this.latch.await(10000, TimeUnit.MILLISECONDS)) {
+				throw new IllegalStateException("test latch.await() did not count down");
+			}
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("test latch.await() interrupted", ex);
+		}
 	}
 
 	@Override
@@ -82,23 +101,6 @@ public class OnlyOnceTrigger implements Trigger {
 		}
 		OnlyOnceTrigger other = (OnlyOnceTrigger) obj;
 		return this.executionTime.equals(other.executionTime);
-	}
-
-	public void reset() {
-		this.latch = new CountDownLatch(1);
-		this.hasRun.set(false);
-	}
-
-	public void await() {
-		try {
-			if (!this.latch.await(10000, TimeUnit.MILLISECONDS)) { // NOSONAR magic number
-				throw new IllegalStateException("test latch.await() did not count down");
-			}
-		}
-		catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
-			throw new IllegalStateException("test latch.await() interrupted", ex);
-		}
 	}
 
 }

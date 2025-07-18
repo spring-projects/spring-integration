@@ -17,6 +17,7 @@
 package org.springframework.integration.test.support;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,14 +55,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public abstract class AbstractRequestResponseScenarioTest {
 
-	private List<RequestResponseScenario> scenarios = null;
+	@SuppressWarnings("NullAway.Init")
+	private List<RequestResponseScenario> scenarios;
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
 	@BeforeEach
 	public void setUp() {
-		scenarios = defineRequestResponseScenarios();
+		this.scenarios = defineRequestResponseScenarios();
 	}
 
 	/**
@@ -79,8 +81,9 @@ public abstract class AbstractRequestResponseScenarioTest {
 					MessageChannel.class);
 			MessageChannel outputChannel = applicationContext.getBean(scenario.getOutputChannelName(),
 					MessageChannel.class);
-			if (outputChannel instanceof SubscribableChannel) {
-				((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
+			AbstractResponseValidator<?> responseValidator = scenario.getResponseValidator();
+			if (outputChannel instanceof SubscribableChannel subscribableChannel) {
+				subscribableChannel.subscribe(responseValidator);
 			}
 
 			assertThat(inputChannel.send(scenario.getMessage()))
@@ -89,14 +92,14 @@ public abstract class AbstractRequestResponseScenarioTest {
 			if (outputChannel instanceof PollableChannel) {
 				Message<?> response = ((PollableChannel) outputChannel).receive(10000); // NOSONAR magic number
 				assertThat(response).as(name + ": receive timeout on " + scenario.getOutputChannelName()).isNotNull();
-				scenario.getResponseValidator().handleMessage(response);
+				responseValidator.handleMessage(Objects.requireNonNull(response));
 			}
 
-			assertThat(scenario.getResponseValidator().getLastMessage())
+			assertThat(responseValidator.getLastMessage())
 					.as("message was not handled on " + outputChannel + " for scenario '" + name + "'.").isNotNull();
 
 			if (outputChannel instanceof SubscribableChannel) {
-				((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());
+				((SubscribableChannel) outputChannel).unsubscribe(responseValidator);
 			}
 		}
 	}

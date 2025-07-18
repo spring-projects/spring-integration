@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -56,13 +57,13 @@ public final class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
 
 	private final Map<String, Object> headers;
 
-	private final String[] ignoreKeys;
+	private final String @Nullable [] ignoreKeys;
 
 	public static <P> PayloadAndHeaderMatcher<P> sameExceptIgnorableHeaders(Message<P> expected, String... ignoreKeys) {
 		return new PayloadAndHeaderMatcher<>(expected, ignoreKeys);
 	}
 
-	private PayloadAndHeaderMatcher(Message<T> expected, String... ignoreKeys) {
+	private PayloadAndHeaderMatcher(Message<T> expected, String @Nullable ... ignoreKeys) {
 		this.ignoreKeys = ignoreKeys != null ? Arrays.copyOf(ignoreKeys, ignoreKeys.length) : null;
 		this.payload = expected.getPayload();
 		this.headers = extractHeadersToAssert(expected);

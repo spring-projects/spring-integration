@@ -16,18 +16,22 @@
 
 package org.springframework.integration.test.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
 /**
  * The base class for response validators used for {@link RequestResponseScenario}s
+ *
  * @author David Turanski
+ * @author Artem Bilan
  *
  */
 public abstract class AbstractResponseValidator<T> implements MessageHandler {
 
-	private Message<?> lastMessage;
+	private @Nullable Message<?> lastMessage;
 
 	/**
 	 * handle the message
@@ -37,6 +41,13 @@ public abstract class AbstractResponseValidator<T> implements MessageHandler {
 	public void handleMessage(Message<?> message) throws MessagingException {
 		this.lastMessage = message;
 		validateResponse((T) (extractPayload() ? message.getPayload() : message));
+	}
+
+	/**
+	 * @return the lastMessage
+	 */
+	public @Nullable Message<?> getLastMessage() {
+		return this.lastMessage;
 	}
 
 	/**
@@ -50,12 +61,5 @@ public abstract class AbstractResponseValidator<T> implements MessageHandler {
 	 * @return true to extract the payload; false to process the message.
 	 */
 	protected abstract boolean extractPayload();
-
-	/**
-	 * @return the lastMessage
-	 */
-	public Message<?> getLastMessage() {
-		return lastMessage;
-	}
 
 }
