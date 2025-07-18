@@ -16,6 +16,8 @@
 
 package org.springframework.integration.test.context;
 
+import java.util.Objects;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -54,7 +56,7 @@ public interface TestApplicationContextAware {
 			TEST_INTEGRATION_CONTEXT.refresh();
 		}
 		catch (IllegalStateException ex) {
-			if (!ex.getMessage().contains("just call 'refresh' once")) {
+			if (!Objects.requireNonNull(ex.getMessage()).contains("just call 'refresh' once")) {
 				throw ex;
 			}
 		}

@@ -16,6 +16,10 @@
 
 package org.springframework.integration.test.support;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
@@ -23,7 +27,9 @@ import org.springframework.util.Assert;
 /**
  * Defines a Spring Integration request response test scenario. All setter methods may
  * be chained.
+ *
  * @author David Turanski
+ * @author Artem Bilan
  *
  */
 public class RequestResponseScenario {
@@ -32,20 +38,21 @@ public class RequestResponseScenario {
 
 	private final String outputChannelName;
 
-	private Object payload;
+	private @Nullable Object payload;
 
-	private Message<?> message;
+	private @Nullable Message<?> message;
 
+	@SuppressWarnings("NullAway.Init")
 	private AbstractResponseValidator<?> responseValidator;
 
-	private String name;
+	private @Nullable String name;
 
-	protected Message<? extends Object> getMessage() {
-		if (message == null) {
-			return new GenericMessage<Object>(this.payload);
+	protected Message<?> getMessage() {
+		if (this.message == null) {
+			return new GenericMessage<>(Objects.requireNonNull(this.payload));
 		}
 		else {
-			return message;
+			return this.message;
 		}
 	}
 
@@ -64,7 +71,7 @@ public class RequestResponseScenario {
 	 * @return the input channel name
 	 */
 	public String getInputChannelName() {
-		return inputChannelName;
+		return this.inputChannelName;
 	}
 
 	/**
@@ -72,15 +79,15 @@ public class RequestResponseScenario {
 	 * @return the output channel name
 	 */
 	public String getOutputChannelName() {
-		return outputChannelName;
+		return this.outputChannelName;
 	}
 
 	/**
 	 *
 	 * @return the request message payload
 	 */
-	public Object getPayload() {
-		return payload;
+	public @Nullable Object getPayload() {
+		return this.payload;
 	}
 
 	/**
@@ -97,8 +104,8 @@ public class RequestResponseScenario {
 	 *
 	 * @return the scenario name
 	 */
-	public String getName() {
-		return name;
+	public @Nullable String getName() {
+		return this.name;
 	}
 
 	/**
@@ -117,7 +124,7 @@ public class RequestResponseScenario {
 	 * @see AbstractResponseValidator
 	 */
 	public AbstractResponseValidator<?> getResponseValidator() {
-		return responseValidator;
+		return this.responseValidator;
 	}
 
 	/**
@@ -142,7 +149,10 @@ public class RequestResponseScenario {
 	}
 
 	protected void init() {
-		Assert.state(message == null || payload == null, "cannot set both message and payload");
+		Assert.state(this.message == null || this.payload == null, "cannot set both message and payload");
+		Assert.state(this.responseValidator != null,
+				"A 'responseValidator' must be provided for the 'SubscribableChannel' scenario.");
+
 	}
 
 }
