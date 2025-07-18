@@ -44,3 +44,8 @@ See xref:redis.adoc#redis-lock-registry[Redis Lock Registry] for more informatio
 === Hazelcast Changes
 
 Previously deprecated classes in the `spring-integation-hazelcast` module, such as `LeaderInitiator`, `HazelcastMembershipListener`, `HazelcastLocalInstanceRegistrar` and `HazelcastLockRegistry`, are now removed due to not supported CP-subsystem in Hazelcast library for Open Source.
+
+[[x7.0-mqtt-changes]]
+=== MQTT Changes
+
+The `disconnectForcibly` method in `MqttPahoMessageDrivenChannelAdapter`, `Mqttv5PahoMessageDrivenChannelAdapter`, `Mqttv3ClientManager`, and `Mqttv5ClientManager` now supports `getQuiescentTimeout` in addition to the existing `disconnectCompletionTimeout`.

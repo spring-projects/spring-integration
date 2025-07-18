@@ -151,7 +151,7 @@ public class Mqttv3ClientManager
 				return;
 			}
 			try {
-				client.disconnectForcibly(getDisconnectCompletionTimeout());
+				client.disconnectForcibly(getQuiescentTimeout(), getDisconnectCompletionTimeout());
 				if (getConnectionInfo().isAutomaticReconnect()) {
 					MqttUtils.stopClientReconnectCycle(client);
 				}
