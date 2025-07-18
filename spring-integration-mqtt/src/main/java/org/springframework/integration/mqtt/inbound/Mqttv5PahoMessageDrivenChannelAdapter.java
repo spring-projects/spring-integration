@@ -37,6 +37,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.eclipse.paho.mqttv5.common.packet.MqttReturnCode;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -81,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  *
@@ -296,7 +298,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 				}
 				if (getClientManager() == null) {
-					this.mqttClient.disconnectForcibly(getDisconnectCompletionTimeout());
+					this.mqttClient.disconnectForcibly(getQuiescentTimeout(), getDisconnectCompletionTimeout(),
+							MqttReturnCode.RETURN_CODE_SUCCESS, new MqttProperties());
 					if (getConnectionInfo().isAutomaticReconnect()) {
 						MqttUtils.stopClientReconnectCycle(this.mqttClient);
 					}

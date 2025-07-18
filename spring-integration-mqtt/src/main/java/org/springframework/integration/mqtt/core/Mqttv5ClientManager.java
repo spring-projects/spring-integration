@@ -26,6 +26,7 @@ import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.eclipse.paho.mqttv5.common.packet.MqttReturnCode;
 
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.support.MqttUtils;
@@ -153,7 +154,8 @@ public class Mqttv5ClientManager
 			}
 
 			try {
-				client.disconnectForcibly(getDisconnectCompletionTimeout());
+				client.disconnectForcibly(getQuiescentTimeout(), getDisconnectCompletionTimeout(),
+						MqttReturnCode.RETURN_CODE_SUCCESS, new MqttProperties());
 				if (getConnectionInfo().isAutomaticReconnect()) {
 					MqttUtils.stopClientReconnectCycle(client);
 				}

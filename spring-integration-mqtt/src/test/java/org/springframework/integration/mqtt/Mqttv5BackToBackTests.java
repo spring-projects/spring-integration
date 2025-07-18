@@ -57,6 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Mikhail Polivakha
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  *
@@ -64,6 +65,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext
 public class Mqttv5BackToBackTests implements MosquittoContainerTest {
+
+	private static final long QUIESCENT_TIMEOUT = 1;
+
+	private static final long DISCONNECT_COMPLETION_TIMEOUT = 1L;
 
 	@Autowired
 	@Qualifier("mqttOutFlow.input")
@@ -94,7 +99,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Test
 	public void testSimpleMqttv5Interaction() {
-		String testPayload = "foo";
+		String testPayload = "datakey";
 
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
@@ -213,6 +218,8 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 					new Mqttv5PahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "mqttv5SIin",
 							mqttSubscription);
 			messageProducer.setPayloadType(String.class);
+			messageProducer.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+			messageProducer.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);
 

@@ -63,6 +63,10 @@ import static org.awaitility.Awaitility.await;
  */
 class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
+	private static final long QUIESCENT_TIMEOUT = 1L;
+
+	private static final long DISCONNECT_COMPLETION_TIMEOUT = 1L;
+
 	@Test
 	void testSameV3ClientIdWorksForPubAndSub() throws Exception {
 		testSubscribeAndPublish(Mqttv3Config.class, Mqttv3Config.TOPIC_NAME, Mqttv3Config.subscribedLatch);
@@ -191,7 +195,10 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
-			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
+			Mqttv3ClientManager result = new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
+			result.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+			result.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
+			return result;
 		}
 
 		@Bean
@@ -234,7 +241,10 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
-			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3-reconnect");
+			Mqttv3ClientManager result = new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3-reconnect");
+			result.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+			result.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
+			return result;
 		}
 
 		@Bean
@@ -269,7 +279,10 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
-			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
+			Mqttv3ClientManager result = new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
+			result.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+			result.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
+			return result;
 		}
 
 		@Bean

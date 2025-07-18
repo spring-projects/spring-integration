@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Mikhail Polivakha
  * @author Artem Vozhdayenko
  * @author Jiri Soucek
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -72,6 +73,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	private long completionTimeout = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
 
 	private long disconnectCompletionTimeout = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
+
+	private long quiescentTimeout = ClientManager.QUIESCENT_TIMEOUT;
 
 	private boolean manualAcks;
 
@@ -197,6 +200,20 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	protected long getDisconnectCompletionTimeout() {
 		return this.disconnectCompletionTimeout;
+	}
+
+	/**
+	 * Set the quiescentTimeout timeout when disconnecting.
+	 * Default is {@link ClientManager#QUIESCENT_TIMEOUT} milliseconds.
+	 * @param quiescentTimeout The timeout.
+	 * @since 7.0.0
+	 */
+	public void setQuiescentTimeout(long quiescentTimeout) {
+		this.quiescentTimeout = quiescentTimeout;
+	}
+
+	protected long getQuiescentTimeout() {
+		return this.quiescentTimeout;
 	}
 
 	@Override
