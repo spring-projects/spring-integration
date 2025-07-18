@@ -66,6 +66,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
+	private static final long QUIESCENT_TIMEOUT = 1;
+
+	private static final long DISCONNECT_COMPLETION_TIMEOUT = 1L;
+
 	@Autowired
 	@Qualifier("mqttOutFlow.input")
 	private MessageChannel mqttOutFlowInput;
@@ -95,7 +99,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Test
 	public void testSimpleMqttv5Interaction() {
-		String testPayload = "foo";
+		String testPayload = "datakey";
 
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
@@ -146,23 +150,6 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
 						.setHeader(MqttHeaders.TOPIC, "testTopic")
-						.build());
-
-		Message<?> receive = this.fromMqttChannel.receive(10_000);
-
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo(testPayload);
-	}
-
-	@Test
-	void testSharedTopicMqttv5InteractionQuiescentTimeout() {
-		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopicq");
-		this.mqttv5MessageDrivenChannelAdapter.setQuiescentTimeout(2000);
-		this.mqttv5MessageDrivenChannelAdapter.setDisconnectCompletionTimeout(2000);
-		String testPayload = "shared topic payload";
-		this.mqttOutFlowInput.send(
-				MessageBuilder.withPayload(testPayload)
-						.setHeader(MqttHeaders.TOPIC, "testTopicq")
 						.build());
 
 		Message<?> receive = this.fromMqttChannel.receive(10_000);
@@ -231,6 +218,8 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 					new Mqttv5PahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "mqttv5SIin",
 							mqttSubscription);
 			messageProducer.setPayloadType(String.class);
+			messageProducer.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+			messageProducer.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);
 

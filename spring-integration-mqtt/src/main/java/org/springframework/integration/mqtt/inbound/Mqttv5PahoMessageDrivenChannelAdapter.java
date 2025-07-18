@@ -298,7 +298,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 				}
 				if (getClientManager() == null) {
-					this.mqttClient.disconnectForcibly(QUIESCENT_TIMEOUT, getDisconnectCompletionTimeout(),
+					this.mqttClient.disconnectForcibly(ClientManager.QUIESCENT_TIMEOUT, getDisconnectCompletionTimeout(),
 							MqttReturnCode.RETURN_CODE_SUCCESS, new MqttProperties());
 					if (getConnectionInfo().isAutomaticReconnect()) {
 						MqttUtils.stopClientReconnectCycle(this.mqttClient);

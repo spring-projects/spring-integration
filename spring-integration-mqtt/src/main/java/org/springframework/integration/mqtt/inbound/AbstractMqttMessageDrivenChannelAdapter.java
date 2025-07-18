@@ -60,8 +60,6 @@ import org.springframework.util.Assert;
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 
-	public static final Long QUIESCENT_TIMEOUT = 30_000L;
-
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
 	private final String url;
@@ -76,7 +74,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	private long disconnectCompletionTimeout = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
 
-	private long quiescentTimeout = QUIESCENT_TIMEOUT;
+	private long quiescentTimeout = ClientManager.QUIESCENT_TIMEOUT;
 
 	private boolean manualAcks;
 
@@ -206,7 +204,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Set the quiescentTimeout timeout when disconnecting.
-	 * Default is 30,000 milliseconds.
+	 * Default is {@link ClientManager#QUIESCENT_TIMEOUT} milliseconds.
 	 * @param quiescentTimeout The timeout.
 	 * @since 7.0.0
 	 */
@@ -214,7 +212,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.quiescentTimeout = quiescentTimeout;
 	}
 
-	public long getQuiescentTimeout() {
+	protected long getQuiescentTimeout() {
 		return this.quiescentTimeout;
 	}
 
