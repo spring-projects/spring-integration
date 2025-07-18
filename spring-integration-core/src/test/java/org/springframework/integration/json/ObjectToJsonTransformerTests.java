@@ -22,16 +22,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 2.0
  */
@@ -149,9 +150,9 @@ public class ObjectToJsonTransformerTests {
 	@Test
 	public void objectPayloadWithCustomObjectMapper() {
 		ObjectMapper customMapper = JsonMapper.builder()
-				.configure(JsonWriteFeature.QUOTE_FIELD_NAMES, false)
+				.configure(JsonWriteFeature.QUOTE_PROPERTY_NAMES, false)
 				.build();
-		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new JacksonJsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<>(person)).getPayload();
@@ -205,8 +206,8 @@ public class ObjectToJsonTransformerTests {
 		assertThat(objectNode.path("bar").intValue()).isEqualTo(1);
 
 		result = transformer.transform(new GenericMessage<>("foo")).getPayload();
-		assertThat(result).isInstanceOf(TextNode.class);
-		assertThat(((TextNode) result).textValue()).isEqualTo("foo");
+		assertThat(result).isInstanceOf(StringNode.class);
+		assertThat(((StringNode) result).textValue()).isEqualTo("foo");
 	}
 
 }

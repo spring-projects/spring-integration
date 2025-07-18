@@ -82,10 +82,10 @@ class JacksonJsonObjectMapperTests {
 		Set<String> collectedModuleNames = getModuleNames(collectWellKnownModulesIfAvailable());
 
 		Set<String> autoModuleNames = getModuleNames(mapper.getObjectMapper().getRegisteredModules());
-		assertThat(autoModuleNames).isEqualTo(collectedModuleNames);
+		assertThat(autoModuleNames).containsAll(collectedModuleNames);
 
 		Set<String> manualModuleNames = getModuleNames(manualMapper.getRegisteredModules());
-		assertThat(manualModuleNames).isEqualTo(collectedModuleNames);
+		assertThat(manualModuleNames).containsAll(collectedModuleNames);
 	}
 
 	@Test

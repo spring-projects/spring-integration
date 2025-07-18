@@ -36,7 +36,9 @@ import org.springframework.messaging.MessageHeaders;
  * @author Artem Bilan
  *
  * @since 4.3.10
+ * @deprecated Since 7.0 in favor of {@link MessageHeadersJsonSerializer} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class MessageHeadersJacksonSerializer extends StdSerializer<MessageHeaders> {
 
 	private static final long serialVersionUID = 1L;

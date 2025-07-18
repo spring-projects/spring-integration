@@ -46,7 +46,7 @@ import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
@@ -205,7 +205,7 @@ class JdbcTests {
 		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
 		assertThat(resultPayload).isInstanceOf(String.class);
-		Message<?> message = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser())
+		Message<?> message = new JsonInboundMessageMapper(String.class, new JacksonJsonMessageParser())
 				.toMessage((String) resultPayload);
 		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
 		assertThat(message.getHeaders().get("FOO")).isEqualTo(testMessage.getHeaders().get("FOO"));

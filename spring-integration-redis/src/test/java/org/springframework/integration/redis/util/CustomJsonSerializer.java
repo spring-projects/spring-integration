@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.integration.mapping.InboundMessageMapper;
-import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.messaging.Message;
 
@@ -35,7 +35,7 @@ public class CustomJsonSerializer implements RedisSerializer<Message<?>> {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private final InboundMessageMapper<String> mapper =
-			new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser());
+			new JsonInboundMessageMapper(String.class, new JacksonJsonMessageParser());
 
 	@Override
 	public byte[] serialize(Message<?> message) throws SerializationException {

@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.StringNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,6 +63,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jooyoung Pyoung
+ *
  * @since 5.0
  */
 @SpringJUnitConfig
@@ -132,8 +134,8 @@ public class CorrelationHandlerTests {
 		@SuppressWarnings("unchecked")
 		List<Object> result = (List<Object>) receive.getPayload();
 		for (int i = 0; i < payload.size(); i++) {
-			assertThat(result.get(i)).isInstanceOf(TextNode.class);
-			assertThat(result.get(i)).isEqualTo(TextNode.valueOf(payload.get(i)));
+			assertThat(result.get(i)).isInstanceOf(StringNode.class);
+			assertThat(result.get(i)).isEqualTo(StringNode.valueOf(payload.get(i)));
 		}
 	}
 

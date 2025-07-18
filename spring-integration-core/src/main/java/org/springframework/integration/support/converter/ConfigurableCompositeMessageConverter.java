@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import tools.jackson.databind.ObjectMapper;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -29,11 +31,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.GenericMessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 
@@ -44,13 +48,14 @@ import org.springframework.messaging.converter.MessageConverter;
  * <p>
  * The default converts are (declared exactly in this order):
  * <ul>
- *  <li> {@link MappingJackson2MessageConverter} if Jackson processor is present in classpath;
+ *  <li> {@link JacksonJsonMessageConverter} if Jackson processor is present in classpath;
  *  <li> {@link ByteArrayMessageConverter}
  *  <li> {@link ObjectStringMessageConverter}
  *  <li> {@link GenericMessageConverter}
  * </ul>
  *
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 5.0
  */
@@ -109,7 +114,13 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 	private static Collection<MessageConverter> initDefaults() {
 		List<MessageConverter> converters = new LinkedList<>();
 
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			ObjectMapper objectMapper = new JacksonJsonObjectMapper().getObjectMapper();
+			JacksonJsonMessageConverter jsonMessageConverter = new JacksonJsonMessageConverter(objectMapper);
+			jsonMessageConverter.setStrictContentTypeMatch(true);
+			converters.add(jsonMessageConverter);
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 			mappingJackson2MessageConverter.setStrictContentTypeMatch(true);
 			mappingJackson2MessageConverter.setObjectMapper(new Jackson2JsonObjectMapper().getObjectMapper());

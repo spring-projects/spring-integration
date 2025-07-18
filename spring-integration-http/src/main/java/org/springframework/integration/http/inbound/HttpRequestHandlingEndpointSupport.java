@@ -17,7 +17,6 @@
 package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +39,11 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.SmartHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
@@ -106,6 +107,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Artem Bilan
  * @author Biju Kunjummen
  * @author Trung Pham
+ * @author Jooyoung Pyoung
  *
  * @since 2.0
  */
@@ -158,7 +160,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			this.defaultMessageConverters.add(new Jaxb2RootElementHttpMessageConverter());
 			logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			this.defaultMessageConverters.add(new JacksonJsonHttpMessageConverter());
+			logger.debug("'JacksonJsonHttpMessageConverter' was added to the 'defaultMessageConverters'.");
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
 			logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
@@ -513,7 +519,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 									: byte[].class);
 		}
 
-		Type targetType = requestPayloadType.getType();
 		Class<?> targetClass = requestPayloadType.toClass();
 
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
@@ -521,16 +526,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 					converter instanceof GenericHttpMessageConverter
 							? (GenericHttpMessageConverter<?>) converter
 							: null;
-			if (genericConverter != null
-					? genericConverter.canRead(targetType, null, contentType)
-					: (converter.canRead(targetClass, contentType))) {
 
-				if (genericConverter != null) {
-					return genericConverter.read(targetType, null, request);
-				}
-				else {
-					return converter.read((Class) targetClass, request);
-				}
+			SmartHttpMessageConverter<?> smartConverter =
+					converter instanceof SmartHttpMessageConverter
+							? (SmartHttpMessageConverter<?>) converter
+							: null;
+
+			if (smartConverter != null && smartConverter.canRead(requestPayloadType, contentType)) {
+				return smartConverter.read(requestPayloadType, request, null);
+			}
+			else if (genericConverter != null &&
+					genericConverter.canRead(requestPayloadType.getType(), null, contentType)) {
+				return genericConverter.read(requestPayloadType.getType(), null, request);
+			}
+			else if (converter.canRead(targetClass, contentType)) {
+				return converter.read((Class) targetClass, request);
 			}
 		}
 		throw new MessagingException(
