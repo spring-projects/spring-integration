@@ -76,7 +76,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private @Nullable H handler;
+	@SuppressWarnings("NullAway.Init")
+	private H handler;
 
 	private @Nullable MessageChannel outputChannel;
 
@@ -195,18 +196,14 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	public H getObject() {
 		if (this.handler == null) {
 			this.handler = createHandlerInternal();
-			Assert.notNull(this.handler, "failed to create MessageHandler");
 		}
 		return this.handler;
 	}
 
-	protected final @Nullable H createHandlerInternal() {
+	protected final H createHandlerInternal() {
 		this.initializationMonitor.lock();
 		try {
-			if (this.initialized) {
-				// There was a problem when this method was called already
-				return null;
-			}
+			Assert.state(!this.initialized, "FactoryBean already initialized");
 			this.handler = createHandler();
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
@@ -317,12 +314,14 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return true;
 	}
 
-	private static @Nullable Object extractTarget(@Nullable Object object) {
+	private static Object extractTarget(Object object) {
 		if (!(object instanceof Advised)) {
 			return object;
 		}
 		else {
-			return extractTarget(AopProxyUtils.getSingletonTarget(object));
+//			return extractTarget(Objects.requireNonNull(AopProxyUtils.getSingletonTarget(object)));
+			return Objects.requireNonNullElse(AopProxyUtils.getSingletonTarget(object), object);
+
 		}
 	}
 
