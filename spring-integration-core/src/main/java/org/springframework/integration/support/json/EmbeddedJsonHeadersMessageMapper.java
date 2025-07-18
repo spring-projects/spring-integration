@@ -78,8 +78,9 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Bilan
  *
  * @since 5.0
- *
+ * @deprecated Since 7.0 in favor of {@link EmbeddedHeadersJsonMessageMapper} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final

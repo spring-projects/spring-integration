@@ -44,7 +44,7 @@
 
 	<spel-property-accessors>
 		<index-accessors>
-			<beans:bean id="jsonIndex" class="org.springframework.integration.json.JsonIndexAccessor"/>
+			<beans:bean id="jsonIndex" class="org.springframework.integration.json.JacksonIndexAccessor"/>
 		</index-accessors>
 		<beans:bean id="fooAccessor1" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
 		<beans:ref bean="fooAccessor"/>

@@ -80,7 +80,7 @@ For convenience, the channel could be supplied with the `ZeroMqProxy` instance i
 Both sending and receiving sockets are managed in their own dedicated threads making this channel concurrency-friendly.
 This way we can publish and consume to/from a `ZeroMqChannel` from different threads without synchronization.
 
-By default, the `ZeroMqChannel` uses an `EmbeddedJsonHeadersMessageMapper` to (de)serialize the `Message` (including headers) from/to `byte[]` using a Jackson JSON processor.
+By default, the `ZeroMqChannel` uses an `EmbeddedHeadersJsonMessageMapper` to (de)serialize the `Message` (including headers) from/to `byte[]` using a Jackson JSON processor.
 This logic can be configured via `setMessageMapper(BytesMessageMapper)`.
 
 Sending and receiving sockets can be customized for any options (read/write timeout, security etc.) via respective `setSendSocketConfigurer(Consumer<ZMQ.Socket>)` and `setSubscribeSocketConfigurer(Consumer<ZMQ.Socket>)` callbacks.
@@ -171,7 +171,7 @@ ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
                   new ZeroMqMessageHandler(context, "tcp://localhost:6060", SocketType.PUB);
     messageHandler.setTopicExpression(
                   new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
-    messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+    messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper());
 }
 ----
 
@@ -186,7 +186,7 @@ ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
                   new ZeroMqMessageHandler(context, 7070, SocketType.PUB);
     messageHandler.setTopicExpression(
                   new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
-    messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+    messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper());
 }
 ----
 

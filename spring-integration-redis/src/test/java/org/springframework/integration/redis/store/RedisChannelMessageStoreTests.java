@@ -20,13 +20,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -34,7 +34,7 @@ import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -182,8 +182,8 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 	@Test
 	void testJsonSerialization() {
 		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
-		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		ObjectMapper mapper = JacksonMessagingUtils.messagingAwareMapper();
+		GenericJackson3JsonRedisSerializer serializer = new GenericJackson3JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 
 		Message<?> genericMessage = new GenericMessage<>(new Date());

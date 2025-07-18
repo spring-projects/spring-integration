@@ -24,10 +24,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;

@@ -25,13 +25,16 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
@@ -59,8 +62,13 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	private final ObjectMapper objectMapper;
 
 	public JacksonJsonObjectMapper() {
+		SimpleModule simpleModule = new SimpleModule()
+				.addSerializer(UUID.class, new UUIDJsonSerializer());
+
 		this.objectMapper = JsonMapper.builder()
+				.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
 				.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
+				.addModule(simpleModule)
 				.build();
 	}
 

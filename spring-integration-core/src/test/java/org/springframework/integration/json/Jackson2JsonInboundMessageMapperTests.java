@@ -16,7 +16,7 @@
 
 package org.springframework.integration.json;
 
-import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 
 /**
@@ -28,7 +28,7 @@ public class Jackson2JsonInboundMessageMapperTests extends AbstractJsonInboundMe
 
 	@Override
 	protected JsonMessageParser<?> getParser() {
-		return new Jackson2JsonMessageParser();
+		return new JacksonJsonMessageParser();
 	}
 
 }

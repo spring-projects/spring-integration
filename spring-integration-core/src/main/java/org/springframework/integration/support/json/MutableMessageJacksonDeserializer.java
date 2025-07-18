@@ -30,7 +30,9 @@ import org.springframework.integration.support.MutableMessageHeaders;
  * @author Artem Bilan
  *
  * @since 4.3.10
+ * @deprecated Since 7.0 in favor of {@link MutableMessageJsonDeserializer} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class MutableMessageJacksonDeserializer extends MessageJacksonDeserializer<MutableMessage<?>> {
 
 	private static final long serialVersionUID = 1L;

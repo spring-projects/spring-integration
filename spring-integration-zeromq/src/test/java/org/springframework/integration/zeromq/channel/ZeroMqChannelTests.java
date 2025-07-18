@@ -32,7 +32,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Mono;
 
-import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
@@ -64,7 +64,7 @@ public class ZeroMqChannelTests implements TestApplicationContextAware {
 		channel.setSendSocketConfigurer(socket -> socket.setZapDomain("global"));
 		channel.setSubscribeSocketConfigurer(socket -> socket.setZapDomain("local"));
 		AtomicBoolean customMessageMapperCalled = new AtomicBoolean();
-		channel.setMessageMapper(new EmbeddedJsonHeadersMessageMapper() {
+		channel.setMessageMapper(new EmbeddedHeadersJsonMessageMapper() {
 
 			@Override
 			public Message<?> toMessage(byte[] bytes, Map<String, Object> headers) {
@@ -173,7 +173,7 @@ public class ZeroMqChannelTests implements TestApplicationContextAware {
 
 		byte[] recv = captureSocket.recv();
 		assertThat(recv).isNotNull();
-		Message<?> capturedMessage = new EmbeddedJsonHeadersMessageMapper().toMessage(recv);
+		Message<?> capturedMessage = new EmbeddedHeadersJsonMessageMapper().toMessage(recv);
 		assertThat(capturedMessage).isEqualTo(testMessage);
 		captureSocket.close();
 

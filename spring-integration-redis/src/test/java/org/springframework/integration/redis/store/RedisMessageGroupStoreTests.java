@@ -26,19 +26,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -51,7 +51,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -391,9 +391,9 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testJsonSerialization() {
-		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
+		ObjectMapper mapper = JacksonMessagingUtils.messagingAwareMapper();
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		GenericJackson3JsonRedisSerializer serializer = new GenericJackson3JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 
 		Message<?> genericMessage = new GenericMessage<>(new Date());
@@ -442,9 +442,9 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 						"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
 						"is not in the trusted packages:");
 
-		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());
+		mapper = JacksonMessagingUtils.messagingAwareMapper(getClass().getPackage().getName());
 
-		serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		serializer = new GenericJackson3JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 
 		store.removeMessageGroup(this.groupId);
@@ -452,9 +452,9 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		assertThat(messageGroup.size()).isEqualTo(1);
 		assertThat(messageGroup.getMessages().iterator().next()).isEqualTo(fooMessage);
 
-		mapper = JacksonJsonUtils.messagingAwareMapper("*");
+		mapper = JacksonMessagingUtils.messagingAwareMapper("*");
 
-		serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		serializer = new GenericJackson3JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);
 
 		store.removeMessageGroup(this.groupId);

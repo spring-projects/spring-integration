@@ -32,7 +32,9 @@ import org.springframework.util.MimeType;
  * @author Artem Bilan
  *
  * @since 5.4
+ * @deprecated Since 7.0 in favor of {@link MimeTypeJsonSerializer} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class MimeTypeSerializer extends StdSerializer<MimeType> {
 
 	private static final long serialVersionUID = 1L;

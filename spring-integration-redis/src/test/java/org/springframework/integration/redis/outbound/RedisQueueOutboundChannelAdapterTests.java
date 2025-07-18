@@ -27,13 +27,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -131,7 +131,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 
 		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
 				this.connectionFactory);
-		handler.setSerializer(new Jackson2JsonRedisSerializer<Object>(Object.class));
+		handler.setSerializer(new Jackson3JsonRedisSerializer<Object>(Object.class));
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
@@ -167,7 +167,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		String result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
 		assertThat(result).isNotNull();
 		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class,
-				new Jackson2JsonMessageParser());
+				new JacksonJsonMessageParser());
 		Message<?> resultMessage = mapper.toMessage(result);
 		assertThat(resultMessage.getPayload()).isEqualTo(message.getPayload());
 	}

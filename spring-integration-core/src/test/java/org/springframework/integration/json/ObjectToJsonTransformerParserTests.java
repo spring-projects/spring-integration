@@ -19,8 +19,8 @@ package org.springframework.integration.json;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -30,7 +30,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -80,7 +80,7 @@ public class ObjectToJsonTransformerParserTests {
 		assertThat(TestUtils.getPropertyValue(transformer, "contentType")).isEqualTo("application/json");
 
 		assertThat(TestUtils.getPropertyValue(transformer, "jsonObjectMapper").getClass())
-				.isEqualTo(Jackson2JsonObjectMapper.class);
+				.isEqualTo(JacksonJsonObjectMapper.class);
 
 		Message<?> transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
 
@@ -169,7 +169,7 @@ public class ObjectToJsonTransformerParserTests {
 		Object payload = reply.getPayload();
 		assertThat(payload).isInstanceOf(JsonNode.class);
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new JsonPropertyAccessor());
+		evaluationContext.addPropertyAccessor(new JacksonPropertyAccessor());
 		Expression expression = new SpelExpressionParser()
 				.parseExpression("firstName.toString() == 'John' and age.toString() == '42'");
 

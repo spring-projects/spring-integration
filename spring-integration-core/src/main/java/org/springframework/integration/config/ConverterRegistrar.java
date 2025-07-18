@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.integration.json.JsonNodeWrapperConverter;
 import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 2.0
  */
@@ -73,7 +75,10 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 						.values()
 						.stream().map(IntegrationConverterRegistration::converter)
 						.collect(Collectors.toSet());
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			converters.add(new JsonNodeWrapperConverter());
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			converters.add(new JsonNodeWrapperToJsonNodeConverter());
 		}
 		ConversionServiceFactory.registerConverters(converters, conversionService);
