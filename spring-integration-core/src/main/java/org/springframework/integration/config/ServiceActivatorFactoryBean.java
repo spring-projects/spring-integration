@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -41,6 +43,7 @@ import org.springframework.util.StringUtils;
  */
 public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
+	@SuppressWarnings("NullAway.Init")
 	private String[] headers;
 
 	public void setNotPropagatedHeaders(String... headers) {
@@ -48,7 +51,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	}
 
 	@Override
-	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		MessageHandler handler;
 		handler = createDirectHandlerIfPossible(targetObject, targetMethodName);
 		if (handler == null) {
@@ -67,7 +70,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	 * @param targetMethodName the method name to check for Direct Handler requirements.
 	 * @return the {@code targetObject} as a Direct {@link MessageHandler} or {@code null}.
 	 */
-	protected MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
+	protected @Nullable MessageHandler createDirectHandlerIfPossible(final Object targetObject, @Nullable String targetMethodName) {
 		MessageHandler handler = null;
 		if ((targetObject instanceof MessageHandler || targetObject instanceof ReactiveMessageHandler)
 				&& methodIsHandleMessageOrEmpty(targetMethodName)) {

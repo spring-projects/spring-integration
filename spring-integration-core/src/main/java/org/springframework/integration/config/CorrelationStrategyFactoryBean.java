@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -39,8 +40,10 @@ import org.springframework.util.StringUtils;
  */
 public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationStrategy>, InitializingBean {
 
+	@SuppressWarnings("NullAway.Init")
 	private Object target;
 
+	@Nullable
 	private String methodName;
 
 	private CorrelationStrategy strategy =

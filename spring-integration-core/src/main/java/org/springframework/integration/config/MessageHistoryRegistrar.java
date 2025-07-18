@@ -17,6 +17,9 @@
 package org.springframework.integration.config;
 
 import java.util.Map;
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -48,9 +51,9 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 					"Only one @EnableMessageHistory or <message-history/> can be declared in the application context.");
 		}
 
-		Map<String, Object> annotationAttributes =
+		Map<String, @Nullable Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
-		Object componentNamePatterns = annotationAttributes.get("value"); // NOSONAR never null
+		Object componentNamePatterns = Objects.requireNonNull(annotationAttributes).get("value"); // NOSONAR never null
 
 		String patterns;
 

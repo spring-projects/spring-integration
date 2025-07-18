@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -31,7 +33,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 class CustomConversionServiceFactoryBean extends ConversionServiceFactoryBean {
 
 	@Override
-	public ConversionService getObject() {
+	public @Nullable ConversionService getObject() {
 		ConversionService service = super.getObject();
 		if (service instanceof GenericConversionService) {
 			((GenericConversionService) service).removeConvertible(Object.class, Object.class);

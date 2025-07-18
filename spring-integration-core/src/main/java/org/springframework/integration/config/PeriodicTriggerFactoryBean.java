@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
@@ -50,11 +51,11 @@ public class PeriodicTriggerFactoryBean implements FactoryBean<PeriodicTrigger> 
 	@Nullable
 	private TimeUnit timeUnit;
 
-	public void setFixedDelayValue(String fixedDelayValue) {
+	public void setFixedDelayValue(@Nullable String fixedDelayValue) {
 		this.fixedDelayValue = fixedDelayValue;
 	}
 
-	public void setFixedRateValue(String fixedRateValue) {
+	public void setFixedRateValue(@Nullable String fixedRateValue) {
 		this.fixedRateValue = fixedRateValue;
 	}
 
@@ -79,7 +80,8 @@ public class PeriodicTriggerFactoryBean implements FactoryBean<PeriodicTrigger> 
 			timeUnitToUse = TimeUnit.MILLISECONDS;
 		}
 
-		Duration duration = toDuration(hasFixedDelay ? this.fixedDelayValue : this.fixedRateValue, timeUnitToUse);
+		String value = hasFixedDelay ? this.fixedDelayValue : this.fixedRateValue;
+		Duration duration = toDuration(Objects.requireNonNull(value), timeUnitToUse);
 
 		PeriodicTrigger periodicTrigger = new PeriodicTrigger(duration);
 		periodicTrigger.setFixedRate(hasFixedRate);

@@ -42,8 +42,10 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 
 	private final String functionMethodSignature;
 
+	@SuppressWarnings("NullAway.Init")
 	private String functionName;
 
+	@SuppressWarnings("NullAway.Init")
 	private Method method;
 
 	public SpelFunctionFactoryBean(Class<?> functionClass, String functionMethodSignature) {
@@ -62,12 +64,13 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 
 	@Override
 	public void afterPropertiesSet() {
-		this.method = BeanUtils.resolveSignature(this.functionMethodSignature, this.functionClass);
+		Method method = BeanUtils.resolveSignature(this.functionMethodSignature, this.functionClass);
 
-		if (this.method == null) {
+		if (method == null) {
 			throw new BeanDefinitionStoreException(String.format("No declared method '%s' in class '%s'",
 					this.functionMethodSignature, this.functionClass));
 		}
+		this.method = method;
 		if (!Modifier.isStatic(this.method.getModifiers())) {
 			throw new BeanDefinitionStoreException("SpEL-function method has to be 'static'");
 		}

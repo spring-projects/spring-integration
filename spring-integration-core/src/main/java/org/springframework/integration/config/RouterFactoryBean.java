@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -44,20 +46,28 @@ import org.springframework.util.StringUtils;
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
+	@Nullable
 	private Map<String, String> channelMappings;
 
+	@Nullable
 	private MessageChannel defaultOutputChannel;
 
+	@Nullable
 	private String defaultOutputChannelName;
 
+	@Nullable
 	private String prefix;
 
+	@Nullable
 	private String suffix;
 
+	@Nullable
 	private Boolean resolutionRequired;
 
+	@Nullable
 	private Boolean applySequence;
 
+	@Nullable
 	private Boolean ignoreSendFailures;
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
@@ -93,7 +103,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router =
 				IntegrationObjectSupport.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
@@ -122,7 +132,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
-	protected AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
+	protected AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, @Nullable String targetMethodName) {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);

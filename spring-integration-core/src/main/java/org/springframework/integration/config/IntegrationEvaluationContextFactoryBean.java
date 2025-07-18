@@ -73,6 +73,7 @@ public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationC
 	@Nullable
 	private TypeLocator typeLocator;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanResolver beanResolver;
 
 	public void setTypeLocator(TypeLocator typeLocator) {

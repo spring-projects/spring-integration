@@ -19,6 +19,8 @@ package org.springframework.integration.config;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -52,32 +54,45 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private final Lock initializationMonitor = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageSource<?> source;
 
+	@Nullable
 	private MessageChannel outputChannel;
 
+	@Nullable
 	private String outputChannelName;
 
+	@Nullable
 	private PollerMetadata pollerMetadata;
 
+	@Nullable
 	private Boolean autoStartup;
 
 	private int phase = Integer.MAX_VALUE / 2;
 
+	@Nullable
 	private Long sendTimeout;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableBeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader beanClassLoader;
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@Nullable
 	private String role;
 
+	@Nullable
 	private TaskScheduler taskScheduler;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile SourcePollingChannelAdapter adapter;
 
 	private volatile boolean initialized;

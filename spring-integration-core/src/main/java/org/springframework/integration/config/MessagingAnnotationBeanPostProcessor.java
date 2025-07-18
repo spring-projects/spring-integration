@@ -65,6 +65,7 @@ public class MessagingAnnotationBeanPostProcessor
 
 	private final List<Runnable> methodsToPostProcessAfterContextInitialization = new ArrayList<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private volatile boolean initialized;

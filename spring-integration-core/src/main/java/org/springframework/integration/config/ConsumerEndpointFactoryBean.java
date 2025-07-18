@@ -90,37 +90,50 @@ public class ConsumerEndpointFactoryBean
 
 	private final Lock handlerMonitor = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageHandler handler;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
+	@SuppressWarnings("NullAway.Init")
 	private String inputChannelName;
 
+	@Nullable
 	private PollerMetadata pollerMetadata;
 
 	@Nullable
 	private Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer;
 
+	@Nullable
 	private Boolean autoStartup;
 
 	private int phase = 0;
 
 	private boolean isPhaseSet;
 
+	@Nullable
 	private String role;
 
+	@Nullable
 	private MessageChannel inputChannel;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableBeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader beanClassLoader;
 
+	@Nullable
 	private List<Advice> adviceChain;
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@Nullable
 	private TaskScheduler taskScheduler;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractEndpoint endpoint;
 
 	private volatile boolean initialized;

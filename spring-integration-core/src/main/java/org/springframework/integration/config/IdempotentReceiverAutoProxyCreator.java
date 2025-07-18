@@ -20,8 +20,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
@@ -47,9 +50,10 @@ import org.springframework.util.PatternMatchUtils;
 @SuppressWarnings("serial")
 class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile List<Map<String, String>> idempotentEndpointsMapping;
 
-	private volatile Map<String, List<String>> idempotentEndpoints; // double check locking requires volatile
+	private volatile @Nullable Map<String, List<String>> idempotentEndpoints; // double check locking requires volatile
 
 	private final Lock lock = new ReentrantLock();
 
@@ -59,13 +63,13 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 	}
 
 	@Override
-	protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
-			TargetSource customTargetSource) throws BeansException {
+	protected Object @Nullable [] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
+			@Nullable TargetSource customTargetSource) throws BeansException {
 		initIdempotentEndpointsIfNecessary();
 
 		if (MessageHandler.class.isAssignableFrom(beanClass)) {
 			List<Advisor> interceptors = new ArrayList<Advisor>();
-			for (Map.Entry<String, List<String>> entry : this.idempotentEndpoints.entrySet()) {
+			for (Map.Entry<String, List<String>> entry : Objects.requireNonNull(this.idempotentEndpoints).entrySet()) {
 				List<String> mappedNames = entry.getValue();
 				for (String mappedName : mappedNames) {
 					if (isMatch(mappedName, beanName)) {

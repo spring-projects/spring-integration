@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -133,17 +134,21 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final List<String> messageHandlerAttributes = new ArrayList<>(); // NOSONAR
 
-	protected final Class<T> annotationType; // NOSONAR
+	protected final Class<T> annotationType;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanDefinitionRegistry definitionRegistry;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConversionService conversionService;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
-	@SuppressWarnings(UNCHECKED)
+	@SuppressWarnings("NullAway")
 	public AbstractMethodAnnotationPostProcessor() {
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.annotationType =
@@ -190,7 +195,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		BeanDefinition handlerBeanDefinition =
 				resolveHandlerBeanDefinition(beanName, beanDefinition, handlerBeanType, annotations);
 		MergedAnnotations mergedAnnotations =
-				beanDefinition.getFactoryMethodMetadata().getAnnotations(); // NOSONAR
+				Objects.requireNonNull(beanDefinition.getFactoryMethodMetadata()).getAnnotations();
 
 		if (handlerBeanDefinition != null) {
 			if (!handlerBeanDefinition.equals(beanDefinition)) {
@@ -410,7 +415,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (FactoryBean.class.isAssignableFrom(classToCheck)) {
 			classToCheck = this.beanFactory.getType(beanName);
 		}
-
+		Assert.state(classToCheck != null, "No handler bean found for " + beanName);
 		if (isClassIn(classToCheck, AbstractMessageProducingHandler.class, AbstractMessageRouter.class)) {
 			checkMessageHandlerAttributes(beanName, annotations);
 			return beanDefinition;
@@ -482,7 +487,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				&& !AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 
 			String[] interceptors =
-					AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value(); // NOSONAR never null
+					Objects.requireNonNull(AnnotationUtils.getAnnotation(method, IdempotentReceiver.class)).value();
 			for (String interceptor : interceptors) {
 				DefaultBeanFactoryPointcutAdvisor advisor = new DefaultBeanFactoryPointcutAdvisor();
 				advisor.setAdviceBeanName(interceptor);
@@ -531,7 +536,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return handler;
 	}
 
-	protected List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
+	protected @Nullable List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
 		List<Advice> adviceChain = null;
 		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
 				String[].class);
@@ -564,7 +569,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return adviceChain;
 	}
 
-	protected AbstractEndpoint createEndpoint(MessageHandler handler, @SuppressWarnings("unused") Method method,
+	protected @Nullable AbstractEndpoint createEndpoint(MessageHandler handler, @SuppressWarnings("unused") Method method,
 			List<Annotation> annotations) {
 
 		AbstractEndpoint endpoint = null;
@@ -622,7 +627,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	private ReactiveStreamsConsumer reactiveStreamsConsumer(MessageChannel channel, MessageHandler handler,
-			Reactive reactive) {
+			@Nullable Reactive reactive) {
 
 		ReactiveStreamsConsumer reactiveStreamsConsumer;
 		if (handler instanceof ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter) {
@@ -646,13 +651,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return reactiveStreamsConsumer;
 	}
 
-	private PollingConsumer pollingConsumer(MessageChannel inputChannel, MessageHandler handler, Poller poller) {
+	private PollingConsumer pollingConsumer(MessageChannel inputChannel, MessageHandler handler, @Nullable Poller poller) {
 		PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
 		configurePollingEndpoint(pollingConsumer, poller);
 		return pollingConsumer;
 	}
 
-	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, Poller poller) {
+	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, @Nullable Poller poller) {
 		PollerMetadata pollerMetadata;
 		if (poller != null) {
 			String ref = poller.value();
@@ -704,8 +709,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	private PollerMetadata configurePoller(AbstractPollingEndpoint pollingEndpoint, String triggerRef,
-			String executorRef, String fixedDelayValue, String fixedRateValue, String maxMessagesPerPollValue,
-			String cron, String errorChannel, String receiveTimeout) {
+			String executorRef, @Nullable String fixedDelayValue, @Nullable String fixedRateValue,
+			@Nullable String maxMessagesPerPollValue, @Nullable String cron, @Nullable String errorChannel,
+			@Nullable String receiveTimeout) {
 
 		PollerMetadata pollerMetadata;
 		pollerMetadata = new PollerMetadata();
@@ -736,7 +742,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return pollerMetadata;
 	}
 
-	private void trigger(String triggerRef, String fixedDelayValue, String fixedRateValue, String cron,
+	private void trigger(String triggerRef, @Nullable String fixedDelayValue, @Nullable String fixedRateValue, @Nullable String cron,
 			PollerMetadata pollerMetadata) {
 
 		Trigger trigger = null;
@@ -815,7 +821,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(attribute));
 	}
 
-	protected static BeanDefinition buildLambdaMessageProcessor(ResolvableType beanType,
+	protected static @Nullable BeanDefinition buildLambdaMessageProcessor(ResolvableType beanType,
 			AnnotatedBeanDefinition beanDefinition) {
 
 		Class<?> beanClass = beanType.toClass();

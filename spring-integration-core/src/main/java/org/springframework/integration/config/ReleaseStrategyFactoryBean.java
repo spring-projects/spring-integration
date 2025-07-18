@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,9 +44,9 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>,
 
 	private static final Log LOGGER = LogFactory.getLog(ReleaseStrategyFactoryBean.class);
 
-	private Object target;
+	private @Nullable Object target;
 
-	private String methodName;
+	private @Nullable String methodName;
 
 	private ReleaseStrategy strategy = new SimpleSequenceSizeReleaseStrategy();
 

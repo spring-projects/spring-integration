@@ -20,6 +20,9 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -61,8 +64,10 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors = new HashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanDefinitionRegistry registry;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
 	@Override
@@ -113,7 +118,7 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 
 	private void processCandidate(String beanName, AnnotatedBeanDefinition beanDefinition) {
 		MethodMetadata methodMetadata = beanDefinition.getFactoryMethodMetadata();
-		MergedAnnotations annotations = methodMetadata.getAnnotations(); // NOSONAR
+		MergedAnnotations annotations = Objects.requireNonNull(methodMetadata).getAnnotations();
 		if (methodMetadata instanceof StandardMethodMetadata standardMethodMetadata) {
 			annotations = MergedAnnotations.from(standardMethodMetadata.getIntrospectedMethod());
 		}
@@ -138,8 +143,7 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 		if (messagingAnnotationProcessor != null) {
 			if (messagingAnnotationProcessor.beanAnnotationAware()) {
 				if (messagingAnnotationProcessor.shouldCreateEndpoint(
-						beanDefinition.getFactoryMethodMetadata().getAnnotations(), annotationChain)) {  // NOSONAR
-
+						Objects.requireNonNull(beanDefinition.getFactoryMethodMetadata()).getAnnotations(), annotationChain)) {
 					messagingAnnotationProcessor.processBeanDefinition(beanName, beanDefinition, annotationChain);
 				}
 				else {
@@ -169,7 +173,7 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 		return this.registry;
 	}
 
-	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> setupCustomPostProcessors() {
+	protected @Nullable Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> setupCustomPostProcessors() {
 		return null;
 	}
 

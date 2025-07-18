@@ -17,7 +17,10 @@
 package org.springframework.integration.config;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
@@ -48,16 +51,22 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 
 	private static final Set<MessageHandler> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private Boolean requiresReply;
 
+	@SuppressWarnings("NullAway.Init")
 	private Object targetObject;
 
+	@SuppressWarnings("NullAway.Init")
 	private String targetMethodName;
 
+	@SuppressWarnings("NullAway.Init")
 	private Expression expression;
 
+	@SuppressWarnings("NullAway.Init")
 	private Long sendTimeout;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageHandler replyHandler;
 
 	/**
@@ -135,8 +144,8 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 				if (logger.isDebugEnabled()) {
 					logger.debug("Wiring handler (" + this.targetObject + ") directly into endpoint");
 				}
-				checkReuse(actualHandler);
-				postProcessReplyProducer(actualHandler);
+				checkReuse(Objects.requireNonNull(actualHandler));
+				postProcessReplyProducer(Objects.requireNonNull(actualHandler));
 				handler = (MessageHandler) this.targetObject;
 			}
 			else {
@@ -152,7 +161,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		return handler;
 	}
 
-	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
+	protected void checkForIllegalTarget(Object targetObject, @Nullable String targetMethodName) {
 		if (targetObject instanceof AbstractReplyProducingMessageHandler
 				&& methodIsHandleMessageOrEmpty(targetMethodName)) {
 			/*
@@ -179,7 +188,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	 * @param targetMethodName the method name of the target object to invoke.
 	 * @return the method invoking {@link MessageHandler} implementation.
 	 */
-	protected abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
+	protected abstract MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName);
 
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		throw new UnsupportedOperationException(getClass().getName() + " does not support expressions.");
@@ -193,7 +202,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		throw new IllegalArgumentException("Exactly one of the 'targetObject' or 'expression' property is required.");
 	}
 
-	protected boolean methodIsHandleMessageOrEmpty(String targetMethodName) {
+	protected boolean methodIsHandleMessageOrEmpty(@Nullable String targetMethodName) {
 		return (!StringUtils.hasText(targetMethodName)
 				|| "handleMessage".equals(targetMethodName));
 	}

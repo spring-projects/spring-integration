@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.ControlBusMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.messaging.MessageHandler;
@@ -29,6 +31,7 @@ import org.springframework.messaging.MessageHandler;
  */
 public class ControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
+	@Nullable
 	private Long sendTimeout;
 
 	public void setSendTimeout(Long sendTimeout) {

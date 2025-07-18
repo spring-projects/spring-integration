@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  */
 class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	ConverterRegistrar() {

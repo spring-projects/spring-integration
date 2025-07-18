@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -49,6 +51,7 @@ class GatewayProxyInstantiationPostProcessor implements
 
 	private final BeanDefinitionRegistry registry;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	GatewayProxyInstantiationPostProcessor(BeanDefinitionRegistry registry) {
@@ -61,7 +64,7 @@ class GatewayProxyInstantiationPostProcessor implements
 	}
 
 	@Override
-	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+	public @Nullable Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
 		if (beanClass.isInterface() && AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)) {
 			BeanDefinition beanDefinition = this.registry.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AnnotatedGenericBeanDefinition
@@ -84,7 +87,7 @@ class GatewayProxyInstantiationPostProcessor implements
 	}
 
 	@Override
-	public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
+	public @Nullable BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
 		Class<?> beanClass = registeredBean.getBeanClass();
 		if (beanClass.isInterface() && AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)) {
 			RootBeanDefinition beanDefinition = registeredBean.getMergedBeanDefinition();

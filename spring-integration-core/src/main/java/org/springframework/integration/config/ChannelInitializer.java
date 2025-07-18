@@ -49,6 +49,7 @@ public final class ChannelInitializer implements BeanFactoryAware, InitializingB
 
 	private static final Log LOGGER = LogFactory.getLog(ChannelInitializer.class);
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile DefaultListableBeanFactory beanFactory;
 
 	private volatile boolean autoCreate = true;

@@ -52,7 +52,7 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 
 		for (String beanName : registry.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-			Map<String, Object> interceptorAttributes = obtainGlobalChannelInterceptorAttributes(beanDefinition);
+			Map<String, @Nullable Object> interceptorAttributes = obtainGlobalChannelInterceptorAttributes(beanDefinition);
 			if (!CollectionUtils.isEmpty(interceptorAttributes)) {
 				BeanDefinitionBuilder builder =
 						BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
@@ -66,8 +66,8 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 	}
 
 	@Nullable
-	private static Map<String, Object> obtainGlobalChannelInterceptorAttributes(BeanDefinition beanDefinition) {
-		Map<String, Object> annotationAttributes = null;
+	private static Map<String, @Nullable Object> obtainGlobalChannelInterceptorAttributes(BeanDefinition beanDefinition) {
+		Map<String, @Nullable Object> annotationAttributes = null;
 		if (beanDefinition instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
 			AnnotationMetadata metadata = annotatedBeanDefinition.getMetadata();
 			annotationAttributes = metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());

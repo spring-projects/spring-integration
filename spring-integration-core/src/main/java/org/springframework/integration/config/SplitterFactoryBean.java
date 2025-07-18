@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -39,12 +41,16 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
+	@Nullable
 	private Boolean applySequence;
 
+	@Nullable
 	private String delimiters;
 
+	@Nullable
 	private MessageChannel discardChannel;
 
+	@Nullable
 	private String discardChannelName;
 
 	public void setApplySequence(boolean applySequence) {
@@ -64,7 +70,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		AbstractMessageSplitter splitter =
 				IntegrationObjectSupport.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
@@ -85,7 +91,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		return splitter;
 	}
 
-	protected AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
+	protected AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, @Nullable String targetMethodName) {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingSplitter(targetObject, targetMethodName)
 				: new MethodInvokingSplitter(targetObject);

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
@@ -43,7 +45,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		Transformer transformer = null;
 		if (targetObject instanceof Transformer castTransformer) {

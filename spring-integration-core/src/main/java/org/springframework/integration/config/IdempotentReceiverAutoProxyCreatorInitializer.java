@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.CannotLoadBeanClassException;
@@ -98,7 +99,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 		if (beanDefinition.getSource() instanceof MethodMetadata beanMethod) {
 			String annotationType = IdempotentReceiver.class.getName();
 			if (beanMethod.isAnnotated(annotationType)) { // NOSONAR never null
-				Object value = beanMethod.getAnnotationAttributes(annotationType).get("value"); // NOSONAR
+				Object value = Objects.requireNonNull(beanMethod.getAnnotationAttributes(annotationType)).get("value");
 				if (value != null) {
 
 					Class<?> returnType;

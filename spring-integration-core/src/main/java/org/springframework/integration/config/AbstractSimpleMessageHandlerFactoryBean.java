@@ -17,14 +17,15 @@
 package org.springframework.integration.config;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -71,29 +72,34 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private final Lock initializationMonitor = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private H handler;
 
-	private MessageChannel outputChannel;
+	private @Nullable MessageChannel outputChannel;
 
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	private Integer order;
+	private @Nullable Integer order;
 
-	private List<Advice> adviceChain;
+	private @Nullable List<Advice> adviceChain;
 
-	private String componentName;
+	private @Nullable String componentName;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private DestinationResolver<MessageChannel> channelResolver;
+	private @Nullable DestinationResolver<MessageChannel> channelResolver;
 
-	private Boolean async;
+	private @Nullable Boolean async;
 
 	private boolean initialized;
 
@@ -190,7 +196,6 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	public H getObject() {
 		if (this.handler == null) {
 			this.handler = createHandlerInternal();
-			Assert.notNull(this.handler, "failed to create MessageHandler");
 		}
 		return this.handler;
 	}
@@ -198,10 +203,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	protected final H createHandlerInternal() {
 		this.initializationMonitor.lock();
 		try {
-			if (this.initialized) {
-				// There was a problem when this method was called already
-				return null;
-			}
+			Assert.state(!this.initialized, "FactoryBean already initialized");
 			this.handler = createHandler();
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
@@ -313,12 +315,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	private static Object extractTarget(Object object) {
-		if (!(object instanceof Advised)) {
-			return object;
-		}
-		else {
-			return extractTarget(AopProxyUtils.getSingletonTarget(object));
-		}
+		return Objects.requireNonNullElse(AopProxyUtils.getSingletonTarget(object), object);
 	}
 
 }
