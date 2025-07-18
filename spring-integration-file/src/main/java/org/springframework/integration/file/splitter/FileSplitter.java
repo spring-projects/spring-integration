@@ -445,11 +445,11 @@ public class FileSplitter extends AbstractMessageSplitter {
 			END
 		}
 
-		private final String filePath;
+		private String filePath;
 
-		private final Mark mark;
+		private Mark mark;
 
-		private final long lineCount;
+		private long lineCount;
 
 		/*
 		 * Provided solely to allow deserialization from JSON

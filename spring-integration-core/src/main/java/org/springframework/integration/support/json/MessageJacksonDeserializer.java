@@ -41,7 +41,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 4.3.10
+ * @deprecated Since 7.0 in favor of {@link MessageJsonDeserializer} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public abstract class MessageJacksonDeserializer<T extends Message<?>> extends StdNodeBasedDeserializer<T> {
 
 	private static final long serialVersionUID = 1L;

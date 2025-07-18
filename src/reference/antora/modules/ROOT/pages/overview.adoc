@@ -429,7 +429,7 @@ See xref:configuration/annotations.adoc[Annotation Support] for more information
 
 Most classes in Spring Integration (unless stated otherwise) must be declared as beans in the application context and as singletons.
 That means instances of these classes are thread-safe and their lifecycle and connection with other components are managed by Spring dependency injection container.
-The utility and builder classes (`JacksonJsonUtils, `MessageBuilder`, `ExpressionEvalMap`, `IntegrationReactiveUtils` etc.) can be used directly in the Java code.
+The utility and builder classes (`JacksonMessagingUtils, `MessageBuilder`, `ExpressionEvalMap`, `IntegrationReactiveUtils` etc.) can be used directly in the Java code.
 However, Java DSL factories and `IntegrationComponentSpec` implementation results still have to be registered as beans into the application context.
 The `Session` abstraction, present in many modules, is not thread-safe, typically created by the `Factory` pattern implementation, and used from thread-safe `Template` pattern.
 See, for example, `SftpRemoteFileTemplate` and its relationship with the `DefaultSftpSessionFactory`.

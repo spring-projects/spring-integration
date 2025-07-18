@@ -28,7 +28,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -75,7 +75,7 @@ public class JsonToObjectTransformerParserTests {
 		Object jsonToObjectTransformer =
 				TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
 		assertThat(TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass())
-				.isEqualTo(Jackson2JsonObjectMapper.class);
+				.isEqualTo(JacksonJsonObjectMapper.class);
 
 		DirectFieldAccessor dfa = new DirectFieldAccessor(jsonToObjectTransformer);
 		LogAccessor logger = (LogAccessor) spy(dfa.getPropertyValue("logger"));

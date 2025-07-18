@@ -104,11 +104,11 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 		}
 
 		reflectionHints.registerType(
-				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ComparableJsonNode"),
+				TypeReference.of("org.springframework.integration.json.JacksonPropertyAccessor$ComparableJsonNode"),
 				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		reflectionHints.registerType(
-				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ArrayNodeAsList"),
+				TypeReference.of("org.springframework.integration.json.JacksonPropertyAccessor$ArrayNodeAsList"),
 				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		// For #xpath() SpEL function

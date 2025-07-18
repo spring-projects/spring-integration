@@ -38,7 +38,9 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  *
  * @since 3.0
+ * @deprecated Since 7.0 in favor of {@link JacksonJsonMessageParser} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
 	public Jackson2JsonMessageParser() {

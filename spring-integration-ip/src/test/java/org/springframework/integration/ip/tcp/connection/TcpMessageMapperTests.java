@@ -40,7 +40,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
-import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -413,7 +413,7 @@ public class TcpMessageMapperTests {
 				.setHeader("bar", "baz")
 				.build();
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		mapper.setBytesMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+		mapper.setBytesMessageMapper(new EmbeddedHeadersJsonMessageMapper());
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
 		TcpConnection connection = creatMockTcpConcnection(bytes, "someHost", "1.1.1.1", 1234);
