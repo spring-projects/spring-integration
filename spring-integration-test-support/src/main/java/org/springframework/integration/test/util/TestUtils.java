@@ -33,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -41,7 +42,6 @@ import org.springframework.context.expression.MapAccessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -77,7 +77,7 @@ public abstract class TestUtils {
 	 * @see DirectFieldAccessor
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T getPropertyValue(Object root, String propertyPath, Class<T> type) {
+	public static <T>  @Nullable T getPropertyValue(Object root, String propertyPath, Class<T> type) {
 		Object value = getPropertyValue(root, propertyPath);
 		if (value != null) {
 			Assert.isAssignable(type, value.getClass());
@@ -94,7 +94,7 @@ public abstract class TestUtils {
 	 * @return the value of the property or null
 	 * @see DirectFieldAccessor
 	 */
-	public static Object getPropertyValue(Object root, String propertyPath) {
+	public static @Nullable Object getPropertyValue(Object root, String propertyPath) {
 		Object value = null;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(root);
 		String[] tokens = propertyPath.split("\\.");
@@ -170,7 +170,7 @@ public abstract class TestUtils {
 		TestApplicationContext() {
 		}
 
-		public void registerChannel(@Nullable String channelNameArg, final MessageChannel channel) {
+		public void registerChannel(@Nullable String channelNameArg, MessageChannel channel) {
 			String channelName = channelNameArg;
 			String componentName = getComponentNameIfNamed(channel);
 			if (componentName != null) {
@@ -182,6 +182,7 @@ public abstract class TestUtils {
 							"channel name has already been set with a conflicting value");
 				}
 			}
+			Assert.notNull(channelName, "The 'channelName' must be provided, or 'MessageChannel' must be named already");
 			TestUtils.registerBean(channelName, channel, this);
 		}
 
@@ -193,9 +194,9 @@ public abstract class TestUtils {
 			TestUtils.registerBean(beanName, bean, this);
 		}
 
-		private String getComponentNameIfNamed(final MessageChannel channel) {
+		private @Nullable String getComponentNameIfNamed(MessageChannel channel) {
 			Set<Class<?>> interfaces = ClassUtils.getAllInterfacesAsSet(channel);
-			final AtomicReference<String> componentName = new AtomicReference<>();
+			final AtomicReference<@Nullable String> componentName = new AtomicReference<>();
 			for (Class<?> intface : interfaces) {
 				if ("org.springframework.integration.support.context.NamedComponent".equals(intface.getName())) {
 					ReflectionUtils.doWithMethods(channel.getClass(), method -> {
@@ -220,7 +221,7 @@ public abstract class TestUtils {
 	 * @param startingIndex the index to start scanning
 	 * @return the properties provided by the named component or null if none available
 	 */
-	public static Properties locateComponentInHistory(List<Properties> history, String componentName,
+	public static @Nullable Properties locateComponentInHistory(List<Properties> history, String componentName,
 			int startingIndex) {
 
 		Assert.notNull(history, "'history' must not be null");
@@ -288,7 +289,7 @@ public abstract class TestUtils {
 
 		}
 
-		private MessageChannel resolveErrorChannel(Throwable t) {
+		private @Nullable MessageChannel resolveErrorChannel(Throwable t) {
 			if (t instanceof MessagingException) {
 				Message<?> failedMessage = ((MessagingException) t).getFailedMessage();
 				if (failedMessage == null) {

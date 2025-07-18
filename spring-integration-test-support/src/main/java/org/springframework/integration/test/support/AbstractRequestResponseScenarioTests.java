@@ -17,6 +17,7 @@
 package org.springframework.integration.test.support;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -56,14 +57,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Deprecated(since = "7.0", forRemoval = true)
 public abstract class AbstractRequestResponseScenarioTests {
 
-	private List<RequestResponseScenario> scenarios = null;
+	@SuppressWarnings("NullAway.Init")
+	private List<RequestResponseScenario> scenarios;
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
 	@Before
 	public void setUp() {
-		scenarios = defineRequestResponseScenarios();
+		this.scenarios = defineRequestResponseScenarios();
 	}
 
 	/**
@@ -91,7 +93,7 @@ public abstract class AbstractRequestResponseScenarioTests {
 			if (outputChannel instanceof PollableChannel) {
 				Message<?> response = ((PollableChannel) outputChannel).receive(10000); // NOSONAR magic number
 				assertThat(response).as(name + ": receive timeout on " + scenario.getOutputChannelName()).isNotNull();
-				scenario.getResponseValidator().handleMessage(response);
+				scenario.getResponseValidator().handleMessage(Objects.requireNonNull(response));
 			}
 
 			assertThat(scenario.getResponseValidator().getLastMessage())
