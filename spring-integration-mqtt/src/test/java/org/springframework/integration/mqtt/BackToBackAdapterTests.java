@@ -389,7 +389,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 
 	}
 
-	private void initializeInboundAdapter(MqttPahoMessageDrivenChannelAdapter inbound, QueueChannel outputChannel) {
+	private static void initializeInboundAdapter(MqttPahoMessageDrivenChannelAdapter inbound, QueueChannel outputChannel) {
 		inbound.setOutputChannel(outputChannel);
 		inbound.setTaskScheduler(taskScheduler);
 		inbound.setQuiescentTimeout(QUIESCENT_TIMEOUT);
