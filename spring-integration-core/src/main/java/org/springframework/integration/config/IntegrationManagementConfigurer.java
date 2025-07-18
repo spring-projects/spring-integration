@@ -159,8 +159,9 @@ public class IntegrationManagementConfigurer
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
 
-		if (obtainMetricsCaptor() != null) {
-			registerComponentGauges();
+		MetricsCaptor metricsCaptorToUse = obtainMetricsCaptor();
+		if (metricsCaptorToUse != null) {
+			registerComponentGauges(metricsCaptorToUse);
 		}
 
 		setupObservationRegistry();
@@ -185,22 +186,21 @@ public class IntegrationManagementConfigurer
 		}
 	}
 
-	@SuppressWarnings("NullAway")  // is not called if the metricsCaptor is null in  afterSingletonsInstantiated.
-	private void registerComponentGauges() {
+	private void registerComponentGauges(MetricsCaptor metricsCaptor) {
 		this.gauges.add(
-				this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
+				metricsCaptor.gaugeBuilder("spring.integration.channels", this,
 								(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
 						.description("The number of message channels")
 						.build());
 
 		this.gauges.add(
-				this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
+				metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
 								(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
 						.description("The number of message handlers")
 						.build());
 
 		this.gauges.add(
-				this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
+				metricsCaptor.gaugeBuilder("spring.integration.sources", this,
 								(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
 						.description("The number of message sources")
 						.build());

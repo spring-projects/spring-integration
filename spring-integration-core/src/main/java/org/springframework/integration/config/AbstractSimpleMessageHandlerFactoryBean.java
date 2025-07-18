@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -95,7 +94,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private @Nullable ApplicationEventPublisher applicationEventPublisher;
+	@SuppressWarnings("NullAway.Init")
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	private @Nullable DestinationResolver<MessageChannel> channelResolver;
 
@@ -208,16 +208,16 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			JavaUtils.INSTANCE
 					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
 							this.applicationContext,
-							context -> ((ApplicationContextAware) Objects.requireNonNull(this.handler)).setApplicationContext(this.applicationContext))
+							context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
 					.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
 							getBeanFactory(),
-							factory -> ((BeanFactoryAware) Objects.requireNonNull(this.handler)).setBeanFactory(factory))
+							factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
 					.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
-							name -> ((BeanNameAware) Objects.requireNonNull(this.handler)).setBeanName(this.beanName))
+							name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
 					.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
 									&& this.applicationEventPublisher != null,
 							this.applicationEventPublisher,
-							publisher -> ((ApplicationEventPublisherAware) Objects.requireNonNull(Objects.requireNonNull(this.handler)))
+							publisher -> ((ApplicationEventPublisherAware) this.handler)
 									.setApplicationEventPublisher(publisher));
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
@@ -232,7 +232,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 							this.async,
 							asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
 					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
-							this.order, theOrder -> ((Orderable) Objects.requireNonNull(this.handler)).setOrder(theOrder));
+							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
 		}
 		finally {
@@ -315,14 +315,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	private static Object extractTarget(Object object) {
-		if (!(object instanceof Advised)) {
-			return object;
-		}
-		else {
-//			return extractTarget(Objects.requireNonNull(AopProxyUtils.getSingletonTarget(object)));
-			return Objects.requireNonNullElse(AopProxyUtils.getSingletonTarget(object), object);
-
-		}
+		return Objects.requireNonNullElse(AopProxyUtils.getSingletonTarget(object), object);
 	}
 
 }

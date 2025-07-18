@@ -19,8 +19,6 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanNameAware;
@@ -44,9 +42,11 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 
 	private final String functionMethodSignature;
 
-	private @Nullable String functionName;
+	@SuppressWarnings("NullAway.Init")
+	private String functionName;
 
-	private @Nullable Method method;
+	@SuppressWarnings("NullAway.Init")
+	private Method method;
 
 	public SpelFunctionFactoryBean(Class<?> functionClass, String functionMethodSignature) {
 		this.functionClass = functionClass;
@@ -58,25 +58,26 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 		this.functionName = name;
 	}
 
-	public @Nullable String getFunctionName() {
+	public String getFunctionName() {
 		return this.functionName;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		this.method = BeanUtils.resolveSignature(this.functionMethodSignature, this.functionClass);
+		Method method = BeanUtils.resolveSignature(this.functionMethodSignature, this.functionClass);
 
-		if (this.method == null) {
+		if (method == null) {
 			throw new BeanDefinitionStoreException(String.format("No declared method '%s' in class '%s'",
 					this.functionMethodSignature, this.functionClass));
 		}
+		this.method = method;
 		if (!Modifier.isStatic(this.method.getModifiers())) {
 			throw new BeanDefinitionStoreException("SpEL-function method has to be 'static'");
 		}
 	}
 
 	@Override
-	public @Nullable Method getObject() {
+	public Method getObject() {
 		return this.method;
 	}
 

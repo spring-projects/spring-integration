@@ -81,8 +81,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 
 	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
 
-	@Nullable
-	private static final Class<?> XPATH_CLASS;
+	private static final @Nullable Class<?> XPATH_CLASS;
 
 	private static final boolean JSON_PATH_PRESENT = ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", null);
 
