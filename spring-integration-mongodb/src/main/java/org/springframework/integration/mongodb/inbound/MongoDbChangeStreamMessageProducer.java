@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.inbound;
 
 import org.bson.Document;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 
 import org.springframework.data.mongodb.core.ChangeStreamOptions;
@@ -24,7 +25,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

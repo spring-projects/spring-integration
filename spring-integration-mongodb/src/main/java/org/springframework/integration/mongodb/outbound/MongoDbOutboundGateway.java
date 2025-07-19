@@ -16,7 +16,10 @@
 
 package org.springframework.integration.mongodb.outbound;
 
+import java.util.Objects;
+
 import org.bson.Document;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -46,22 +49,25 @@ import org.springframework.util.Assert;
  */
 public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private MongoDatabaseFactory mongoDbFactory;
+	private @Nullable MongoDatabaseFactory mongoDbFactory;
 
-	private MongoConverter mongoConverter;
+	private @Nullable MongoConverter mongoConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private MongoOperations mongoTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private Expression queryExpression;
+	private @Nullable Expression queryExpression;
 
-	private MessageCollectionCallback<?> collectionCallback;
+	private @Nullable MessageCollectionCallback<?> collectionCallback;
 
 	private boolean expectSingleResult = false;
 
 	private Class<?> entityClass = Document.class;
 
+	@SuppressWarnings("NullAway.Init")
 	private Expression collectionNameExpression;
 
 	public MongoDbOutboundGateway(MongoDatabaseFactory mongoDbFactory) {
@@ -147,20 +153,21 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 
 		if (this.mongoTemplate == null) {
-			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			this.mongoTemplate = new MongoTemplate(Objects.requireNonNull(this.mongoDbFactory), this.mongoConverter);
 		}
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' cannot evaluate to null");
 		Object result;
 
 		if (this.collectionCallback != null) {
+			var collectionCallbackToUse = this.collectionCallback;
 			result = this.mongoTemplate.execute(collectionName,
-					collection -> this.collectionCallback.doInCollection(collection, requestMessage));
+					collection -> collectionCallbackToUse.doInCollection(collection, requestMessage));
 		}
 		else {
 			Query query = buildQuery(requestMessage);
@@ -178,7 +185,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Query buildQuery(Message<?> requestMessage) {
 		Query query;
-
+		Objects.requireNonNull(this.queryExpression);
 		Object expressionValue =
 				this.queryExpression.getValue(this.evaluationContext, requestMessage, Object.class);
 

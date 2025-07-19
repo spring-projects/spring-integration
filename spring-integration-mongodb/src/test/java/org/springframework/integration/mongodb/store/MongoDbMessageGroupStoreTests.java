@@ -33,6 +33,7 @@ class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTest
 	protected MongoDbMessageStore getMessageGroupStore() {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -80,8 +82,8 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
-			String collectionName) {
+	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory,
+			@Nullable MappingMongoConverter mappingMongoConverter, String collectionName) {
 
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
@@ -133,7 +135,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	}
 
 	@Override
-	protected Message<?> doPollMessageFromGroup(Object groupId) {
+	protected @Nullable Message<?> doPollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);

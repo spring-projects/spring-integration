@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.support;
 
+import java.util.Objects;
+
 import org.bson.types.Binary;
 
 import org.springframework.core.convert.converter.Converter;
@@ -34,7 +36,7 @@ public class MessageToBinaryConverter implements Converter<Message<?>, Binary> {
 
 	@Override
 	public Binary convert(Message<?> source) {
-		return new Binary(this.serializingConverter.convert(source));
+		return new Binary(Objects.requireNonNull(this.serializingConverter.convert(source)));
 	}
 
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mongodb.inbound;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,7 +31,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
 import org.springframework.expression.Expression;
 import org.springframework.integration.mongodb.support.MongoHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -57,6 +57,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<P
 	@Nullable
 	private final ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveMongoOperations reactiveMongoTemplate;
 
 	/**
@@ -101,9 +102,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<P
 			ReactiveMongoTemplate template =
 					new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, getMongoConverter());
 			ApplicationContext applicationContext = getApplicationContext();
-			if (applicationContext != null) {
-				template.setApplicationContext(applicationContext);
-			}
+			template.setApplicationContext(applicationContext);
 			this.reactiveMongoTemplate = template;
 		}
 		setMongoConverter(this.reactiveMongoTemplate.getConverter());

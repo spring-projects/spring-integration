@@ -16,6 +16,9 @@
 
 package org.springframework.integration.mongodb.outbound;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
@@ -42,12 +45,14 @@ import org.springframework.util.Assert;
  */
 public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessageHandler {
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveMongoOperations mongoTemplate;
 
-	private ReactiveMongoDatabaseFactory mongoDbFactory;
+	private @Nullable ReactiveMongoDatabaseFactory mongoDbFactory;
 
-	private MongoConverter mongoConverter;
+	private @Nullable MongoConverter mongoConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private Expression collectionNameExpression = new LiteralExpression("data");
@@ -105,6 +110,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
+			Objects.requireNonNull(this.mongoDbFactory);
 			ReactiveMongoTemplate template = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
 			template.setApplicationContext(getApplicationContext());
 			this.mongoTemplate = template;

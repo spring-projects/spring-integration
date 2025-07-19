@@ -16,6 +16,10 @@
 
 package org.springframework.integration.mongodb.outbound;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -42,12 +46,14 @@ import org.springframework.util.Assert;
  */
 public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
-	private final MongoDatabaseFactory mongoDbFactory;
+	private final @Nullable MongoDatabaseFactory mongoDbFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private MongoOperations mongoTemplate;
 
-	private MongoConverter mongoConverter;
+	private @Nullable MongoConverter mongoConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private Expression collectionNameExpression = new LiteralExpression("data");
@@ -106,7 +112,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 		this.evaluationContext =
 				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.mongoTemplate == null) {
-			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			this.mongoTemplate = new MongoTemplate(Objects.requireNonNull(this.mongoDbFactory), this.mongoConverter);
 		}
 		this.initialized = true;
 	}

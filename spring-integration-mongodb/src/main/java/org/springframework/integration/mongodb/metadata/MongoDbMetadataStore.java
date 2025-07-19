@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bson.Document;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -124,7 +125,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @see MongoTemplate#findOne(Query, Class, String)
 	 */
 	@Override
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
@@ -142,7 +143,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @see MongoTemplate#findAndRemove(Query, Class, String)
 	 */
 	@Override
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
@@ -167,7 +168,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @see java.util.concurrent.ConcurrentMap#putIfAbsent(Object, Object)
 	 */
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public @Nullable String putIfAbsent(String key, String value) {
 		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Assert.hasText(value, "'value' must not be empty.");
 

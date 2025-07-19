@@ -16,13 +16,15 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.Objects;
 import java.util.UUID;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -42,19 +44,19 @@ public class MessageDocument {
 	 * currently Auditable.
 	 */
 	@Id
-	private String _id; // NOSONAR name
+	private @Nullable String _id;
 
 	private final Message<?> message;
 
 	private final UUID messageId;
 
-	private Integer priority;
+	private @Nullable Integer priority;
 
 	private Long createdTime = 0L;
 
 	private Long groupCreatedTime = 0L;
 
-	private Object groupId;
+	private @Nullable Object groupId;
 
 	private Long lastModifiedTime = 0L;
 
@@ -62,12 +64,12 @@ public class MessageDocument {
 
 	private Integer lastReleasedSequence = 0;
 
-	private String condition;
+	private @Nullable String condition;
 
 	private long sequence;
 
 	public MessageDocument(Message<?> message) {
-		this(message, message.getHeaders().getId());
+		this(message, Objects.requireNonNull(message.getHeaders().getId()));
 	}
 
 	/**
@@ -97,7 +99,7 @@ public class MessageDocument {
 		this.groupId = groupId;
 	}
 
-	public void setPriority(Integer priority) {
+	public void setPriority(@Nullable Integer priority) {
 		this.priority = priority;
 	}
 
@@ -145,11 +147,11 @@ public class MessageDocument {
 		this.sequence = sequence;
 	}
 
-	public Integer getPriority() {
+	public @Nullable Integer getPriority() {
 		return this.priority;
 	}
 
-	public Object getGroupId() {
+	public @Nullable Object getGroupId() {
 		return this.groupId;
 	}
 
