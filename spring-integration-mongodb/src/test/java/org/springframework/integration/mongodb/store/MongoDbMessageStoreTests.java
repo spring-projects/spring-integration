@@ -40,6 +40,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Override
 	protected MessageStore getMessageStore() {
 		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
@@ -49,6 +50,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
 		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
+		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 
 		mongoDbMessageStore.addMessage(new GenericMessage<>(new Foo("foo")));

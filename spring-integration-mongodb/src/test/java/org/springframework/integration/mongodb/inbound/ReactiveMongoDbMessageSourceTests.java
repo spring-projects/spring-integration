@@ -107,7 +107,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
-		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		StepVerifier.create((Flux<BasicDBObject>) messageSource.receive().getPayload())
@@ -127,7 +127,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
-		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		messageSource.setEntityClass(Person.class);
 
@@ -208,7 +208,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setExpectSingleResult(true);
-		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		BasicDBObject result = waitFor((Mono<BasicDBObject>) messageSource.receive().getPayload());
 		Object id = result.get("_id");
@@ -236,7 +236,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.setEntityClass(Person.class);
 		converter.ifPresent(messageSource::setMongoConverter);
-		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		return (Flux<Person>) messageSource.receive().getPayload();

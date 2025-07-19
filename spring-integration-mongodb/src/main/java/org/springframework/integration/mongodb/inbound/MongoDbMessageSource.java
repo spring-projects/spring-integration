@@ -19,6 +19,8 @@ package org.springframework.integration.mongodb.inbound;
 import java.util.Collection;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -31,7 +33,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -64,6 +65,7 @@ public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 	@Nullable
 	private final MongoDatabaseFactory mongoDbFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private MongoOperations mongoTemplate;
 
 	/**
@@ -105,9 +107,7 @@ public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 		if (this.mongoDbFactory != null) {
 			MongoTemplate template = new MongoTemplate(this.mongoDbFactory, getMongoConverter());
 			ApplicationContext applicationContext = getApplicationContext();
-			if (applicationContext != null) {
-				template.setApplicationContext(applicationContext);
-			}
+			template.setApplicationContext(applicationContext);
 			this.mongoTemplate = template;
 		}
 		setMongoConverter(this.mongoTemplate.getConverter());
@@ -124,7 +124,7 @@ public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		Assert.isTrue(isInitialized(), "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		AbstractIntegrationMessageBuilder<Object> messageBuilder = null;
 

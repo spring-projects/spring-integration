@@ -21,10 +21,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
@@ -38,7 +41,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -88,7 +90,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
-			MappingMongoConverter mappingMongoConverter, String collectionName) {
+			@Nullable MappingMongoConverter mappingMongoConverter, String collectionName) {
 
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
@@ -101,7 +103,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public Message<?> removeMessage(UUID id) {
+	public @Nullable Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id)
 				.and(MessageDocumentFields.GROUP_ID).exists(false));
@@ -190,7 +192,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 		Collection<UUID> ids = new ArrayList<>();
 		for (Message<?> messageToRemove : messages) {
-			ids.add(messageToRemove.getHeaders().getId());
+			ids.add(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
 			if (ids.size() >= getRemoveBatchSize()) {
 				removeMessages(groupId, ids);
 				ids.clear();
@@ -235,7 +237,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected Message<?> doPollMessageFromGroup(final Object groupId) {
+	protected @Nullable Message<?> doPollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
@@ -297,7 +299,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = groupOrderQuery(groupId);
 		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);

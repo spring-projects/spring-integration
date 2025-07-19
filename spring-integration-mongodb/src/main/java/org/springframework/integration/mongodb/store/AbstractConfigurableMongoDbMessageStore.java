@@ -21,10 +21,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -78,12 +80,14 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	protected final String collectionName; // NOSONAR - final
 
-	protected final MongoDatabaseFactory mongoDbFactory; // NOSONAR - final
+	protected final @Nullable MongoDatabaseFactory mongoDbFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private MongoTemplate mongoTemplate;
 
-	private MappingMongoConverter mappingMongoConverter;
+	private @Nullable MappingMongoConverter mappingMongoConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
@@ -103,7 +107,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
-			MappingMongoConverter mappingMongoConverter, String collectionName) {
+			@Nullable MappingMongoConverter mappingMongoConverter, String collectionName) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.hasText(collectionName, "'collectionName' must not be empty");
 		this.collectionName = collectionName;
@@ -129,7 +133,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		return this.mongoTemplate;
 	}
 
-	protected MappingMongoConverter getMappingMongoConverter() {
+	protected @Nullable MappingMongoConverter getMappingMongoConverter() {
 		return this.mappingMongoConverter;
 	}
 
@@ -144,6 +148,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	@Override
 	public void afterPropertiesSet() {
 		if (this.mongoTemplate == null) {
+			Objects.requireNonNull(this.mongoDbFactory);
 			if (this.mappingMongoConverter == null) {
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());
@@ -180,14 +185,14 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));
 	}
 
-	public Message<?> getMessage(UUID id) {
+	public @Nullable Message<?> getMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
 		MessageDocument document = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
 		return document != null ? document.getMessage() : null;
 	}
 
-	public MessageMetadata getMessageMetadata(UUID id) {
+	public @Nullable MessageMetadata getMessageMetadata(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
 		MessageDocument document = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
@@ -219,6 +224,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * The {@link #SEQUENCE_NAME} document is created on demand.
 	 * @return the next sequence value.
 	 */
+	@SuppressWarnings("NullAway")
 	protected long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(MessageDocumentFields.SEQUENCE);
@@ -226,7 +232,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 						new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
 						FindAndModifyOptions.options().returnNew(true).upsert(true),
 						Map.class, this.collectionName)
-				.get(MessageDocumentFields.SEQUENCE))  // NOSONAR - never returns null
+				.get(MessageDocumentFields.SEQUENCE))
 				.longValue();
 	}
 
@@ -276,7 +282,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
 		throw NOT_IMPLEMENTED;
 	}
 
