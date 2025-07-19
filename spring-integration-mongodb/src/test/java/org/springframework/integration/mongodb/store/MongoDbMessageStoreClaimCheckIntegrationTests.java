@@ -63,6 +63,7 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 	@Test
 	void stringPayload() {
 		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		messageStore.setApplicationContext(testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -78,6 +79,7 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 	@Test
 	void objectPayload() {
 		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		messageStore.setApplicationContext(testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);

@@ -18,9 +18,11 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 import com.mongodb.DBObject;
 import org.bson.Document;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -40,7 +42,6 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -64,14 +65,16 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 
 	private Expression collectionNameExpression = new LiteralExpression("data");
 
+	@SuppressWarnings("NullAway.Init")
 	private MongoConverter mongoConverter;
 
 	private Class<?> entityClass = DBObject.class;
 
 	private boolean expectSingleResult = false;
 
-	private Expression updateExpression;
+	private @Nullable Expression updateExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	private volatile boolean initialized = false;
@@ -156,7 +159,7 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 		return this.expectSingleResult;
 	}
 
-	public Expression getUpdateExpression() {
+	public @Nullable Expression getUpdateExpression() {
 		return this.updateExpression;
 	}
 
@@ -261,7 +264,7 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	}
 
 	private static Pair<String, Object> idFieldFromMap(Map<String, Object> map) {
-		return Pair.of(ID_FIELD, map.get(ID_FIELD));
+		return Pair.of(ID_FIELD, Objects.requireNonNull(map.get(ID_FIELD)));
 	}
 
 }
