@@ -24,7 +24,7 @@ plugins {
     id 'com.github.spotbugs' version '6.1.13'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '8.13.1'
-    id 'io.spring.nullability' version '0.0.1' apply false
+    id 'io.spring.nullability' version '0.0.2' apply false
 }
 
 if (isCI) {
@@ -61,7 +61,7 @@ ext {
     debeziumVersion = '3.1.3.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.1'
-    graalvmVersion = '24.2.1'
+    graalvmVersion = '24.2.2'
     greenmailVersion = '2.1.4'
     groovyVersion = '4.0.27'
     hamcrestVersion = '3.0'
@@ -69,14 +69,14 @@ ext {
     hibernateVersion = '7.0.6.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
-    jacksonVersion = '2.19.1'
+    jacksonVersion = '2.19.2'
     jackson3Version = '3.0.0-rc5'
     jaxbVersion = '4.0.5'
     jcifsVersion = '2.1.40'
     jeroMqVersion = '0.6.0'
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.2.0'
-    jrubyVersion = '10.0.0.1'
+    jrubyVersion = '10.0.1.0'
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.12.2'
@@ -85,8 +85,8 @@ ext {
     lettuceVersion = '6.7.1.RELEASE'
     log4jVersion = '2.24.3'
     mailVersion = '2.0.3'
-    micrometerTracingVersion = '1.5.1'
-    micrometerVersion = '1.15.1'
+    micrometerTracingVersion = '1.5.2'
+    micrometerVersion = '1.15.2'
     mockitoVersion = '5.18.0'
     mongoDriverVersion = '5.5.1'
     mysqlVersion = '9.3.0'
