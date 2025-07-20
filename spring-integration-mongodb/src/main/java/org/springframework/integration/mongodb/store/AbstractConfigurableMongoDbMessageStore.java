@@ -224,16 +224,15 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * The {@link #SEQUENCE_NAME} document is created on demand.
 	 * @return the next sequence value.
 	 */
+	@SuppressWarnings("NullAway")
 	protected long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(MessageDocumentFields.SEQUENCE);
-		Map<?, ?> result = this.mongoTemplate.findAndModify(query,
-				new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
-				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class, this.collectionName);
-		Objects.requireNonNull(result);
-		return ((Number) Objects.requireNonNull(result
-				.get(MessageDocumentFields.SEQUENCE)))
+		return ((Number) this.mongoTemplate.findAndModify(query,
+						new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
+						FindAndModifyOptions.options().returnNew(true).upsert(true),
+						Map.class, this.collectionName)
+				.get(MessageDocumentFields.SEQUENCE))
 				.longValue();
 	}
 

@@ -164,8 +164,8 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		Assert.notNull(collectionName, "'collectionNameExpression' cannot evaluate to null");
 		Object result;
 
-		if (this.collectionCallback != null) {
-			var collectionCallbackToUse = this.collectionCallback;
+		var collectionCallbackToUse = this.collectionCallback;
+		if (collectionCallbackToUse != null) {
 			result = this.mongoTemplate.execute(collectionName,
 					collection -> collectionCallbackToUse.doInCollection(collection, requestMessage));
 		}

@@ -509,24 +509,22 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		this.template.findAndModify(query, update, FindAndModifyOptions.none(), Map.class, this.collectionName);
 	}
 
+	@SuppressWarnings("NullAway")
 	private long getNextId() {
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(SEQUENCE);
-		Map<?, ?> result = this.template.findAndModify(query,
-				new Update().inc(SEQUENCE, 1L),
-				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class, this.collectionName);
-		Objects.requireNonNull(result);
-		return ((Number) Objects.requireNonNull(result
-				.get(SEQUENCE)))
+		return ((Number) this.template.findAndModify(query,
+						new Update().inc(SEQUENCE, 1L),
+						FindAndModifyOptions.options().returnNew(true).upsert(true),
+						Map.class, this.collectionName)
+				.get(SEQUENCE))
 				.longValue();
 	}
 
-	@SuppressWarnings(UNCHECKED)
+	@SuppressWarnings({UNCHECKED, "NullAway"})
 	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
 		Map<String, Object> innerMap =
 				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue(HEADERS);
-		Objects.requireNonNull(innerMap);
 		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 		Object idHeader = headers.get(MessageHeaders.ID);
 		if (idHeader != null) {
