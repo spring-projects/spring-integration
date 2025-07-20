@@ -495,7 +495,6 @@ project('spring-integration-core') {
         api 'io.micrometer:micrometer-observation'
 
         optionalApi 'tools.jackson.core:jackson-databind'
-        optionalApi 'tools.jackson.datatype:jackson-datatype-joda'
         optionalApi('tools.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
