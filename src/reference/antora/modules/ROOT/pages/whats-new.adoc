@@ -50,3 +50,9 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 
 The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
 See xref:mqtt.adoc[] for more information.
+
+[[x7.0-jackson-3-Support]]
+=== Jackson 3 Support
+
+The Jackson 2 has been deprecated for removal in whole Spring portfolio.
+Spring Integration 7.0 introduces Jackson 3 as the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.

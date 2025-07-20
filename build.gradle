@@ -585,6 +585,7 @@ project('spring-integration-file') {
     description = 'Spring Integration File Support'
     dependencies {
         api "commons-io:commons-io:$commonsIoVersion"
+        optionalApi 'com.fasterxml.jackson.core:jackson-annotations'
 
         testImplementation project(':spring-integration-redis')
         testImplementation project(':spring-integration-redis').sourceSets.test.output

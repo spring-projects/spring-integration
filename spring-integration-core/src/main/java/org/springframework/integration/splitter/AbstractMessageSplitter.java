@@ -349,6 +349,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 */
 	protected abstract Object splitMessage(Message<?> message);
 
+	@Deprecated(since = "7.0", forRemoval = true)
 	private static final class JacksonNodeHelper {
 
 		private static boolean isNode(Object object) {

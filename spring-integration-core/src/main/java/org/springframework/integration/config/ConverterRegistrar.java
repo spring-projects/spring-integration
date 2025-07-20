@@ -78,7 +78,7 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 		if (JacksonPresent.isJackson3Present()) {
 			converters.add(new JsonNodeWrapperConverter());
 		}
-		else if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson2Present()) {
 			converters.add(new JsonNodeWrapperToJsonNodeConverter());
 		}
 		ConversionServiceFactory.registerConverters(converters, conversionService);

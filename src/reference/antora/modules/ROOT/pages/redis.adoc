@@ -348,7 +348,7 @@ The preceding example is a bean configuration, and it expects a `RedisConnection
 By default, the `RedisMessageStore` uses Java serialization to serialize the message.
 However, if you want to use a different serialization technique (such as JSON), you can provide your own serializer by setting the `valueSerializer` property of the `RedisMessageStore`.
 
-Starting with version 4.3.10, the Framework provides Jackson serializer and deserializer implementations for `Message` instances and `MessageHeaders` instances -- `MessageJsonDeserializer` and `MessageHeadersJsonSerializer`, respectively.
+The Framework provides Jackson serializer and deserializer implementations for `Message` instances and `MessageHeaders` instances -- `MessageJsonDeserializer` and `MessageHeadersJsonSerializer`, respectively.
 They have to be configured with the `SimpleModule` options for the `ObjectMapper`.
 In addition, you should set `enableDefaultTyping` on the `ObjectMapper` to add type information for each serialized complex object (if you trust the source).
 That type information is then used during deserialization.

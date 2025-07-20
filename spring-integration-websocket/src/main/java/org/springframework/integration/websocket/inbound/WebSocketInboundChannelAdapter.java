@@ -43,7 +43,6 @@ import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -87,13 +86,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 			DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
 			resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
 			JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
-			converter.setContentTypeResolver(resolver);
-			this.defaultConverters.add(converter);
-		}
-		else if (JacksonPresent.isJackson2Present()) {
-			DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
-			resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
-			MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 			converter.setContentTypeResolver(resolver);
 			this.defaultConverters.add(converter);
 		}
