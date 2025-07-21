@@ -48,5 +48,5 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 [[x7.0-mqtt-changes]]
 === MQTT Changes
 
-The `disconnectForcibly` method in `MqttPahoMessageDrivenChannelAdapter`, `Mqttv5PahoMessageDrivenChannelAdapter`, `Mqttv3ClientManager`, and `Mqttv5ClientManager` now expose the option to configure `quiescentTimeout`, which is available through the https://eclipse.dev/paho/files/javadoc/org/eclipse/paho/client/mqttv3/IMqttAsyncClient.html[IMqttAsyncClient] client.
-See https://docs.spring.io/spring-integration/api/org/springframework/integration/mqtt/core/package-summary.html[MQTT Core Java Docs] for more information.
+The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
+See xref:mqtt.adoc[] for more information.
