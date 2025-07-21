@@ -16,9 +16,7 @@
 
 package org.springframework.integration.support.json;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.datatype.joda.JodaModule;
 import tools.jackson.module.kotlin.KotlinModule;
 
 import org.springframework.integration.message.AdviceMessage;
@@ -53,16 +50,10 @@ class JacksonMessagingUtilsTests {
 	}
 
 	@Test
-	void shouldIncludeWellKnownModules() {
-		List<JacksonModule> wellKnownModules = Arrays.asList(
-				new JodaModule(),
-				new KotlinModule.Builder().build()
-		);
-
-		Set<String> wellKnownModuleNames = getModuleNames(wellKnownModules);
+	void shouldIncludeKotlinModule() {
+		KotlinModule kotlinModule = new KotlinModule.Builder().build();
 		Set<String> registeredModuleNames = getModuleNames(mapper.getRegisteredModules());
-
-		assertThat(registeredModuleNames).containsAll(wellKnownModuleNames);
+		assertThat(registeredModuleNames).contains(kotlinModule.getModuleName());
 	}
 
 	@Test
