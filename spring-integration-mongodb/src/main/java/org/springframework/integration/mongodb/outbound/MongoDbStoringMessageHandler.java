@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import java.util.Objects;
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.mongodb.MongoDatabaseFactory;
@@ -112,7 +110,8 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 		this.evaluationContext =
 				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.mongoTemplate == null) {
-			this.mongoTemplate = new MongoTemplate(Objects.requireNonNull(this.mongoDbFactory), this.mongoConverter);
+			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
+			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
 		this.initialized = true;
 	}

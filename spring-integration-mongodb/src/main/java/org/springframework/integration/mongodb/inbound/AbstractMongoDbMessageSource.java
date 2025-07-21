@@ -18,7 +18,6 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 
 import com.mongodb.DBObject;
 import org.bson.Document;
@@ -28,7 +27,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.IdentifierAccessor;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.query.BasicQuery;
@@ -190,16 +188,15 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 		Assert.notNull(value, "'queryExpression' must not evaluate to null");
 		Query query = null;
 		if (value instanceof String string) {
-			query = new BasicQuery(string);
+			return new BasicQuery(string);
 		}
 		else if (value instanceof Query castQuery) {
-			query = castQuery;
+			return castQuery;
 		}
 		else {
 			throw new IllegalStateException("'queryExpression' must evaluate to String " +
-					"or org.springframework.data.mongodb.core.query.Query, but not: " + query);
+					"or org.springframework.data.mongodb.core.query.Query, but not: " + value);
 		}
-		return query;
 	}
 
 	protected String evaluateCollectionNameExpression() {
@@ -225,18 +222,17 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 		return new Query(criterias.length == 1 ? criterias[0] : new Criteria().orOperator(criterias));
 	}
 
-	@SuppressWarnings("unchecked")
 	protected Pair<String, Object> idForEntity(Object entity) {
 		if (entity instanceof String) {
 			return idFieldFromMap(Document.parse(entity.toString()));
 		}
-		if (entity instanceof Map) {
-			return idFieldFromMap((Map<String, Object>) entity);
+		if (entity instanceof Map<?, ?> asMap) {
+			return idFieldFromMap(asMap);
 		}
 
-		MappingContext<? extends MongoPersistentEntity<?>, ?> context = this.mongoConverter.getMappingContext();
+		var mappingContext = this.mongoConverter.getMappingContext();
 
-		MongoPersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(entity.getClass());
+		MongoPersistentEntity<?> persistentEntity = mappingContext.getRequiredPersistentEntity(entity.getClass());
 		String idField = persistentEntity.getRequiredIdProperty().getFieldName();
 		IdentifierAccessor idAccessor = persistentEntity.getIdentifierAccessor(entity);
 		return Pair.of(idField, idAccessor.getRequiredIdentifier());
@@ -247,24 +243,23 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 		if (this.updateExpression != null) {
 			Object value = this.updateExpression.getValue(getEvaluationContext());
 			Assert.notNull(value, "'updateExpression' must not evaluate to null");
-			Update update;
 			if (value instanceof String string) {
-				update = new BasicUpdate(string);
+				return new BasicUpdate(string);
 			}
 			else if (value instanceof Update castUpdate) {
-				update = castUpdate;
+				return castUpdate;
 			}
 			else {
 				throw new IllegalStateException("'updateExpression' must evaluate to String " +
 						"or org.springframework.data.mongodb.core.query.Update");
 			}
-			return update;
 		}
 		return null;
 	}
 
-	private static Pair<String, Object> idFieldFromMap(Map<String, Object> map) {
-		return Pair.of(ID_FIELD, Objects.requireNonNull(map.get(ID_FIELD)));
+	@SuppressWarnings("NullAway")
+	private static Pair<String, Object> idFieldFromMap(Map<?, ?> map) {
+		return Pair.of(ID_FIELD, map.get(ID_FIELD));
 	}
 
 }

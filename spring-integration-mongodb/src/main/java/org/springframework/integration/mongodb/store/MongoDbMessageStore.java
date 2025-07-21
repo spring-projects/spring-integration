@@ -358,8 +358,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	@Nullable
-	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+	public @Nullable Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
 		MessageWrapper messageWrapper =

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import java.util.Objects;
-
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
@@ -110,7 +108,9 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
-			ReactiveMongoTemplate template = new ReactiveMongoTemplate(Objects.requireNonNull(this.mongoDbFactory), this.mongoConverter);
+			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
+
+			ReactiveMongoTemplate template = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
 			template.setApplicationContext(getApplicationContext());
 			this.mongoTemplate = template;
 		}

@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -62,15 +61,14 @@ import org.springframework.util.CollectionUtils;
  */
 public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 
-	@Nullable
-	private final MongoDatabaseFactory mongoDbFactory;
+	private final @Nullable MongoDatabaseFactory mongoDbFactory;
 
 	@SuppressWarnings("NullAway.Init")
 	private MongoOperations mongoTemplate;
 
 	/**
 	 * Create an instance with the provided {@link MongoDatabaseFactory} and SpEL expression
-	 * which should resolve to a MongoDb 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a MongoDb 'query' string.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
@@ -83,7 +81,7 @@ public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 
 	/**
 	 * Create an instance with the provided {@link MongoOperations} and SpEL expression
-	 * which should resolve to a Mongo 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a Mongo 'query' string.
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoTemplate The mongo template.
@@ -104,10 +102,10 @@ public class MongoDbMessageSource extends AbstractMongoDbMessageSource<Object> {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.mongoDbFactory != null) {
+		if (this.mongoTemplate == null) {
+			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
 			MongoTemplate template = new MongoTemplate(this.mongoDbFactory, getMongoConverter());
-			ApplicationContext applicationContext = getApplicationContext();
-			template.setApplicationContext(applicationContext);
+			template.setApplicationContext(getApplicationContext());
 			this.mongoTemplate = template;
 		}
 		setMongoConverter(this.mongoTemplate.getConverter());

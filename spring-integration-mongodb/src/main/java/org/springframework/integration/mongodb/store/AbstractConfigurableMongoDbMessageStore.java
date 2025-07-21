@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
@@ -148,7 +147,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	@Override
 	public void afterPropertiesSet() {
 		if (this.mongoTemplate == null) {
-			Objects.requireNonNull(this.mongoDbFactory);
+			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
 			if (this.mappingMongoConverter == null) {
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());

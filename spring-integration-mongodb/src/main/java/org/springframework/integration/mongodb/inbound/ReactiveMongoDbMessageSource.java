@@ -21,7 +21,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -54,15 +53,14 @@ import org.springframework.util.Assert;
  */
 public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<Publisher<?>> {
 
-	@Nullable
-	private final ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
+	private final @Nullable ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
 
 	@SuppressWarnings("NullAway.Init")
 	private ReactiveMongoOperations reactiveMongoTemplate;
 
 	/**
 	 * Create an instance with the provided {@link ReactiveMongoDatabaseFactory} and SpEL expression
-	 * which should resolve to a MongoDb 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a MongoDb 'query' string.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param reactiveMongoDatabaseFactory The reactiveMongoDatabaseFactory factory.
 	 * @param queryExpression The query expression.
@@ -77,7 +75,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<P
 
 	/**
 	 * Create an instance with the provided {@link ReactiveMongoOperations} and SpEL expression
-	 * which should resolve to a Mongo 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a Mongo 'query' string.
 	 * It assumes that the {@link ReactiveMongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param reactiveMongoTemplate The reactive Mongo template.
@@ -98,11 +96,12 @@ public class ReactiveMongoDbMessageSource extends AbstractMongoDbMessageSource<P
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.reactiveMongoDatabaseFactory != null) {
+		if (this.reactiveMongoTemplate == null) {
+			Assert.state(this.reactiveMongoDatabaseFactory != null,
+					"'reactiveMongoDatabaseFactory' must not be null if 'reactiveMongoTemplate' is null.");
 			ReactiveMongoTemplate template =
 					new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, getMongoConverter());
-			ApplicationContext applicationContext = getApplicationContext();
-			template.setApplicationContext(applicationContext);
+			template.setApplicationContext(getApplicationContext());
 			this.reactiveMongoTemplate = template;
 		}
 		setMongoConverter(this.reactiveMongoTemplate.getConverter());

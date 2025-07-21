@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import java.util.Objects;
-
 import org.bson.Document;
 import org.jspecify.annotations.Nullable;
 
@@ -143,17 +141,16 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 			throw new IllegalStateException("query and collectionCallback are mutually exclusive");
 		}
 
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 
-			TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-			if (typeLocator instanceof StandardTypeLocator) {
-				((StandardTypeLocator) typeLocator).registerImport(Query.class.getPackage().getName());
-			}
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			((StandardTypeLocator) typeLocator).registerImport(Query.class.getPackage().getName());
 		}
 
 		if (this.mongoTemplate == null) {
-			this.mongoTemplate = new MongoTemplate(Objects.requireNonNull(this.mongoDbFactory), this.mongoConverter);
+			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
+			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
 	}
 
@@ -162,32 +159,29 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' cannot evaluate to null");
-		Object result;
 
 		var collectionCallbackToUse = this.collectionCallback;
 		if (collectionCallbackToUse != null) {
-			result = this.mongoTemplate.execute(collectionName,
+			return this.mongoTemplate.execute(collectionName,
 					collection -> collectionCallbackToUse.doInCollection(collection, requestMessage));
 		}
 		else {
 			Query query = buildQuery(requestMessage);
 
 			if (this.expectSingleResult) {
-				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
+				return this.mongoTemplate.findOne(query, this.entityClass, collectionName);
 			}
 			else {
-				result = this.mongoTemplate.find(query, this.entityClass, collectionName);
+				return this.mongoTemplate.find(query, this.entityClass, collectionName);
 			}
 		}
-
-		return result;
 	}
 
 	private Query buildQuery(Message<?> requestMessage) {
 		Query query;
-		Objects.requireNonNull(this.queryExpression);
 		Object expressionValue =
-				this.queryExpression.getValue(this.evaluationContext, requestMessage, Object.class);
+				getRequiredQueryExpression()
+						.getValue(this.evaluationContext, requestMessage, Object.class);
 
 		if (expressionValue instanceof String) {
 			query = new BasicQuery((String) expressionValue);
@@ -201,6 +195,11 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 
 		return query;
+	}
+
+	@SuppressWarnings("NullAway") // The method is called from the place where we sure that it is not null
+	private Expression getRequiredQueryExpression() {
+		return this.queryExpression;
 	}
 
 }

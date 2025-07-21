@@ -44,8 +44,7 @@ public class MongoDbChangeStreamMessageProducer extends MessageProducerSupport {
 
 	private Class<?> domainType = Document.class;
 
-	@Nullable
-	private String collection;
+	private @Nullable String collection;
 
 	private ChangeStreamOptions options = ChangeStreamOptions.empty();
 
