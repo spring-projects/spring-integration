@@ -39,6 +39,8 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 */
 	long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
 
+	Long QUIESCENT_TIMEOUT = 30_000L;
+
 	/**
 	 * The default disconnect completion timeout in milliseconds.
 	 */

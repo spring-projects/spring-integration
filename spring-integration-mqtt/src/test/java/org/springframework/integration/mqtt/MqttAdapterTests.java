@@ -100,6 +100,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -519,7 +520,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 
 		new DirectFieldAccessor(adapter).setPropertyValue("running", Boolean.TRUE);
 		adapter.stop();
-		verify(client).disconnectForcibly(5_000L);
+		verify(client).disconnectForcibly(30_000L, 5_000L);
 	}
 
 	@Test
@@ -589,14 +590,14 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		verify(client).connect(any(MqttConnectOptions.class));
 		verify(client).subscribe(any(String[].class), any(int[].class), any());
 		verify(client).unsubscribe(any(String[].class));
-		verify(client).disconnectForcibly(anyLong());
+		verify(client).disconnectForcibly(anyLong(), anyLong());
 	}
 
 	private void verifyNotUnsubscribe(IMqttAsyncClient client) throws Exception {
 		verify(client).connect(any(MqttConnectOptions.class));
 		verify(client).subscribe(any(String[].class), any(int[].class), any());
 		verify(client, never()).unsubscribe(any(String[].class));
-		verify(client).disconnectForcibly(anyLong());
+		verify(client).disconnectForcibly(anyLong(), anyLong());
 	}
 
 	@Configuration

@@ -64,6 +64,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -72,6 +73,10 @@ import static org.mockito.Mockito.mock;
 @SpringJUnitConfig
 @DirtiesContext
 public class BackToBackAdapterTests implements MosquittoContainerTest {
+
+	private static final long QUIESCENT_TIMEOUT = 1;
+
+	private static final long DISCONNECT_COMPLETION_TIMEOUT = 1L;
 
 	@TempDir
 	static File folder;
@@ -108,9 +113,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		MqttPahoMessageDrivenChannelAdapter inbound =
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<>("foo"));
@@ -147,9 +150,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		MqttPahoMessageDrivenChannelAdapter inbound =
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.setConverter(converter);
 		inbound.afterPropertiesSet();
 		inbound.start();
@@ -178,9 +179,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		MqttPahoMessageDrivenChannelAdapter inbound =
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		inbound.addTopic("mqtt-foo");
@@ -226,9 +225,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(),
 						"si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<>("foo"));
@@ -261,9 +258,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		MqttPahoMessageDrivenChannelAdapter inbound =
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "si-test-in", "mqtt-foo");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		GenericMessage<String> message = new GenericMessage<>("foo");
@@ -299,9 +294,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 				new MqttPahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(),
 						"si-test-in", "mqtt-foo", "mqtt-bar");
 		QueueChannel outputChannel = new QueueChannel();
-		inbound.setOutputChannel(outputChannel);
-		inbound.setTaskScheduler(taskScheduler);
-		inbound.setBeanFactory(mock(BeanFactory.class));
+		initializeInboundAdapter(inbound, outputChannel);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		Message<String> message1 = new GenericMessage<>("foo");
@@ -394,6 +387,14 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 			this.event = event;
 		}
 
+	}
+
+	private static void initializeInboundAdapter(MqttPahoMessageDrivenChannelAdapter inbound, QueueChannel outputChannel) {
+		inbound.setOutputChannel(outputChannel);
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setQuiescentTimeout(QUIESCENT_TIMEOUT);
+		inbound.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
+		inbound.setBeanFactory(mock(BeanFactory.class));
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {
