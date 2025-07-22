@@ -244,6 +244,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * @return the size of the {@link Iterable}
 	 * @since 5.0
 	 */
+	@SuppressWarnings("removal")
 	protected int obtainSizeIfPossible(Iterable<?> iterable) {
 		if (iterable instanceof Collection<?> collection) {
 			return collection.size();

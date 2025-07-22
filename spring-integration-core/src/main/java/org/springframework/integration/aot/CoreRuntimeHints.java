@@ -82,6 +82,7 @@ import org.springframework.util.ReflectionUtils;
 class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
+	@SuppressWarnings("removal")
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 		ReflectionHints reflectionHints = hints.reflection();
 		Stream.of(

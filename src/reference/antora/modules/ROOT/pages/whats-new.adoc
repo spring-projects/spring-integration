@@ -55,4 +55,4 @@ See xref:mqtt.adoc[] for more information.
 === Jackson 3 Support
 
 The Jackson 2 has been deprecated for removal in whole Spring portfolio.
-Spring Integration 7.0 introduces Jackson 3 as the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
+Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.

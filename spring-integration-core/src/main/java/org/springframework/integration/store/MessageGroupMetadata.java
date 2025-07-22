@@ -61,7 +61,7 @@ public class MessageGroupMetadata implements Serializable {
 	}
 
 	@JsonCreator
-	public MessageGroupMetadata(List<UUID> messageIds) {
+	private MessageGroupMetadata(List<UUID> messageIds) {
 		this.messageIds = messageIds;
 	}
 
