@@ -66,7 +66,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -83,9 +82,6 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -95,7 +91,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -173,7 +168,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 	public void testIdleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
 			try {
 				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
@@ -190,7 +184,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		testIdleWithServerGuts(receiver, false);
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
@@ -218,7 +211,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
-		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true, true);
 	}
@@ -231,8 +223,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		receiver.setMaxFetchSize(1);
 		receiver.setShouldDeleteMessages(false);
 		receiver.setShouldMarkMessagesAsRead(true);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		setUpScheduler(receiver, taskScheduler);
 		receiver.setUserFlag("testSIUserFlag");
 		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
@@ -292,7 +282,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(channel.receive(100)).isNull(); // no new message after second and third idle
 
 		adapter.stop();
-		taskScheduler.shutdown();
 		assertThat(imapSearches.stores.get(0)).contains("testSIUserFlag");
 	}
 
@@ -669,8 +658,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		adapter.setReconnectDelay(10);
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		setUpScheduler(receiver, taskScheduler);
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
@@ -725,7 +712,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(channel.receive(100)).isNull();
 		assertThat(channel.receive(10000)).isNotNull();
 		adapter.stop();
-		taskScheduler.shutdown();
 	}
 
 	@Test
@@ -739,8 +725,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
 		receiver.setCancelIdleInterval(10);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		setUpScheduler(receiver, taskScheduler);
 		IMAPFolder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.RECENT));
 		given(folder.isOpen()).willReturn(false).willReturn(true);
@@ -780,7 +764,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(channel.receive(20000)).isNotNull();
 		assertThat(idles.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
-		taskScheduler.shutdown();
 	}
 
 	@Test
@@ -989,15 +972,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		adapter.stop();
 	}
 
-	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {
-		taskScheduler.setPoolSize(5);
-		taskScheduler.initialize();
-		BeanFactory bf = getBeanFactory(taskScheduler);
-		given(bf.containsBean("taskScheduler")).willReturn(true);
-		given(bf.getBean("taskScheduler", TaskScheduler.class)).willReturn(taskScheduler);
-		mailReceiver.setBeanFactory(bf);
-	}
-
 	@Test
 	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -1021,14 +995,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		// msg2 is marked with the user and seen flags
 		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
-	}
-
-	private BeanFactory getBeanFactory(TaskScheduler taskScheduler) {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	private static class ImapSearchLoggingHandler extends Handler {
