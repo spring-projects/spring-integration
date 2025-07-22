@@ -19,11 +19,17 @@ Java 17 is still baseline, but Java 24 is supported.
 
 Junit 4 Based Support Components are deprecated.
 
+The project now leverages https://jspecify.dev/docs/start-here/[JSpecify] annotations to expose null-safe APIs and to check the consistency of those nullability declarations with https://github.com/uber/NullAway[NullAway] as part of its build.
+
 [[x7.0-new-components]]
 == New Components
 
 A new `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
 See xref:distributed-locks.adoc[] for more information.
+
+The Jackson 2 support has been deprecated for removal.
+Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
+See their JavaDocs for more information, and deprecated classes for migration path.
 
 [[x7.0-jdbc-changes]]
 === JDBC Changes
@@ -50,9 +56,3 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 
 The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
 See xref:mqtt.adoc[] for more information.
-
-[[x7.0-jackson-3-Support]]
-=== Jackson 3 Support
-
-The Jackson 2 has been deprecated for removal in whole Spring portfolio.
-Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
