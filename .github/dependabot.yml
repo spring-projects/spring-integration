@@ -19,7 +19,6 @@ updates:
           - patch
         patterns:
           - org.gradle.*
-          - com.github.spotbugs
           - io.spring.*
           - org.antora
           - com.google.protobuf

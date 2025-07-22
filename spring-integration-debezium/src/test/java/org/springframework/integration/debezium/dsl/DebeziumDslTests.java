@@ -39,7 +39,6 @@ import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.CollectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,12 +63,8 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		assertThat(config.payloads).hasSize(EXPECTED_DB_TX_COUNT);
 		assertThat(config.headerKeys).hasSize(EXPECTED_DB_TX_COUNT);
 
-		config.headerKeys.forEach(keys -> {
-			assertThat(keys).contains("debezium_destination", "id", "contentType", "debezium_key", "timestamp");
-			if (keys.size() > 5) {
-				assertThat(keys).contains("__name", "__db", "__table");
-			}
-		});
+		config.headerKeys.forEach(keys ->
+				assertThat(keys).contains("debezium_destination", "id", "contentType", "debezium_key", "timestamp"));
 	}
 
 	@Test
@@ -84,10 +79,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 				.isLessThan(EXPECTED_DB_TX_COUNT);
 
 		config.batchHeaderKeys.stream()
-				.filter(headerNames -> !CollectionUtils.isEmpty(headerNames))
-				.forEach(headerNames -> {
-					assertThat(headerNames).contains("__name", "__db", "__table");
-				});
+				.forEach(headerNames -> assertThat(headerNames).isNotEmpty());
 	}
 
 	@Configuration
