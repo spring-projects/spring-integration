@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -49,7 +49,7 @@ import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.mock.web.MockHttpServletRequest;

@@ -41,7 +41,7 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.webflux.support.ClientHttpResponseBodyExtractor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;

@@ -37,7 +37,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.FtpTestSupport;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.MessagingException;

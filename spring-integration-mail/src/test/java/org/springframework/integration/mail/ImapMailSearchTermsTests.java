@@ -29,7 +29,7 @@ import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 

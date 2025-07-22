@@ -24,7 +24,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;

@@ -33,7 +33,7 @@ import org.w3c.dom.Document;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.util.XmlTestUtil;

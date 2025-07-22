@@ -27,7 +27,7 @@ import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 

@@ -28,7 +28,7 @@ import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

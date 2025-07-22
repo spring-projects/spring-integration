@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;

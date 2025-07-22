@@ -32,7 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.zip.ZipUtil;
 
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
 

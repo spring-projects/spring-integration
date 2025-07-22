@@ -23,7 +23,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;

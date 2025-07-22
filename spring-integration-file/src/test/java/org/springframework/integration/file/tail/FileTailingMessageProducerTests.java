@@ -36,7 +36,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingIdleEvent;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 

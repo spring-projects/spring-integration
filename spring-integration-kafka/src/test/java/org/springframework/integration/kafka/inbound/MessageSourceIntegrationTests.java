@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;

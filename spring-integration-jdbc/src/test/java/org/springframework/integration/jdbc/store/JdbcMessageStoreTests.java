@@ -53,8 +53,8 @@ import org.springframework.integration.handler.support.CollectionArgumentResolve
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.predicate.MessagePredicate;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;

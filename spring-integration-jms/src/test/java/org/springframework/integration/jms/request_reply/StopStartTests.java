@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;

@@ -35,7 +35,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;

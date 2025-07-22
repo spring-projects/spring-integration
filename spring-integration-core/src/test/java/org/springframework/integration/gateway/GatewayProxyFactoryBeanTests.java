@@ -54,7 +54,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;

@@ -37,7 +37,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

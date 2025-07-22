@@ -49,7 +49,7 @@ import org.springframework.integration.jdbc.channel.PostgresChannelMessageTableS
 import org.springframework.integration.jdbc.channel.PostgresSubscribableChannel;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;

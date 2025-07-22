@@ -39,7 +39,7 @@ import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;

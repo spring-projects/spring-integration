@@ -36,8 +36,8 @@ import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.scheduling.PollerMetadata
 import org.springframework.integration.selector.UnexpiredMessageSelector
 import org.springframework.integration.support.MessageBuilder
-import org.springframework.integration.test.context.TestApplicationContextAware
-import org.springframework.integration.test.context.TestApplicationContextAware.TEST_INTEGRATION_CONTEXT
+import org.springframework.integration.test.support.TestApplicationContextAware
+import org.springframework.integration.test.support.TestApplicationContextAware.TEST_INTEGRATION_CONTEXT
 import org.springframework.integration.test.util.OnlyOnceTrigger
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel

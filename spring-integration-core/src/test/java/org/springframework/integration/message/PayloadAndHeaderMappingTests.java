@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.handler.annotation.Header;

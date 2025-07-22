@@ -32,7 +32,7 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

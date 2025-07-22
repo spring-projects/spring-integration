@@ -38,7 +38,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.test.condition.LogLevels;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;

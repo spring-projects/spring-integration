@@ -38,7 +38,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;

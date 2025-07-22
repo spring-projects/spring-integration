@@ -33,7 +33,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;

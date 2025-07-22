@@ -43,7 +43,7 @@ import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilt
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 

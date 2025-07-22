@@ -30,7 +30,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;

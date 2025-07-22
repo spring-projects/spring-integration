@@ -61,7 +61,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;

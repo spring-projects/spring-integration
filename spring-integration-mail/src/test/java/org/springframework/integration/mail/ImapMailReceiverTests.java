@@ -79,7 +79,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.condition.LogLevels;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;

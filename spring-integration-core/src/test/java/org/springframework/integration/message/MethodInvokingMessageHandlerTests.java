@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
