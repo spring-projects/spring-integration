@@ -16,11 +16,15 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.aopalliance.intercept.MethodInterceptor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +35,6 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -66,12 +70,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@RabbitAvailable({
-		AmqpMessageSourceIntegrationTests.DSL_QUEUE,
-		AmqpMessageSourceIntegrationTests.INTERCEPT_QUEUE,
-		AmqpMessageSourceIntegrationTests.DLQ,
-		AmqpMessageSourceIntegrationTests.NOAUTOACK_QUEUE})
-public class AmqpMessageSourceIntegrationTests {
+public class AmqpMessageSourceIntegrationTests implements RabbitTestContainer {
 
 	static final String DSL_QUEUE = "AmqpMessageSourceIntegrationTests";
 
@@ -88,6 +87,22 @@ public class AmqpMessageSourceIntegrationTests {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
+
+	@BeforeAll
+	static void initQueues() throws IOException, InterruptedException {
+		List<String> queueNames = List.of(DSL_QUEUE, DLQ, INTERCEPT_QUEUE, NOAUTOACK_QUEUE);
+		for (String queue : queueNames) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queue);
+		}
+	}
+
+	@AfterAll
+	static void deleteQueues() throws IOException, InterruptedException {
+		List<String> queueNames = List.of(DSL_QUEUE, DLQ, INTERCEPT_QUEUE, NOAUTOACK_QUEUE);
+		for (String queue : queueNames) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + queue);
+		}
+	}
 
 	@BeforeEach
 	public void before() {
@@ -249,7 +264,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public ConnectionFactory connectionFactory() {
-			return new CachingConnectionFactory("localhost");
+			return new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 		}
 
 	}
