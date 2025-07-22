@@ -44,7 +44,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServerHttpResponse;
@@ -77,7 +76,7 @@ import org.springframework.web.servlet.HandlerMapping;
 /**
  * Base class for HTTP request handling endpoints.
  * <p>
- * By default GET and POST requests are accepted via a supplied default instance
+ * By default, GET and POST requests are accepted via a supplied default instance
  * of {@link RequestMapping}.
  * A GET request will generate a payload containing its 'parameterMap' while a POST
  * request will be converted to a Message payload according to the registered
@@ -146,6 +145,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * @see #setReplyTimeout(long)
 	 * @see #setStatusCodeExpression
 	 */
+	@SuppressWarnings("removal")
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		super(expectReply);
 		this.defaultMessageConverters.add(new MultipartAwareFormHttpMessageConverter());
@@ -165,7 +165,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			logger.debug("'JacksonJsonHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
 		else if (JacksonPresent.isJackson2Present()) {
-			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
+			this.defaultMessageConverters.add(
+					new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter());
 			logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
 		if (ROME_TOOLS_PRESENT) {
@@ -238,7 +239,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 						+ "': no multipart request handling will be supported.");
 			}
 		}
-		if (this.messageConverters.size() == 0 || (this.mergeWithDefaultConverters && !this.convertersMerged)) {
+		if (this.messageConverters.isEmpty() || (this.mergeWithDefaultConverters && !this.convertersMerged)) {
 			this.messageConverters.addAll(this.defaultMessageConverters);
 		}
 	}
@@ -269,7 +270,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 			Map<String, Object> headers = getHeaderMapper().toHeaders(httpEntity.getHeaders());
 			Object payload = null;
-			Message<?> message = null;
+			Message<?> message;
 			boolean expectReply = isExpectReply();
 			try {
 				if (getPayloadExpression() != null) {

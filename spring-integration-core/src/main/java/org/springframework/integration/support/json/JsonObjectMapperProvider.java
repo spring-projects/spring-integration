@@ -40,6 +40,7 @@ public final class JsonObjectMapperProvider {
 	 * @return the mapper.
 	 * @throws IllegalStateException if an implementation is not available.
 	 */
+	@SuppressWarnings("removal")
 	public static JsonObjectMapper<?, ?> newInstance() {
 		if (JacksonPresent.isJackson3Present()) {
 			return new JacksonJsonObjectMapper();

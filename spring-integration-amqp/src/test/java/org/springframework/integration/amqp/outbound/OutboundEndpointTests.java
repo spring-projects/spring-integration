@@ -29,7 +29,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.support.converter.AbstractJavaTypeMapper;
+import org.springframework.amqp.support.converter.DefaultJacksonJavaTypeMapper;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -175,7 +175,7 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 		endpoint.setExpectReply(true);
 		willAnswer(invocation ->
 				org.springframework.amqp.core.MessageBuilder.withBody(new byte[0])
-						.setHeader(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
+						.setHeader(DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
 						.build()
 		).given(amqpTemplate)
 				.doSendAndReceiveWithTemporary(isNull(), isNull(), any(Message.class), isNull());
@@ -188,7 +188,7 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 		org.springframework.messaging.Message<?> receive = replyChannel.receive(10_000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getHeaders())
-				.containsEntry(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
+				.containsEntry(DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
 				.containsEntry(JsonHeaders.TYPE_ID, String.class.getName())
 				.containsEntry(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.forClass(String.class));
 	}

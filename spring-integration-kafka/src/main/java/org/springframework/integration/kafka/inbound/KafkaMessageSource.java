@@ -58,7 +58,7 @@ import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
@@ -264,7 +264,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		if (JacksonPresent.isJackson2Present()) {
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
-			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			headerMapper.addTrustedPackages(JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
 			messagingMessageConverter.setHeaderMapper(headerMapper);
 		}
 	}
@@ -1051,9 +1051,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		Object getConsumerMonitor();
 
-		@Nullable String getGroupId();
+		@Nullable
+		String getGroupId();
 
-		@Nullable Consumer<K, V> getConsumer();
+		@Nullable
+		Consumer<K, V> getConsumer();
 
 		ConsumerRecord<K, V> getRecord();
 

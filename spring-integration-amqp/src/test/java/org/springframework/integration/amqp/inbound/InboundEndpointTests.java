@@ -42,7 +42,7 @@ import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -100,7 +100,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
-		adapter.setMessageConverter(new Jackson2JsonMessageConverter());
+		adapter.setMessageConverter(new JacksonJsonMessageConverter());
 
 		PollableChannel channel = new QueueChannel();
 
@@ -154,7 +154,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage =
-				new Jackson2JsonMessageConverter().toMessage(payload, amqpMessageProperties);
+				new JacksonJsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, null);
@@ -193,7 +193,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		}));
 
 		RabbitTemplate rabbitTemplate = spy(new RabbitTemplate());
-		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
 
 		CountDownLatch sendLatch = new CountDownLatch(1);
 
@@ -214,7 +214,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 				.send(anyString(), anyString(), any(org.springframework.amqp.core.Message.class), isNull());
 
 		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
-		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
+		gateway.setMessageConverter(new JacksonJsonMessageConverter());
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setDefaultReplyTo("foo");
@@ -226,7 +226,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage =
-				new Jackson2JsonMessageConverter().toMessage(payload, amqpMessageProperties);
+				new JacksonJsonMessageConverter().toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, rabbitChannel);

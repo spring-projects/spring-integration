@@ -43,7 +43,7 @@ import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -259,7 +259,7 @@ public class AmqpTests {
 				this.integrationFlowContext.registration(testFlow).register();
 
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(this.rabbitConnectionFactory);
-		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
 
 		Object result = rabbitTemplate.convertSendAndReceive(this.amqpQueue2.getName(),
 				new HashMap<>(Collections.singletonMap("TEST_KEY", "TEST_VALUE")));

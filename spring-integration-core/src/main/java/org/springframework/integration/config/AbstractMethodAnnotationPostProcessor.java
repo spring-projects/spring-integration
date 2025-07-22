@@ -148,7 +148,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	@SuppressWarnings("NullAway.Init")
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings({"NullAway", "unchecked"})
 	public AbstractMethodAnnotationPostProcessor() {
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.annotationType =
@@ -632,7 +632,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		ReactiveStreamsConsumer reactiveStreamsConsumer;
 		if (handler instanceof ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter) {
 			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel,
-				reactiveMessageHandlerAdapter.getDelegate());
+					reactiveMessageHandlerAdapter.getDelegate());
 		}
 		else {
 			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel, handler);

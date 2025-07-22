@@ -30,7 +30,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -38,7 +37,6 @@ import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.GenericMessageConverter;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
@@ -111,6 +109,7 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 		}
 	}
 
+	@SuppressWarnings("removal")
 	private static Collection<MessageConverter> initDefaults() {
 		List<MessageConverter> converters = new LinkedList<>();
 
@@ -121,9 +120,11 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 			converters.add(jsonMessageConverter);
 		}
 		else if (JacksonPresent.isJackson2Present()) {
-			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+			var mappingJackson2MessageConverter =
+					new org.springframework.messaging.converter.MappingJackson2MessageConverter();
 			mappingJackson2MessageConverter.setStrictContentTypeMatch(true);
-			mappingJackson2MessageConverter.setObjectMapper(new Jackson2JsonObjectMapper().getObjectMapper());
+			mappingJackson2MessageConverter.setObjectMapper(
+					new org.springframework.integration.support.json.Jackson2JsonObjectMapper().getObjectMapper());
 			converters.add(mappingJackson2MessageConverter);
 		}
 		converters.add(new ByteArrayMessageConverter());

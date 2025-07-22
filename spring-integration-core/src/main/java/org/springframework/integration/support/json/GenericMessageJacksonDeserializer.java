@@ -33,6 +33,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @deprecated Since 7.0 in favor of {@link GenericMessageJsonDeserializer} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class GenericMessageJacksonDeserializer extends MessageJacksonDeserializer<GenericMessage<?>> {
 
 	private static final long serialVersionUID = 1L;

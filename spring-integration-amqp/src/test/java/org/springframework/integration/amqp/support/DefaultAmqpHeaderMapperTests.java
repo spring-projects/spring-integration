@@ -28,8 +28,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.support.converter.AbstractJavaTypeMapper;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.DefaultJacksonJavaTypeMapper;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
@@ -265,7 +265,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void jsonTypeIdNotOverwritten() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-		MessageConverter converter = new Jackson2JsonMessageConverter();
+		MessageConverter converter = new JacksonJsonMessageConverter();
 		MessageProperties amqpProperties = new MessageProperties();
 		converter.toMessage("123", amqpProperties);
 		Map<String, Object> headerMap = new HashMap<>();
@@ -329,11 +329,11 @@ public class DefaultAmqpHeaderMapperTests {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		headerMapper.setRequestHeaderNames("!json_*", "*");
 		MessageProperties amqpProperties = new MessageProperties();
-		amqpProperties.getHeaders().put(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, "test.type");
+		amqpProperties.getHeaders().put(DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, "test.type");
 		Map<String, Object> headers = headerMapper.toHeadersFromRequest(amqpProperties);
 		assertThat(headers)
 				.doesNotContainKeys(JsonHeaders.RESOLVABLE_TYPE, JsonHeaders.TYPE_ID)
-				.containsKey(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME);
+				.containsKey(DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME);
 	}
 
 }

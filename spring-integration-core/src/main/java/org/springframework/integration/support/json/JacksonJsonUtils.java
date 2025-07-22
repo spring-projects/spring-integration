@@ -52,6 +52,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @deprecated Since 7.0 in favor of {@link JacksonMessagingUtils} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public final class JacksonJsonUtils {
 
 	/**

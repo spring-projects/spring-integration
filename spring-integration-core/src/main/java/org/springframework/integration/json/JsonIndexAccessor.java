@@ -36,10 +36,13 @@ import org.springframework.expression.TypedValue;
  * @author Sam Brannen
  *
  * @since 6.4
+ *
  * @see JsonPropertyAccessor
+ *
  * @deprecated Since 7.0 in favor of {@link JacksonIndexAccessor} for Jackson 3.
  */
 @Deprecated(forRemoval = true, since = "7.0")
+@SuppressWarnings("removal")
 public class JsonIndexAccessor implements IndexAccessor {
 
 	private static final Class<?>[] SUPPORTED_CLASSES = { ArrayNode.class };

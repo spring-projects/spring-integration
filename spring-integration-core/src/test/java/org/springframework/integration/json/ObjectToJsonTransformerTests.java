@@ -202,12 +202,12 @@ public class ObjectToJsonTransformerTests {
 		assertThat(result).isInstanceOf(ObjectNode.class);
 		ObjectNode objectNode = (ObjectNode) result;
 		assertThat(objectNode.size()).isEqualTo(2);
-		assertThat(objectNode.path("foo").textValue()).isEqualTo("FOO");
+		assertThat(objectNode.path("foo").asString()).isEqualTo("FOO");
 		assertThat(objectNode.path("bar").intValue()).isEqualTo(1);
 
 		result = transformer.transform(new GenericMessage<>("foo")).getPayload();
 		assertThat(result).isInstanceOf(StringNode.class);
-		assertThat(((StringNode) result).textValue()).isEqualTo("foo");
+		assertThat(((StringNode) result).asString()).isEqualTo("foo");
 	}
 
 }

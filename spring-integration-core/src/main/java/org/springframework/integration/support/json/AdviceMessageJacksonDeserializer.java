@@ -36,6 +36,7 @@ import org.springframework.messaging.MessageHeaders;
  * @deprecated Since 7.0 in favor of {@link AdviceMessageJsonDeserializer} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class AdviceMessageJacksonDeserializer extends MessageJacksonDeserializer<AdviceMessage<?>> {
 
 	private static final long serialVersionUID = 1L;

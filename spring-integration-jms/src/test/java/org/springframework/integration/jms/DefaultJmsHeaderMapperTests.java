@@ -29,7 +29,7 @@ import org.mockito.Mockito;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.support.JmsHeaders;
-import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
+import org.springframework.jms.support.converter.JacksonJsonMessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -528,7 +528,7 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void testJsonHeaderMapping() throws JMSException {
 
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
 		converter.setTargetType(MessageType.TEXT);
 		converter.setTypeIdPropertyName("javatype");
 

@@ -27,7 +27,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.json.JsonNodeWrapperConverter;
-import org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
@@ -69,6 +68,7 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 		}
 	}
 
+	@SuppressWarnings("removal")
 	private void registerConverters(GenericConversionService conversionService) {
 		Set<Object> converters =
 				this.applicationContext.getBeansOfType(IntegrationConverterRegistration.class)
@@ -78,8 +78,9 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 		if (JacksonPresent.isJackson3Present()) {
 			converters.add(new JsonNodeWrapperConverter());
 		}
+
 		if (JacksonPresent.isJackson2Present()) {
-			converters.add(new JsonNodeWrapperToJsonNodeConverter());
+			converters.add(new org.springframework.integration.json.JsonNodeWrapperToJsonNodeConverter());
 		}
 		ConversionServiceFactory.registerConverters(converters, conversionService);
 	}

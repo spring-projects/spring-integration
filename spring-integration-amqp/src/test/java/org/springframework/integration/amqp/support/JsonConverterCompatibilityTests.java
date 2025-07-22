@@ -27,7 +27,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -49,7 +49,7 @@ public class JsonConverterCompatibilityTests {
 	@BeforeEach
 	public void setUp() {
 		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory("localhost"));
-		this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		this.rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
 	}
 
 	@AfterEach
@@ -61,7 +61,7 @@ public class JsonConverterCompatibilityTests {
 	@Test
 	public void testInbound() {
 		@SuppressWarnings("unchecked") final Message<String> out = (Message<String>) new ObjectToJsonTransformer()
-				.transform(new GenericMessage<Foo>(new Foo()));
+				.transform(new GenericMessage<>(new Foo()));
 		MessageProperties messageProperties = new MessageProperties();
 		DefaultAmqpHeaderMapper.outboundMapper().fromHeadersToRequest(out.getHeaders(), messageProperties);
 		final BasicProperties props = new DefaultMessagePropertiesConverter().fromMessageProperties(messageProperties,
