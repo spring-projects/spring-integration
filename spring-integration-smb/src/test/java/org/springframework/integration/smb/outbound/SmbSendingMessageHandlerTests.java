@@ -30,7 +30,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.smb.AbstractBaseTests;
 import org.springframework.integration.smb.session.SmbSession;
 import org.springframework.integration.smb.session.SmbSessionFactory;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileSystemUtils;
 

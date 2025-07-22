@@ -26,7 +26,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.http.AbstractHttpInboundTests;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.mock.web.MockHttpServletRequest;

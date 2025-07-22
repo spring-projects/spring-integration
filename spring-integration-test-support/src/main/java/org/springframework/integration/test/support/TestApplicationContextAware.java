@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.context;
+package org.springframework.integration.test.support;
 
 import java.util.Objects;
 

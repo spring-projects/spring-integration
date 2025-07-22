@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.TestHandlers;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;

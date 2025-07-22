@@ -33,7 +33,7 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
