@@ -336,6 +336,8 @@ configure(javaProjects) { subproject ->
         reports.junitXml.required = false
 
         enableAssertions = false
+
+        jvmArgs '-Xshare:off'
     }
 
     checkstyle {
