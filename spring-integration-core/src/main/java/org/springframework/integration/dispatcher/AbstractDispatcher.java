@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -53,7 +54,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
-	private volatile MessageHandler theOneHandler;
+	private volatile @Nullable MessageHandler theOneHandler;
 
 	private final Lock lock = new ReentrantLock();
 
