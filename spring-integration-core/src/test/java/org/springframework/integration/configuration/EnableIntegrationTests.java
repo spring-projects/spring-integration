@@ -112,8 +112,8 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
-import org.springframework.integration.json.JsonIndexAccessor;
-import org.springframework.integration.json.JsonPropertyAccessor;
+import org.springframework.integration.json.JacksonIndexAccessor;
+import org.springframework.integration.json.JacksonPropertyAccessor;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
@@ -792,13 +792,13 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		StandardEvaluationContext evaluationContext = this.context.getBean(StandardEvaluationContext.class);
 		List<?> propertyAccessors = evaluationContext.getPropertyAccessors();
 		assertThat(propertyAccessors.size()).isEqualTo(4);
-		assertThat(propertyAccessors.get(0)).isInstanceOf(JsonPropertyAccessor.class);
+		assertThat(propertyAccessors.get(0)).isInstanceOf(JacksonPropertyAccessor.class);
 		assertThat(propertyAccessors.get(1)).isInstanceOf(EnvironmentAccessor.class);
 		assertThat(propertyAccessors.get(2)).isInstanceOf(MapAccessor.class);
 		assertThat(propertyAccessors.get(3)).isInstanceOf(ReflectivePropertyAccessor.class);
 		List<IndexAccessor> indexAccessors = evaluationContext.getIndexAccessors();
 		assertThat(indexAccessors.size()).isEqualTo(1);
-		assertThat(indexAccessors.get(0)).isInstanceOf(JsonIndexAccessor.class);
+		assertThat(indexAccessors.get(0)).isInstanceOf(JacksonIndexAccessor.class);
 		Object testSpelFunction = evaluationContext.lookupVariable("testSpelFunction");
 		assertThat(testSpelFunction).isEqualTo(ClassUtils.getStaticMethod(TestSpelFunction.class, "bar",
 				Object.class));
@@ -1249,9 +1249,9 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 
 		@Bean
 		public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
-			return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor())
+			return new SpelPropertyAccessorRegistrar(new JacksonPropertyAccessor())
 					.add(new EnvironmentAccessor())
-					.add(new JsonIndexAccessor());
+					.add(new JacksonIndexAccessor());
 		}
 
 		@Bean

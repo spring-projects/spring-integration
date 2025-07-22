@@ -565,8 +565,8 @@ You can provide your own custom `JsonObjectMapper` implementation with appropria
 ====
 Beginning with version 3.0, the `object-mapper` attribute references an instance of a new strategy interface: `JsonObjectMapper`.
 This abstraction lets multiple implementations of JSON mappers be used.
-Implementation that wraps https://github.com/FasterXML[Jackson 2] is provided, with the version being detected on the classpath.
-The class is `Jackson2JsonObjectMapper`, respectively.
+Implementation that wraps https://github.com/FasterXML[Jackson 3] is provided, with the version being detected on the classpath.
+The class is `JacksonJsonObjectMapper`, respectively.
 ====
 
 You may wish to consider using a `FactoryBean` or a factory method to create the `JsonObjectMapper` with the required characteristics.
@@ -576,10 +576,11 @@ The following example shows how to use such a factory:
 ----
 public class ObjectMapperFactory {
 
-    public static Jackson2JsonObjectMapper getMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-        return new Jackson2JsonObjectMapper(mapper);
+    public static JacksonJsonObjectMapper getMapper() {
+        ObjectMapper mapper = JsonMapper.builder()
+				.configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, true)
+				.build();
+        return new JacksonJsonObjectMapper(mapper);
     }
 }
 ----
@@ -633,8 +634,8 @@ For more information see xref:xml/xpath-spel-function.adoc[#xpath SpEL Function]
 
 Beginning with version 4.0, the `ObjectToJsonTransformer` supports the `resultType` property, to specify the node JSON representation.
 The result node tree representation depends on the implementation of the provided `JsonObjectMapper`.
-By default, the `ObjectToJsonTransformer` uses a `Jackson2JsonObjectMapper` and delegates the conversion of the object to the node tree to the `ObjectMapper#valueToTree` method.
-The node JSON representation provides efficiency for using the `JsonPropertyAccessor` when the downstream message flow uses SpEL expressions with access to the properties of the JSON data.
+By default, the `ObjectToJsonTransformer` uses a `JacksonJsonObjectMapper` and delegates the conversion of the object to the node tree to the `ObjectMapper#valueToTree` method.
+The node JSON representation provides efficiency for using the `JacksonPropertyAccessor` when the downstream message flow uses SpEL expressions with access to the properties of the JSON data.
 See xref:spel.adoc#spel-property-accessors[Property Accessors] for more information.
 
 Beginning with version 5.1, the `resultType` can be configured as `BYTES` to produce a message with the `byte[]` payload for convenience when working with downstream handlers which operate with this data type.

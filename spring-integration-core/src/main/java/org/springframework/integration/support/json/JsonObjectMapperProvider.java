@@ -29,7 +29,6 @@ package org.springframework.integration.support.json;
  * @since 3.0
  *
  * @see JacksonJsonObjectMapper
- * @see Jackson2JsonObjectMapper
  */
 public final class JsonObjectMapperProvider {
 
@@ -42,11 +41,11 @@ public final class JsonObjectMapperProvider {
 	 * @throws IllegalStateException if an implementation is not available.
 	 */
 	public static JsonObjectMapper<?, ?> newInstance() {
-		if (JacksonPresent.isJackson2Present()) {
-			return new Jackson2JsonObjectMapper();
-		}
-		else if (JacksonPresent.isJackson3Present()) {
+		if (JacksonPresent.isJackson3Present()) {
 			return new JacksonJsonObjectMapper();
+		}
+		else if (JacksonPresent.isJackson2Present()) {
+			return new Jackson2JsonObjectMapper();
 		}
 		else {
 			throw new IllegalStateException("No jackson-databind.jar is present in the classpath.");

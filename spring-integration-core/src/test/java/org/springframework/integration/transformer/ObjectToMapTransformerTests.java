@@ -25,10 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
@@ -36,7 +35,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Vikas Prasad
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 2.0
  */
@@ -144,7 +144,8 @@ public class ObjectToMapTransformerTests {
 		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("listOfDates[0][1]");
-		valueFromTheMap = new Date((Long) transformedMap.get("listOfDates[0][1]"));
+		Instant parsedInstant = Instant.parse((String) transformedMap.get("listOfDates[0][1]"));
+		valueFromTheMap = Date.from(parsedInstant);
 		valueFromExpression = expression.getValue(context, employee, Date.class);
 		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 	}
@@ -184,10 +185,8 @@ public class ObjectToMapTransformerTests {
 		Employee employee = buildEmployee();
 
 		ObjectMapper customMapper = new ObjectMapper();
-		customMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
 		Map<String, Object> transformedMap =
-				new ObjectToMapTransformer(new Jackson2JsonObjectMapper(customMapper))
+				new ObjectToMapTransformer(new JacksonJsonObjectMapper(customMapper))
 						.transformPayload(employee);
 
 		assertThat(transformedMap.get("listOfDates[0][0]")).isInstanceOf(String.class);

@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -42,7 +44,7 @@ public class MessageGroupMetadata implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("serial")
-	private final List<UUID> messageIds = new LinkedList<>();
+	private final List<UUID> messageIds;
 
 	private long timestamp;
 
@@ -55,9 +57,16 @@ public class MessageGroupMetadata implements Serializable {
 	private volatile String condition;
 
 	public MessageGroupMetadata() {
+		this.messageIds = new LinkedList<>();
+	}
+
+	@JsonCreator
+	private MessageGroupMetadata(List<UUID> messageIds) {
+		this.messageIds = messageIds;
 	}
 
 	public MessageGroupMetadata(MessageGroup messageGroup) {
+		this();
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
 		for (Message<?> message : messageGroup.getMessages()) {
 			this.messageIds.add(message.getHeaders().getId());

@@ -53,6 +53,7 @@ import org.springframework.util.ObjectUtils;
  * @author Ruslan Stelmachenko
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler
 		implements DiscardingMessageHandler {
@@ -243,9 +244,13 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * @return the size of the {@link Iterable}
 	 * @since 5.0
 	 */
+	@SuppressWarnings("removal")
 	protected int obtainSizeIfPossible(Iterable<?> iterable) {
 		if (iterable instanceof Collection<?> collection) {
 			return collection.size();
+		}
+		else if (JacksonPresent.isJackson3Present() && JacksonTreeNodeHelper.isNode(iterable)) {
+			return JacksonTreeNodeHelper.nodeSize(iterable);
 		}
 		else if (JacksonPresent.isJackson2Present() && JacksonNodeHelper.isNode(iterable)) {
 			return JacksonNodeHelper.nodeSize(iterable);
@@ -345,6 +350,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 */
 	protected abstract Object splitMessage(Message<?> message);
 
+	@Deprecated(since = "7.0", forRemoval = true)
 	private static final class JacksonNodeHelper {
 
 		private static boolean isNode(Object object) {
@@ -353,6 +359,18 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 		private static int nodeSize(Object node) {
 			return ((TreeNode) node).size();
+		}
+
+	}
+
+	private static final class JacksonTreeNodeHelper {
+
+		private static boolean isNode(Object object) {
+			return object instanceof tools.jackson.core.TreeNode;
+		}
+
+		private static int nodeSize(Object node) {
+			return ((tools.jackson.core.TreeNode) node).size();
 		}
 
 	}

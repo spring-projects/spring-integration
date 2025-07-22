@@ -49,8 +49,9 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Youbin Wu
  *
  * @since 3.0
- *
+ * @deprecated Since 7.0 in favor of {@link JacksonMessagingUtils} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public final class JacksonJsonUtils {
 
 	/**

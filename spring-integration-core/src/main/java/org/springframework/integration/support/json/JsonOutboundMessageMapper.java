@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON
  * string representation.
  * <p>
- * Consider using the {@link EmbeddedJsonHeadersMessageMapper} instead; it provides more
+ * Consider using the {@link EmbeddedHeadersJsonMessageMapper} instead; it provides more
  * flexibility for determining which headers are included.
  *
  * @author Jeremy Grelle

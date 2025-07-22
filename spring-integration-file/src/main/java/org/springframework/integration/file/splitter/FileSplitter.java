@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
@@ -454,12 +456,14 @@ public class FileSplitter extends AbstractMessageSplitter {
 		/*
 		 * Provided solely to allow deserialization from JSON
 		 */
+		@Deprecated(since = "7.0", forRemoval = true)
 		public FileMarker() {
 			this.filePath = null;
 			this.mark = null;
 			this.lineCount = 0;
 		}
 
+		@JsonCreator
 		public FileMarker(String filePath, Mark mark, long lineCount) {
 			this.filePath = filePath;
 			this.mark = mark;

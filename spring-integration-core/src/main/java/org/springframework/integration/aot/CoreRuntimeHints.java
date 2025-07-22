@@ -75,12 +75,14 @@ import org.springframework.util.ReflectionUtils;
  * {@link RuntimeHintsRegistrar} for Spring Integration core module.
  *
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 6.0
  */
 class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
+	@SuppressWarnings("removal")
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 		ReflectionHints reflectionHints = hints.reflection();
 		Stream.of(
@@ -103,12 +105,14 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 			reflectionHints.registerType(JsonPathUtils.class, MemberCategory.INVOKE_PUBLIC_METHODS);
 		}
 
+		registerJackson2Hints(reflectionHints);
+
 		reflectionHints.registerType(
-				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ComparableJsonNode"),
+				TypeReference.of("org.springframework.integration.json.JacksonPropertyAccessor$ComparableJsonNode"),
 				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		reflectionHints.registerType(
-				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ArrayNodeAsList"),
+				TypeReference.of("org.springframework.integration.json.JacksonPropertyAccessor$ArrayNodeAsList"),
 				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		// For #xpath() SpEL function
@@ -164,6 +168,17 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 
 	private static void registerSpringJdkProxy(ProxyHints proxyHints, Class<?>... proxiedInterfaces) {
 		proxyHints.registerJdkProxy(AopProxyUtils.completeJdkProxyInterfaces(proxiedInterfaces));
+	}
+
+	@Deprecated(since = "7.0", forRemoval = true)
+	private static void registerJackson2Hints(ReflectionHints reflectionHints) {
+		reflectionHints.registerType(
+				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ComparableJsonNode"),
+				MemberCategory.INVOKE_PUBLIC_METHODS);
+
+		reflectionHints.registerType(
+				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ArrayNodeAsList"),
+				MemberCategory.INVOKE_PUBLIC_METHODS);
 	}
 
 }

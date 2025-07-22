@@ -45,7 +45,7 @@ import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
@@ -247,7 +247,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		public WebSocketStompClient stompClient(
 				@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
-			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
+			webSocketStompClient.setMessageConverter(new JacksonJsonMessageConverter());
 			webSocketStompClient.setTaskScheduler(taskScheduler);
 			return webSocketStompClient;
 		}

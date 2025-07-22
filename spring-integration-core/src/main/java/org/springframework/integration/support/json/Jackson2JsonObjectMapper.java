@@ -60,8 +60,9 @@ import org.springframework.util.ClassUtils;
  * @author Vikas Prasad
  *
  * @since 3.0
- *
+ * @deprecated Since 7.0 in favor of {@link JacksonJsonObjectMapper} for Jackson 3.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
 	private static final boolean JDK8_MODULE_PRESENT =

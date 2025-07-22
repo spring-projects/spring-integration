@@ -28,6 +28,7 @@ import java.util.Map;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -61,6 +62,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	public JacksonJsonObjectMapper() {
 		this.objectMapper = JsonMapper.builder()
 				.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
+				.disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
 				.build();
 	}
 

@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -169,7 +169,7 @@ public class ParentContextTests {
 
 		ConversionService conversionService = IntegrationUtils.getConversionService(parent);
 		Class<?> jsonNodeWrapperClass =
-				ClassUtils.forName("org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper",
+				ClassUtils.forName("org.springframework.integration.json.JacksonPropertyAccessor.JsonNodeWrapper",
 						ClassUtils.getDefaultClassLoader());
 		assertThat(conversionService.canConvert(jsonNodeWrapperClass, JsonNode.class)).isTrue();
 

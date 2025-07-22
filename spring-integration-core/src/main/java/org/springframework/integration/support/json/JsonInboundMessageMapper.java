@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * {@link org.springframework.integration.mapping.InboundMessageMapper} implementation that maps incoming JSON messages
  * to a {@link Message} with the specified payload type.
  * <p>
- * Consider using the {@link EmbeddedJsonHeadersMessageMapper} instead.
+ * Consider using the {@link EmbeddedHeadersJsonMessageMapper} instead.
  *
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky

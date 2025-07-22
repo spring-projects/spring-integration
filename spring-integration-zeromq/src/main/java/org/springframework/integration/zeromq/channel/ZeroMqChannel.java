@@ -35,7 +35,7 @@ import reactor.core.scheduler.Schedulers;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.mapping.BytesMessageMapper;
-import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -92,7 +92,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	private Duration consumeDelay = DEFAULT_CONSUME_DELAY;
 
-	private BytesMessageMapper messageMapper = new EmbeddedJsonHeadersMessageMapper();
+	private BytesMessageMapper messageMapper = new EmbeddedHeadersJsonMessageMapper();
 
 	private Consumer<ZMQ.Socket> sendSocketConfigurer = (socket) -> {
 	};
@@ -273,7 +273,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	 * Provide a {@link BytesMessageMapper} to convert to/from messages when send or receive happens
 	 * on the sockets.
 	 * @param messageMapper the {@link BytesMessageMapper} to use;
-	 *                      defaults to {@link EmbeddedJsonHeadersMessageMapper}.
+	 *                      defaults to {@link EmbeddedHeadersJsonMessageMapper}.
 	 */
 	public void setMessageMapper(BytesMessageMapper messageMapper) {
 		Assert.notNull(messageMapper, "'messageMapper' must not be null");

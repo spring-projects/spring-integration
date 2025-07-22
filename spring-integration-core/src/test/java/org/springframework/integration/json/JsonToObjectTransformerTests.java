@@ -18,15 +18,16 @@ package org.springframework.integration.json;
 
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jooyoung Pyoung
  *
  * @since 2.0
  */
@@ -49,7 +51,6 @@ public class JsonToObjectTransformerTests {
 
 						}));
 		// Since DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES is disabled by default
-		// (see Jackson2JsonObjectMapper)
 		// the extra "foo" property is ignored.
 		// language=JSON
 		String jsonString = """
@@ -83,10 +84,11 @@ public class JsonToObjectTransformerTests {
 
 	@Test
 	public void objectPayloadWithCustomMapper() {
-		ObjectMapper customMapper = new ObjectMapper();
-		customMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
-		customMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
-		JsonToObjectTransformer transformer = new JsonToObjectTransformer(new Jackson2JsonObjectMapper(customMapper));
+		ObjectMapper customMapper = JsonMapper.builder()
+				.configure(JsonReadFeature.ALLOW_UNQUOTED_PROPERTY_NAMES, true)
+				.configure(JsonReadFeature.ALLOW_SINGLE_QUOTES, true)
+				.build();
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer(new JacksonJsonObjectMapper(customMapper));
 		transformer.setValueTypeExpression(new ValueExpression<>(ResolvableType.forClass(TestPerson.class)));
 		// language=JSON
 		String jsonString = """
