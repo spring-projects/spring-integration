@@ -19,6 +19,8 @@ package org.springframework.integration.graphql.outbound;
 import java.util.Locale;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -30,7 +32,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -49,16 +50,15 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	private StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
-	@Nullable
-	private Expression operationExpression;
+	private @Nullable Expression operationExpression;
 
 	private Expression operationNameExpression = new SupplierExpression<>(() -> null);
 
 	private Expression variablesExpression = new SupplierExpression<>(() -> null);
 
-	@Nullable
-	private Locale locale;
+	private @Nullable Locale locale;
 
+	@SuppressWarnings("NullAway") // In most cases the message really comes with an ID
 	private Expression executionIdExpression =
 			new FunctionExpression<Message<?>>(message -> message.getHeaders().getId());
 
@@ -163,19 +163,16 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		return operation;
 	}
 
-	@Nullable
-	private String evaluateOperationNameExpression(Message<?> message) {
+	private @Nullable String evaluateOperationNameExpression(Message<?> message) {
 		return this.operationNameExpression.getValue(this.evaluationContext, message, String.class);
 	}
 
-	@Nullable
 	@SuppressWarnings("unchecked")
-	private Map<String, Object> evaluateVariablesExpression(Message<?> message) {
+	private @Nullable Map<String, Object> evaluateVariablesExpression(Message<?> message) {
 		return this.variablesExpression.getValue(this.evaluationContext, message, Map.class);
 	}
 
-	@Nullable
-	private String evaluateExecutionIdExpression(Message<?> message) {
+	private @Nullable String evaluateExecutionIdExpression(Message<?> message) {
 		return this.executionIdExpression.getValue(this.evaluationContext, message, String.class);
 	}
 
