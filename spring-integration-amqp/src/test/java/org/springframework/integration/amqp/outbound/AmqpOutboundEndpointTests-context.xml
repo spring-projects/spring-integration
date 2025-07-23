@@ -111,10 +111,12 @@
 	</bean>
 
 	<rabbit:connection-factory id="connectionFactory"
-		host="localhost" publisher-returns="true" confirm-type="CORRELATED" />
+		port="#{T(org.springframework.integration.amqp.support.RabbitTestContainer).amqpPort()}"
+		publisher-returns="true" confirm-type="CORRELATED" />
 
 	<rabbit:connection-factory id="multiSendFactory"
-		host="localhost" publisher-returns="true" confirm-type="SIMPLE" />
+		port="#{T(org.springframework.integration.amqp.support.RabbitTestContainer).amqpPort()}"
+		publisher-returns="true" confirm-type="SIMPLE" />
 
 	<rabbit:admin connection-factory="connectionFactory" />
 

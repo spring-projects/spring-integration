@@ -16,14 +16,17 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.rabbitmq.stream.ConsumerBuilder;
 import com.rabbitmq.stream.Environment;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
@@ -38,8 +41,6 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
-import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
@@ -59,6 +60,7 @@ import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -91,11 +93,30 @@ import static org.mockito.Mockito.verify;
  * @since 5.0
  */
 @SpringJUnitConfig
-@RabbitAvailable(queues = {"amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
-		"defaultReplyTo", "si.dsl.test", "si.dsl.exception.test.dlq",
-		"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted", "publisherQueue"})
 @DirtiesContext
-public class AmqpTests {
+public class AmqpTests implements RabbitTestContainer {
+
+	static final String QUEUE_AMQP_OUTBOND_INPUT = "amqpOutboundInput";
+
+	static final String QUEUE_AMQP_REPLY_CHANNEL = "amqpReplyChannel";
+
+	static final String QUEUE_ASYNC_REPLIES = "asyncReplies";
+
+	static final String QUEUE_DEFAULT_REPLY_TO = "defaultReplyTo";
+
+	static final String QUEUE_DSL_TEST = "si.dsl.test";
+
+	static final String QUEUE_DSL_EXCEPTION_TEST_DLQ = "si.dsl.exception.test.dlq";
+
+	static final String QUEUE_DSL_CONV_EXCEPTION_TEST_DLQ = "si.dsl.conv.exception.test.dlq";
+
+	static final String QUEUE_TEMPLATE_CHANNEL_TRANSACTED = "testTemplateChannelTransacted";
+
+	static final String QUEUE_PUBLISHER = "publisherQueue";
+
+	static final List<String> QUEUE_NAMES = List.of(QUEUE_AMQP_OUTBOND_INPUT, QUEUE_AMQP_REPLY_CHANNEL,
+			QUEUE_ASYNC_REPLIES, QUEUE_DEFAULT_REPLY_TO, QUEUE_DSL_TEST, QUEUE_DSL_EXCEPTION_TEST_DLQ,
+			QUEUE_DSL_CONV_EXCEPTION_TEST_DLQ, QUEUE_TEMPLATE_CHANNEL_TRANSACTED, QUEUE_PUBLISHER);
 
 	@Autowired
 	private ConnectionFactory rabbitConnectionFactory;
@@ -124,11 +145,22 @@ public class AmqpTests {
 	@Autowired
 	private Lifecycle asyncOutboundGateway;
 
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		for (String queue : QUEUE_NAMES) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queue);
+		}
+	}
+
 	@AfterAll
-	public static void tearDown(ConfigurableApplicationContext context) {
+	static void tearDown(ConfigurableApplicationContext context) throws IOException, InterruptedException {
 		context.stop(); // prevent queues from being redeclared after deletion
-		RabbitAvailableCondition.getBrokerRunning().removeTestQueues("si.dsl.exception.test",
-				"si.dsl.conv.exception.test");
+		for (String queue : QUEUE_NAMES) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + queue);
+		}
+		for (String additionalQueue : List.of("si.dsl.exception.test", "si.dsl.conv.exception.test")) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + additionalQueue);
+		}
 	}
 
 	@Test
@@ -308,7 +340,7 @@ public class AmqpTests {
 
 		@Bean
 		public ConnectionFactory rabbitConnectionFactory() {
-			return new CachingConnectionFactory("localhost");
+			return new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 		}
 
 		@Bean

@@ -30,13 +30,13 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.amqp.support.NackedAmqpMessageException;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -69,9 +69,8 @@ import static org.mockito.Mockito.verify;
  *
  */
 @SpringJUnitConfig
-@RabbitAvailable
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class AmqpOutboundEndpointTests {
+public class AmqpOutboundEndpointTests implements RabbitTestContainer {
 
 	@Autowired
 	BeanFactory beanFactory;

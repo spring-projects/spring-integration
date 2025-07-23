@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -54,10 +56,19 @@ import static org.mockito.Mockito.spy;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@RabbitAvailable(queues = BoundRabbitChannelAdviceIntegrationTests.QUEUE)
-public class BoundRabbitChannelAdviceIntegrationTests {
+public class BoundRabbitChannelAdviceIntegrationTests implements RabbitTestContainer {
 
 	static final String QUEUE = "dedicated.advice";
+
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + QUEUE);
+	}
+
+	@AfterAll
+	static void deleteQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + QUEUE);
+	}
 
 	@Autowired
 	private Config.Gate gate;
@@ -92,7 +103,7 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 
 		@Bean
 		public CachingConnectionFactory cf() {
-			CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
+			CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.SIMPLE);
 			return ccf;
 		}

@@ -11,7 +11,8 @@
 
 	<int-amqp:publish-subscribe-channel id="channel" />
 
-	<rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" />
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		port="#{T(org.springframework.integration.amqp.support.RabbitTestContainer).amqpPort()}" />
 
 	<int-amqp:channel id="withEP" extract-payload="true" message-converter="jackson" />
 
