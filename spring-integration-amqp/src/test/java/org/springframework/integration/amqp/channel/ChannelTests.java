@@ -16,13 +16,16 @@
 
 package org.springframework.integration.amqp.channel;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
@@ -31,8 +34,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
-import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.BlockingQueueConsumer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -41,6 +42,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -64,9 +66,28 @@ import static org.mockito.Mockito.mock;
  *
  */
 @SpringJUnitConfig
-@RabbitAvailable(queues = {"pollableWithEP", "withEP", "testConvertFail"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class ChannelTests {
+public class ChannelTests implements RabbitTestContainer {
+
+	static final String QUEUE_POLLABLE_WITH_EP = "pollableWithEP";
+
+	static final String QUEUE_WITH_EP = "withEP";
+
+	static final String QUEUE_CONVERT_FAIL = "testConvertFail";
+
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		for (String queue : List.of(QUEUE_POLLABLE_WITH_EP, QUEUE_WITH_EP, QUEUE_CONVERT_FAIL)) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queue);
+		}
+	}
+
+	@AfterAll
+	static void deleteQueue() throws IOException, InterruptedException {
+		for (String queue : List.of(QUEUE_POLLABLE_WITH_EP, QUEUE_WITH_EP, QUEUE_CONVERT_FAIL)) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + queue);
+		}
+	}
 
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
@@ -91,12 +112,6 @@ public class ChannelTests {
 
 	@Autowired
 	private AmqpHeaderMapper mapperOut;
-
-	@AfterEach
-	public void tearDown() {
-		RabbitAvailableCondition.getBrokerRunning().deleteExchanges("si.fanout.foo", "si.fanout.channel", "si.fanout.pubSubWithEP");
-		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
-	}
 
 	@Test
 	public void pubSubLostConnectionTest() throws Exception {

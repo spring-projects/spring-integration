@@ -18,8 +18,8 @@ package org.springframework.integration.amqp.config;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -36,9 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.1
  */
 @SpringJUnitConfig
-@RabbitAvailable
 @DirtiesContext
-public class OutboundGatewayIntegrationTests {
+public class OutboundGatewayIntegrationTests implements RabbitTestContainer {
 
 	@Autowired
 	private MessageChannel toRabbit;

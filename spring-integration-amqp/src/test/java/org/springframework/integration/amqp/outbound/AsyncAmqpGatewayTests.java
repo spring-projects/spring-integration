@@ -16,12 +16,16 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
@@ -31,7 +35,6 @@ import org.springframework.amqp.rabbit.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.listener.adapter.ReplyingMessageListener;
@@ -41,6 +44,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.amqp.support.NackedAmqpMessageException;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -67,18 +71,35 @@ import static org.mockito.Mockito.spy;
  * @since 4.3
  *
  */
-@RabbitAvailable(queues = {"asyncQ1", "asyncRQ1"})
-class AsyncAmqpGatewayTests implements TestApplicationContextAware {
+class AsyncAmqpGatewayTests implements RabbitTestContainer, TestApplicationContextAware {
+
+	static final String ASYNC_QUEUE = "asyncQ1";
+
+	static final String ASYNC_REPLY_QUEUE = "asyncRQ1";
+
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		for (String queue : List.of(ASYNC_QUEUE, ASYNC_REPLY_QUEUE)) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queue);
+		}
+	}
+
+	@AfterAll
+	static void deleteQueue() throws IOException, InterruptedException {
+		for (String queue : List.of(ASYNC_QUEUE, ASYNC_REPLY_QUEUE)) {
+			RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + queue);
+		}
+	}
 
 	@Test
 	void testConfirmsAndReturns() throws Exception {
-		CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
+		CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 		ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
 		ccf.setPublisherReturns(true);
 		RabbitTemplate template = new RabbitTemplate(ccf);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
 		container.setBeanName("replyContainer");
-		container.setQueueNames("asyncRQ1");
+		container.setQueueNames(ASYNC_REPLY_QUEUE);
 		container.afterPropertiesSet();
 		container.start();
 		AsyncRabbitTemplate asyncTemplate = new AsyncRabbitTemplate(template, container);
@@ -87,7 +108,7 @@ class AsyncAmqpGatewayTests implements TestApplicationContextAware {
 
 		SimpleMessageListenerContainer receiver = new SimpleMessageListenerContainer(ccf);
 		receiver.setBeanName("receiver");
-		receiver.setQueueNames("asyncQ1");
+		receiver.setQueueNames(ASYNC_QUEUE);
 		final CountDownLatch waitForAckBeforeReplying = new CountDownLatch(1);
 		MessageListenerAdapter messageListener = new MessageListenerAdapter(
 				(ReplyingMessageListener<String, String>) foo -> {
@@ -225,13 +246,13 @@ class AsyncAmqpGatewayTests implements TestApplicationContextAware {
 
 	@Test
 	void confirmsAndReturnsNoChannels() throws Exception {
-		CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
+		CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 		ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
 		ccf.setPublisherReturns(true);
 		RabbitTemplate template = new RabbitTemplate(ccf);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
 		container.setBeanName("replyContainer");
-		container.setQueueNames("asyncRQ1");
+		container.setQueueNames(ASYNC_REPLY_QUEUE);
 		container.afterPropertiesSet();
 		container.start();
 		AsyncRabbitTemplate asyncTemplate = new AsyncRabbitTemplate(template, container);

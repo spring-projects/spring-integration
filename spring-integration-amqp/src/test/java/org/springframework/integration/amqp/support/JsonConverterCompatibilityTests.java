@@ -16,16 +16,18 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.io.IOException;
+
 import com.rabbitmq.client.AMQP.BasicProperties;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
-import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.integration.json.ObjectToJsonTransformer;
@@ -39,22 +41,30 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 4.3
  *
  */
-@RabbitAvailable(queues = {JsonConverterCompatibilityTests.JSON_TESTQ})
-public class JsonConverterCompatibilityTests {
+public class JsonConverterCompatibilityTests implements RabbitTestContainer {
 
-	public static final String JSON_TESTQ = "si.json.tests";
+	static final String JSON_TESTQ = "si.json.tests";
+
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + JSON_TESTQ);
+	}
+
+	@AfterAll
+	static void deleteQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + JSON_TESTQ);
+	}
 
 	private RabbitTemplate rabbitTemplate;
 
 	@BeforeEach
 	public void setUp() {
-		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory("localhost"));
+		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory(RabbitTestContainer.amqpPort()));
 		this.rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
 	}
 
 	@AfterEach
 	public void tearDown() {
-		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
 		((CachingConnectionFactory) this.rabbitTemplate.getConnectionFactory()).destroy();
 	}
 

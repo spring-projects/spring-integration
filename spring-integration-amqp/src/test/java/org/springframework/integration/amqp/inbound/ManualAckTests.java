@@ -25,7 +25,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.BeanFactory;
@@ -33,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
@@ -53,10 +53,9 @@ import static org.mockito.Mockito.mock;
  * @since 4.0
  *
  */
-@RabbitAvailable
 @SpringJUnitConfig
 @DirtiesContext
-public class ManualAckTests {
+public class ManualAckTests implements RabbitTestContainer {
 
 	@Autowired
 	private MessageChannel foo;
@@ -120,7 +119,7 @@ public class ManualAckTests {
 		@Bean
 		public CachingConnectionFactory connectionFactory() {
 			CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-			connectionFactory.setHost("localhost");
+			connectionFactory.setPort(RabbitTestContainer.amqpPort());
 			return connectionFactory;
 		}
 

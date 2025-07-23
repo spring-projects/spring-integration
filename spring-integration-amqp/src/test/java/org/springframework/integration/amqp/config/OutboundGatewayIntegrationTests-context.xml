@@ -40,6 +40,7 @@
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 
-	<rabbit:connection-factory id="connectionFactory" host="localhost" />
+	<rabbit:connection-factory id="connectionFactory"
+		port="#{T(org.springframework.integration.amqp.support.RabbitTestContainer).amqpPort()}" />
 
 </beans:beans>

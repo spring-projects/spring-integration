@@ -16,9 +16,12 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.AmqpException;
@@ -30,13 +33,12 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.RabbitAvailable;
-import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
@@ -56,14 +58,25 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  */
 @SpringJUnitConfig
-@RabbitAvailable(queues = "testConfirmOk")
 @DirtiesContext
-public class AmqpOutboundEndpointTests2 {
+public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
+
+	static final String QUEUE_TEST_CONFIRM_OK = "testConfirmOk";
+
+	@BeforeAll
+	static void initQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + QUEUE_TEST_CONFIRM_OK);
+	}
+
+	@AfterAll
+	static void deleteQueue() throws IOException, InterruptedException {
+		RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + QUEUE_TEST_CONFIRM_OK);
+	}
 
 	@Test
 	void testConfirmOk(@Autowired IntegrationFlow flow, @Autowired RabbitTemplate template) {
-		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", "testConfirmOk")));
-		assertThat(template.receive("testConfirmOk")).isNotNull();
+		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", QUEUE_TEST_CONFIRM_OK)));
+		assertThat(template.receive(QUEUE_TEST_CONFIRM_OK)).isNotNull();
 	}
 
 	@Test
@@ -127,8 +140,7 @@ public class AmqpOutboundEndpointTests2 {
 
 		@Bean
 		public CachingConnectionFactory cf() {
-			CachingConnectionFactory ccf = new CachingConnectionFactory(
-					RabbitAvailableCondition.getBrokerRunning().getConnectionFactory());
+			CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
 			ccf.setPublisherReturns(true);
 			return ccf;
