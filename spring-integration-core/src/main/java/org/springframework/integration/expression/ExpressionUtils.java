@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.Resource;
@@ -35,11 +34,8 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
-import org.springframework.expression.spel.support.SimpleEvaluationContext.Builder;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
@@ -107,53 +103,32 @@ public final class ExpressionUtils {
 	}
 
 	private static EvaluationContext doCreateContext(@Nullable BeanFactory beanFactory, boolean simple) {
-		ConversionService conversionService = null;
-		EvaluationContext evaluationContext = null;
 		if (beanFactory != null) {
-			evaluationContext =
-					simple
-							? IntegrationContextUtils.getSimpleEvaluationContext(beanFactory)
-							: IntegrationContextUtils.getEvaluationContext(beanFactory);
+			return simple
+					? IntegrationContextUtils.getSimpleEvaluationContext(beanFactory)
+					: IntegrationContextUtils.getEvaluationContext(beanFactory);
 		}
-		if (evaluationContext == null) {
-			if (beanFactory != null) {
-				conversionService = IntegrationUtils.getConversionService(beanFactory);
-			}
-			evaluationContext = createEvaluationContext(conversionService, beanFactory, simple);
-		}
-		return evaluationContext;
+		return createEvaluationContext(simple);
 	}
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
 	 * property accessor property and the supplied {@link ConversionService} in its
 	 * conversionService property.
-	 * @param conversionService the conversion service.
-	 * @param beanFactory the bean factory.
 	 * @param simple true if simple.
 	 * @return the evaluation context.
 	 */
-	private static EvaluationContext createEvaluationContext(@Nullable ConversionService conversionService,
-			@Nullable BeanFactory beanFactory, boolean simple) {
-
+	private static EvaluationContext createEvaluationContext(boolean simple) {
 		if (simple) {
-			Builder ecBuilder = SimpleEvaluationContext.forPropertyAccessors(
-							new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess())
-					.withInstanceMethods();
-			if (conversionService != null) {
-				ecBuilder.withConversionService(conversionService);
-			}
-			return ecBuilder.build();
+			return SimpleEvaluationContext.forPropertyAccessors(
+							new MapAccessor(),
+							DataBindingPropertyAccessor.forReadOnlyAccess())
+					.withInstanceMethods()
+					.build();
 		}
 		else {
 			StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 			evaluationContext.addPropertyAccessor(new MapAccessor());
-			if (conversionService != null) {
-				evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-			}
-			if (beanFactory != null) {
-				evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-			}
 			return evaluationContext;
 		}
 	}
@@ -183,8 +158,7 @@ public final class ExpressionUtils {
 		if (value instanceof File) {
 			return (File) value;
 		}
-		else if (value instanceof String) {
-			String path = (String) value;
+		else if (value instanceof String path) {
 			Assert.hasText(path, String.format("Unable to resolve %s for the provided Expression '%s'.", propertyName,
 					expression.getExpressionString()));
 			try {

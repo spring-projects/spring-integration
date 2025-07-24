@@ -16,7 +16,10 @@
 
 package org.springframework.integration.expression;
 
+import java.util.Objects;
 import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationContext;
@@ -67,40 +70,43 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public Object getValue(Object rootObject) throws EvaluationException {
+	public Object getValue(@Nullable Object rootObject) throws EvaluationException {
 		return getValue();
 	}
 
 	@Override
-	public <C> C getValue(Class<C> desiredResultType) throws EvaluationException {
+	public <C> C getValue(@Nullable Class<C> desiredResultType) throws EvaluationException {
 		return getValue(this.defaultContext, desiredResultType);
 	}
 
 	@Override
-	public <C> C getValue(Object rootObject, Class<C> desiredResultType) throws EvaluationException {
+	public <C> C getValue(@Nullable Object rootObject, @Nullable Class<C> desiredResultType)
+			throws EvaluationException {
+
 		return getValue(this.defaultContext, rootObject, desiredResultType);
 	}
 
 	@Override
 	public Object getValue(EvaluationContext context) throws EvaluationException {
-		Object root = context.getRootObject().getValue();
-		return root == null ? getValue() : getValue(root);
+		return getValue();
 	}
 
 	@Override
-	public Object getValue(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return getValue(rootObject);
+	public Object getValue(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
+		return getValue();
 	}
 
 	@Override
-	public <C> C getValue(EvaluationContext context, Class<C> desiredResultType) throws EvaluationException {
-		return ExpressionUtils.convertTypedValue(context, new TypedValue(getValue(context)), desiredResultType);
+	public <C> C getValue(EvaluationContext context, @Nullable Class<C> desiredResultType) throws EvaluationException {
+		C value = ExpressionUtils.convertTypedValue(context, new TypedValue(getValue()), desiredResultType);
+		return Objects.requireNonNull(value);
 	}
 
 	@Override
-	public <C> C getValue(EvaluationContext context, Object rootObject, Class<C> desiredResultType)
+	public <C> C getValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Class<C> desiredResultType)
 			throws EvaluationException {
-		return ExpressionUtils.convertTypedValue(context, new TypedValue(getValue(rootObject)), desiredResultType);
+
+		return getValue(context, desiredResultType);
 	}
 
 	@Override
@@ -109,7 +115,7 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public Class<?> getValueType(Object rootObject) throws EvaluationException {
+	public Class<?> getValueType(@Nullable Object rootObject) throws EvaluationException {
 		throw readOnlyException();
 	}
 
@@ -119,7 +125,7 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public Class<?> getValueType(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public Class<?> getValueType(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		throw readOnlyException();
 	}
 
@@ -129,7 +135,7 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(Object rootObject) throws EvaluationException {
+	public TypeDescriptor getValueTypeDescriptor(@Nullable Object rootObject) throws EvaluationException {
 		throw readOnlyException();
 	}
 
@@ -139,23 +145,26 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, Object rootObject)
+	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, @Nullable Object rootObject)
 			throws EvaluationException {
+
 		throw readOnlyException();
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object value) throws EvaluationException {
 		throw readOnlyException();
 	}
 
 	@Override
-	public void setValue(Object rootObject, Object value) throws EvaluationException {
+	public void setValue(@Nullable Object rootObject, @Nullable Object value) throws EvaluationException {
 		throw readOnlyException();
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object rootObject, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Object value)
+			throws EvaluationException {
+
 		throw readOnlyException();
 	}
 
@@ -170,12 +179,12 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public boolean isWritable(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public boolean isWritable(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 
 	@Override
-	public boolean isWritable(Object rootObject) throws EvaluationException {
+	public boolean isWritable(@Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 

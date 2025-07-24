@@ -54,63 +54,63 @@ import org.springframework.util.Assert;
  */
 public class FunctionExpression<S> implements Expression {
 
-	private final Function<S, ?> function;
+	private final Function<S, ? extends @Nullable Object> function;
 
 	private final EvaluationContext defaultContext = new StandardEvaluationContext();
 
-	public FunctionExpression(Function<S, ?> function) {
+	public FunctionExpression(Function<S, ? extends @Nullable Object> function) {
 		Assert.notNull(function, "'function' must not be null.");
 		this.function = function;
 	}
 
 	@Override
-	@Nullable
-	public Object getValue() throws EvaluationException {
-		return this.function.apply(null);
+	public @Nullable Object getValue() throws EvaluationException {
+		throw noRootObjectException();
 	}
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public Object getValue(@Nullable Object rootObject) throws EvaluationException {
+	public @Nullable Object getValue(@Nullable Object rootObject) throws EvaluationException {
+		if (rootObject == null) {
+			throw noRootObjectException();
+		}
 		return this.function.apply((S) rootObject);
 	}
 
 	@Override
-	@Nullable
-	public <T> T getValue(@Nullable Class<T> desiredResultType) throws EvaluationException {
+	public <T> @Nullable T getValue(@Nullable Class<T> desiredResultType) throws EvaluationException {
 		return getValue(this.defaultContext, desiredResultType);
 	}
 
 	@Override
-	@Nullable
-	public <T> T getValue(@Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+	public <T> @Nullable T getValue(@Nullable Object rootObject, @Nullable Class<T> desiredResultType)
 			throws EvaluationException {
 
 		return getValue(this.defaultContext, rootObject, desiredResultType);
 	}
 
 	@Override
-	@Nullable
-	public Object getValue(EvaluationContext context) throws EvaluationException {
+	public @Nullable Object getValue(EvaluationContext context) throws EvaluationException {
 		return getValue(context.getRootObject().getValue());
 	}
 
 	@Override
-	@Nullable
-	public Object getValue(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
+	public @Nullable Object getValue(EvaluationContext context, @Nullable Object rootObject)
+			throws EvaluationException {
+
 		return getValue(rootObject);
 	}
 
 	@Override
-	@Nullable
-	public <T> T getValue(EvaluationContext context, @Nullable Class<T> desiredResultType) throws EvaluationException {
+	public <T> @Nullable T getValue(EvaluationContext context, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
 		return ExpressionUtils.convertTypedValue(context, new TypedValue(getValue(context)), desiredResultType);
 	}
 
 	@Override
-	@Nullable
-	public <T> T getValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+	public <T> @Nullable T getValue(EvaluationContext context, @Nullable Object rootObject,
+			@Nullable Class<T> desiredResultType)
 			throws EvaluationException {
 
 		return ExpressionUtils.convertTypedValue(context,
@@ -176,11 +176,6 @@ public class FunctionExpression<S> implements Expression {
 		throw readOnlyException();
 	}
 
-	private EvaluationException readOnlyException() {
-		return new EvaluationException(getExpressionString(),
-				"FunctionExpression is a 'read only' Expression implementation");
-	}
-
 	@Override
 	public boolean isWritable(EvaluationContext context) throws EvaluationException {
 		return false;
@@ -199,6 +194,16 @@ public class FunctionExpression<S> implements Expression {
 	@Override
 	public final String getExpressionString() {
 		return this.function.toString();
+	}
+
+	private EvaluationException readOnlyException() {
+		return new EvaluationException(getExpressionString(),
+				"FunctionExpression is a 'read-only' Expression implementation");
+	}
+
+	private EvaluationException noRootObjectException() {
+		return new EvaluationException(getExpressionString(),
+				"FunctionExpression does not support 'getValue()' contract without 'rootObject'");
 	}
 
 }

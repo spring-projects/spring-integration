@@ -16,11 +16,16 @@
 
 package org.springframework.integration.expression;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.TypedValue;
+import org.springframework.expression.common.ExpressionUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +52,7 @@ public class ValueExpression<V> implements Expression {
 
 	private final TypeDescriptor typeDescriptor;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	public ValueExpression(V value) {
 		Assert.notNull(value, "'value' must not be null");
 		this.value = value;
@@ -62,7 +67,7 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public V getValue(Object rootObject) throws EvaluationException {
+	public V getValue(@Nullable Object rootObject) throws EvaluationException {
 		return this.value;
 	}
 
@@ -72,30 +77,34 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public V getValue(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public V getValue(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return this.value;
 	}
 
 	@Override
-	public <T> T getValue(Object rootObject, Class<T> desiredResultType) throws EvaluationException {
+	public <T> T getValue(@Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
 		return getValue(desiredResultType);
 	}
 
 	@Override
-	public <T> T getValue(Class<T> desiredResultType) throws EvaluationException {
-		return org.springframework.expression.common.ExpressionUtils
-				.convertTypedValue(null, this.typedResultValue, desiredResultType);
+	public <T> T getValue(@Nullable Class<T> desiredResultType) throws EvaluationException {
+		T aValue = ExpressionUtils.convertTypedValue(null, this.typedResultValue, desiredResultType);
+		return Objects.requireNonNull(aValue);
 	}
 
 	@Override
-	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType) throws EvaluationException {
+	public <T> T getValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
 		return getValue(context, desiredResultType);
 	}
 
 	@Override
-	public <T> T getValue(EvaluationContext context, Class<T> desiredResultType) throws EvaluationException {
-		return org.springframework.expression.common.ExpressionUtils
-				.convertTypedValue(context, this.typedResultValue, desiredResultType);
+	public <T> T getValue(EvaluationContext context, @Nullable Class<T> desiredResultType) throws EvaluationException {
+		T aValue = ExpressionUtils.convertTypedValue(context, this.typedResultValue, desiredResultType);
+		return Objects.requireNonNull(aValue);
 	}
 
 	@Override
@@ -104,7 +113,7 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public Class<V> getValueType(Object rootObject) throws EvaluationException {
+	public Class<V> getValueType(@Nullable Object rootObject) throws EvaluationException {
 		return this.aClass;
 	}
 
@@ -114,7 +123,7 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public Class<V> getValueType(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public Class<V> getValueType(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return this.aClass;
 	}
 
@@ -124,7 +133,7 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(Object rootObject) throws EvaluationException {
+	public TypeDescriptor getValueTypeDescriptor(@Nullable Object rootObject) throws EvaluationException {
 		return this.typeDescriptor;
 	}
 
@@ -134,7 +143,9 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, @Nullable Object rootObject)
+			throws EvaluationException {
+
 		return this.typeDescriptor;
 	}
 
@@ -144,27 +155,29 @@ public class ValueExpression<V> implements Expression {
 	}
 
 	@Override
-	public boolean isWritable(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public boolean isWritable(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 
 	@Override
-	public boolean isWritable(Object rootObject) throws EvaluationException {
+	public boolean isWritable(@Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object value) throws EvaluationException {
 		setValue(context, null, value);
 	}
 
 	@Override
-	public void setValue(Object rootObject, Object value) throws EvaluationException {
-		setValue(null, rootObject, value);
+	public void setValue(@Nullable Object rootObject, @Nullable Object value) throws EvaluationException {
+		throw new EvaluationException(this.value.toString(), "Cannot call setValue() on a ValueExpression");
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object rootObject, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Object value)
+			throws EvaluationException {
+
 		throw new EvaluationException(this.value.toString(), "Cannot call setValue() on a ValueExpression");
 	}
 

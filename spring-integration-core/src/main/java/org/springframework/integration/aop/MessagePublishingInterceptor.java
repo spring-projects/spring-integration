@@ -169,7 +169,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			AbstractIntegrationMessageBuilder<?> builder = (result instanceof Message<?>)
 					? getMessageBuilderFactory().fromMessage((Message<?>) result)
 					: getMessageBuilderFactory().withPayload(result);
-			Map<String, Object> headers = evaluateHeaders(method, context);
+			Map<String, @Nullable Object> headers = evaluateHeaders(method, context);
 			if (headers != null) {
 				builder.copyHeaders(headers);
 			}
@@ -190,7 +190,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		}
 	}
 
-	private @Nullable Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
+	private @Nullable Map<String, @Nullable Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
 		Map<String, Expression> headerExpressionMap = this.metadataSource.getExpressionsForHeaders(method);
 		if (headerExpressionMap != null) {
 			return ExpressionEvalMap.from(headerExpressionMap)
