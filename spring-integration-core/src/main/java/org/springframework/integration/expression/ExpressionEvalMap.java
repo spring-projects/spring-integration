@@ -17,6 +17,7 @@
 package org.springframework.integration.expression;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ import org.springframework.util.Assert;
  *
  * @since 3.0
  */
-public final class ExpressionEvalMap extends AbstractMap<String, Object> {
+public final class ExpressionEvalMap extends AbstractMap<String, @Nullable Object> {
 
 	public static final EvaluationCallback SIMPLE_CALLBACK = Expression::getValue;
 
@@ -85,8 +86,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 * from {@link #original} and returns the result of evaluation using {@link #evaluationCallback}.
 	 */
 	@Override
-	@Nullable
-	public Object get(Object key) {
+	public @Nullable Object get(Object key) {
 		Object value = this.original.get(key);
 		if (value != null) {
 			Expression expression;
@@ -107,7 +107,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	}
 
 	@Override
-	public Set<Map.Entry<String, Object>> entrySet() {
+	public Set<Map.Entry<String, @Nullable Object>> entrySet() {
 		return this.original.keySet()
 				.stream()
 				.map((key) -> new SimpleImmutableEntry<>(key, get(key)))
@@ -115,11 +115,11 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	}
 
 	@Override
-	public Collection<Object> values() {
+	public Collection<@Nullable Object> values() {
 		return this.original.values()
 				.stream()
 				.map(this::get)
-				.collect(Collectors.toList());
+				.collect(Collectors.toCollection(ArrayList<@Nullable Object>::new));
 	}
 
 	@Override
@@ -205,16 +205,13 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 */
 	public static class ComponentsEvaluationCallback implements EvaluationCallback {
 
-		@Nullable
-		private final EvaluationContext context;
+		private final @Nullable EvaluationContext context;
 
-		@Nullable
-		private final Object root;
+		private final @Nullable Object root;
 
 		private final boolean rootExplicitlySet;
 
-		@Nullable
-		private final Class<?> returnType;
+		private final @Nullable Class<?> returnType;
 
 		public ComponentsEvaluationCallback(@Nullable EvaluationContext context, @Nullable Object root,
 				boolean rootExplicitlySet, @Nullable Class<?> returnType) {
@@ -226,7 +223,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		}
 
 		@Override
-		public Object evaluate(Expression expression) {
+		public @Nullable Object evaluate(Expression expression) {
 			if (this.context != null) {
 				if (this.rootExplicitlySet) {
 					return expression.getValue(this.context, this.root, this.returnType);
@@ -247,18 +244,15 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		private final Map<String, ?> expressions;
 
-		private EvaluationCallback evaluationCallback;
+		private @Nullable EvaluationCallback evaluationCallback;
 
-		@Nullable
-		private EvaluationContext context;
+		private @Nullable EvaluationContext context;
 
-		@Nullable
-		private Object root;
+		private @Nullable Object root;
 
 		private boolean rootExplicitlySet;
 
-		@Nullable
-		private Class<?> returnType;
+		private @Nullable Class<?> returnType;
 
 		private final ExpressionEvalMapComponentsBuilder evalMapComponentsBuilder =
 				new ExpressionEvalMapComponentsBuilderImpl();
@@ -303,16 +297,16 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 			@Override
 			public ExpressionEvalMap build() {
-				if (ExpressionEvalMapBuilder.this.evaluationCallback != null) {
-					return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions,
-							ExpressionEvalMapBuilder.this.evaluationCallback);
-				}
-				else {
-					return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions,
+				EvaluationCallback evaluationCallbackToUse = ExpressionEvalMapBuilder.this.evaluationCallback;
+				if (evaluationCallbackToUse == null) {
+					evaluationCallbackToUse =
 							new ComponentsEvaluationCallback(ExpressionEvalMapBuilder.this.context,
-									ExpressionEvalMapBuilder.this.root, ExpressionEvalMapBuilder.this.rootExplicitlySet,
-									ExpressionEvalMapBuilder.this.returnType));
+									ExpressionEvalMapBuilder.this.root,
+									ExpressionEvalMapBuilder.this.rootExplicitlySet,
+									ExpressionEvalMapBuilder.this.returnType);
 				}
+
+				return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions, evaluationCallbackToUse);
 			}
 
 		}

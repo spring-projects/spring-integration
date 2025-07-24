@@ -18,6 +18,8 @@ package org.springframework.integration.expression;
 
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationContext;
@@ -30,6 +32,8 @@ import org.springframework.util.Assert;
  * for resolving the actual Expression instance per-invocation at runtime.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DynamicExpression implements Expression {
@@ -45,96 +49,110 @@ public class DynamicExpression implements Expression {
 		this.expressionSource = expressionSource;
 	}
 
-	public Object getValue() throws EvaluationException {
-		return this.resolveExpression().getValue();
+	public @Nullable Object getValue() throws EvaluationException {
+		return getValue((Object) null);
 	}
 
-	public Object getValue(Object rootObject) throws EvaluationException {
-		return this.resolveExpression().getValue(rootObject);
+	public @Nullable Object getValue(@Nullable Object rootObject) throws EvaluationException {
+		return getValue(rootObject, null);
 	}
 
-	public <T> T getValue(Class<T> desiredResultType) throws EvaluationException {
-		return this.resolveExpression().getValue(desiredResultType);
+	public <T> @Nullable T getValue(@Nullable Class<T> desiredResultType) throws EvaluationException {
+		return getValue((Object) null, desiredResultType);
 	}
 
-	public <T> T getValue(Object rootObject, Class<T> desiredResultType) throws EvaluationException {
-		return this.resolveExpression().getValue(rootObject, desiredResultType);
+	public <T> @Nullable T getValue(@Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
+		return resolveExpression().getValue(rootObject, desiredResultType);
 	}
 
-	public Object getValue(EvaluationContext context) throws EvaluationException {
-		return this.resolveExpression().getValue(context);
+	public @Nullable Object getValue(EvaluationContext context) throws EvaluationException {
+		return resolveExpression().getValue(context);
 	}
 
-	public Object getValue(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return this.resolveExpression().getValue(context, rootObject);
+	public @Nullable Object getValue(EvaluationContext context, @Nullable  Object rootObject)
+			throws EvaluationException {
+
+		return getValue(context, rootObject, null);
 	}
 
-	public <T> T getValue(EvaluationContext context, Class<T> desiredResultType) throws EvaluationException {
-		return this.resolveExpression().getValue(context, desiredResultType);
+	public <T> @Nullable T getValue(EvaluationContext context, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
+		return resolveExpression().getValue(context, desiredResultType);
 	}
 
-	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType) throws EvaluationException {
-		return this.resolveExpression().getValue(context, rootObject, desiredResultType);
+	public <T> @Nullable T getValue(EvaluationContext context, @Nullable Object rootObject,
+			@Nullable Class<T> desiredResultType) throws EvaluationException {
+
+		return resolveExpression().getValue(context, rootObject, desiredResultType);
 	}
 
-	public Class<?> getValueType() throws EvaluationException {
-		return this.resolveExpression().getValueType();
+	public @Nullable Class<?> getValueType() throws EvaluationException {
+		return getValueType((Object) null);
 	}
 
-	public Class<?> getValueType(Object rootObject) throws EvaluationException {
-		return this.resolveExpression().getValueType(rootObject);
+	public @Nullable Class<?> getValueType(@Nullable Object rootObject) throws EvaluationException {
+		return resolveExpression().getValueType(rootObject);
 	}
 
-	public Class<?> getValueType(EvaluationContext context) throws EvaluationException {
-		return this.resolveExpression().getValueType(context);
+	public @Nullable Class<?> getValueType(EvaluationContext context) throws EvaluationException {
+		return resolveExpression().getValueType(context);
 	}
 
-	public Class<?> getValueType(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return this.resolveExpression().getValueType(context, rootObject);
+	public @Nullable Class<?> getValueType(EvaluationContext context, @Nullable Object rootObject)
+			throws EvaluationException {
+
+		return resolveExpression().getValueType(context, rootObject);
 	}
 
-	public TypeDescriptor getValueTypeDescriptor() throws EvaluationException {
-		return this.resolveExpression().getValueTypeDescriptor();
+	public @Nullable TypeDescriptor getValueTypeDescriptor() throws EvaluationException {
+		return getValueTypeDescriptor((Object) null);
 	}
 
-	public TypeDescriptor getValueTypeDescriptor(Object rootObject) throws EvaluationException {
+	public @Nullable TypeDescriptor getValueTypeDescriptor(@Nullable Object rootObject) throws EvaluationException {
 		return this.resolveExpression().getValueTypeDescriptor(rootObject);
 	}
 
-	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context) throws EvaluationException {
-		return this.resolveExpression().getValueTypeDescriptor(context);
+	public @Nullable TypeDescriptor getValueTypeDescriptor(EvaluationContext context) throws EvaluationException {
+		return resolveExpression().getValueTypeDescriptor(context);
 	}
 
-	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return this.resolveExpression().getValueTypeDescriptor(context, rootObject);
+	public @Nullable TypeDescriptor getValueTypeDescriptor(EvaluationContext context, @Nullable Object rootObject)
+			throws EvaluationException {
+
+		return resolveExpression().getValueTypeDescriptor(context, rootObject);
 	}
 
 	public boolean isWritable(EvaluationContext context) throws EvaluationException {
-		return this.resolveExpression().isWritable(context);
+		return resolveExpression().isWritable(context);
 	}
 
-	public boolean isWritable(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return this.resolveExpression().isWritable(context, rootObject);
+	public boolean isWritable(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
+		return resolveExpression().isWritable(context, rootObject);
 	}
 
-	public boolean isWritable(Object rootObject) throws EvaluationException {
-		return this.resolveExpression().isWritable(rootObject);
+	public boolean isWritable(@Nullable Object rootObject) throws EvaluationException {
+		return resolveExpression().isWritable(rootObject);
 	}
 
-	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
-		this.resolveExpression().setValue(context, value);
+	public void setValue(EvaluationContext context, @Nullable Object value) throws EvaluationException {
+		resolveExpression().setValue(context, value);
 	}
 
-	public void setValue(Object rootObject, Object value) throws EvaluationException {
-		this.resolveExpression().setValue(rootObject, value);
+	public void setValue(@Nullable Object rootObject, @Nullable Object value) throws EvaluationException {
+		resolveExpression().setValue(rootObject, value);
 	}
 
-	public void setValue(EvaluationContext context, Object rootObject, Object value) throws EvaluationException {
-		this.resolveExpression().setValue(context, rootObject, value);
+	public void setValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Object value)
+			throws EvaluationException {
+
+		resolveExpression().setValue(context, rootObject, value);
 	}
 
 	public String getExpressionString() {
-		return this.resolveExpression().getExpressionString();
+		return resolveExpression().getExpressionString();
 	}
 
 	private Expression resolveExpression() {

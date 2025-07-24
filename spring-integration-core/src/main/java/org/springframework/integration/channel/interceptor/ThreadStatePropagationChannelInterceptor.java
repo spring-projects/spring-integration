@@ -19,7 +19,7 @@ package org.springframework.integration.channel.interceptor;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.support.MessageDecorator;
 import org.springframework.messaging.Message;
@@ -92,8 +92,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 		return postReceive(message, channel);
 	}
 
-	@Nullable
-	protected abstract S obtainPropagatingContext(Message<?> message, MessageChannel channel);
+	protected abstract @Nullable S obtainPropagatingContext(Message<?> message, MessageChannel channel);
 
 	protected abstract void populatePropagatedContext(@Nullable S state, Message<?> message, MessageChannel channel);
 

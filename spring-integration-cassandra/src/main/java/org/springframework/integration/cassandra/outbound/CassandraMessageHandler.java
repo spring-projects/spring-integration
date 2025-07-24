@@ -145,6 +145,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		setStatementProcessor((ExpressionEvaluatingMessageProcessor<Statement<?>>) expressionEvaluatingMessageProcessor);
 	}
 
+	@SuppressWarnings("NullAway") // Cassandra driver uses NullAllowingImmutableMap
 	public void setQuery(String query) {
 		Assert.hasText(query, "'query' must not be empty");
 		this.sessionMessageCallback =
