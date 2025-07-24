@@ -37,7 +37,6 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -97,7 +96,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	 * @param messageListenerContainer the container.
 	 * @param kafkaTemplate the kafka template.
 	 */
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({"this-escape", "removal"})
 	public KafkaInboundGateway(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			KafkaTemplate<K, R> kafkaTemplate) {
 
@@ -112,7 +111,9 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		if (JacksonPresent.isJackson2Present()) {
 			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
-			headerMapper.addTrustedPackages(JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			headerMapper.addTrustedPackages(
+					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
+							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
 			this.listener.setMessageConverter(messageConverter);
 		}

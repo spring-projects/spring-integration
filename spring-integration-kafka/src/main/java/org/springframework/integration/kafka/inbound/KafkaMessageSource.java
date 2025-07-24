@@ -58,7 +58,6 @@ import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
@@ -235,6 +234,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	 * @param ackCallbackFactory the ack callback factory.
 	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
 	 */
+	@SuppressWarnings("removal")
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
 			ConsumerProperties consumerProperties,
 			KafkaAckCallbackFactory<K, V> ackCallbackFactory,
@@ -264,7 +264,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		if (JacksonPresent.isJackson2Present()) {
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
-			headerMapper.addTrustedPackages(JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
+			headerMapper.addTrustedPackages(
+					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
+							.toArray(new String[0]));
 			messagingMessageConverter.setHeaderMapper(headerMapper);
 		}
 	}
