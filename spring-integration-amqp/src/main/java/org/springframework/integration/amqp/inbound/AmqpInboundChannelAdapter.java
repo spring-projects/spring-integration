@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.amqp.Consumer;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
@@ -36,6 +37,8 @@ import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageList
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
+import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
+import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -65,6 +68,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Jiandong Ma
  *
  * @since 2.1
  */
@@ -254,6 +258,10 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		}
 		Listener messageListener;
 		if (this.messageListenerContainer.isConsumerBatchEnabled()) {
+			// here we use the contract from `MessageListenerContainer`
+			// but for amqp 1.0 - RabbitAmqpListenerContainer, we use `batchSize` (>1) to distinguish batch or not.
+			// should we implement isConsumerBatchEnabled in 1.0 - RabbitAmqpListenerContainer ?
+			// because batchSize are not exposed from the container, how we know it is batch or not for amqp 1.0/
 			messageListener = new BatchListener();
 		}
 		else {
@@ -360,11 +368,15 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		}
 	}
 
-	protected class Listener implements ChannelAwareMessageListener {
+	private class Listener implements RabbitAmqpMessageListener, ChannelAwareMessageListener {
 
 		protected final MessageConverter converter = AmqpInboundChannelAdapter.this.messageConverter; // NOSONAR
 
-		protected final boolean manualAcks =
+		protected final boolean manualAcks = // looks this manualAcks is used for building payload for ErrorMessage, and
+		// if manualAcks is true, the com.rabbitmq.client.Channel is required.
+		// however, for amqp 1.0 - RabbitAmqpListenerContainer/RabbitAmqpMessageListener, I don't find Channel in callback parameter,
+		// so, should we ignore manualAcks for amqp 1.0 when build the ErrorMessage?
+		// Also, seems we don't expose the `autoSettle` in RabbitAmqpListenerContainer
 				AmqpInboundChannelAdapter.this.abstractListenerContainer != null
 						&& AcknowledgeMode.MANUAL ==
 						AmqpInboundChannelAdapter.this.abstractListenerContainer.getAcknowledgeMode();
@@ -373,11 +385,12 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 		protected final @Nullable RecoveryCallback<?> recoverer = AmqpInboundChannelAdapter.this.recoveryCallback;
 
-		protected Listener() {
-		}
-
 		@Override
 		public void onMessage(final Message message, @Nullable Channel channel) {
+			onMessageInternal(message, channel);
+		}
+
+		private void onMessageInternal(Message message, @Nullable Channel channel) {
 			try {
 				if (this.retryOps == null) {
 					createAndSend(message, channel);
@@ -469,6 +482,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 					.withPayload(payload)
 					.copyHeaders(headers)
 					.build();
+		}
+
+		@Override
+		public void onAmqpMessage(com.rabbitmq.client.amqp.Message message, Consumer.@Nullable Context context) {
+			onMessageInternal(RabbitAmqpUtils.fromAmqpMessage(message, context), null);
 		}
 
 	}

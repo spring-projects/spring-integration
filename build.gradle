@@ -438,7 +438,7 @@ project('spring-integration-test-support') {
 project('spring-integration-amqp') {
     description = 'Spring Integration AMQP Support'
     dependencies {
-        api 'org.springframework.amqp:spring-rabbit'
+        api 'org.springframework.amqp:spring-rabbitmq-client'
         optionalApi 'org.springframework.amqp:spring-rabbit-stream'
 
         testImplementation 'org.springframework.amqp:spring-rabbit-junit'

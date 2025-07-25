@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.amqp.Consumer;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
@@ -35,6 +36,10 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
+import org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate;
+import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
+import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
+import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -64,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Jiandong Ma
  *
  * @since 2.1
  */
@@ -75,7 +81,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private final @Nullable AbstractMessageListenerContainer abstractListenerContainer;
 
-	private final AmqpTemplate amqpTemplate;
+	private final Object amqpTemplate;
 
 	private final boolean amqpTemplateExplicitlySet;
 
@@ -104,6 +110,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
 	}
 
+	@SuppressWarnings({"this-escape", "NullAway"})
+	public AmqpInboundGateway(RabbitAmqpListenerContainer listenerContainer) {
+		// AmqpConnectionFactory amqpConnectionFactory = listenerContainer.getConnectionFactory(); // get method not exposed
+		this(listenerContainer, new RabbitAmqpTemplate(null), false);
+	}
+
 	/**
 	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
 	 * to receive request messages and {@link AmqpTemplate} to send replies.
@@ -111,16 +123,24 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
 	 */
 	@SuppressWarnings("this-escape")
-	public AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+	public AmqpInboundGateway(MessageListenerContainer listenerContainer, Object amqpTemplate) {
 		this(listenerContainer, amqpTemplate, true);
 	}
 
 	@SuppressWarnings("this-escape")
-	private AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
+	private AmqpInboundGateway(MessageListenerContainer listenerContainer, Object amqpTemplate,
 			boolean amqpTemplateExplicitlySet) {
 
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.notNull(amqpTemplate, "'amqpTemplate' must not be null");
+		if (listenerContainer instanceof RabbitAmqpListenerContainer) {
+			Assert.isInstanceOf(RabbitAmqpTemplate.class, amqpTemplate,
+					"'amqpTemplate' must be an instance of 'RabbitAmqpTemplate' when use 'RabbitAmqpListenerContainer'");
+		}
+		else {
+			Assert.isInstanceOf(AmqpTemplate.class, amqpTemplate,
+					"'amqpTemplate' must be an instance of 'AmqpTemplate' when not use 'RabbitAmqpListenerContainer'");
+		}
 		Assert.isNull(listenerContainer.getMessageListener(),
 				"The listenerContainer provided to an AMQP inbound Gateway " +
 						"must not have a MessageListener configured since " +
@@ -129,8 +149,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = amqpTemplate;
 		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
-		if (this.amqpTemplateExplicitlySet && this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
-			this.templateMessageConverter = rabbitTemplate.getMessageConverter();
+		if (this.amqpTemplateExplicitlySet) {
+			if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+				this.templateMessageConverter = rabbitTemplate.getMessageConverter();
+			}
+			else if (this.amqpTemplate instanceof RabbitAmqpTemplate rabbitAmqpTemplate) {
+				// this.templateMessageConverter = rabbitAmqpTemplate.getMessageConverter(); // get method not exposed
+			}
 		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 		this.abstractListenerContainer =
@@ -149,7 +174,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		Assert.notNull(messageConverter, "MessageConverter must not be null");
 		this.amqpMessageConverter = messageConverter;
 		if (!this.amqpTemplateExplicitlySet) {
-			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+			if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+				rabbitTemplate.setMessageConverter(messageConverter);
+			}
+			else if (this.amqpTemplate instanceof RabbitAmqpTemplate rabbitAmqpTemplate) {
+				rabbitAmqpTemplate.setMessageConverter(messageConverter);
+			}
 			this.templateMessageConverter = messageConverter;
 		}
 	}
@@ -349,14 +379,18 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		}
 	}
 
-	protected class Listener implements ChannelAwareMessageListener {
+	protected class Listener implements RabbitAmqpMessageListener, ChannelAwareMessageListener {
 
 		protected Listener() {
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, @Nullable Channel channel) {
+			onMessageInternal(message, channel);
+		}
+
+		@SuppressWarnings("unchecked")
+		private void onMessageInternal(Message message, @Nullable Channel channel) {
 			if (AmqpInboundGateway.this.retryTemplate == null) {
 				try {
 					org.springframework.messaging.Message<Object> converted = convert(message, channel);
@@ -454,8 +488,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								AmqpInboundGateway.this.replyHeadersMappedLast);
 
 				if (replyTo != null) {
-					AmqpInboundGateway.this.amqpTemplate.send(replyTo.getExchangeName(), replyTo.getRoutingKey(),
-							amqpMessage);
+					if (AmqpInboundGateway.this.amqpTemplate instanceof AmqpTemplate template) {
+						template.send(replyTo.getExchangeName(), replyTo.getRoutingKey(),
+								amqpMessage);
+					}
+					else if (AmqpInboundGateway.this.amqpTemplate instanceof RabbitAmqpTemplate rabbitAmqpTemplate) {
+						rabbitAmqpTemplate.send(replyTo.getExchangeName(), replyTo.getRoutingKey(), amqpMessage);
+					}
 				}
 				else {
 					if (!AmqpInboundGateway.this.amqpTemplateExplicitlySet) {
@@ -463,10 +502,20 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								"and the `defaultReplyTo` hasn't been configured.");
 					}
 					else {
-						AmqpInboundGateway.this.amqpTemplate.send(amqpMessage);
+						if (AmqpInboundGateway.this.amqpTemplate instanceof AmqpTemplate template) {
+							template.send(amqpMessage);
+						}
+						else if (AmqpInboundGateway.this.amqpTemplate instanceof RabbitAmqpTemplate rabbitAmqpTemplate) {
+							rabbitAmqpTemplate.send(amqpMessage);
+						}
 					}
 				}
 			}
+		}
+
+		@Override
+		public void onAmqpMessage(com.rabbitmq.client.amqp.Message message, Consumer.@Nullable Context context) {
+			onMessageInternal(RabbitAmqpUtils.fromAmqpMessage(message, context), null);
 		}
 
 	}
