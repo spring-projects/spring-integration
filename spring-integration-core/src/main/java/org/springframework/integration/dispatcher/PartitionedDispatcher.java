@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -165,11 +164,12 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
 		UnicastingDispatcher partitionDispatcher = this.partitions.get(partition);
-		return Objects.requireNonNull(partitionDispatcher).dispatch(message);
+		return partitionDispatcher.dispatch(message);
 	}
 
 	private void populatedPartitions() {
