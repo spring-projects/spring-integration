@@ -164,7 +164,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation!
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
