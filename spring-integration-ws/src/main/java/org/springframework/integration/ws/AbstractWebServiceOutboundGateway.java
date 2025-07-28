@@ -226,7 +226,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			return this.destinationProvider.getDestination();
 		}
 
-		Map<String, Object> uriVariables =
+		Map<String, @Nullable Object> uriVariables =
 				ExpressionEvalMap.from(this.uriVariableExpressions)
 						.usingEvaluationContext(this.evaluationContext)
 						.withRoot(requestMessage)

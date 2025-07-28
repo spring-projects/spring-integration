@@ -102,9 +102,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 	private String[] basenames = {};
 
-	private String defaultEncoding;
+	private @Nullable String defaultEncoding;
 
-	private Properties fileEncodings;
+	private @Nullable Properties fileEncodings;
 
 	private boolean fallbackToSystemLocale = true;
 
@@ -144,7 +144,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see #setBasename
 	 * @see java.util.ResourceBundle
 	 */
-	public void setBasenames(@Nullable String[] basenames) {
+	public void setBasenames(String @Nullable [] basenames) {
 		if (basenames != null) {
 			this.basenames = new String[basenames.length];
 			for (int i = 0; i < basenames.length; i++) {
@@ -218,7 +218,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @param cacheSeconds The cache seconds.
 	 */
 	public void setCacheSeconds(int cacheSeconds) {
-		this.cacheMillis = (cacheSeconds * 1000); // NOSONAR
+		this.cacheMillis = (cacheSeconds * 1000L);
 	}
 
 	/**
@@ -237,7 +237,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * <p>The default is a DefaultResourceLoader. Will get overridden by the
 	 * ApplicationContext if running in a context, as it implements the
 	 * ResourceLoaderAware interface. Can be manually overridden when
-	 * running outside of an ApplicationContext.
+	 * running outside an ApplicationContext.
 	 * @see org.springframework.core.io.DefaultResourceLoader
 	 * @see org.springframework.context.ResourceLoaderAware
 	 */
@@ -250,7 +250,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * Resolves the given key in the retrieved bundle files to an Expression.
 	 */
 	@Override
-	public Expression getExpression(String key, Locale locale) {
+	public @Nullable Expression getExpression(String key, Locale locale) {
 		String expressionString = getExpressionString(key, locale);
 		if (expressionString != null) {
 			return this.parser.parseExpression(expressionString);
@@ -258,8 +258,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		return null;
 	}
 
-	@Nullable
-	private String getExpressionString(String key, Locale locale) {
+	private @Nullable String getExpressionString(String key, Locale locale) {
 		if (this.cacheMillis < 0) {
 			PropertiesHolder propHolder = getMergedProperties(locale);
 			return propHolder.getProperty(key);
@@ -379,18 +378,18 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		StringBuilder temp = new StringBuilder(basename);
 
 		temp.append('_');
-		if (language.length() > 0) {
+		if (!language.isEmpty()) {
 			temp.append(language);
 			result.add(0, temp.toString());
 		}
 
 		temp.append('_');
-		if (country.length() > 0) {
+		if (!country.isEmpty()) {
 			temp.append(country);
 			result.add(0, temp.toString());
 		}
 
-		if (variant.length() > 0 && (language.length() > 0 || country.length() > 0)) {
+		if (!variant.isEmpty() && (!language.isEmpty() || !country.isEmpty())) {
 			temp.append('_').append(variant);
 			result.add(0, temp.toString());
 		}
@@ -454,7 +453,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 						LOGGER.debug(resource
 								+ " could not be resolved in the file system - assuming that is hasn't changed", ex);
 					}
-					fileTimestamp = -1;
 				}
 			}
 			propHolder = load(filename, resource, fileTimestamp);
@@ -542,8 +540,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		}
 		else {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename)
-						+ "]");
+				LOGGER.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename) + "]");
 			}
 			this.propertiesPersister.load(props, is);
 		}
@@ -585,7 +582,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 */
 	private static final class PropertiesHolder {
 
-		private Properties properties;
+		private @Nullable Properties properties;
 
 		private long fileTimestamp = -1;
 
@@ -599,8 +596,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			this.fileTimestamp = fileTimestamp;
 		}
 
-		@Nullable
-		public Properties getProperties() {
+		public @Nullable Properties getProperties() {
 			return this.properties;
 		}
 
@@ -616,8 +612,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			return this.refreshTimestamp;
 		}
 
-		@Nullable
-		public String getProperty(String code) {
+		public @Nullable String getProperty(String code) {
 			if (this.properties == null) {
 				return null;
 			}
