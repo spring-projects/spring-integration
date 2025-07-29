@@ -19,6 +19,8 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.StringUtils;
@@ -30,6 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -69,7 +72,7 @@ public class AggregateMessageDeliveryException extends MessageDeliveryException 
 		return message.toString();
 	}
 
-	private String appendPeriodIfNecessary(String baseMessage) {
+	private String appendPeriodIfNecessary(@Nullable String baseMessage) {
 		if (!StringUtils.hasText(baseMessage)) {
 			return "";
 		}

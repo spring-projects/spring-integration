@@ -54,6 +54,7 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -71,10 +72,9 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	private Predicate<Exception> failoverStrategy = (exception) -> true;
 
-	@Nullable
-	private LoadBalancingStrategy loadBalancingStrategy;
+	private @Nullable LoadBalancingStrategy loadBalancingStrategy;
 
-	private ErrorHandler errorHandler;
+	private @Nullable ErrorHandler errorHandler;
 
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
@@ -164,6 +164,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // The partitions map never returns null according to partition hash
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;

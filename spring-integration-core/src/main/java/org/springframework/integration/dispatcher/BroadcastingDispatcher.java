@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -56,12 +58,13 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFactoryAware {
 
 	private final boolean requireSubscribers;
 
-	private final Executor executor;
+	private final @Nullable Executor executor;
 
 	private boolean ignoreFailures;
 
@@ -71,6 +74,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
@@ -89,7 +93,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		this(null, requireSubscribers);
 	}
 
-	public BroadcastingDispatcher(Executor executor, boolean requireSubscribers) {
+	public BroadcastingDispatcher(@Nullable Executor executor, boolean requireSubscribers) {
 		this.requireSubscribers = requireSubscribers;
 		this.executor = executor;
 	}
