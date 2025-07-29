@@ -164,7 +164,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation!
+	@SuppressWarnings("NullAway") // The partitions map never returns null according to partition hash
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
