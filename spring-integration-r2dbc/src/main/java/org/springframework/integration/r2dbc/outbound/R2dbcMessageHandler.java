@@ -19,6 +19,7 @@ package org.springframework.integration.r2dbc.outbound;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -34,7 +35,6 @@ import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.r2dbc.core.Parameter;
 import org.springframework.r2dbc.core.PreparedOperation;
