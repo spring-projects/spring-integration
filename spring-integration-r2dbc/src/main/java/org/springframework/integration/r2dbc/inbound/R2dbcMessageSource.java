@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -34,7 +35,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.r2dbc.core.ColumnMapRowMapper;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
