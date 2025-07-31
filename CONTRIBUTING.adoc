@@ -33,7 +33,7 @@ For additional details, please refer to the blog post https://spring.io/blog/202
 
 1. Go to https://github.com/spring-projects/spring-integration[https://github.com/spring-projects/spring-integration]
 2. Hit the "fork" button and choose your own GitHub account as the target
-3. For more detail see https://help.github.com/fork-a-repo/[Fork A Repo].
+3. For more detail see https://help.github.com/articles/fork-a-repo/[Fork A Repo].
 
 == Setup your Local Development Environment
 
@@ -123,7 +123,7 @@ As stated there: _"> Often, you’ll do this to make sure your commits apply cle
 
 == Keeping your Local Code in Sync
 
-* As mentioned above, you should always work on topic branches (since 'main' is a moving target). 
+* As mentioned above, you should always work on topic branches (since 'main' is a moving target).
 However, you do want to always keep your own 'origin' main branch in synch with the 'upstream' main.
 * Within your local working directory, you can sync up all remotes' branches with: `git fetch --all`
 * While on your own local main branch: `git pull upstream main` (which is the equivalent of fetching upstream/main and merging that into the branch you are in currently)
