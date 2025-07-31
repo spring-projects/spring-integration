@@ -26,6 +26,7 @@ import java.net.http.HttpResponse;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
@@ -36,6 +37,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.Resource;
@@ -64,9 +66,9 @@ import org.springframework.util.StringUtils;
  */
 public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
-	private final URL feedUrl;
+	private final @Nullable URL feedUrl;
 
-	private final Resource feedResource;
+	private final @Nullable Resource feedResource;
 
 	private final String metadataKey;
 
@@ -84,7 +86,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private boolean syndFeedInputSet;
 
-	private MetadataStore metadataStore;
+	private @Nullable MetadataStore metadataStore;
 
 	private volatile long lastTime = -1;
 
@@ -173,6 +175,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		this.initialized = true;
 	}
 
+	@Nullable
 	@Override
 	protected SyndEntry doReceive() {
 		Assert.isTrue(this.initialized,
@@ -193,6 +196,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return nextEntry;
 	}
 
+	@Nullable
 	private SyndEntry getNextEntry() {
 		SyndEntry next = this.entries.poll();
 		if (next == null) {
@@ -206,7 +210,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		else {
 			this.lastTime += 1; //NOSONAR - single poller thread
 		}
-		this.metadataStore.put(this.metadataKey, this.lastTime + "");
+		Objects.requireNonNull(this.metadataStore).put(this.metadataKey, this.lastTime + "");
 		return next;
 	}
 
@@ -258,7 +262,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			HttpRequest request =
 					HttpRequest.newBuilder()
 							.GET()
-							.uri(this.feedUrl.toURI())
+							.uri(Objects.requireNonNull(this.feedUrl).toURI())
 							.build();
 
 			inputStream =
