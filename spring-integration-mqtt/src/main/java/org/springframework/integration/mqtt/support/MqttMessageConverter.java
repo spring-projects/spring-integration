@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.support;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -42,7 +43,7 @@ public interface MqttMessageConverter extends MessageConverter {
 	 * @param mqttMessage the MQTT message.
 	 * @return the Message.
 	 */
-	default Message<?> toMessage(String topic, MqttMessage mqttMessage) {
+	default @Nullable Message<?> toMessage(@Nullable String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
 		if (builder != null) {
 			return builder.build();
@@ -58,7 +59,7 @@ public interface MqttMessageConverter extends MessageConverter {
 	 * @param mqttMessage the MQTT message.
 	 * @return the builder.
 	 */
-	AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage);
+	@Nullable AbstractIntegrationMessageBuilder<?> toMessageBuilder(@Nullable String topic, MqttMessage mqttMessage);
 
 	static MessageProcessor<Integer> defaultQosProcessor() {
 		return message -> message.getHeaders().get(MqttHeaders.QOS, Integer.class);

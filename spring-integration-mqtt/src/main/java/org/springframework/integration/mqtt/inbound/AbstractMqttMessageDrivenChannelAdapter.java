@@ -24,6 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogMessage;
@@ -34,7 +36,6 @@ import org.springframework.integration.support.management.IntegrationManagedReso
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -62,13 +63,13 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
-	private final String url;
+	private final @Nullable String url;
 
-	private final String clientId;
+	private final @Nullable String clientId;
 
 	private final Map<String, Integer> topics;
 
-	private final ClientManager<T, C> clientManager;
+	private final @Nullable ClientManager<T, C> clientManager;
 
 	private long completionTimeout = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
 
@@ -78,9 +79,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	private boolean manualAcks;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private MqttMessageConverter converter;
+	private @Nullable MqttMessageConverter converter;
 
 	public AbstractMqttMessageDrivenChannelAdapter(@Nullable String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -173,7 +175,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		return this.clientId;
 	}
 
-	protected MqttMessageConverter getConverter() {
+	protected @Nullable MqttMessageConverter getConverter() {
 		return this.converter;
 	}
 

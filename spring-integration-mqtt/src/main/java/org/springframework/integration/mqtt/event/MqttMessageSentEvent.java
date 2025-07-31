@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -34,7 +36,7 @@ public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 	private final String topic;
 
 	public MqttMessageSentEvent(Object source, Message<?> message, String topic, int messageId,
-			String clientId, int clientInstance) {
+			@Nullable String clientId, int clientInstance) {
 		super(source, messageId, clientId, clientInstance);
 		this.message = message;
 		this.topic = topic;

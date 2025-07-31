@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -66,13 +67,16 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private boolean manualAcks;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	@SuppressWarnings("NullAway.Init")
 	private String url;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private T client;
+	private @Nullable T client;
 
 	protected AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
@@ -99,7 +103,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		return this.applicationEventPublisher;
 	}
 
-	protected void setClient(T client) {
+	protected void setClient(@Nullable T client) {
 		this.lock.lock();
 		try {
 			this.client = client;
@@ -161,7 +165,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	@Override
-	public T getClient() {
+	public @Nullable T getClient() {
 		this.lock.lock();
 		try {
 			return this.client;

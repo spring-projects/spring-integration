@@ -18,6 +18,8 @@ package org.springframework.integration.mqtt.event;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * An event emitted (when using aysnc) when the client indicates the message
  * was not delivered on publish operation.
@@ -34,7 +36,7 @@ public class MqttMessageNotDeliveredEvent extends MqttMessageDeliveryEvent {
 
 	private final Throwable exception;
 
-	public MqttMessageNotDeliveredEvent(Object source, int messageId, String clientId,
+	public MqttMessageNotDeliveredEvent(Object source, int messageId, @Nullable String clientId,
 			int clientInstance, Throwable exception) {
 
 		super(source, messageId, clientId, clientInstance);

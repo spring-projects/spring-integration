@@ -20,6 +20,7 @@ import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Gary Russell
@@ -36,7 +37,7 @@ public interface MqttPahoClientFactory {
 	 * @return The client instance.
 	 * @throws MqttException Any.
 	 */
-	IMqttClient getClientInstance(String url, String clientId) throws MqttException;
+	IMqttClient getClientInstance(@Nullable String url, String clientId) throws MqttException;
 
 	/**
 	 * Retrieve an async client instance.
@@ -47,7 +48,7 @@ public interface MqttPahoClientFactory {
 	 * @throws MqttException Any.
 	 * @since 4.1
 	 */
-	IMqttAsyncClient getAsyncClientInstance(String url, String clientId) throws MqttException;
+	IMqttAsyncClient getAsyncClientInstance(@Nullable String url, String clientId) throws MqttException;
 
 	/**
 	 * Retrieve the connection options.

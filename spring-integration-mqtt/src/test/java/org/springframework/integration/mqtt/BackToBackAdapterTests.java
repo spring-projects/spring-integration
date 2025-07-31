@@ -144,6 +144,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 				JacksonMessagingUtils.messagingAwareMapper("org.springframework"));
 		DefaultPahoMessageConverter converter = new DefaultPahoMessageConverter();
 		converter.setBytesMessageMapper(mapper);
+		converter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setConverter(converter);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -395,6 +396,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		inbound.setQuiescentTimeout(QUIESCENT_TIMEOUT);
 		inbound.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
 		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {

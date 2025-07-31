@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -29,6 +30,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -71,6 +73,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	private final MqttPahoClientFactory clientFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile IMqttAsyncClient client;
 
 	private volatile boolean readyToSubscribeOnStart;
@@ -175,10 +178,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 			else {
 				logger.error(ex, "Exception while connecting");
-				var applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
 		}
 	}
@@ -192,13 +192,14 @@ public class MqttPahoMessageDrivenChannelAdapter
 			if (clientManager == null) {
 				Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+				Assert.state(getClientId() != null, "'clientId' must not be null");
 				this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
 				this.client.setCallback(this);
 				this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
 				this.client.setManualAcks(isManualAcks());
 			}
 			else {
-				this.client = clientManager.getClient();
+				this.client = Objects.requireNonNull(clientManager.getClient());
 			}
 		}
 		finally {
@@ -312,10 +313,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 		}
 		catch (MqttException ex) {
-
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-			}
+			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
@@ -324,9 +322,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		if (this.client.isConnected()) {
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-			}
+			applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 		}
 	}
 
@@ -347,10 +343,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		try {
 			if (isRunning()) {
 				this.logger.error(() -> "Lost connection: " + cause.getMessage());
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 			else {
 				// The 'connectComplete()' re-subscribes or sets this flag otherwise.
@@ -381,11 +374,11 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	private AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
+	private @Nullable AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		Exception conversionError = null;
 		try {
-			builder = getConverter().toMessageBuilder(topic, mqttMessage);
+			builder = Objects.requireNonNull(getConverter()).toMessageBuilder(topic, mqttMessage);
 		}
 		catch (Exception ex) {
 			conversionError = ex;
@@ -422,7 +415,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@Override
-	public void connectComplete(boolean reconnect, String serverURI) {
+	public void connectComplete(boolean reconnect, @Nullable String serverURI) {
 		// The 'running' flag is set after 'doStart()', so possible a race condition
 		// when start is not finished yet, but server answers with successful connection.
 		if (isActive()) {

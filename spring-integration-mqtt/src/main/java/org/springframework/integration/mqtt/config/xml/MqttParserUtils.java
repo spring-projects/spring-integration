@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
+import java.util.Objects;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
@@ -50,11 +52,11 @@ final class MqttParserUtils {
 		if (StringUtils.hasText(url)) {
 			builder.addConstructorArgValue(url);
 			holder = builder.getRawBeanDefinition().getConstructorArgumentValues().getIndexedArgumentValues().get(n++);
-			holder.setType("java.lang.String");
+			Objects.requireNonNull(holder).setType("java.lang.String");
 		}
 		builder.addConstructorArgValue(element.getAttribute("client-id"));
 		holder = builder.getRawBeanDefinition().getConstructorArgumentValues().getIndexedArgumentValues().get(n);
-		holder.setType("java.lang.String");
+		Objects.requireNonNull(holder).setType("java.lang.String");
 		String clientFactory = element.getAttribute("client-factory");
 		if (StringUtils.hasText(clientFactory)) {
 			builder.addConstructorArgReference(clientFactory);

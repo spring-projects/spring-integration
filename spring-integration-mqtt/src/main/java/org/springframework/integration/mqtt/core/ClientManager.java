@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt.core;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -50,7 +52,7 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 * Return the managed client.
 	 * @return the managed client.
 	 */
-	T getClient();
+	@Nullable T getClient();
 
 	/**
 	 * If manual acknowledge has to be used; false by default.

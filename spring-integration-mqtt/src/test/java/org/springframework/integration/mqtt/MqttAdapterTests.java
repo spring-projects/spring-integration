@@ -496,6 +496,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 
 		MqttPahoMessageDrivenChannelAdapter adapter =
 				new MqttPahoMessageDrivenChannelAdapter("tcp://mqtt.host", "bar", factory, "baz", "fix");
+		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		AtomicReference<Method> method = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(MqttPahoMessageDrivenChannelAdapter.class, m -> {
 			m.setAccessible(true);

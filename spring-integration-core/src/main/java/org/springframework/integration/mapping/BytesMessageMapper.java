@@ -34,14 +34,16 @@ import org.springframework.messaging.Message;
 public interface BytesMessageMapper extends InboundMessageMapper<byte[]>, OutboundMessageMapper<byte[]> {
 
 	@Override
-	@NonNull // override
+	@NonNull
 	default Message<?> toMessage(byte[] object) {
 		return toMessage(object, null);
 	}
 
 	@Override
 	@NonNull
-		// override
 	Message<?> toMessage(byte[] bytes, @Nullable Map<String, Object> headers);
+
+	@Override
+	byte @NonNull [] fromMessage(Message<?> message);
 
 }

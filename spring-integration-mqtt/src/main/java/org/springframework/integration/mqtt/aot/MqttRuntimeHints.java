@@ -18,6 +18,8 @@ package org.springframework.integration.mqtt.aot;
 
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
@@ -35,7 +37,7 @@ import org.springframework.util.ReflectionUtils;
 class MqttRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
-	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 		ReflectionHints reflectionHints = hints.reflection();
 		// TODO until the real fix in Paho library.
 		Stream.of("org.eclipse.paho.client.mqttv3.MqttAsyncClient", "org.eclipse.paho.mqttv5.client.MqttAsyncClient")
@@ -45,7 +47,7 @@ class MqttRuntimeHints implements RuntimeHintsRegistrar {
 				.forEach(method -> reflectionHints.registerMethod(method, ExecutableMode.INVOKE));
 	}
 
-	private static Class<?> loadClassByName(String typeName, ClassLoader classLoader) {
+	private static Class<?> loadClassByName(String typeName, @Nullable ClassLoader classLoader) {
 		try {
 			return ClassUtils.forName(typeName, classLoader);
 		}

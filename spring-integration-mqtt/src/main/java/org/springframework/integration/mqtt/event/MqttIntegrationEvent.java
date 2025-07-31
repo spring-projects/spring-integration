@@ -16,8 +16,9 @@
 
 package org.springframework.integration.mqtt.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.events.IntegrationEvent;
-import org.springframework.lang.Nullable;
 
 /**
  * Base class for Mqtt Events. For {@link #getSourceAsType()}, you should use a subtype
