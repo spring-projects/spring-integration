@@ -1,5 +1,5 @@
 /**
  * Provides supporting classes for the Debezium channel adapters.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.debezium.support;
