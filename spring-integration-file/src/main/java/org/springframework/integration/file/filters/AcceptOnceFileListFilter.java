@@ -24,7 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link FileListFilter} that passes files only one time. This can
@@ -45,8 +45,7 @@ import org.springframework.lang.Nullable;
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F>,
 		ResettableFileListFilter<F> {
 
-	@Nullable
-	private final Queue<F> seen;
+	private final @Nullable Queue<F> seen;
 
 	private final Set<F> seenSet = new HashSet<>();
 

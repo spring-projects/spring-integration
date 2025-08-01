@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
+	@SuppressWarnings("NullAway") // Does not see Nullability on the generics.
 	private volatile Expression expression =
 			new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(FileHeaders.FILENAME));
 
@@ -61,6 +62,7 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	 * The default is defined by {@link FileHeaders#FILENAME}.
 	 * @param headerName The header name.
 	 */
+	@SuppressWarnings("NullAway") // Does not see Nullability on the generics.
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
 		this.expression = new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(headerName));

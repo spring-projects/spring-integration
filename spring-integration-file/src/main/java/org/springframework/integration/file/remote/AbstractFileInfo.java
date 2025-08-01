@@ -18,6 +18,8 @@ package org.springframework.integration.file.remote;
 
 import java.util.Date;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.json.SimpleJsonSerializer;
 
 /**
@@ -27,22 +29,23 @@ import org.springframework.integration.json.SimpleJsonSerializer;
  * @param <F> The target protocol file type.
  *
  * @author Gary Russell
+ * @author Artme Bilan
  *
  * @since 2.1
  */
 public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<FileInfo<F>> {
 
-	private String remoteDirectory;
+	private @Nullable String remoteDirectory;
 
 	/**
 	 * @param remoteDirectory the remoteDirectory to set
 	 */
-	public void setRemoteDirectory(String remoteDirectory) {
+	public void setRemoteDirectory(@Nullable String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
 
 	@Override
-	public String getRemoteDirectory() {
+	public @Nullable String getRemoteDirectory() {
 		return this.remoteDirectory;
 	}
 

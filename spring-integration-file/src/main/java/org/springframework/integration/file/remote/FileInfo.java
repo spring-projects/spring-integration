@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Represents a remote file info - an abstraction over the underlying implementation.
  *
@@ -55,12 +57,14 @@ public interface FileInfo<F> {
 	/**
 	 * @return the remote directory in which the file resides
 	 */
+	@Nullable
 	String getRemoteDirectory();
 
 	/**
 	 * @return a string representing the permissions of the remote
 	 * file (e.g. -rw-r--r--).
 	 */
+	@Nullable
 	String getPermissions();
 
 	/**

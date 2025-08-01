@@ -52,6 +52,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 
 	private boolean messageBuilderFactorySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile BeanFactory beanFactory;
 
 	/**
@@ -70,9 +71,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;

@@ -60,7 +60,7 @@ public abstract class AbstractDirectoryAwareFileListFilter<F> extends AbstractFi
 	}
 
 	protected boolean alwaysAccept(F file) {
-		return file != null && this.alwaysAcceptDirectories && isDirectory(file);
+		return this.alwaysAcceptDirectories && isDirectory(file);
 	}
 
 	/**

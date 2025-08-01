@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -32,7 +34,6 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -51,11 +52,9 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 		extends MessageHandlerSpec<S, FileTransferringMessageHandler<F>>
 		implements ComponentsRegistration {
 
-	@Nullable
-	private FileNameGenerator fileNameGenerator;
+	private @Nullable FileNameGenerator fileNameGenerator;
 
-	@Nullable
-	private DefaultFileNameGenerator defaultFileNameGenerator;
+	private @Nullable DefaultFileNameGenerator defaultFileNameGenerator;
 
 	// TODO: should be refactored using generics in next release (breaking change), see PR-3080.
 	protected FileTransferringMessageHandlerSpec() {
@@ -254,11 +253,11 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.defaultFileNameGenerator != null) {
-			return Collections.singletonMap(this.defaultFileNameGenerator, null);
+			return Collections.<Object, @Nullable String>singletonMap(this.defaultFileNameGenerator, null);
 		}
-		return Collections.emptyMap();
+		return Collections.<Object, @Nullable String>emptyMap();
 	}
 
 }

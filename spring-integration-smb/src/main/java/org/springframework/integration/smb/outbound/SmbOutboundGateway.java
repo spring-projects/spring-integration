@@ -175,7 +175,7 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 	}
 
 	@Override
-	protected String getFullFileName(String remoteDirectory, SmbFile smbFile) {
+	protected String getFullFileName(@Nullable String remoteDirectory, SmbFile smbFile) {
 		return smbFile.getLocator().getURLPath().substring(1).replaceFirst(smbFile.getShare() + "/?", "");
 	}
 

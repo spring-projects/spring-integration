@@ -29,6 +29,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -41,7 +43,6 @@ import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -66,7 +67,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<>();
 
-	private final Comparator<? extends F> comparator;
+	private final @Nullable Comparator<? extends F> comparator;
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -77,6 +78,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	/**
 	 * the path on the remote server.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private Expression remoteDirectoryExpression;
 
 	private String remoteFileSeparator = "/";
@@ -84,7 +86,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
-	private FileListFilter<F> filter;
+	private @Nullable FileListFilter<F> filter;
 
 	private boolean strictOrder;
 
@@ -214,7 +216,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	@Override
-	protected Object doReceive(int maxFetchSize) {
+	protected @Nullable Object doReceive(int maxFetchSize) {
 		Assert.state(this.running.get(), () -> getComponentName() + " is not running");
 		if (maxFetchSize > 0 && this.fetched.get() >= maxFetchSize) {
 			this.toBeReceived.clear();
@@ -276,7 +278,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		}
 	}
 
-	protected AbstractFileInfo<F> poll() {
+	protected @Nullable AbstractFileInfo<F> poll() {
 		if (this.toBeReceived.isEmpty()) {
 			listFiles();
 		}
@@ -293,16 +295,18 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	protected String remotePath(AbstractFileInfo<F> file) {
-		return file.getRemoteDirectory().endsWith(this.remoteFileSeparator)
-				? file.getRemoteDirectory() + file.getFilename()
-				: file.getRemoteDirectory() + this.remoteFileSeparator + file.getFilename();
+		String remoteDirectory = file.getRemoteDirectory();
+		remoteDirectory = remoteDirectory == null ? "" : remoteDirectory;
+		return remoteDirectory.endsWith(this.remoteFileSeparator)
+				? remoteDirectory + file.getFilename()
+				: remoteDirectory + this.remoteFileSeparator + file.getFilename();
 	}
 
 	private void listFiles() {
 		String remoteDirectory = this.remoteDirectoryExpression.getValue(getEvaluationContext(), String.class);
 		F[] files = this.remoteFileTemplate.list(remoteDirectory);
 		if (!ObjectUtils.isEmpty(files)) {
-			files = FileUtils.purgeUnwantedElements(files, f -> f == null || isDirectory(f), this.comparator);
+			files = FileUtils.purgeUnwantedElements(files, this::isDirectory, this.comparator);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
 			List<AbstractFileInfo<F>> fileInfoList;

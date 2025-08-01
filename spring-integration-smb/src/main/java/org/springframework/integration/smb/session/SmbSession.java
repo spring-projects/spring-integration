@@ -125,8 +125,8 @@ public class SmbSession implements Session<SmbFile> {
 	 * @throws IOException on error conditions returned by a CIFS server.
 	 */
 	@Override
-	public SmbFile[] list(String path) throws IOException {
-		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
+	public SmbFile[] list(@Nullable String path) throws IOException {
+		String remotePath = StringUtils.hasText(path) ? StringUtils.trimTrailingCharacter(path, '/') : "";
 		SmbFile[] files = null;
 		int lastIndex = StringUtils.hasText(remotePath) ? remotePath.lastIndexOf('/') : 0;
 		String remoteFileName = lastIndex > 0 ? remotePath.substring(lastIndex + 1) : null;
@@ -168,7 +168,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
 	 */
 	@Override
-	public String[] listNames(String _path) throws IOException {
+	public String[] listNames(@Nullable String _path) throws IOException {
 		try {
 			SmbFile smbDir = createSmbDirectoryObject(_path);
 			if (!smbDir.exists()) {
@@ -190,7 +190,7 @@ public class SmbSession implements Session<SmbFile> {
 		}
 	}
 
-	private static void logListedFiles(String _path, Object[] files) {
+	private static void logListedFiles(@Nullable String _path, Object[] files) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Successfully listed " + files.length + " in [" + _path + "]: " + Arrays.toString(files));
 		}
@@ -336,7 +336,8 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return the path created or null
 	 * @throws IOException on error conditions returned by a CIFS server
 	 */
-	@Nullable String mkdirs(String _path) throws IOException {
+	@Nullable
+	String mkdirs(String _path) throws IOException {
 		int idxPath = _path.lastIndexOf(SMB_FILE_SEPARATOR);
 		if (idxPath > -1) {
 			String path = _path.substring(0, idxPath + 1);
@@ -449,9 +450,12 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return SmbFile object for path
 	 * @throws IOException in case of I/O errors
 	 */
-	private SmbFile createSmbFileObject(String path, @Nullable Boolean isDirectory) throws IOException {
+	private SmbFile createSmbFileObject(@Nullable String path, @Nullable Boolean isDirectory) throws IOException {
+		if (!StringUtils.hasText(path)) {
+			return this.smbShare;
+		}
 
-		final String cleanedPath = StringUtils.cleanPath(path);
+		String cleanedPath = StringUtils.cleanPath(path);
 
 		if (!StringUtils.hasText(cleanedPath)) {
 			return this.smbShare;
@@ -483,7 +487,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return the {@link SmbFile} for remote path
 	 * @throws IOException the IO exception
 	 */
-	public SmbFile createSmbFileObject(String _path) throws IOException {
+	public SmbFile createSmbFileObject(@Nullable String _path) throws IOException {
 		return createSmbFileObject(_path, null);
 	}
 
@@ -493,7 +497,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @return the {@link SmbFile} for remote path
 	 * @throws IOException the IO exception
 	 */
-	public SmbFile createSmbDirectoryObject(String _path) throws IOException {
+	public SmbFile createSmbDirectoryObject(@Nullable String _path) throws IOException {
 		return createSmbFileObject(_path, true);
 	}
 

@@ -18,6 +18,8 @@ package org.springframework.integration.file.aggregator;
 
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -66,7 +68,7 @@ public class FileAggregator implements CorrelationStrategy, ReleaseStrategy, Gro
 	}
 
 	@Override
-	public Object getCorrelationKey(Message<?> message) {
+	public @Nullable Object getCorrelationKey(Message<?> message) {
 		return this.correlationStrategy.getCorrelationKey(message);
 	}
 

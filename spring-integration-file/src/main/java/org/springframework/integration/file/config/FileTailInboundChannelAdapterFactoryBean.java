@@ -18,6 +18,8 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -30,7 +32,6 @@ import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessage
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
 import org.springframework.integration.support.ErrorMessageStrategy;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -47,49 +48,52 @@ import org.springframework.util.StringUtils;
 public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBean<FileTailingMessageProducerSupport>
 		implements BeanNameAware, SmartLifecycle, ApplicationEventPublisherAware {
 
-	private String nativeOptions;
+	private @Nullable String nativeOptions;
 
 	private boolean enableStatusReader = true;
 
-	private Long idleEventInterval;
+	private @Nullable Long idleEventInterval;
 
-	private File file;
+	private @Nullable File file;
 
-	private TaskExecutor taskExecutor;
+	private @Nullable TaskExecutor taskExecutor;
 
-	private TaskScheduler taskScheduler;
+	private @Nullable TaskScheduler taskScheduler;
 
-	private Long delay;
+	private @Nullable Long delay;
 
-	private Long fileDelay;
+	private @Nullable Long fileDelay;
 
-	private Boolean end;
+	private @Nullable Boolean end;
 
-	private Boolean reopen;
+	private @Nullable Boolean reopen;
 
+	@SuppressWarnings("NullAway.Init")
 	private FileTailingMessageProducerSupport tailAdapter;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private MessageChannel outputChannel;
+	private @Nullable MessageChannel outputChannel;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
-	private Boolean autoStartup;
+	private @Nullable Boolean autoStartup;
 
-	private Integer phase;
+	private @Nullable Integer phase;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private long sendTimeout;
 
 	private boolean shouldTrack;
 
-	private ErrorMessageStrategy errorMessageStrategy;
+	private @Nullable ErrorMessageStrategy errorMessageStrategy;
 
 	public void setNativeOptions(String nativeOptions) {
 		if (StringUtils.hasText(nativeOptions)) {
@@ -145,7 +149,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	}
 
 	@Override
-	public void setBeanName(@Nullable String name) {
+	public void setBeanName(String name) {
 		this.beanName = name;
 	}
 
@@ -192,49 +196,37 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public void start() {
-		if (this.tailAdapter != null) {
-			this.tailAdapter.start();
-		}
+		this.tailAdapter.start();
 	}
 
 	@Override
 	public void stop() {
-		if (this.tailAdapter != null) {
-			this.tailAdapter.stop();
-		}
+		this.tailAdapter.stop();
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.tailAdapter != null && this.tailAdapter.isRunning();
+		return this.tailAdapter.isRunning();
 	}
 
 	@Override
 	public int getPhase() {
-		if (this.tailAdapter != null) {
-			return this.tailAdapter.getPhase();
-		}
-		return 0;
+		return this.tailAdapter.getPhase();
 	}
 
 	@Override
 	public boolean isAutoStartup() {
-		return this.tailAdapter != null && this.tailAdapter.isAutoStartup();
+		return this.tailAdapter.isAutoStartup();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.tailAdapter != null) {
-			this.tailAdapter.stop(callback);
-		}
-		else {
-			callback.run();
-		}
+		this.tailAdapter.stop(callback);
 	}
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.tailAdapter == null ? FileTailingMessageProducerSupport.class : this.tailAdapter.getClass();
+		return this.tailAdapter.getClass();
 	}
 
 	@Override
@@ -257,9 +249,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 					.acceptIfNotNull(this.reopen, apache::setReopen);
 			adapter = apache;
 		}
+		Assert.notNull(this.file, "The 'file' is required.");
 		adapter.setFile(this.file);
-		adapter.setOutputChannel(this.outputChannel);
-		adapter.setErrorChannel(this.errorChannel);
 		adapter.setBeanName(this.beanName);
 		adapter.setSendTimeout(this.sendTimeout);
 		adapter.setShouldTrack(this.shouldTrack);
@@ -272,7 +263,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 				.acceptIfNotNull(this.autoStartup, adapter::setAutoStartup)
 				.acceptIfNotNull(this.phase, adapter::setPhase)
 				.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
+				.acceptIfNotNull(this.outputChannel, adapter::setOutputChannel)
 				.acceptIfNotNull(this.outputChannelName, adapter::setOutputChannelName)
+				.acceptIfNotNull(this.errorChannel, adapter::setErrorChannel)
 				.acceptIfNotNull(this.errorChannelName, adapter::setErrorChannelName)
 				.acceptIfNotNull(this.errorMessageStrategy, adapter::setErrorMessageStrategy)
 				.acceptIfNotNull(beanFactory, adapter::setBeanFactory);

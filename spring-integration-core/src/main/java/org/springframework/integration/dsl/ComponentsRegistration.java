@@ -18,6 +18,8 @@ package org.springframework.integration.dsl;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * The marker interface for the {@link IntegrationComponentSpec} implementation,
  * when there is need to register as beans not only the target spec's components,
@@ -33,6 +35,6 @@ import java.util.Map;
 @FunctionalInterface
 public interface ComponentsRegistration {
 
-	Map<Object, String> getComponentsToRegister();
+	Map<Object, @Nullable String> getComponentsToRegister();
 
 }

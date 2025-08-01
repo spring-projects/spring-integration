@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Common abstraction for a Session with a remote File system.
  *
@@ -40,7 +42,7 @@ public interface Session<F> extends Closeable {
 
 	boolean remove(String path) throws IOException;
 
-	F[] list(String path) throws IOException;
+	F[] list(@Nullable String path) throws IOException;
 
 	void read(String source, OutputStream outputStream) throws IOException;
 
@@ -81,7 +83,7 @@ public interface Session<F> extends Closeable {
 	 */
 	boolean exists(String path) throws IOException;
 
-	String[] listNames(String path) throws IOException;
+	String[] listNames(@Nullable String path) throws IOException;
 
 	/**
 	 * Retrieve a remote file as a raw {@link InputStream}.

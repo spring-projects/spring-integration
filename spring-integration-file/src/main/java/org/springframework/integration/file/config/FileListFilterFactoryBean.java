@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
@@ -30,31 +32,31 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
-import org.springframework.lang.NonNull;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 1.0.3
  */
 public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
 
-	private volatile FileListFilter<File> result;
+	private volatile @Nullable FileListFilter<File> result;
 
-	private volatile FileListFilter<File> filter;
+	private volatile @Nullable FileListFilter<File> filter;
 
-	private volatile String filenamePattern;
+	private volatile @Nullable String filenamePattern;
 
-	private volatile String filenameRegex;
+	private volatile @Nullable String filenameRegex;
 
 	private volatile Boolean ignoreHidden = Boolean.TRUE;
 
-	private volatile Boolean preventDuplicates;
+	private volatile @Nullable Boolean preventDuplicates;
 
-	private volatile Boolean alwaysAcceptDirectories;
+	private volatile @Nullable Boolean alwaysAcceptDirectories;
 
 	private final Lock monitor = new ReentrantLock();
 
@@ -96,23 +98,28 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	}
 
 	@Override
-	@NonNull
 	public FileListFilter<File> getObject() {
-		if (this.result == null) {
+		FileListFilter<File> filterToReturn = this.result;
+		if (filterToReturn == null) {
 			this.monitor.lock();
 			try {
-				this.initializeFileListFilter();
+				filterToReturn = this.result;
+				if (filterToReturn == null) {
+					filterToReturn = initializeFileListFilter();
+					this.result = filterToReturn;
+				}
 			}
 			finally {
 				this.monitor.unlock();
 			}
 		}
-		return this.result;
+		return filterToReturn;
 	}
 
 	@Override
 	public Class<?> getObjectType() {
-		return (this.result != null) ? this.result.getClass() : FileListFilter.class;
+		FileListFilter<File> filterToCheck = this.result;
+		return (filterToCheck != null) ? filterToCheck.getClass() : FileListFilter.class;
 	}
 
 	@Override
@@ -120,23 +127,19 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		return true;
 	}
 
-	private void initializeFileListFilter() {
-		if (this.result != null) {
-			return;
-		}
-		FileListFilter<File> createdFilter = null;
-
+	private FileListFilter<File> initializeFileListFilter() {
 		validate();
 
-		final List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
+		final List<FileListFilter<File>> filtersNeeded = new ArrayList<>();
 
 		if (!Boolean.FALSE.equals(this.ignoreHidden)) {
 			filtersNeeded.add(new IgnoreHiddenFileListFilter());
 		}
 
 		//'filter' is set
-		if (this.filter != null) {
-			filter(filtersNeeded);
+		FileListFilter<File> filterToAdd = this.filter;
+		if (filterToAdd != null) {
+			filter(filtersNeeded, filterToAdd);
 		}
 
 		// 'file-pattern' or 'file-regex' is set
@@ -146,20 +149,18 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 		// no filters are provided
 		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
-			filtersNeeded.add(new AcceptAllFileListFilter<File>());
+			filtersNeeded.add(new AcceptAllFileListFilter<>());
 		}
 		else { // preventDuplicates is either TRUE or NULL
-			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+			filtersNeeded.add(new AcceptOnceFileListFilter<>());
 		}
 
 		if (filtersNeeded.size() == 1) {
-			createdFilter = filtersNeeded.get(0);
+			return filtersNeeded.get(0);
 		}
 		else {
-			createdFilter = new CompositeFileListFilter<File>(filtersNeeded);
+			return new CompositeFileListFilter<>(filtersNeeded);
 		}
-
-		this.result = createdFilter;
 	}
 
 	private void validate() {
@@ -174,32 +175,35 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		}
 	}
 
-	private void filter(final List<FileListFilter<File>> filtersNeeded) {
+	private void filter(final List<FileListFilter<File>> filtersNeeded, FileListFilter<File> filter) {
 		if (Boolean.TRUE.equals(this.preventDuplicates)) {
-			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
-			filtersNeeded.add(this.filter);
+			filtersNeeded.add(new AcceptOnceFileListFilter<>());
+			filtersNeeded.add(filter);
 		}
 		else { // preventDuplicates is either FALSE or NULL
-			filtersNeeded.add(this.filter);
+			filtersNeeded.add(filter);
 		}
 	}
 
 	private void pattern(final List<FileListFilter<File>> filtersNeeded) {
 		if (!Boolean.FALSE.equals(this.preventDuplicates)) {
 			//preventDuplicates is either null or true
-			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+			filtersNeeded.add(new AcceptOnceFileListFilter<>());
 		}
-		if (this.filenamePattern != null) {
-			SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
-			if (this.alwaysAcceptDirectories != null) {
-				patternFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+		String filenamePatternToUse = this.filenamePattern;
+		Boolean alwaysAcceptDirectoriesToUse = this.alwaysAcceptDirectories;
+		if (filenamePatternToUse != null) {
+			SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(filenamePatternToUse);
+			if (alwaysAcceptDirectoriesToUse != null) {
+				patternFilter.setAlwaysAcceptDirectories(alwaysAcceptDirectoriesToUse);
 			}
 			filtersNeeded.add(patternFilter);
 		}
-		if (this.filenameRegex != null) {
-			RegexPatternFileListFilter regexFilter = new RegexPatternFileListFilter(this.filenameRegex);
-			if (this.alwaysAcceptDirectories != null) {
-				regexFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+		String filenameRegexToUse = this.filenameRegex;
+		if (filenameRegexToUse != null) {
+			RegexPatternFileListFilter regexFilter = new RegexPatternFileListFilter(filenameRegexToUse);
+			if (alwaysAcceptDirectoriesToUse != null) {
+				regexFilter.setAlwaysAcceptDirectories(alwaysAcceptDirectoriesToUse);
 			}
 			filtersNeeded.add(regexFilter);
 		}

@@ -22,6 +22,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.apache.kafka.common.TopicPartition;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
@@ -181,8 +182,9 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.container, getId() == null ? null : getId() + ".container");
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		return Collections.<Object, @Nullable String>singletonMap(
+				this.container, getId() == null ? null : getId() + ".container");
 	}
 
 	/**
@@ -217,8 +219,8 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		}
 
 		@Override
-		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.spec.getObject(), this.spec.getId());
+		public Map<Object, @Nullable String> getComponentsToRegister() {
+			return Collections.<Object, @Nullable String>singletonMap(this.spec.getObject(), this.spec.getId());
 		}
 
 	}

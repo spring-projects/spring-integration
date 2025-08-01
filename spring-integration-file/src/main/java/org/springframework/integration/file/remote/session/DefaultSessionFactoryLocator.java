@@ -19,7 +19,7 @@ package org.springframework.integration.file.remote.session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The default implementation of {@link SessionFactoryLocator} using a simple map lookup
@@ -38,8 +38,7 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 
 	private final Map<Object, SessionFactory<F>> factories = new ConcurrentHashMap<>();
 
-	@Nullable
-	private final SessionFactory<F> defaultFactory;
+	private final @Nullable SessionFactory<F> defaultFactory;
 
 	/**
 	 * @param factories A map of factories, keyed by lookup key.
@@ -74,15 +73,18 @@ public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F>
 	 * @param key the lookup key.
 	 * @return the factory, if it was present.
 	 */
-	public SessionFactory<F> removeSessionFactory(Object key) {
+	public @Nullable SessionFactory<F> removeSessionFactory(Object key) {
 		return this.factories.remove(key);
 	}
 
 	@Override
-	public SessionFactory<F> getSessionFactory(@Nullable Object key) {
-		return key == null
-				? this.defaultFactory
-				: this.factories.getOrDefault(key, this.defaultFactory);
+	public @Nullable SessionFactory<F> getSessionFactory(@Nullable Object key) {
+		if (key == null) {
+			return this.defaultFactory;
+		}
+
+		SessionFactory<F> sessionFactoryToReturn = this.factories.get(key);
+		return sessionFactoryToReturn == null ? this.defaultFactory : sessionFactoryToReturn;
 	}
 
 }

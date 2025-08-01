@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
@@ -89,9 +91,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	/**
 	 * Directory to which things should be synchronized locally.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private File localDirectory;
 
-	private FileListFilter<File> localFileListFilter;
+	private @Nullable FileListFilter<File> localFileListFilter;
 
 	/**
 	 * Whether the {@link DirectoryScanner} was explicitly set.
@@ -105,7 +108,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	}
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer,
-			Comparator<File> comparator) {
+			@Nullable Comparator<File> comparator) {
 
 		Assert.notNull(synchronizer, "synchronizer must not be null");
 		this.synchronizer = synchronizer;
@@ -256,11 +259,11 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 * Polls from the file source. If the result is not null, it will be returned.
 	 * If the result is null, it attempts to sync up with the remote directory to populate the file source.
 	 * At most, maxFetchSize files will be fetched.
-	 * Then, it polls the file source again and returns the result, whether or not it is null.
+	 * Then, it polls the file source again and returns the result.
 	 * @param maxFetchSize the maximum files to fetch.
 	 */
 	@Override
-	public final AbstractIntegrationMessageBuilder<File> doReceive(int maxFetchSize) {
+	public @Nullable final AbstractIntegrationMessageBuilder<File> doReceive(int maxFetchSize) {
 		AbstractIntegrationMessageBuilder<File> messageBuilder = this.fileSource.doReceive();
 		if (messageBuilder == null) {
 			this.synchronizer.synchronizeToLocalDirectory(this.localDirectory, maxFetchSize);
@@ -300,7 +303,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		}
 
 		@Override
-		protected AbstractIntegrationMessageBuilder<File> doReceive() { // NOSONAR - not useless, increases visibility
+		protected @Nullable AbstractIntegrationMessageBuilder<File> doReceive() { // NOSONAR - not useless, increases visibility
 			return super.doReceive();
 		}
 

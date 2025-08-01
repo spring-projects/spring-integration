@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods.
@@ -40,6 +42,6 @@ public interface ClientCallback<C, T> {
 	 * @param client The client instance.
 	 * @return The return value.
 	 */
-	T doWithClient(C client);
+	@Nullable T doWithClient(C client);
 
 }

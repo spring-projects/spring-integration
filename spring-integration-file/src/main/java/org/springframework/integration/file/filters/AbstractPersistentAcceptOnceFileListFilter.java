@@ -21,8 +21,9 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,8 +48,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 
 	protected final String prefix; // NOSONAR
 
-	@Nullable
-	protected final Flushable flushableStore; // NOSONAR
+	protected final @Nullable Flushable flushableStore; // NOSONAR
 
 	protected boolean flushOnUpdate; // NOSONAR
 

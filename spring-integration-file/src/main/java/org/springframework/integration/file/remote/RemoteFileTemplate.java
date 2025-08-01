@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -43,7 +44,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -80,7 +80,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	/*
 	 * Not static as normal since we want this TL to be scoped within the template instance.
 	 */
-	private final ThreadLocal<Session<F>> contextSessions = new ThreadLocal<>();
+	private final ThreadLocal<@Nullable Session<F>> contextSessions = new ThreadLocal<>();
 
 	private final AtomicInteger activeTemplateCallbacks = new AtomicInteger();
 
@@ -90,11 +90,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private boolean useTemporaryFileName = true;
 
-	private ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 
-	private ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
 
-	private ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
+	private @Nullable ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
 
 	private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -106,6 +106,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private boolean hasExplicitlySetSuffix;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	/**
@@ -165,8 +166,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * Return the processor for remote directory SpEL expression if any.
 	 * @return the processor for remote directory SpEL expression.
 	 */
-	@Nullable
-	public MessageProcessor<String> getDirectoryExpressionProcessor() {
+	public @Nullable MessageProcessor<String> getDirectoryExpressionProcessor() {
 		return this.directoryExpressionProcessor;
 	}
 
@@ -222,7 +222,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * files to the remote system. Default {@link DefaultFileNameGenerator}.
 	 * @param fileNameGenerator the file name generator.
 	 */
-	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+	public void setFileNameGenerator(@Nullable FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
 		this.fileNameGeneratorSet = fileNameGenerator != null;
 	}
@@ -255,19 +255,17 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public void afterPropertiesSet() {
-		if (this.beanFactory != null) {
-			if (this.directoryExpressionProcessor != null) {
-				this.directoryExpressionProcessor.setBeanFactory(this.beanFactory);
-			}
-			if (this.temporaryDirectoryExpressionProcessor != null) {
-				this.temporaryDirectoryExpressionProcessor.setBeanFactory(this.beanFactory);
-			}
-			if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(this.beanFactory);
-			}
-			if (this.fileNameProcessor != null) {
-				this.fileNameProcessor.setBeanFactory(this.beanFactory);
-			}
+		if (this.directoryExpressionProcessor != null) {
+			this.directoryExpressionProcessor.setBeanFactory(this.beanFactory);
+		}
+		if (this.temporaryDirectoryExpressionProcessor != null) {
+			this.temporaryDirectoryExpressionProcessor.setBeanFactory(this.beanFactory);
+		}
+		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(this.beanFactory);
+		}
+		if (this.fileNameProcessor != null) {
+			this.fileNameProcessor.setBeanFactory(this.beanFactory);
 		}
 		if (this.autoCreateDirectory) {
 			Assert.hasText(this.remoteFileSeparator,
@@ -280,30 +278,31 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public String append(Message<?> message) {
+	public @Nullable String append(Message<?> message) {
 		return append(message, null);
 	}
 
 	@Override
-	public String append(Message<?> message, String subDirectory) {
+	public @Nullable String append(Message<?> message, @Nullable String subDirectory) {
 		return send(message, subDirectory, FileExistsMode.APPEND);
 	}
 
 	@Override
-	public String send(Message<?> message, FileExistsMode... mode) {
+	public @Nullable String send(Message<?> message, FileExistsMode... mode) {
 		return send(message, null, mode);
 	}
 
 	@Override
-	public String send(Message<?> message, String subDirectory, FileExistsMode... mode) {
+	public @Nullable String send(Message<?> message, @Nullable String subDirectory,
+			@Nullable FileExistsMode @Nullable ... mode) {
+
 		FileExistsMode modeToUse = mode == null || mode.length < 1 || mode[0] == null
 				? FileExistsMode.REPLACE
 				: mode[0];
 		return send(message, subDirectory, modeToUse);
 	}
 
-	private String send(Message<?> message, String subDirectory, FileExistsMode mode) {
-		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
+	private @Nullable String send(Message<?> message, @Nullable String subDirectory, FileExistsMode mode) {
 		Assert.isTrue(!FileExistsMode.REPLACE_IF_MODIFIED.equals(mode),
 				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = payloadToInputStream(message);
@@ -328,11 +327,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
-	private String doSend(Message<?> message, String subDirectory, FileExistsMode mode,
+	private String doSend(Message<?> message, @Nullable String subDirectory, FileExistsMode mode,
 			StreamHolder inputStreamHolder, Session<F> session) {
 
 		String fileName = inputStreamHolder.name;
 		try {
+			Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 			String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 			remoteDirectory = normalizeDirectoryPath(remoteDirectory);
 			if (StringUtils.hasText(subDirectory)) {
@@ -369,12 +369,12 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public boolean exists(String path) {
-		return execute(session -> session.exists(path));
+		return Boolean.TRUE.equals(execute(session -> session.exists(path)));
 	}
 
 	@Override
 	public boolean remove(String path) {
-		return execute(session -> session.remove(path));
+		return Boolean.TRUE.equals(execute(session -> session.remove(path)));
 	}
 
 	@Override
@@ -400,22 +400,25 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	public boolean get(Message<?> message, InputStreamCallback callback) {
 		Assert.notNull(this.fileNameProcessor, "A 'fileNameExpression' is needed to use get");
 		String remotePath = this.fileNameProcessor.processMessage(message);
+		Assert.notNull(remotePath, "'remotePath' cannot be null");
 		return get(remotePath, callback);
 	}
 
 	@Override
 	public boolean get(String remotePath, InputStreamCallback callback) {
-		Assert.notNull(remotePath, "'remotePath' cannot be null");
-		return execute(session -> {
-			try (InputStream inputStream = session.readRaw(remotePath)) {
-				callback.doWithInputStream(inputStream);
-				return session.finalizeRaw();
-			}
-		});
+		Boolean result =
+				execute(session -> {
+					try (InputStream inputStream = session.readRaw(remotePath)) {
+						callback.doWithInputStream(inputStream);
+						return session.finalizeRaw();
+					}
+				});
+		return Boolean.TRUE.equals(result);
 	}
 
 	@Override
-	public F[] list(String path) {
+	@SuppressWarnings("NullAway") // The 'session.list' never returns null.
+	public F[] list(@Nullable String path) {
 		return execute(session -> session.list(path));
 	}
 
@@ -433,7 +436,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public <T> T execute(SessionCallback<F, T> callback) {
+	public <T> @Nullable T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;
 		boolean invokeScope = false;
 		if (this.activeTemplateCallbacks.get() > 0) {
@@ -485,7 +488,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public <T> T invoke(OperationsCallback<F, T> action) {
+	public <T> @Nullable T invoke(OperationsCallback<F, T> action) {
 		Session<F> contextSession = this.contextSessions.get();
 		if (contextSession == null) {
 			this.contextSessions.set(this.sessionFactory.getSession());
@@ -512,7 +515,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		throw new UnsupportedOperationException("executeWithClient() is not supported by the generic template");
 	}
 
-	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
+	private @Nullable StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
 		Object payload = message.getPayload();
 		try {
 			if (payload instanceof File inputFile) {
@@ -554,17 +557,16 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		return null;
 	}
 
-	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectoryArg,
+	private void sendFileToRemoteDirectory(InputStream inputStream, @Nullable String temporaryRemoteDirectoryArg,
 			String remoteDirectoryArg, String fileName, Session<F> session, FileExistsMode mode) throws IOException {
 
 		String remoteDirectory = normalizeDirectoryPath(remoteDirectoryArg);
 		String temporaryRemoteDirectory = normalizeDirectoryPath(temporaryRemoteDirectoryArg);
 
 		String remoteFilePath = remoteDirectory + fileName;
-		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
-		// write remote file first with temporary file extension if enabled
 
-		String tempFilePath = tempRemoteFilePath;
+		// write remote file first with temporary file extension if enabled
+		String tempFilePath = temporaryRemoteDirectory + fileName;
 		if (!FileExistsMode.APPEND.equals(mode) && this.useTemporaryFileName) {
 			tempFilePath += this.temporaryFileSuffix;
 		}
@@ -627,7 +629,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
-	private String normalizeDirectoryPath(String directoryPath) {
+	private String normalizeDirectoryPath(@Nullable String directoryPath) {
 		if (!StringUtils.hasText(directoryPath)) {
 			return "";
 		}

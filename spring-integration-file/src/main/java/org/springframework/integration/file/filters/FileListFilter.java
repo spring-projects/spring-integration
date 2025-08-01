@@ -18,6 +18,8 @@ package org.springframework.integration.file.filters;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Strategy interface for filtering a group of files. This is a generic filter intended
  * to work with either local files or references to remote files.
@@ -39,7 +41,7 @@ public interface FileListFilter<F> {
 	 * @param files The files.
 	 * @return The filtered files.
 	 */
-	List<F> filterFiles(F[] files);
+	List<F> filterFiles(F @Nullable [] files);
 
 	/**
 	 * Filter a single file; only called externally if {@link #supportsSingleFileFiltering()}
@@ -68,7 +70,7 @@ public interface FileListFilter<F> {
 
 	/**
 	 * Return true if this filter is being used for recursion.
-	 * @return whether or not to filter based on the full path.
+	 * @return whether to filter based on the full path.
 	 * @since 5.3.6
 	 */
 	default boolean isForRecursion() {

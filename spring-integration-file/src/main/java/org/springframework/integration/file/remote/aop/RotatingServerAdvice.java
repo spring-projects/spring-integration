@@ -18,10 +18,11 @@ package org.springframework.integration.file.remote.aop;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.aop.MessageSourceMutator;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -80,8 +81,7 @@ public class RotatingServerAdvice implements MessageSourceMutator {
 	}
 
 	@Override
-	@Nullable
-	public Message<?> afterReceive(@Nullable Message<?> result, MessageSource<?> source) {
+	public @Nullable Message<?> afterReceive(@Nullable Message<?> result, MessageSource<?> source) {
 		this.rotationPolicy.afterReceive(result != null, source);
 		return result;
 	}

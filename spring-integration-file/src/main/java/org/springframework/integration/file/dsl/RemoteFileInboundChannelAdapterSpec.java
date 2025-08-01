@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -32,7 +34,6 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.metadata.MetadataStore;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link MessageSourceSpec} for an {@link AbstractInboundFileSynchronizingMessageSource}.
@@ -53,8 +54,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 
 	protected final AbstractInboundFileSynchronizer<F> synchronizer; // NOSONAR final
 
-	@Nullable
-	private ExpressionFileListFilter<F> expressionFileListFilter;
+	private @Nullable ExpressionFileListFilter<F> expressionFileListFilter;
 
 	protected RemoteFileInboundChannelAdapterSpec(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this.synchronizer = synchronizer;
@@ -298,8 +298,8 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>();
 		componentsToRegister.put(this.synchronizer, null);
 		if (this.expressionFileListFilter != null) {
 			componentsToRegister.put(this.expressionFileListFilter, null);

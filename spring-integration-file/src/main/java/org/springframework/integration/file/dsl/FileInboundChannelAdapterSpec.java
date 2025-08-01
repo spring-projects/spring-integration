@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -36,7 +38,6 @@ import org.springframework.integration.file.config.FileListFilterFactoryBean;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.locking.NioFileLocker;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -52,14 +53,11 @@ public class FileInboundChannelAdapterSpec
 
 	protected final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean(); // NOSONAR
 
-	@Nullable
-	private FileLocker locker;
+	private @Nullable FileLocker locker;
 
-	@Nullable
-	private ExpressionFileListFilter<File> expressionFileListFilter;
+	private @Nullable ExpressionFileListFilter<File> expressionFileListFilter;
 
-	@Nullable
-	private DirectoryScanner scanner;
+	private @Nullable DirectoryScanner scanner;
 
 	private boolean filtersSet;
 
@@ -308,16 +306,16 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.scanner == null || this.filtersSet) {
 			this.target.setFilter(this.fileListFilterFactoryBean.getObject());
 		}
 
 		if (this.expressionFileListFilter != null) {
-			return Collections.singletonMap(this.expressionFileListFilter, null);
+			return Collections.<Object, @Nullable String>singletonMap(this.expressionFileListFilter, null);
 		}
 		else {
-			return Collections.emptyMap();
+			return Collections.<Object, @Nullable String>emptyMap();
 		}
 	}
 

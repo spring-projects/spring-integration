@@ -47,6 +47,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -65,7 +67,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -150,6 +151,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private boolean fileNameGeneratorSet;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private boolean autoCreateDirectory = true;
@@ -174,11 +176,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private boolean preserveTimestamp;
 
-	private Set<PosixFilePermission> permissions;
+	private @Nullable Set<PosixFilePermission> permissions;
 
-	private BiConsumer<File, Message<?>> newFileCallback;
+	private @Nullable BiConsumer<File, Message<?>> newFileCallback;
 
-	private volatile ScheduledFuture<?> flushTask;
+	private volatile @Nullable ScheduledFuture<?> flushTask;
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -454,10 +456,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	@Override
 	public void start() {
 		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
-			TaskScheduler taskScheduler = getTaskScheduler();
-			Assert.state(taskScheduler != null,
-					"'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
-			this.flushTask = taskScheduler
+			this.flushTask = getTaskScheduler()
 					.scheduleAtFixedRate(new Flusher(), Duration.ofMillis(this.flushInterval / 3)); // NOSONAR
 		}
 	}
@@ -466,8 +465,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public void stop() {
 		this.lock.lock();
 		try {
-			if (this.flushTask != null) {
-				this.flushTask.cancel(true);
+			ScheduledFuture<?> flushTaskToCancel = this.flushTask;
+			if (flushTaskToCancel != null) {
+				flushTaskToCancel.cancel(true);
 				this.flushTask = null;
 			}
 		}
@@ -514,7 +514,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override // NOSONAR
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);
@@ -532,8 +532,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 
 		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
-		if (payload instanceof File) {
-			timestamp = ((File) payload).lastModified();
+		if (payload instanceof File filePayload) {
+			timestamp = filePayload.lastModified();
 		}
 		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode) // NOSONAR
 				&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
@@ -561,7 +561,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			return null;
 		}
 
-		if (resultFile != null && originalFileFromHeader == null && payload instanceof File) {
+		if (originalFileFromHeader == null && payload instanceof File) {
 			return getMessageBuilderFactory()
 					.withPayload(resultFile)
 					.setHeader(FileHeaders.ORIGINAL_FILE, payload);
@@ -569,24 +569,24 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File writeMessageToFile(Message<?> requestMessage, File originalFileFromHeader, File tempFile,
-			File resultFile, Object timestamp) throws IOException {
+	private File writeMessageToFile(Message<?> requestMessage, @Nullable File originalFileFromHeader, File tempFile,
+			File resultFile, @Nullable Object timestamp) throws IOException {
 
 		File fileToReturn;
 		Object payload = requestMessage.getPayload();
 		if (payload instanceof File) {
 			fileToReturn = handleFileMessage((File) payload, tempFile, resultFile, requestMessage);
 		}
-		else if (payload instanceof InputStream) {
-			fileToReturn = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
+		else if (payload instanceof InputStream streamPayload) {
+			fileToReturn = handleInputStreamMessage(streamPayload, originalFileFromHeader, tempFile,
 					resultFile, requestMessage);
 		}
-		else if (payload instanceof byte[]) {
-			fileToReturn = handleByteArrayMessage((byte[]) payload, originalFileFromHeader, tempFile, resultFile,
+		else if (payload instanceof byte[] bytesPayload) {
+			fileToReturn = handleByteArrayMessage(bytesPayload, originalFileFromHeader, tempFile, resultFile,
 					requestMessage);
 		}
-		else if (payload instanceof String) {
-			fileToReturn = handleStringMessage((String) payload, originalFileFromHeader, tempFile, resultFile,
+		else if (payload instanceof String stringPayload) {
+			fileToReturn = handleStringMessage(stringPayload, originalFileFromHeader, tempFile, resultFile,
 					requestMessage);
 		}
 		else {
@@ -614,7 +614,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * header if available. If the value is not a File instance or a String
 	 * representation of a file path, this will return {@code null}.
 	 */
-	private File retrieveOriginalFileFromHeader(Message<?> message) {
+	private @Nullable File retrieveOriginalFileFromHeader(Message<?> message) {
 		Object value = message.getHeaders().get(FileHeaders.ORIGINAL_FILE);
 		if (value instanceof File) {
 			return (File) value;
@@ -639,7 +639,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private File handleInputStreamMessage(InputStream sourceFileInputStream, File originalFile, File tempFile,
+	private File handleInputStreamMessage(InputStream sourceFileInputStream, @Nullable File originalFile, File tempFile,
 			File resultFile, Message<?> requestMessage) throws IOException {
 
 		boolean append =
@@ -688,13 +688,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
+	@SuppressWarnings("NullAway") // Data analysis limitation
 	private void appendStreamToFile(File fileToWriteTo, InputStream sourceFileInputStream) throws IOException {
 		FileState state = getFileState(fileToWriteTo, false);
 		BufferedOutputStream bos = null;
 		try (InputStream inputStream = sourceFileInputStream) {
 			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 			byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
-			int bytesRead = -1;
+			int bytesRead;
 			while ((bytesRead = inputStream.read(buffer)) != -1) { // NOSONAR
 				bos.write(buffer, 0, bytesRead);
 			}
@@ -707,7 +708,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private void cleanUpFileState(File fileToWriteTo, FileState state, Closeable closeable) {
+	private void cleanUpFileState(File fileToWriteTo, @Nullable FileState state, @Nullable Closeable closeable) {
 		try {
 			if (state == null || this.flushTask == null) {
 				if (closeable != null) {
@@ -723,7 +724,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile,
+	private File handleByteArrayMessage(byte[] bytes, @Nullable File originalFile, File tempFile, File resultFile,
 			Message<?> requestMessage) throws IOException {
 
 		final File fileToWriteTo = determineFileToWrite(resultFile, tempFile);
@@ -750,6 +751,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
+	@SuppressWarnings("NullAway") // Data analysis limitation
 	private void writeBytesToFile(File fileToWriteTo, boolean append, byte[] bytes) throws IOException {
 		FileState state = getFileState(fileToWriteTo, false);
 		BufferedOutputStream bos = null;
@@ -765,7 +767,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile,
+	private File handleStringMessage(String content, @Nullable File originalFile, File tempFile, File resultFile,
 			Message<?> requestMessage) throws IOException {
 
 		File fileToWriteTo = determineFileToWrite(resultFile, tempFile);
@@ -792,6 +794,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
+	@SuppressWarnings("NullAway") // Data analysis limitation
 	private void writeStringToFile(File fileToWriteTo, boolean append, String content) throws IOException {
 		FileState state = getFileState(fileToWriteTo, true);
 		BufferedWriter writer = null;
@@ -814,7 +817,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		};
 	}
 
-	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException {
+	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, @Nullable File originalFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode)
 				&& !FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)
 				&& StringUtils.hasText(this.temporaryFileSuffix)) {
@@ -866,8 +869,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return destinationDirectory;
 	}
 
-	private FileState getFileState(File fileToWriteTo, boolean isString)
-			throws FileNotFoundException {
+	private @Nullable FileState getFileState(File fileToWriteTo, boolean isString) throws FileNotFoundException {
 		this.lock.lock();
 		try {
 			FileState state;
@@ -967,11 +969,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param filterMessage an optional message passed into the predicate.
 	 * @since 4.3
 	 */
-	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+	public void flushIfNeeded(MessageFlushPredicate flushPredicate, @Nullable Message<?> filterMessage) {
 		doFlush(findFilesToFlush(flushPredicate, filterMessage));
 	}
 
-	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate,
+			@Nullable Message<?> filterMessage) {
+
 		Map<String, FileState> toRemove = new HashMap<>();
 		this.lock.lock();
 		try {
@@ -991,7 +995,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return toRemove;
 	}
 
-	private void clearState(final File fileToWriteTo, final FileState state) {
+	private void clearState(File fileToWriteTo, @Nullable FileState state) {
 		if (state != null) {
 			this.lock.lock();
 			try {
@@ -1040,9 +1044,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private static final class FileState {
 
-		private final BufferedWriter writer;
+		private final @Nullable BufferedWriter writer;
 
-		private final BufferedOutputStream stream;
+		private final @Nullable BufferedOutputStream stream;
 
 		private final Lock lock;
 
@@ -1069,7 +1073,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					if (this.writer != null) {
 						this.writer.close();
 					}
-					else {
+					else if (this.stream != null) {
 						this.stream.close();
 					}
 				}
@@ -1164,7 +1168,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		 * @param filterMessage an optional message to be used in the decision process.
 		 * @return true if the file should be flushed and closed.
 		 */
-		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite, Message<?> filterMessage);
+		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
+				@Nullable Message<?> filterMessage);
 
 	}
 
@@ -1178,18 +1183,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
-				Message<?> triggerMessage) {
+				@Nullable Message<?> triggerMessage) {
 
-			Pattern pattern;
-			if (triggerMessage.getPayload() instanceof String) {
-				pattern = Pattern.compile((String) triggerMessage.getPayload());
+			Pattern pattern = null;
+			if (triggerMessage != null) {
+				Object payload = triggerMessage.getPayload();
+				if (payload instanceof String stringPayload) {
+					pattern = Pattern.compile(stringPayload);
+				}
+				else if (payload instanceof Pattern patternPayload) {
+					pattern = patternPayload;
+				}
 			}
-			else if (triggerMessage.getPayload() instanceof Pattern) {
-				pattern = (Pattern) triggerMessage.getPayload();
-			}
-			else {
-				throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
-			}
+
+			Assert.notNull(pattern, () -> "Invalid payload type, must be a String or Pattern, but: " + triggerMessage);
+
 			return pattern.matcher(fileAbsolutePath).matches();
 		}
 

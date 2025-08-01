@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpHeaders;
@@ -324,9 +326,9 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		this.target.setUriVariableExpressions(this.uriVariableExpressions);
-		return Collections.singletonMap(this.headerMapper, null);
+		return Collections.<Object, @Nullable String>singletonMap(this.headerMapper, null);
 	}
 
 	protected abstract boolean isClientSet();

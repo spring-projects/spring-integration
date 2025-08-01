@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -118,8 +119,9 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 		}
 
 		@Override
-		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.jmsTemplateSpec.getObject(), this.jmsTemplateSpec.getId());
+		public Map<Object, @Nullable String> getComponentsToRegister() {
+			return Collections.<Object, @Nullable String>singletonMap(
+					this.jmsTemplateSpec.getObject(), this.jmsTemplateSpec.getId());
 		}
 
 	}

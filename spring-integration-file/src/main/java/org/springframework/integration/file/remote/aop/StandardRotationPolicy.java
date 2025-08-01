@@ -60,6 +60,7 @@ public class StandardRotationPolicy implements RotationPolicy {
 
 	private volatile Iterator<KeyDirectory> iterator;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile KeyDirectory current;
 
 	private volatile boolean initialized;
@@ -91,7 +92,7 @@ public class StandardRotationPolicy implements RotationPolicy {
 		if (this.logger.isTraceEnabled()) {
 			this.logger.trace("Next poll is for " + this.current);
 		}
-		this.factory.setThreadKey(this.current.getKey());
+		this.factory.setThreadKey(this.current.key());
 	}
 
 	@Override
@@ -150,11 +151,11 @@ public class StandardRotationPolicy implements RotationPolicy {
 	 */
 	protected void onRotation(MessageSource<?> source) {
 		if (source instanceof AbstractRemoteFileStreamingMessageSource<?> streamingMessageSource) {
-			streamingMessageSource.setRemoteDirectory(this.current.getDirectory());
+			streamingMessageSource.setRemoteDirectory(this.current.directory());
 		}
 		else if (source instanceof AbstractInboundFileSynchronizingMessageSource<?> synchronizingMessageSource) {
 			synchronizingMessageSource.getSynchronizer()
-					.setRemoteDirectory(this.current.getDirectory());
+					.setRemoteDirectory(this.current.directory());
 		}
 	}
 

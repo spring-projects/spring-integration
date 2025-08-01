@@ -30,6 +30,7 @@ import jakarta.mail.Authenticator;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -61,7 +62,7 @@ public class ImapIdleChannelAdapterSpec
 
 	protected final ImapMailReceiver receiver; // NOSONAR - final
 
-	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>();  // NOSONAR - final
+	protected final Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>();  // NOSONAR - final
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
@@ -408,7 +409,7 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 

@@ -27,6 +27,7 @@ import org.springframework.util.AntPathMatcher;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Artem Bilan
  *
  * @since 2.0
  *
@@ -48,12 +49,11 @@ public abstract class AbstractSimplePatternFileListFilter<F> extends AbstractDir
 	 */
 	@Override
 	public final boolean accept(F file) {
-		return alwaysAccept(file) || (file != null && this.matcher.match(this.path, this.getFilename(file)));
+		return alwaysAccept(file) || this.matcher.match(this.path, this.getFilename(file));
 	}
 
 	/**
 	 * Subclasses must implement this method to extract the file's name.
-	 *
 	 * @param file The file.
 	 * @return The file name.
 	 */

@@ -30,6 +30,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -55,7 +57,7 @@ public class CompositeFileListFilter<F>
 
 	protected final Set<FileListFilter<F>> fileFilters; // NOSONAR
 
-	private Consumer<F> discardCallback;
+	private @Nullable Consumer<F> discardCallback;
 
 	private boolean allSupportAccept = true;
 
@@ -112,8 +114,10 @@ public class CompositeFileListFilter<F>
 		this.lock.lock();
 		try {
 			for (FileListFilter<F> elf : filtersToAdd) {
-				if (elf instanceof DiscardAwareFileListFilter) {
-					((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
+				if (this.discardCallback != null &&
+						elf instanceof DiscardAwareFileListFilter<F> discardAwareFileListFilter) {
+
+					discardAwareFileListFilter.addDiscardCallback(this.discardCallback);
 				}
 				if (elf instanceof InitializingBean) {
 					try {
@@ -137,17 +141,15 @@ public class CompositeFileListFilter<F>
 	@Override
 	public void addDiscardCallback(Consumer<F> discardCallbackToSet) {
 		this.discardCallback = discardCallbackToSet;
-		if (this.discardCallback != null) {
-			this.fileFilters
-					.stream()
-					.filter(DiscardAwareFileListFilter.class::isInstance)
-					.map(f -> (DiscardAwareFileListFilter<F>) f)
-					.forEach(f -> f.addDiscardCallback(discardCallbackToSet));
-		}
+		this.fileFilters
+				.stream()
+				.filter(DiscardAwareFileListFilter.class::isInstance)
+				.map(f -> (DiscardAwareFileListFilter<F>) f)
+				.forEach(f -> f.addDiscardCallback(discardCallbackToSet));
 	}
 
 	@Override
-	public List<F> filterFiles(F[] files) {
+	public List<F> filterFiles(F @Nullable [] files) {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> results = new ArrayList<>(Arrays.asList(files));
 		for (FileListFilter<F> fileFilter : this.fileFilters) {

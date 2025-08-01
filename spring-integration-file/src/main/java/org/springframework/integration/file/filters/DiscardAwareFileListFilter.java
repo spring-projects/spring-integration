@@ -18,8 +18,6 @@ package org.springframework.integration.file.filters;
 
 import java.util.function.Consumer;
 
-import org.springframework.lang.Nullable;
-
 /**
  * The {@link FileListFilter} modification which can accept a {@link Consumer}
  * which can be called when the filter discards the file.
@@ -33,6 +31,6 @@ import org.springframework.lang.Nullable;
  */
 public interface DiscardAwareFileListFilter<F> extends FileListFilter<F> {
 
-	void addDiscardCallback(@Nullable Consumer<F> discardCallback);
+	void addDiscardCallback(Consumer<F> discardCallback);
 
 }

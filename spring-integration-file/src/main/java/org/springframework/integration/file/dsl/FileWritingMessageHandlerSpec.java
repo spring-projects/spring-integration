@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -29,7 +31,6 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -46,11 +47,9 @@ public class FileWritingMessageHandlerSpec
 		extends MessageHandlerSpec<FileWritingMessageHandlerSpec, FileWritingMessageHandler>
 		implements ComponentsRegistration {
 
-	@Nullable
-	private FileNameGenerator fileNameGenerator;
+	private @Nullable FileNameGenerator fileNameGenerator;
 
-	@Nullable
-	private DefaultFileNameGenerator defaultFileNameGenerator;
+	private @Nullable DefaultFileNameGenerator defaultFileNameGenerator;
 
 	protected FileWritingMessageHandlerSpec(File destinationDirectory) {
 		this.target = new FileWritingMessageHandler(destinationDirectory);
@@ -263,11 +262,11 @@ public class FileWritingMessageHandlerSpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.defaultFileNameGenerator != null) {
-			return Collections.singletonMap(this.defaultFileNameGenerator, null);
+			return Collections.<Object, @Nullable String>singletonMap(this.defaultFileNameGenerator, null);
 		}
-		return Collections.emptyMap();
+		return Collections.<Object, @Nullable String>emptyMap();
 	}
 
 }

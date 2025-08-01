@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -428,8 +430,9 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 		}
 
 		@Override
-		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.kafkaTemplateSpec.getTemplate(), this.kafkaTemplateSpec.getId());
+		public Map<Object, @Nullable String> getComponentsToRegister() {
+			return Collections.<Object, @Nullable String>singletonMap(
+					this.kafkaTemplateSpec.getTemplate(), this.kafkaTemplateSpec.getId());
 		}
 
 	}

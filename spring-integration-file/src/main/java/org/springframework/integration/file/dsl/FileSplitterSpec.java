@@ -18,9 +18,10 @@ package org.springframework.integration.file.dsl;
 
 import java.nio.charset.Charset;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.file.splitter.FileSplitter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,13 +41,11 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 
 	private boolean markersJson;
 
-	@Nullable
-	private Charset charset;
+	private @Nullable Charset charset;
 
 	private boolean applySequence;
 
-	@Nullable
-	private String firstLineHeaderName;
+	private @Nullable String firstLineHeaderName;
 
 	protected FileSplitterSpec() {
 		this(true);

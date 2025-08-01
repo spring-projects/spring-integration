@@ -17,7 +17,6 @@
 package org.springframework.integration.file.remote.aop;
 
 import org.springframework.integration.core.MessageSource;
-import org.springframework.util.Assert;
 
 /**
  * A strategy for rotating advices to allow reconfiguring
@@ -54,31 +53,27 @@ public interface RotationPolicy {
 
 	/**
 	 * A key for a thread-local store and its related directory pair.
+	 * @param key the for entry
+	 * @param directory the directory for entry
 	 */
-	class KeyDirectory {
+	record KeyDirectory(Object key, String directory) {
 
-		private final Object key;
-
-		private final String directory;
-
-		public KeyDirectory(Object key, String directory) {
-			Assert.notNull(key, "key cannot be null");
-			Assert.notNull(directory, "directory cannot be null");
-			this.key = key;
-			this.directory = directory;
-		}
-
+		/**
+		 * @return the key
+		 * @deprecated if favor of {@link #key()}
+		 */
+		@Deprecated(forRemoval = true, since = "7.0")
 		public Object getKey() {
 			return this.key;
 		}
 
+		/**
+		 * @return the directory
+		 * @deprecated if favor of {@link #directory()} ()}
+		 */
+		@Deprecated(forRemoval = true, since = "7.0")
 		public String getDirectory() {
 			return this.directory;
-		}
-
-		@Override
-		public String toString() {
-			return "KeyDirectory [key=" + this.key.toString() + ", directory=" + this.directory + "]";
 		}
 
 	}

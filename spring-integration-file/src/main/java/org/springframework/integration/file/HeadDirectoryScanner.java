@@ -20,6 +20,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 
@@ -31,6 +33,8 @@ import org.springframework.integration.file.filters.FileListFilter;
  *
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class HeadDirectoryScanner extends DefaultDirectoryScanner {
@@ -49,23 +53,19 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 			super.setFilter(filter);
 		}
 		else {
-			CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
+			CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<>();
 			compositeFilter.addFilter(filter).addFilter(this.headFilter);
 			super.setFilter(compositeFilter);
 		}
 	}
 
-	private static final class HeadFilter implements FileListFilter<File> {
-
-		private final int maxNumberOfFiles;
-
-		private HeadFilter(int maxNumberOfFiles) {
-			this.maxNumberOfFiles = maxNumberOfFiles;
-		}
+	private record HeadFilter(int maxNumberOfFiles) implements FileListFilter<File> {
 
 		@Override
-		public List<File> filterFiles(File[] files) {
-			return Arrays.asList(files).subList(0, Math.min(files.length, this.maxNumberOfFiles));
+		public List<File> filterFiles(File @Nullable [] files) {
+			return files == null
+					? List.of()
+					: Arrays.asList(files).subList(0, Math.min(files.length, this.maxNumberOfFiles));
 		}
 
 	}

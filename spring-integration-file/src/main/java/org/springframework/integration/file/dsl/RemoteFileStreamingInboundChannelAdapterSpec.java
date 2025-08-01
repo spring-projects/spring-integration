@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -27,7 +29,6 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -47,8 +48,7 @@ public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
 		extends MessageSourceSpec<S, MS>
 		implements ComponentsRegistration {
 
-	@Nullable
-	private ExpressionFileListFilter<F> expressionFileListFilter;
+	private @Nullable ExpressionFileListFilter<F> expressionFileListFilter;
 
 	/**
 	 * Configure the file name path separator used by the remote system. Defaults to '/'.
@@ -140,12 +140,12 @@ public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.expressionFileListFilter != null) {
-			return Collections.singletonMap(this.expressionFileListFilter, null);
+			return Collections.<Object, @Nullable String>singletonMap(this.expressionFileListFilter, null);
 		}
 		else {
-			return Collections.emptyMap();
+			return Collections.<Object, @Nullable String>emptyMap();
 		}
 	}
 

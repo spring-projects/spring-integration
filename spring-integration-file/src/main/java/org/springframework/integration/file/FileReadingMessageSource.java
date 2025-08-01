@@ -43,6 +43,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
@@ -50,7 +52,6 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -107,6 +108,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 */
 	private final Queue<File> toBeReceived;
 
+	@SuppressWarnings("NullAway.Init")
 	private File directory;
 
 	private DirectoryScanner scanner = new DefaultDirectoryScanner();
@@ -117,9 +119,9 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	private boolean scanEachPoll = false;
 
-	private FileListFilter<File> filter;
+	private @Nullable FileListFilter<File> filter;
 
-	private FileLocker locker;
+	private @Nullable FileLocker locker;
 
 	private boolean useWatchService;
 
@@ -370,7 +372,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<File> doReceive() {
+	protected @Nullable AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
 			scanInputDirectory();
@@ -433,11 +435,19 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 
+		private final WatchEvent.Kind<?>[] kinds;
+
 		private final Set<File> filesToPoll = ConcurrentHashMap.newKeySet();
 
+		@SuppressWarnings("NullAway.Init")
 		private WatchService watcher;
 
-		private WatchEvent.Kind<?>[] kinds;
+		WatchServiceDirectoryScanner() {
+			this.kinds =
+					Arrays.stream(FileReadingMessageSource.this.watchEvents)
+							.map(watchEventType -> watchEventType.kind)
+							.toArray(WatchEvent.Kind<?>[]::new);
+		}
 
 		@Override
 		public void setFilter(FileListFilter<File> filter) {
@@ -451,27 +461,19 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		public void start() {
 			try {
 				this.watcher = FileSystems.getDefault().newWatchService();
+				Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
+				initialFiles.addAll(filesFromEvents());
+				this.filesToPoll.addAll(initialFiles);
 			}
 			catch (IOException ex) {
 				logger.error(ex, () -> "Failed to create watcher for " + FileReadingMessageSource.this.directory);
 			}
-
-			this.kinds = new WatchEvent.Kind<?>[FileReadingMessageSource.this.watchEvents.length];
-
-			for (int i = 0; i < FileReadingMessageSource.this.watchEvents.length; i++) {
-				this.kinds[i] = FileReadingMessageSource.this.watchEvents[i].kind;
-			}
-
-			Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
-			initialFiles.addAll(filesFromEvents());
-			this.filesToPoll.addAll(initialFiles);
 		}
 
 		@Override
 		public void stop() {
 			try {
 				this.watcher.close();
-				this.watcher = null;
 				this.pathKeys.clear();
 			}
 			catch (IOException ex) {
@@ -486,8 +488,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 		@Override
 		protected File[] listEligibleFiles(File directory) {
-			Assert.state(this.watcher != null, "The WatchService hasn't been started");
-
 			Set<File> files = new LinkedHashSet<>();
 
 			for (Iterator<File> iterator = this.filesToPoll.iterator(); iterator.hasNext(); ) {
@@ -576,7 +576,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			}
 		}
 
-		private Set<File> walkDirectory(Path directory, final WatchEvent.Kind<?> kind) {
+		private Set<File> walkDirectory(Path directory, WatchEvent.@Nullable Kind<?> kind) {
 			final Set<File> walkedFiles = new LinkedHashSet<>();
 			try {
 				registerWatch(directory);
