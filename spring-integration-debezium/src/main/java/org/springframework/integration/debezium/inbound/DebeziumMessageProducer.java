@@ -31,13 +31,13 @@ import io.debezium.engine.DebeziumEngine.ChangeConsumer;
 import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
@@ -55,11 +55,13 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private final DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder;
 
+	@SuppressWarnings("NullAway.Init")
 	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
 	/**
 	 * Debezium Engine is designed to be submitted to an {@link Executor}.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private TaskExecutor taskExecutor;
 
 	private String contentType = "application/json";
