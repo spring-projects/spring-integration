@@ -26,7 +26,6 @@ import java.net.http.HttpResponse;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
@@ -86,7 +85,8 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private boolean syndFeedInputSet;
 
-	private @Nullable MetadataStore metadataStore;
+	@SuppressWarnings("NullAway.Init")
+	private MetadataStore metadataStore;
 
 	private volatile long lastTime = -1;
 
@@ -154,6 +154,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return "feed:inbound-channel-adapter";
 	}
 
+	@SuppressWarnings("NullAway")
 	@Override
 	protected void onInit() {
 		if (this.metadataStore == null) {
@@ -210,7 +211,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		else {
 			this.lastTime += 1; //NOSONAR - single poller thread
 		}
-		Objects.requireNonNull(this.metadataStore).put(this.metadataKey, this.lastTime + "");
+		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;
 	}
 
@@ -253,6 +254,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private SyndFeed buildSyndFeed() throws IOException, URISyntaxException, InterruptedException, FeedException {
 		InputStream inputStream;
 		if (this.feedResource != null) {
@@ -262,7 +264,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			HttpRequest request =
 					HttpRequest.newBuilder()
 							.GET()
-							.uri(Objects.requireNonNull(this.feedUrl).toURI())
+							.uri(this.feedUrl.toURI())
 							.build();
 
 			inputStream =
