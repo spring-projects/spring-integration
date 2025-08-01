@@ -30,6 +30,7 @@ import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
  */
 public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdapterSupport {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile UnicastReceivingChannelAdapter udpAdapter;
 
 	private volatile boolean udpAdapterSet;

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.syslog.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,31 +49,31 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 		udp, tcp
 	}
 
-	private volatile SyslogReceivingChannelAdapterSupport syslogAdapter;
+	private volatile @Nullable SyslogReceivingChannelAdapterSupport syslogAdapter;
 
 	private final Protocol protocol;
 
-	private volatile MessageChannel outputChannel;
+	private volatile @Nullable MessageChannel outputChannel;
 
 	private volatile boolean autoStartup = true;
 
-	private volatile MessageChannel errorChannel;
+	private volatile @Nullable MessageChannel errorChannel;
 
 	private volatile int phase;
 
-	private volatile Long sendTimeout;
+	private volatile @Nullable Long sendTimeout;
 
-	private volatile AbstractServerConnectionFactory connectionFactory;
+	private volatile @Nullable AbstractServerConnectionFactory connectionFactory;
 
-	private volatile UnicastReceivingChannelAdapter udpAdapter;
+	private volatile @Nullable UnicastReceivingChannelAdapter udpAdapter;
 
-	private volatile Integer port;
+	private volatile @Nullable Integer port;
 
-	private volatile MessageConverter converter;
+	private volatile @Nullable MessageConverter converter;
 
-	private volatile String beanName;
+	private volatile @Nullable String beanName;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private volatile @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Instantiates a factory bean that creates a {@link UdpSyslogReceivingChannelAdapter}

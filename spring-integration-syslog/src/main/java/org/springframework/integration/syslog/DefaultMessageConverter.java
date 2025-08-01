@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -53,7 +55,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 
 	private volatile boolean asMap = true;
 
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	/**
 	 * Set false will leave the payload as the original complete syslog.

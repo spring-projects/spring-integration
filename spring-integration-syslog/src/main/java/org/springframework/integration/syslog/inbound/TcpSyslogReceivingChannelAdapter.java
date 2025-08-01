@@ -16,6 +16,8 @@
 
 package org.springframework.integration.syslog.inbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -36,9 +38,10 @@ import org.springframework.messaging.Message;
 public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdapterSupport
 		implements TcpListener, ApplicationEventPublisherAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractServerConnectionFactory connectionFactory;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private volatile @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * @param connectionFactory The connection factory.
