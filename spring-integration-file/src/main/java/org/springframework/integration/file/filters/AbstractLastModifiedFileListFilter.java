@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@link FileListFilter} implementation to filter those files which
@@ -45,8 +45,7 @@ public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAw
 
 	private Duration age = Duration.ofSeconds(DEFAULT_AGE);
 
-	@Nullable
-	private Consumer<F> discardCallback;
+	private @Nullable Consumer<F> discardCallback;
 
 	public AbstractLastModifiedFileListFilter() {
 	}
@@ -78,20 +77,22 @@ public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAw
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<F> discardCallback) {
+	public void addDiscardCallback(Consumer<F> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
 	@Override
-	public List<F> filterFiles(F[] files) {
+	public List<F> filterFiles(F @Nullable [] files) {
 		List<F> list = new ArrayList<>();
-		Instant now = Instant.now();
-		for (F file : files) {
-			if (fileIsAged(file, now)) {
-				list.add(file);
-			}
-			else if (this.discardCallback != null) {
-				this.discardCallback.accept(file);
+		if (files != null) {
+			Instant now = Instant.now();
+			for (F file : files) {
+				if (fileIsAged(file, now)) {
+					list.add(file);
+				}
+				else if (this.discardCallback != null) {
+					this.discardCallback.accept(file);
+				}
 			}
 		}
 

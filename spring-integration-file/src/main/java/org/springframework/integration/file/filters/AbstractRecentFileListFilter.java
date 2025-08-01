@@ -21,6 +21,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * The {@link FileListFilter} to accept only files which are recent according to provided {@code age}:
  * the {@code lastModified} of the file is more than the age in comparison with the current time.
@@ -55,12 +57,14 @@ public abstract class AbstractRecentFileListFilter<F> implements FileListFilter<
 	}
 
 	@Override
-	public List<F> filterFiles(F[] files) {
+	public List<F> filterFiles(F @Nullable [] files) {
 		List<F> list = new ArrayList<>();
-		Instant now = Instant.now();
-		for (F file : files) {
-			if (!fileIsAged(file, now)) {
-				list.add(file);
+		if (files != null) {
+			Instant now = Instant.now();
+			for (F file : files) {
+				if (!fileIsAged(file, now)) {
+					list.add(file);
+				}
 			}
 		}
 

@@ -20,6 +20,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -41,28 +43,30 @@ import org.springframework.util.Assert;
 public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<FileReadingMessageSource>
 		implements BeanNameAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private FileReadingMessageSource source;
 
-	private File directory;
+	private @Nullable File directory;
 
-	private FileListFilter<File> filter;
+	private @Nullable FileListFilter<File> filter;
 
-	private AbstractFileLockerFilter locker;
+	private @Nullable AbstractFileLockerFilter locker;
 
-	private Comparator<File> comparator;
+	private @Nullable Comparator<File> comparator;
 
-	private DirectoryScanner scanner;
+	private @Nullable DirectoryScanner scanner;
 
 	private boolean useWatchService;
 
-	private FileReadingMessageSource.WatchEventType[] watchEvents;
+	private FileReadingMessageSource.WatchEventType @Nullable [] watchEvents;
 
-	private Boolean scanEachPoll;
+	private @Nullable Boolean scanEachPoll;
 
-	private Boolean autoCreateDirectory;
+	private @Nullable Boolean autoCreateDirectory;
 
-	private Integer queueSize;
+	private @Nullable Integer queueSize;
 
+	@SuppressWarnings("NullAway.Init")
 	private String name;
 
 	@Override
@@ -128,20 +132,19 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 	}
 
 	private void initSource() {
-		boolean comparatorSet = this.comparator != null;
-		boolean queueSizeSet = this.queueSize != null;
-		if (comparatorSet) {
-			if (queueSizeSet) {
+		if (this.comparator != null) {
+			if (this.queueSize != null) {
 				logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
 			}
 			this.source = new FileReadingMessageSource(this.comparator);
 		}
-		else if (queueSizeSet) {
+		else if (this.queueSize != null) {
 			this.source = new FileReadingMessageSource(this.queueSize);
 		}
 		else {
 			this.source = new FileReadingMessageSource();
 		}
+		Assert.notNull(this.directory, "The 'directory' must be provided.");
 		this.source.setDirectory(this.directory);
 		if (this.scanner != null) {
 			this.source.setScanner(this.scanner);

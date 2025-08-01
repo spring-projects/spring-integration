@@ -45,7 +45,7 @@ public class DelegatingSessionFactory<F> implements SessionFactory<F> {
 	 * @param defaultFactory the default to use if the lookup fails.
 	 */
 	public DelegatingSessionFactory(Map<Object, SessionFactory<F>> factories, SessionFactory<F> defaultFactory) {
-		this(new DefaultSessionFactoryLocator<F>(factories, defaultFactory));
+		this(new DefaultSessionFactoryLocator<>(factories, defaultFactory));
 	}
 
 	/**

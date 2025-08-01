@@ -301,10 +301,10 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		HeaderMapper<HttpHeaders> headerMapperToRegister =
 				(this.explicitHeaderMapper != null ? this.explicitHeaderMapper : this.headerMapper);
-		return Collections.singletonMap(headerMapperToRegister, null);
+		return Collections.<Object, @Nullable String>singletonMap(headerMapperToRegister, null);
 	}
 
 	/**

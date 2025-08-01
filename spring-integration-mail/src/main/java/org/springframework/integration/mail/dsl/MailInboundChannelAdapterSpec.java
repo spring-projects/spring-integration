@@ -25,6 +25,7 @@ import java.util.function.Function;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -283,8 +284,8 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.receiver, this.receiver.getComponentName());
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		return Collections.<Object, @Nullable String>singletonMap(this.receiver, this.receiver.getComponentName());
 	}
 
 	@Override

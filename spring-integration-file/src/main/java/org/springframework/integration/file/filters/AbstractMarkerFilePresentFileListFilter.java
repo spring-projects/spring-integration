@@ -27,10 +27,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A FileListFilter that only passes files matched by one or more {@link FileListFilter}
  * if a corresponding marker file is also present to indicate a file transfer is complete.
- *
+ * <p>
  * Since they look at multiple files, they cannot be used for late filtering in the
  * streaming message source.
  *
@@ -38,13 +40,14 @@ import java.util.stream.Collectors;
  *
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Artem Bilan
  *
  * @since 5.0
  *
  */
 public abstract class AbstractMarkerFilePresentFileListFilter<F> implements FileListFilter<F> {
 
-	private final Map<FileListFilter<F>, Function<String, String>> filtersAndFunctions = new HashMap<>();
+	private final Map<FileListFilter<F>, Function<String, @Nullable String>> filtersAndFunctions = new HashMap<>();
 
 	/**
 	 * Construct an instance with a single {@link FileListFilter} and ".complete"
@@ -59,7 +62,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 
 	/**
 	 * Construct an instance with a single {@link FileListFilter} and a suffix
-	 * that will will be appended to the name of a matched file when looking for the marker
+	 * that will be appended to the name of a matched file when looking for the marker
 	 * file. i.e. if a file {@code foo.txt} is matched by the filter and the suffix is
 	 * ".complete", this filter will only pass "foo.txt" if "foo.txt.complete" is present.
 	 * @param filter the file name filter.
@@ -81,6 +84,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 	 */
 	public AbstractMarkerFilePresentFileListFilter(FileListFilter<F> filter,
 			Function<String, String> function) {
+
 		this(Collections.singletonMap(filter, function));
 	}
 
@@ -99,6 +103,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 	 */
 	public AbstractMarkerFilePresentFileListFilter(
 			Map<FileListFilter<F>, Function<String, String>> filtersAndFunctions) {
+
 		this.filtersAndFunctions.putAll(filtersAndFunctions);
 	}
 
@@ -114,8 +119,8 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<F> filterFiles(F[] files) {
-		if (files.length < 2) {
+	public List<F> filterFiles(F @Nullable [] files) {
+		if (files == null || files.length < 2) {
 			return Collections.emptyList();
 		}
 		final Set<String> candidates = Arrays.stream(files)

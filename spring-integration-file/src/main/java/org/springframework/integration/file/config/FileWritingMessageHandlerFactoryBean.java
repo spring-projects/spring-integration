@@ -18,6 +18,8 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
@@ -42,41 +44,41 @@ import org.springframework.integration.file.support.FileExistsMode;
 public class FileWritingMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler> {
 
-	private File directory;
+	private @Nullable File directory;
 
-	private Expression directoryExpression;
+	private @Nullable Expression directoryExpression;
 
-	private String charset;
+	private @Nullable String charset;
 
-	private FileNameGenerator fileNameGenerator;
+	private @Nullable FileNameGenerator fileNameGenerator;
 
-	private Boolean deleteSourceFiles;
+	private @Nullable Boolean deleteSourceFiles;
 
-	private Boolean autoCreateDirectory;
+	private @Nullable Boolean autoCreateDirectory;
 
-	private Boolean requiresReply;
+	private @Nullable Boolean requiresReply;
 
-	private Long sendTimeout;
+	private @Nullable Long sendTimeout;
 
-	private String temporaryFileSuffix;
+	private @Nullable String temporaryFileSuffix;
 
-	private FileExistsMode fileExistsMode;
+	private @Nullable FileExistsMode fileExistsMode;
 
 	private boolean expectReply = true;
 
-	private Integer bufferSize;
+	private @Nullable Integer bufferSize;
 
-	private Boolean appendNewLine;
+	private @Nullable Boolean appendNewLine;
 
-	private Long flushInterval;
+	private @Nullable Long flushInterval;
 
-	private Boolean flushWhenIdle;
+	private @Nullable Boolean flushWhenIdle;
 
-	private MessageFlushPredicate flushPredicate;
+	private @Nullable MessageFlushPredicate flushPredicate;
 
-	private String chmod;
+	private @Nullable String chmod;
 
-	private Boolean preserveTimestamp;
+	private @Nullable Boolean preserveTimestamp;
 
 	public void setFileExistsMode(String fileExistsModeAsString) {
 		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);

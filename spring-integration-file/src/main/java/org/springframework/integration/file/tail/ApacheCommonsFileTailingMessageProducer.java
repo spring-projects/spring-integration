@@ -21,6 +21,7 @@ import java.time.Duration;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
 import org.apache.commons.io.input.TailerListenerAdapter;
+import org.jspecify.annotations.Nullable;
 
 /**
  * File tailer that delegates to the Apache Commons Tailer.
@@ -41,7 +42,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	private boolean reopen = false;
 
-	private volatile Tailer tailer;
+	private volatile @Nullable Tailer tailer;
 
 	/**
 	 * The delay between checks of the file for new content in milliseconds.
@@ -102,7 +103,10 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.tailer.close();
+		Tailer tailerToClose = this.tailer;
+		if (tailerToClose != null) {
+			tailerToClose.close();
+		}
 	}
 
 	private class IntegrationTailerListener extends TailerListenerAdapter {
@@ -133,7 +137,8 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 		@Override
 		public void handle(Exception ex) {
-			publish(ex.getMessage());
+			String message = ex.getMessage();
+			publish(message != null ? message : ex.toString());
 		}
 
 	}

@@ -18,6 +18,8 @@ package org.springframework.integration.file.remote;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.file.remote.session.Session;
 
 /**
@@ -36,7 +38,7 @@ import org.springframework.integration.file.remote.session.Session;
 public interface SessionCallbackWithoutResult<F> extends SessionCallback<F, Object> {
 
 	@Override
-	default Object doInSession(Session<F> session) throws IOException {
+	default @Nullable Object doInSession(Session<F> session) throws IOException {
 		doInSessionWithoutResult(session);
 		return null;
 	}

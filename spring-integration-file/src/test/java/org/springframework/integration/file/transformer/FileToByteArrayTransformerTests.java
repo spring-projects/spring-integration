@@ -33,7 +33,8 @@ public class FileToByteArrayTransformerTests extends
 
 	@BeforeEach
 	public void setUp() {
-		transformer = new FileToByteArrayTransformer();
+		this.transformer = new FileToByteArrayTransformer();
+		this.transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
 	@Test

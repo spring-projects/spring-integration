@@ -87,7 +87,7 @@ public final class SimpleJsonSerializer {
 		stringBuilder.setLength(stringBuilder.length() - 1);
 		stringBuilder.append("}");
 		if (stringBuilder.length() == 1) {
-			return null;
+			return "{}";
 		}
 		else {
 			return stringBuilder.toString();

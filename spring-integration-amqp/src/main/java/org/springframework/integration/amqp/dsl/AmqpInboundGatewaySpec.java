@@ -19,6 +19,8 @@ package org.springframework.integration.amqp.dsl;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
@@ -61,8 +63,9 @@ public abstract class AmqpInboundGatewaySpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.listenerContainerSpec.getObject(), this.listenerContainerSpec.getId());
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		return Collections.<Object, @Nullable String>singletonMap(
+				this.listenerContainerSpec.getObject(), this.listenerContainerSpec.getId());
 	}
 
 }

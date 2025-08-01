@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
@@ -48,13 +50,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
-	private volatile String[] tailCommand;
+	private volatile String @Nullable [] tailCommand;
 
-	private volatile Process nativeTailProcess;
+	private volatile @Nullable Process nativeTailProcess;
 
-	private volatile BufferedReader stdOutReader;
+	private volatile @Nullable BufferedReader stdOutReader;
 
-	public void setOptions(String options) {
+	public void setOptions(@Nullable String options) {
 		this.options = options == null ? "" : options;
 	}
 
@@ -93,11 +95,12 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		super.doStart();
 		destroyProcess();
 		String[] tailOptions = this.options.split("\\s+");
-		this.tailCommand = new String[tailOptions.length + 2];
-		this.tailCommand[0] = "tail";
-		this.tailCommand[this.tailCommand.length - 1] = getFile().getAbsolutePath();
-		System.arraycopy(tailOptions, 0, this.tailCommand, 1, tailOptions.length);
-		this.command = String.join(" ", this.tailCommand);
+		String[] newTailCommand = new String[tailOptions.length + 2];
+		newTailCommand[0] = "tail";
+		newTailCommand[newTailCommand.length - 1] = getFile().getAbsolutePath();
+		System.arraycopy(tailOptions, 0, newTailCommand, 1, tailOptions.length);
+		this.command = String.join(" ", newTailCommand);
+		this.tailCommand = newTailCommand;
 		getTaskExecutor().execute(this::runExec);
 	}
 
@@ -174,7 +177,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	/**
 	 * Runs a thread that reads stderr - on some platforms status messages
-	 * (file not available, rotations etc) are sent to stderr.
+	 * (file not available, rotations etc.) are sent to stderr.
 	 */
 	private void startStatusReader() {
 		Process process = this.nativeTailProcess;
@@ -211,6 +214,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * Reads lines from stdout and sends in a message to the output channel.
 	 */
 	@Override
+	@SuppressWarnings("NullAway") // Data analysis limitation.
 	public void run() {
 		String line;
 		try {

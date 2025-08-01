@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote.handler;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -46,7 +48,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	private final FileExistsMode mode;
 
-	private Integer chmod;
+	private @Nullable Integer chmod;
 
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -204,6 +206,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		String path = this.remoteFileTemplate.send(message, this.mode);
+		Assert.state(path != null, () -> "A file has not been transferred to remove directory for message: " + message);
 		if (this.chmod != null && isChmodCapable()) {
 			doChmod(this.remoteFileTemplate, path, this.chmod);
 		}

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.filters;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -43,9 +45,10 @@ public class ExpressionFileListFilter<F> extends AbstractFileListFilter<F>
 
 	private final Expression expression;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private EvaluationContext evaluationContext;
+	private @Nullable EvaluationContext evaluationContext;
 
 	public ExpressionFileListFilter(String expression) {
 		this(EXPRESSION_PARSER.parseExpression(expression));
@@ -65,7 +68,7 @@ public class ExpressionFileListFilter<F> extends AbstractFileListFilter<F>
 	@Override
 	public boolean accept(F file) {
 		Boolean pass = this.expression.getValue(getEvaluationContext(), file, Boolean.class);
-		return pass == null ? false : pass;
+		return Boolean.TRUE.equals(pass);
 	}
 
 	private EvaluationContext getEvaluationContext() {

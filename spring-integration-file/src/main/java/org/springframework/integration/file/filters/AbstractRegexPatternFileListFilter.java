@@ -57,7 +57,7 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 
 	@Override
 	public boolean accept(F file) {
-		return alwaysAccept(file) || (file != null && this.pattern.matcher(getFilename(file)).matches());
+		return alwaysAccept(file) || this.pattern.matcher(getFilename(file)).matches();
 	}
 
 	/**

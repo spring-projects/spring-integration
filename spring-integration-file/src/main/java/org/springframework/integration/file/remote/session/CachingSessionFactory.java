@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.util.SimplePool;
@@ -84,23 +85,25 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		Assert.isTrue(!(sessionFactory instanceof DelegatingSessionFactory),
 				"'sessionFactory' cannot be a 'DelegatingSessionFactory'; cache each delegate instead");
 		this.sessionFactory = sessionFactory;
-		this.pool = new SimplePool<>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+		this.pool = new SimplePool<>(sessionCacheSize,
+				new SimplePool.PoolItemCallback<>() {
 
-			@Override
-			public Session<F> createForPool() {
-				return CachingSessionFactory.this.sessionFactory.getSession();
-			}
+					@Override
+					public Session<F> createForPool() {
+						return CachingSessionFactory.this.sessionFactory.getSession();
+					}
 
-			@Override
-			public boolean isStale(Session<F> session) {
-				return CachingSessionFactory.this.testSession ? !session.test() : !session.isOpen();
-			}
+					@Override
+					public boolean isStale(Session<F> session) {
+						return CachingSessionFactory.this.testSession ? !session.test() : !session.isOpen();
+					}
 
-			@Override
-			public void removedFromPool(Session<F> session) {
-				session.close();
-			}
-		});
+					@Override
+					public void removedFromPool(Session<F> session) {
+						session.close();
+					}
+
+				});
 		this.isSharedSessionCapable = sessionFactory instanceof SharedSessionCapable;
 	}
 
@@ -242,7 +245,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public F[] list(String path) throws IOException {
+		public F[] list(@Nullable String path) throws IOException {
 			return this.targetSession.list(path);
 		}
 
@@ -287,7 +290,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public String[] listNames(String path) throws IOException {
+		public String[] listNames(@Nullable String path) throws IOException {
 			return this.targetSession.listNames(path);
 		}
 

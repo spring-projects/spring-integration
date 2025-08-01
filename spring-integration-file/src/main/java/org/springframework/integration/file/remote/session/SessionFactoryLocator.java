@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote.session;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  *
  * A factory returning a {@link SessionFactory} based on some key.
@@ -34,6 +36,7 @@ public interface SessionFactoryLocator<F> {
 	 * @param key the key.
 	 * @return the session factory.
 	 */
+	@Nullable
 	SessionFactory<F> getSessionFactory(Object key);
 
 }

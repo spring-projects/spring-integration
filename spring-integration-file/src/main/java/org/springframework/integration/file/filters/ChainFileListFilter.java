@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +49,7 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 	}
 
 	@Override
-	public List<F> filterFiles(F[] files) {
+	public List<F> filterFiles(F @Nullable [] files) {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> leftOver = Arrays.asList(files);
 		for (FileListFilter<F> fileFilter : this.fileFilters) {

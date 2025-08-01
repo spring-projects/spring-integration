@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods where no result is returned.
@@ -31,7 +33,7 @@ package org.springframework.integration.file.remote;
 public interface ClientCallbackWithoutResult<C> extends ClientCallback<C, Object> {
 
 	@Override
-	default Object doWithClient(C client) {
+	default @Nullable Object doWithClient(C client) {
 		doWithClientWithoutResult(client);
 		return null;
 	}

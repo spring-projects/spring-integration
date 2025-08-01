@@ -49,11 +49,13 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -137,7 +139,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		File destFile = new File(targetDir, srcFile.getName() + ".test");
 		destFile.deleteOnExit();
 
-		handler.handleMessage(new GenericMessage<File>(srcFile));
+		handler.handleMessage(new GenericMessage<>(srcFile));
 		assertThat(destFile.exists()).as("destination file was not created").isTrue();
 	}
 
@@ -146,7 +148,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		File targetDir = new File("remote-target-dir");
 		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
-		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -165,9 +167,12 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate",
 				RemoteFileTemplate.class);
 		new DirectFieldAccessor(template).setPropertyValue("logger", logger);
-		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>(srcFile)))
+				.withRootCauseInstanceOf(IllegalStateException.class)
+				.withStackTraceContaining("A file has not been transferred to remove directory for message:");
 		assertThat(logged.get()).isNotNull();
-		assertThat(logged.get()).isEqualTo("File " + srcFile.toString() + " does not exist");
+		assertThat(logged.get()).isEqualTo("File " + srcFile + " does not exist");
 	}
 
 	@Test //INT-2275

@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -33,7 +35,6 @@ import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -52,17 +53,13 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		extends MessageHandlerSpec<S, AbstractRemoteFileOutboundGateway<F>>
 		implements ComponentsRegistration {
 
-	@Nullable
-	private CompositeFileListFilter<F> filter;
+	private @Nullable CompositeFileListFilter<F> filter;
 
-	@Nullable
-	private ExpressionFileListFilter<F> expressionFileListFilter;
+	private @Nullable ExpressionFileListFilter<F> expressionFileListFilter;
 
-	@Nullable
-	private ExpressionFileListFilter<File> mputExpressionFileListFilter;
+	private @Nullable ExpressionFileListFilter<File> mputExpressionFileListFilter;
 
-	@Nullable
-	private CompositeFileListFilter<File> mputFilter;
+	private @Nullable CompositeFileListFilter<File> mputFilter;
 
 	protected RemoteFileOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<F> outboundGateway) {
 		this.target = outboundGateway;
@@ -564,8 +561,8 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>();
 		if (this.expressionFileListFilter != null) {
 			componentsToRegister.put(this.expressionFileListFilter, null);
 		}

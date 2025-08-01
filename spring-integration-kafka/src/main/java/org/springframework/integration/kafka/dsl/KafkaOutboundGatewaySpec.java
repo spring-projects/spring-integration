@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
@@ -109,8 +111,9 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 		}
 
 		@Override
-		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.kafkaTemplateSpec.getTemplate(), this.kafkaTemplateSpec.getId());
+		public Map<Object, @Nullable String> getComponentsToRegister() {
+			return Collections.<Object, @Nullable String>singletonMap(
+					this.kafkaTemplateSpec.getTemplate(), this.kafkaTemplateSpec.getId());
 		}
 
 	}

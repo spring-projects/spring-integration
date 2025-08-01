@@ -32,8 +32,9 @@ public class FileToStringTransformerTests extends
 
 	@BeforeEach
 	public void setUp() {
-		transformer = new FileToStringTransformer();
-		transformer.setCharset(DEFAULT_ENCODING);
+		this.transformer = new FileToStringTransformer();
+		this.transformer.setCharset(DEFAULT_ENCODING);
+		this.transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
 	@Test

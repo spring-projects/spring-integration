@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serial;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
@@ -43,7 +45,6 @@ import org.springframework.integration.json.SimpleJsonSerializer;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.CloseableIterator;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -83,10 +84,9 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 	private final boolean markersJson;
 
-	@Nullable
-	private Charset charset;
+	private @Nullable Charset charset;
 
-	private String firstLineHeaderName;
+	private @Nullable String firstLineHeaderName;
 
 	/**
 	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
@@ -170,41 +170,41 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		String filePath;
 
-		if (payload instanceof String) {
+		if (payload instanceof String stringPayload) {
 			try {
-				reader = new FileReader((String) payload);
-				filePath = (String) payload;
+				reader = new FileReader(stringPayload);
+				filePath = stringPayload;
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageHandlingException(message,
 						"Error handing message in the [" + this + "]. Failed to read file [" + payload + "]", e);
 			}
 		}
-		else if (payload instanceof File) {
+		else if (payload instanceof File filePayload) {
 			try {
 				if (this.charset == null) {
-					reader = new FileReader((File) payload);
+					reader = new FileReader(filePayload);
 				}
 				else {
-					reader = new InputStreamReader(new FileInputStream((File) payload), this.charset);
+					reader = new InputStreamReader(new FileInputStream(filePayload), this.charset);
 				}
-				filePath = ((File) payload).getAbsolutePath();
+				filePath = filePayload.getAbsolutePath();
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
 			}
 		}
-		else if (payload instanceof InputStream) {
+		else if (payload instanceof InputStream streamPayload) {
 			if (this.charset == null) {
-				reader = new InputStreamReader((InputStream) payload);
+				reader = new InputStreamReader(streamPayload);
 			}
 			else {
-				reader = new InputStreamReader((InputStream) payload, this.charset);
+				reader = new InputStreamReader(streamPayload, this.charset);
 			}
 			filePath = buildPathFromMessage(message, ":stream:");
 		}
-		else if (payload instanceof Reader) {
-			reader = (Reader) payload;
+		else if (payload instanceof Reader readerPayload) {
+			reader = readerPayload;
 			filePath = buildPathFromMessage(message, ":reader:");
 		}
 		else {
@@ -303,7 +303,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		private final BufferedReader bufferedReader;
 
-		private final String firstLineAsHeader;
+		private final @Nullable String firstLineAsHeader;
 
 		private final String filePath;
 
@@ -315,13 +315,13 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		private boolean done;
 
-		private String line;
+		private @Nullable String line;
 
 		private long lineCount;
 
 		private boolean hasNextCalled;
 
-		FileIterator(Message<?> message, BufferedReader bufferedReader, String firstLineAsHeader,
+		FileIterator(Message<?> message, BufferedReader bufferedReader, @Nullable String firstLineAsHeader,
 				String filePath) {
 
 			this.message = message;
@@ -390,7 +390,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 						getMessageBuilderFactory()
 								.withPayload(payload);
 
-				if (this.firstLineAsHeader != null) {
+				if (this.firstLineAsHeader != null && FileSplitter.this.firstLineHeaderName != null) {
 					messageBuilder.setHeader(FileSplitter.this.firstLineHeaderName, this.firstLineAsHeader);
 				}
 
@@ -440,6 +440,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 	public static class FileMarker implements Serializable {
 
+		@Serial
 		private static final long serialVersionUID = 8514605438145748406L;
 
 		public enum Mark {
@@ -457,6 +458,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 		 * Provided solely to allow deserialization from JSON
 		 */
 		@Deprecated(since = "7.0", forRemoval = true)
+		@SuppressWarnings("NullAway")
 		public FileMarker() {
 			this.filePath = null;
 			this.mark = null;

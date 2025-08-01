@@ -25,7 +25,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static cache of FileLocks that can be used to ensure that only a single lock is used inside this ClassLoader.
@@ -39,7 +39,7 @@ import org.springframework.lang.Nullable;
  */
 final class FileChannelCache {
 
-	private static ConcurrentMap<File, FileChannel> channelCache = new ConcurrentHashMap<>();
+	private static final ConcurrentMap<File, FileChannel> CHANNEL_CACHE = new ConcurrentHashMap<>();
 
 	private FileChannelCache() {
 	}
@@ -52,13 +52,12 @@ final class FileChannelCache {
 	 * <p>
 	 * Thread safe.
 	 */
-	@Nullable
-	public static FileLock tryLockFor(File fileToLock) throws IOException {
-		FileChannel channel = channelCache.get(fileToLock);
+	public static @Nullable FileLock tryLockFor(File fileToLock) throws IOException {
+		FileChannel channel = CHANNEL_CACHE.get(fileToLock);
 		if (channel == null && fileToLock.exists()) {
 			@SuppressWarnings("resource")
 			FileChannel newChannel = new RandomAccessFile(fileToLock, "rw").getChannel();
-			FileChannel original = channelCache.putIfAbsent(fileToLock, newChannel);
+			FileChannel original = CHANNEL_CACHE.putIfAbsent(fileToLock, newChannel);
 			if (original != null) {
 				channel = original;
 				try {
@@ -90,7 +89,7 @@ final class FileChannelCache {
 	 * Thread safe.
 	 */
 	public static void closeChannelFor(File fileToUnlock) {
-		FileChannel fileChannel = channelCache.remove(fileToUnlock);
+		FileChannel fileChannel = CHANNEL_CACHE.remove(fileToUnlock);
 		if (fileChannel != null) {
 			try {
 				fileChannel.close();
@@ -102,7 +101,7 @@ final class FileChannelCache {
 	}
 
 	public static boolean isLocked(File file) {
-		return channelCache.containsKey(file);
+		return CHANNEL_CACHE.containsKey(file);
 	}
 
 }

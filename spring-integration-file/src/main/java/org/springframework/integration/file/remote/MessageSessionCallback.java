@@ -18,6 +18,8 @@ package org.springframework.integration.file.remote;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.messaging.Message;
 
@@ -45,6 +47,6 @@ public interface MessageSessionCallback<F, T> {
 	 * @return The result of type T.
 	 * @throws IOException Any IOException.
 	 */
-	T doInSession(Session<F> session, Message<?> requestMessage) throws IOException;
+	@Nullable T doInSession(Session<F> session, Message<?> requestMessage) throws IOException;
 
 }

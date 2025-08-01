@@ -19,6 +19,8 @@ package org.springframework.integration.file.filters;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A convenience base class for any {@link FileListFilter} whose criteria can be
  * evaluated against each File in isolation. If the entire List of files is
@@ -30,11 +32,12 @@ import java.util.List;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Artem Bilan
  */
 public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 
 	@Override
-	public final List<F> filterFiles(F[] files) {
+	public final List<F> filterFiles(F @Nullable [] files) {
 		List<F> accepted = new ArrayList<>();
 		if (files != null) {
 			for (F file : files) {

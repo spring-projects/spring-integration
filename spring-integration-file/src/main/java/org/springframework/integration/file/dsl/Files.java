@@ -20,10 +20,11 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
 import org.springframework.integration.file.transformer.FileToStringTransformer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**

@@ -22,6 +22,8 @@ import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -53,8 +55,9 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private final AtomicLong lastNoMessageAlert = new AtomicLong();
 
-	private File file;
+	private @Nullable File file;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher eventPublisher;
 
 	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
@@ -65,7 +68,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private volatile long lastProduce = System.currentTimeMillis();
 
-	private volatile ScheduledFuture<?> idleEventScheduledFuture;
+	private volatile @Nullable ScheduledFuture<?> idleEventScheduledFuture;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -82,9 +85,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	protected File getFile() {
-		if (this.file == null) {
-			throw new IllegalStateException("No 'file' has been provided");
-		}
+		Assert.state(this.file != null, "'file' cannot be null");
 		return this.file;
 	}
 
@@ -131,22 +132,18 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	protected void send(String line) {
+		File theFile = getFile();
 		Message<?> message = this.getMessageBuilderFactory().withPayload(line)
-				.setHeader(FileHeaders.FILENAME, this.file.getName())
-				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
+				.setHeader(FileHeaders.FILENAME, theFile.getName())
+				.setHeader(FileHeaders.ORIGINAL_FILE, theFile)
 				.build();
 		super.sendMessage(message);
 		updateLastProduce();
 	}
 
 	protected void publish(String message) {
-		if (this.eventPublisher != null) {
-			FileTailingEvent event = new FileTailingEvent(this, message, this.file);
-			this.eventPublisher.publishEvent(event);
-		}
-		else {
-			logger.info("No publisher for event: " + message);
-		}
+		FileTailingEvent event = new FileTailingEvent(this, message, getFile());
+		this.eventPublisher.publishEvent(event);
 	}
 
 	@Override
@@ -169,20 +166,16 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	@Override
 	protected void doStop() {
-		if (this.idleEventScheduledFuture != null) {
-			this.idleEventScheduledFuture.cancel(true);
+		ScheduledFuture<?> idleEventScheduledFutureToCancel = this.idleEventScheduledFuture;
+		if (idleEventScheduledFutureToCancel != null) {
+			idleEventScheduledFutureToCancel.cancel(true);
 		}
 	}
 
 	private void publishIdleEvent(long idleTime) {
-		if (this.eventPublisher != null) {
-			if (getFile().exists()) {
-				FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
-				this.eventPublisher.publishEvent(event);
-			}
-		}
-		else {
-			logger.info("No publisher for idle event");
+		if (getFile().exists()) {
+			FileTailingIdleEvent event = new FileTailingIdleEvent(this, getFile(), idleTime);
+			this.eventPublisher.publishEvent(event);
 		}
 	}
 

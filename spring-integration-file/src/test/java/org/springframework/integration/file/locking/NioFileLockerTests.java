@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Emmanuel Roux
+ * @author Artem Bilan
  */
 public class NioFileLockerTests {
 
@@ -49,7 +50,7 @@ public class NioFileLockerTests {
 		filter.lock(testFile);
 		assertThat(filter.filterFiles(workdir.listFiles()).get(0)).isEqualTo(testFile);
 		filter.unlock(testFile);
-		Field channelCache = FileChannelCache.class.getDeclaredField("channelCache");
+		Field channelCache = FileChannelCache.class.getDeclaredField("CHANNEL_CACHE");
 		channelCache.setAccessible(true);
 		assertThat(((Map<?, ?>) channelCache.get(null))).isEmpty();
 		assertThat(((Map<?, ?>) TestUtils.getPropertyValue(filter, "lockCache", Map.class))).isEmpty();
@@ -77,7 +78,7 @@ public class NioFileLockerTests {
 	}
 
 	@Test
-	public void fileNotLockedWhenNotExists() throws IOException {
+	public void fileNotLockedWhenNotExists() {
 		NioFileLocker locker = new NioFileLocker();
 		File testFile = new File(workdir, "test3");
 		assertThat(locker.lock(testFile)).isFalse();

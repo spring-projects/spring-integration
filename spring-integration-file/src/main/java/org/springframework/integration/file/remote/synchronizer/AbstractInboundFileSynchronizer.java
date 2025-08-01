@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -32,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -53,7 +53,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -87,6 +86,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private String remoteFileSeparator = "/";
@@ -96,40 +96,42 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 */
 	private String temporaryFileSuffix = ".writing";
 
-	private Expression localFilenameGeneratorExpression;
+	private @Nullable Expression localFilenameGeneratorExpression;
 
 	/**
 	 * the path on the remote mount as a String.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private Expression remoteDirectoryExpression;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
-	@Nullable
-	private FileListFilter<F> filter;
+	private @Nullable FileListFilter<F> filter;
 
 	/**
 	 * Should we <em>delete</em> the remote <b>source</b> files
-	 * after copying to the local directory? By default this is false.
+	 * after copying to the local directory? By default, this is false.
 	 */
 	private boolean deleteRemoteFiles;
 
 	/**
 	 * Should we <em>transfer</em> the remote file <b>timestamp</b>
-	 * to the local file? By default this is false.
+	 * to the local file? By default, this is false.
 	 */
 	private boolean preserveTimestamp;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	@Nullable
-	private Comparator<? extends F> comparator;
+	private @Nullable Comparator<? extends F> comparator;
 
 	private MetadataStore remoteFileMetadataStore = new SimpleMetadataStore();
 
+	@SuppressWarnings("NullAway.Init")
 	private String metadataStorePrefix;
 
+	@SuppressWarnings("NullAway.Init")
 	private String name;
 
 	/**
@@ -141,8 +143,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.remoteFileTemplate = new RemoteFileTemplate<>(sessionFactory);
 	}
 
-	@Nullable
-	protected Comparator<? extends F> getComparator() {
+	protected @Nullable Comparator<? extends F> getComparator() {
 		return this.comparator;
 	}
 
@@ -287,9 +288,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	@Override
 	public final void afterPropertiesSet() {
 		Assert.state(this.remoteDirectoryExpression != null, "'remoteDirectoryExpression' must not be null");
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		if (!StringUtils.hasText(this.metadataStorePrefix)) {
 			this.metadataStorePrefix = this.name;
 		}
@@ -304,7 +303,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	protected final List<F> filterFiles(F[] files) {
-		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
+		return (this.filter != null) ? this.filter.filterFiles(files) : List.of(files);
 	}
 
 	protected String getTemporaryFileSuffix() {
@@ -336,7 +335,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			this.logger.trace("Synchronizing " + remoteDirectory + " to " + localDirectory);
 		}
 		try {
-			int transferred = this.remoteFileTemplate.execute(session ->
+			Integer transferred = this.remoteFileTemplate.execute(session ->
 					transferFilesFromRemoteToLocal(remoteDirectory, localDirectory, maxFetchSize, session));
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug(transferred + " files transferred from '" + remoteDirectory + "'");
@@ -348,7 +347,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	private Integer transferFilesFromRemoteToLocal(String remoteDirectory, File localDirectory,
+	private Integer transferFilesFromRemoteToLocal(@Nullable String remoteDirectory, File localDirectory,
 			int maxFetchSize, Session<F> session) throws IOException {
 
 		F[] files = session.list(remoteDirectory);
@@ -356,33 +355,28 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e), this.comparator);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
-			boolean haveFilter = this.filter != null;
-			boolean filteringOneByOne = haveFilter && this.filter.supportsSingleFileFiltering();
-			List<F> filteredFiles = applyFilter(files, haveFilter, filteringOneByOne, maxFetchSize);
+			boolean filteringOneByOne = this.filter != null && this.filter.supportsSingleFileFiltering();
+			List<F> filteredFiles = applyFilter(files, this.filter != null, filteringOneByOne, maxFetchSize);
 
 			int copied = filteredFiles.size();
 			int accepted = 0;
 
-			EvaluationContext localFileEvaluationContext = null;
-			if (this.localFilenameGeneratorExpression != null) {
-				localFileEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-				localFileEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
-			}
-
 			for (F file : filteredFiles) {
+				F fileToCopy = file;
 				if (filteringOneByOne) {
-					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter
-							.accept(file)) { // NOSONAR never null
+					if ((maxFetchSize < 0 || accepted < maxFetchSize)
+							&& this.filter != null && this.filter.accept(fileToCopy)) {
+
 						accepted++;
 					}
 					else {
-						file = null;
+						fileToCopy = null;
 						copied--;
 					}
 				}
 				copied =
-						copyIfNotNull(remoteDirectory, localDirectory, localFileEvaluationContext, session,
-								filteringOneByOne, filteredFiles, copied, file);
+						copyIfNotNull(remoteDirectory, localDirectory, session, filteringOneByOne,
+								filteredFiles, copied, fileToCopy);
 			}
 			return copied;
 		}
@@ -391,11 +385,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	private int copyIfNotNull(String remoteDirectory, File localDirectory,
-			@Nullable EvaluationContext localFileEvaluationContext, Session<F> session, boolean filteringOneByOne,
+	private int copyIfNotNull(@Nullable String remoteDirectory, File localDirectory,
+			Session<F> session, boolean filteringOneByOne,
 			List<F> filteredFiles, int copied, @Nullable F file) throws IOException {
 
 		boolean renamedFailed = false;
+		EvaluationContext localFileEvaluationContext = null;
+		if (this.localFilenameGeneratorExpression != null) {
+			localFileEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+			localFileEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
+		}
 		try {
 			if (file != null &&
 					!copyFileToLocalDirectory(remoteDirectory, localFileEvaluationContext, file, localDirectory,
@@ -422,7 +421,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			filteredFiles = filterFiles(files);
 		}
 		else {
-			filteredFiles = Arrays.asList(files);
+			filteredFiles = List.of(files);
 		}
 		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize && !filteringOneByOne) {
 			if (haveFilter) {
@@ -579,9 +578,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private String generateLocalFileName(String remoteFileName,
 			@Nullable EvaluationContext localFileEvaluationContext) {
 
-		if (this.localFilenameGeneratorExpression != null) {
-			return this.localFilenameGeneratorExpression.getValue(localFileEvaluationContext, remoteFileName,
-					String.class);
+		if (this.localFilenameGeneratorExpression != null && localFileEvaluationContext != null) {
+			String localFileName =
+					this.localFilenameGeneratorExpression.getValue(
+							localFileEvaluationContext, remoteFileName, String.class);
+			Assert.state(localFileName != null,
+					() -> "The '" + this.localFilenameGeneratorExpression +
+							"' returned null for the '" + remoteFileName + "'");
+			return localFileName;
 		}
 		return remoteFileName;
 	}
@@ -593,8 +597,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * {@code protocol://host:port/remoteDirectory#remoteFileName}
 	 * @since 5.2
 	 */
-	@Nullable
-	public String getRemoteFileMetadata(File localFile) {
+	public @Nullable String getRemoteFileMetadata(File localFile) {
 		String metadataKey = buildMetadataKey(localFile);
 		return this.remoteFileMetadataStore.get(metadataKey);
 	}

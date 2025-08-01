@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.util.FileCopyUtils;
 
@@ -34,7 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Alex Peters
  * @author Artem Bilan
  */
-public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFilePayloadTransformer<?>> {
+public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFilePayloadTransformer<?>>
+		implements TestApplicationContextAware {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 

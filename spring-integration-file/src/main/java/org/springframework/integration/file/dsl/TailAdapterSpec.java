@@ -18,13 +18,14 @@ package org.springframework.integration.file.dsl;
 
 import java.io.File;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.file.config.FileTailInboundChannelAdapterFactoryBean;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -153,7 +154,9 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	@Override
 	public TailAdapterSpec id(@Nullable String id) {
-		this.factoryBean.setBeanName(id);
+		if (id != null) {
+			this.factoryBean.setBeanName(id);
+		}
 		return _this();
 	}
 

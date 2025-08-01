@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.config;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -53,7 +54,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "scan-each-poll");
-		String filterBeanName = this.registerFilter(element, parserContext);
+		String filterBeanName = registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
 		if (filterBeanName != null) {
 			builder.addPropertyReference(FileParserUtils.FILTER_ATTRIBUTE, filterBeanName);
@@ -65,7 +66,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		return builder.getBeanDefinition();
 	}
 
-	private String registerLocker(Element element, ParserContext parserContext) {
+	private @Nullable String registerLocker(Element element, ParserContext parserContext) {
 		String lockerBeanName = null;
 		Element nioLocker = DomUtils.getChildElementByTagName(element, "nio-locker");
 		if (nioLocker != null) {
@@ -83,7 +84,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		return lockerBeanName;
 	}
 
-	private String registerFilter(Element element, ParserContext parserContext) { // NOSONAR
+	private @Nullable String registerFilter(Element element, ParserContext parserContext) { // NOSONAR
 		String filenamePattern = element.getAttribute("filename-pattern");
 		String filenameRegex = element.getAttribute("filename-regex");
 		String preventDuplicates = element.getAttribute("prevent-duplicates");

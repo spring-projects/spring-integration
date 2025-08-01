@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.integration.file.filters.AbstractFileListFilter;
@@ -34,7 +33,7 @@ import org.springframework.util.Assert;
  * The {@link DefaultDirectoryScanner} extension which walks through the directory tree
  * using {@link Files#walk(Path, int, FileVisitOption...)}.
  * <p>
- * By default this class visits all levels of the file tree without any {@link FileVisitOption}s.
+ * By default, this class visits all levels of the file tree without any {@link FileVisitOption}s.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -47,7 +46,7 @@ public class RecursiveDirectoryScanner extends DefaultDirectoryScanner {
 
 	private int maxDepth = Integer.MAX_VALUE;
 
-	private FileVisitOption[] fileVisitOptions = new FileVisitOption[0];
+	private FileVisitOption[] fileVisitOptions = {};
 
 	/**
 	 * The maximum number of directory levels to visit.
@@ -70,22 +69,22 @@ public class RecursiveDirectoryScanner extends DefaultDirectoryScanner {
 	public List<File> listFiles(File directory) throws IllegalArgumentException {
 		FileListFilter<File> filter = getFilter();
 		boolean supportAcceptFilter = filter instanceof AbstractFileListFilter;
-		try (Stream<Path> pathStream = Files.walk(directory.toPath(), this.maxDepth, this.fileVisitOptions);) {
+		try (Stream<Path> pathStream = Files.walk(directory.toPath(), this.maxDepth, this.fileVisitOptions)) {
 			Stream<File> fileStream =
 					pathStream
 							.skip(1) // NOSONAR
 							.map(Path::toFile)
-							.filter(file -> !supportAcceptFilter || filter.accept(file));
+							.filter(file -> !supportAcceptFilter || filter == null || filter.accept(file));
 
 			if (supportAcceptFilter) {
-				return fileStream.collect(Collectors.toList());
+				return fileStream.toList();
 			}
 			else {
-				return filter.filterFiles(fileStream.toArray(File[]::new));
+				return filter == null ? fileStream.toList() : filter.filterFiles(fileStream.toArray(File[]::new));
 			}
 		}
-		catch (IOException e) {
-			throw new IllegalArgumentException(e);
+		catch (IOException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 

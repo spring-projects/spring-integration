@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import jakarta.jms.Destination;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
@@ -177,8 +178,8 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		}
 
 		@Override
-		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.spec.getObject(), this.spec.getId());
+		public Map<Object, @Nullable String> getComponentsToRegister() {
+			return Collections.<Object, @Nullable String>singletonMap(this.spec.getObject(), this.spec.getId());
 		}
 
 	}

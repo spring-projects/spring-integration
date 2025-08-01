@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -39,9 +41,9 @@ import org.springframework.messaging.MessagingException;
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
 
-	private volatile FileListFilter<File> filter;
+	private volatile @Nullable FileListFilter<File> filter;
 
-	private volatile FileLocker locker;
+	private volatile @Nullable FileLocker locker;
 
 	/**
 	 * Initialize {@link DefaultDirectoryScanner#filter} with a default list of
@@ -63,7 +65,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 		this.filter = filter;
 	}
 
-	protected FileListFilter<File> getFilter() {
+	protected @Nullable FileListFilter<File> getFilter() {
 		return this.filter;
 	}
 
@@ -72,7 +74,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 		this.locker = locker;
 	}
 
-	protected FileLocker getLocker() {
+	protected @Nullable FileLocker getLocker() {
 		return this.locker;
 	}
 
@@ -82,17 +84,19 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	 */
 	@Override
 	public boolean tryClaim(File file) {
-		return (this.locker == null) || this.locker.lock(file);
+		FileLocker lockerToUse = this.locker;
+		return (lockerToUse == null) || lockerToUse.lock(file);
 	}
 
 	@Override
 	public List<File> listFiles(File directory) throws IllegalArgumentException {
-		File[] files = listEligibleFiles(directory);
+		File @Nullable [] files = listEligibleFiles(directory);
 		if (files == null) {
 			throw new MessagingException("The path [" + directory
 					+ "] does not denote a properly accessible directory.");
 		}
-		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
+		FileListFilter<File> filterToUse = this.filter;
+		return (filterToUse != null) ? filterToUse.filterFiles(files) : Arrays.asList(files);
 	}
 
 	/**
@@ -101,7 +105,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	 * @param directory root directory to use for listing
 	 * @return the files this scanner should consider
 	 */
-	protected File[] listEligibleFiles(File directory) {
+	protected File @Nullable [] listEligibleFiles(File directory) {
 		return directory.listFiles();
 	}
 

@@ -37,7 +37,7 @@ public class RegexPatternFileListFilter extends AbstractRegexPatternFileListFilt
 
 	@Override
 	protected String getFilename(File file) {
-		return (file != null) ? file.getName() : null;
+		return file.getName();
 	}
 
 	@Override
