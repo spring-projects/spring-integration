@@ -36,6 +36,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.Resource;
@@ -64,9 +65,9 @@ import org.springframework.util.StringUtils;
  */
 public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
-	private final URL feedUrl;
+	private final @Nullable URL feedUrl;
 
-	private final Resource feedResource;
+	private final @Nullable Resource feedResource;
 
 	private final String metadataKey;
 
@@ -84,6 +85,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private boolean syndFeedInputSet;
 
+	@SuppressWarnings("NullAway.Init")
 	private MetadataStore metadataStore;
 
 	private volatile long lastTime = -1;
@@ -152,6 +154,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return "feed:inbound-channel-adapter";
 	}
 
+	@SuppressWarnings("NullAway")
 	@Override
 	protected void onInit() {
 		if (this.metadataStore == null) {
@@ -173,6 +176,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		this.initialized = true;
 	}
 
+	@Nullable
 	@Override
 	protected SyndEntry doReceive() {
 		Assert.isTrue(this.initialized,
@@ -193,6 +197,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return nextEntry;
 	}
 
+	@Nullable
 	private SyndEntry getNextEntry() {
 		SyndEntry next = this.entries.poll();
 		if (next == null) {
@@ -249,6 +254,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private SyndFeed buildSyndFeed() throws IOException, URISyntaxException, InterruptedException, FeedException {
 		InputStream inputStream;
 		if (this.feedResource != null) {
