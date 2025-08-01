@@ -18,7 +18,6 @@ package org.springframework.integration.debezium.inbound;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -56,12 +55,14 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private final DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder;
 
-	private @Nullable DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
+	@SuppressWarnings("NullAway.Init")
+	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
 	/**
 	 * Debezium Engine is designed to be submitted to an {@link Executor}.
 	 */
-	private @Nullable TaskExecutor taskExecutor;
+	@SuppressWarnings("NullAway.Init")
+	private TaskExecutor taskExecutor;
 
 	private String contentType = "application/json";
 
@@ -168,7 +169,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			return;
 		}
 		this.lifecycleLatch = new CountDownLatch(1);
-		Objects.requireNonNull(this.taskExecutor).execute(() -> {
+		this.taskExecutor.execute(() -> {
 			try {
 				// Runs the debezium connector and deliver database changes to the registered consumer. This method
 				// blocks until the connector is stopped.
@@ -178,7 +179,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 				// The batch size, polling frequency, and other parameters are controlled via connector's configuration
 				// settings. This continues until this connector is stopped.
 				// This method can be called repeatedly as needed.
-				Objects.requireNonNull(this.debeziumEngine).run();
+				this.debeziumEngine.run();
 			}
 			finally {
 				this.lifecycleLatch.countDown();
@@ -189,7 +190,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	@Override
 	protected void doStop() {
 		try {
-			Objects.requireNonNull(this.debeziumEngine).close();
+			this.debeziumEngine.close();
 		}
 		catch (IOException e) {
 			logger.warn(e, "Debezium failed to close!");
