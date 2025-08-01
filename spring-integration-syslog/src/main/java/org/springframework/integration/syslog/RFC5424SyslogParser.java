@@ -155,8 +155,7 @@ public class RFC5424SyslogParser {
 		return dateBuilder.toString();
 	}
 
-	@Nullable
-	private Object getStructuredData(Reader r) {
+	private @Nullable Object getStructuredData(Reader r) {
 		if (r.is(NILVALUE)) {
 			r.getc();
 			return null;
