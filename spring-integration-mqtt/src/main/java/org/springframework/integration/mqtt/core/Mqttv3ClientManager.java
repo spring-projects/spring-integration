@@ -24,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.support.MqttUtils;
@@ -48,7 +49,7 @@ public class Mqttv3ClientManager
 
 	private final MqttConnectOptions connectionOptions;
 
-	private MqttClientPersistence persistence;
+	private @Nullable MqttClientPersistence persistence;
 
 	public Mqttv3ClientManager(String url, String clientId) {
 		this(buildDefaultConnectionOptions(url), clientId);
@@ -118,13 +119,8 @@ public class Mqttv3ClientManager
 					}
 				}
 				else {
-					var applicationEventPublisher = getApplicationEventPublisher();
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-					}
-					else {
-						logger.error("Could not start client manager, client_id=" + getClientId(), ex);
-					}
+					getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
+					logger.error("Could not start client manager, client_id=" + getClientId(), ex);
 				}
 			}
 		}

@@ -17,10 +17,13 @@
 package org.springframework.integration.mqtt.support;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.integration.JavaUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -40,16 +43,16 @@ public final class MqttUtils {
 	private static final boolean PAHO_MQTTV5_PRESENT =
 			ClassUtils.isPresent("org.eclipse.paho.mqttv5.client.MqttAsyncClient", null);
 
-	private static final Method V3_STOP_RECONNECT_CYCLE_METHOD;
+	private static final @Nullable Method V3_STOP_RECONNECT_CYCLE_METHOD;
 
-	private static final Method V5_STOP_RECONNECT_CYCLE_METHOD;
+	private static final @Nullable Method V5_STOP_RECONNECT_CYCLE_METHOD;
 
 	static {
 		if (PAHO_MQTTV3_PRESENT) {
 			V3_STOP_RECONNECT_CYCLE_METHOD =
 					ReflectionUtils.findMethod(org.eclipse.paho.client.mqttv3.MqttAsyncClient.class,
 							"stopReconnectCycle");
-			ReflectionUtils.makeAccessible(V3_STOP_RECONNECT_CYCLE_METHOD);
+			JavaUtils.INSTANCE.acceptIfNotNull(V3_STOP_RECONNECT_CYCLE_METHOD, ReflectionUtils::makeAccessible);
 		}
 		else {
 			V3_STOP_RECONNECT_CYCLE_METHOD = null;
@@ -59,7 +62,7 @@ public final class MqttUtils {
 			V5_STOP_RECONNECT_CYCLE_METHOD =
 					ReflectionUtils.findMethod(org.eclipse.paho.mqttv5.client.MqttAsyncClient.class,
 							"stopReconnectCycle");
-			ReflectionUtils.makeAccessible(V5_STOP_RECONNECT_CYCLE_METHOD);
+			JavaUtils.INSTANCE.acceptIfNotNull(V5_STOP_RECONNECT_CYCLE_METHOD, ReflectionUtils::makeAccessible);
 		}
 		else {
 			V5_STOP_RECONNECT_CYCLE_METHOD = null;
@@ -91,7 +94,7 @@ public final class MqttUtils {
 	 * @since 6.1.9
 	 */
 	public static void stopClientReconnectCycle(org.eclipse.paho.client.mqttv3.IMqttAsyncClient client) {
-		ReflectionUtils.invokeMethod(V3_STOP_RECONNECT_CYCLE_METHOD, client);
+		ReflectionUtils.invokeMethod(Objects.requireNonNull(V3_STOP_RECONNECT_CYCLE_METHOD), client);
 	}
 
 	/**
@@ -102,7 +105,7 @@ public final class MqttUtils {
 	 * @since 6.1.9
 	 */
 	public static void stopClientReconnectCycle(org.eclipse.paho.mqttv5.client.IMqttAsyncClient client) {
-		ReflectionUtils.invokeMethod(V5_STOP_RECONNECT_CYCLE_METHOD, client);
+		ReflectionUtils.invokeMethod(Objects.requireNonNull(V5_STOP_RECONNECT_CYCLE_METHOD), client);
 	}
 
 }

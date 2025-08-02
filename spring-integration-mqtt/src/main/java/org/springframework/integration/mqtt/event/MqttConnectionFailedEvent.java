@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mqtt.event;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@link MqttIntegrationEvent} to notify about lost connection to the server.

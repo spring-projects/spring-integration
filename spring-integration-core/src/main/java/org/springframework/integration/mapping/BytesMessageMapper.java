@@ -18,7 +18,6 @@ package org.springframework.integration.mapping;
 
 import java.util.Map;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
@@ -34,14 +33,14 @@ import org.springframework.messaging.Message;
 public interface BytesMessageMapper extends InboundMessageMapper<byte[]>, OutboundMessageMapper<byte[]> {
 
 	@Override
-	@NonNull // override
 	default Message<?> toMessage(byte[] object) {
 		return toMessage(object, null);
 	}
 
 	@Override
-	@NonNull
-		// override
 	Message<?> toMessage(byte[] bytes, @Nullable Map<String, Object> headers);
+
+	@Override
+	byte[] fromMessage(Message<?> message);
 
 }
