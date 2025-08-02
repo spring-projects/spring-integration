@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.JavaUtils;
 import org.springframework.util.Assert;
 
@@ -131,7 +133,7 @@ public class RFC5424SyslogParser {
 	 * @param r the reader.
 	 * @return the timestamp.
 	 */
-	protected Object getTimestamp(Reader r) {
+	protected @Nullable Object getTimestamp(Reader r) {
 
 		int c = r.getc();
 
@@ -152,7 +154,7 @@ public class RFC5424SyslogParser {
 		return dateBuilder.toString();
 	}
 
-	private Object getStructuredData(Reader r) {
+	private @Nullable Object getStructuredData(Reader r) {
 		if (r.is(NILVALUE)) {
 			r.getc();
 			return null;

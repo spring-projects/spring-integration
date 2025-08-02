@@ -36,8 +36,10 @@ import org.springframework.messaging.Message;
 public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdapterSupport
 		implements TcpListener, ApplicationEventPublisherAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractServerConnectionFactory connectionFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
