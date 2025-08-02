@@ -192,14 +192,15 @@ public class MqttPahoMessageDrivenChannelAdapter
 			if (clientManager == null) {
 				Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-				Assert.state(getClientId() != null, "'clientId' must not be null");
 				this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
 				this.client.setCallback(this);
 				this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
 				this.client.setManualAcks(isManualAcks());
 			}
 			else {
-				this.client = Objects.requireNonNull(clientManager.getClient());
+				IMqttAsyncClient theClient = clientManager.getClient();
+				Assert.state(theClient != null, "'client' must not be null");
+				this.client = theClient;
 			}
 		}
 		finally {

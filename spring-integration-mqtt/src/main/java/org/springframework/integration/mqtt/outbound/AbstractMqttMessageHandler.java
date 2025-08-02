@@ -76,7 +76,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 
 	private final @Nullable String url;
 
-	private final @Nullable String clientId;
+	private final String clientId;
 
 	private final @Nullable ClientManager<T, C> clientManager;
 
@@ -118,8 +118,8 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	public AbstractMqttMessageHandler(ClientManager<T, C> clientManager) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
 		this.clientManager = clientManager;
-		this.url = null;
-		this.clientId = null;
+		this.url = clientManager.getUrl();
+		this.clientId = clientManager.getClientId();
 	}
 
 	@Override
@@ -273,7 +273,6 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		return this.url;
 	}
 
-	@Nullable
 	public String getClientId() {
 		return this.clientId;
 	}

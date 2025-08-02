@@ -17,7 +17,6 @@
 package org.springframework.integration.mqtt.outbound;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
@@ -145,7 +144,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		try {
 			var clientManager = getClientManager();
 			if (clientManager != null) {
-				this.mqttClient = Objects.requireNonNull(clientManager.getClient());
+				IMqttAsyncClient client = clientManager.getClient();
+				Assert.state(client != null, "'client' must not be null");
+				this.mqttClient = client;
 			}
 			else {
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());

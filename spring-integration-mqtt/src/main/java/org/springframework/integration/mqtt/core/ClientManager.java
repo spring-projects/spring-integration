@@ -55,6 +55,16 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	@Nullable T getClient();
 
 	/**
+	 * @return the managed client url, never null
+	 */
+	String getUrl();
+
+	/**
+	 * @return the managed clientId, never null
+	 */
+	String getClientId();
+
+	/**
 	 * If manual acknowledge has to be used; false by default.
 	 * @return true if manual acknowledge has to be used.
 	 */

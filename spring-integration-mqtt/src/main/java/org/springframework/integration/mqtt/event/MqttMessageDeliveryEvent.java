@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.event;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Base class for events related to message delivery. Properties {@link #messageId},
  * {@link #clientId} and {@link #clientInstance} can be used to correlate events.
@@ -31,11 +29,11 @@ public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 
 	private final int messageId;
 
-	private final @Nullable String clientId;
+	private final String clientId;
 
 	private final int clientInstance;
 
-	public MqttMessageDeliveryEvent(Object source, int messageId, @Nullable String clientId, int clientInstance) {
+	public MqttMessageDeliveryEvent(Object source, int messageId, String clientId, int clientInstance) {
 		super(source);
 		this.messageId = messageId;
 		this.clientId = clientId;
@@ -46,7 +44,7 @@ public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 		return this.messageId;
 	}
 
-	public @Nullable String getClientId() {
+	public String getClientId() {
 		return this.clientId;
 	}
 

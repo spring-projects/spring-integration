@@ -276,7 +276,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 			}
 			else {
-				this.mqttClient = Objects.requireNonNull(clientManager.getClient());
+				IMqttAsyncClient client = clientManager.getClient();
+				Assert.state(client != null, "'client' must not be null");
+				this.mqttClient = client;
 			}
 		}
 		finally {

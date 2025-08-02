@@ -87,7 +87,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		this.manualAcks = manualAcks;
 	}
 
-	protected String getUrl() {
+	public String getUrl() {
 		return this.url;
 	}
 
@@ -95,7 +95,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		this.url = url;
 	}
 
-	protected String getClientId() {
+	public String getClientId() {
 		return this.clientId;
 	}
 

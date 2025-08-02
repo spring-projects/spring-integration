@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.event;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * An event emitted (when using aysnc) when the client indicates the message
  * was delivered.
@@ -29,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 @SuppressWarnings("serial")
 public class MqttMessageDeliveredEvent extends MqttMessageDeliveryEvent {
 
-	public MqttMessageDeliveredEvent(Object source, int messageId, @Nullable String clientId,
+	public MqttMessageDeliveredEvent(Object source, int messageId, String clientId,
 			int clientInstance) {
 		super(source, messageId, clientId, clientInstance);
 	}

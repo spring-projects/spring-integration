@@ -65,7 +65,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	private final @Nullable String url;
 
-	private final @Nullable String clientId;
+	private final String clientId;
 
 	private final Map<String, Integer> topics;
 
@@ -96,8 +96,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		Assert.notNull(clientManager, "'clientManager' cannot be null");
 		this.clientManager = clientManager;
 		this.topics = initTopics(topic);
-		this.url = null;
-		this.clientId = null;
+		this.url = clientManager.getUrl();
+		this.clientId = clientManager.getClientId();
 	}
 
 	private static Map<String, Integer> initTopics(String[] topics) {
@@ -170,7 +170,6 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		return this.url;
 	}
 
-	@Nullable
 	protected String getClientId() {
 		return this.clientId;
 	}

@@ -181,7 +181,6 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 					MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 					Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 							"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-					Assert.state(this.getClientId() != null, "'clientId' must not be null");
 					this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 					incrementClientInstance();
 					this.client.setCallback(this);
