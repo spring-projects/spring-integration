@@ -133,8 +133,7 @@ public class RFC5424SyslogParser {
 	 * @param r the reader.
 	 * @return the timestamp.
 	 */
-	@Nullable
-	protected Object getTimestamp(Reader r) {
+	protected @Nullable Object getTimestamp(Reader r) {
 
 		int c = r.getc();
 
