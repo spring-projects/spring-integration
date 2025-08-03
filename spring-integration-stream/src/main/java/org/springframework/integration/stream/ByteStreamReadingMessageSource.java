@@ -72,6 +72,7 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 		return "stream:stdin-channel-adapter(byte)";
 	}
 
+	@SuppressWarnings("NullAway")
 	@Override
 	protected byte[] doReceive() {
 		try {

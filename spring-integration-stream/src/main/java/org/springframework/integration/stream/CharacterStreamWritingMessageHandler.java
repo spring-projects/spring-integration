@@ -24,6 +24,8 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -80,7 +82,7 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	 * @param charsetName The charset name.
 	 * @return A stdout handler.
 	 */
-	public static CharacterStreamWritingMessageHandler stdout(String charsetName) {
+	public static CharacterStreamWritingMessageHandler stdout(@Nullable String charsetName) {
 		return createTargetForStream(System.out, charsetName);
 	}
 
@@ -101,11 +103,11 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	 * @param charsetName The charset name.
 	 * @return A stderr handler.
 	 */
-	public static CharacterStreamWritingMessageHandler stderr(String charsetName) {
+	public static CharacterStreamWritingMessageHandler stderr(@Nullable String charsetName) {
 		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamWritingMessageHandler createTargetForStream(OutputStream stream, String charsetName) {
+	private static CharacterStreamWritingMessageHandler createTargetForStream(OutputStream stream, @Nullable String charsetName) {
 		if (charsetName == null) {
 			return new CharacterStreamWritingMessageHandler(new OutputStreamWriter(stream));
 		}
