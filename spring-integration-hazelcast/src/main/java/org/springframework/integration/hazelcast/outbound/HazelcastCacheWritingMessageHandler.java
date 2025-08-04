@@ -22,6 +22,7 @@ import java.util.Map;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.topic.ITopic;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -30,6 +31,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.hazelcast.HazelcastHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * MessageHandler implementation that writes {@link Message} or payload to defined
@@ -42,14 +44,15 @@ import org.springframework.util.Assert;
  */
 public class HazelcastCacheWritingMessageHandler extends AbstractMessageHandler {
 
-	private DistributedObject distributedObject;
+	private @Nullable DistributedObject distributedObject;
 
-	private Expression cacheExpression;
+	private @Nullable Expression cacheExpression;
 
-	private Expression keyExpression;
+	private @Nullable Expression keyExpression;
 
 	private boolean extractPayload = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public void setDistributedObject(DistributedObject distributedObject) {
@@ -109,7 +112,10 @@ public class HazelcastCacheWritingMessageHandler extends AbstractMessageHandler 
 				map.put(entry.getKey(), entry.getValue());
 			}
 			else {
-				map.put(getKey(message), objectToStore);
+				Object key = getKey(message);
+				if (key != null) {
+					map.put(key, objectToStore);
+				}
 			}
 		}
 		else if (object instanceof ITopic) {
@@ -130,26 +136,29 @@ public class HazelcastCacheWritingMessageHandler extends AbstractMessageHandler 
 		}
 	}
 
-	private DistributedObject getDistributedObject(final Message<?> message) {
+	private @Nullable DistributedObject getDistributedObject(final Message<?> message) {
+
 		if (this.distributedObject != null) {
 			return this.distributedObject;
 		}
-		else if (this.cacheExpression != null) {
+
+		if (this.cacheExpression != null) {
 			return this.cacheExpression.getValue(this.evaluationContext, message, DistributedObject.class);
 		}
-		else if (message.getHeaders().containsKey(HazelcastHeaders.CACHE_NAME)) {
-			return getBeanFactory()
-					.getBean(message.getHeaders().get(HazelcastHeaders.CACHE_NAME, String.class), // NOSONAR
-							DistributedObject.class);
+
+		if (message.getHeaders().containsKey(HazelcastHeaders.CACHE_NAME)) {
+			String beanName = message.getHeaders().get(HazelcastHeaders.CACHE_NAME, String.class);
+			if (StringUtils.hasText(beanName)) {
+				return getBeanFactory().getBean(beanName, DistributedObject.class);
+			}
 		}
-		else {
-			throw new IllegalStateException("One of 'cache', 'cache-expression' and "
-					+ HazelcastHeaders.CACHE_NAME
-					+ " must be set for cache object definition.");
-		}
+
+		throw new IllegalStateException("One of 'cache', 'cache-expression' and "
+				+ HazelcastHeaders.CACHE_NAME
+				+ " must be set for cache object definition.");
 	}
 
-	private Object getKey(Message<?> message) {
+	private @Nullable Object getKey(Message<?> message) {
 		if (this.keyExpression != null) {
 			return this.keyExpression.getValue(this.evaluationContext, message);
 		}

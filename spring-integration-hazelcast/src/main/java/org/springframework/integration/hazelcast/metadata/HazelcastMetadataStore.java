@@ -25,6 +25,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.metadata.ListenableMetadataStore;
@@ -78,7 +79,7 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 	}
 
 	@Override
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		assertKey(key);
 		return this.map.get(key);
 	}

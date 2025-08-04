@@ -28,6 +28,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.topic.ITopic;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -73,7 +74,7 @@ public final class HazelcastIntegrationDefinitionValidator {
 		}
 	}
 
-	private static List<String> getSupportedCacheEventTypes(final DistributedObject distributedObject) {
+	private static @Nullable List<String> getSupportedCacheEventTypes(final DistributedObject distributedObject) {
 		if ((distributedObject instanceof IList)
 				|| (distributedObject instanceof ISet)
 				|| (distributedObject instanceof IQueue)) {

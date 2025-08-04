@@ -22,6 +22,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicates;
 import com.hazelcast.query.QueryConstants;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.util.Assert;
@@ -49,7 +50,7 @@ public class HazelcastMessageStore extends AbstractKeyValueMessageStore {
 	}
 
 	@Override
-	protected Object doRetrieve(Object id) {
+	protected @Nullable Object doRetrieve(Object id) {
 		return this.map.get(id);
 	}
 

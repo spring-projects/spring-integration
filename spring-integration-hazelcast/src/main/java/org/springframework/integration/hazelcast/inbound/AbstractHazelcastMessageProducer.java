@@ -56,6 +56,7 @@ public abstract class AbstractHazelcastMessageProducer extends MessageProducerSu
 
 	private volatile CacheListeningPolicyType cacheListeningPolicy = CacheListeningPolicyType.SINGLE;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile UUID hazelcastRegisteredEventListenerId;
 
 	private Set<String> cacheEvents = Collections.singleton(CacheEventType.ADDED.name());
