@@ -21,6 +21,7 @@ import java.util.Map;
 import groovy.lang.Binding;
 import groovy.lang.GroovyObject;
 import groovy.lang.Script;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
@@ -33,9 +34,9 @@ import org.springframework.util.Assert;
  */
 class VariableBindingGroovyObjectCustomizerDecorator implements GroovyObjectCustomizer {
 
-	private volatile Map<String, ?> variables;
+	private volatile @Nullable Map<String, ?> variables;
 
-	private volatile GroovyObjectCustomizer customizer;
+	private volatile @Nullable GroovyObjectCustomizer customizer;
 
 	public void setVariables(Map<String, ?> variables) {
 		this.variables = variables;

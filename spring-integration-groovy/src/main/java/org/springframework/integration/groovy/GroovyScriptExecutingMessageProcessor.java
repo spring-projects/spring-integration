@@ -32,6 +32,7 @@ import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -75,8 +76,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private boolean compileStatic;
 
-	private CompilerConfiguration compilerConfiguration;
+	private @Nullable CompilerConfiguration compilerConfiguration;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Class<?> scriptClass;
 
 	/**
