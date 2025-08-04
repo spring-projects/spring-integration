@@ -24,6 +24,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.AbstractMessageSource;
@@ -48,7 +50,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 
 	private final boolean blockToDetectEOF;
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Construct an instance with the provider reader.
@@ -116,7 +118,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	}
 
 	@Override
-	public String doReceive() {
+	public @Nullable String doReceive() {
 		try {
 			this.lock.lock();
 			try {
