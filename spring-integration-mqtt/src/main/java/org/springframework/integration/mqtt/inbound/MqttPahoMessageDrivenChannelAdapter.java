@@ -198,7 +198,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 			else {
 				IMqttAsyncClient theClient = clientManager.getClient();
-				Assert.state(theClient != null, "The 'client' must not be null, Consider to start 'clientManager'.");
+				Assert.state(theClient != null, "The 'client' must not be null, consider to start the 'clientManager'.");
 				this.client = theClient;
 			}
 		}
@@ -374,7 +374,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	@SuppressWarnings("NullAway") // MessageBuilder is not supposed to be null
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		Exception conversionError = null;

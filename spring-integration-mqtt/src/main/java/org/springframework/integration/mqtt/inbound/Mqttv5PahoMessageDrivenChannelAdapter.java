@@ -276,7 +276,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			}
 			else {
 				IMqttAsyncClient client = clientManager.getClient();
-				Assert.state(client != null, "The 'client' must not be null, Consider to start 'clientManager'.");
+				Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
 				this.mqttClient = client;
 			}
 		}
@@ -469,7 +469,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		var clientManager = getClientManager();
 		if (clientManager != null && this.mqttClient == null) {
 			IMqttAsyncClient client = clientManager.getClient();
-			Assert.state(client != null, "The 'client' must not be null, Consider to start 'clientManager'.");
+			Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
 			this.mqttClient = client;
 		}
 

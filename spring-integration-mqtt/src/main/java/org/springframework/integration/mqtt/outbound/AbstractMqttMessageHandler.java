@@ -397,12 +397,13 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		Assert.state(mqttMessage != null,
 				() -> "The MQTT payload cannot be null. The '" + this.converter + "' returned null for: " + message);
+
 		String topic = this.topicProcessor.processMessage(message);
 		if (topic == null) {
 			topic = this.defaultTopic;
 		}
-
 		Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
+
 		publish(topic, mqttMessage, message);
 	}
 
