@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
@@ -277,7 +276,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			}
 			else {
 				IMqttAsyncClient client = clientManager.getClient();
-				Assert.state(client != null, "'client' must not be null");
+				Assert.state(client != null, "The 'client' must not be null, Consider to start 'clientManager'.");
 				this.mqttClient = client;
 			}
 		}
@@ -469,7 +468,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private void subscribe() {
 		var clientManager = getClientManager();
 		if (clientManager != null && this.mqttClient == null) {
-			this.mqttClient = Objects.requireNonNull(clientManager.getClient());
+			IMqttAsyncClient client = clientManager.getClient();
+			Assert.state(client != null, "The 'client' must not be null, Consider to start 'clientManager'.");
+			this.mqttClient = client;
 		}
 
 		MqttSubscription[] mqttSubscriptions = obtainSubscriptions();

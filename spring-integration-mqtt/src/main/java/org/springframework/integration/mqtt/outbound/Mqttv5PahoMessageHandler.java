@@ -145,7 +145,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			var clientManager = getClientManager();
 			if (clientManager != null) {
 				IMqttAsyncClient client = clientManager.getClient();
-				Assert.state(client != null, "'client' must not be null");
+				Assert.state(client != null, "The 'client' must not be null, Consider to start 'clientManager'.");
 				this.mqttClient = client;
 			}
 			else {

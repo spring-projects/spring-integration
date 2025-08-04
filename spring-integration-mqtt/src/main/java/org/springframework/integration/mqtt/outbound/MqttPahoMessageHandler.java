@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.outbound;
 
-import java.util.Objects;
-
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -168,7 +166,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		try {
 			var theClientManager = getClientManager();
 			if (theClientManager != null) {
-				return Objects.requireNonNull(theClientManager.getClient());
+				IMqttAsyncClient theClient = theClientManager.getClient();
+				Assert.state(theClient != null, "The 'client' must not be null, Consider to start 'clientManager'.");
+				return theClient;
 			}
 
 			if (this.client != null && !this.client.isConnected()) {

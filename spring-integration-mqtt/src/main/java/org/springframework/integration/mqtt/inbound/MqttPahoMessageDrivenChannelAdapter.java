@@ -17,7 +17,6 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -199,7 +198,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 			else {
 				IMqttAsyncClient theClient = clientManager.getClient();
-				Assert.state(theClient != null, "'client' must not be null");
+				Assert.state(theClient != null, "The 'client' must not be null, Consider to start 'clientManager'.");
 				this.client = theClient;
 			}
 		}
@@ -375,11 +374,12 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	private @Nullable AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
+	@SuppressWarnings("NullAway") // MessageBuilder is not supposed to be null
+	private AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		Exception conversionError = null;
 		try {
-			builder = Objects.requireNonNull(getConverter()).toMessageBuilder(topic, mqttMessage);
+			builder = getConverter().toMessageBuilder(topic, mqttMessage);
 		}
 		catch (Exception ex) {
 			conversionError = ex;
