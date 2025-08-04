@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.impl.predicates.SqlPredicate;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.hazelcast.DistributedSQLIterationType;
@@ -64,7 +65,7 @@ public class HazelcastDistributedSQLMessageSource extends AbstractMessageSource 
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected Collection<?> doReceive() {
+	protected @Nullable Collection<?> doReceive() {
 		final SqlPredicate predicate = new SqlPredicate(this.distributedSql);
 		Collection<?> collection =
 				switch (this.iterationType) {
