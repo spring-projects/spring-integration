@@ -31,6 +31,7 @@ import org.springframework.context.SmartLifecycle;
  * @author Artem Vozhdayenko
  * @author Artem Bilan
  * @author Jiri Soucek
+ * @author Jiandong Ma
  *
  * @since 6.0
  */
@@ -55,12 +56,16 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	@Nullable T getClient();
 
 	/**
-	 * @return the managed client url, never null
+	 * Return the managed client url.
+	 * @return the managed client url, never null.
+	 * @since 7.0
 	 */
 	String getUrl();
 
 	/**
-	 * @return the managed clientId, never null
+	 * Return the managed client id.
+	 * @return the managed client id, never null.
+	 * @since 7.0
 	 */
 	String getClientId();
 
