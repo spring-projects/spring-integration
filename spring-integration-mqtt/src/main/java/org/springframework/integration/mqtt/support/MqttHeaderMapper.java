@@ -24,11 +24,11 @@ import java.util.Map;
 
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.eclipse.paho.mqttv5.common.packet.UserProperty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -83,7 +83,7 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 
 	@Override
 	public void fromHeaders(MessageHeaders headers, MqttProperties target) {
-		for (Map.Entry<String, Object> entry : headers.entrySet()) {
+		for (Map.Entry<String, @Nullable Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
 			if (shouldMapHeader(name, this.outboundHeaderNames)) {
 				Object value = entry.getValue();
@@ -114,18 +114,16 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 		return headers;
 	}
 
-	private Object mapPropertyIfMatch(String headerName, @Nullable Object value) {
+	private @Nullable Object mapPropertyIfMatch(String headerName, @Nullable Object value) {
 		return (value != null && shouldMapHeader(headerName, this.inboundHeaderNames)) ? value : null;
 	}
 
 	private static boolean shouldMapHeader(String headerName, String[] patterns) {
-		if (patterns != null && patterns.length > 0) {
-			for (String pattern : patterns) {
-				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
-					LOGGER.debug(LogMessage.format("headerName=[%s] WILL be mapped, matched pattern=%s",
-							headerName, pattern));
-					return true;
-				}
+		for (String pattern : patterns) {
+			if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+				LOGGER.debug(LogMessage.format("headerName=[%s] WILL be mapped, matched pattern=%s",
+						headerName, pattern));
+				return true;
 			}
 		}
 		LOGGER.debug(LogMessage.format("headerName=[%s] WILL NOT be mapped", headerName));

@@ -29,9 +29,9 @@ import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.core.ClientManager;
@@ -41,7 +41,6 @@ import org.springframework.integration.mqtt.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
@@ -63,6 +62,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	private final MqttActionListener mqttPublishActionListener = new MqttPublishActionListener();
 
+	@SuppressWarnings("NullAway.Init")
 	private IMqttAsyncClient mqttClient;
 
 	@Nullable
@@ -144,7 +144,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		try {
 			var clientManager = getClientManager();
 			if (clientManager != null) {
-				this.mqttClient = clientManager.getClient();
+				IMqttAsyncClient client = clientManager.getClient();
+				Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
+				this.mqttClient = client;
 			}
 			else {
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
@@ -273,18 +275,12 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	@Override
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
 		MqttException cause = disconnectResponse.getException();
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-		}
+		getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, cause));
 	}
 
 	@Override
 	public void mqttErrorOccurred(MqttException exception) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new MqttProtocolErrorEvent(this, exception));
-		}
+		getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, exception));
 	}
 
 	@Override

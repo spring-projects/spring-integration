@@ -38,6 +38,7 @@ import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.eclipse.paho.mqttv5.common.packet.MqttReturnCode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +55,6 @@ import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -95,13 +95,15 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private final MqttConnectionOptions connectionOptions;
 
-	private List<MqttSubscription> subscriptions;
+	private @Nullable List<MqttSubscription> subscriptions;
 
+	@SuppressWarnings("NullAway.Init")
 	private IMqttAsyncClient mqttClient;
 
 	@Nullable
 	private MqttClientPersistence persistence;
 
+	@SuppressWarnings("NullAway.Init")
 	private SmartMessageConverter messageConverter;
 
 	private Class<?> payloadType = byte[].class;
@@ -259,10 +261,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				}
 			}
 			else {
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
 				logger.error(ex, "MQTT client failed to connect.");
 			}
 		}
@@ -276,7 +275,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 			}
 			else {
-				this.mqttClient = clientManager.getClient();
+				IMqttAsyncClient client = clientManager.getClient();
+				Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
+				this.mqttClient = client;
 			}
 		}
 		finally {
@@ -429,10 +430,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
 		if (isRunning()) {
 			MqttException cause = disconnectResponse.getException();
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-			}
+			getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, cause));
 		}
 		else {
 			// The 'connectComplete()' re-subscribes or sets this flag otherwise.
@@ -442,10 +440,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void mqttErrorOccurred(MqttException exception) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new MqttProtocolErrorEvent(this, exception));
-		}
+		getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, exception));
 	}
 
 	@Override
@@ -459,7 +454,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	@Override
-	public void connectComplete(boolean reconnect, String serverURI) {
+	public void connectComplete(boolean reconnect, @Nullable String serverURI) {
 		// The 'running' flag is set after 'doStart()', so possible a race condition
 		// when start is not finished yet, but server answers with successful connection.
 		if (isActive()) {
@@ -473,7 +468,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private void subscribe() {
 		var clientManager = getClientManager();
 		if (clientManager != null && this.mqttClient == null) {
-			this.mqttClient = clientManager.getClient();
+			IMqttAsyncClient client = clientManager.getClient();
+			Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
+			this.mqttClient = client;
 		}
 
 		MqttSubscription[] mqttSubscriptions = obtainSubscriptions();
@@ -490,14 +487,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(mqttSubscriptions);
 			logger.debug(message);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-			}
+			applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 		}
 		catch (MqttException ex) {
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-			}
+			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(mqttSubscriptions));
 		}
 		finally {
@@ -505,7 +498,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 	}
 
-	private MqttSubscription[] obtainSubscriptions() {
+	private MqttSubscription @Nullable [] obtainSubscriptions() {
 		if (this.subscriptions != null) {
 			return this.subscriptions.toArray(new MqttSubscription[0]);
 		}

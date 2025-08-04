@@ -20,6 +20,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -55,10 +56,11 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	private final MessageProcessor<Boolean> retainedProcessor;
 
-	private BytesMessageMapper bytesMessageMapper;
+	private @Nullable BytesMessageMapper bytesMessageMapper;
 
 	private boolean payloadAsBytes = false;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
@@ -161,9 +163,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;
@@ -196,7 +196,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	}
 
 	@Override
-	public Message<?> toMessage(Object mqttMessage, MessageHeaders headers) {
+	public @Nullable Message<?> toMessage(Object mqttMessage, @Nullable MessageHeaders headers) {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage,
 				() -> "This converter can only convert an 'MqttMessage'; received: "
 						+ mqttMessage.getClass().getName());
@@ -204,7 +204,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	}
 
 	@Override
-	public AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
+	public AbstractIntegrationMessageBuilder<?> toMessageBuilder(@Nullable String topic, MqttMessage mqttMessage) {
 		try {
 			AbstractIntegrationMessageBuilder<?> messageBuilder;
 			if (this.bytesMessageMapper != null) {

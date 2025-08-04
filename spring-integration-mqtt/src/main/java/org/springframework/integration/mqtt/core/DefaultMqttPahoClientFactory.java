@@ -23,6 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -39,7 +40,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private MqttConnectOptions options = new MqttConnectOptions();
 
-	private MqttClientPersistence persistence;
+	private @Nullable MqttClientPersistence persistence;
 
 	/**
 	 * Set the persistence to pass into the client constructor.
@@ -50,13 +51,13 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	}
 
 	@Override
-	public IMqttClient getClientInstance(String uri, String clientId) throws MqttException {
+	public IMqttClient getClientInstance(@Nullable String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
 	@Override
-	public IMqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+	public IMqttAsyncClient getAsyncClientInstance(@Nullable String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttAsyncClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}

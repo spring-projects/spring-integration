@@ -29,6 +29,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -71,6 +72,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	private final MqttPahoClientFactory clientFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile IMqttAsyncClient client;
 
 	private volatile boolean readyToSubscribeOnStart;
@@ -175,10 +177,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 			else {
 				logger.error(ex, "Exception while connecting");
-				var applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
 		}
 	}
@@ -198,7 +197,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 				this.client.setManualAcks(isManualAcks());
 			}
 			else {
-				this.client = clientManager.getClient();
+				IMqttAsyncClient theClient = clientManager.getClient();
+				Assert.state(theClient != null, "The 'client' must not be null, consider to start the 'clientManager'.");
+				this.client = theClient;
 			}
 		}
 		finally {
@@ -312,10 +313,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			}
 		}
 		catch (MqttException ex) {
-
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-			}
+			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
@@ -324,9 +322,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		if (this.client.isConnected()) {
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-			}
+			applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 		}
 	}
 
@@ -347,10 +343,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		try {
 			if (isRunning()) {
 				this.logger.error(() -> "Lost connection: " + cause.getMessage());
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 			else {
 				// The 'connectComplete()' re-subscribes or sets this flag otherwise.
@@ -381,6 +374,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private AbstractIntegrationMessageBuilder<?> toMessageBuilder(String topic, MqttMessage mqttMessage) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		Exception conversionError = null;
@@ -422,7 +416,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@Override
-	public void connectComplete(boolean reconnect, String serverURI) {
+	public void connectComplete(boolean reconnect, @Nullable String serverURI) {
 		// The 'running' flag is set after 'doStart()', so possible a race condition
 		// when start is not finished yet, but server answers with successful connection.
 		if (isActive()) {

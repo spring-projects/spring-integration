@@ -24,8 +24,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
@@ -62,7 +62,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 
 	private final IMqttActionListener mqttPublishActionListener = new MqttPublishActionListener();
 
-	private volatile IMqttAsyncClient client;
+	private volatile @Nullable IMqttAsyncClient client;
 
 	/**
 	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
@@ -131,9 +131,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		if (converter == null) {
 			DefaultPahoMessageConverter defaultConverter = new DefaultPahoMessageConverter(getDefaultQos(),
 					getQosProcessor(), getDefaultRetained(), getRetainedProcessor());
-			if (getBeanFactory() != null) {
-				defaultConverter.setBeanFactory(getBeanFactory());
-			}
+			defaultConverter.setBeanFactory(getBeanFactory());
 			setConverter(defaultConverter);
 		}
 		else {
@@ -168,7 +166,9 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		try {
 			var theClientManager = getClientManager();
 			if (theClientManager != null) {
-				return theClientManager.getClient();
+				IMqttAsyncClient theClient = theClientManager.getClient();
+				Assert.state(theClient != null, "The 'client' must not be null, consider to start the 'clientManager'.");
+				return theClient;
 			}
 
 			if (this.client != null && !this.client.isConnected()) {
@@ -192,10 +192,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 						this.client.close();
 						this.client = null;
 					}
-					ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
-					}
+					getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, e));
 					throw new MessagingException("Failed to connect", e);
 				}
 			}
@@ -238,10 +235,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 					// NOSONAR
 				}
 				this.client = null;
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-				}
+				getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 		}
 		finally {

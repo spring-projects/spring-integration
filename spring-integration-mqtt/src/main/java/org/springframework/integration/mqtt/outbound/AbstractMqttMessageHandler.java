@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,7 +37,6 @@ import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -73,11 +74,11 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
-	private final String url;
+	private final @Nullable String url;
 
 	private final String clientId;
 
-	private final ClientManager<T, C> clientManager;
+	private final @Nullable ClientManager<T, C> clientManager;
 
 	private boolean async;
 
@@ -87,7 +88,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 
 	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
-	private String defaultTopic;
+	private @Nullable String defaultTopic;
 
 	private MessageProcessor<String> topicProcessor = DEFAULT_TOPIC_PROCESSOR;
 
@@ -99,8 +100,10 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 
 	private MessageProcessor<Boolean> retainedProcessor = MqttMessageConverter.defaultRetainedProcessor();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageConverter converter;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private int clientInstance;
@@ -115,8 +118,8 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	public AbstractMqttMessageHandler(ClientManager<T, C> clientManager) {
 		Assert.notNull(clientManager, "'clientManager' cannot be null or empty");
 		this.clientManager = clientManager;
-		this.url = null;
-		this.clientId = null;
+		this.url = clientManager.getUrl();
+		this.clientId = clientManager.getClientId();
 	}
 
 	@Override
@@ -138,7 +141,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		this.defaultTopic = defaultTopic;
 	}
 
-	protected String getDefaultTopic() {
+	protected @Nullable String getDefaultTopic() {
 		return this.defaultTopic;
 	}
 
@@ -270,7 +273,6 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		return this.url;
 	}
 
-	@Nullable
 	public String getClientId() {
 		return this.clientId;
 	}
@@ -356,16 +358,14 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	protected void onInit() {
 		super.onInit();
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			if (this.topicProcessor instanceof BeanFactoryAware beanFactoryAware) {
-				beanFactoryAware.setBeanFactory(beanFactory);
-			}
-			if (this.qosProcessor instanceof BeanFactoryAware beanFactoryAware) {
-				beanFactoryAware.setBeanFactory(beanFactory);
-			}
-			if (this.retainedProcessor instanceof BeanFactoryAware beanFactoryAware) {
-				beanFactoryAware.setBeanFactory(beanFactory);
-			}
+		if (this.topicProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
+		}
+		if (this.qosProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
+		}
+		if (this.retainedProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -395,37 +395,36 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
+		Assert.state(mqttMessage != null,
+				() -> "The MQTT payload cannot be null. The '" + this.converter + "' returned null for: " + message);
+
 		String topic = this.topicProcessor.processMessage(message);
 		if (topic == null) {
 			topic = this.defaultTopic;
 		}
-
 		Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
 
 		publish(topic, mqttMessage, message);
 	}
 
 	protected void messageSentEvent(Message<?> message, String topic, int messageId) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(
 					new MqttMessageSentEvent(this, message, topic, messageId, getClientId(),
 							getClientInstance()));
 		}
 	}
 
 	protected void sendDeliveryCompleteEvent(int messageId) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(
 					new MqttMessageDeliveredEvent(this, messageId, getClientId(), getClientInstance()));
 		}
 	}
 
 	protected void sendFailedDeliveryEvent(int messageId, Throwable exception) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(
 					new MqttMessageNotDeliveredEvent(this, messageId, getClientId(), getClientInstance(), exception));
 		}
 	}
