@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
 
@@ -72,9 +74,8 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 		return "stream:stdin-channel-adapter(byte)";
 	}
 
-	@SuppressWarnings("NullAway")
 	@Override
-	protected byte[] doReceive() {
+	protected byte @Nullable [] doReceive() {
 		try {
 			byte[] bytes;
 			int bytesRead = 0;
