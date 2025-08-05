@@ -151,7 +151,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		}
 	}
 
-	private String pathFor(String input) {
+	protected String pathFor(String input) {
 		return UUIDConverter.getUUID(input).toString();
 	}
 
