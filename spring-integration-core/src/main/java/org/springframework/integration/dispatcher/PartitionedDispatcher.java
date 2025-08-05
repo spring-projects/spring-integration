@@ -17,9 +17,7 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -60,7 +58,7 @@ import org.springframework.util.ErrorHandler;
  */
 public class PartitionedDispatcher extends AbstractDispatcher {
 
-	private final Map<Integer, UnicastingDispatcher> partitions = new HashMap<>();
+	private final List<UnicastingDispatcher> partitions = new ArrayList<>();
 
 	private final List<ExecutorService> executors = new ArrayList<>();
 
@@ -164,7 +162,6 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	@Override
-	@SuppressWarnings("NullAway") // The partitions map never returns null according to partition hash
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
@@ -177,11 +174,9 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 			this.lock.lock();
 			try {
 				if (this.partitions.isEmpty()) {
-					Map<Integer, UnicastingDispatcher> partitionsToUse = new HashMap<>();
 					for (int i = 0; i < this.partitionCount; i++) {
-						partitionsToUse.put(i, newPartition());
+						this.partitions.add(newPartition());
 					}
-					this.partitions.putAll(partitionsToUse);
 				}
 			}
 			finally {
