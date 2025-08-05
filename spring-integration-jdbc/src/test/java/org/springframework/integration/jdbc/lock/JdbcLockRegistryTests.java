@@ -613,6 +613,26 @@ class JdbcLockRegistryTests {
 				.isThrownBy(lock::unlock);
 	}
 
+	@Test
+	void testPathForCanBeOverridden() {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client) {
+			@Override
+			protected String pathFor(String input) {
+				return input;
+			}
+		};
+
+		final String lockKey = "foo";
+		Lock lock = registry.obtain(lockKey);
+		String lockPath = TestUtils.getPropertyValue(lock, "path", String.class);
+
+		assertThat(lockPath).isEqualTo(lockKey);
+	}
+
 	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
