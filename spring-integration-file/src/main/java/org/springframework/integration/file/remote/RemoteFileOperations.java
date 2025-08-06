@@ -108,7 +108,7 @@ public interface RemoteFileOperations<F> {
 	boolean remove(String path);
 
 	/**
-	 *
+	 * Rename a remote file, creating directories if needed.
 	 * @param fromPath The current path.
 	 * @param toPath The new path.
 	 */

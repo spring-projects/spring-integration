@@ -62,12 +62,12 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 	private record HeadFilter(int maxNumberOfFiles) implements FileListFilter<File> {
 
 		@Override
-			public List<File> filterFiles(File @Nullable [] files) {
-				return files == null
-						? List.of()
-						: Arrays.asList(files).subList(0, Math.min(files.length, this.maxNumberOfFiles));
-			}
-
+		public List<File> filterFiles(File @Nullable [] files) {
+			return files == null
+					? List.of()
+					: Arrays.asList(files).subList(0, Math.min(files.length, this.maxNumberOfFiles));
 		}
+
+	}
 
 }

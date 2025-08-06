@@ -259,7 +259,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 * Polls from the file source. If the result is not null, it will be returned.
 	 * If the result is null, it attempts to sync up with the remote directory to populate the file source.
 	 * At most, maxFetchSize files will be fetched.
-	 * Then, it polls the file source again and returns the result, whether it is null.
+	 * Then, it polls the file source again and returns the result.
 	 * @param maxFetchSize the maximum files to fetch.
 	 */
 	@Override

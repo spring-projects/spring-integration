@@ -532,8 +532,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 
 		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
-		if (payload instanceof File) {
-			timestamp = ((File) payload).lastModified();
+		if (payload instanceof File filePayload) {
+			timestamp = filePayload.lastModified();
 		}
 		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode) // NOSONAR
 				&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
