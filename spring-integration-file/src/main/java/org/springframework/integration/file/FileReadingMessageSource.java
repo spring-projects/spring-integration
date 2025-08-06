@@ -372,7 +372,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	}
 
 	@Override
-	protected @org.jspecify.annotations.Nullable AbstractIntegrationMessageBuilder<File> doReceive() {
+	protected @Nullable AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
 			scanInputDirectory();
