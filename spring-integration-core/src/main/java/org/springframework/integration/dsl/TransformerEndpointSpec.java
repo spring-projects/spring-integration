@@ -47,21 +47,19 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 
 	private final AtomicBoolean transformerSet = new AtomicBoolean();
 
-	private Expression expression;
+	private @Nullable Expression expression;
 
-	private Object ref;
+	private @Nullable Object ref;
 
-	private String refName;
+	private @Nullable String refName;
 
-	@Nullable
-	private String method;
+	private @Nullable String method;
 
-	private GenericTransformer<?, ?> transformer;
+	private @Nullable GenericTransformer<?, ?> transformer;
 
-	@Nullable
-	private Class<?> expectedType;
+	private @Nullable Class<?> expectedType;
 
-	private MessageProcessorSpec<?> processor;
+	private @Nullable MessageProcessorSpec<?> processor;
 
 	protected TransformerEndpointSpec() {
 		super(new MessageTransformingHandler());
@@ -184,7 +182,7 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		Transformer transformer;
 		if (this.expression != null) {
 			transformer = new ExpressionEvaluatingTransformer(this.expression);
@@ -206,7 +204,7 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 			transformer = new MethodInvokingTransformer(targetProcessor);
 		}
 		else if (this.transformer != null) {
-			transformer = wrapToTransformerIfAny();
+			transformer = wrapToTransformerIfAny(this.transformer);
 		}
 		else {
 			throw new IllegalStateException(
@@ -219,11 +217,11 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 		return super.getComponentsToRegister();
 	}
 
-	private Transformer wrapToTransformerIfAny() {
-		return this.transformer instanceof Transformer castTransformer ? castTransformer :
-				(ClassUtils.isLambda(this.transformer)
-						? new MethodInvokingTransformer(new LambdaMessageProcessor(this.transformer, this.expectedType))
-						: new MethodInvokingTransformer(this.transformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
+	private Transformer wrapToTransformerIfAny(GenericTransformer<?, ?> transformer) {
+		return transformer instanceof Transformer castTransformer ? castTransformer :
+				(ClassUtils.isLambda(transformer)
+						? new MethodInvokingTransformer(new LambdaMessageProcessor(transformer, this.expectedType))
+						: new MethodInvokingTransformer(transformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 	}
 
 }

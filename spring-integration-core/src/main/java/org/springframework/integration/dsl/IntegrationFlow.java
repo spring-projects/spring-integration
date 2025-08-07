@@ -71,7 +71,6 @@ import org.springframework.util.Assert;
  *               .aggregate()
  *               .channel(MessageChannels.queue("routerTwoSubFlowsOutput"));
  * }
- *
  * </pre>
  * <p>
  * Also, this interface can be implemented directly to encapsulate the integration logic
@@ -115,8 +114,7 @@ public interface IntegrationFlow {
 	 * @return the channel.
 	 * @since 5.0.4
 	 */
-	@Nullable
-	default MessageChannel getInputChannel() {
+	default @Nullable MessageChannel getInputChannel() {
 		return null;
 	}
 
@@ -125,8 +123,8 @@ public interface IntegrationFlow {
 	 * @return the map of integration components managed by this flow.
 	 * @since 5.5.4
 	 */
-	default Map<Object, String> getIntegrationComponents() {
-		return Collections.emptyMap();
+	default Map<Object, @Nullable String> getIntegrationComponents() {
+		return Collections.<Object, @Nullable String>emptyMap();
 	}
 
 	/**
@@ -281,7 +279,7 @@ public interface IntegrationFlow {
 	/**
 	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link IntegrationFlow} {@code startMessageSource}.
-	 * In addition use {@link SourcePollingChannelAdapterSpec} to provide options for the underlying
+	 * In addition, use {@link SourcePollingChannelAdapterSpec} to provide options for the underlying
 	 * {@link org.springframework.integration.endpoint.SourcePollingChannelAdapter} endpoint.
 	 * @param messageSource      the {@link MessageSource} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
@@ -441,7 +439,7 @@ public interface IntegrationFlow {
 	 */
 	@SuppressWarnings("overloads")
 	static IntegrationFlowBuilder from(IntegrationFlow other) {
-		Map<Object, String> integrationComponents = other.getIntegrationComponents();
+		Map<Object, @Nullable String> integrationComponents = other.getIntegrationComponents();
 		Assert.notEmpty(integrationComponents, () ->
 				"The provided integration flow to compose from '" + other +
 						"' must be declared as a bean in the application context");
@@ -499,9 +497,8 @@ public interface IntegrationFlow {
 		return null;
 	}
 
-	@Nullable
 	@SuppressWarnings("unchecked")
-	private static <T> T extractProxyTarget(@Nullable T target) {
+	static <T> @Nullable T extractProxyTarget(@Nullable T target) {
 		if (!(target instanceof Advised advised)) {
 			return target;
 		}

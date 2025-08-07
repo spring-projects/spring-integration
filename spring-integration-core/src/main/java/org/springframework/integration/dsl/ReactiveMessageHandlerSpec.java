@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.messaging.ReactiveMessageHandler;
 
@@ -44,8 +46,8 @@ public abstract class ReactiveMessageHandlerSpec<S extends ReactiveMessageHandle
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.reactiveMessageHandler, null);
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		return Collections.<Object, @Nullable String>singletonMap(this.reactiveMessageHandler, null);
 	}
 
 }

@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactor.core.publisher.Flux;
@@ -37,7 +38,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 
 	private final Publisher<Message<T>> delegate;
 
-	PublisherIntegrationFlow(Map<Object, String> integrationComponents, Publisher<Message<T>> publisher,
+	PublisherIntegrationFlow(Map<Object, @Nullable String> integrationComponents, Publisher<Message<T>> publisher,
 			boolean autoStartOnSubscribe) {
 
 		super(integrationComponents);

@@ -18,7 +18,6 @@ package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -59,10 +58,8 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 	}
 
 	@Override
-	protected S id(@Nullable String id) {
-		if (id != null) {
-			this.jmsChannelFactoryBean.setBeanName(id);
-		}
+	protected S id(String id) {
+		this.jmsChannelFactoryBean.setBeanName(id);
 		return super.id(id);
 	}
 

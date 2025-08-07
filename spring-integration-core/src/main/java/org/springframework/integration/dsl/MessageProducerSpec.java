@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
@@ -37,7 +35,10 @@ import org.springframework.messaging.MessageChannel;
 public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P extends MessageProducerSupport>
 		extends IntegrationComponentSpec<S, P> {
 
-	public MessageProducerSpec(@Nullable P producer) {
+	public MessageProducerSpec() {
+	}
+
+	public MessageProducerSpec(P producer) {
 		this.target = producer;
 	}
 
@@ -46,7 +47,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * Configure the message producer's bean name.
 	 */
 	@Override
-	public S id(@Nullable String id) {
+	public S id(String id) {
 		this.target.setBeanName(id);
 		return super.id(id);
 	}

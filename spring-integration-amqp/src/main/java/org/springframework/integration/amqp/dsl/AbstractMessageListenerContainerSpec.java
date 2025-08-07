@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessagePostProcessor;
@@ -56,7 +55,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	}
 
 	@Override
-	public S id(@Nullable String id) { // NOSONAR - not useless, increases visibility
+	public S id(String id) {
 		return super.id(id);
 	}
 

@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.MessageChannel;
@@ -43,15 +45,16 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 		extends IntegrationComponentSpec<S, C>
 		implements ComponentsRegistration {
 
-	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	private final Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>();
 
 	private final List<Class<?>> datatypes = new ArrayList<>();
 
 	private final List<ChannelInterceptor> interceptors = new LinkedList<>();
 
-	protected C channel; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected C channel;
 
-	private MessageConverter messageConverter;
+	private @Nullable MessageConverter messageConverter;
 
 	protected MessageChannelSpec() {
 	}
@@ -111,16 +114,20 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 
 	@Override
 	protected C doGet() {
 		this.channel.setDatatypes(this.datatypes.toArray(new Class<?>[0]));
-		this.channel.setBeanName(getId());
+		if (getId() != null) {
+			this.channel.setBeanName(getId());
+		}
 		this.channel.setInterceptors(this.interceptors);
-		this.channel.setMessageConverter(this.messageConverter);
+		if (this.messageConverter != null) {
+			this.channel.setMessageConverter(this.messageConverter);
+		}
 		return this.channel;
 	}
 

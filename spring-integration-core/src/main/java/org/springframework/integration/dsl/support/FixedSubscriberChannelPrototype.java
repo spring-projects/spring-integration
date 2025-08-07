@@ -34,7 +34,7 @@ import org.springframework.messaging.MessageChannel;
  */
 public class FixedSubscriberChannelPrototype implements MessageChannel {
 
-	private final String name;
+	private final @Nullable String name;
 
 	public FixedSubscriberChannelPrototype() {
 		this(null);
@@ -44,7 +44,7 @@ public class FixedSubscriberChannelPrototype implements MessageChannel {
 		this.name = name;
 	}
 
-	public String getName() {
+	public @Nullable String getName() {
 		return this.name;
 	}
 

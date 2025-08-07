@@ -16,8 +16,6 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -274,7 +272,7 @@ public final class Amqp {
 	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(
 			ConnectionFactory connectionFactory) {
 
-		return pollableChannel(null, connectionFactory);
+		return new AmqpPollableMessageChannelSpec<>(connectionFactory);
 	}
 
 	/**
@@ -283,7 +281,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpPollableMessageChannelSpec.
 	 */
-	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(@Nullable String id,
+	public static AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> pollableChannel(String id,
 			ConnectionFactory connectionFactory) {
 
 		AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> spec =
@@ -297,7 +295,7 @@ public final class Amqp {
 	 * @return the AmqpMessageChannelSpec.
 	 */
 	public static AmqpMessageChannelSpec<?, ?> channel(ConnectionFactory connectionFactory) {
-		return channel(null, connectionFactory);
+		return new AmqpMessageChannelSpec<>(connectionFactory);
 	}
 
 	/**
@@ -306,7 +304,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpMessageChannelSpec.
 	 */
-	public static AmqpMessageChannelSpec<?, ?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
+	public static AmqpMessageChannelSpec<?, ?> channel(String id, ConnectionFactory connectionFactory) {
 		return new AmqpMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -317,7 +315,7 @@ public final class Amqp {
 	 * @return the AmqpPublishSubscribeMessageChannelSpec.
 	 */
 	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(ConnectionFactory connectionFactory) {
-		return publishSubscribeChannel(null, connectionFactory);
+		return new AmqpPublishSubscribeMessageChannelSpec(connectionFactory);
 	}
 
 	/**
@@ -326,7 +324,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpPublishSubscribeMessageChannelSpec.
 	 */
-	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(@Nullable String id,
+	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
 			ConnectionFactory connectionFactory) {
 
 		return new AmqpPublishSubscribeMessageChannelSpec(connectionFactory).id(id);

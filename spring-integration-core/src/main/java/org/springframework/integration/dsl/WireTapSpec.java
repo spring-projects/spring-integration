@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.MessageSelector;
@@ -37,13 +39,13 @@ import org.springframework.util.Assert;
  */
 public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> implements ComponentsRegistration {
 
-	private final MessageChannel channel;
+	private final @Nullable MessageChannel channel;
 
-	private final String channelName;
+	private final @Nullable String channelName;
 
-	private MessageSelector selector;
+	private @Nullable MessageSelector selector;
 
-	private Long timeout;
+	private @Nullable Long timeout;
 
 	public WireTapSpec(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
@@ -83,6 +85,7 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> 
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // The constructors flow does not allow both 'channel' and 'channelName' to be null.
 	protected WireTap doGet() {
 		WireTap wireTap;
 		if (this.channel != null) {
@@ -99,12 +102,12 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> 
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.selector != null) {
-			return Collections.singletonMap(this.selector, null);
+			return Collections.<Object, @Nullable String>singletonMap(this.selector, null);
 		}
 		else {
-			return Collections.emptyMap();
+			return Collections.<Object, @Nullable String>emptyMap();
 		}
 	}
 

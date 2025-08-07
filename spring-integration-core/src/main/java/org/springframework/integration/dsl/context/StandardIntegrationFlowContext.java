@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.context;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -61,6 +62,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 	private final Lock registerFlowsLock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private DefaultListableBeanFactory beanFactory;
 
 	StandardIntegrationFlowContext() {
@@ -223,8 +225,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 */
 	@Override
 	public MessagingTemplate messagingTemplateFor(String flowId) {
-		return this.registry.get(flowId)
-				.getMessagingTemplate();
+		return Objects.requireNonNull(this.registry.get(flowId)).getMessagingTemplate();
 	}
 
 	/**
@@ -261,21 +262,19 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 */
 	public final class StandardIntegrationFlowRegistrationBuilder implements IntegrationFlowRegistrationBuilder {
 
-		private final Map<Object, String> additionalBeans = new HashMap<>();
+		private final Map<Object, @Nullable String> additionalBeans = new HashMap<>();
 
 		private IntegrationFlow integrationFlow;
 
-		private String id;
+		private @Nullable String id;
 
 		private boolean autoStartup = true;
 
 		private boolean idAsPrefix;
 
-		@Nullable
-		private Object source;
+		private @Nullable Object source;
 
-		@Nullable
-		private String description;
+		private @Nullable String description;
 
 		StandardIntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlow = integrationFlow;
@@ -377,9 +376,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		private final IntegrationFlow delegate;
 
-		private Object beanSource;
+		private @Nullable Object beanSource;
 
-		private String beanDescription;
+		private @Nullable String beanDescription;
 
 		IntegrationFlowComponentSourceAwareAdapter(IntegrationFlow delegate) {
 			this.delegate = delegate;
@@ -391,7 +390,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		}
 
 		@Override
-		public Object getComponentSource() {
+		public @Nullable Object getComponentSource() {
 			return this.beanSource;
 		}
 
@@ -401,7 +400,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		}
 
 		@Override
-		public String getComponentDescription() {
+		public @Nullable String getComponentDescription() {
 			return this.beanDescription;
 		}
 

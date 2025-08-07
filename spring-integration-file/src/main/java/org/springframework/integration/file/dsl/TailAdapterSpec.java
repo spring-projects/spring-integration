@@ -18,8 +18,6 @@ package org.springframework.integration.file.dsl;
 
 import java.io.File;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dsl.MessageProducerSpec;
@@ -43,7 +41,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	private final FileTailInboundChannelAdapterFactoryBean factoryBean = new FileTailInboundChannelAdapterFactoryBean();
 
 	protected TailAdapterSpec() {
-		super(null);
 		this.factoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}
 
@@ -153,10 +150,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	@Override
-	public TailAdapterSpec id(@Nullable String id) {
-		if (id != null) {
-			this.factoryBean.setBeanName(id);
-		}
+	public TailAdapterSpec id(String id) {
+		this.factoryBean.setBeanName(id);
 		return _this();
 	}
 

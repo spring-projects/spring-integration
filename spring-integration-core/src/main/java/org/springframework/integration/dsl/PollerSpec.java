@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -48,7 +49,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
-	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	private final Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>();
 
 	PollerSpec(Trigger trigger) {
 		this.target = new PollerMetadata();
@@ -190,7 +191,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 

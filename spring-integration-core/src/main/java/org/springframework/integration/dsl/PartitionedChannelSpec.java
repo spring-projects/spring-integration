@@ -35,11 +35,9 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 
 	private final int partitionCount;
 
-	@Nullable
-	private Function<Message<?>, Object> partitionKeyFunction;
+	private @Nullable Function<Message<?>, Object> partitionKeyFunction;
 
-	@Nullable
-	private ThreadFactory threadFactory;
+	private @Nullable ThreadFactory threadFactory;
 
 	protected PartitionedChannelSpec(int partitionCount) {
 		this.partitionCount = partitionCount;

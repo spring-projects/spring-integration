@@ -17,7 +17,6 @@
 package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -46,7 +45,7 @@ public abstract class JmsDestinationAccessorSpec<S extends JmsDestinationAccesso
 	}
 
 	@Override
-	public S id(@Nullable String id) { // NOSONAR - not useless, increases visibility
+	public S id(String id) {
 		return super.id(id);
 	}
 

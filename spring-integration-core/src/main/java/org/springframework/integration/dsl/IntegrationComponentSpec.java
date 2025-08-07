@@ -18,7 +18,6 @@ package org.springframework.integration.dsl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanInitializationException;
@@ -49,9 +48,10 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
+	@SuppressWarnings("NullAway.Init")
 	protected volatile T target; // NOSONAR
 
-	private String id;
+	private @Nullable String id;
 
 	/**
 	 * Configure the component identifier. Used as the {@code beanName} to register the
@@ -59,13 +59,12 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 * @param idToSet the id.
 	 * @return the spec.
 	 */
-	protected S id(@Nullable String idToSet) {
+	protected S id(String idToSet) {
 		this.id = idToSet;
 		return _this();
 	}
 
-	@Nullable
-	public final String getId() {
+	public final @Nullable String getId() {
 		return this.id;
 	}
 
@@ -78,13 +77,14 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 * !!! This method must not be called from the target configuration !!!
 	 * @return the object backed by this factory bean.
 	 */
-	@NonNull
 	@Override
 	public T getObject() {
-		if (this.target == null) {
-			this.target = doGet();
+		T targetToReturn = this.target;
+		if (targetToReturn == null) {
+			targetToReturn = doGet();
+			this.target = targetToReturn;
 		}
-		return this.target;
+		return targetToReturn;
 	}
 
 	@Override

@@ -29,7 +29,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 
-import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -130,15 +129,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser(); //NOSONAR - final
 
-	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>(); //NOSONAR - final
+	protected final Map<Object, @Nullable String> integrationComponents = new LinkedHashMap<>(); //NOSONAR - final
 
-	private MessageChannel currentMessageChannel;
+	private @Nullable MessageChannel currentMessageChannel;
 
-	private Object currentComponent;
+	private @Nullable Object currentComponent;
 
 	private boolean implicitChannel;
 
-	private StandardIntegrationFlow integrationFlow;
+	private @Nullable StandardIntegrationFlow integrationFlow;
 
 	protected BaseIntegrationFlowDefinition() {
 	}
@@ -152,14 +151,14 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return _this();
 	}
 
-	protected B addComponents(Map<Object, String> components) {
+	protected B addComponents(Map<Object, @Nullable String> components) {
 		if (!CollectionUtils.isEmpty(components)) {
 			this.integrationComponents.putAll(components);
 		}
 		return _this();
 	}
 
-	protected Map<Object, String> getIntegrationComponents() {
+	protected Map<Object, @Nullable String> getIntegrationComponents() {
 		return this.integrationComponents;
 	}
 
@@ -168,8 +167,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return _this();
 	}
 
-	@Nullable
-	protected Object getCurrentComponent() {
+	protected @Nullable Object getCurrentComponent() {
 		return this.currentComponent;
 	}
 
@@ -178,8 +176,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return _this();
 	}
 
-	@Nullable
-	protected MessageChannel getCurrentMessageChannel() {
+	protected @Nullable MessageChannel getCurrentMessageChannel() {
 		return this.currentMessageChannel;
 	}
 
@@ -1591,7 +1588,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B aggregate() {
-		return aggregate((Consumer<AggregatorSpec>) null);
+		return aggregate(null);
 	}
 
 	/**
@@ -1829,8 +1826,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean registerSubflowBridge = false;
 
-		Map<Object, String> componentsToRegister = null;
-		Map<Object, String> routerComponents = routerSpec.getComponentsToRegister();
+		Map<Object, @Nullable String> componentsToRegister = null;
+		Map<Object, @Nullable String> routerComponents = routerSpec.getComponentsToRegister();
 		if (!CollectionUtils.isEmpty(routerComponents)) {
 			componentsToRegister = new LinkedHashMap<>(routerComponents);
 			routerComponents.clear();
@@ -2571,7 +2568,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	protected <T> Publisher<Message<T>> toReactivePublisher(boolean autoStartOnSubscribe) {
 		MessageChannel channelForPublisher = getCurrentMessageChannel();
 		Publisher<Message<T>> publisher;
-		Map<Object, String> components = getIntegrationComponents();
+		Map<Object, @Nullable String> components = getIntegrationComponents();
 		if (channelForPublisher instanceof Publisher) {
 			publisher = (Publisher<Message<T>>) channelForPublisher;
 		}
@@ -2700,7 +2697,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						"EIP-method in the 'IntegrationFlow' definition.");
 			}
 
-			Map<Object, String> components = getIntegrationComponents();
+			Map<Object, @Nullable String> components = getIntegrationComponents();
 			if (components.size() == 1) {
 				Object currComponent = getCurrentComponent();
 				if (currComponent != null) {
@@ -2736,17 +2733,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 	}
 
-	@Nullable
-	protected static Object extractProxyTarget(@Nullable Object target) {
-		if (!(target instanceof Advised advised)) {
-			return target;
-		}
-		try {
-			return extractProxyTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			throw new BeanCreationException("Could not extract target", e);
-		}
+	protected static @Nullable Object extractProxyTarget(@Nullable Object target) {
+		return IntegrationFlow.extractProxyTarget(target);
 	}
 
 	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor, AopInfrastructureBean {

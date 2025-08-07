@@ -55,6 +55,7 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.DescriptiveResource;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -96,13 +97,16 @@ import org.springframework.util.StringValueResolver;
 public class IntegrationFlowBeanPostProcessor
 		implements BeanPostProcessor, ApplicationContextAware, SmartInitializingSingleton, AopInfrastructureBean {
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private StringValueResolver embeddedValueResolver;
 
+	@SuppressWarnings("NullAway.Init")
 	private DefaultListableBeanFactory beanFactory;
 
-	private volatile IntegrationFlowContext flowContext;
+	private volatile @Nullable IntegrationFlowContext flowContext;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -149,24 +153,27 @@ public class IntegrationFlowBeanPostProcessor
 		boolean registerBeanDefinitions = this.beanFactory.containsBeanDefinition(flowBeanName);
 		if (registerBeanDefinitions) {
 			BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition(flowBeanName);
-			flow.setComponentSource(beanDefinition.getSource());
-			flow.setComponentDescription(beanDefinition.getDescription());
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(beanDefinition.getSource(), flow::setComponentSource)
+					.acceptIfNotNull(beanDefinition.getDescription(), flow::setComponentDescription);
 		}
 		Object beanSource = flow.getComponentSource();
 		String beanDescription = flow.getComponentDescription();
 
 		String flowNamePrefix = flowBeanName + ".";
-		if (this.flowContext == null) {
-			this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
+		IntegrationFlowContext flowContextToUse = this.flowContext;
+		if (flowContextToUse == null) {
+			flowContextToUse = this.beanFactory.getBean(IntegrationFlowContext.class);
+			this.flowContext = flowContextToUse;
 		}
-		boolean useFlowIdAsPrefix = this.flowContext.isUseIdAsPrefix(flowBeanName);
+		boolean useFlowIdAsPrefix = flowContextToUse.isUseIdAsPrefix(flowBeanName);
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;
 
-		Map<Object, String> integrationComponents = flow.getIntegrationComponents();
-		Map<Object, String> targetIntegrationComponents = new LinkedHashMap<>(integrationComponents.size());
+		Map<Object, @Nullable String> integrationComponents = flow.getIntegrationComponents();
+		Map<Object, @Nullable String> targetIntegrationComponents = new LinkedHashMap<>(integrationComponents.size());
 
-		for (Map.Entry<Object, String> entry : integrationComponents.entrySet()) {
+		for (Map.Entry<Object, @Nullable String> entry : integrationComponents.entrySet()) {
 			Object component = entry.getKey();
 			if (component instanceof ConsumerEndpointSpec<?, ?> endpointSpec) {
 				MessageHandler messageHandler = endpointSpec.getObject().getT2();
@@ -206,7 +213,7 @@ public class IntegrationFlowBeanPostProcessor
 				targetIntegrationComponents.put(channelByName, channelBeanName);
 			}
 			else if (component instanceof SourcePollingChannelAdapterSpec spec) {
-				Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
+				Map<Object, @Nullable String> componentsToRegister = spec.getComponentsToRegister();
 				if (!CollectionUtils.isEmpty(componentsToRegister)) {
 					componentsToRegister.entrySet()
 							.stream()
@@ -259,7 +266,7 @@ public class IntegrationFlowBeanPostProcessor
 					}
 					else if (component instanceof FixedSubscriberChannel fixedSubscriberChannel) {
 						String channelBeanName = fixedSubscriberChannel.getComponentName();
-						if ("Unnamed fixed subscriber channel".equals(channelBeanName)) {
+						if ("Unnamed fixed subscriber channel" .equals(channelBeanName)) {
 							channelBeanName = flowNamePrefix + "channel" +
 									BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
 						}
@@ -380,15 +387,20 @@ public class IntegrationFlowBeanPostProcessor
 		invokeBeanInitializationHooks(beanName, target);
 
 		if (bean instanceof ComponentsRegistration componentsRegistration) {
-			Map<Object, String> componentsToRegister = componentsRegistration.getComponentsToRegister();
+			Map<Object, @Nullable String> componentsToRegister = componentsRegistration.getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
 				boolean registerBeanDefinitions = this.beanFactory.containsBeanDefinition(beanName);
-				BeanDefinition beanDefinition = null;
+				Object beanDefinitionSource;
+				String beanDefinitionDescription;
 				if (registerBeanDefinitions) {
-					beanDefinition = this.beanFactory.getBeanDefinition(beanName);
+					BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition(beanName);
+					beanDefinitionSource = beanDefinition.getSource();
+					beanDefinitionDescription = beanDefinition.getDescription();
 				}
-				Object beanDefinitionSource = registerBeanDefinitions ? beanDefinition.getSource() : null;
-				String beanDefinitionDescription = registerBeanDefinitions ? beanDefinition.getDescription() : null;
+				else {
+					beanDefinitionSource = null;
+					beanDefinitionDescription = null;
+				}
 				componentsToRegister.entrySet()
 						.stream()
 						.filter(component -> noBeanPresentForComponent(component.getKey(), beanName))
@@ -514,8 +526,9 @@ public class IntegrationFlowBeanPostProcessor
 			@Nullable String description, @Nullable String parentName) {
 
 		if (component instanceof ComponentSourceAware componentSourceAware) {
-			componentSourceAware.setComponentSource(source);
-			componentSourceAware.setComponentDescription(description);
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(source, componentSourceAware::setComponentSource)
+					.acceptIfNotNull(description, componentSourceAware::setComponentDescription);
 		}
 
 		if (parentName != null) {
