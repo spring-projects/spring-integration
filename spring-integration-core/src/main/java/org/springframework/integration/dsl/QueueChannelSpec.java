@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroupQueue;
@@ -31,9 +33,9 @@ import org.springframework.messaging.Message;
  */
 public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, QueueChannel> {
 
-	protected Queue<Message<?>> queue; // NOSONAR
+	protected @Nullable Queue<Message<?>> queue; // NOSONAR
 
-	protected Integer capacity; // NOSONAR
+	protected @Nullable Integer capacity; // NOSONAR
 
 	protected QueueChannelSpec() {
 	}
@@ -69,7 +71,7 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 
 		private final Object groupId;
 
-		private Lock storeLock;
+		private @Nullable Lock storeLock;
 
 		protected MessageStoreSpec(ChannelMessageStore messageGroupStore, Object groupId) {
 			this.messageGroupStore = messageGroupStore;
@@ -77,7 +79,7 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 		}
 
 		@Override
-		protected MessageStoreSpec id(String id) {
+		protected MessageStoreSpec id(@Nullable String id) {
 			return (MessageStoreSpec) super.id(id);
 		}
 

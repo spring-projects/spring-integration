@@ -37,7 +37,10 @@ import org.springframework.messaging.MessageChannel;
 public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P extends MessageProducerSupport>
 		extends IntegrationComponentSpec<S, P> {
 
-	public MessageProducerSpec(@Nullable P producer) {
+	public MessageProducerSpec() {
+	}
+
+	public MessageProducerSpec(P producer) {
 		this.target = producer;
 	}
 
@@ -47,7 +50,9 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 */
 	@Override
 	public S id(@Nullable String id) {
-		this.target.setBeanName(id);
+		if (id != null) {
+			this.target.setBeanName(id);
+		}
 		return super.id(id);
 	}
 

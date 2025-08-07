@@ -72,19 +72,20 @@ import org.springframework.messaging.MessageChannel;
 public class StandardIntegrationFlow
 		implements IntegrationFlow, SmartLifecycle, ComponentSourceAware, NamedComponent {
 
-	private final Map<Object, String> integrationComponents;
+	private final Map<Object, @Nullable String> integrationComponents;
 
-	private MessageChannel inputChannel;
+	private @Nullable MessageChannel inputChannel;
 
-	private boolean running;
+	private @Nullable boolean running;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private Object beanSource;
+	private @Nullable Object beanSource;
 
-	private String beanDescription;
+	private @Nullable String beanDescription;
 
-	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
+	StandardIntegrationFlow(Map<Object, @Nullable String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
 	}
 
@@ -108,9 +109,8 @@ public class StandardIntegrationFlow
 		this.beanSource = source;
 	}
 
-	@Nullable
 	@Override
-	public Object getComponentSource() {
+	public @Nullable Object getComponentSource() {
 		return this.beanSource;
 	}
 
@@ -119,15 +119,13 @@ public class StandardIntegrationFlow
 		this.beanDescription = description;
 	}
 
-	@Nullable
 	@Override
-	public String getComponentDescription() {
+	public @Nullable String getComponentDescription() {
 		return this.beanDescription;
 	}
 
-	@Nullable
 	@Override
-	public String getBeanName() {
+	public @Nullable String getBeanName() {
 		return this.beanName;
 	}
 
@@ -136,9 +134,8 @@ public class StandardIntegrationFlow
 		throw new UnsupportedOperationException();
 	}
 
-	@Nullable
 	@Override
-	public MessageChannel getInputChannel() {
+	public @Nullable MessageChannel getInputChannel() {
 		if (this.inputChannel == null) {
 			this.inputChannel =
 					this.integrationComponents.keySet()
@@ -153,13 +150,13 @@ public class StandardIntegrationFlow
 		return this.inputChannel;
 	}
 
-	public void setIntegrationComponents(Map<Object, String> integrationComponents) {
+	public void setIntegrationComponents(Map<Object, @Nullable String> integrationComponents) {
 		this.integrationComponents.clear();
 		this.integrationComponents.putAll(integrationComponents);
 	}
 
-	public Map<Object, String> getIntegrationComponents() {
-		return Collections.unmodifiableMap(this.integrationComponents);
+	public Map<Object, @Nullable String> getIntegrationComponents() {
+		return Collections.<Object, @Nullable String>unmodifiableMap(this.integrationComponents);
 	}
 
 	@Override

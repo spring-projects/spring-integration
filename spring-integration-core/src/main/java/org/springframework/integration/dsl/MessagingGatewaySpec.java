@@ -43,7 +43,9 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 
 	@Override
 	public S id(@Nullable String id) {
-		this.target.setBeanName(id);
+		if (id != null) {
+			this.target.setBeanName(id);
+		}
 		return super.id(id);
 	}
 

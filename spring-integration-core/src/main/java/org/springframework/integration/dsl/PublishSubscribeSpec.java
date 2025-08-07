@@ -45,7 +45,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	}
 
 	@Override
-	public PublishSubscribeSpec id(String id) { // NOSONAR - not useless, increases visibility
+	public PublishSubscribeSpec id(@Nullable String id) { // NOSONAR - not useless, increases visibility
 		return super.id(id);
 	}
 
@@ -55,8 +55,8 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		Map<Object, String> objects = new LinkedHashMap<>();
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		Map<Object, @Nullable String> objects = new LinkedHashMap<>();
 		objects.putAll(super.getComponentsToRegister());
 		objects.putAll(this.delegate.getComponentsToRegister());
 		return objects;

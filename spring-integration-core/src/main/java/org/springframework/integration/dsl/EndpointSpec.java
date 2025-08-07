@@ -49,13 +49,18 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		extends IntegrationComponentSpec<S, Tuple2<F, H>>
 		implements ComponentsRegistration {
 
-	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>(); // NOSONAR final
+	protected final Map<Object, @Nullable String> componentsToRegister = new LinkedHashMap<>(); // NOSONAR final
 
 	protected final F endpointFactoryBean; // NOSONAR final
 
-	protected H handler; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected H handler;
 
-	protected EndpointSpec(@Nullable H handler, F endpointFactoryBean) {
+	protected EndpointSpec(F endpointFactoryBean) {
+		this.endpointFactoryBean = endpointFactoryBean;
+	}
+
+	protected EndpointSpec(H handler, F endpointFactoryBean) {
 		this.endpointFactoryBean = endpointFactoryBean;
 		this.handler = handler;
 	}
@@ -85,7 +90,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @see PollerSpec
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
-		Map<Object, String> components = pollerMetadataSpec.getComponentsToRegister();
+		Map<Object, @Nullable String> components = pollerMetadataSpec.getComponentsToRegister();
 		this.componentsToRegister.putAll(components);
 		return poller(pollerMetadataSpec.getObject());
 	}
@@ -122,17 +127,14 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	public abstract S role(String role);
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 
 	@Override
 	protected Tuple2<F, H> doGet() {
-		return Tuples.of(this.endpointFactoryBean, this.handler);
-	}
-
-	protected void assertHandler() {
 		Assert.state(this.handler != null, "'this.handler' must not be null.");
+		return Tuples.of(this.endpointFactoryBean, this.handler);
 	}
 
 	/**

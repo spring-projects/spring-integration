@@ -45,17 +45,13 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
-	@Nullable
-	private MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	@Nullable
-	private String discardChannelName;
+	private @Nullable String discardChannelName;
 
-	@Nullable
-	private Long triggerTimeout;
+	private @Nullable Long triggerTimeout;
 
 	protected BarrierSpec(long timeout) {
-		super(null);
 		this.timeout = timeout;
 	}
 

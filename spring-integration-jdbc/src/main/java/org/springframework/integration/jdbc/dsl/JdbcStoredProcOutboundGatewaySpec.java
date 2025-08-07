@@ -89,8 +89,8 @@ public class JdbcStoredProcOutboundGatewaySpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.storedProcExecutor, null);
+	public Map<Object, @Nullable String> getComponentsToRegister() {
+		return Collections.<Object, @Nullable String>singletonMap(this.storedProcExecutor, null);
 	}
 
 }

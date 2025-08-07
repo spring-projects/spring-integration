@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -36,7 +38,7 @@ public class BroadcastPublishSubscribeSpec
 		extends IntegrationComponentSpec<BroadcastPublishSubscribeSpec, BroadcastCapableChannel>
 		implements ComponentsRegistration {
 
-	private final Map<Object, String> subscriberFlows = new LinkedHashMap<>();
+	private final Map<Object, @Nullable String> subscriberFlows = new LinkedHashMap<>();
 
 	private int order;
 
@@ -74,7 +76,7 @@ public class BroadcastPublishSubscribeSpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.subscriberFlows;
 	}
 

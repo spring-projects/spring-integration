@@ -40,7 +40,7 @@ import org.springframework.integration.store.MessageGroup;
  */
 public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, AggregatingMessageHandler> {
 
-	private Function<MessageGroup, Map<String, Object>> headersFunction;
+	private @Nullable Function<MessageGroup, Map<String, Object>> headersFunction;
 
 	protected AggregatorSpec() {
 		super(new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor()));
@@ -123,7 +123,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		if (this.headersFunction != null) {
 			MessageGroupProcessor outputProcessor = this.handler.getOutputProcessor();
 			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor abstractAggregatingMessageGroupProcessor) {

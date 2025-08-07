@@ -18,6 +18,8 @@ package org.springframework.integration.dsl;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.DirectChannel;
 
 /**
@@ -82,7 +84,9 @@ public abstract class IntegrationFlowExtension<B extends IntegrationFlowExtensio
 
 		private final DirectChannel inputChannel;
 
-		StandardIntegrationFlowExtension(Map<Object, String> integrationComponents, DirectChannel inputChannel) {
+		StandardIntegrationFlowExtension(Map<Object, @Nullable String> integrationComponents,
+				DirectChannel inputChannel) {
+
 			super(integrationComponents);
 			this.inputChannel = inputChannel;
 		}

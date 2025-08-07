@@ -18,6 +18,8 @@ package org.springframework.integration.dsl;
 
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -36,9 +38,9 @@ public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C
 
 	protected LoadBalancingStrategy loadBalancingStrategy = new RoundRobinLoadBalancingStrategy(); // NOSONAR
 
-	protected Predicate<Exception> failoverStrategy; // NOSONAR
+	protected @Nullable Predicate<Exception> failoverStrategy; // NOSONAR
 
-	protected Integer maxSubscribers; // NOSONAR
+	protected @Nullable Integer maxSubscribers; // NOSONAR
 
 	protected LoadBalancingChannelSpec() {
 	}

@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 /**
  * The base {@code Adapter} class for the {@link IntegrationFlow} abstraction.
  * Requires the implementation for the {@link #buildFlow()} method to produce
- * {@link IntegrationFlowDefinition} using one of {@link #from} support methods.
+ * {@link IntegrationFlowDefinition} using one of {@code #from()} support methods.
  * <p>
  * Typically, is used for target service implementation:
  * <pre class="code">
@@ -65,13 +65,15 @@ public abstract class IntegrationFlowAdapter
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardIntegrationFlow targetIntegrationFlow;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private Object beanSource;
+	private @Nullable Object beanSource;
 
-	private String beanDescription;
+	private @Nullable String beanDescription;
 
 	@Override
 	public void setBeanName(String name) {
@@ -128,7 +130,7 @@ public abstract class IntegrationFlowAdapter
 	}
 
 	@Override
-	public Map<Object, String> getIntegrationComponents() {
+	public Map<Object, @Nullable String> getIntegrationComponents() {
 		return this.targetIntegrationFlow.getIntegrationComponents();
 	}
 

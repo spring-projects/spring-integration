@@ -48,34 +48,27 @@ public class SplitterSpec extends ConsumerEndpointSpec<SplitterSpec, AbstractMes
 
 	private final AtomicBoolean splitterSet = new AtomicBoolean();
 
-	private Expression expression;
+	private @Nullable Expression expression;
 
-	private Object ref;
+	private @Nullable Object ref;
 
-	private String refName;
+	private @Nullable String refName;
 
-	@Nullable
-	private String method;
+	private @Nullable String method;
 
-	private Function<?, ?> function;
+	private @Nullable Function<?, ?> function;
 
-	@Nullable
-	private Class<?> expectedType;
+	private @Nullable Class<?> expectedType;
 
-	@Nullable
-	private String delimiters;
+	private @Nullable String delimiters;
 
-	@Nullable
-	private String discardChannelName;
+	private @Nullable String discardChannelName;
 
-	@Nullable
-	private MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	@Nullable
-	private Boolean applySequence;
+	private @Nullable Boolean applySequence;
 
 	protected SplitterSpec() {
-		super(null);
 	}
 
 	/**
@@ -277,7 +270,7 @@ public class SplitterSpec extends ConsumerEndpointSpec<SplitterSpec, AbstractMes
 			splitter = new MethodInvokingSplitter(new BeanNameMessageProcessor<>(this.refName, this.method));
 		}
 		else if (this.function != null) {
-			splitter = wrapFunctionToSplitter();
+			splitter = wrapFunctionToSplitter(this.function);
 		}
 
 		if (this.delimiters != null) {
@@ -299,10 +292,10 @@ public class SplitterSpec extends ConsumerEndpointSpec<SplitterSpec, AbstractMes
 		return super.doGet();
 	}
 
-	private MethodInvokingSplitter wrapFunctionToSplitter() {
-		return ClassUtils.isLambda(this.function)
-				? new MethodInvokingSplitter(new LambdaMessageProcessor(this.function, this.expectedType))
-				: new MethodInvokingSplitter(this.function, ClassUtils.FUNCTION_APPLY_METHOD);
+	private MethodInvokingSplitter wrapFunctionToSplitter(Function<?, ?> function) {
+		return ClassUtils.isLambda(function)
+				? new MethodInvokingSplitter(new LambdaMessageProcessor(function, this.expectedType))
+				: new MethodInvokingSplitter(function, ClassUtils.FUNCTION_APPLY_METHOD);
 	}
 
 }

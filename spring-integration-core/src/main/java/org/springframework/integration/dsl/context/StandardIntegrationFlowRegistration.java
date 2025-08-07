@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl.context;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
@@ -26,7 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
- * Instances of this classes are returned as a result of
+ * Instances of this class are returned as a result of
  * {@link StandardIntegrationFlowContext#registration(IntegrationFlow)} invocation
  * and provide an API for some useful {@link IntegrationFlow} options and its lifecycle.
  *
@@ -46,10 +48,11 @@ class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration
 
 	private final String id;
 
-	private MessageChannel inputChannel;
+	private @Nullable MessageChannel inputChannel;
 
-	private MessagingTemplate messagingTemplate;
+	private @Nullable MessagingTemplate messagingTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
 	StandardIntegrationFlowRegistration(IntegrationFlow integrationFlow, IntegrationFlowContext integrationFlowContext,

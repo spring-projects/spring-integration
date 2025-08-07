@@ -18,6 +18,8 @@ package org.springframework.integration.dsl;
 
 import java.util.Comparator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
@@ -33,9 +35,9 @@ public class PriorityChannelSpec extends MessageChannelSpec<PriorityChannelSpec,
 
 	private int capacity;
 
-	private Comparator<Message<?>> comparator;
+	private @Nullable Comparator<Message<?>> comparator;
 
-	private MessageGroupQueue messageGroupQueue;
+	private @Nullable MessageGroupQueue messageGroupQueue;
 
 	protected PriorityChannelSpec() {
 	}

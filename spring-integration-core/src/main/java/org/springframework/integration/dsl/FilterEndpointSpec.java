@@ -35,7 +35,7 @@ public class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpointSpec,
 	/**
 	 * The default value is <code>false</code> meaning that rejected
 	 * Messages will be quietly dropped or sent to the discard channel if
-	 * available. Typically this value would not be <code>true</code> when
+	 * available. Typically, this value would not be <code>true</code> when
 	 * a discard channel is provided, but if so, it will still apply
 	 * (in such a case, the Message will be sent to the discard channel,
 	 * and <em>then</em> the exception will be thrown).

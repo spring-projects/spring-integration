@@ -68,7 +68,7 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 	}
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		Object target = invocation.getThis();
 		String method = invocation.getMethod().getName();
 		Object result = null;
@@ -105,7 +105,7 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 				break;
 
 			case "stop":
-				Object[] arguments = invocation.getArguments();
+				var arguments = invocation.getArguments();
 				if (!ObjectUtils.isEmpty(arguments)) {
 					this.delegate.stop((Runnable) arguments[0]);
 				}

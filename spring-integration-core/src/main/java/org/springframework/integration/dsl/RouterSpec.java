@@ -19,8 +19,9 @@ package org.springframework.integration.dsl;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
@@ -46,9 +47,9 @@ public class RouterSpec<K, R extends AbstractMappingMessageRouter> extends Abstr
 
 	private final RouterMappingProvider mappingProvider;
 
-	private String prefix;
+	private @Nullable String prefix;
 
-	private String suffix;
+	private @Nullable String suffix;
 
 	private boolean mappingProviderRegistered;
 
@@ -225,7 +226,7 @@ public class RouterSpec<K, R extends AbstractMappingMessageRouter> extends Abstr
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		// The 'mappingProvider' must be added to the 'componentsToRegister' in the end to
 		// let all other components to be registered before the 'RouterMappingProvider.onInit()' logic.
 		if (!this.mappingProviderRegistered) {
@@ -255,9 +256,6 @@ public class RouterSpec<K, R extends AbstractMappingMessageRouter> extends Abstr
 		protected void onInit() {
 			super.onInit();
 			ConversionService conversionService = getConversionService();
-			if (conversionService == null) {
-				conversionService = DefaultConversionService.getSharedInstance();
-			}
 			for (Map.Entry<Object, NamedComponent> entry : this.mapping.entrySet()) {
 				Object key = entry.getKey();
 				String channelKey;

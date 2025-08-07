@@ -43,7 +43,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	private final FileTailInboundChannelAdapterFactoryBean factoryBean = new FileTailInboundChannelAdapterFactoryBean();
 
 	protected TailAdapterSpec() {
-		super(null);
 		this.factoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}
 

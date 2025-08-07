@@ -74,10 +74,13 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Nullable
 	private Boolean async;
 
-	@Nullable
-	private String[] notPropagatedHeaders;
+	private String @Nullable [] notPropagatedHeaders;
 
-	protected ConsumerEndpointSpec(@Nullable H messageHandler) {
+	protected ConsumerEndpointSpec() {
+		super(new ConsumerEndpointFactoryBean());
+	}
+
+	protected ConsumerEndpointSpec(H messageHandler) {
 		super(messageHandler, new ConsumerEndpointFactoryBean());
 	}
 
@@ -373,6 +376,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 					.acceptIfNotEmpty(this.adviceChain, producingMessageHandler::setAdviceChain);
 		}
 
+		Assert.state(this.handler != null, "'this.handler' must not be null.");
 		this.endpointFactoryBean.setHandler(this.handler);
 		return super.doGet();
 	}

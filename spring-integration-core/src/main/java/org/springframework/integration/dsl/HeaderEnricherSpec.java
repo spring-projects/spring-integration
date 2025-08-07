@@ -64,7 +64,6 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	protected final HeaderEnricher headerEnricher = new HeaderEnricher(this.headerToAdd); // NOSONAR - final
 
 	protected HeaderEnricherSpec() {
-		super(null);
 		this.handler = new MessageTransformingHandler(this.headerEnricher);
 	}
 
