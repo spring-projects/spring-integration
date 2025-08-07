@@ -45,7 +45,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	}
 
 	@Override
-	public PublishSubscribeSpec id(@Nullable String id) { // NOSONAR - not useless, increases visibility
+	public PublishSubscribeSpec id(String id) {
 		return super.id(id);
 	}
 

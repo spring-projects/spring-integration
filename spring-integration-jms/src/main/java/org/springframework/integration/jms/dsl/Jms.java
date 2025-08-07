@@ -18,7 +18,6 @@ package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
@@ -44,7 +43,7 @@ public final class Jms {
 	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(
 			ConnectionFactory connectionFactory) {
 
-		return pollableChannel(null, connectionFactory);
+		return new JmsPollableMessageChannelSpec<>(connectionFactory);
 	}
 
 	/**
@@ -53,7 +52,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
 	 */
-	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(@Nullable String id,
+	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(String id,
 			ConnectionFactory connectionFactory) {
 
 		JmsPollableMessageChannelSpec<?, PollableJmsChannel> spec =
@@ -67,7 +66,7 @@ public final class Jms {
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
 	public static JmsMessageChannelSpec<?, ?> channel(ConnectionFactory connectionFactory) {
-		return channel(null, connectionFactory);
+		return new JmsMessageChannelSpec<>(connectionFactory);
 	}
 
 	/**
@@ -76,7 +75,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
-	public static JmsMessageChannelSpec<?, ?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
+	public static JmsMessageChannelSpec<?, ?> channel(String id, ConnectionFactory connectionFactory) {
 		return new JmsMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -87,7 +86,7 @@ public final class Jms {
 	 * @return the {@link JmsPublishSubscribeMessageChannelSpec} instance
 	 */
 	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(ConnectionFactory connectionFactory) {
-		return publishSubscribeChannel(null, connectionFactory);
+		return new JmsPublishSubscribeMessageChannelSpec(connectionFactory);
 	}
 
 	/**
@@ -96,7 +95,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPublishSubscribeMessageChannelSpec} instance
 	 */
-	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(@Nullable String id,
+	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
 			ConnectionFactory connectionFactory) {
 
 		return new JmsPublishSubscribeMessageChannelSpec(connectionFactory).id(id);

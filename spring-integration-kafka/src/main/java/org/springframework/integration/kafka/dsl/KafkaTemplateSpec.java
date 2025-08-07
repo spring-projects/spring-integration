@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -51,7 +49,7 @@ public class KafkaTemplateSpec<K, V>
 	}
 
 	@Override
-	public KafkaTemplateSpec<K, V> id(@Nullable String id) { // NOSONAR - visibility
+	public KafkaTemplateSpec<K, V> id(String id) {
 		return super.id(id);
 	}
 

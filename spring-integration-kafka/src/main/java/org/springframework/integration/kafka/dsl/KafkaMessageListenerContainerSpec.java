@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
@@ -66,7 +65,7 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	@Override
-	public KafkaMessageListenerContainerSpec<K, V> id(@Nullable String id) { // NOSONAR - increase visibility
+	public KafkaMessageListenerContainerSpec<K, V> id(String id) {
 		return super.id(id);
 	}
 

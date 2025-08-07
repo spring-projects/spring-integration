@@ -36,11 +36,10 @@ import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
 public abstract class AbstractKafkaChannelSpec<S extends AbstractKafkaChannelSpec<S, C>, C extends AbstractKafkaChannel>
 		extends MessageChannelSpec<S, C> {
 
-	@Nullable
-	protected String groupId; // NOSONAR
+	protected @Nullable String groupId;
 
 	@Override
-	public S id(@Nullable String idToSet) { // NOSONAR - increase visibility
+	public S id(String idToSet) {
 		return super.id(idToSet);
 	}
 

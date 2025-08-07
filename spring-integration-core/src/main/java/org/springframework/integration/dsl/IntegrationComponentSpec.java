@@ -59,13 +59,12 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 * @param idToSet the id.
 	 * @return the spec.
 	 */
-	protected S id(@Nullable String idToSet) {
+	protected S id(String idToSet) {
 		this.id = idToSet;
 		return _this();
 	}
 
-	@Nullable
-	public final String getId() {
+	public final @Nullable String getId() {
 		return this.id;
 	}
 

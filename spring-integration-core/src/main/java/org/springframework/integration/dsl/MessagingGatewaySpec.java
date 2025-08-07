@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -42,10 +40,8 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	@Override
-	public S id(@Nullable String id) {
-		if (id != null) {
-			this.target.setBeanName(id);
-		}
+	public S id(String id) {
+		this.target.setBeanName(id);
 		return super.id(id);
 	}
 
