@@ -402,11 +402,6 @@ configure(javaProjects) { subproject ->
             )
         }
 
-        from("${rootProject.projectDir}/src/dist") {
-            include 'notice.txt'
-            into 'META-INF'
-            expand(copyright: new Date().format('yyyy'), version: project.version)
-        }
         from("${rootProject.projectDir}") {
             include 'LICENSE.txt'
             into 'META-INF'
@@ -1213,7 +1208,6 @@ tasks.register('distZip', Zip) {
 
     from('src/dist') {
         include 'readme.txt'
-        include 'notice.txt'
         into "${baseDir}"
         expand(copyright: new Date().format('yyyy'), version: project.version)
     }
