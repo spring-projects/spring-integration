@@ -18,7 +18,7 @@ package org.springframework.integration.sftp.server;
 
 import java.nio.file.Path;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An event emitted when a path is moved.
@@ -41,12 +41,10 @@ public class PathMovedEvent extends ApacheMinaSftpEvent {
 		this.dstPath = dstPath;
 	}
 
-	@Nullable
 	public Path getSrcPath() {
 		return this.srcPath;
 	}
 
-	@Nullable
 	public Path getDstPath() {
 		return this.dstPath;
 	}

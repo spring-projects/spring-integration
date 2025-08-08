@@ -47,12 +47,12 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	@Override
 	protected boolean isFile(SftpClient.DirEntry file) {
-		return file != null && file.getAttributes().isRegularFile();
+		return file.getAttributes().isRegularFile();
 	}
 
 	@Override
 	protected String getFilename(SftpClient.DirEntry file) {
-		return file != null ? file.getFilename() : null;
+		return file.getFilename();
 	}
 
 	@Override

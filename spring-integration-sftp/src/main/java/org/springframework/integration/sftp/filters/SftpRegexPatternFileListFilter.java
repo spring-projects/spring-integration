@@ -43,7 +43,7 @@ public class SftpRegexPatternFileListFilter extends AbstractRegexPatternFileList
 
 	@Override
 	protected String getFilename(SftpClient.DirEntry entry) {
-		return (entry != null) ? entry.getFilename() : null;
+		return entry.getFilename();
 	}
 
 	@Override

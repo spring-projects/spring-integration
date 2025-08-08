@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
@@ -58,7 +59,7 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 	 */
 	@SuppressWarnings("this-escape")
 	public SftpStreamingMessageSource(RemoteFileTemplate<SftpClient.DirEntry> template,
-			Comparator<SftpClient.DirEntry> comparator) {
+			@Nullable Comparator<SftpClient.DirEntry> comparator) {
 
 		super(template, comparator);
 		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpStreamingMessageSource"));
@@ -80,7 +81,7 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 
 	@Override
 	protected boolean isDirectory(SftpClient.DirEntry file) {
-		return file != null && file.getAttributes().isDirectory();
+		return file.getAttributes().isDirectory();
 	}
 
 }

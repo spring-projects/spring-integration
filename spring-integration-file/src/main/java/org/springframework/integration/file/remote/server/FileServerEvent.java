@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote.server;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.events.IntegrationEvent;
 
 /**
@@ -34,7 +36,7 @@ public abstract class FileServerEvent extends IntegrationEvent {
 		super(source);
 	}
 
-	public FileServerEvent(Object source, Throwable cause) {
+	public FileServerEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}
 

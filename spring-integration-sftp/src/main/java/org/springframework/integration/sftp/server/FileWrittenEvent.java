@@ -18,7 +18,7 @@ package org.springframework.integration.sftp.server;
 
 import java.nio.file.Path;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An event that is emitted when a file is written.
@@ -48,7 +48,6 @@ public class FileWrittenEvent extends ApacheMinaSftpEvent {
 		return this.remoteHandle;
 	}
 
-	@Nullable
 	public Path getFile() {
 		return this.file;
 	}

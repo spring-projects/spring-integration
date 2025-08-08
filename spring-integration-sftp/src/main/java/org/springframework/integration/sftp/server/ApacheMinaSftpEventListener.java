@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.sftp.server.FileHandle;
 import org.apache.sshd.sftp.server.SftpEventListener;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -45,9 +46,10 @@ import org.springframework.util.Assert;
 public class ApacheMinaSftpEventListener
 		implements SftpEventListener, ApplicationEventPublisherAware, BeanNameAware, InitializingBean {
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private String beanName;
+	private @Nullable String beanName;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -63,7 +65,7 @@ public class ApacheMinaSftpEventListener
 		this.beanName = name;
 	}
 
-	public String getBeanName() {
+	public @Nullable String getBeanName() {
 		return this.beanName;
 	}
 

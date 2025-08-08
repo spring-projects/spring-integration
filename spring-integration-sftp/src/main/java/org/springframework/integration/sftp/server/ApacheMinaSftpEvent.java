@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.server;
 
 import org.apache.sshd.server.session.ServerSession;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.server.FileServerEvent;
 
@@ -35,7 +36,7 @@ public abstract class ApacheMinaSftpEvent extends FileServerEvent {
 		super(source);
 	}
 
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
+	public ApacheMinaSftpEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}
 

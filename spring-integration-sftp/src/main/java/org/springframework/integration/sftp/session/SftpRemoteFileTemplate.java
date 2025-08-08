@@ -21,11 +21,11 @@ import java.util.List;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.common.SftpException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.ClientCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * SFTP version of {@code RemoteFileTemplate} providing type-safe access to
@@ -60,11 +60,11 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<SftpClient.DirEnt
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T, C> T executeWithClient(final ClientCallback<C, T> callback) {
+	public <T, C> @Nullable T executeWithClient(final ClientCallback<C, T> callback) {
 		return doExecuteWithClient((ClientCallback<SftpClient, T>) callback);
 	}
 
-	protected <T> T doExecuteWithClient(final ClientCallback<SftpClient, T> callback) {
+	protected <T> @Nullable T doExecuteWithClient(final ClientCallback<SftpClient, T> callback) {
 		return execute(session -> callback.doWithClient((SftpClient) session.getClientInstance()));
 	}
 
@@ -89,14 +89,16 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<SftpClient.DirEnt
 		return !NOT_DIRTY_STATUSES.contains(status);
 	}
 
-	@Nullable
-	private static SftpException findSftpException(Throwable ex) {
-		if (ex == null || ex instanceof SftpException) {
-			return (SftpException) ex;
+	private static @Nullable SftpException findSftpException(@Nullable Throwable ex) {
+		if (ex == null) {
+			return null;
 		}
-		else {
-			return findSftpException(ex.getCause());
+
+		if (ex instanceof SftpException sftpException) {
+			return sftpException;
 		}
+
+		return findSftpException(ex.getCause());
 	}
 
 }

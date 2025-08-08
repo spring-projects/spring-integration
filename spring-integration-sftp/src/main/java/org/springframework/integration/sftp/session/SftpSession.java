@@ -31,6 +31,7 @@ import org.apache.sshd.sftp.SftpModuleProperties;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.common.SftpException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
@@ -92,20 +93,21 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	}
 
 	@Override
-	public SftpClient.DirEntry[] list(String path) throws IOException {
+	public SftpClient.DirEntry[] list(@Nullable String path) throws IOException {
 		return doList(path)
 				.toArray(SftpClient.DirEntry[]::new);
 	}
 
 	@Override
-	public String[] listNames(String path) throws IOException {
+	public String[] listNames(@Nullable String path) throws IOException {
 		return doList(path)
 				.map(SftpClient.DirEntry::getFilename)
 				.toArray(String[]::new);
 	}
 
-	public Stream<SftpClient.DirEntry> doList(String path) throws IOException {
-		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
+	public Stream<SftpClient.DirEntry> doList(@Nullable String path) throws IOException {
+		String validPath = path != null ? path : ".";
+		String remotePath = StringUtils.trimTrailingCharacter(validPath, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');
 		if (lastIndex > 0) {
@@ -115,9 +117,9 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		boolean isPattern = remoteFile != null && remoteFile.contains("*");
 
 		if (!isPattern && remoteFile != null) {
-			SftpClient.Attributes attributes = this.sftpClient.stat(path);
+			SftpClient.Attributes attributes = this.sftpClient.stat(validPath);
 			if (!attributes.isDirectory()) {
-				return Stream.of(new SftpClient.DirEntry(remoteFile, path, attributes));
+				return Stream.of(new SftpClient.DirEntry(remoteFile, validPath, attributes));
 			}
 			else {
 				remoteDir = remotePath;
