@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.inbound;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -46,13 +47,13 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 	}
 
 	@Override
-	protected boolean isFile(SftpClient.DirEntry file) {
+	protected boolean isFile(SftpClient.@Nullable DirEntry file) {
 		return file != null && file.getAttributes().isRegularFile();
 	}
 
 	@Override
 	protected String getFilename(SftpClient.DirEntry file) {
-		return file != null ? file.getFilename() : null;
+		return file.getFilename();
 	}
 
 	@Override

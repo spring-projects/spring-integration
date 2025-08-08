@@ -31,6 +31,7 @@ import org.apache.sshd.sftp.SftpModuleProperties;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.common.SftpException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
@@ -92,19 +93,24 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	}
 
 	@Override
-	public SftpClient.DirEntry[] list(String path) throws IOException {
+	public SftpClient.DirEntry[] list(@Nullable String path) throws IOException {
 		return doList(path)
 				.toArray(SftpClient.DirEntry[]::new);
 	}
 
 	@Override
-	public String[] listNames(String path) throws IOException {
+	public String[] listNames(@Nullable String path) throws IOException {
 		return doList(path)
 				.map(SftpClient.DirEntry::getFilename)
 				.toArray(String[]::new);
 	}
 
-	public Stream<SftpClient.DirEntry> doList(String path) throws IOException {
+	public Stream<SftpClient.DirEntry> doList(@Nullable String path) throws IOException {
+
+		if (path == null) {
+			return Stream.empty();
+		}
+
 		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');

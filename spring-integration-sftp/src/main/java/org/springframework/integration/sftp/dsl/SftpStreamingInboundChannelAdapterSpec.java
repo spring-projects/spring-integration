@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.dsl;
 import java.util.Comparator;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -29,7 +30,6 @@ import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFile
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Gary Russell

@@ -51,6 +51,7 @@ import org.apache.sshd.sftp.client.SftpMessage;
 import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.client.impl.DefaultSftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.Resource;
@@ -94,27 +95,29 @@ public class DefaultSftpSessionFactory
 
 	private final boolean isSharedSession;
 
-	private final Lock sharedSessionLock;
+	private final @Nullable Lock sharedSessionLock;
 
 	private boolean isInnerClient = false;
 
+	@SuppressWarnings("NullAway.Init")
 	private String host;
 
 	private int port = SshConstants.DEFAULT_PORT;
 
+	@SuppressWarnings("NullAway.Init")
 	private String user;
 
-	private String password;
+	private @Nullable String password;
 
-	private HostConfigEntry hostConfig;
+	private @Nullable HostConfigEntry hostConfig;
 
-	private Resource knownHosts;
+	private @Nullable Resource knownHosts;
 
-	private Resource privateKey;
+	private @Nullable Resource privateKey;
 
-	private String privateKeyPassphrase;
+	private @Nullable String privateKeyPassphrase;
 
-	private UserInteraction userInteraction;
+	private @Nullable UserInteraction userInteraction;
 
 	private boolean allowUnknownKeys = false;
 
@@ -122,7 +125,7 @@ public class DefaultSftpSessionFactory
 
 	private SftpVersionSelector sftpVersionSelector = SftpVersionSelector.CURRENT;
 
-	private volatile SftpClient sharedSftpClient;
+	private volatile @Nullable SftpClient sharedSftpClient;
 
 	private Consumer<SshClient> sshClientConfigurer = (sshClient) -> {
 	};

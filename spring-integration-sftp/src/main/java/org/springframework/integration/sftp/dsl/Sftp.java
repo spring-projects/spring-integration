@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -28,7 +29,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * The factory for SFTP components.

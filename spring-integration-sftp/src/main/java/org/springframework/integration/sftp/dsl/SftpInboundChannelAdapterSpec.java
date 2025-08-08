@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.dsl.RemoteFileInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -31,7 +32,6 @@ import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilt
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SftpInboundFileSynchronizingMessageSource}.

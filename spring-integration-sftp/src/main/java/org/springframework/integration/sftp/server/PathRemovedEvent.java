@@ -18,7 +18,7 @@ package org.springframework.integration.sftp.server;
 
 import java.nio.file.Path;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An event emitted when a file or directory is removed.
@@ -41,8 +41,7 @@ public class PathRemovedEvent extends ApacheMinaSftpEvent {
 		this.isDirectory = isDirectory;
 	}
 
-	@Nullable
-	public Path getPath() {
+	public @Nullable Path getPath() {
 		return this.path;
 	}
 
