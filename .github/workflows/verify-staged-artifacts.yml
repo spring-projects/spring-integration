@@ -45,4 +45,4 @@ jobs:
           sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle  
 
       - name: Verify Spring Integration Samples against staged release
-        run: gradle check --init-script staging-repo-init.gradle
+        run: ./gradlew check --init-script staging-repo-init.gradle
