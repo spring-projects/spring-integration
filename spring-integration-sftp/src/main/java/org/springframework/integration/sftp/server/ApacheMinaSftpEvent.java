@@ -36,7 +36,6 @@ public abstract class ApacheMinaSftpEvent extends FileServerEvent {
 		super(source);
 	}
 
-	@SuppressWarnings("NullAway") // Overridden method does not define nullability
 	public ApacheMinaSftpEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}

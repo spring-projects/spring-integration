@@ -41,11 +41,11 @@ public class PathMovedEvent extends ApacheMinaSftpEvent {
 		this.dstPath = dstPath;
 	}
 
-	public @Nullable Path getSrcPath() {
+	public Path getSrcPath() {
 		return this.srcPath;
 	}
 
-	public @Nullable Path getDstPath() {
+	public Path getDstPath() {
 		return this.dstPath;
 	}
 

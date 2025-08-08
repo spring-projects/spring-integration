@@ -106,11 +106,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	}
 
 	public Stream<SftpClient.DirEntry> doList(@Nullable String path) throws IOException {
-
-		if (path == null) {
-			return Stream.empty();
-		}
-
+		Assert.notNull(path, "The 'path' can not be null");
 		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');

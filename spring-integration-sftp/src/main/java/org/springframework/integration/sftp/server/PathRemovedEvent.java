@@ -41,7 +41,7 @@ public class PathRemovedEvent extends ApacheMinaSftpEvent {
 		this.isDirectory = isDirectory;
 	}
 
-	public @Nullable Path getPath() {
+	public Path getPath() {
 		return this.path;
 	}
 

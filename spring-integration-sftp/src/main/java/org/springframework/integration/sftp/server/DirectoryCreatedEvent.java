@@ -19,8 +19,6 @@ package org.springframework.integration.sftp.server;
 import java.nio.file.Path;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * An event emitted when a directory is created.
  *
@@ -43,7 +41,7 @@ public class DirectoryCreatedEvent extends ApacheMinaSftpEvent {
 		this.attrs = attrs;
 	}
 
-	public @Nullable Path getPath() {
+	public Path getPath() {
 		return this.path;
 	}
 

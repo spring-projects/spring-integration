@@ -48,7 +48,7 @@ public class FileWrittenEvent extends ApacheMinaSftpEvent {
 		return this.remoteHandle;
 	}
 
-	public @Nullable Path getFile() {
+	public Path getFile() {
 		return this.file;
 	}
 

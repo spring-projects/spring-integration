@@ -80,8 +80,8 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 	}
 
 	@Override
-	protected boolean isDirectory(SftpClient.@Nullable DirEntry file) {
-		return file != null && file.getAttributes().isDirectory();
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
 	}
 
 }
