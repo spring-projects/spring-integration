@@ -154,7 +154,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 
 	/**
 	 * Specify a {@link BiConsumer} for seeks management during
-	 * {@link ConsumerSeekAware.ConsumerSeekCallback#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
+	 * {@link ConsumerSeekAware#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
 	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
 	 * This is called from the internal
 	 * {@link org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter} implementation.

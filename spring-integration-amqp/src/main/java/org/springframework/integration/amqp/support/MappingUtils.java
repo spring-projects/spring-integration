@@ -84,7 +84,7 @@ public final class MappingUtils {
 	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
 	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
 	 * header taking precedence.
-	 * @param replyMessage the reply message.
+	 * @param message the message.
 	 * @param converter the message converter to use.
 	 * @param headerMapper the header mapper to use.
 	 * @param headersMappedLast true if headers are mapped after conversion.

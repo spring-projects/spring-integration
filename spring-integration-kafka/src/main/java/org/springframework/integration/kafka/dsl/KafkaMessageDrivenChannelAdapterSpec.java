@@ -157,7 +157,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 	/**
 	 * Specify a {@link BiConsumer} for seeks management during
-	 * {@link ConsumerSeekAware.ConsumerSeekCallback#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
+	 * {@link ConsumerSeekAware#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
 	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
 	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
 	 * @return the spec
