@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-pull-request:
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-gradle-pull-request-build.yml@v5
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-gradle-pull-request-build.yml@main
     with:
       runner: ubuntu22-2-8
     #      The secrets in PRs are available only for Dependabot scope
