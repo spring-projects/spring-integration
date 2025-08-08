@@ -106,8 +106,8 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	}
 
 	public Stream<SftpClient.DirEntry> doList(@Nullable String path) throws IOException {
-		Assert.notNull(path, "The 'path' can not be null");
-		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
+		String validPath = path != null ? path : ".";
+		String remotePath = StringUtils.trimTrailingCharacter(validPath, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');
 		if (lastIndex > 0) {
@@ -117,9 +117,9 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		boolean isPattern = remoteFile != null && remoteFile.contains("*");
 
 		if (!isPattern && remoteFile != null) {
-			SftpClient.Attributes attributes = this.sftpClient.stat(path);
+			SftpClient.Attributes attributes = this.sftpClient.stat(validPath);
 			if (!attributes.isDirectory()) {
-				return Stream.of(new SftpClient.DirEntry(remoteFile, path, attributes));
+				return Stream.of(new SftpClient.DirEntry(remoteFile, validPath, attributes));
 			}
 			else {
 				remoteDir = remotePath;
