@@ -58,13 +58,13 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<SftpClient.DirEnt
 		super(sessionFactory);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"}) // Overridden method does not define nullability
 	@Override
 	public <T, C> @Nullable T executeWithClient(final ClientCallback<C, T> callback) {
 		return doExecuteWithClient((ClientCallback<SftpClient, T>) callback);
 	}
 
-	protected <T>  @Nullable T doExecuteWithClient(final ClientCallback<SftpClient, T> callback) {
+	protected <T> @Nullable T doExecuteWithClient(final ClientCallback<SftpClient, T> callback) {
 		return execute(session -> callback.doWithClient((SftpClient) session.getClientInstance()));
 	}
 
