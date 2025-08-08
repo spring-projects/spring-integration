@@ -511,7 +511,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public <T, C> T executeWithClient(ClientCallback<C, T> callback) {
+	public <T, C> @Nullable T executeWithClient(ClientCallback<C, T> callback) {
 		throw new UnsupportedOperationException("executeWithClient() is not supported by the generic template");
 	}
 
