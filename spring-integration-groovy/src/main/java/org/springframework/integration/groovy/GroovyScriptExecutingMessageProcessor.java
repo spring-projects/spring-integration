@@ -137,7 +137,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	}
 
 	@Override
-	protected ScriptSource getScriptSource(Message<?> message) {
+	protected ScriptSource getScriptSource(@Nullable Message<?> message) {
 		return this.scriptSource;
 	}
 
