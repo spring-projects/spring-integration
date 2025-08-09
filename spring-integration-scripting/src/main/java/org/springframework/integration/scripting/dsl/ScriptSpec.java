@@ -19,6 +19,8 @@ package org.springframework.integration.scripting.dsl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.dsl.MessageProcessorSpec;
 import org.springframework.integration.handler.MessageProcessor;
@@ -38,7 +40,7 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 
 	private final DslScriptExecutingMessageProcessor processor;
 
-	private ScriptVariableGenerator variableGenerator;
+	private @Nullable ScriptVariableGenerator variableGenerator;
 
 	private final Map<String, Object> variables = new HashMap<>();
 

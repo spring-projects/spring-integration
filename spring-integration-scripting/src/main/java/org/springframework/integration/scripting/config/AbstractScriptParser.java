@@ -123,7 +123,7 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 			List<Element> variableElements) {
 
 		@SuppressWarnings("serial")
-		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>() {
+		ManagedMap<String, Object> variableMap = new ManagedMap<>() {
 
 			@Override
 			public Object put(String key, Object value) {

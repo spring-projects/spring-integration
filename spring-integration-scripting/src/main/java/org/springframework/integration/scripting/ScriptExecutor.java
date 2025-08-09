@@ -18,7 +18,8 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.scripting.ScriptSource;
 
 /**
@@ -46,8 +47,7 @@ public interface ScriptExecutor {
 	 * @param scriptSource The script source.
 	 * @return The result of the execution.
 	 */
-	@Nullable
-	default Object executeScript(ScriptSource scriptSource) {
+	default @Nullable Object executeScript(ScriptSource scriptSource) {
 		return executeScript(scriptSource, null);
 	}
 

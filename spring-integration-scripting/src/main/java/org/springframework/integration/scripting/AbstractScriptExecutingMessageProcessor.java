@@ -18,12 +18,13 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
 /**
  * Base {@link MessageProcessor} for scripting implementations to extend.
  *
- * @param <T> the paylaod type.
+ * @param <T> the payload type.
  *
  * @author Mark Fisher
  * @author Stefan Reuter
@@ -44,9 +45,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
-	private ClassLoader beanClassLoader;
+	private @Nullable ClassLoader beanClassLoader;
 
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
 		this(new DefaultScriptVariableGenerator());
@@ -71,11 +72,11 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 		return this.scriptVariableGenerator;
 	}
 
-	protected ClassLoader getBeanClassLoader() {
+	protected @Nullable ClassLoader getBeanClassLoader() {
 		return this.beanClassLoader;
 	}
 
-	protected BeanFactory getBeanFactory() {
+	protected @Nullable BeanFactory getBeanFactory() {
 		return this.beanFactory;
 	}
 
@@ -83,8 +84,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * Execute the script and return the result.
 	 */
 	@Override
-	@Nullable
-	public final T processMessage(Message<?> message) {
+	public final @Nullable T processMessage(@Nullable Message<?> message) {
 		ScriptSource source = getScriptSource(message);
 		Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
 		return executeScript(source, variables);
@@ -96,7 +96,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * @param message the message being processed
 	 * @return a ScriptSource to use to create a script
 	 */
-	protected abstract ScriptSource getScriptSource(Message<?> message);
+	protected abstract ScriptSource getScriptSource(@Nullable Message<?> message);
 
 	/**
 	 * Subclasses must implement this method. In doing so, the execution context
@@ -105,7 +105,6 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 */
-	@Nullable
-	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
+	protected abstract @Nullable T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
 
 }

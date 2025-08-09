@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.CollectionUtils;
 
@@ -44,8 +46,8 @@ public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 		this.variableMap = variableMap;
 	}
 
-	public Map<String, Object> generateScriptVariables(Message<?> message) {
-		Map<String, Object> scriptVariables = new HashMap<String, Object>();
+	public Map<String, Object> generateScriptVariables(@Nullable Message<?> message) {
+		Map<String, Object> scriptVariables = new HashMap<>();
 		// Add Message content
 		if (message != null) {
 			scriptVariables.put("payload", message.getPayload());
