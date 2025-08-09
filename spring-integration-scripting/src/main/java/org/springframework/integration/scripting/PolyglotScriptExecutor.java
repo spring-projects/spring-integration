@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
@@ -63,7 +63,7 @@ public class PolyglotScriptExecutor implements ScriptExecutor {
 	}
 
 	@Override
-	public Object executeScript(ScriptSource scriptSource, @Nullable Map<String, Object> variables) {
+	public @Nullable Object executeScript(ScriptSource scriptSource, @Nullable Map<String, Object> variables) {
 		try (Context context = this.contextBuilder.build()) {
 			if (variables != null) {
 				Value bindings = context.getBindings(this.language);

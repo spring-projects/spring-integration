@@ -18,6 +18,8 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -30,6 +32,6 @@ import org.springframework.messaging.Message;
 @FunctionalInterface
 public interface ScriptVariableGenerator {
 
-	Map<String, Object> generateScriptVariables(Message<?> message);
+	Map<String, Object> generateScriptVariables(@Nullable Message<?> message);
 
 }

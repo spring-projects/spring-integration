@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scripting;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -30,7 +32,7 @@ public class ScriptingException extends MessagingException {
 		super(description);
 	}
 
-	public ScriptingException(String description, Throwable cause) {
+	public ScriptingException(@Nullable String description, Throwable cause) {
 		super(description, cause);
 	}
 

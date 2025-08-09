@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scripting;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 
 /**
@@ -41,7 +43,7 @@ public class ScriptExecutingMessageSource extends AbstractMessageSource<Object> 
 	}
 
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		return this.scriptMessageProcessor.processMessage(null);
 	}
 

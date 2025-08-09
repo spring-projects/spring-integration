@@ -26,10 +26,10 @@ import javax.script.SimpleBindings;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.integration.scripting.ScriptingException;
-import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
@@ -69,8 +69,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	}
 
 	@Override
-	@Nullable
-	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
+	public @Nullable Object executeScript(ScriptSource scriptSource, @Nullable Map<String, Object> variables) {
 		try {
 			Object result;
 			String script = scriptSource.getScriptAsString();
@@ -108,7 +107,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	 * @param bindings the bindings.
 	 * @return modified result
 	 */
-	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings);
+	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script, @Nullable Bindings bindings);
 
 	private static String invalidLanguageMessage(String language) {
 		return ScriptEngineManager.class.getName() +

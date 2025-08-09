@@ -19,6 +19,8 @@ package org.springframework.integration.scripting;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.Resource;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -41,6 +43,7 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 
 	private final AtomicLong lastModifiedChecked = new AtomicLong(System.currentTimeMillis());
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile String script;
 
 	public RefreshableResourceScriptSource(Resource resource, long refreshDelay) {
@@ -62,7 +65,7 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 		return this.script;
 	}
 
-	public String suggestedClassName() {
+	public @Nullable String suggestedClassName() {
 		return this.source.getResource().getFilename();
 	}
 
