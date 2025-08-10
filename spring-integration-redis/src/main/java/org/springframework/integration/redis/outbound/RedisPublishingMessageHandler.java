@@ -41,12 +41,14 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Expression topicExpression;
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
@@ -102,7 +104,8 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) {
 		String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 		Object value = this.messageConverter.fromMessage(message, Object.class);
-		// TODO: 5.2 assert both not null
+		Assert.notNull(topic, "'topic' must not be null");
+		Assert.notNull(value, "'value' must not be null");
 
 		if (value instanceof byte[]) {
 			this.template.convertAndSend(topic, value); // NOSONAR

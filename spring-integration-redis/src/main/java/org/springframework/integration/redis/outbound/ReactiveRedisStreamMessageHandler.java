@@ -33,7 +33,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -52,19 +52,19 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	private final ReactiveRedisConnectionFactory connectionFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private boolean extractPayload = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
 	private RedisSerializationContext<String, ?> serializationContext = RedisSerializationContext.string();
 
-	@Nullable
-	private HashMapper<String, ?, ?> hashMapper;
+	private @Nullable HashMapper<String, ?, ?> hashMapper;
 
-	@Nullable
-	private Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction;
+	private @Nullable Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction;
 
 	/**
 	 * Create an instance based on provided {@link ReactiveRedisConnectionFactory} and key for stream.

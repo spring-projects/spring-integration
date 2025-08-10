@@ -75,31 +75,33 @@ import org.springframework.util.NumberUtils;
  */
 public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression zsetIncrementScoreExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.ZSET_INCREMENT_SCORE));
 
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression keyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.KEY));
 
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression mapKeyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.MAP_KEY));
 
 	private boolean mapKeyExpressionExplicitlySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
-
-	private boolean redisTemplateExplicitlySet;
 
 	private CollectionType collectionType = CollectionType.LIST;
 
 	private boolean extractPayloadElements = true;
 
-	private RedisConnectionFactory connectionFactory;
+	private final RedisConnectionFactory connectionFactory;
 
 	private volatile boolean initialized;
 
@@ -110,8 +112,10 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 */
 	public RedisStoreWritingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
+		RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
+		Assert.notNull(connectionFactory, "'redisTemplate.connectionFactory' must not be null");
 		this.redisTemplate = redisTemplate;
-		this.redisTemplateExplicitlySet = true;
+		this.connectionFactory = connectionFactory;
 	}
 
 	/**
@@ -246,7 +250,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 						(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
-		if (!this.redisTemplateExplicitlySet) {
+		if (this.redisTemplate instanceof StringRedisTemplate) {
 			if (!this.extractPayloadElements) {
 				RedisTemplate<String, Object> template = new RedisTemplate<>();
 				StringRedisSerializer serializer = new StringRedisSerializer();

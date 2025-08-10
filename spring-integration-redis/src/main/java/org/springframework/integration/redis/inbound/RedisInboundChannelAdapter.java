@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -55,8 +57,10 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile String[] topics;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile String[] topicPatterns;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
@@ -150,7 +154,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
-	private Message<?> convertMessage(Object object, String source) {
+	private @Nullable Message<?> convertMessage(Object object, String source) {
 		MessageHeaders messageHeaders = null;
 		if (StringUtils.hasText(source)) {
 			messageHeaders = new MessageHeaders(Collections.singletonMap(RedisHeaders.MESSAGE_SOURCE, source));

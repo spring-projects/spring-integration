@@ -19,6 +19,8 @@ package org.springframework.integration.redis.store;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,6 +53,7 @@ public class RedisChannelMessageStore
 
 	private final RedisTemplate<Object, Message<?>> redisTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
@@ -140,7 +143,7 @@ public class RedisChannelMessageStore
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		this.redisTemplate.boundListOps(groupId).leftPush(message);
-		return null;
+		return getMessageGroup(groupId);
 	}
 
 	@Override
@@ -149,7 +152,7 @@ public class RedisChannelMessageStore
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
 		return this.redisTemplate.boundListOps(groupId).rightPop();
 	}
 

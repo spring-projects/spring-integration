@@ -37,7 +37,7 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -66,13 +66,15 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean serializerExplicitlySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private Executor taskExecutor;
 
-	private RedisSerializer<?> serializer;
+	private @Nullable RedisSerializer<?> serializer;
 
 	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
@@ -82,7 +84,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private volatile boolean listening;
 
-	private volatile Runnable stopCallback;
+	private volatile @Nullable Runnable stopCallback;
 
 	/**
 	 * @param queueName Must not be an empty String
@@ -155,11 +157,14 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-")
 					+ getComponentType());
 		}
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && getBeanFactory() != null) {
+		Executor executor = this.taskExecutor;
+		if (!(executor instanceof ErrorHandlingTaskExecutor) && getBeanFactory() != null) {
 			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 			errorHandler.setBeanFactory(getBeanFactory());
-			errorHandler.setDefaultErrorChannel(getErrorChannel());
-			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+			if (getErrorChannel() != null) {
+				errorHandler.setDefaultErrorChannel(getErrorChannel());
+			}
+			this.taskExecutor = new ErrorHandlingTaskExecutor(executor, errorHandler);
 		}
 	}
 
@@ -230,7 +235,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		if (requestMessage != null) {
 			Message<?> replyMessage = sendAndReceiveMessage(requestMessage);
 			if (replyMessage != null) {
-				byte[] replyPayload = null;
+				@Nullable byte[] replyPayload = null;
 				if (this.extractPayload) {
 					replyPayload = extractReplyPayload(replyMessage);
 				}
@@ -249,7 +254,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Nullable
 	@SuppressWarnings("unchecked")
 	private Message<Object> prepareRequestMessage(byte[] value) {
-		Message<Object> requestMessage;
+		Message<Object> requestMessage = null;
 		if (this.extractPayload) {
 			Object payload = value;
 			if (this.serializer != null) {
@@ -262,9 +267,11 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		}
 		else {
 			try {
-				requestMessage = (Message<Object>) this.serializer.deserialize(value);
-				if (requestMessage == null) {
-					return null;
+				if (this.serializer != null) {
+					requestMessage = (Message<Object>) this.serializer.deserialize(value);
+					if (requestMessage == null) {
+						return null;
+					}
 				}
 			}
 			catch (Exception e) {
@@ -275,14 +282,17 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	}
 
 	@SuppressWarnings("unchecked")
-	private byte[] extractReplyPayload(Message<?> replyMessage) {
-		byte[] value;
+	private @Nullable byte[] extractReplyPayload(Message<?> replyMessage) {
+		byte[] value = null;
 		if (!(replyMessage.getPayload() instanceof byte[])) {
 			if (replyMessage.getPayload() instanceof String && !this.serializerExplicitlySet) {
 				value = StringRedisSerializer.UTF_8.serialize((String) replyMessage.getPayload());
 			}
 			else {
-				value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage.getPayload());
+				RedisSerializer<?> serializer = this.serializer;
+				if (serializer != null) {
+					value = ((RedisSerializer<Object>) serializer).serialize(replyMessage.getPayload());
+				}
 			}
 		}
 		else {
@@ -384,9 +394,12 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 				if (isActive()) {
 					restart();
 				}
-				else if (RedisQueueInboundGateway.this.stopCallback != null) {
-					RedisQueueInboundGateway.this.stopCallback.run();
-					RedisQueueInboundGateway.this.stopCallback = null;
+				else {
+					Runnable callback = RedisQueueInboundGateway.this.stopCallback;
+					if (callback != null) {
+						callback.run();
+						RedisQueueInboundGateway.this.stopCallback = null;
+					}
 				}
 			}
 		}

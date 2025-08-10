@@ -43,10 +43,12 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 
 	private final Expression[] argumentExpressions;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private final boolean useCommandVariable;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public ExpressionArgumentsStrategy(String[] argumentExpressions) {
@@ -88,7 +90,6 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 			evaluationContextToUse = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
 			evaluationContextToUse.setVariable("cmd", command);
 		}
-
 		List<Object> arguments = new ArrayList<Object>();
 		for (Expression argumentExpression : this.argumentExpressions) {
 			Object argument = argumentExpression.getValue(evaluationContextToUse, message);

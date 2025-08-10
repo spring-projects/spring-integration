@@ -44,6 +44,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final Expression queueNameExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile boolean extractPayload = true;
@@ -125,7 +126,8 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 		}
 
 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
-		// TODO: 5.2 assert both not null
+		Assert.notNull(queueName, "'queueName' must not be null");
+		Assert.notNull(value, "'value' must not be null");
 		if (this.leftPush) {
 			this.template.boundListOps(queueName).leftPush(value); // NOSONAR
 		}

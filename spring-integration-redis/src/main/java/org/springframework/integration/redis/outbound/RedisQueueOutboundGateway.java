@@ -25,7 +25,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
@@ -54,6 +54,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private boolean extractPayload = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private RedisSerializer<?> serializer;
 
 	private boolean serializerExplicitlySet;
@@ -112,6 +113,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 				value = STRING_SERIALIZER.serialize((String) value);
 			}
 			else {
+				Assert.state(this.serializer != null, "'serializer' must not be null");
 				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
 			}
 		}
@@ -135,6 +137,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	@Nullable
 	private Object createReply(byte[] reply) {
+		Assert.state(this.serializer != null, "'serializer' must not be null");
 		Object replyMessage = this.serializer.deserialize(reply);
 		if (replyMessage == null) {
 			return null;

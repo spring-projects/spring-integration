@@ -39,7 +39,7 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.4
  */
+
 public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final ReactiveRedisConnectionFactory reactiveConnectionFactory;
@@ -71,10 +72,12 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 					.pollTimeout(Duration.ZERO)
 					.onErrorResume(this::handleReceiverError);
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
-	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions;
+	private StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions;
 
+	@SuppressWarnings("NullAway.Init")
 	private StreamReceiver<String, ?> streamReceiver;
 
 	private ReadOffset readOffset = ReadOffset.latest();
@@ -83,11 +86,10 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private boolean autoAck = true;
 
-	@Nullable
+	@SuppressWarnings("NullAway.Init")
 	private String consumerGroup;
 
-	@Nullable
-	private String consumerName;
+	private @Nullable String consumerName;
 
 	private boolean createConsumerGroup;
 
@@ -165,7 +167,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * @param streamReceiverOptions the desired receiver options
 	 * */
 	public void setStreamReceiverOptions(
-			@Nullable StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions) {
+			StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions) {
 
 		Assert.isTrue(!this.receiverBuilderOptionSet,
 				"The 'streamReceiverOptions' is mutually exclusive with 'pollTimeout', 'batchSize', " +
@@ -294,23 +296,21 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			if (this.createConsumerGroup) {
 				consumerGroupMono =
 						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
-								.onErrorReturn(this.consumerGroup);
+						.onErrorReturn(this.consumerGroup);
 			}
 
-			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName); // NOSONAR
+			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
 				// for consumer group offset id should be equal to '>'
 				offset = StreamOffset.create(this.streamKey, ReadOffset.lastConsumed());
 			}
 
-			events =
-					this.autoAck
-							? this.streamReceiver.receiveAutoAck(consumer, offset)
-							: this.streamReceiver.receive(consumer, offset);
+			events = this.autoAck
+					? this.streamReceiver.receiveAutoAck(consumer, offset)
+					: this.streamReceiver.receive(consumer, offset);
 
 			events = consumerGroupMono.thenMany(events);
-
 		}
 
 		Flux<? extends Message<?>> messageFlux =
@@ -347,9 +347,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 				failedMessage = buildMessageFromRecord(record, false);
 			}
 		}
-		MessagingException conversionException =
-				new MessageConversionException(failedMessage, // NOSONAR
-						"Cannot deserialize Redis Stream Record", error);
+		MessagingException conversionException = (failedMessage != null)
+					? new MessageConversionException(failedMessage, "Cannot deserialize Redis Stream Record", error)
+					: new MessageConversionException("Cannot deserialize Redis Stream Record", error);
 		if (!sendErrorMessageIfNecessary(null, conversionException)) {
 			logger.getLog().error(conversionException);
 		}

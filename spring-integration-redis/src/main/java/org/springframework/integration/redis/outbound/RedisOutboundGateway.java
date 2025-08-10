@@ -27,6 +27,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -46,9 +47,10 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RedisTemplate<?, ?> redisTemplate;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<Object>(Object.class);
+	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<>(Object.class);
 
 	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
 
@@ -111,7 +113,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(command, "The 'command' must not evaluate to 'null'.");
 		byte[][] args = null;
