@@ -73,8 +73,9 @@ public final class MockIntegration {
 		}
 
 		return (MessageSource<T>) mockMessageSource(new GenericMessage<>(payload),
-				(messages != null ?
-						messages.toArray(new Message<?>[messages.size()]) : null));
+				(messages != null
+						? messages.toArray(new Message<?>[messages.size()])
+						: null));
 	}
 
 	/**
