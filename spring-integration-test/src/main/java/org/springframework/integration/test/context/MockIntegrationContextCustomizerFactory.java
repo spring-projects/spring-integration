@@ -18,6 +18,8 @@ package org.springframework.integration.test.context;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.test.context.ContextConfigurationAttributes;
 import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
@@ -38,7 +40,7 @@ import org.springframework.test.context.TestContextAnnotationUtils;
 class MockIntegrationContextCustomizerFactory implements ContextCustomizerFactory {
 
 	@Override
-	public ContextCustomizer createContextCustomizer(Class<?> testClass,
+	public @Nullable ContextCustomizer createContextCustomizer(Class<?> testClass,
 			List<ContextConfigurationAttributes> configAttributes) {
 
 		return TestContextAnnotationUtils.hasAnnotation(testClass, SpringIntegrationTest.class)

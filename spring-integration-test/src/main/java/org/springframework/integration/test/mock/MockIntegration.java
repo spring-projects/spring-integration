@@ -19,6 +19,7 @@ package org.springframework.integration.test.mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
@@ -72,9 +73,8 @@ public final class MockIntegration {
 		}
 
 		return (MessageSource<T>) mockMessageSource(new GenericMessage<>(payload),
-				(messages != null
-						? messages.toArray(new Message<?>[messages.size()])
-						: null));
+				(messages != null ?
+						messages.toArray(new Message<?>[messages.size()]) : null));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public final class MockIntegration {
 	 * @see Mockito#mock(Class)
 	 */
 	@SuppressWarnings("rawtypes")
-	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?>... messages) {
+	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?> @Nullable... messages) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
 		BDDMockito.given(messageSource.receive())
@@ -127,7 +127,7 @@ public final class MockIntegration {
 	 * @param messageArgumentCaptor the Mockito ArgumentCaptor to capture incoming messages
 	 * @return the MockMessageHandler instance ready for interaction
 	 */
-	public static MockMessageHandler mockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
+	public static MockMessageHandler mockMessageHandler(@Nullable ArgumentCaptor<Message<?>> messageArgumentCaptor) {
 		return Mockito.spy(new MockMessageHandler(messageArgumentCaptor));
 	}
 

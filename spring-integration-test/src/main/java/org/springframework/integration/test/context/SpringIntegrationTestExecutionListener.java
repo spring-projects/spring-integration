@@ -17,7 +17,10 @@
 package org.springframework.integration.test.context;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -37,7 +40,7 @@ import org.springframework.util.PatternMatchUtils;
  */
 class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
-	private Set<AbstractEndpoint> autoStartupCandidates;
+	private Set<AbstractEndpoint> autoStartupCandidates = new HashSet<>();
 
 	@Override
 	public void prepareTestInstance(TestContext testContext) {
@@ -62,7 +65,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 				.forEach(AbstractEndpoint::stop);
 	}
 
-	private static boolean match(String name, String[] patterns) {
+	private static boolean match(@Nullable String name, String[] patterns) {
 		return patterns.length > 0 &&
 				Arrays.stream(patterns)
 						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
