@@ -59,7 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.4
  */
-@SuppressWarnings("NullAway")
+
 public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final ReactiveRedisConnectionFactory reactiveConnectionFactory;
@@ -287,31 +287,38 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 		Flux<? extends Record<String, ?>> events;
 
+		StreamReceiver<String, ?> receiver = this.streamReceiver;
+		Assert.state(receiver != null, "'streamReceiver' must not be null");
+
 		if (!StringUtils.hasText(this.consumerName)) {
-			events = this.streamReceiver.receive(offset);
+			events = receiver.receive(offset);
 		}
 		else {
 			Mono<?> consumerGroupMono = Mono.empty();
+
+			String group = this.consumerGroup;
+			Assert.state(group != null, "'consumerGroup' must not be null ");
+
 			if (this.createConsumerGroup) {
+				ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
+				Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
 				consumerGroupMono =
-						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
-								.onErrorReturn(this.consumerGroup);
+						ops.createGroup(this.streamKey, group) // NOSONAR
+						.onErrorReturn(group);
 			}
 
-			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName); // NOSONAR
+			Consumer consumer = Consumer.from(group, this.consumerName);
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
 				// for consumer group offset id should be equal to '>'
 				offset = StreamOffset.create(this.streamKey, ReadOffset.lastConsumed());
 			}
 
-			events =
-					this.autoAck
-							? this.streamReceiver.receiveAutoAck(consumer, offset)
-							: this.streamReceiver.receive(consumer, offset);
+			events = this.autoAck
+					? receiver.receiveAutoAck(consumer, offset)
+					: receiver.receive(consumer, offset);
 
 			events = consumerGroupMono.thenMany(events);
-
 		}
 
 		Flux<? extends Message<?>> messageFlux =
@@ -328,12 +335,15 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 						.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
 						.setHeader(RedisHeaders.CONSUMER, this.consumerName);
 
-		if (!this.autoAck && this.consumerGroup != null) {
+		String group = this.consumerGroup;
+		if (!this.autoAck && group != null) {
+			ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
+			Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
 			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
 					(SimpleAcknowledgment) () ->
-							this.reactiveStreamOperations
-									.acknowledge(this.consumerGroup, record)
-									.subscribe());
+							ops
+								.acknowledge(group, record)
+								.subscribe());
 		}
 
 		return builder.build();
@@ -348,9 +358,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 				failedMessage = buildMessageFromRecord(record, false);
 			}
 		}
-		MessagingException conversionException =
-				new MessageConversionException(failedMessage, // NOSONAR
-						"Cannot deserialize Redis Stream Record", error);
+		MessagingException conversionException = (failedMessage != null)
+					? new MessageConversionException(failedMessage, "Cannot deserialize Redis Stream Record", error)
+					: new MessageConversionException("Cannot deserialize Redis Stream Record", error);
 		if (!sendErrorMessageIfNecessary(null, conversionException)) {
 			logger.getLog().error(conversionException);
 		}
