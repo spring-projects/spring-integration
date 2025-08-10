@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
+@SuppressWarnings("NullAway")
 public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		implements PriorityCapableChannelMessageStore {
 

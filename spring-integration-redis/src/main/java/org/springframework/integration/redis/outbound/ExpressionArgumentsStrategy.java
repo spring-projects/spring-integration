@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 4.0
  */
+@SuppressWarnings("NullAway")
 public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFactoryAware, InitializingBean {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();

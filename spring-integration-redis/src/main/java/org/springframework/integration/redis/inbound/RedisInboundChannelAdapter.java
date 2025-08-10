@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -49,6 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.1
  */
+@SuppressWarnings("NullAway")
 public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
@@ -150,7 +153,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
-	private Message<?> convertMessage(Object object, String source) {
+	private @Nullable Message<?> convertMessage(Object object, String source) {
 		MessageHeaders messageHeaders = null;
 		if (StringUtils.hasText(source)) {
 			messageHeaders = new MessageHeaders(Collections.singletonMap(RedisHeaders.MESSAGE_SOURCE, source));

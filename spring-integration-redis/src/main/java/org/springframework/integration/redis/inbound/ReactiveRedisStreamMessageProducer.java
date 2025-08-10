@@ -39,7 +39,7 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.4
  */
+@SuppressWarnings("NullAway")
 public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final ReactiveRedisConnectionFactory reactiveConnectionFactory;
@@ -71,11 +72,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 					.pollTimeout(Duration.ZERO)
 					.onErrorResume(this::handleReceiverError);
 
-	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
+	private @Nullable ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
-	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions;
+	private StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions;
 
-	private StreamReceiver<String, ?> streamReceiver;
+	private @Nullable StreamReceiver<String, ?> streamReceiver;
 
 	private ReadOffset readOffset = ReadOffset.latest();
 
@@ -165,7 +166,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * @param streamReceiverOptions the desired receiver options
 	 * */
 	public void setStreamReceiverOptions(
-			@Nullable StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions) {
+			StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions) {
 
 		Assert.isTrue(!this.receiverBuilderOptionSet,
 				"The 'streamReceiverOptions' is mutually exclusive with 'pollTimeout', 'batchSize', " +

@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Rainer Frey
  * @since 3.0
  */
+@SuppressWarnings("NullAway")
 public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();

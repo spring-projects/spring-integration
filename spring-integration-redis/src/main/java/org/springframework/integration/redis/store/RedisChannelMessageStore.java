@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
+@SuppressWarnings("NullAway")
 public class RedisChannelMessageStore
 		implements ChannelMessageStore, BeanNameAware, InitializingBean, BeanClassLoaderAware {
 

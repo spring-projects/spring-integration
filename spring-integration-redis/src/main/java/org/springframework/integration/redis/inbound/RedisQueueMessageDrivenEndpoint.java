@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
+@SuppressWarnings("NullAway")
 public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, BeanClassLoaderAware {
 

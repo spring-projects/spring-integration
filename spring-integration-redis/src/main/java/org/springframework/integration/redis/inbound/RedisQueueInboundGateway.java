@@ -37,7 +37,7 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
+@SuppressWarnings("NullAway")
 public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		implements ApplicationEventPublisherAware, BeanClassLoaderAware {
 

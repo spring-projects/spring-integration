@@ -43,6 +43,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
@@ -99,6 +100,7 @@ import org.springframework.util.ReflectionUtils;
  * @since 4.0
  *
  */
+@SuppressWarnings("NullAway")
 public final class RedisLockRegistry
 		implements ExpirableLockRegistry<DistributedLock>, DisposableBean, RenewableLockRegistry<DistributedLock> {
 
@@ -148,7 +150,7 @@ public final class RedisLockRegistry
 	private Executor executor =
 			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
 
-	private TaskScheduler renewalTaskScheduler;
+	private @Nullable TaskScheduler renewalTaskScheduler;
 
 	/**
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
@@ -163,12 +165,12 @@ public final class RedisLockRegistry
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisPubSubLock.RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
+	private volatile RedisPubSubLock.@Nullable RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisMessageListenerContainer redisMessageListenerContainer;
+	private volatile @Nullable RedisMessageListenerContainer redisMessageListenerContainer;
 
 	/**
 	 * Create a lock registry with the default (60 second) lock expiration.
@@ -402,7 +404,7 @@ public final class RedisLockRegistry
 
 		private volatile long lockedAt;
 
-		private volatile ScheduledFuture<?> renewFuture;
+		private volatile @Nullable ScheduledFuture<?> renewFuture;
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
@@ -756,8 +758,7 @@ public final class RedisLockRegistry
 			}
 			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
-					Future<String> future =
-							RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
+					Future<String> future = RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
 					//DCL
 					if (obtainLock(expireAfter)) {
 						return true;
@@ -806,7 +807,7 @@ public final class RedisLockRegistry
 			private final Map<String, CompletableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
 			@Override
-			public void onMessage(Message message, byte[] pattern) {
+			public void onMessage(Message message, @Nullable byte[] pattern) {
 				final String lockKey = new String(message.getBody());
 				unlockNotify(lockKey);
 			}

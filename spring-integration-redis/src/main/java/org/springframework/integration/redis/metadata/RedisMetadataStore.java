@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @since 3.0
  */
+@SuppressWarnings("NullAway")
 public class RedisMetadataStore implements ConcurrentMetadataStore {
 
 	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";

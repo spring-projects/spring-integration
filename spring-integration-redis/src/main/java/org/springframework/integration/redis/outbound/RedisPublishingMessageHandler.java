@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
+@SuppressWarnings("NullAway")
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;

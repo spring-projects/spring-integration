@@ -25,7 +25,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
@@ -38,6 +38,7 @@ import org.springframework.util.IdGenerator;
  *
  * @since 4.1
  */
+@SuppressWarnings("NullAway")
 public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";

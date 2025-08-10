@@ -18,6 +18,8 @@ package org.springframework.integration.redis.inbound;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -44,13 +46,14 @@ import org.springframework.util.Assert;
  *
  * @since 2.2
  */
+@SuppressWarnings("NullAway")
 public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 
 	private final RedisTemplate<String, ?> redisTemplate;
 
 	private final Expression keyExpression;
 
-	private StandardEvaluationContext evaluationContext;
+	private @Nullable StandardEvaluationContext evaluationContext;
 
 	private CollectionType collectionType = CollectionType.LIST;
 
@@ -105,7 +108,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	 * by {@link #keyExpression}
 	 */
 	@Override
-	protected RedisStore doReceive() {
+	protected @Nullable RedisStore doReceive() {
 		String key = this.keyExpression.getValue(this.evaluationContext, String.class);
 		Assert.hasText(key, "Failed to determine the key for the collection");
 

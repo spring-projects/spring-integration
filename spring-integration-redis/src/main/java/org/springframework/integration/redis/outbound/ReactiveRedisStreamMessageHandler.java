@@ -33,7 +33,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.4
  */
+@SuppressWarnings("NullAway")
 public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHandler {
 
 	private final Expression streamKeyExpression;

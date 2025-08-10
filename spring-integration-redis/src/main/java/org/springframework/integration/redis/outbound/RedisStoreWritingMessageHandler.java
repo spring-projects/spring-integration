@@ -73,6 +73,7 @@ import org.springframework.util.NumberUtils;
  *
  * @since 2.2
  */
+@SuppressWarnings("NullAway")
 public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private Expression zsetIncrementScoreExpression =

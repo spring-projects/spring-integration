@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @since 4.0
  */
+@SuppressWarnings("NullAway")
 public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();

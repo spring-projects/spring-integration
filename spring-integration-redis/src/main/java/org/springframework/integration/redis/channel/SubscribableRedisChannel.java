@@ -18,6 +18,8 @@ package org.springframework.integration.redis.channel;
 
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -55,7 +57,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "NullAway"})
 public class SubscribableRedisChannel extends AbstractMessageChannel
 		implements BroadcastCapableChannel, ManageableSmartLifecycle {
 
@@ -67,7 +69,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private final String topicName;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
@@ -75,7 +77,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile Integer maxSubscribers;
+	private volatile @Nullable Integer maxSubscribers;
 
 	private volatile boolean initialized;
 
