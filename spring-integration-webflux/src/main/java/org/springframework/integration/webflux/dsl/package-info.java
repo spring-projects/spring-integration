@@ -1,6 +1,5 @@
 /**
  * Provides WebFlux Components support for Spring Integration Java DSL.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.webflux.dsl;

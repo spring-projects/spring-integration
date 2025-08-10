@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -458,7 +459,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				.collect(Collectors.toList());
 	}
 
-	private MediaType selectMediaType(ServerWebExchange exchange, Supplier<List<MediaType>> producibleTypesSupplier) {
+	private @Nullable MediaType selectMediaType(ServerWebExchange exchange, Supplier<List<MediaType>> producibleTypesSupplier) {
 		List<MediaType> acceptableTypes = getAcceptableTypes(exchange);
 		List<MediaType> producibleTypes = getProducibleTypes(exchange, producibleTypesSupplier);
 

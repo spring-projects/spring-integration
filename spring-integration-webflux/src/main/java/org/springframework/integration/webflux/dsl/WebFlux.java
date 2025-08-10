@@ -19,10 +19,11 @@ package org.springframework.integration.webflux.dsl;
 import java.net.URI;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.web.reactive.function.client.WebClient;
 
