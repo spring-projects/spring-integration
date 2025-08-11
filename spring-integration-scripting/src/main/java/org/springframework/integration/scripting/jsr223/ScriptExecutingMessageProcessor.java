@@ -85,12 +85,12 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	}
 
 	@Override
-	protected ScriptSource getScriptSource(@Nullable Message<?> message) {
+	protected ScriptSource getScriptSource(Message<?> message) {
 		return this.scriptSource;
 	}
 
 	@Override
-	protected @Nullable Object executeScript(ScriptSource scriptSource, @Nullable Map<String, Object> variables) {
+	protected @Nullable Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		return this.scriptExecutor.executeScript(scriptSource, variables);
 	}
