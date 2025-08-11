@@ -45,7 +45,7 @@ public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 	}
 
 	public Map<String, Object> generateScriptVariables(Message<?> message) {
-		Map<String, Object> scriptVariables = new HashMap<String, Object>();
+		Map<String, Object> scriptVariables = new HashMap<>();
 		// Add Message content
 		if (message != null) {
 			scriptVariables.put("payload", message.getPayload());

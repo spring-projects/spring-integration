@@ -18,6 +18,8 @@ package org.springframework.integration.scripting.jsr223;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptExecutor;
@@ -88,7 +90,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	}
 
 	@Override
-	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
+	protected @Nullable Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		return this.scriptExecutor.executeScript(scriptSource, variables);
 	}

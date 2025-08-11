@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scripting.dsl;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -47,20 +49,25 @@ import org.springframework.util.StringUtils;
 class DslScriptExecutingMessageProcessor
 		implements MessageProcessor<Object>, InitializingBean, ApplicationContextAware, BeanClassLoaderAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private Resource script;
 
-	private String location;
+	private @Nullable String location;
 
-	private String lang;
+	private @Nullable String lang;
 
 	private long refreshCheckDelay = -1;
 
+	@SuppressWarnings("NullAway.Init")
 	private ScriptVariableGenerator variableGenerator;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private AbstractScriptExecutingMessageProcessor<?> delegate;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader classLoader;
 
 	DslScriptExecutingMessageProcessor(Resource script) {
@@ -124,7 +131,7 @@ class DslScriptExecutingMessageProcessor
 	}
 
 	@Override
-	public Object processMessage(Message<?> message) {
+	public @Nullable Object processMessage(Message<?> message) {
 		return this.delegate.processMessage(message);
 	}
 

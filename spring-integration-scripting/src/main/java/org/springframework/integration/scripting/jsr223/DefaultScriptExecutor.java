@@ -19,6 +19,8 @@ package org.springframework.integration.scripting.jsr223;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Default implementation of the {@link AbstractScriptExecutor}.
  * Accepts a scripting language for resolving a target {@code ScriptEngine} for
@@ -43,7 +45,7 @@ public class DefaultScriptExecutor extends AbstractScriptExecutor {
 	}
 
 	@Override
-	protected Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings) {
+	protected Object postProcess(Object result, ScriptEngine scriptEngine, String script, @Nullable Bindings bindings) {
 		return result;
 	}
 

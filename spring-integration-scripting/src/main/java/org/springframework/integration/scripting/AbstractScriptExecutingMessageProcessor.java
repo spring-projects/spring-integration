@@ -18,12 +18,13 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
 /**
  * Base {@link MessageProcessor} for scripting implementations to extend.
  *
- * @param <T> the paylaod type.
+ * @param <T> the payload type.
  *
  * @author Mark Fisher
  * @author Stefan Reuter
@@ -44,8 +45,10 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader beanClassLoader;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
@@ -83,8 +86,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * Execute the script and return the result.
 	 */
 	@Override
-	@Nullable
-	public final T processMessage(Message<?> message) {
+	public final @Nullable T processMessage(Message<?> message) {
 		ScriptSource source = getScriptSource(message);
 		Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
 		return executeScript(source, variables);
@@ -105,7 +107,6 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 */
-	@Nullable
-	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
+	protected abstract @Nullable T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
 
 }
