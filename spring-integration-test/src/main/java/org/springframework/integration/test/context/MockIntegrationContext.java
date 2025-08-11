@@ -81,6 +81,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 
 	private final Set<AbstractEndpoint> autoStartupCandidates = new HashSet<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
 	@Override
@@ -229,11 +230,14 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 		if (mockMessageHandler instanceof MessageProducer mockMessageProducer) {
 			if (targetMessageHandler instanceof MessageProducer messageProducer) {
 				MessageChannel outputChannel = messageProducer.getOutputChannel();
-				mockMessageProducer.setOutputChannel(outputChannel);
+				if (outputChannel != null) {
+					mockMessageProducer.setOutputChannel(outputChannel);
+				}
 			}
 			else {
 				if (mockMessageHandler instanceof MockMessageHandler) {
-					if (TestUtils.getPropertyValue(mockMessageHandler, "hasReplies", Boolean.class)) {
+					if (Boolean.TRUE.equals(TestUtils.getPropertyValue(
+							mockMessageHandler, "hasReplies", Boolean.class))) {
 						throw new IllegalStateException("The [" + mockMessageHandler + "] " +
 								"with replies can't replace simple MessageHandler [" + targetMessageHandler + "]");
 					}

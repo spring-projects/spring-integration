@@ -24,12 +24,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.matchers.CapturingMatcher;
 
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMessageProducingHandler} extension for the mocking purpose in tests.
@@ -61,16 +63,16 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 	private final Lock lock = new ReentrantLock();
 
-	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>(); // NOSONAR final
+	protected final List<Function<Message<?>, ? extends @Nullable Object>> messageFunctions = new LinkedList<>();
 
-	private final CapturingMatcher<Message<?>> capturingMatcher;
+	private final @Nullable CapturingMatcher<Message<?>> capturingMatcher;
 
-	protected Function<Message<?>, ?> lastFunction; // NOSONAR
+	protected @Nullable Function<Message<?>, ? extends @Nullable Object> lastFunction;
 
-	protected boolean hasReplies; // NOSONAR
+	protected boolean hasReplies;
 
 	@SuppressWarnings("unchecked")
-	protected MockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
+	protected MockMessageHandler(@Nullable ArgumentCaptor<Message<?>> messageArgumentCaptor) {
 		if (messageArgumentCaptor != null) {
 			this.capturingMatcher = TestUtils.getPropertyValue(messageArgumentCaptor,
 					"capturingMatcher", CapturingMatcher.class);
@@ -85,6 +87,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	 * @param nextMessageConsumer the Consumer to handle the next incoming message.
 	 * @return this
 	 */
+	@SuppressWarnings("NullAway") // See github.com/uber/NullAway/issues/1075
 	public MockMessageHandler handleNext(Consumer<Message<?>> nextMessageConsumer) {
 		this.lastFunction = m -> {
 			nextMessageConsumer.accept(m);
@@ -100,7 +103,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	 * @param nextMessageFunction the Function to handle the next incoming message.
 	 * @return this
 	 */
-	public MockMessageHandler handleNextAndReply(Function<Message<?>, ?> nextMessageFunction) {
+	public MockMessageHandler handleNextAndReply(Function<Message<?>, ? extends @Nullable Object> nextMessageFunction) {
 		this.lastFunction = nextMessageFunction;
 		this.messageFunctions.add(this.lastFunction);
 		this.hasReplies = true;
@@ -127,6 +130,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 			this.lock.unlock();
 		}
 
+		Assert.notNull(function, "At least one of the 'handleNext' or 'handleNextAndReply' has to be attached to this MockMessageHandler.");
 		Object result = function.apply(message);
 
 		if (result != null) {
