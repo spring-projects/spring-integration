@@ -33,7 +33,7 @@ import org.springframework.messaging.support.MessageBuilder;
  */
 public class ScriptExecutingMessageSource extends AbstractMessageSource<Object> {
 
-	private static final Message<Byte[]> EMPTY_MESSAGE = MessageBuilder.withPayload(new Byte[0]).build();
+	private static final Message<byte[]> EMPTY_MESSAGE = MessageBuilder.withPayload(new byte[0]).build();
 
 	private final AbstractScriptExecutingMessageProcessor<?> scriptMessageProcessor;
 
