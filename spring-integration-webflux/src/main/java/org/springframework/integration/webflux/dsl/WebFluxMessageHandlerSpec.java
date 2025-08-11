@@ -19,6 +19,8 @@ package org.springframework.integration.webflux.dsl;
 import java.net.URI;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -27,7 +29,6 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.dsl.BaseHttpMessageHandlerSpec;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -47,8 +48,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebFluxMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<WebFluxMessageHandlerSpec, WebFluxRequestExecutingMessageHandler> {
 
-	@Nullable
-	protected final WebClient webClient; // NOSONAR - final
+	protected final @Nullable WebClient webClient;
 
 	protected WebFluxMessageHandlerSpec(URI uri, @Nullable WebClient webClient) {
 		this(new ValueExpression<>(uri), webClient);

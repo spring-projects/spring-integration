@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationListener;
@@ -86,6 +88,7 @@ import org.springframework.web.server.WebHandler;
 public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
 		implements ApplicationListener<ContextRefreshedEvent>, DestructionAwareBeanPostProcessor {
 
+	@SuppressWarnings("NullAway") // Reflection
 	private static final Method HANDLER_METHOD =
 			ReflectionUtils.findMethod(WebHandler.class, "handle", ServerWebExchange.class);
 
@@ -103,7 +106,10 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
 		if (isHandler(bean.getClass())) {
-			unregisterMapping(getMappingForEndpoint((WebFluxInboundEndpoint) bean));
+			RequestMappingInfo mapping = getMappingForEndpoint((WebFluxInboundEndpoint) bean);
+			if (mapping != null) {
+				unregisterMapping(mapping);
+			}
 		}
 	}
 
@@ -118,13 +124,14 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void detectHandlerMethods(Object handler) {
 		if (handler instanceof String string) {
-			handler = getApplicationContext().getBean(string); // NOSONAR never null
+			handler = getApplicationContext().getBean(string);
 		}
 		RequestMappingInfo mapping = getMappingForEndpoint((WebFluxInboundEndpoint) handler);
 		if (mapping != null) {
-			registerMapping(mapping, handler, HANDLER_METHOD); // NOSONAR never null
+			registerMapping(mapping, handler, HANDLER_METHOD);
 		}
 	}
 
@@ -134,7 +141,7 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	 * {@link org.springframework.integration.http.inbound.RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
-	private RequestMappingInfo getMappingForEndpoint(WebFluxInboundEndpoint endpoint) {
+	private @Nullable RequestMappingInfo getMappingForEndpoint(WebFluxInboundEndpoint endpoint) {
 		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
 				HttpContextUtils.convertRequestMappingToAnnotation(endpoint.getRequestMapping());
 		if (requestMappingAnnotation != null) {
@@ -146,7 +153,7 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	}
 
 	@Override
-	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+	protected @Nullable CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
 		CrossOrigin crossOrigin = ((BaseHttpInboundEndpoint) handler).getCrossOrigin();
 		if (crossOrigin != null) {
 			return buildCorsConfiguration(crossOrigin, mappingInfo);
