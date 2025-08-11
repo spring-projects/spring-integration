@@ -48,8 +48,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebFluxMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<WebFluxMessageHandlerSpec, WebFluxRequestExecutingMessageHandler> {
 
-	@Nullable
-	protected final WebClient webClient;
+	protected final @Nullable WebClient webClient;
 
 	protected WebFluxMessageHandlerSpec(URI uri, @Nullable WebClient webClient) {
 		this(new ValueExpression<>(uri), webClient);
