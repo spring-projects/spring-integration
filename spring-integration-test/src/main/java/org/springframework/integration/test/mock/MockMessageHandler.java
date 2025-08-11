@@ -63,11 +63,11 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 	private final Lock lock = new ReentrantLock();
 
-	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>();
+	protected final List<Function<Message<?>, ? extends @Nullable Object>> messageFunctions = new LinkedList<>();
 
 	private final @Nullable CapturingMatcher<Message<?>> capturingMatcher;
 
-	protected @Nullable Function<Message<?>, ?> lastFunction;
+	protected @Nullable Function<Message<?>, ? extends @Nullable Object> lastFunction;
 
 	protected boolean hasReplies;
 
@@ -103,7 +103,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	 * @param nextMessageFunction the Function to handle the next incoming message.
 	 * @return this
 	 */
-	public MockMessageHandler handleNextAndReply(Function<Message<?>, ?> nextMessageFunction) {
+	public MockMessageHandler handleNextAndReply(Function<Message<?>, ? extends @Nullable Object> nextMessageFunction) {
 		this.lastFunction = nextMessageFunction;
 		this.messageFunctions.add(this.lastFunction);
 		this.hasReplies = true;
