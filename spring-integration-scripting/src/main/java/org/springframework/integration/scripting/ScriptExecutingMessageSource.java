@@ -19,6 +19,8 @@ package org.springframework.integration.scripting;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * The {@link org.springframework.integration.core.MessageSource} strategy implementation
@@ -30,6 +32,8 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
  * @since 3.0
  */
 public class ScriptExecutingMessageSource extends AbstractMessageSource<Object> {
+
+	private static final Message<Byte[]> EMPTY_MESSAGE = MessageBuilder.withPayload(new Byte[0]).build();
 
 	private final AbstractScriptExecutingMessageProcessor<?> scriptMessageProcessor;
 
@@ -44,7 +48,7 @@ public class ScriptExecutingMessageSource extends AbstractMessageSource<Object> 
 
 	@Override
 	protected @Nullable Object doReceive() {
-		return this.scriptMessageProcessor.processMessage(null);
+		return this.scriptMessageProcessor.processMessage(EMPTY_MESSAGE);
 	}
 
 }

@@ -45,9 +45,11 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
-	private @Nullable ClassLoader beanClassLoader;
+	@SuppressWarnings("NullAway.Init")
+	private ClassLoader beanClassLoader;
 
-	private @Nullable BeanFactory beanFactory;
+	@SuppressWarnings("NullAway.Init")
+	private BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
 		this(new DefaultScriptVariableGenerator());
@@ -72,11 +74,11 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 		return this.scriptVariableGenerator;
 	}
 
-	protected @Nullable ClassLoader getBeanClassLoader() {
+	protected ClassLoader getBeanClassLoader() {
 		return this.beanClassLoader;
 	}
 
-	protected @Nullable BeanFactory getBeanFactory() {
+	protected BeanFactory getBeanFactory() {
 		return this.beanFactory;
 	}
 
@@ -84,7 +86,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * Execute the script and return the result.
 	 */
 	@Override
-	public final @Nullable T processMessage(@Nullable Message<?> message) {
+	public final @Nullable T processMessage(Message<?> message) {
 		ScriptSource source = getScriptSource(message);
 		Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
 		return executeScript(source, variables);
@@ -96,7 +98,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * @param message the message being processed
 	 * @return a ScriptSource to use to create a script
 	 */
-	protected abstract ScriptSource getScriptSource(@Nullable Message<?> message);
+	protected abstract ScriptSource getScriptSource(Message<?> message);
 
 	/**
 	 * Subclasses must implement this method. In doing so, the execution context
