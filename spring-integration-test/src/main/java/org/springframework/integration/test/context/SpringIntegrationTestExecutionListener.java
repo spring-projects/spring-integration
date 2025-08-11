@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.test.context.TestContext;
@@ -51,8 +53,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
 		this.autoStartupCandidates = mockIntegrationContext.getAutoStartupCandidates();
 		this.autoStartupCandidates.stream()
-				.filter(endpoint -> endpoint.getBeanName() != null
-						&& !match(endpoint.getBeanName(), patterns))
+				.filter(endpoint -> !match(endpoint.getBeanName(), patterns))
 				.peek(endpoint -> endpoint.setAutoStartup(true))
 				.forEach(AbstractEndpoint::start);
 	}
@@ -64,7 +65,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 				.forEach(AbstractEndpoint::stop);
 	}
 
-	private static boolean match(String name, String[] patterns) {
+	private static boolean match(@Nullable String name, String[] patterns) {
 		return patterns.length > 0 &&
 				Arrays.stream(patterns)
 						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));

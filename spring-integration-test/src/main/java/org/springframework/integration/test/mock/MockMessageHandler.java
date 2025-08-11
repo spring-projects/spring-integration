@@ -130,7 +130,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 			this.lock.unlock();
 		}
 
-		Assert.notNull(function, "function must not be null");
+		Assert.notNull(function, "At least one of the 'handleNext' or 'handleNextAndReply' has to be attached to this MockMessageHandler.");
 		Object result = function.apply(message);
 
 		if (result != null) {
