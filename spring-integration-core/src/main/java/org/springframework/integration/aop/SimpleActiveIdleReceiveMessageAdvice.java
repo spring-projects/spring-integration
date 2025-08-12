@@ -25,7 +25,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- A simple advice that polls at one rate when messages exist and another when
+ * A simple advice that polls at one rate when messages exist and another when
  * there are no messages.
  *
  * @author Gary Russell

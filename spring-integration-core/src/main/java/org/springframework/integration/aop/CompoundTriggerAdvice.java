@@ -39,8 +39,7 @@ import org.springframework.util.Assert;
  * @since 4.3
  *
  */
-public class CompoundTriggerAdvice
-		implements MessageSourceMutator, ReceiveMessageAdvice {
+public class CompoundTriggerAdvice implements MessageSourceMutator {
 
 	private final CompoundTrigger compoundTrigger;
 

@@ -23,7 +23,7 @@ import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
 
 /**
- * A {@link Trigger} that delegates the {@link #nextExecutionTime(TriggerContext)}
+ * A {@link Trigger} that delegates the {@link #nextExecution(TriggerContext)}
  * to one of two Triggers. If the {@link #setOverride(Trigger) override} trigger is
  * {@code null}, the primary trigger is invoked; otherwise the override trigger is
  * invoked.

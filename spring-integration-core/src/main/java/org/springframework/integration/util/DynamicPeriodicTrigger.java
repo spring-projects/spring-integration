@@ -16,6 +16,7 @@
 
 package org.springframework.integration.util;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -130,14 +131,15 @@ public class DynamicPeriodicTrigger implements Trigger {
 	@Override
 	public Instant nextExecution(TriggerContext triggerContext) {
 		Instant lastScheduled = triggerContext.lastScheduledExecution();
+		Clock clock = triggerContext.getClock();
 		if (lastScheduled == null) {
-			return Instant.now().plus(this.initialDuration);
+			return clock.instant().plus(this.initialDuration);
 		}
 		else if (this.fixedRate) {
 			return lastScheduled.plus(this.duration);
 		}
-		return
-				triggerContext.lastCompletion().plus(this.duration); // NOSONAR never null here
+		Instant lastCompletion = triggerContext.lastCompletion();
+		return Objects.requireNonNullElse(lastCompletion, clock.instant()).plus(this.duration);
 	}
 
 	@Override
