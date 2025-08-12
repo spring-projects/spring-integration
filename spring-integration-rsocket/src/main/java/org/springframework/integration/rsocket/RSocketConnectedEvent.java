@@ -18,8 +18,6 @@ package org.springframework.integration.rsocket;
 
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -44,10 +42,10 @@ public class RSocketConnectedEvent extends IntegrationEvent {
 
 	private final DataBuffer data;
 
-	private final @Nullable RSocketRequester requester;
+	private final RSocketRequester requester;
 
 	public RSocketConnectedEvent(Object source, Map<String, Object> headers, DataBuffer data,
-			@Nullable RSocketRequester requester) {
+			RSocketRequester requester) {
 
 		super(source);
 		this.headers = headers;
@@ -63,7 +61,7 @@ public class RSocketConnectedEvent extends IntegrationEvent {
 		return this.data;
 	}
 
-	public @Nullable RSocketRequester getRequester() {
+	public RSocketRequester getRequester() {
 		return this.requester;
 	}
 

@@ -148,7 +148,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void fireAndForget(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			TestController controller, @Nullable RSocketRequester rsocketRequester) {
+			TestController controller, RSocketRequester rsocketRequester) {
 
 		Disposable disposable = Flux.from(resultChannel).subscribe();
 		inputChannel.send(
@@ -177,7 +177,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echo(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -209,7 +209,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoAsync(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -241,7 +241,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoStream(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
@@ -275,7 +275,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoChannel(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
@@ -309,7 +309,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void voidReturnValue(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(resultChannel)
@@ -339,7 +339,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void voidReturnValueFromExceptionHandler(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(resultChannel)
@@ -369,7 +369,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void handleWithThrownException(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -401,7 +401,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void handleWithErrorSignal(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			@Nullable RSocketRequester rsocketRequester) {
+			RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -453,7 +453,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void noMatchingRoute(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			PollableChannel errorChannel, @Nullable RSocketRequester rsocketRequester) {
+			PollableChannel errorChannel, RSocketRequester rsocketRequester) {
 
 		Disposable disposable = Flux.from(resultChannel).subscribe();
 		inputChannel.send(

@@ -65,7 +65,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 	private static final Method HANDLE_CONNECTION_SETUP_METHOD =
 			ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", Message.class);
 
-	private final Map<Object, @Nullable RSocketRequester> clientRSocketRequesters = new HashMap<>();
+	private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 
 	private BiFunction<Map<String, Object>, DataBuffer, Object> clientRSocketKeyStrategy =
 			(headers, data) -> data.toString(StandardCharsets.UTF_8);
@@ -147,6 +147,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 		RSocketRequester rsocketRequester =
 				messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
 						RSocketRequester.class);
+		Assert.notNull(rsocketRequester, "'rsocketRequester' can not be null");
 		this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
 		RSocketConnectedEvent rSocketConnectedEvent =
 				new RSocketConnectedEvent(this, messageHeaders, dataBuffer, rsocketRequester); // NOSONAR

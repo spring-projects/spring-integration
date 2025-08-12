@@ -72,10 +72,9 @@ import org.springframework.util.MimeType;
  */
 public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	@SuppressWarnings("NullAway.Init")
 	private final Expression routeExpression;
 
-	private Object[] routeVars = new Object[0];
+	private final Object[] routeVars;
 
 	private @Nullable ClientRSocketConnector clientRSocketConnector;
 
@@ -90,7 +89,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private @Nullable RSocketRequester rsocketRequester;
+	@SuppressWarnings("NullAway.Init")
+	private RSocketRequester rsocketRequester;
 
 	/**
 	 * Instantiate based on the provided RSocket endpoint {@code route}
@@ -99,10 +99,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param routeVariables the variables to expand route template.
 	 */
 	public RSocketOutboundGateway(String route, Object @Nullable ... routeVariables) {
-		this(new ValueExpression<>(route));
-		if (routeVariables != null) {
-			this.routeVars = Arrays.copyOf(routeVariables, routeVariables.length);
-		}
+		this(new ValueExpression<>(route), routeVariables);
 	}
 
 	/**
@@ -112,10 +109,25 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * in this expression evaluation, for example using some bean with an appropriate logic.
 	 * @param routeExpression the SpEL expression to use.
 	 */
-	@SuppressWarnings("this-escape")
 	public RSocketOutboundGateway(Expression routeExpression) {
+		this(routeExpression, null);
+	}
+
+	/**
+	 * Instantiate based on the provided SpEL expression to evaluate an RSocket endpoint {@code route}
+	 * at runtime against a request message.
+	 * If route is a template and variables expansion is required, it is recommended to do that
+	 * in this expression evaluation, for example using some bean with an appropriate logic.
+	 * @param routeExpression the SpEL expression to use.
+	 * @param routeVariables the variables to expand route template.
+	 */
+	@SuppressWarnings("this-escape")
+	public RSocketOutboundGateway(Expression routeExpression, Object @Nullable [] routeVariables) {
 		Assert.notNull(routeExpression, "'routeExpression' must not be null");
 		this.routeExpression = routeExpression;
+		this.routeVars = routeVariables != null
+				? Arrays.copyOf(routeVariables, routeVariables.length)
+				: new Object[0];
 		setAsync(true);
 		setPrimaryExpression(this.routeExpression);
 	}
