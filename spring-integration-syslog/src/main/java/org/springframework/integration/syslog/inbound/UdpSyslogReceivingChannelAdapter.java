@@ -61,6 +61,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 		if (this.udpAdapter == null) {
 			this.udpAdapter = new UnicastReceivingChannelAdapter(getPort());
 			this.udpAdapter.setBeanFactory(getBeanFactory());
+			this.udpAdapter.setApplicationEventPublisher(getApplicationEventPublisher());
 		}
 		else {
 			logger.info("The 'UdpSyslogReceivingChannelAdapter' overrides an 'outputChannel' " +
