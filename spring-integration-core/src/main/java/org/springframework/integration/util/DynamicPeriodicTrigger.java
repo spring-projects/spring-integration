@@ -139,7 +139,10 @@ public class DynamicPeriodicTrigger implements Trigger {
 			return lastScheduled.plus(this.duration);
 		}
 		Instant lastCompletion = triggerContext.lastCompletion();
-		return Objects.requireNonNullElse(lastCompletion, clock.instant()).plus(this.duration);
+		if (lastCompletion == null) {
+			return clock.instant().plus(this.duration);
+		}
+		return lastCompletion.plus(this.duration);
 	}
 
 	@Override
