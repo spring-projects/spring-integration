@@ -89,8 +89,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	@SuppressWarnings("NullAway.Init")
-	private RSocketRequester rsocketRequester;
+	private @Nullable RSocketRequester rsocketRequester;
 
 	/**
 	 * Instantiate based on the provided RSocket endpoint {@code route}
