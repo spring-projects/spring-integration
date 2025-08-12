@@ -1,5 +1,5 @@
 /**
  * Provides classes representing outbound RSocket components.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.rsocket.outbound;

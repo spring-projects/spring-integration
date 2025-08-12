@@ -19,6 +19,7 @@ package org.springframework.integration.rsocket.outbound;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,7 +33,6 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.RSocketInteractionModel;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
@@ -72,25 +72,25 @@ import org.springframework.util.MimeType;
  */
 public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler {
 
+	@SuppressWarnings("NullAway.Init")
 	private final Expression routeExpression;
 
-	private Object[] routeVars;
+	private Object[] routeVars = new Object[0];
 
-	@Nullable
-	private ClientRSocketConnector clientRSocketConnector;
+	private @Nullable ClientRSocketConnector clientRSocketConnector;
 
 	private Expression interactionModelExpression = new ValueExpression<>(RSocketInteractionModel.requestResponse);
 
-	private Expression publisherElementTypeExpression;
+	private @Nullable Expression publisherElementTypeExpression;
 
 	private Expression expectedResponseTypeExpression = new ValueExpression<>(String.class);
 
-	private Expression metadataExpression;
+	private @Nullable Expression metadataExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	@Nullable
-	private RSocketRequester rsocketRequester;
+	private @Nullable RSocketRequester rsocketRequester;
 
 	/**
 	 * Instantiate based on the provided RSocket endpoint {@code route}
@@ -98,7 +98,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param route the RSocket endpoint route to use.
 	 * @param routeVariables the variables to expand route template.
 	 */
-	public RSocketOutboundGateway(String route, @Nullable Object... routeVariables) {
+	public RSocketOutboundGateway(String route, Object @Nullable ... routeVariables) {
 		this(new ValueExpression<>(route));
 		if (routeVariables != null) {
 			this.routeVars = Arrays.copyOf(routeVariables, routeVariables.length);
@@ -254,10 +254,10 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 			Message<?> requestMessage) {
 
 		Object payload = requestMessage.getPayload();
-		if (payload instanceof Publisher<?> && this.publisherElementTypeExpression != null) {
+		if (payload instanceof Publisher<?> publisher && this.publisherElementTypeExpression != null) {
 			Object publisherElementType = evaluateExpressionForType(requestMessage, this.publisherElementTypeExpression,
 					"publisherElementType");
-			return prepareRequestSpecForPublisher(requestSpec, (Publisher<?>) payload, publisherElementType);
+			return prepareRequestSpecForPublisher(requestSpec, publisher, publisherElementType);
 		}
 		else {
 			return requestSpec.data(payload);
@@ -267,8 +267,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	private RSocketRequester.RetrieveSpec prepareRequestSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
 			Publisher<?> payload, Object publisherElementType) {
 
-		if (publisherElementType instanceof Class<?>) {
-			return requestSpec.data(payload, (Class<?>) publisherElementType);
+		if (publisherElementType instanceof Class<?> cls) {
+			return requestSpec.data(payload, cls);
 		}
 		else {
 			return requestSpec.data(payload, (ParameterizedTypeReference<?>) publisherElementType);
@@ -281,18 +281,17 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 				() -> "The 'interactionModelExpression' [" + this.interactionModelExpression +
 						"] must not evaluate to null");
 
-		Object expectedResponseType = null;
-		if (!RSocketInteractionModel.fireAndForget.equals(interactionModel)) {
-			expectedResponseType = evaluateExpressionForType(requestMessage, this.expectedResponseTypeExpression,
-					"expectedResponseType");
+		if (RSocketInteractionModel.fireAndForget.equals(interactionModel)) {
+			return retrieveSpec.send();
 		}
 
+		Object expectedResponseType =  evaluateExpressionForType(requestMessage, this.expectedResponseTypeExpression,
+				"expectedResponseType");
+
 		switch (interactionModel) {
-			case fireAndForget:
-				return retrieveSpec.send();
 			case requestResponse:
-				if (expectedResponseType instanceof Class<?>) {
-					return retrieveSpec.retrieveMono((Class<?>) expectedResponseType);
+				if (expectedResponseType instanceof Class<?> cls) {
+					return retrieveSpec.retrieveMono(cls);
 				}
 				else {
 					return retrieveSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
@@ -301,9 +300,9 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 			case requestChannel:
 				Flux<?> result;
 				ResolvableType expectedType;
-				if (expectedResponseType instanceof Class<?>) {
-					expectedType = ResolvableType.forClass((Class<?>) expectedResponseType);
-					result = retrieveSpec.retrieveFlux((Class<?>) expectedResponseType);
+				if (expectedResponseType instanceof Class<?> cls) {
+					expectedType = ResolvableType.forClass(cls);
+					result = retrieveSpec.retrieveFlux(cls);
 				}
 				else {
 					expectedType = ResolvableType.forType((ParameterizedTypeReference<?>) expectedResponseType);
@@ -317,11 +316,11 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private RSocketInteractionModel evaluateInteractionModel(Message<?> requestMessage) {
 		Object value = this.interactionModelExpression.getValue(this.evaluationContext, requestMessage);
-		if (value instanceof RSocketInteractionModel) {
-			return (RSocketInteractionModel) value;
+		if (value instanceof RSocketInteractionModel rSocketInteractionModel) {
+			return rSocketInteractionModel;
 		}
-		else if (value instanceof String) {
-			return RSocketInteractionModel.valueOf((String) value);
+		else if (value instanceof String string) {
+			return RSocketInteractionModel.valueOf(string);
 		}
 		else {
 			throw new IllegalStateException("The 'interactionModelExpression' [" +
@@ -339,9 +338,9 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 						"] must evaluate to 'String' (class FQN), 'Class<?>' " +
 						"or 'ParameterizedTypeReference<?>', not to: " + type);
 
-		if (type instanceof String) {
+		if (type instanceof String string) {
 			try {
-				return ClassUtils.forName((String) type, getBeanClassLoader());
+				return ClassUtils.forName(string, getBeanClassLoader());
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalStateException(e);

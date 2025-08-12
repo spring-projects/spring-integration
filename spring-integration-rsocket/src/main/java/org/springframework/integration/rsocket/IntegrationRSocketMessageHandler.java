@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.rsocket.Payload;
 import io.rsocket.frame.FrameType;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,7 +34,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.codec.Encoder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.handler.CompositeMessageCondition;
@@ -60,6 +60,7 @@ import org.springframework.util.ReflectionUtils;
  */
 class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 
+	@SuppressWarnings("NullAway") // Reflection
 	private static final Method HANDLE_MESSAGE_METHOD =
 			ReflectionUtils.findMethod(ReactiveMessageHandler.class, "handleMessage", Message.class);
 
@@ -105,7 +106,7 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
 						frameTypeMessageCondition,
-						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher()))); // NOSONAR
+						new DestinationPatternsMessageCondition(endpoint.getPath(), obtainRouteMatcher()))); // NOSONAR
 	}
 
 	@Override
@@ -173,9 +174,8 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 			}
 		}
 
-		@Nullable
 		@SuppressWarnings("unchecked")
-		private static AtomicReference<Flux<Payload>> getResponseReference(Message<?> message) {
+		private static @Nullable AtomicReference<Flux<Payload>> getResponseReference(Message<?> message) {
 			Object headerValue = message.getHeaders().get(RESPONSE_HEADER);
 			Assert.state(headerValue == null || headerValue instanceof AtomicReference, "Expected AtomicReference");
 			return (AtomicReference<Flux<Payload>>) headerValue;

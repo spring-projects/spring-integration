@@ -23,6 +23,7 @@ import io.rsocket.core.RSocketServer;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,6 @@ import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.ServerRSocketMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -148,7 +148,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void fireAndForget(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			TestController controller, RSocketRequester rsocketRequester) {
+			TestController controller, @Nullable RSocketRequester rsocketRequester) {
 
 		Disposable disposable = Flux.from(resultChannel).subscribe();
 		inputChannel.send(
@@ -177,7 +177,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echo(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -209,7 +209,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoAsync(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -241,7 +241,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoStream(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
@@ -275,7 +275,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void echoChannel(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
@@ -309,7 +309,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void voidReturnValue(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(resultChannel)
@@ -339,7 +339,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void voidReturnValueFromExceptionHandler(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(resultChannel)
@@ -369,7 +369,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void handleWithThrownException(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -401,7 +401,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void handleWithErrorSignal(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			RSocketRequester rsocketRequester) {
+			@Nullable RSocketRequester rsocketRequester) {
 
 		StepVerifier verifier =
 				StepVerifier.create(
@@ -453,7 +453,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	private void noMatchingRoute(MessageChannel inputChannel, FluxMessageChannel resultChannel,
-			PollableChannel errorChannel, RSocketRequester rsocketRequester) {
+			PollableChannel errorChannel, @Nullable RSocketRequester rsocketRequester) {
 
 		Disposable disposable = Flux.from(resultChannel).subscribe();
 		inputChannel.send(

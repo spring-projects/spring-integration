@@ -19,6 +19,7 @@ package org.springframework.integration.rsocket.inbound;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,7 +38,6 @@ import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.IntegrationRSocketEndpoint;
 import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
@@ -78,11 +78,9 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
 
-	@Nullable
-	private AbstractRSocketConnector rsocketConnector;
+	private @Nullable AbstractRSocketConnector rsocketConnector;
 
-	@Nullable
-	private ResolvableType requestElementType;
+	private @Nullable ResolvableType requestElementType;
 
 	private boolean decodeFluxAsUnit;
 
@@ -188,8 +186,8 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.rsocketConnector instanceof ClientRSocketConnector) {
-			((ClientRSocketConnector) this.rsocketConnector).connect();
+		if (this.rsocketConnector instanceof ClientRSocketConnector clientRSocketConnector) {
+			clientRSocketConnector.connect();
 		}
 	}
 
@@ -265,8 +263,8 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 		// The MessagingRSocket logic ensures that we can have only a single DataBuffer payload or Flux<DataBuffer>.
 		Decoder<Object> decoder = this.rsocketStrategies.decoder(elementType, mimeType);
-		if (payload instanceof DataBuffer) {
-			return decoder.decode((DataBuffer) payload, elementType, mimeType, null);
+		if (payload instanceof DataBuffer dataBuffer) {
+			return decoder.decode(dataBuffer, elementType, mimeType, null);
 		}
 		else if (this.decodeFluxAsUnit) {
 			return decoder.decode((Publisher<DataBuffer>) payload, elementType, mimeType, null);
