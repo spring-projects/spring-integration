@@ -19,6 +19,8 @@ package org.springframework.integration.ip.dsl;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -38,7 +40,7 @@ public class TcpInboundChannelAdapterSpec
 		extends MessageProducerSpec<TcpInboundChannelAdapterSpec, TcpReceivingChannelAdapter>
 		implements ComponentsRegistration {
 
-	protected final AbstractConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractConnectionFactory connectionFactory; // NOSONAR - final
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
@@ -91,10 +93,10 @@ public class TcpInboundChannelAdapterSpec
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.connectionFactory != null
-				? Collections.singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
-				: Collections.emptyMap();
+				? Collections.<Object, @Nullable String>singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
+				: Collections.<Object, @Nullable String>emptyMap();
 	}
 
 }

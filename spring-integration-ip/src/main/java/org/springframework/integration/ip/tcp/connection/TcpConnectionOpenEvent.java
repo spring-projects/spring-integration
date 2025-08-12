@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.Serial;
+
 /**
  * @author Gary Russell
  * @since 3.0
@@ -23,6 +25,7 @@ package org.springframework.integration.ip.tcp.connection;
  */
 public class TcpConnectionOpenEvent extends TcpConnectionEvent {
 
+	@Serial
 	private static final long serialVersionUID = 7237316997596598287L;
 
 	public TcpConnectionOpenEvent(TcpConnection connection, String connectionFactoryName) {

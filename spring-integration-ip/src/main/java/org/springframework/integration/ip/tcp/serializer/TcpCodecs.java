@@ -29,17 +29,21 @@ package org.springframework.integration.ip.tcp.serializer;
  * </pre>
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
  */
 public final class TcpCodecs {
 
-	private static ByteArrayLengthHeaderSerializer oneByteLHS;
+	private static final ByteArrayLengthHeaderSerializer ONE_BYTE_LHS =
+			new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE);
 
-	private static ByteArrayLengthHeaderSerializer twoByteLHS;
+	private static final ByteArrayLengthHeaderSerializer TWO_BYTE_LHS =
+			new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT);
 
-	private static ByteArrayLengthHeaderSerializer fourByteLHS;
+	private static final ByteArrayLengthHeaderSerializer FOUR_BYTE_LHS =
+			new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT);
 
 	private TcpCodecs() {
 	}
@@ -98,10 +102,7 @@ public final class TcpCodecs {
 	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader1() {
-		if (oneByteLHS == null) {
-			oneByteLHS = new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE);
-		}
-		return oneByteLHS;
+		return ONE_BYTE_LHS;
 	}
 
 	/**
@@ -110,11 +111,7 @@ public final class TcpCodecs {
 	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader2() {
-		if (twoByteLHS == null) {
-			twoByteLHS = new ByteArrayLengthHeaderSerializer(
-					ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT);
-		}
-		return twoByteLHS;
+		return TWO_BYTE_LHS;
 	}
 
 	/**
@@ -123,10 +120,7 @@ public final class TcpCodecs {
 	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader4() {
-		if (fourByteLHS == null) {
-			fourByteLHS = new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT);
-		}
-		return fourByteLHS;
+		return FOUR_BYTE_LHS;
 	}
 
 	/**

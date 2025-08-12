@@ -20,6 +20,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -41,6 +43,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	private final int port;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private int soTimeout = 0;
@@ -49,9 +52,9 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	private int receiveBufferSize = 2048; // NOSONAR magic number
 
-	private String localAddress;
+	private @Nullable String localAddress;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private boolean taskExecutorSet;
 
@@ -117,7 +120,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		this.listening = listening;
 	}
 
-	public String getLocalAddress() {
+	public @Nullable String getLocalAddress() {
 		return this.localAddress;
 	}
 
@@ -139,7 +142,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	/**
 	 * @return the taskExecutor
 	 */
-	public Executor getTaskExecutor() {
+	public @Nullable Executor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 
@@ -153,6 +156,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void doStart() {
 		String beanName = getComponentName();
 		checkTaskExecutor((beanName == null ? "" : beanName + "-") + getComponentType());
@@ -179,8 +183,9 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	@Override
 	protected void doStop() {
-		if (!this.taskExecutorSet && this.taskExecutor != null) {
-			((ExecutorService) this.taskExecutor).shutdown();
+		Executor taskExecutorToShutdown = this.taskExecutor;
+		if (!this.taskExecutorSet && taskExecutorToShutdown != null) {
+			((ExecutorService) taskExecutorToShutdown).shutdown();
 			this.taskExecutor = null;
 		}
 	}

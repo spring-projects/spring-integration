@@ -45,13 +45,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -87,11 +88,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private final List<TcpSender> senders = Collections.synchronizedList(new ArrayList<>());
 
-	private String host;
+	private @Nullable String host;
 
 	private int port;
 
-	private TcpListener listener;
+	private @Nullable TcpListener listener;
 
 	private int soTimeout = -1;
 
@@ -107,7 +108,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private int soTrafficClass = -1; // don't set by default
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private boolean privateExecutor;
 
@@ -123,7 +124,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private boolean singleUse;
 
-	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+	private @Nullable TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 
 	private boolean lookupHost;
 
@@ -133,11 +134,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private long readDelay = DEFAULT_READ_DELAY;
 
-	private Integer sslHandshakeTimeout;
+	private @Nullable Integer sslHandshakeTimeout;
 
 	private volatile boolean active;
 
@@ -159,7 +161,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	@Nullable
 	public ApplicationEventPublisher getApplicationEventPublisher() {
 		return this.applicationEventPublisher;
 	}
@@ -301,7 +302,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * @return the host
 	 */
-	public String getHost() {
+	public @Nullable String getHost() {
 		return this.host;
 	}
 
@@ -593,23 +594,25 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		try {
 			if (this.privateExecutor) {
 				ExecutorService executorService = (ExecutorService) this.taskExecutor;
-				executorService.shutdown();
-				try {
-					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) { // NOSONAR magic number
-						logger.debug("Forcing executor shutdown");
-						executorService.shutdownNow();
+				if (executorService != null) {
+					executorService.shutdown();
+					try {
 						if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) { // NOSONAR magic number
-							logger.debug("Executor failed to shutdown");
+							logger.debug("Forcing executor shutdown");
+							executorService.shutdownNow();
+							if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) { // NOSONAR magic number
+								logger.debug("Executor failed to shutdown");
+							}
 						}
 					}
-				}
-				catch (@SuppressWarnings(UNUSED) InterruptedException e) {
-					executorService.shutdownNow();
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					this.taskExecutor = null;
-					this.privateExecutor = false;
+					catch (@SuppressWarnings(UNUSED) InterruptedException e) {
+						executorService.shutdownNow();
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						this.taskExecutor = null;
+						this.privateExecutor = false;
+					}
 				}
 			}
 		}
@@ -637,7 +640,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				if (this.listener == null) {
 					connection.registerListener(wrapper);
 				}
-				if (this.senders.size() == 0) {
+				if (this.senders.isEmpty()) {
 					connection.registerSender(wrapper);
 				}
 				connection.setWrapped(true);
@@ -655,15 +658,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 *
 	 * Times out any expired connections then, if {@code selectionCount > 0},
 	 * processes the selected keys.
-	 * Removes closed connections from the connections field, and from the connections parameter.
+	 * Removes closed connections from the connections field, and from the connections' parameter.
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
 	 * @param selector The selector.
 	 * @param server The server socket channel.
 	 * @param connectionMap Map of connections.
 	 */
-	protected void processNioSelections(int selectionCount, final Selector selector,
-			@Nullable ServerSocketChannel server,
-			Map<SocketChannel, TcpNioConnection> connectionMap) {
+	protected void processNioSelections(int selectionCount, Selector selector,
+			@Nullable ServerSocketChannel server, Map<SocketChannel, TcpNioConnection> connectionMap) {
 
 		final long now = System.currentTimeMillis();
 		rescheduleDelayedReads(selector, now);
@@ -715,6 +717,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 		else if (this.soTimeout > 0) {
 			TcpNioConnection connection = connectionMap.get(channel);
+			Assert.state(connection != null, () -> "No 'connection' for channel: " + channel);
 			if (now - connection.getLastRead() >= this.soTimeout) {
 				/*
 				 * For client connections, we have to wait for 2 timeouts if the last
@@ -722,7 +725,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				 */
 				if (!connection.isServer() &&
 						now - connection.getLastSend() < this.soTimeout &&
-						now - connection.getLastRead() < this.soTimeout * 2) {
+						now - connection.getLastRead() < this.soTimeout * 2L) {
 					logger.debug(() -> "Skipping a connection timeout because we have a recent send " +
 							connection.getConnectionId());
 				}
@@ -737,7 +740,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	private void handleKey(final Selector selector, ServerSocketChannel server, final long now,
+	private void handleKey(final Selector selector, @Nullable ServerSocketChannel server, final long now,
 			final SelectionKey key) {
 
 		if (!key.isValid()) {
@@ -760,7 +763,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		connection = (TcpNioConnection) key.attachment();
 		connection.setLastRead(System.currentTimeMillis());
 		try {
-			this.taskExecutor.execute(() -> {
+			getTaskExecutor().execute(() -> {
 				boolean delayed = false;
 				try {
 					connection.readPacket();
@@ -796,12 +799,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	private void keyAcceptable(final Selector selector, ServerSocketChannel server, final long now) {
-		try {
-			doAccept(selector, server, now);
-		}
-		catch (Exception ex) {
-			logger.error(ex, "Exception accepting new connection(s)");
+	private void keyAcceptable(final Selector selector, @Nullable ServerSocketChannel server, final long now) {
+		if (server != null) {
+			try {
+				doAccept(selector, server, now);
+			}
+			catch (Exception ex) {
+				logger.error(ex, "Exception accepting new connection(s)");
+			}
 		}
 	}
 
@@ -1003,16 +1008,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				+ ", port=" + getPort();
 	}
 
-	private static final class PendingIO {
-
-		private final long failedAt;
-
-		private final SelectionKey key;
-
-		private PendingIO(long failedAt, SelectionKey key) {
-			this.failedAt = failedAt;
-			this.key = key;
-		}
+	protected record PendingIO(long failedAt, SelectionKey key) {
 
 	}
 

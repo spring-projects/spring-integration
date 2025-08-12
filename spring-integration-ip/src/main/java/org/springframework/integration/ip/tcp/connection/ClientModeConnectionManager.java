@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -46,7 +47,7 @@ public class ClientModeConnectionManager implements Runnable {
 
 	private final AbstractConnectionFactory clientConnectionFactory;
 
-	private volatile TcpConnection lastConnection;
+	private volatile @Nullable TcpConnection lastConnection;
 
 	/**
 	 * @param clientConnectionFactory The connection factory.
@@ -85,7 +86,8 @@ public class ClientModeConnectionManager implements Runnable {
 	}
 
 	public boolean isConnected() {
-		return this.lastConnection != null && this.lastConnection.isOpen();
+		TcpConnection lastConnectionToCheck = this.lastConnection;
+		return lastConnectionToCheck != null && lastConnectionToCheck.isOpen();
 	}
 
 }

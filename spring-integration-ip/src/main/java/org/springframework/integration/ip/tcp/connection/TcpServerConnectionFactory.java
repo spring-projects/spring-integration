@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.SocketAddress;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Connection factories that act as TCP servers, listening for incoming connections.
  * @author Gary Russell
@@ -40,6 +42,8 @@ public interface TcpServerConnectionFactory {
 	 * is bound to.
 	 * @return the socket address.
 	 */
-	SocketAddress getServerSocketAddress();
+	default @Nullable SocketAddress getServerSocketAddress() {
+		return null;
+	}
 
 }

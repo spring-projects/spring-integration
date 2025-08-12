@@ -63,8 +63,7 @@ public class DefaultTcpSocketSupport implements TcpSocketSupport {
 	 */
 	@Override
 	public void postProcessSocket(Socket socket) {
-		if (this.sslVerifyHost && socket instanceof SSLSocket) {
-			SSLSocket sslSocket = (SSLSocket) socket;
+		if (this.sslVerifyHost && socket instanceof SSLSocket sslSocket) {
 			SSLParameters sslParameters = sslSocket.getSSLParameters();
 			// HTTPS works for any TCP connection.
 			// It checks SAN (Subject Alternative Name) as well as CN.

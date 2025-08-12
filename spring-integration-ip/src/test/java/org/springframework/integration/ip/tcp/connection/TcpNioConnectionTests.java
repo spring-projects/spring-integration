@@ -365,7 +365,9 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				messageLatch.countDown();
 				return false;
 			});
-			connection.setMapper(new TcpMessageMapper());
+			TcpMessageMapper mapper = new TcpMessageMapper();
+			mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+			connection.setMapper(mapper);
 			connection.setDeserializer(new ByteArrayCrLfSerializer());
 			Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
 			method.setAccessible(true);
@@ -560,6 +562,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 			return false;
 		});
+		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory.afterPropertiesSet();
 		factory.start();
 		TestingUtilities.waitListening(factory, null);
 		int port = factory.getPort();
@@ -615,6 +619,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 			return false;
 		});
+		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory.afterPropertiesSet();
 		factory.start();
 		TestingUtilities.waitListening(factory, null);
 		int port = factory.getPort();
@@ -708,7 +714,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 		});
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
-		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
+		final AtomicReference<Thread> assembler = new AtomicReference<>();
 		factory.registerListener(message -> {
 			if (!(message instanceof ErrorMessage)) {
 				assembler.set(Thread.currentThread());
@@ -722,6 +728,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		te.setQueueCapacity(0);
 		te.initialize();
 		factory.setTaskExecutor(te);
+		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory.afterPropertiesSet();
 		factory.start();
 		TestingUtilities.waitListening(factory, 10000L);
 		int port = factory.getPort();

@@ -22,7 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.context.ApplicationEventPublisher;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
@@ -38,7 +39,6 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  * For java.nio connections, messages may be multiplexed but the client will need to
  * provide correlation logic. If the client is a {@link TcpOutboundGateway} multiplexing
  * is not used, but multiple concurrent connections can be used if the connection factory uses
- * single-use connections. For true asynchronous bi-directional communication, a pair of
+ * single-use connections. For true asynchronous bidirectional communication, a pair of
  * inbound / outbound channel adapters should be used.
  *
  * @author Gary Russell
@@ -67,9 +67,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
-	private AbstractServerConnectionFactory serverConnectionFactory;
+	private @Nullable AbstractServerConnectionFactory serverConnectionFactory;
 
-	private AbstractClientConnectionFactory clientConnectionFactory;
+	private @Nullable AbstractClientConnectionFactory clientConnectionFactory;
 
 	private boolean isClientMode;
 
@@ -77,9 +77,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
-	private volatile ClientModeConnectionManager clientModeConnectionManager;
+	private volatile @Nullable ClientModeConnectionManager clientModeConnectionManager;
 
-	private volatile ScheduledFuture<?> scheduledFuture;
+	private volatile @Nullable ScheduledFuture<?> scheduledFuture;
 
 	private volatile boolean shuttingDown;
 
@@ -114,7 +114,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 				if (this.serverConnectionFactory != null) {
 					this.serverConnectionFactory.closeConnection(connectionId);
 				}
-				else {
+				else if (this.clientConnectionFactory != null) {
 					this.clientConnectionFactory.closeConnection(connectionId);
 				}
 			}
@@ -128,35 +128,33 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			return false;
 		}
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
-		TcpConnection connection = null;
 		if (connectionId != null) {
-			connection = this.connections.get(connectionId);
-		}
-		if (connection == null) {
-			publishNoConnectionEvent(message, connectionId);
-			logger.error(() -> "Connection not found when processing reply " + reply + " for " + message);
-			return false;
-		}
-		try {
-			connection.send(reply);
-		}
-		catch (Exception ex) {
-			logger.error(ex, "Failed to send reply");
+			TcpConnection connection = this.connections.get(connectionId);
+			if (connection == null) {
+				publishNoConnectionEvent(message, connectionId);
+				logger.error(() -> "Connection not found when processing reply " + reply + " for " + message);
+				return false;
+			}
+			try {
+				connection.send(reply);
+			}
+			catch (Exception ex) {
+				logger.error(ex, "Failed to send reply");
+			}
 		}
 		return false;
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void publishNoConnectionEvent(Message<?> message, String connectionId) {
 		AbstractConnectionFactory cf =
 				this.serverConnectionFactory != null
 						? this.serverConnectionFactory
 						: this.clientConnectionFactory;
-		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
-					new TcpConnectionFailedCorrelationEvent(this, connectionId,
-							new MessagingException(message, "Connection not found to process reply.")));
-		}
+
+		cf.getApplicationEventPublisher().publishEvent(
+				new TcpConnectionFailedCorrelationEvent(this, connectionId,
+						new MessagingException(message, "Connection not found to process reply.")));
 	}
 
 	/**
@@ -222,21 +220,20 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		if (this.clientConnectionFactory != null) {
 			this.clientConnectionFactory.start();
 		}
-		if (this.isClientMode) {
+		if (this.isClientMode && this.clientConnectionFactory != null) {
 			ClientModeConnectionManager manager =
 					new ClientModeConnectionManager(this.clientConnectionFactory);
 			this.clientModeConnectionManager = manager;
-			TaskScheduler taskScheduler = getTaskScheduler();
-			Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
-			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
+			this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 		}
 	}
 
 	@Override // protected by super#lifecycleLock
 	protected void doStop() {
 		super.doStop();
-		if (this.scheduledFuture != null) {
-			this.scheduledFuture.cancel(true);
+		ScheduledFuture<?> scheduledFutureToCancel = this.scheduledFuture;
+		if (scheduledFutureToCancel != null) {
+			scheduledFutureToCancel.cancel(true);
 		}
 		this.clientModeConnectionManager = null;
 		if (this.clientConnectionFactory != null) {
@@ -281,8 +278,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public boolean isClientModeConnected() {
-		if (this.isClientMode && this.clientModeConnectionManager != null) {
-			return this.clientModeConnectionManager.isConnected();
+		ClientModeConnectionManager clientModeConnectionManagerToCheck = this.clientModeConnectionManager;
+		if (this.isClientMode && clientModeConnectionManagerToCheck != null) {
+			return clientModeConnectionManagerToCheck.isConnected();
 		}
 		else {
 			return false;
@@ -291,8 +289,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public void retryConnection() {
-		if (isActive() && this.isClientMode && this.clientModeConnectionManager != null) {
-			this.clientModeConnectionManager.run();
+		ClientModeConnectionManager clientModeConnectionManagerToRun = this.clientModeConnectionManager;
+		if (isActive() && this.isClientMode && clientModeConnectionManagerToRun != null) {
+			clientModeConnectionManagerToRun.run();
 		}
 	}
 

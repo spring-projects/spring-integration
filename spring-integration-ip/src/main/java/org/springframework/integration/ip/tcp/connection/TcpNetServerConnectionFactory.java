@@ -26,7 +26,8 @@ import java.net.SocketTimeoutException;
 
 import javax.net.ServerSocketFactory;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -46,7 +47,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private TcpNetConnectionSupport tcpNetConnectionSupport = new DefaultTcpNetConnectionSupport();
 
-	private volatile ServerSocket serverSocket;
+	private volatile @Nullable ServerSocket serverSocket;
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -72,10 +73,10 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
-	@Nullable
-	public SocketAddress getServerSocketAddress() {
-		if (this.serverSocket != null) {
-			return this.serverSocket.getLocalSocketAddress();
+	public @Nullable SocketAddress getServerSocketAddress() {
+		ServerSocket serverSocketToUse = this.serverSocket;
+		if (serverSocketToUse != null) {
+			return serverSocketToUse.getLocalSocketAddress();
 		}
 		else {
 			return null;
@@ -160,12 +161,13 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		 *  Not fatal.
 		 */
 		try {
-			if (this.serverSocket == null) {
+			ServerSocket serverSocketToUse = this.serverSocket;
+			if (serverSocketToUse == null) {
 				logger.debug(() -> this + " stopped before accept");
 				throw new IOException(this + " stopped before accept");
 			}
 			else {
-				socket = this.serverSocket.accept();
+				socket = serverSocketToUse.accept();
 			}
 		}
 		catch (@SuppressWarnings("unused") SocketTimeoutException ste) {
@@ -232,11 +234,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 
 	@Override
 	public void stop() {
-		if (this.serverSocket == null) {
+		ServerSocket serverSocketToClose = this.serverSocket;
+		if (serverSocketToClose == null) {
 			return;
 		}
 		try {
-			this.serverSocket.close();
+			serverSocketToClose.close();
 		}
 		catch (@SuppressWarnings("unused") IOException e) {
 		}
@@ -247,7 +250,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	/**
 	 * @return the serverSocket
 	 */
-	protected ServerSocket getServerSocket() {
+	protected @Nullable ServerSocket getServerSocket() {
 		return this.serverSocket;
 	}
 

@@ -33,7 +33,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
-import org.springframework.lang.Nullable;
 
 import static org.awaitility.Awaitility.await;
 
@@ -349,7 +348,6 @@ public class SocketTestUtils {
 		}
 	}
 
-	@Nullable
 	public static NetworkInterface chooseANic(boolean multicast) throws Exception {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		while (interfaces.hasMoreElements()) {

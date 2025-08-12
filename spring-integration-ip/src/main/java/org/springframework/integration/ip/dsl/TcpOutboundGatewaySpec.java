@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
@@ -40,7 +42,7 @@ import org.springframework.messaging.MessageChannel;
 public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewaySpec, TcpOutboundGateway>
 		implements ComponentsRegistration {
 
-	protected final AbstractClientConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractClientConnectionFactory connectionFactory; // NOSONAR - final
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
@@ -138,10 +140,10 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.connectionFactory != null
-				? Collections.singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
-				: Collections.emptyMap();
+				? Collections.<Object, @Nullable String>singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
+				: Collections.<Object, @Nullable String>emptyMap();
 	}
 
 }

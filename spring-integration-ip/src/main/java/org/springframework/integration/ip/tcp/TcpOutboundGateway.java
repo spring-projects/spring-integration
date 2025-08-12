@@ -26,7 +26,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.context.ApplicationEventPublisher;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -76,6 +77,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final Semaphore semaphore = new Semaphore(1, true);
 
+	@SuppressWarnings("NullAway.Init")
 	private AbstractClientConnectionFactory connectionFactory;
 
 	private boolean isSingleUse;
@@ -92,9 +94,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private boolean closeStreamAfterSend;
 
-	private String unsolicitedMessageChannelName;
+	private @Nullable String unsolicitedMessageChannelName;
 
-	private MessageChannel unsolicitedMessageChannel;
+	private @Nullable MessageChannel unsolicitedMessageChannel;
 
 	public void setConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -199,6 +201,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	protected void doInit() {
 		super.doInit();
+		Assert.notNull(this.connectionFactory, () -> getClass().getName() + " requires a client connection factory");
 		if (!this.evaluationContextSet) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		}
@@ -208,7 +211,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.notNull(this.connectionFactory, () -> getClass().getName() + " requires a client connection factory");
 		boolean haveSemaphore = false;
 		TcpConnection connection = null;
 		String connectionId = null;
@@ -306,11 +308,11 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		return replyMessage;
 	}
 
-	private void cleanUp(boolean haveSemaphore, TcpConnection connection, String connectionId) {
+	private void cleanUp(boolean haveSemaphore, @Nullable TcpConnection connection, @Nullable String connectionId) {
 		if (connectionId != null) {
 			this.pendingReplies.remove(connectionId);
 			logger.debug(() -> "Removed pending reply " + connectionId);
-			if (this.isSingleUse) {
+			if (this.isSingleUse && connection != null) {
 				connection.close();
 			}
 		}
@@ -379,12 +381,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		return false;
 	}
 
-	private void publishNoConnectionEvent(Message<?> message, String connectionId, String errorMessage) {
-		ApplicationEventPublisher applicationEventPublisher = this.connectionFactory.getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new TcpConnectionFailedCorrelationEvent(this, connectionId,
-					new MessagingException(message, errorMessage)));
-		}
+	private void publishNoConnectionEvent(Message<?> message, @Nullable String connectionId, String errorMessage) {
+		this.connectionFactory.getApplicationEventPublisher()
+				.publishEvent(new TcpConnectionFailedCorrelationEvent(
+						this, connectionId, new MessagingException(message, errorMessage)));
 	}
 
 	@Override
@@ -437,13 +437,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final boolean haveSemaphore;
 
-		private final ScheduledFuture<?> noResponseFuture;
+		private final @Nullable ScheduledFuture<?> noResponseFuture;
 
 		private final CompletableFuture<Message<?>> future =
 				new CompletableFuture<Message<?>>()
 						.thenApply(this::cancelNoResponseFutureIfAny);
 
-		private volatile Message<?> reply;
+		private volatile @Nullable Message<?> reply;
 
 		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage,
 				boolean async) {
@@ -489,7 +489,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * Sender blocks here until the reply is received, or we time out.
 		 * @return The return message or null if we time out
 		 */
-		Message<?> getReply() {
+		@Nullable Message<?> getReply() {
 			try {
 				if (!this.latch.await(this.remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
@@ -528,17 +528,21 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 
 		private void doThrowErrorMessagePayload() {
-			if (this.reply.getPayload() instanceof MessagingException) {
-				throw (MessagingException) this.reply.getPayload();
-			}
-			else {
-				throw new MessagingException("Exception while awaiting reply", (Throwable) this.reply.getPayload());
+			Message<?> replyToCheck = this.reply;
+			if (replyToCheck != null) {
+				Object payload = replyToCheck.getPayload();
+				if (payload instanceof MessagingException) {
+					throw (MessagingException) payload;
+				}
+				else {
+					throw new MessagingException("Exception while awaiting reply", (Throwable) payload);
+				}
 			}
 		}
 
 		/**
 		 * We have a race condition when a socket is closed right after the reply is received. The close "error"
-		 * might arrive before the actual reply. Overwrite an error with a good reply, but not vice-versa.
+		 * might arrive before the actual reply. Overwrite an error with a good reply, but not vice versa.
 		 * @param reply the reply message.
 		 */
 		public void setReply(Message<?> reply) {

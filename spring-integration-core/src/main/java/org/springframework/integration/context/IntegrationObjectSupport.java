@@ -211,8 +211,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	@Override
-	@Nullable
-	public Expression getExpression() {
+	public @Nullable Expression getExpression() {
 		return this.expression;
 	}
 

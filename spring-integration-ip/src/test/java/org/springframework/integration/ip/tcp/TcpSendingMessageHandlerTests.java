@@ -68,6 +68,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -77,6 +78,7 @@ import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
@@ -88,7 +90,8 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTests {
+public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTests
+		implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(TcpSendingMessageHandlerTests.class);
 
@@ -102,7 +105,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetCrLf() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -133,6 +136,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -155,7 +160,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetCrLfClientMode() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -186,6 +191,9 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(Integer.MAX_VALUE);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
+		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -253,6 +261,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -262,7 +272,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		Message<?> mOut = channel.receive(10000);
 		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
@@ -278,7 +288,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetStxEtx() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -309,6 +319,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -331,7 +343,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioStxEtx() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -362,6 +374,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -371,7 +385,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		Message<?> mOut = channel.receive(10000);
 		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
@@ -421,6 +435,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -477,6 +493,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -486,7 +504,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		Message<?> mOut = channel.receive(10000);
 		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
@@ -502,7 +520,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetSerial() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -532,6 +550,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -584,6 +604,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -593,7 +615,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		Message<?> mOut = channel.receive(10000);
 		assertThat(mOut).isNotNull();
 		results.add((String) mOut.getPayload());
@@ -609,7 +631,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetSingleUseNoInbound() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -642,6 +664,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		ccf.setSingleUse(true);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -656,7 +680,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioSingleUseNoInbound() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -689,6 +713,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(5000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		ccf.setSingleUse(true);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -703,7 +729,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetSingleUseWithInbound() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -737,6 +763,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		ccf.setSingleUse(true);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -748,7 +776,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		assertThat(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS)).isTrue();
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertThat(mOut).isNotNull();
@@ -763,7 +791,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioSingleUseWithInbound() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -797,8 +825,10 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
-		ccf.start();
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.setSingleUse(true);
+		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -808,7 +838,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		assertThat(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS)).isTrue();
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertThat(mOut).isNotNull();
@@ -823,11 +853,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioSingleUseWithInboundMany() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
-		final List<Socket> serverSockets = new ArrayList<Socket>();
+		final List<Socket> serverSockets = new ArrayList<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
@@ -875,6 +905,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
 		ccf.setTaskExecutor(this.executor);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -893,7 +925,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			fail("Exception at " + i);
 		}
 		assertThat(semaphore.tryAcquire(100, 20000, TimeUnit.MILLISECONDS)).isTrue();
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		for (i = 100; i < 200; i++) {
 			Message<?> mOut = channel.receive(20000);
 			assertThat(mOut).isNotNull();
@@ -909,7 +941,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetNegotiate() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -958,6 +990,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				newInterceptorFactory()
 		});
 		ccf.setInterceptorFactoryChain(fc);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -980,7 +1014,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioNegotiate() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -1020,8 +1054,10 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {newInterceptorFactory()});
+		fc.setInterceptor(newInterceptorFactory());
 		ccf.setInterceptorFactoryChain(fc);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -1032,7 +1068,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		for (int i = 0; i < 1000; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		}
-		Set<String> results = new TreeSet<String>();
+		Set<String> results = new TreeSet<>();
 		for (int i = 0; i < 1000; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertThat(mOut).isNotNull();
@@ -1049,7 +1085,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNetNegotiateSingleNoListen() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -1089,12 +1125,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {
-				newInterceptorFactory(),
-				newInterceptorFactory()
-		});
+		fc.setInterceptor(newInterceptorFactory(), newInterceptorFactory());
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.setSingleUse(true);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -1106,7 +1141,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 
 	@Test
 	public void testNioNegotiateSingleNoListen() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
@@ -1152,6 +1187,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.setSingleUse(true);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -1162,18 +1199,18 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	}
 
 	@Test
-	public void testOutboundChannelAdapterWithinChain() throws Exception {
+	public void testOutboundChannelAdapterWithinChain() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"TcpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
 		AbstractServerConnectionFactory scf = ctx.getBean(AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(scf, null);
 		ctx.getBean(AbstractClientConnectionFactory.class).setPort(scf.getPort());
-		ctx.getBeansOfType(ConsumerEndpointFactoryBean.class).values().forEach(c -> c.start());
+		ctx.getBeansOfType(ConsumerEndpointFactoryBean.class).values().forEach(ConsumerEndpointFactoryBean::start);
 		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain",
 				MessageChannel.class);
 		PollableChannel inbound = ctx.getBean("inbound", PollableChannel.class);
 		String testPayload = "Hello, world!";
-		channelAdapterWithinChain.send(new GenericMessage<String>(testPayload));
+		channelAdapterWithinChain.send(new GenericMessage<>(testPayload));
 		Message<?> m = inbound.receive(1000);
 		assertThat(m).isNotNull();
 		assertThat(new String((byte[]) m.getPayload())).isEqualTo(testPayload);
@@ -1188,16 +1225,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			throw new SocketException("Failed to connect");
 		}).when(mockCcf).getConnection();
 		handler.setConnectionFactory(mockCcf);
-		try {
-			handler.handleMessage(new GenericMessage<String>("foo"));
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e instanceof MessagingException).isTrue();
-			assertThat(e.getCause() != null).isTrue();
-			assertThat(e.getCause() instanceof SocketException).isTrue();
-			assertThat(e.getCause().getMessage()).isEqualTo("Failed to connect");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(SocketException.class)
+				.withStackTraceContaining("Failed to connect");
 	}
 
 	@Test
@@ -1208,6 +1240,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -1223,6 +1257,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptor(newInterceptorFactory(scf.getApplicationEventPublisher()));
 		scf.setInterceptorFactoryChain(fc);
+		scf.afterPropertiesSet();
 		scf.start();
 		TestingUtilities.waitListening(scf, null);
 		int port = scf.getPort();
@@ -1242,6 +1277,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -1254,6 +1291,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptor(newInterceptorFactory(scf.getApplicationEventPublisher()));
 		scf.setInterceptorFactoryChain(fc);
+		scf.afterPropertiesSet();
 		scf.start();
 		TestingUtilities.waitListening(scf, null);
 		int port = scf.getPort();
@@ -1263,4 +1301,5 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		await().untilAsserted(() -> assertThat(handler.getConnections()).isEmpty());
 		scf.stop();
 	}
+
 }

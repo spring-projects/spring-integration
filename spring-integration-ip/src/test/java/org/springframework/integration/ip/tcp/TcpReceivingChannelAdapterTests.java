@@ -76,6 +76,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
@@ -129,6 +131,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(Integer.MAX_VALUE);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(ccf);
 		adapter.setClientMode(true);
@@ -160,7 +164,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNio() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -194,6 +197,9 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
+
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -224,7 +230,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioShared() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -262,6 +267,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setSingleUse(true);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
@@ -289,7 +296,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioSingleNoOutbound() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -331,6 +337,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setSingleUse(true);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -363,7 +371,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioSingleShared() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -400,7 +407,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioSingleSharedMany() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -461,7 +467,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioInterceptors() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		interceptorsGuts(scf);
 		scf.stop();
 	}
@@ -469,7 +474,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioSingleNoOutboundInterceptors() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		singleNoOutboundInterceptorsGuts(scf);
 		scf.stop();
 	}
@@ -477,7 +481,6 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	@Test
 	public void testNioSingleSharedInterceptors() throws Exception {
 		AbstractServerConnectionFactory scf = getDefaultServerConnectionFactory();
-		noopPublisher(scf);
 		singleSharedInterceptorsGuts(scf);
 		scf.stop();
 	}
@@ -486,6 +489,9 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(new DefaultSerializer());
 		scf.setDeserializer(new DefaultDeserializer());
 		scf.setSingleUse(false);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
@@ -530,6 +536,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 				newInterceptorFactory()
 		});
 		scf.setInterceptorFactoryChain(fc);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
@@ -574,6 +582,9 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 				newInterceptorFactory()
 		});
 		scf.setInterceptorFactoryChain(fc);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
+
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -617,7 +628,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
-		scf.setTaskScheduler(mock(TaskScheduler.class));
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
@@ -647,7 +659,9 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	private static AbstractServerConnectionFactory getDefaultServerConnectionFactory() {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
-		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		scf.setApplicationEventPublisher(NOOP_PUBLISHER);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		return scf;
 	}
 

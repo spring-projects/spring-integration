@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.ip.IpHeaders;
@@ -32,7 +34,6 @@ import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -50,9 +51,9 @@ import org.springframework.util.Assert;
 public class TcpReceivingChannelAdapter
 		extends MessageProducerSupport implements TcpListener, ClientModeCapable, OrderlyShutdownCapable {
 
-	private AbstractConnectionFactory clientConnectionFactory;
+	private @Nullable AbstractConnectionFactory clientConnectionFactory;
 
-	private AbstractConnectionFactory serverConnectionFactory;
+	private @Nullable AbstractConnectionFactory serverConnectionFactory;
 
 	private volatile boolean isSingleUse;
 
@@ -60,9 +61,9 @@ public class TcpReceivingChannelAdapter
 
 	private volatile long retryInterval = 60000; // NOSONAR magic number
 
-	private volatile ScheduledFuture<?> scheduledFuture;
+	private volatile @Nullable ScheduledFuture<?> scheduledFuture;
 
-	private volatile ClientModeConnectionManager clientModeConnectionManager;
+	private volatile @Nullable ClientModeConnectionManager clientModeConnectionManager;
 
 	private volatile boolean shuttingDown;
 
@@ -103,7 +104,7 @@ public class TcpReceivingChannelAdapter
 						this.serverConnectionFactory.closeConnection(connectionId);
 					}
 				}
-				else {
+				else if (this.clientConnectionFactory != null) {
 					this.clientConnectionFactory.closeConnection(connectionId);
 				}
 			}
@@ -130,19 +131,18 @@ public class TcpReceivingChannelAdapter
 		if (this.clientConnectionFactory != null) {
 			this.clientConnectionFactory.start();
 		}
-		if (this.isClientMode) {
+		if (this.isClientMode && this.clientConnectionFactory != null) {
 			ClientModeConnectionManager manager = new ClientModeConnectionManager(this.clientConnectionFactory);
 			this.clientModeConnectionManager = manager;
-			TaskScheduler taskScheduler = getTaskScheduler();
-			Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
-			this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
+			this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 		}
 	}
 
 	@Override // protected by super#lifecycleLock
 	protected void doStop() {
-		if (this.scheduledFuture != null) {
-			this.scheduledFuture.cancel(true);
+		ScheduledFuture<?> scheduledFutureToCancel = this.scheduledFuture;
+		if (scheduledFutureToCancel != null) {
+			scheduledFutureToCancel.cancel(true);
 		}
 		this.clientModeConnectionManager = null;
 		if (this.clientConnectionFactory != null) {
@@ -188,14 +188,14 @@ public class TcpReceivingChannelAdapter
 	/**
 	 * @return the clientConnectionFactory
 	 */
-	protected ConnectionFactory getClientConnectionFactory() {
+	protected @Nullable ConnectionFactory getClientConnectionFactory() {
 		return this.clientConnectionFactory;
 	}
 
 	/**
 	 * @return the serverConnectionFactory
 	 */
-	protected ConnectionFactory getServerConnectionFactory() {
+	protected @Nullable ConnectionFactory getServerConnectionFactory() {
 		return this.serverConnectionFactory;
 	}
 
@@ -230,8 +230,9 @@ public class TcpReceivingChannelAdapter
 
 	@Override
 	public boolean isClientModeConnected() {
-		if (this.isClientMode && this.clientModeConnectionManager != null) {
-			return this.clientModeConnectionManager.isConnected();
+		ClientModeConnectionManager clientModeConnectionManagerToCheck = this.clientModeConnectionManager;
+		if (this.isClientMode && clientModeConnectionManagerToCheck != null) {
+			return clientModeConnectionManagerToCheck.isConnected();
 		}
 		else {
 			return false;
@@ -240,8 +241,9 @@ public class TcpReceivingChannelAdapter
 
 	@Override
 	public void retryConnection() {
-		if (isActive() && this.isClientMode && this.clientModeConnectionManager != null) {
-			this.clientModeConnectionManager.run();
+		ClientModeConnectionManager clientModeConnectionManagerToRun = this.clientModeConnectionManager;
+		if (isActive() && this.isClientMode && clientModeConnectionManagerToRun != null) {
+			clientModeConnectionManagerToRun.run();
 		}
 	}
 

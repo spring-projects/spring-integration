@@ -29,6 +29,7 @@ import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -65,6 +66,7 @@ public class DatagramPacketMessageMapperTests {
 		mapper.setAckAddress("localhost:11111");
 		mapper.setAcknowledge(ack);
 		mapper.setLengthCheck(lengthCheck);
+		mapper.setBeanFactory(mock());
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
 		Message<byte[]> messageOut = mapper.toMessage(packet);

@@ -20,8 +20,9 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.nio.channels.SocketChannel;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link TcpNioConnectionSupport} for non-SSL
@@ -37,7 +38,7 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName) {
 
 		if (isPushbackCapable()) {
 			return new PushBackTcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher,
@@ -55,9 +56,9 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 		private final String connectionId;
 
-		private volatile PushbackInputStream pushbackStream;
+		private volatile @Nullable PushbackInputStream pushbackStream;
 
-		private volatile InputStream wrapped;
+		private volatile @Nullable InputStream wrapped;
 
 		PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 				@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,

@@ -16,10 +16,12 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.Serial;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -27,7 +29,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Gary Russell
- * @author Artem  Bilan
+ * @author Artem Bilan
  *
  * @since 3.0
  *
@@ -42,12 +44,13 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	}
 
 	@Override
-	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) {
+	public @Nullable Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) {
 		Object data = connection.getPayload();
 		if (data != null) {
 
 			MessageHeaders messageHeaders = new MutableMessageHeaders(null, MessageHeaders.ID_VALUE_NONE, -1L) {
 
+				@Serial
 				private static final long serialVersionUID = 3084692953798643018L;
 
 			};
@@ -70,7 +73,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	}
 
 	@Override
-	public Object fromMessage(Message<?> message) {
+	public @Nullable Object fromMessage(Message<?> message) {
 		return this.messageConverter.fromMessage(message, Object.class);
 	}
 

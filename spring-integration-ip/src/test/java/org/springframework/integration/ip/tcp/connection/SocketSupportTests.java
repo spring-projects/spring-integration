@@ -43,6 +43,7 @@ import org.mockito.Mockito;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -67,7 +68,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 2.2
  */
-public class SocketSupportTests {
+public class SocketSupportTests implements TestApplicationContextAware {
 
 	@Test
 	public void testNetClient() throws Exception {
@@ -86,6 +87,9 @@ public class SocketSupportTests {
 		TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory("x", 0);
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
+		connectionFactory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 		connectionFactory.getConnection();
 
@@ -112,6 +116,9 @@ public class SocketSupportTests {
 		connectionFactory.setConnectTimeout(1);
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
+		connectionFactory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 		assertThatThrownBy(connectionFactory::getConnection)
 				.isInstanceOf(UncheckedIOException.class)
@@ -159,6 +166,9 @@ public class SocketSupportTests {
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
 		connectionFactory.registerListener(mock(TcpListener.class));
+		connectionFactory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
@@ -190,6 +200,9 @@ public class SocketSupportTests {
 
 		};
 		serverConnectionFactory.setTcpSocketSupport(serverSocketSupport);
+		serverConnectionFactory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		serverConnectionFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		serverConnectionFactory.afterPropertiesSet();
 		serverConnectionFactory.start();
 		TestingUtilities.waitListening(serverConnectionFactory, null);
 
@@ -211,6 +224,9 @@ public class SocketSupportTests {
 
 		};
 		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
+		clientConnectionFactory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		clientConnectionFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		clientConnectionFactory.afterPropertiesSet();
 		clientConnectionFactory.start();
 		clientConnectionFactory.getConnection().send(new GenericMessage<>("Hello, world!"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -377,7 +393,6 @@ public class SocketSupportTests {
 	*/
 	@Test
 	public void testNetClientAndServerSSL() throws Exception {
-		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
@@ -391,13 +406,21 @@ public class SocketSupportTests {
 			latch.countDown();
 			return false;
 		});
-		server.setMapper(new SSLMapper());
+		SSLMapper mapper = new SSLMapper();
+		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.setMapper(mapper);
+		server.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		client.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		client.setTcpSocketSupport(new DefaultTcpSocketSupport(true));
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 		client.start();
 
 		TcpConnection connection = client.getConnection();
@@ -418,7 +441,6 @@ public class SocketSupportTests {
 	}
 
 	private void testNetClientAndServerSSLDifferentContexts(boolean badServer) throws Exception {
-		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport(
 				badServer ? "client.ks" : "server.ks",
@@ -443,6 +465,9 @@ public class SocketSupportTests {
 			}
 
 		});
+		server.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -453,6 +478,9 @@ public class SocketSupportTests {
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
 		client.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 
 		try {
 			client.start();
@@ -469,7 +497,6 @@ public class SocketSupportTests {
 
 	@Test
 	public void testNioClientAndServerSSL() throws Exception {
-		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.setSslHandshakeTimeout(43);
@@ -486,13 +513,17 @@ public class SocketSupportTests {
 			latch.countDown();
 			return false;
 		});
-		server.setMapper(new SSLMapper());
+		SSLMapper mapper = new SSLMapper();
+		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.setMapper(mapper);
 		final AtomicReference<String> serverConnectionId = new AtomicReference<>();
 		server.setApplicationEventPublisher(e -> {
 			if (e instanceof TcpConnectionOpenEvent) {
 				serverConnectionId.set(((TcpConnectionEvent) e).getConnectionId());
 			}
 		});
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -500,8 +531,9 @@ public class SocketSupportTests {
 		client.setSslHandshakeTimeout(34);
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		client.registerListener(message -> false);
-		client.setApplicationEventPublisher(e -> {
-		});
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 		client.start();
 
 		TcpConnection connection = client.getConnection();
@@ -529,7 +561,6 @@ public class SocketSupportTests {
 	}
 
 	private void testNioClientAndServerSSLDifferentContexts(boolean badServer) throws Exception {
-		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport(
 				badServer ? "client.ks" : "server.ks",
@@ -551,6 +582,9 @@ public class SocketSupportTests {
 			latch.countDown();
 			return false;
 		});
+		server.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -560,6 +594,9 @@ public class SocketSupportTests {
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 
 		try {
 			client.start();
@@ -576,7 +613,6 @@ public class SocketSupportTests {
 
 	@Test
 	public void testNioClientAndServerSSLDifferentContextsLargeDataWithReply() throws Exception {
-		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
@@ -608,6 +644,8 @@ public class SocketSupportTests {
 				serverConnectionId.set(((TcpConnectionEvent) e).getConnectionId());
 			}
 		});
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -623,8 +661,9 @@ public class SocketSupportTests {
 			return false;
 		});
 		client.setDeserializer(deserializer);
-		client.setApplicationEventPublisher(e -> {
-		});
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 		client.start();
 
 		TcpConnection connection = client.getConnection();

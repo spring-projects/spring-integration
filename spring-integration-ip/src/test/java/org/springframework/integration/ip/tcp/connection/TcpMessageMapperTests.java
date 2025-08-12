@@ -73,6 +73,7 @@ public class TcpMessageMapperTests {
 	@Test
 	public void testToMessage() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setBeanFactory(mock());
 		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
 		Socket socket = creatMockSocket(local);
@@ -91,6 +92,7 @@ public class TcpMessageMapperTests {
 	public void testToMessageWithContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
+		mapper.setBeanFactory(mock());
 		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
 		Socket socket = creatMockSocket(local);
@@ -113,6 +115,7 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
 		mapper.setContentType("application/octet-stream;charset=ISO-8859-1");
+		mapper.setBeanFactory(mock());
 		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
 		Socket socket = creatMockSocket(local);
@@ -142,6 +145,7 @@ public class TcpMessageMapperTests {
 	@Test
 	public void testToMessageSequence() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setBeanFactory(mock());
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 
@@ -225,6 +229,7 @@ public class TcpMessageMapperTests {
 
 		};
 		mapper.setApplySequence(true);
+		mapper.setBeanFactory(mock());
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 
@@ -414,6 +419,7 @@ public class TcpMessageMapperTests {
 				.build();
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setBytesMessageMapper(new EmbeddedHeadersJsonMessageMapper());
+		mapper.setBeanFactory(mock());
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
 		TcpConnection connection = creatMockTcpConcnection(bytes, "someHost", "1.1.1.1", 1234);

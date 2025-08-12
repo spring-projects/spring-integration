@@ -73,7 +73,10 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 	@Test
 	public void testNetSingle() throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(true);
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -104,7 +107,10 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 	@Test
 	public void testNetNotSingle() throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(false);
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
@@ -167,6 +173,9 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port.get());
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(ccf);
 		final QueueChannel channel = new QueueChannel();
@@ -200,7 +209,10 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 	@Test
 	public void testNioSingle() throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(true);
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
@@ -231,7 +243,10 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 	@Test
 	public void testNioNotSingle() throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(false);
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
@@ -248,7 +263,7 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		handler.handleMessage(channel.receive(10000));
 		handler.handleMessage(channel.receive(10000));
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
 		results.add(new String(bytes));
@@ -257,13 +272,15 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 		assertThat(results.remove("Echo:Test1\r\n")).isTrue();
 		assertThat(results.remove("Echo:Test2\r\n")).isTrue();
 		gateway.stop();
-		scf.stop();
 	}
 
 	@Test
 	public void testErrorFlow() throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(true);
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		SubscribableChannel errorChannel = new DirectChannel();
@@ -291,7 +308,6 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 		readFully(socket2.getInputStream(), bytes);
 		assertThat(new String(bytes)).isEqualTo(errorMessage + "\r\n");
 		gateway.stop();
-		scf.stop();
 	}
 
 	@Test
@@ -310,8 +326,11 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 	private void testCloseStream(AbstractServerConnectionFactory scf,
 			Function<Integer, AbstractClientConnectionFactory> ccf) throws InterruptedException, IOException {
 
+		scf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		scf.setSingleUse(true);
 		scf.setDeserializer(new ByteArrayRawSerializer());
+		scf.afterPropertiesSet();
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		BeanFactory bf = mock(ConfigurableBeanFactory.class);

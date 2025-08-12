@@ -16,20 +16,24 @@
 
 package org.springframework.integration.ip.tcp;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.BDDMockito.given;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -43,20 +47,25 @@ public class TcpSendingNoSocketTests {
 	@Autowired
 	private MessageChannel advised;
 
+	@Autowired
+	private AbstractServerConnectionFactory mockCf;
+
+	@BeforeEach
+	void setup() {
+		given(mockCf.getApplicationEventPublisher()).willReturn(event -> {
+		});
+	}
+
 	@Test
 	public void exceptionExpected() {
-		try {
-			shouldFail.send(new GenericMessage<String>("foo"));
-			fail("Exception expected");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).startsWith("Unable to find outbound socket");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> shouldFail.send(new GenericMessage<>("foo")))
+				.withMessageStartingWith("Unable to find outbound socket");
 	}
 
 	@Test
 	public void exceptionTrapped() {
-		advised.send(new GenericMessage<String>("foo"));
+		advised.send(new GenericMessage<>("foo"));
 	}
 
 }

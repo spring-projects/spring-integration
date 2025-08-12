@@ -208,6 +208,8 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 				latch.countDown();
 			}
 		});
+		cf1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		cf1.afterPropertiesSet();
 		cf2.setApplicationEventPublisher(event -> {
 		});
 		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
@@ -387,21 +389,27 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 	public void testFailoverCachedRealClose() throws Exception {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
+		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(message -> {
 			latch1.countDown();
 			return false;
 		});
+		server1.afterPropertiesSet();
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
 		int port1 = server1.getPort();
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
+		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(message -> {
 			latch2.countDown();
 			return false;
 		});
+		server2.afterPropertiesSet();
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
 		int port2 = server2.getPort();
@@ -462,6 +470,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 	public void testFailoverCachedWithGateway() {
 		final TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setBeanName("server");
+		server.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		DirectChannel inChannel = new DirectChannel();
@@ -477,6 +486,9 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		int port = server.getPort();
 		AbstractClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
 		client.setBeanName("client");
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		client.afterPropertiesSet();
 
 		// Cache
 		CachingClientConnectionFactory cachingClient = new CachingClientConnectionFactory(client, 2);
@@ -520,21 +532,28 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 	public void testFailoverCachedRealBadHost() throws Exception {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
+		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(message -> {
 			latch1.countDown();
 			return false;
 		});
+		server1.afterPropertiesSet();
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
 		int port1 = server1.getPort();
+
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
+		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(message -> {
 			latch2.countDown();
 			return false;
 		});
+		server2.afterPropertiesSet();
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
 		int port2 = server2.getPort();
@@ -542,9 +561,16 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
 		factory1.registerListener(message -> false);
+		factory1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		factory1.afterPropertiesSet();
+
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
 		factory2.registerListener(message -> false);
+		factory2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		factory2.afterPropertiesSet();
 
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
@@ -591,10 +617,14 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		client2.setTaskExecutor(holder.exec);
 		client1.setBeanName("client1");
 		client2.setBeanName("client2");
+		client1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		client2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client1.setApplicationEventPublisher(event -> {
 		});
 		client2.setApplicationEventPublisher(event -> {
 		});
+		client1.afterPropertiesSet();
+		client2.afterPropertiesSet();
 		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(client1);
 		factories.add(client2);
@@ -642,10 +672,12 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		server2.setTaskExecutor(exec);
 		server1.setBeanName("server1");
 		server2.setBeanName("server2");
-		server1.setApplicationEventPublisher(event -> {
-		});
-		server2.setApplicationEventPublisher(event -> {
-		});
+		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		server1.afterPropertiesSet();
+		server2.afterPropertiesSet();
 		TcpInboundGateway gateway1 = new TcpInboundGateway();
 		gateway1.setConnectionFactory(server1);
 		SubscribableChannel channel = new DirectChannel();

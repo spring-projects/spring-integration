@@ -61,7 +61,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -83,7 +83,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	void netOpenEventOnReadThread() throws InterruptedException, IOException {
-		TcpNetServerConnectionFactory server = getTcpNetServerConnectionFactory(0);
+		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		AtomicReference<Thread> readThread = new AtomicReference<>();
 		AtomicReference<Thread> openEventThread = new AtomicReference<>();
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -135,8 +135,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 	}
 
 	public void testObtainConnectionIds(AbstractServerConnectionFactory serverFactory) throws Exception {
-		final List<IpIntegrationEvent> events =
-				Collections.synchronizedList(new ArrayList<IpIntegrationEvent>());
+		final List<IpIntegrationEvent> events = Collections.synchronizedList(new ArrayList<>());
 		int expectedEvents = serverFactory instanceof TcpNetServerConnectionFactory
 				? 7  // Listening, + OPEN, CLOSE, EXCEPTION for each side
 				: 5; // Listening, + OPEN, CLOSE (but we *might* get exceptions, depending on timing).
@@ -152,6 +151,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		};
 		serverFactory.setBeanName("serverFactory");
 		serverFactory.setApplicationEventPublisher(publisher);
+		serverFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serverFactory = spy(serverFactory);
 		final CountDownLatch serverConnectionInitLatch = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -164,6 +164,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		scheduler.afterPropertiesSet();
 
 		serverFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		serverFactory.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
@@ -188,7 +189,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		assertThat(serverFactory.closeConnection(servers.get(0))).isTrue();
 		servers = serverFactory.getOpenConnectionIds();
 		assertThat(servers.size()).isEqualTo(0);
-		await().atMost(Duration.ofSeconds(10)).until(() -> clientFactory.getOpenConnectionIds().size() == 0);
+		await().atMost(Duration.ofSeconds(10)).until(() -> clientFactory.getOpenConnectionIds().isEmpty());
 		clients = clientFactory.getOpenConnectionIds();
 		assertThat(clients.size()).isEqualTo(0);
 		assertThat(eventLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -202,18 +203,14 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				.as("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events)
 				.isGreaterThanOrEqualTo(expectedEvents + 1);
 
-		try {
-			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
-			client.publishEvent(event);
-			fail("Expected exception");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat("Can only publish events with this as the source".equals(e.getMessage())).isTrue();
-		}
+		FooEvent wrongEvent = new FooEvent(mock(TcpConnectionSupport.class), "foo");
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> client.publishEvent(wrongEvent))
+				.withMessage("Can only publish events with this as the source");
 
 		SocketAddress address = serverFactory.getServerSocketAddress();
-		if (address instanceof InetSocketAddress) {
-			InetSocketAddress inetAddress = (InetSocketAddress) address;
+		if (address instanceof InetSocketAddress inetAddress) {
 			assertThat(inetAddress.getPort()).isEqualTo(port);
 		}
 		serverFactory.stop();
@@ -224,16 +221,10 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 	public void testEarlyCloseNio() throws Exception {
 		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
-	}
+		factory.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 
-	private void testEarlyClose(final AbstractServerConnectionFactory factory, String property,
-			String message) throws Exception {
-
-		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		factory.setBeanName("foo");
 		factory.registerListener(mock(TcpListener.class));
-		factory.afterPropertiesSet();
 		LogAccessor logAccessor = TestUtils.getPropertyValue(factory, "logger", LogAccessor.class);
 		Log logger = spy(logAccessor.getLog());
 		new DirectFieldAccessor(logAccessor).setPropertyValue("log", logger);
@@ -251,8 +242,11 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		doAnswer(invocation -> {
 			latch3.countDown();
 			return null;
-		}).when(logger).debug(argThat(logMessage -> logMessage.toString().contains(message)));
+		}).when(logger).debug(argThat(logMessage ->
+				logMessage.toString().contains(" stopped before registering the server channel")));
+		factory.afterPropertiesSet();
 		factory.start();
+
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).as("missing info log").isTrue();
 		// stop on a different thread because it waits for the executor
 		new SimpleAsyncTaskExecutor("testEarlyClose-")
@@ -260,10 +254,10 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
 		await("Stop was not invoked in time").atMost(Duration.ofSeconds(20))
-				.until(() -> accessor.getPropertyValue(property) == null);
+				.until(() -> accessor.getPropertyValue("serverChannel") == null);
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).as("missing debug log").isTrue();
-		String expected = "bean 'foo', port=" + factory.getPort() + message;
+		String expected = "bean 'foo', port=" + factory.getPort() + " stopped before registering the server channel";
 		ArgumentCaptor<LogMessage> captor = ArgumentCaptor.forClass(LogMessage.class);
 		verify(logger, atLeast(1)).debug(captor.capture());
 		assertThat(captor.getAllValues().stream().map(Object::toString).collect(Collectors.toList())).contains(expected);
@@ -272,22 +266,22 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	void healthCheckSuccessNet() throws InterruptedException {
-		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
+		healthCheckSuccess(new TcpNetServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckSuccessNio() throws InterruptedException {
-		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
+		healthCheckSuccess(new TcpNioServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckFailureNet() throws InterruptedException {
-		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
+		healthCheckSuccess(new TcpNetServerConnectionFactory(0), true);
 	}
 
 	@Test
 	void healthCheckFailureNio() throws InterruptedException {
-		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
+		healthCheckSuccess(new TcpNioServerConnectionFactory(0), true);
 	}
 
 	private void healthCheckSuccess(AbstractServerConnectionFactory server, boolean fail) throws InterruptedException {
@@ -299,9 +293,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		});
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicReference<TcpConnection> connection = new AtomicReference<>();
-		server.registerSender(conn -> {
-			connection.set(conn);
-		});
+		server.registerSender(connection::set);
 		AtomicInteger tested = new AtomicInteger();
 		server.registerListener(msg -> {
 			if (!(msg instanceof ErrorMessage)) {
@@ -316,7 +308,10 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 			}
 			return false;
 		});
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		server.afterPropertiesSet();
 		server.start();
+
 		assertThat(serverUp.await(10, TimeUnit.SECONDS)).isTrue();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		clientFactory.setApplicationEventPublisher(event -> {
@@ -340,6 +335,9 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 			}
 			return result.get();
 		});
+		clientFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		clientFactory.afterPropertiesSet();
+
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setRemoteTimeout(60000);
 		gateway.setConnectionFactory(clientFactory);
@@ -364,12 +362,6 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		}
 		gateway.stop();
 		server.stop();
-	}
-
-	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
-		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
-		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		return result;
 	}
 
 	@SuppressWarnings("serial")

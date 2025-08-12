@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.Lock;
@@ -30,10 +31,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.context.ApplicationEventPublisher;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -58,7 +59,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	protected final Lock lock = new ReentrantLock();
 
-	private DatagramSocket socket;
+	private @Nullable DatagramSocket socket;
 
 	private boolean socketExplicitlySet;
 
@@ -132,10 +133,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public void run() {
 		getSocket();
 
-		ApplicationEventPublisher publisher = getApplicationEventPublisher();
-		if (publisher != null) {
-			publisher.publishEvent(new UdpServerListeningEvent(this, getPort()));
-		}
+		getApplicationEventPublisher().publishEvent(new UdpServerListeningEvent(this, getPort()));
 
 		logger.debug(() -> "UDP Receiver running on port: " + getPort());
 
@@ -171,7 +169,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			return;
 		}
 		byte[] ack = id.toString().getBytes();
-		String ackAddress = (headers.get(IpHeaders.ACK_ADDRESS, String.class)).trim(); // NOSONAR caller checks header
+		String ackAddress = Objects.requireNonNull(headers.get(IpHeaders.ACK_ADDRESS, String.class)).trim();
 		Matcher mat = ADDRESS_PATTERN.matcher(ackAddress);
 		if (!mat.matches()) {
 			throw new MessagingException(message,
@@ -305,7 +303,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			if (!this.socketExplicitlySet) {
 				this.socket = null;
 			}
-			datagramSocket.close();
+			if (datagramSocket != null) {
+				datagramSocket.close();
+			}
 		}
 		catch (Exception e) {
 			// ignore

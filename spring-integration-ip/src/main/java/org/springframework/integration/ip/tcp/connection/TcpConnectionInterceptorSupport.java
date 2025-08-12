@@ -23,10 +23,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSession;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -45,13 +46,14 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	private final Lock lock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private TcpConnectionSupport theConnection;
 
-	private TcpListener tcpListener;
+	private @Nullable TcpListener tcpListener;
 
 	private boolean realSender;
 
-	private List<TcpSender> interceptedSenders;
+	private @Nullable List<TcpSender> interceptedSenders;
 
 	private boolean removed;
 
@@ -73,7 +75,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public Object getPayload() {
+	public @Nullable Object getPayload() {
 		return this.theConnection.getPayload();
 	}
 
@@ -93,18 +95,18 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public Object getDeserializerStateKey() {
+	public @Nullable Object getDeserializerStateKey() {
 		return this.theConnection.getDeserializerStateKey();
 	}
 
 	@Override
-	public void registerListener(TcpListener listener) {
+	public void registerListener(@Nullable TcpListener listener) {
 		this.tcpListener = listener;
 		this.theConnection.registerListener(this);
 	}
 
 	@Override
-	public void registerSender(TcpSender sender) {
+	public void registerSender(@Nullable TcpSender sender) {
 		this.theConnection.registerSender(this);
 	}
 
@@ -112,12 +114,11 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	public void registerSenders(List<TcpSender> sendersToRegister) {
 		this.interceptedSenders = sendersToRegister;
 		if (!sendersToRegister.isEmpty()) {
-			if (!(sendersToRegister.get(0) instanceof TcpConnectionInterceptorSupport)) {
+			if (!(sendersToRegister.get(0) instanceof TcpConnectionInterceptorSupport interceptorToUse)) {
 				this.realSender = true;
 			}
 			else {
-				this.realSender = ((TcpConnectionInterceptorSupport) this.interceptedSenders.get(0))
-						.hasRealSender();
+				this.realSender = interceptorToUse.hasRealSender();
 			}
 		}
 		if (this.theConnection instanceof TcpConnectionInterceptorSupport) {
@@ -143,7 +144,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public SocketInfo getSocketInfo() {
+	public @Nullable SocketInfo getSocketInfo() {
 		return this.theConnection.getSocketInfo();
 	}
 
@@ -188,7 +189,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public SSLSession getSslSession() {
+	public @Nullable SSLSession getSslSession() {
 		return this.theConnection.getSslSession();
 	}
 
@@ -230,8 +231,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	 * @return the listener
 	 */
 	@Override
-	@Nullable
-	public TcpListener getListener() {
+	public @Nullable TcpListener getListener() {
 		return this.tcpListener;
 	}
 
@@ -254,7 +254,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 				tcpConnectionInterceptorSupport.removeDeadConnection(this);
 			}
 			TcpSender sender = getSender();
-			if (sender != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
+			if (sender != null && this.interceptedSenders != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
 				this.interceptedSenders.forEach(snder -> snder.removeDeadConnection(connection));
 			}
 		}

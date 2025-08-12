@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -36,7 +37,6 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -82,9 +82,10 @@ public class TcpMessageMapper implements
 
 	private boolean addContentTypeHeader;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private BytesMessageMapper bytesMessageMapper;
+	private @Nullable BytesMessageMapper bytesMessageMapper;
 
 	/**
 	 * Set the charset to use when converting outbound String messages to {@code byte[]}.
@@ -162,9 +163,7 @@ public class TcpMessageMapper implements
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;
@@ -172,7 +171,7 @@ public class TcpMessageMapper implements
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) {
+	public @Nullable Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
@@ -239,13 +238,12 @@ public class TcpMessageMapper implements
 	 * @param connection the connection.
 	 * @return A Map of {@code <String, ?>} headers to be added to the message.
 	 */
-	@Nullable
-	protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+	protected @Nullable Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
 		return null;
 	}
 
 	@Override
-	public Object fromMessage(Message<?> message) {
+	public @Nullable Object fromMessage(Message<?> message) {
 		if (this.bytesMessageMapper != null) {
 			return this.bytesMessageMapper.fromMessage(message);
 		}
@@ -259,7 +257,7 @@ public class TcpMessageMapper implements
 	 * Extracts the payload as a byte array.
 	 */
 	private byte[] getPayloadAsBytes(Message<?> message) {
-		byte[] bytes = null;
+		byte[] bytes;
 		Object payload = message.getPayload();
 		if (payload instanceof byte[] castBytes) {
 			bytes = castBytes;

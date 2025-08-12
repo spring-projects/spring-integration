@@ -138,7 +138,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		int messageLength = this.readHeader(inputStream) - this.headerAdjust;
 		this.logger.debug(() -> "Message length is " + messageLength);
-		byte[] messagePart = null;
+		byte[] messagePart = {};
 		try {
 			int maxMessageSize = getMaxMessageSize();
 			if (messageLength > maxMessageSize) {

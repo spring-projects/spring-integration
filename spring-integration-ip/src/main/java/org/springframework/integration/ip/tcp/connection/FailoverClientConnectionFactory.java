@@ -26,6 +26,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSession;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
@@ -176,7 +178,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		return failoverTcpConnection;
 	}
 
-	private void closeRefreshedIfNecessary(FailoverTcpConnection sharedConnection, boolean refreshShared,
+	private void closeRefreshedIfNecessary(@Nullable FailoverTcpConnection sharedConnection, boolean refreshShared,
 			FailoverTcpConnection failoverTcpConnection) {
 
 		this.creationTime = System.currentTimeMillis();
@@ -184,6 +186,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * We may have simply wrapped the same connection in a new wrapper; don't close.
 		 */
 		if (refreshShared && this.closeOnRefresh
+				&& sharedConnection != null
 				&& !sharedConnection.delegate.equals(failoverTcpConnection.delegate)
 				&& sharedConnection.isOpen()) {
 
@@ -240,8 +243,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		private volatile Iterator<AbstractClientConnectionFactory> factoryIterator;
 
+		@SuppressWarnings("NullAway.Init")
 		private volatile AbstractClientConnectionFactory currentFactory;
 
+		@SuppressWarnings("NullAway.Init")
 		volatile TcpConnectionSupport delegate; // NOSONAR visibility
 
 		private volatile boolean open = true;
@@ -370,7 +375,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public Object getPayload() {
+		public @Nullable Object getPayload() {
 			return this.delegate.getPayload();
 		}
 
@@ -395,12 +400,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public Object getDeserializerStateKey() {
+		public @Nullable Object getDeserializerStateKey() {
 			return this.delegate.getDeserializerStateKey();
 		}
 
 		@Override
-		public void registerSender(TcpSender sender) {
+		public void registerSender(@Nullable TcpSender sender) {
 			this.delegate.registerSender(sender);
 		}
 
@@ -410,7 +415,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public SocketInfo getSocketInfo() {
+		public @Nullable SocketInfo getSocketInfo() {
 			return this.delegate.getSocketInfo();
 		}
 
@@ -445,7 +450,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public SSLSession getSslSession() {
+		public @Nullable SSLSession getSslSession() {
 			return this.delegate.getSslSession();
 		}
 
@@ -461,7 +466,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 				AbstractIntegrationMessageBuilder<?> messageBuilder =
 						getMessageBuilderFactory()
 								.fromMessage(message)
-								.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+								.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
 				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 							message.getHeaders().get(IpHeaders.CONNECTION_ID));

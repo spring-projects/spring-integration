@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
@@ -49,7 +51,7 @@ public abstract class AbstractByteArraySerializer implements
 
 	private int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE;
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * The maximum supported message size for this serializer.
@@ -76,7 +78,6 @@ public abstract class AbstractByteArraySerializer implements
 
 	protected void checkClosure(int bite) throws IOException {
 		if (bite < 0) {
-			this.logger.debug("Socket closed during message assembly");
 			throw new IOException("Socket closed during message assembly");
 		}
 	}

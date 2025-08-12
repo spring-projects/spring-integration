@@ -21,6 +21,8 @@ import java.util.concurrent.Executor;
 
 import javax.net.ssl.SSLSession;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -30,7 +32,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
@@ -52,7 +53,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	/*
 	 * Not static because we might have several factories with different delegates.
 	 */
-	private final ThreadLocal<TcpThreadConnection> connections = new ThreadLocal<>();
+	private final ThreadLocal<@Nullable TcpThreadConnection> connections = new ThreadLocal<>();
 
 	public ThreadAffinityClientConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
 		super("", 0);
@@ -90,7 +91,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public String getComponentName() {
+	public @Nullable String getComponentName() {
 		return this.connectionFactory.getComponentName();
 	}
 
@@ -105,7 +106,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public String getComponentType() {
+	public @Nullable String getComponentType() {
 		return this.connectionFactory.getComponentType();
 	}
 
@@ -121,7 +122,6 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	@Nullable
 	public ApplicationEventPublisher getApplicationEventPublisher() {
 		return this.connectionFactory.getApplicationEventPublisher();
 	}
@@ -132,7 +132,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public Expression getExpression() {
+	public @Nullable Expression getExpression() {
 		return this.connectionFactory.getExpression();
 	}
 
@@ -222,7 +222,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public String getHost() {
+	public @Nullable String getHost() {
 		return this.connectionFactory.getHost();
 	}
 
@@ -232,7 +232,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public String getApplicationContextId() {
+	public @Nullable String getApplicationContextId() {
 		return this.connectionFactory.getApplicationContextId();
 	}
 
@@ -242,12 +242,12 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public TcpListener getListener() {
+	public @Nullable TcpListener getListener() {
 		return this.connectionFactory.getListener();
 	}
 
 	@Override
-	public TcpSender getSender() {
+	public @Nullable TcpSender getSender() {
 		return this.connectionFactory.getSender();
 	}
 
@@ -398,7 +398,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public Object getPayload() {
+		public @Nullable Object getPayload() {
 			return this.connection.getPayload();
 		}
 
@@ -408,12 +408,12 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public Object getDeserializerStateKey() {
+		public @Nullable Object getDeserializerStateKey() {
 			return this.connection.getDeserializerStateKey();
 		}
 
 		@Override
-		public SSLSession getSslSession() {
+		public @Nullable SSLSession getSslSession() {
 			return this.connection.getSslSession();
 		}
 
@@ -458,7 +458,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public void registerListener(TcpListener listener) {
+		public void registerListener(@Nullable TcpListener listener) {
 			this.connection.registerListener(listener);
 		}
 
@@ -468,17 +468,17 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public void registerSender(TcpSender sender) {
+		public void registerSender(@Nullable TcpSender sender) {
 			this.connection.registerSender(sender);
 		}
 
 		@Override
-		public TcpListener getListener() {
+		public @Nullable TcpListener getListener() {
 			return this.connection.getListener();
 		}
 
 		@Override
-		public TcpSender getSender() {
+		public @Nullable TcpSender getSender() {
 			return this.connection.getSender();
 		}
 
@@ -513,7 +513,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public SocketInfo getSocketInfo() {
+		public @Nullable SocketInfo getSocketInfo() {
 			return this.connection.getSocketInfo();
 		}
 

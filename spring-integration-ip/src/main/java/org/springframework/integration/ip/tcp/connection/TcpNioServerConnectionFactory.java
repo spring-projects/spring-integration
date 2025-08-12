@@ -31,7 +31,8 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -56,9 +57,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private boolean usingDirectBuffers;
 
-	private volatile ServerSocketChannel serverChannel;
+	private volatile @Nullable ServerSocketChannel serverChannel;
 
-	private volatile Selector selector;
+	private volatile @Nullable Selector selector;
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -69,9 +70,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	/**
-	 * Set to false to only accept one connection per iteration over the
+	 * Set to {@code false} to only accept one connection per iteration over the
 	 * selector keys. This might be necessary to avoid accepts overwhelming
-	 * reads of existing sockets. By default when the {@code OP_ACCEPT} operation
+	 * reads of existing sockets. By default, when the {@code OP_ACCEPT} operation
 	 * is ready, we will keep accepting connections in a loop until no more arrive.
 	 * @param multiAccept false to accept connections one-at-a-time.
 	 * @since 5.1.4
@@ -104,11 +105,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
-	@Nullable
-	public SocketAddress getServerSocketAddress() {
-		if (this.serverChannel != null) {
+	public @Nullable SocketAddress getServerSocketAddress() {
+		ServerSocketChannel serverChannelToUse = this.serverChannel;
+		if (serverChannelToUse != null) {
 			try {
-				return this.serverChannel.getLocalAddress();
+				return serverChannelToUse.getLocalAddress();
 			}
 			catch (IOException ex) {
 				logger.error(ex, "Error getting local address");
@@ -131,29 +132,31 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			return;
 		}
 		try {
-			this.serverChannel = ServerSocketChannel.open();
+			ServerSocketChannel serverChannelToUse = ServerSocketChannel.open();
+			this.serverChannel = serverChannelToUse;
 			int port = super.getPort();
-			getTcpSocketSupport().postProcessServerSocket(this.serverChannel.socket());
-			this.serverChannel.configureBlocking(false);
+			getTcpSocketSupport().postProcessServerSocket(serverChannelToUse.socket());
+			serverChannelToUse.configureBlocking(false);
 			String localAddress = getLocalAddress();
 			if (localAddress == null) {
-				this.serverChannel.socket().bind(new InetSocketAddress(port), Math.abs(getBacklog()));
+				serverChannelToUse.socket().bind(new InetSocketAddress(port), Math.abs(getBacklog()));
 			}
 			else {
 				InetAddress whichNic = InetAddress.getByName(localAddress);
-				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port), Math.abs(getBacklog()));
+				serverChannelToUse.socket().bind(new InetSocketAddress(whichNic, port), Math.abs(getBacklog()));
 			}
 			logger.info(() -> this + " Listening");
-			final Selector theSelector = Selector.open();
-			if (this.serverChannel == null) {
+			Selector theSelector = Selector.open();
+			serverChannelToUse = this.serverChannel;
+			if (serverChannelToUse == null) {
 				logger.debug(() -> this + " stopped before registering the server channel");
 			}
 			else {
-				this.serverChannel.register(theSelector, SelectionKey.OP_ACCEPT);
+				serverChannelToUse.register(theSelector, SelectionKey.OP_ACCEPT);
 				setListening(true);
 				publishServerListeningEvent(getPort());
 				this.selector = theSelector;
-				doSelect(this.serverChannel, theSelector);
+				doSelect(serverChannelToUse, theSelector);
 			}
 		}
 		catch (IOException ex) {
@@ -292,18 +295,19 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	@Override
 	public void stop() {
-		setActive(false);
-		if (this.selector != null) {
+		Selector selectorToClose = this.selector;
+		if (selectorToClose != null) {
 			try {
-				this.selector.close();
+				selectorToClose.close();
 			}
 			catch (Exception ex) {
 				logger.error(ex, "Error closing selector");
 			}
 		}
-		if (this.serverChannel != null) {
+		ServerSocketChannel serverChannelToClose = this.serverChannel;
+		if (serverChannelToClose != null) {
 			try {
-				this.serverChannel.close();
+				serverChannelToClose.close();
 			}
 			catch (IOException e) {
 			}
@@ -335,7 +339,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	/**
 	 * @return the serverChannel
 	 */
-	protected ServerSocketChannel getServerChannel() {
+	protected @Nullable ServerSocketChannel getServerChannel() {
 		return this.serverChannel;
 	}
 
