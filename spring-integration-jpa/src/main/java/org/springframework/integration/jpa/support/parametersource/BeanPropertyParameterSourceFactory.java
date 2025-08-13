@@ -20,10 +20,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -32,13 +36,12 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 	private volatile Map<String, Object> staticParameters;
 
 	public BeanPropertyParameterSourceFactory() {
-		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
+		this.staticParameters = Collections.unmodifiableMap(new HashMap<>());
 	}
 
 	/**
 	 * If the input is a List or a Map, the output is a map parameter source, and in that case some static parameters
 	 * can be added (default is empty). If the input is not a List or a Map then this value is ignored.
-	 *
 	 * @param staticParameters the static parameters to set
 	 */
 	public void setStaticParameters(Map<String, Object> staticParameters) {
@@ -50,8 +53,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 		return new StaticBeanPropertyParameterSource(input, this.staticParameters);
 	}
 
-	private static final class StaticBeanPropertyParameterSource implements
-			ParameterSource {
+	private static final class StaticBeanPropertyParameterSource implements ParameterSource {
 
 		private final BeanPropertyParameterSource input;
 
@@ -63,9 +65,10 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 		}
 
 		@Override
-		public Object getValue(String paramName) {
-			return this.staticParameters.containsKey(paramName) ? this.staticParameters.get(paramName) : this.input
-					.getValue(paramName);
+		public @Nullable Object getValue(String paramName) {
+			return this.staticParameters.containsKey(paramName)
+					? this.staticParameters.get(paramName)
+					: this.input.getValue(paramName);
 		}
 
 		@Override

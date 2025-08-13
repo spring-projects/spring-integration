@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,28 @@ package org.springframework.integration.jpa.support.parametersource;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
+
 /**
+ * Simple {@link AbstractExpressionEvaluator} implementation
+ * to increase the visibility of protected methods.
  *
- * @author Gunnar Hillert
  * @author Artem Bilan
  *
- * @since 2.2
- *
+ * @since 7.0
  */
-public interface PositionSupportingParameterSource extends ParameterSource {
+public class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
 
-	@Nullable
-	Object getValueByPosition(int position);
+	@Override
+	public EvaluationContext getEvaluationContext() {
+		return super.getEvaluationContext();
+	}
+
+	@Override
+	public @Nullable Object evaluateExpression(Expression expression, Object input) {
+		return super.evaluateExpression(expression, input);
+	}
 
 }

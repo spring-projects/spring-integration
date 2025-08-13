@@ -92,19 +92,19 @@ public class HazelcastDistributedMapEventDrivenInboundChannelAdapterTests {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo("edDistributedMap2");
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(2));
+				.getPayload()).key()).isEqualTo(Integer.valueOf(2));
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getId()).isEqualTo(1);
+				.getPayload()).oldValue()).getId()).isEqualTo(1);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getName()).isEqualTo("TestName1");
+				.getPayload()).oldValue()).getName()).isEqualTo("TestName1");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getSurname()).isEqualTo("TestSurname1");
+				.getPayload()).oldValue()).getSurname()).isEqualTo("TestSurname1");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getId()).isEqualTo(2);
+				.getPayload()).value()).getId()).isEqualTo(2);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getName()).isEqualTo("TestName2");
+				.getPayload()).value()).getName()).isEqualTo("TestName2");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getSurname()).isEqualTo("TestSurname2");
+				.getPayload()).value()).getSurname()).isEqualTo("TestSurname2");
 	}
 
 	@Test
@@ -124,13 +124,13 @@ public class HazelcastDistributedMapEventDrivenInboundChannelAdapterTests {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo("edDistributedMap3");
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(2));
+				.getPayload()).key()).isEqualTo(Integer.valueOf(2));
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getId()).isEqualTo(2);
+				.getPayload()).oldValue()).getId()).isEqualTo(2);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getName()).isEqualTo("TestName2");
+				.getPayload()).oldValue()).getName()).isEqualTo("TestName2");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getSurname()).isEqualTo("TestSurname2");
+				.getPayload()).oldValue()).getSurname()).isEqualTo("TestSurname2");
 	}
 
 	@Test
