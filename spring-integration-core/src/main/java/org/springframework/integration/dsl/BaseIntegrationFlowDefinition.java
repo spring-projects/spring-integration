@@ -1723,7 +1723,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param <T> the target result type.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
-	public <@Nullable T> B route(String expression,
+	public <T extends @Nullable Object> B route(String expression,
 			@Nullable Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer) {
 
 		return route(new RouterSpec<>(new ExpressionEvaluatingRouter(PARSER.parseExpression(expression))),
@@ -1748,7 +1748,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <S, @Nullable T> B route(Class<S> expectedType, Function<S, T> router) {
+	public <S, T extends @Nullable Object> B route(Class<S> expectedType, Function<S, T> router) {
 		return route(expectedType, router, null);
 	}
 
@@ -1776,13 +1776,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P, @Nullable T> B route(Class<P> expectedType, Function<P, T> router,
+	public <P, T extends @Nullable Object> B route(Class<P> expectedType, Function<P, T> router,
 			@Nullable Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 
 		return doRoute(expectedType, router, routerConfigurer);
 	}
 
-	protected <P, @Nullable T> B doRoute(@Nullable Class<P> expectedType, Function<P, T> router,
+	protected <P, T extends @Nullable Object> B doRoute(@Nullable Class<P> expectedType, Function<P, T> router,
 			@Nullable Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 
 		MethodInvokingRouter methodInvokingRouter =
