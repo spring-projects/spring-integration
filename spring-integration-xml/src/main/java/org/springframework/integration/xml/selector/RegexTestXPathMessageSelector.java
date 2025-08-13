@@ -98,7 +98,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	@Override
 	public boolean accept(Message<?> message) {
 		Node nodeToTest = getConverter().convertToNode(message.getPayload());
-		String xPathResult = getXPathExpresion().evaluateAsString(nodeToTest);
+		String xPathResult = getXPathExpression().evaluateAsString(nodeToTest);
 		return StringUtils.hasText(xPathResult) && xPathResult.matches(this.regex);
 	}
 

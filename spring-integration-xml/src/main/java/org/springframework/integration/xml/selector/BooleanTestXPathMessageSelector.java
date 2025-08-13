@@ -86,7 +86,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	@Override
 	public boolean accept(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
-		return getXPathExpresion().evaluateAsBoolean(node);
+		return getXPathExpression().evaluateAsBoolean(node);
 	}
 
 }
