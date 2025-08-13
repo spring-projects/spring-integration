@@ -40,7 +40,7 @@ class KotlinSplitterSpec(override val delegate: SplitterSpec)
 	 * @param function the function instance to use.
 	 * @param <P> the input type.
 	 */
-	inline fun <reified P> function(crossinline function: (P) -> Any) {
+	inline fun <reified P : Any> function(crossinline function: (P) -> Any) {
 		this.delegate.expectedType(P::class.java)
 		this.delegate.function<P> { function(it) }
 	}

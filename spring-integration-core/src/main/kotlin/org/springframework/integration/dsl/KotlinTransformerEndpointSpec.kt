@@ -40,7 +40,7 @@ class KotlinTransformerEndpointSpec(override val delegate: TransformerEndpointSp
 	 * @param function the function instance to use.
 	 * @param <P> the input type.
 	 */
-	inline fun <reified P> transformer(crossinline function: (P) -> Any) {
+	inline fun <reified P : Any> transformer(crossinline function: (P) -> Any) {
 		this.delegate.expectedType(P::class.java)
 		this.delegate.transformer<P, Any> { function(it) }
 	}

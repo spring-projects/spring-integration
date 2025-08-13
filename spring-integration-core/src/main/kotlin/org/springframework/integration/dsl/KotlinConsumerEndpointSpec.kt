@@ -67,11 +67,11 @@ abstract class KotlinConsumerEndpointSpec<S : ConsumerEndpointSpec<S, H>, H : Me
 		this.delegate.taskScheduler(taskScheduler)
 	}
 
-	fun handleMessageAdvice(vararg interceptors: MethodInterceptor?) {
+	fun handleMessageAdvice(vararg interceptors: MethodInterceptor) {
 		this.delegate.handleMessageAdvice(*interceptors)
 	}
 
-	fun advice(vararg advice: Advice?) {
+	fun advice(vararg advice: Advice) {
 		this.delegate.advice(*advice)
 	}
 
@@ -95,11 +95,11 @@ abstract class KotlinConsumerEndpointSpec<S : ConsumerEndpointSpec<S, H>, H : Me
 		this.delegate.transactional(handleMessageAdvice)
 	}
 
-	fun <T : Any?, V : Any?> customizeMonoReply(replyCustomizer: (Message<*>, Mono<T>) -> Publisher<V>) {
+	fun <T : Any, V : Any> customizeMonoReply(replyCustomizer: (Message<*>, Mono<T>) -> Publisher<V>) {
 		this.delegate.customizeMonoReply(replyCustomizer)
 	}
 
-	fun id(id: String?) {
+	fun id(id: String) {
 		this.delegate.id(id)
 	}
 

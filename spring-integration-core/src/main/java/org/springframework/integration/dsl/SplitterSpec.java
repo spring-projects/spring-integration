@@ -161,7 +161,7 @@ public class SplitterSpec extends ConsumerEndpointSpec<SplitterSpec, AbstractMes
 	 * @param expectedType the {@link Function} input argument type.
 	 * @return the spec.
 	 */
-	public SplitterSpec expectedType(@Nullable Class<?> expectedType) {
+	public SplitterSpec expectedType(Class<?> expectedType) {
 		this.expectedType = expectedType;
 		return this;
 	}

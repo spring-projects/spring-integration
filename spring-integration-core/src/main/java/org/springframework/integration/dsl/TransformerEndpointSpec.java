@@ -140,7 +140,7 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 	 * @param <P> the type ot expect.
 	 * @return the spec.
 	 */
-	public <P> TransformerEndpointSpec expectedType(@Nullable Class<P> expectedType) {
+	public <P> TransformerEndpointSpec expectedType(Class<P> expectedType) {
 		this.expectedType = expectedType;
 		return this;
 	}
