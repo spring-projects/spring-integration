@@ -101,7 +101,7 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	@Override
 	public boolean accept(Message<?> message) {
 		Node nodeToTest = getConverter().convertToNode(message.getPayload());
-		String xPathResult = getXPathExpresion().evaluateAsString(nodeToTest);
+		String xPathResult = getXPathExpression().evaluateAsString(nodeToTest);
 		if (this.caseSensitive) {
 			return this.valueToTestFor.equals(xPathResult);
 		}

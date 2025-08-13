@@ -33,7 +33,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public abstract class AbstractXPathMessageSelector implements MessageSelector {
 
-	private final XPathExpression xPathExpresion;
+	private final XPathExpression xPathExpression;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
@@ -41,7 +41,7 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	 * @param xPathExpression XPath expression as a String
 	 */
 	public AbstractXPathMessageSelector(String xPathExpression) {
-		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression);
+		this.xPathExpression = XPathExpressionFactory.createXPathExpression(xPathExpression);
 	}
 
 	/**
@@ -52,7 +52,7 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	public AbstractXPathMessageSelector(String xPathExpression, String prefix, String namespace) {
 		Map<String, String> namespaces = new HashMap<>();
 		namespaces.put(prefix, namespace);
-		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
+		this.xPathExpression = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}
 
 	/**
@@ -60,14 +60,14 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	 * @param namespaces Map of namespaces with prefixes as the Map keys
 	 */
 	public AbstractXPathMessageSelector(String xPathExpression, Map<String, String> namespaces) {
-		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
+		this.xPathExpression = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}
 
 	/**
 	 * @param xPathExpression XPath expression
 	 */
 	public AbstractXPathMessageSelector(XPathExpression xPathExpression) {
-		this.xPathExpresion = xPathExpression;
+		this.xPathExpression = xPathExpression;
 	}
 
 	/**
@@ -83,8 +83,8 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 		return this.converter;
 	}
 
-	protected XPathExpression getXPathExpresion() {
-		return this.xPathExpresion;
+	protected XPathExpression getXPathExpression() {
+		return this.xPathExpression;
 	}
 
 }
