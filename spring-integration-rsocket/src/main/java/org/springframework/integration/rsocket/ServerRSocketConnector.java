@@ -25,6 +25,7 @@ import io.rsocket.transport.ServerTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import io.rsocket.transport.netty.server.WebsocketServerTransport;
+import org.jspecify.annotations.Nullable;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServer;
@@ -34,7 +35,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
@@ -51,11 +51,12 @@ import org.springframework.util.MimeType;
  */
 public class ServerRSocketConnector extends AbstractRSocketConnector implements ApplicationEventPublisherAware {
 
-	private final ServerTransport<CloseableChannel> serverTransport;
+	private final @Nullable ServerTransport<CloseableChannel> serverTransport;
 
 	private Consumer<RSocketServer> serverConfigurer = (rsocketServer) -> {
 	};
 
+	@SuppressWarnings("NullAway.Init")
 	private Mono<CloseableChannel> serverMono;
 
 	/**
@@ -191,8 +192,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 	 * @return the {@link RSocketRequester} or null.
 	 * @see ServerRSocketMessageHandler#getClientRSocketRequester(Object)
 	 */
-	@Nullable
-	public RSocketRequester getClientRSocketRequester(Object key) {
+	public @Nullable RSocketRequester getClientRSocketRequester(Object key) {
 		return serverRSocketMessageHandler().getClientRSocketRequester(key);
 	}
 

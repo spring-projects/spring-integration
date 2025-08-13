@@ -16,6 +16,8 @@
 
 package org.springframework.integration.rsocket;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -23,7 +25,6 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -64,8 +65,7 @@ public abstract class AbstractRSocketConnector
 		this.rSocketMessageHandler.setDefaultDataMimeType(dataMimeType);
 	}
 
-	@Nullable
-	protected MimeType getDataMimeType() {
+	protected @Nullable MimeType getDataMimeType() {
 		return this.rSocketMessageHandler.getDefaultDataMimeType();
 	}
 

@@ -49,14 +49,17 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	private RSocketConnectorConfigurer connectorConfigurer = (connector) -> {
 	};
 
+	@SuppressWarnings("NullAway.Init")
 	private Object setupData;
 
+	@SuppressWarnings("NullAway.Init")
 	private String setupRoute;
 
 	private Object[] setupRouteVars = new Object[0];
 
 	private boolean autoConnect;
 
+	@SuppressWarnings("NullAway.Init")
 	private RSocketRequester rsocketRequester;
 
 	/**

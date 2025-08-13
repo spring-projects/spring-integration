@@ -23,11 +23,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.CompositeMessageCondition;
@@ -60,6 +61,7 @@ import org.springframework.util.ReflectionUtils;
 public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandler
 		implements ApplicationEventPublisherAware {
 
+	@SuppressWarnings("NullAway") // Reflection
 	private static final Method HANDLE_CONNECTION_SETUP_METHOD =
 			ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", Message.class);
 
@@ -68,7 +70,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 	private BiFunction<Map<String, Object>, DataBuffer, Object> clientRSocketKeyStrategy =
 			(headers, data) -> data.toString(StandardCharsets.UTF_8);
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Create an service side RSocket message handler instance for delegating
@@ -120,8 +122,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 	 * @param key the key for mapped {@link RSocketRequester} if any.
 	 * @return the mapped {@link RSocketRequester} or null.
 	 */
-	@Nullable
-	public RSocketRequester getClientRSocketRequester(Object key) {
+	public @Nullable RSocketRequester getClientRSocketRequester(Object key) {
 		return this.clientRSocketRequesters.get(key);
 	}
 
@@ -146,6 +147,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 		RSocketRequester rsocketRequester =
 				messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
 						RSocketRequester.class);
+		Assert.notNull(rsocketRequester, "'rsocketRequester' can not be null");
 		this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
 		RSocketConnectedEvent rSocketConnectedEvent =
 				new RSocketConnectedEvent(this, messageHeaders, dataBuffer, rsocketRequester); // NOSONAR
