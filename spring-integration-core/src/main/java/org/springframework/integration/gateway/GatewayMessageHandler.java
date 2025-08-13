@@ -25,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -158,9 +157,12 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 			this.gatewayProxyFactoryBean.setDefaultReplyTimeout(this.replyTimeout);
 		}
 
-		if (getBeanFactory() instanceof ConfigurableListableBeanFactory configurableListableBeanFactory) {
-			configurableListableBeanFactory.initializeBean(this.gatewayProxyFactoryBean, getComponentName() + "#gpfb");
-		}
+		this.gatewayProxyFactoryBean.setBeanName(getComponentName() + "#gpfb");
+		this.gatewayProxyFactoryBean.setBeanFactory(getBeanFactory());
+		this.gatewayProxyFactoryBean.setApplicationContext(getApplicationContext());
+		this.gatewayProxyFactoryBean.setBeanClassLoader(getBeanClassLoader());
+		this.gatewayProxyFactoryBean.afterPropertiesSet();
+
 		try {
 			this.exchanger = this.gatewayProxyFactoryBean.getObject();
 		}
