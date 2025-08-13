@@ -129,7 +129,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 */
 	public <P> B handle(GenericHandler<P> handler) {
-		return handle(null, handler);
+		return doHandle(null, handler, null);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> B handle(GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
-		return handle(null, handler, endpointConfigurer);
+		return doHandle(null, handler, endpointConfigurer);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, @Nullable T> B route(Function<S, T> router) {
+	public <S, T extends @Nullable Object> B route(Function<S, T> router) {
 		return doRoute(null, router,  null);
 	}
 
@@ -198,7 +198,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, @Nullable T> B route(Function<S, T> router,
+	public <S, T extends @Nullable Object> B route(Function<S, T> router,
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 
 		return doRoute(null, router, routerConfigurer);

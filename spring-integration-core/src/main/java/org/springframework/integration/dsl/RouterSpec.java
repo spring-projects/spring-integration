@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.0
  */
-public class RouterSpec<@Nullable K, R extends AbstractMappingMessageRouter>
+public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMessageRouter>
 		extends AbstractRouterSpec<RouterSpec<K, R>, R> {
 
 	private final RouterMappingProvider mappingProvider;

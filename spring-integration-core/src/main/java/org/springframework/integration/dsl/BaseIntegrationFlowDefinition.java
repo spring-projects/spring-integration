@@ -1008,7 +1008,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B handle(@Nullable Class<P> expectedType, GenericHandler<P> handler) {
+	public <P> B handle(Class<P> expectedType, GenericHandler<P> handler) {
 		return handle(expectedType, handler, null);
 	}
 
@@ -1032,7 +1032,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P> B handle(@Nullable Class<P> expectedType, GenericHandler<P> handler,
+	public <P> B handle(Class<P> expectedType, GenericHandler<P> handler,
+			@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
+		return doHandle(expectedType, handler, endpointConfigurer);
+	}
+
+	protected  <P> B doHandle(@Nullable Class<P> expectedType, GenericHandler<P> handler,
 			@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		ServiceActivatingHandler serviceActivatingHandler;
@@ -1799,7 +1805,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec) {
-		return route(messageProcessorSpec, (Consumer<RouterSpec<Object, MethodInvokingRouter>>) null);
+		return route(messageProcessorSpec, (Consumer<RouterSpec<@Nullable Object, MethodInvokingRouter>>) null);
 	}
 
 	/**
