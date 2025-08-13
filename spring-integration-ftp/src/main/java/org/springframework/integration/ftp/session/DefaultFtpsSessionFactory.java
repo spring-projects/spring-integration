@@ -23,6 +23,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 import org.apache.commons.net.ftp.FTPSClient;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.JavaUtils;
 import org.springframework.util.StringUtils;
@@ -34,33 +35,35 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSClient> {
 
-	private Boolean useClientMode;
+	private @Nullable Boolean useClientMode;
 
-	private Boolean sessionCreation;
+	private @Nullable Boolean sessionCreation;
 
-	private String authValue;
+	private @Nullable String authValue;
 
-	private TrustManager trustManager;
+	private @Nullable TrustManager trustManager;
 
-	private String[] cipherSuites;
+	private String @Nullable [] cipherSuites;
 
-	private String[] protocols;
+	private String @Nullable [] protocols;
 
-	private KeyManager keyManager;
+	private @Nullable KeyManager keyManager;
 
-	private Boolean needClientAuth;
+	private @Nullable Boolean needClientAuth;
 
-	private Boolean wantsClientAuth;
+	private @Nullable Boolean wantsClientAuth;
 
 	private boolean implicit = false;
 
 	private String prot = "P";
 
-	private String protocol;
+	private @Nullable String protocol;
 
 	public void setProtocol(String protocol) {
 		this.protocol = protocol;
@@ -112,26 +115,10 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 
 	@Override
 	protected FTPSClient createClientInstance() {
-		try {
-			if (StringUtils.hasText(this.protocol)) {
-				return new FTPSClient(this.protocol, this.implicit);
-			}
-			return new FTPSClient(this.implicit);
+		if (StringUtils.hasText(this.protocol)) {
+			return new FTPSClient(this.protocol, this.implicit);
 		}
-		catch (Exception e) {
-
-			/*
-			 This catch block is technically not necessary but it allows users
-			 to use the older Commons Net 2.0 if necessary, which requires you
-			 to catch a NoSuchAlgorithmException.
-			 */
-
-			if (e instanceof RuntimeException) { //NOSONAR false positive
-				throw (RuntimeException) e;
-			}
-
-			throw new IllegalStateException("Failed to create FTPS client.", e);
-		}
+		return new FTPSClient(this.implicit);
 	}
 
 	@Override

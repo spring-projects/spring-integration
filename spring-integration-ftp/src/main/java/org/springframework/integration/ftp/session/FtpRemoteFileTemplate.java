@@ -21,11 +21,11 @@ import java.io.IOException;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.ClientCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -50,7 +50,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T, C> T executeWithClient(final ClientCallback<C, T> callback) {
+	public <T, C> @Nullable T executeWithClient(final ClientCallback<C, T> callback) {
 		return doExecuteWithClient((ClientCallback<FTPClient, T>) callback);
 	}
 
@@ -67,7 +67,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 		this.existsMode = existsMode;
 	}
 
-	protected <T> T doExecuteWithClient(final ClientCallback<FTPClient, T> callback) {
+	protected <T> @Nullable T doExecuteWithClient(final ClientCallback<FTPClient, T> callback) {
 		return execute(session -> callback.doWithClient((FTPClient) session.getClientInstance()));
 	}
 
@@ -83,7 +83,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	 */
 	@Override
 	public boolean exists(final String path) {
-		return doExecuteWithClient(client -> {
+		Boolean exists = doExecuteWithClient(client -> {
 			try {
 				return switch (FtpRemoteFileTemplate.this.existsMode) {
 					case STAT -> client.getStatus(path) != null;
@@ -95,13 +95,15 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 				throw new MessagingException("Failed to check the remote path for " + path, e);
 			}
 		});
+		return Boolean.TRUE.equals(exists);
 	}
 
 	@Override
 	protected boolean shouldMarkSessionAsDirty(Exception ex) {
 		IOException ftpException = findIoException(ex);
 		if (ftpException != null) {
-			return isStatusDirty(ftpException.getMessage());
+			String message = ftpException.getMessage();
+			return message != null && isStatusDirty(message);
 		}
 		else {
 			return super.shouldMarkSessionAsDirty(ex);
@@ -119,8 +121,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 				&& !ftpErrorMessage.contains("" + FTPReply.FILE_NAME_NOT_ALLOWED);
 	}
 
-	@Nullable
-	private static IOException findIoException(Throwable ex) {
+	private static @Nullable IOException findIoException(@Nullable Throwable ex) {
 		if (ex == null || ex instanceof IOException) {
 			return (IOException) ex;
 		}

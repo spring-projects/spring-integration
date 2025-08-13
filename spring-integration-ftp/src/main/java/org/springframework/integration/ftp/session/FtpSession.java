@@ -75,7 +75,7 @@ public class FtpSession implements Session<FTPFile> {
 	}
 
 	@Override
-	public String[] listNames(String path) throws IOException {
+	public String[] listNames(@Nullable String path) throws IOException {
 		return this.client.listNames(path);
 	}
 
