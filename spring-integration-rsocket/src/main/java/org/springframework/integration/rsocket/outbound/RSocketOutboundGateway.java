@@ -121,7 +121,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param routeVariables the variables to expand route template.
 	 */
 	@SuppressWarnings("this-escape")
-	public RSocketOutboundGateway(Expression routeExpression, Object @Nullable [] routeVariables) {
+	private RSocketOutboundGateway(Expression routeExpression, Object @Nullable [] routeVariables) {
 		Assert.notNull(routeExpression, "'routeExpression' must not be null");
 		this.routeExpression = routeExpression;
 		this.routeVars = routeVariables != null
