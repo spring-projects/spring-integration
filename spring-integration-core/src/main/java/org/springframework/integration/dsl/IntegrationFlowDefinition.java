@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.GenericTransformer;
@@ -83,7 +85,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public <P> B filter(GenericSelector<P> genericSelector) {
-		return filter(null, genericSelector);
+		return doFilter(null, genericSelector, null);
 	}
 
 	/**
@@ -106,7 +108,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see FilterEndpointSpec
 	 */
 	public <P> B filter(GenericSelector<P> genericSelector, Consumer<FilterEndpointSpec> endpointConfigurer) {
-		return filter(null, genericSelector, endpointConfigurer);
+		return doFilter(null, genericSelector, endpointConfigurer);
 	}
 
 	/**
@@ -127,7 +129,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 */
 	public <P> B handle(GenericHandler<P> handler) {
-		return handle(null, handler);
+		return doHandle(null, handler, null);
 	}
 
 	/**
@@ -153,7 +155,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> B handle(GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
-		return handle(null, handler, endpointConfigurer);
+		return doHandle(null, handler, endpointConfigurer);
 	}
 
 	/**
@@ -171,8 +173,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, T> B route(Function<S, T> router) {
-		return route(null, router);
+	public <S, T extends @Nullable Object> B route(Function<S, T> router) {
+		return doRoute(null, router,  null);
 	}
 
 	/**
@@ -196,8 +198,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
-		return route(null, router, routerConfigurer);
+	public <S, T extends @Nullable Object> B route(Function<S, T> router,
+			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
+
+		return doRoute(null, router, routerConfigurer);
 	}
 
 }

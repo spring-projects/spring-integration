@@ -74,7 +74,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.convert] providing a `convert<MyType>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified T> convert(
+	inline fun <reified T: Any> convert(
 			crossinline configurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
@@ -85,7 +85,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.transform] providing a `transform<MyTypeIn, MyTypeOut>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P> transform(crossinline function: (P) -> Any) {
+	inline fun <reified P : Any> transform(crossinline function: (P) -> Any) {
 		this.delegate.transform(P::class.java) { function(it) }
 	}
 
@@ -101,7 +101,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.split] providing a `split<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P> split(crossinline function: (P) -> Any) {
+	inline fun <reified P : Any> split(crossinline function: (P) -> Any) {
 		this.delegate.split(P::class.java) { function(it) }
 	}
 
@@ -117,7 +117,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.filter] providing a `filter<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P> filter(crossinline function: (P) -> Boolean) {
+	inline fun <reified P : Any> filter(crossinline function: (P) -> Boolean) {
 		this.delegate.filter(P::class.java) { function(it) }
 	}
 
@@ -125,7 +125,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.filter] providing a `filter<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P> filter(
+	inline fun <reified P: Any> filter(
 			crossinline function: (P) -> Boolean,
 			crossinline filterConfigurer: KotlinFilterEndpointSpec.() -> Unit
 	) {
@@ -138,7 +138,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P> route(crossinline function: (P) -> Any?) {
+	inline fun <reified P : Any> route(crossinline function: (P) -> Any?) {
 		route(function) { }
 	}
 
@@ -146,7 +146,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P, T> route(
+	inline fun <reified P : Any, T : Any?> route(
 			crossinline function: (P) -> T,
 			crossinline configurer: KotlinRouterSpec<T, MethodInvokingRouter>.() -> Unit
 	) {
@@ -379,7 +379,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a [ServiceActivatingHandler] for the selected protocol specific
 	 * [MessageHandler] implementation from `Namespace Factory`:
 	 */
-	fun <H : MessageHandler?> handle(messageHandlerSpec: MessageHandlerSpec<*, H>) {
+	fun <H : MessageHandler> handle(messageHandlerSpec: MessageHandlerSpec<*, H>) {
 		this.delegate.handle(messageHandlerSpec)
 	}
 
@@ -443,7 +443,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [org.springframework.integration.handler.MethodInvokingMessageProcessor]
 	 * to invoke the provided [GenericHandler] at runtime.
 	 */
-	inline fun <reified P> handle(crossinline handler: (P, MessageHeaders) -> Any) {
+	inline fun <reified P : Any> handle(crossinline handler: (P, MessageHeaders) -> Any) {
 		this.delegate.handle(P::class.java) { p, h -> handler(p, h) }
 	}
 
@@ -453,7 +453,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * to invoke the provided [GenericHandler] at runtime.
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
-	inline fun <reified P> handle(
+	inline fun <reified P : Any> handle(
 			crossinline handler: (P, MessageHeaders) -> Any,
 			crossinline endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
 	) {
@@ -712,7 +712,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 			beanName: String, method: String?,
-			routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
+			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -732,7 +732,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 			service: Any, methodName: String?,
-			routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
+			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -742,7 +742,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [ExpressionEvaluatingRouter] for provided SpEL expression
 	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun <T> route(
+	fun <T: Any?> route(
 			expression: String,
 			routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
 	) {
@@ -756,7 +756,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 			messageProcessorSpec: MessageProcessorSpec<*>,
-			routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit = {}
+			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit = {}
 	) {
 
 		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -1065,7 +1065,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * wrap it to a [Flux], apply provided function via [Flux.transform]
 	 * and emit the result to one more [FluxMessageChannel], subscribed in the downstream flow.
 	 */
-	fun <I: Any, O> fluxTransform(fluxFunction: (Flux<Message<I>>) -> Publisher<O>) {
+	fun <I : Any, O : Any> fluxTransform(fluxFunction: (Flux<Message<I>>) -> Publisher<O>) {
 		this.delegate.fluxTransform(fluxFunction)
 	}
 

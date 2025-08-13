@@ -28,8 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinRouterSpec<K, R : AbstractMappingMessageRouter>(override val delegate: RouterSpec<K, R>)
-	: AbstractKotlinRouterSpec<RouterSpec<K, R>, R>(delegate) {
+class KotlinRouterSpec<K : Any?, R : AbstractMappingMessageRouter>(override val delegate: RouterSpec<K, R>) :
+	AbstractKotlinRouterSpec<RouterSpec<K, R>, R>(delegate) {
 
 	fun resolutionRequired(resolutionRequired: Boolean) {
 		this.delegate.resolutionRequired(resolutionRequired)
@@ -51,19 +51,19 @@ class KotlinRouterSpec<K, R : AbstractMappingMessageRouter>(override val delegat
 		this.delegate.channelKeyFallback(channelKeyFallback)
 	}
 
-	fun channelMapping(key: K & Any, channelName: String) {
+	fun channelMapping(key: K, channelName: String) {
 		this.delegate.channelMapping(key, channelName)
 	}
 
-	fun channelMapping(key: K & Any, channel: MessageChannel) {
+	fun channelMapping(key: K, channel: MessageChannel) {
 		this.delegate.channelMapping(key, channel)
 	}
 
-	fun subFlowMapping(key: K & Any, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
+	fun subFlowMapping(key: K, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
 		subFlowMapping(key) { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
-	fun subFlowMapping(key: K & Any, subFlow: IntegrationFlow) {
+	fun subFlowMapping(key: K, subFlow: IntegrationFlow) {
 		this.delegate.subFlowMapping(key, subFlow)
 	}
 
