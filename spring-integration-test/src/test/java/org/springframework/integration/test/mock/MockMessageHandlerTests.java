@@ -36,6 +36,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
@@ -363,6 +364,12 @@ public class MockMessageHandlerTests {
 		@ServiceActivator(inputChannel = "reactiveInputChannel", reactive = @Reactive)
 		public ReactiveMessageHandler reactiveMessageHandler() {
 			return message -> Mono.empty();
+		}
+
+		// Before the fix for https://github.com/spring-projects/spring-integration/issues/10309 this test suite has failed
+		@Bean
+		IntegrationFlow flowWithGateway() {
+			return flow -> flow.gateway(subFlow -> subFlow.bridge());
 		}
 
 	}
