@@ -141,7 +141,9 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		private @Nullable Object obtainParameterValue(JpaParameter jpaParameter) {
 			Object value = jpaParameter.getValue();
-			if (value == null && jpaParameter.getExpression() != null) {
+			if (value == null) {
+				Assert.notNull(jpaParameter.getExpression(),
+						() -> "One of the 'value' or 'expression' must be provided for 'JpaParameter': " + jpaParameter);
 				Expression expression;
 				if (this.input instanceof Collection<?>) {
 					expression = jpaParameter.getProjectionExpression();
