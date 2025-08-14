@@ -35,7 +35,7 @@ public class FtpSimplePatternFileListFilter extends AbstractSimplePatternFileLis
 
 	@Override
 	protected String getFilename(FTPFile file) {
-		return (file != null) ? file.getName() : null;
+		return file.getName();
 	}
 
 	@Override

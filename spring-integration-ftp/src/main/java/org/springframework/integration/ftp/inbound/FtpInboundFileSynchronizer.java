@@ -42,21 +42,21 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	 * {@link org.springframework.integration.file.remote.session.Session} instances.
 	 * @param sessionFactory The session factory.
 	 */
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({ "this-escape", "NullAway"})// The LiteralExpression can actually handle null ok
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {
 		super(sessionFactory);
-		doSetRemoteDirectoryExpression(new LiteralExpression(null)); // NOSONAR - LE can actually handle null ok
+		doSetRemoteDirectoryExpression(new LiteralExpression(null));
 		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpMessageSource"));
 	}
 
 	@Override
 	protected boolean isFile(FTPFile file) {
-		return file != null && file.isFile();
+		return file.isFile();
 	}
 
 	@Override
 	protected String getFilename(FTPFile file) {
-		return (file != null ? file.getName() : null);
+		return file.getName();
 	}
 
 	@Override

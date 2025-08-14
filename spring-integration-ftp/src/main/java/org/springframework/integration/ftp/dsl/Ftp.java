@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -28,7 +29,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * The factory for FTP components.
@@ -216,7 +216,7 @@ public final class Ftp {
 	 * @see RemoteFileTemplate
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+			AbstractRemoteFileOutboundGateway.Command command, @Nullable String expression) {
 
 		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
 	}

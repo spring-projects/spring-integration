@@ -26,6 +26,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
@@ -46,13 +47,13 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
-	private FTPClientConfig config;
+	private @Nullable FTPClientConfig config;
 
-	private String username;
+	private @Nullable String username;
 
-	private String host;
+	private @Nullable String host;
 
-	private String password;
+	private @Nullable String password;
 
 	private int port = FTP.DEFAULT_PORT;
 
@@ -64,11 +65,11 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	private String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
 
-	private Integer connectTimeout;
+	private @Nullable Integer connectTimeout;
 
-	private Integer defaultTimeout;
+	private @Nullable Integer defaultTimeout;
 
-	private Integer dataTimeout;
+	private @Nullable Integer dataTimeout;
 
 	/**
 	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants:
@@ -175,7 +176,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	}
 
 	private T createClient() throws IOException {
-		final T client = this.createClientInstance();
+		final T client = createClientInstance();
 		Assert.notNull(client, "client must not be null");
 		client.configure(this.config);
 		Assert.hasText(this.username, "username is required");

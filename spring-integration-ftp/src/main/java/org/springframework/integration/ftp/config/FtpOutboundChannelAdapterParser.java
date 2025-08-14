@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ftp.config;
 
+import java.util.Objects;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -55,7 +57,8 @@ public class FtpOutboundChannelAdapterParser extends RemoteFileOutboundChannelAd
 				.iterator()
 				.next()
 				.getValue();
-		templateDefinition.getPropertyValues() // NOSONAR never null
+
+		Objects.requireNonNull(templateDefinition).getPropertyValues()
 				.add("existsMode", FtpRemoteFileTemplate.ExistsMode.NLST);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "chmod", "chmodOctal");
 	}

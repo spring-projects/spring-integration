@@ -25,10 +25,8 @@ import org.apache.ftpserver.ftplet.FtpSession;
 import org.apache.ftpserver.ftplet.FtpletResult;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.util.Assert;
 
 /**
  * A listener for FTP events emitted by an Apache Mina ftp server.
@@ -36,14 +34,17 @@ import org.springframework.util.Assert;
  * which are subclasses of {@link ApacheMinaFtpEvent}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
-public class ApacheMinaFtplet extends DefaultFtplet
-		implements ApplicationEventPublisherAware, BeanNameAware, InitializingBean {
+public class ApacheMinaFtplet extends DefaultFtplet implements ApplicationEventPublisherAware, BeanNameAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	@Override
@@ -62,11 +63,6 @@ public class ApacheMinaFtplet extends DefaultFtplet
 
 	public String getBeanName() {
 		return this.beanName;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		Assert.state(this.applicationEventPublisher != null, "An ApplicationEventPublisher is required");
 	}
 
 	@Override

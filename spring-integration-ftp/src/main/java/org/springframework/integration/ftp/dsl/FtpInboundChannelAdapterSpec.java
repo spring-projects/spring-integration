@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.dsl.RemoteFileInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -31,7 +32,6 @@ import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilte
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link FtpInboundFileSynchronizingMessageSource}.

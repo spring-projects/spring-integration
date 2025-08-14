@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -41,7 +42,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -54,8 +54,9 @@ import org.springframework.messaging.Message;
  */
 public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFile> {
 
-	private Expression workingDirExpression;
+	private @Nullable Expression workingDirExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	/**
@@ -210,18 +211,18 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
-	protected List<?> ls(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
+	protected List<?> ls(Message<?> message, Session<FTPFile> session, @Nullable String dir) throws IOException {
 		return doInWorkingDirectory(message, session, () -> super.ls(message, session, dir));
 	}
 
 	@Override
-	protected List<String> nlst(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
+	protected List<String> nlst(Message<?> message, Session<FTPFile> session, @Nullable String dir) throws IOException {
 		return doInWorkingDirectory(message, session, () -> super.nlst(message, session, dir));
 	}
 
 	@Override
-	protected File get(Message<?> message, Session<FTPFile> session, String remoteDir, String remoteFilePath,
-			String remoteFilename, FTPFile fileInfoParam) throws IOException {
+	protected File get(Message<?> message, Session<FTPFile> session, @Nullable String remoteDir, String remoteFilePath,
+			String remoteFilename, @Nullable FTPFile fileInfoParam) throws IOException {
 
 		return doInWorkingDirectory(message, session,
 				() -> super.get(message, session, remoteDir, remoteFilePath, remoteFilename, fileInfoParam));
@@ -249,7 +250,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
-	protected String put(Message<?> message, Session<FTPFile> session, String subDirectory) {
+	protected String put(Message<?> message, Session<FTPFile> session, @Nullable String subDirectory) {
 		try {
 			return doInWorkingDirectory(message, session,
 					() -> super.put(message, session, subDirectory));

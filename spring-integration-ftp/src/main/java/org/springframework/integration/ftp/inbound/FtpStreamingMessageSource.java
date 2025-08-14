@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
@@ -57,7 +58,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	 * @param comparator the comparator.
 	 */
 	@SuppressWarnings("this-escape")
-	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template, Comparator<FTPFile> comparator) {
+	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template, @Nullable Comparator<FTPFile> comparator) {
 		super(template, comparator);
 		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpStreamingMessageSource"));
 	}
@@ -69,7 +70,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 
 	@Override
 	protected List<AbstractFileInfo<FTPFile>> asFileInfoList(Collection<FTPFile> files) {
-		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<AbstractFileInfo<FTPFile>>();
+		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>();
 		for (FTPFile file : files) {
 			canonicalFiles.add(new FtpFileInfo(file));
 		}
@@ -78,7 +79,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 
 	@Override
 	protected boolean isDirectory(FTPFile file) {
-		return file != null && file.isDirectory();
+		return file.isDirectory();
 	}
 
 }
