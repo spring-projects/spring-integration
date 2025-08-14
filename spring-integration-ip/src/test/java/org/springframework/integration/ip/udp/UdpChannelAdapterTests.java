@@ -143,6 +143,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		if (useLocalAddress) {
 			adapter.setLocalAddress("127.0.0.1");
 		}
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
@@ -172,6 +175,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
@@ -182,7 +188,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
 		final DatagramSocket socket = new DatagramSocket(0);
 		socket.send(packet);
-		final AtomicReference<DatagramPacket> theAnswer = new AtomicReference<DatagramPacket>();
+		final AtomicReference<DatagramPacket> theAnswer = new AtomicReference<>();
 		final CountDownLatch receiverReadyLatch = new CountDownLatch(1);
 		final CountDownLatch replyReceivedLatch = new CountDownLatch(1);
 		//main thread sends the reply using the headers, this thread will receive it
@@ -226,6 +232,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setBeanName("test");
 		adapter.setOutputChannel(channel);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
@@ -257,6 +266,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		if (nic != null) {
 			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
@@ -303,6 +315,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		if (nic != null) {
 			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 
@@ -332,6 +347,9 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();

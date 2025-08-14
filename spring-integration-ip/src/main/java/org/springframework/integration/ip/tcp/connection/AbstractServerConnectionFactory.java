@@ -18,16 +18,15 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.SocketException;
 import java.time.Instant;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -48,7 +47,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	private int backlog = DEFAULT_BACKLOG;
 
-	private String localAddress;
+	private @Nullable String localAddress;
 
 	private volatile boolean listening;
 
@@ -65,12 +64,6 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	@Override
 	public boolean isLongLived() {
 		return true;
-	}
-
-	@Override
-	@Nullable
-	public SocketAddress getServerSocketAddress() {
-		return null;
 	}
 
 	@Override
@@ -158,8 +151,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 *
 	 * @return the localAddress
 	 */
-	@Nullable
-	public String getLocalAddress() {
+	public @Nullable String getLocalAddress() {
 		return this.localAddress;
 	}
 
@@ -203,28 +195,17 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 
 	protected void publishServerExceptionEvent(Exception ex) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new TcpConnectionServerExceptionEvent(this, ex));
-		}
+		getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, ex));
 	}
 
 	protected void publishServerListeningEvent(int port) {
 		final ApplicationEventPublisher eventPublisher = getApplicationEventPublisher();
-		if (eventPublisher != null) {
-			final TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
-			TaskScheduler taskScheduler = getTaskScheduler();
-			if (taskScheduler != null) {
-				try {
-					taskScheduler.schedule(() -> eventPublisher.publishEvent(event), Instant.now());
-				}
-				catch (@SuppressWarnings("unused") TaskRejectedException e) {
-					eventPublisher.publishEvent(event);
-				}
-			}
-			else {
-				eventPublisher.publishEvent(event);
-			}
+		final TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
+		try {
+			getTaskScheduler().schedule(() -> eventPublisher.publishEvent(event), Instant.now());
+		}
+		catch (@SuppressWarnings("unused") TaskRejectedException e) {
+			eventPublisher.publishEvent(event);
 		}
 	}
 

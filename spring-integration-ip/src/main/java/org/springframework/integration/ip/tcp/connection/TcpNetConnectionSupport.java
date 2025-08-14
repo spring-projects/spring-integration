@@ -18,8 +18,9 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Used by NET connection factories to instantiate a {@link TcpNetConnection} object.
@@ -48,6 +49,6 @@ public interface TcpNetConnectionSupport {
 	TcpNetConnection createNewConnection(Socket socket,
 			boolean server, boolean lookupHost,
 			@Nullable ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName);
+			@Nullable String connectionFactoryName);
 
 }

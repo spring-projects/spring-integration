@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,13 +31,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
@@ -63,29 +64,30 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private final AtomicLong sequence = new AtomicLong();
 
-	private final ApplicationEventPublisher applicationEventPublisher;
+	private final @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	private final AtomicBoolean closePublished = new AtomicBoolean();
 
 	private final AtomicBoolean exceptionSent = new AtomicBoolean();
 
-	private final SocketInfo socketInfo;
+	private final @Nullable SocketInfo socketInfo;
 
 	private final List<TcpSender> senders = Collections.synchronizedList(new ArrayList<>());
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "NullAway.Init"})
 	private Deserializer deserializer;
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "NullAway.Init"})
 	private Serializer serializer;
 
+	@SuppressWarnings("NullAway.Init")
 	private TcpMessageMapper mapper;
 
-	private TcpListener listener;
+	private @Nullable TcpListener listener;
 
-	private volatile TcpListener testListener;
+	private volatile @Nullable TcpListener testListener;
 
-	private String connectionId;
+	private final String connectionId;
 
 	private String hostName = "unknown";
 
@@ -99,7 +101,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private boolean wrapped;
 
-	private TcpConnectionSupport wrapper;
+	private @Nullable TcpConnectionSupport wrapper;
 
 	/*
 	 * This boolean is to avoid looking for a temporary listener when not needed
@@ -118,6 +120,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		this.server = false;
 		this.applicationEventPublisher = applicationEventPublisher;
 		this.socketInfo = null;
+		this.connectionId = UUID.randomUUID().toString();
 	}
 
 	/**
@@ -150,7 +153,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		}
 		int port = socket.getPort();
 		int localPort = socket.getLocalPort();
-		this.connectionId = this.hostName + ":" + port + ":" + localPort + ":" + UUID.randomUUID().toString();
+		this.connectionId = this.hostName + ":" + port + ":" + localPort + ":" + UUID.randomUUID();
 		this.applicationEventPublisher = applicationEventPublisher;
 		if (connectionFactoryName != null) {
 			this.connectionFactoryName = connectionFactoryName;
@@ -187,16 +190,11 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	protected void closeConnection(boolean isException) {
 		TcpListener tcpListener = getListener();
-		if (!(tcpListener instanceof TcpConnectionInterceptor)) {
+		if (!(tcpListener instanceof TcpConnectionInterceptor outerListener)) {
 			close();
 		}
 		else {
-			TcpConnectionInterceptor outerListener = (TcpConnectionInterceptor) tcpListener;
-			while (outerListener.getListener() instanceof TcpConnectionInterceptor) {
-				TcpConnectionInterceptor nextListener = (TcpConnectionInterceptor) outerListener.getListener();
-				if (nextListener == null) {
-					break;
-				}
+			while (outerListener.getListener() instanceof TcpConnectionInterceptor nextListener) {
 				outerListener = nextListener;
 			}
 			outerListener.close();
@@ -219,12 +217,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @param mapper the mapper to set
 	 */
 	public void setMapper(TcpMessageMapper mapper) {
-		Assert.notNull(mapper, this.getClass().getName() + " Mapper may not be null");
+		Assert.notNull(mapper, getClass().getName() + " Mapper may not be null");
 		this.mapper = mapper;
-		if (this.serializer != null &&
-				!(this.serializer instanceof AbstractByteArraySerializer)) {
-			mapper.setStringToBytes(false);
-		}
 	}
 
 	/**
@@ -295,14 +289,14 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Set whether or not automatic or manual registration of the {@link TcpListener} is to be
+	 * Set whether automatic or manual registration of the {@link TcpListener} is to be
 	 * used. (Default automatic). When manual registration is in place, incoming messages will
 	 * be delayed until the listener is registered.
 	 * @since 1.4.5
 	 */
 	public void enableManualListenerRegistration() {
 		this.manualListenerRegistration = true;
-		this.listener = message -> getListener().onMessage(message);
+		this.listener = message -> Objects.requireNonNull(getListener()).onMessage(message);
 	}
 
 	/**
@@ -336,8 +330,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @return the listener
 	 */
 	@Override
-	@Nullable
-	public TcpListener getListener() {
+	public @Nullable TcpListener getListener() {
 		if (this.needsTest && this.testListener != null) {
 			this.needsTest = false;
 			return this.testListener;
@@ -369,8 +362,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * @return the first sender, if present.
 	 */
-	@Nullable
-	public TcpSender getSender() {
+	public @Nullable TcpSender getSender() {
 		return !this.senders.isEmpty() ? this.senders.get(0) : null;
 	}
 
@@ -412,7 +404,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @since 4.2.5
 	 */
 	@Override
-	public SocketInfo getSocketInfo() {
+	public @Nullable SocketInfo getSocketInfo() {
 		return this.socketInfo;
 	}
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.syslog.inbound;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.syslog.DefaultMessageConverter;
 import org.springframework.integration.syslog.MessageConverter;
@@ -28,18 +30,33 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
-public abstract class SyslogReceivingChannelAdapterSupport extends MessageProducerSupport {
+public abstract class SyslogReceivingChannelAdapterSupport extends MessageProducerSupport
+		implements ApplicationEventPublisherAware {
 
 	protected static final int DEFAULT_PORT = 514;
+
+	@SuppressWarnings("NullAway.Init")
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	private volatile int port = DEFAULT_PORT;
 
 	private MessageConverter converter = new DefaultMessageConverter();
 
 	private boolean converterSet;
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
+	}
 
 	/**
 	 * @return The port on which this adapter listens.

@@ -18,6 +18,8 @@ package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -62,11 +64,12 @@ import org.springframework.util.Assert;
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory>
 		implements Lifecycle, BeanNameAware, ApplicationEventPublisherAware, ApplicationContextAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private AbstractConnectionFactory connectionFactory;
 
-	private String type;
+	private @Nullable String type;
 
-	private String host;
+	private @Nullable String host;
 
 	private int port;
 
@@ -84,7 +87,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private int soTrafficClass = -1; // don't set by default
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 
@@ -98,38 +101,41 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private int backlog = 5; // NOSONAR magic number
 
-	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+	private @Nullable TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 
 	private boolean lookupHost = true;
 
-	private String localAddress;
+	private @Nullable String localAddress;
 
 	private boolean usingNio;
 
 	private boolean usingDirectBuffers;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private boolean applySequence;
 
-	private Long readDelay;
+	private @Nullable Long readDelay;
 
-	private TcpSSLContextSupport sslContextSupport;
+	private @Nullable TcpSSLContextSupport sslContextSupport;
 
-	private Integer sslHandshakeTimeout;
+	private @Nullable Integer sslHandshakeTimeout;
 
 	private TcpSocketSupport socketSupport = new DefaultTcpSocketSupport();
 
-	private TcpNioConnectionSupport nioConnectionSupport;
+	private @Nullable TcpNioConnectionSupport nioConnectionSupport;
 
-	private TcpNetConnectionSupport netConnectionSupport;
+	private @Nullable TcpNetConnectionSupport netConnectionSupport;
 
-	private TcpSocketFactorySupport socketFactorySupport;
+	private @Nullable TcpSocketFactorySupport socketFactorySupport;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private Integer connectTimeout;
+	private @Nullable Integer connectTimeout;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	public TcpConnectionFactoryFactoryBean() {
@@ -169,6 +175,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.connectionFactory = factory;
 			}
 			else {
+				Assert.notNull(this.host, "The 'host' must be provided for client factory.");
 				TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory(this.host, this.port);
 				this.setCommonAttributes(factory);
 				factory.setUsingDirectBuffers(this.usingDirectBuffers);
@@ -189,8 +196,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.connectionFactory = factory;
 			}
 			else {
-				TcpNetClientConnectionFactory factory = new TcpNetClientConnectionFactory(
-						this.host, this.port);
+				Assert.notNull(this.host, "The 'host' must be provided for client factory.");
+				TcpNetClientConnectionFactory factory = new TcpNetClientConnectionFactory(this.host, this.port);
 				this.setCommonAttributes(factory);
 				factory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
 				factory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
@@ -203,16 +210,16 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		if (beanFactory != null) {
 			this.connectionFactory.setBeanFactory(beanFactory);
 		}
-		if (this.applicationContext != null) {
-			this.connectionFactory.setApplicationContext(this.applicationContext);
-		}
+		this.connectionFactory.setApplicationContext(this.applicationContext);
 		this.connectionFactory.afterPropertiesSet();
 		return this.connectionFactory;
 	}
 
 	private void setCommonAttributes(AbstractConnectionFactory factory) {
 		factory.setDeserializer(this.deserializer);
-		factory.setInterceptorFactoryChain(this.interceptorFactoryChain);
+		if (this.interceptorFactoryChain != null) {
+			factory.setInterceptorFactoryChain(this.interceptorFactoryChain);
+		}
 		factory.setLookupHost(this.lookupHost);
 		this.mapper.setApplySequence(this.applySequence);
 		factory.setMapper(this.mapper);
@@ -225,7 +232,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setSoTcpNoDelay(this.soTcpNoDelay);
 		factory.setSoTimeout(this.soTimeout);
 		factory.setSoTrafficClass(this.soTrafficClass);
-		factory.setTaskExecutor(this.taskExecutor);
+		if (this.taskExecutor != null) {
+			factory.setTaskExecutor(this.taskExecutor);
+		}
 		factory.setBeanName(this.beanName);
 		factory.setTcpSocketSupport(this.socketSupport);
 		factory.setApplicationEventPublisher(this.applicationEventPublisher);
@@ -235,7 +244,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
-		factory.setLocalAddress(this.localAddress);
+		if (this.localAddress != null) {
+			factory.setLocalAddress(this.localAddress);
+		}
 		factory.setBacklog(this.backlog);
 	}
 
@@ -264,12 +275,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	private TcpNetConnectionSupport obtainNetConnectionSupport() {
-		if (this.netConnectionSupport != null) {
-			return this.netConnectionSupport;
-		}
-		else {
-			return new DefaultTcpNetConnectionSupport();
-		}
+		return this.netConnectionSupport != null ? this.netConnectionSupport : new DefaultTcpNetConnectionSupport();
 	}
 
 	/**

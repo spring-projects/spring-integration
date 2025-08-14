@@ -31,8 +31,9 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -64,8 +65,10 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private final SSLEngine sslEngine;
 
+	@SuppressWarnings("NullAway.Init")
 	private ByteBuffer decoded;
 
+	@SuppressWarnings("NullAway.Init")
 	private ByteBuffer encoded;
 
 	private final Semaphore semaphore = new Semaphore(0);
@@ -76,9 +79,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private boolean needMoreNetworkData;
 
-	private SSLHandshakeException sslFatal;
+	private @Nullable SSLHandshakeException sslFatal;
 
-	private volatile SSLChannelOutputStream sslChannelOutputStream;
+	private volatile @Nullable SSLChannelOutputStream sslChannelOutputStream;
 
 	private volatile boolean writerActive;
 
@@ -134,7 +137,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			}
 		}
 		this.needMoreNetworkData = false;
-		if (Status.BUFFER_UNDERFLOW == result.getStatus()) {
+		if (result != null && Status.BUFFER_UNDERFLOW == result.getStatus()) {
 			networkBuffer.compact();
 		}
 		else {
@@ -265,11 +268,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 * Initializes the SSLEngine and sets up the encryption/decryption buffers.
 	 */
 	public void init() {
-		if (this.decoded == null) {
-			this.decoded = allocateEncryptionBuffer(2048); // NOSONAR magic number
-			this.encoded = allocateEncryptionBuffer(2048); // NOSONAR magic number
-			initializeEngine();
-		}
+		this.decoded = allocateEncryptionBuffer(2048);
+		this.encoded = allocateEncryptionBuffer(2048);
+		initializeEngine();
 	}
 
 	private ByteBuffer allocateEncryptionBuffer(int size) {
@@ -290,10 +291,12 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	protected ChannelOutputStream getChannelOutputStream() {
 		this.monitorLock.lock();
 		try {
-			if (this.sslChannelOutputStream == null) {
-				this.sslChannelOutputStream = new SSLChannelOutputStream(super.getChannelOutputStream());
+			SSLChannelOutputStream sslChannelOutputStreamToUse = this.sslChannelOutputStream;
+			if (sslChannelOutputStreamToUse == null) {
+				sslChannelOutputStreamToUse = new SSLChannelOutputStream(super.getChannelOutputStream());
+				this.sslChannelOutputStream = sslChannelOutputStreamToUse;
 			}
-			return this.sslChannelOutputStream;
+			return sslChannelOutputStreamToUse;
 		}
 		finally {
 			this.monitorLock.unlock();
@@ -301,13 +304,16 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	}
 
 	protected SSLChannelOutputStream getSSLChannelOutputStream() {
-		return this.sslChannelOutputStream != null
-				? this.sslChannelOutputStream
+		SSLChannelOutputStream sslChannelOutputStreamToReturn = this.sslChannelOutputStream;
+		return sslChannelOutputStreamToReturn != null
+				? sslChannelOutputStreamToReturn
 				: (SSLChannelOutputStream) getChannelOutputStream();
 	}
 
-	private String resultToString(SSLEngineResult result) {
-		return result.toString().replace('\n', ' ');
+	private String resultToString(@Nullable SSLEngineResult result) {
+		return result != null
+				? result.toString().replace('\n', ' ')
+				: "null";
 	}
 
 	@Override
@@ -323,7 +329,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 * send to encrypted data to the SocketChannel.
 	 *
 	 */
-	final class SSLChannelOutputStream extends ChannelOutputStream {
+	protected final class SSLChannelOutputStream extends ChannelOutputStream {
 
 		private final Lock lock = new ReentrantLock();
 

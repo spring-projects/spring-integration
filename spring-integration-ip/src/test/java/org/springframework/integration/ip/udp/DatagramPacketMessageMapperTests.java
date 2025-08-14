@@ -28,7 +28,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -65,6 +66,7 @@ public class DatagramPacketMessageMapperTests {
 		mapper.setAckAddress("localhost:11111");
 		mapper.setAcknowledge(ack);
 		mapper.setLengthCheck(lengthCheck);
+		mapper.setBeanFactory(mock());
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
 		Message<byte[]> messageOut = mapper.toMessage(packet);
@@ -98,13 +100,10 @@ public class DatagramPacketMessageMapperTests {
 		int bigLen = 99999;
 		bb.putInt(bigLen);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
-		try {
-			mapper.toMessage(packet);
-			fail("Truncated message exception expected");
-		}
-		catch (MessageMappingException e) {
-			assertThat(e.getMessage()).contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4));
-		}
+
+		assertThatExceptionOfType(MessageMappingException.class)
+				.isThrownBy(() -> mapper.toMessage(packet))
+				.withMessageContaining("expected " + (bigLen + 4) + ", received " + (test.length() + 4));
 	}
 
 }

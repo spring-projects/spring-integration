@@ -33,7 +33,6 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.ip.util.SocketTestUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -52,7 +51,6 @@ public class MulticastCondition implements BeforeAllCallback, ParameterResolver 
 
 	private String group;
 
-	@Nullable
 	private NetworkInterface nic;
 
 	private boolean skip;
@@ -73,7 +71,6 @@ public class MulticastCondition implements BeforeAllCallback, ParameterResolver 
 		}
 	}
 
-	@Nullable
 	private NetworkInterface doCheckMulticast(String group) throws Exception {
 		NetworkInterface nic = SocketTestUtils.chooseANic(true);
 		if (nic == null) {    // no multicast support
@@ -96,7 +93,6 @@ public class MulticastCondition implements BeforeAllCallback, ParameterResolver 
 		return group;
 	}
 
-	@Nullable
 	public NetworkInterface getNic() {
 		return nic;
 	}

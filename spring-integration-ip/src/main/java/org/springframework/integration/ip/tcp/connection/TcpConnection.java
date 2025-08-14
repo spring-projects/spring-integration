@@ -20,9 +20,10 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLSession;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -132,6 +133,7 @@ public interface TcpConnection extends Runnable {
 	 * should override and delegate to the actual TcpConnection.
 	 * @since 4.3
 	 */
+	@Nullable
 	SocketInfo getSocketInfo();
 
 	/**

@@ -77,6 +77,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setPort(0);
 		factory.setOutputChannel(outputChannel);
 		factory.setBeanFactory(mock());
+		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
@@ -150,6 +151,7 @@ public class SyslogReceivingChannelAdapterTests {
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
 		factory.setBeanFactory(mock());
+		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
@@ -191,10 +193,12 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
 		factory.setBeanFactory(getBeanFactory());
+		factory.setApplicationEventPublisher(publisher);
 		AbstractServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(0);
 		connectionFactory.setBeanFactory(getBeanFactory());
 		connectionFactory.setDeserializer(new RFC6587SyslogDeserializer());
 		connectionFactory.setApplicationEventPublisher(publisher);
+		connectionFactory.afterPropertiesSet();
 		factory.setConnectionFactory(connectionFactory);
 		factory.setConverter(new RFC5424MessageConverter());
 		factory.afterPropertiesSet();
@@ -239,11 +243,12 @@ public class SyslogReceivingChannelAdapterTests {
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
 		factory.setConverter(new RFC5424MessageConverter());
+		factory.setBeanFactory(mock());
+		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
-		server.setBeanFactory(mock());
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
 		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +

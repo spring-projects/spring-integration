@@ -104,6 +104,7 @@ public class DatagramPacketSendingHandlerTests implements TestApplicationContext
 						DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 						mapper.setAcknowledge(true);
 						mapper.setLengthCheck(true);
+						mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 						Message<byte[]> message = mapper.toMessage(receivedPacket);
 						Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 						byte[] ack = id.toString().getBytes();

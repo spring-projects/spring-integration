@@ -26,9 +26,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
@@ -56,7 +59,7 @@ public class TcpNioClientConnectionFactory extends
 
 	private TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
 
-	private volatile Selector selector;
+	private volatile @Nullable Selector selector;
 
 	/**
 	 * Creates a TcpNioClientConnectionFactory for connections to the host and port.
@@ -111,7 +114,7 @@ public class TcpNioClientConnectionFactory extends
 			this.channelMap.put(socketChannel, connection);
 			wrappedConnection.publishConnectionOpenEvent();
 			this.newChannels.add(socketChannel);
-			this.selector.wakeup();
+			Objects.requireNonNull(this.selector).wakeup();
 			return wrappedConnection;
 		}
 		catch (IOException e) {
@@ -168,9 +171,10 @@ public class TcpNioClientConnectionFactory extends
 
 	@Override
 	public void stop() {
-		if (this.selector != null) {
+		Selector selectorToClose = this.selector;
+		if (selectorToClose != null) {
 			try {
-				this.selector.close();
+				selectorToClose.close();
 			}
 			catch (Exception ex) {
 				logger.error(ex, "Error closing selector");
@@ -198,9 +202,10 @@ public class TcpNioClientConnectionFactory extends
 	public void run() {
 		logger.debug(() -> "Read selector running for connections to " + getHost() + ':' + getPort());
 		try {
-			this.selector = Selector.open();
+			Selector selectorToUse = Selector.open();
+			this.selector = selectorToUse;
 			while (isActive()) {
-				processSelectorWhileActive();
+				processSelectorWhileActive(selectorToUse);
 			}
 		}
 		catch (ClosedSelectorException cse) {
@@ -215,7 +220,7 @@ public class TcpNioClientConnectionFactory extends
 		logger.debug(() -> "Read selector exiting for connections to " + getHost() + ':' + getPort());
 	}
 
-	private void processSelectorWhileActive() throws IOException {
+	private void processSelectorWhileActive(Selector selector) throws IOException {
 		SocketChannel newChannel;
 		int soTimeout = getSoTimeout();
 		int selectionCount = 0;
@@ -224,20 +229,20 @@ public class TcpNioClientConnectionFactory extends
 			if (!getDelayedReads().isEmpty() && (timeout == 0 || getReadDelay() < timeout)) {
 				timeout = getReadDelay();
 			}
-			selectionCount = this.selector.select(timeout);
+			selectionCount = selector.select(timeout);
 		}
 		catch (@SuppressWarnings("unused") CancelledKeyException cke) {
 			logger.debug("CancelledKeyException during Selector.select()");
 		}
 		while ((newChannel = this.newChannels.poll()) != null) {
 			try {
-				newChannel.register(this.selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
+				newChannel.register(selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
 			}
 			catch (@SuppressWarnings("unused") ClosedChannelException cce) {
 				logger.debug("Channel closed before registering with selector for reading");
 			}
 		}
-		processNioSelections(selectionCount, this.selector, null, this.channelMap);
+		processNioSelections(selectionCount, selector, null, this.channelMap);
 	}
 
 	/**

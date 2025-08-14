@@ -36,6 +36,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
@@ -49,7 +50,7 @@ import static org.awaitility.Awaitility.with;
  *
  * @since 2.0
  */
-public class TcpNioConnectionReadTests {
+public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -73,6 +74,8 @@ public class TcpNioConnectionReadTests {
 		if (sender != null) {
 			scf.registerSender(sender);
 		}
+		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		scf.afterPropertiesSet();
 		scf.start();
 		TestingUtilities.waitListening(scf, null);
 		return scf;

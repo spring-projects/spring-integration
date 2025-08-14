@@ -25,8 +25,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract class for client connection factories; client connection factories
@@ -49,13 +48,12 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 
 	private Duration connectTimeout = Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT);
 
-	@Nullable
-	private Predicate<TcpConnectionSupport> connectionTest;
+	private @Nullable Predicate<TcpConnectionSupport> connectionTest;
 
-	private volatile TcpConnectionSupport theConnection;
+	private volatile @Nullable TcpConnectionSupport theConnection;
 
 	/**
-	 * Construct a factory that will established connections to the host and port.
+	 * Construct a factory that will establish connections to the host and port.
 	 * @param host The host.
 	 * @param port The port.
 	 */
@@ -93,8 +91,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * @return the predicate.
 	 * @since 5.3
 	 */
-	@Nullable
-	protected Predicate<TcpConnectionSupport> getConnectionTest() {
+	protected @Nullable Predicate<TcpConnectionSupport> getConnectionTest() {
 		return this.connectionTest;
 	}
 
@@ -130,8 +127,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		return obtainNewConnection();
 	}
 
-	@Nullable
-	protected final TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
+	protected final @Nullable TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
 		this.theConnectionLock.readLock().lockInterruptibly();
 		try {
 			TcpConnectionSupport connection = getTheConnection();
@@ -162,10 +158,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			return doObtain(singleUse);
 		}
 		catch (RuntimeException e) {
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new TcpConnectionFailedEvent(this, e));
-			}
+			getApplicationEventPublisher().publishEvent(new TcpConnectionFailedEvent(this, e));
 			throw e;
 		}
 		finally {
@@ -234,8 +227,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	/**
 	 * @return the theConnection
 	 */
-	@Nullable
-	protected TcpConnectionSupport getTheConnection() {
+	protected @Nullable TcpConnectionSupport getTheConnection() {
 		return this.theConnection;
 	}
 

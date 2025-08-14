@@ -19,6 +19,8 @@ package org.springframework.integration.ip.dsl;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
@@ -37,7 +39,7 @@ import org.springframework.scheduling.TaskScheduler;
 public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway>
 		implements ComponentsRegistration {
 
-	protected final AbstractConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractConnectionFactory connectionFactory; // NOSONAR - final
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
@@ -90,10 +92,10 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 	}
 
 	@Override
-	public Map<Object, String> getComponentsToRegister() {
+	public Map<Object, @Nullable String> getComponentsToRegister() {
 		return this.connectionFactory != null
-				? Collections.singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
-				: Collections.emptyMap();
+				? Collections.<Object, @Nullable String>singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
+				: Collections.<Object, @Nullable String>emptyMap();
 	}
 
 }

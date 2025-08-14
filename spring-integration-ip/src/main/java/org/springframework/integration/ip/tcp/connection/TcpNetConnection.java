@@ -31,10 +31,11 @@ import java.util.function.Supplier;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -57,7 +58,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	private final Socket socket;
 
-	private volatile OutputStream socketOutputStream;
+	private volatile @Nullable OutputStream socketOutputStream;
 
 	private volatile long lastRead = System.currentTimeMillis();
 
@@ -76,7 +77,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 * during event publishing, may be null, in which case "unknown" will be used.
 	 */
 	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost,
-			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName) {
 
 		super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socket = socket;
@@ -111,16 +112,18 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	public void send(Message<?> message) {
 		this.lock.lock();
 		try {
-			if (this.socketOutputStream == null) {
+			OutputStream socketOutputStreamToUse = this.socketOutputStream;
+			if (socketOutputStreamToUse == null) {
 				int writeBufferSize = this.socket.getSendBufferSize();
-				this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
-						writeBufferSize > 0 ? writeBufferSize : 8192); // NOSONAR magic number
+				socketOutputStreamToUse = new BufferedOutputStream(this.socket.getOutputStream(),
+						writeBufferSize > 0 ? writeBufferSize : 8192);
+				this.socketOutputStream = socketOutputStreamToUse;
 			}
 			Object object = getMapper().fromMessage(message);
-			Assert.state(object != null, "Mapper mapped the message to 'null'.");
+			Assert.state(object != null, () -> "The mapper returned null for message: " + message);
 			this.lastSend = System.currentTimeMillis();
-			((Serializer<Object>) getSerializer()).serialize(object, this.socketOutputStream);
-			this.socketOutputStream.flush();
+			((Serializer<Object>) getSerializer()).serialize(object, socketOutputStreamToUse);
+			socketOutputStreamToUse.flush();
 		}
 		catch (Exception e) {
 			MessagingException mex = new MessagingException(message, "Send Failed", e);
@@ -160,8 +163,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	@Override
-	@Nullable
-	public Object getDeserializerStateKey() {
+	public @Nullable Object getDeserializerStateKey() {
 		try {
 			return inputStream();
 		}
@@ -171,8 +173,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	@Override
-	@Nullable
-	public SSLSession getSslSession() {
+	public @Nullable SSLSession getSslSession() {
 		if (this.socket instanceof SSLSocket sslSocket) {
 			return sslSocket.getSession();
 		}
@@ -250,6 +251,9 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	protected boolean handleReadException(Exception exception) {
 		Exception e = exception instanceof UncheckedIOException ? (Exception) exception.getCause() : exception;
+		if (e == null) {
+			e = exception;
+		}
 		if (checkTimeout(e)) {
 			boolean readErrorOnClose = !isNoReadErrorOnClose();
 			closeConnection(true);
@@ -279,7 +283,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			long now = System.currentTimeMillis();
 			try {
 				int soTimeout = this.socket.getSoTimeout();
-				if (now - this.lastSend < soTimeout && now - this.lastRead < soTimeout * 2) {
+				if (now - this.lastSend < soTimeout && now - this.lastRead < soTimeout * 2L) {
 					doClose = false;
 				}
 				if (!doClose && logger.isDebugEnabled()) {

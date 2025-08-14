@@ -16,10 +16,13 @@
 
 package org.springframework.integration.ip.util;
 
+import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -27,6 +30,7 @@ import org.springframework.lang.Nullable;
  * use in user test code, samples etc.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -42,43 +46,29 @@ public final class TestingUtilities {
 	 * Wait for a server connection factory to actually start listening before
 	 * starting a test. Waits for up to 10 seconds by default.
 	 * @param serverConnectionFactory The server connection factory.
-	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
-	public static void waitListening(AbstractServerConnectionFactory serverConnectionFactory, @Nullable Long delayArg)
+	public static void waitListening(AbstractServerConnectionFactory serverConnectionFactory, @Nullable Long delay)
 			throws IllegalStateException {
 
-		Long delay = delayArg;
-		if (delay == null) {
-			delay = 100L; // NOSONAR magic number
-		}
-		else {
-			delay = delay / 100; // NOSONAR magic number
-		}
-		int n = 0;
-		while (!serverConnectionFactory.isListening()) {
-			try {
-				Thread.sleep(100); // NOSONAR magic number
-			}
-			catch (InterruptedException e1) {
-				Thread.currentThread().interrupt();
-				throw new IllegalStateException(e1);
-			}
-
-			if (n++ > delay) {
-				throw new IllegalStateException("Server didn't start listening.");
-			}
-		}
+		waitListeningInternal(serverConnectionFactory::isListening, delay);
 	}
 
 	/**
 	 * Wait for a server connection factory to actually start listening before
 	 * starting a test. Waits for up to 10 seconds by default.
 	 * @param adapter The server connection factory.
-	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
-	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter, @Nullable Long delayArg)
+	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter, @Nullable Long delay)
+			throws IllegalStateException {
+
+		waitListeningInternal(adapter::isListening, delay);
+	}
+
+	private static void waitListeningInternal(Supplier<Boolean> isListeningSupplier, @Nullable Long delayArg)
 			throws IllegalStateException {
 
 		Long delay = delayArg;
@@ -89,7 +79,7 @@ public final class TestingUtilities {
 			delay = delay / 100; // NOSONAR magic number
 		}
 		int n = 0;
-		while (!adapter.isListening()) {
+		while (!isListeningSupplier.get()) {
 			try {
 				Thread.sleep(100); // NOSONAR magic number
 			}

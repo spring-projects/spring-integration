@@ -21,8 +21,9 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.net.Socket;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link TcpNetConnectionSupport}.
@@ -37,7 +38,7 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNetConnection createNewConnection(Socket socket, boolean server, boolean lookupHost,
-			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName) {
 
 		if (isPushbackCapable()) {
 			return new PushBackTcpNetConnection(socket, server, lookupHost, applicationEventPublisher,
@@ -54,12 +55,12 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 
 		private final String connectionId;
 
-		private volatile PushbackInputStream pushbackStream;
+		private volatile @Nullable PushbackInputStream pushbackStream;
 
-		private volatile InputStream wrapped;
+		private volatile @Nullable InputStream wrapped;
 
 		PushBackTcpNetConnection(Socket socket, boolean server, boolean lookupHost,
-				@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+				@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 				int bufferSize) {
 
 			super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);

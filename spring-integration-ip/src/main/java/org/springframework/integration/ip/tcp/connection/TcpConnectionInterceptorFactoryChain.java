@@ -18,20 +18,20 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.util.Arrays;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
 public class TcpConnectionInterceptorFactoryChain {
 
-	private TcpConnectionInterceptorFactory[] interceptorFactories;
+	private TcpConnectionInterceptorFactory @Nullable [] interceptorFactories;
 
-	@Nullable
-	public TcpConnectionInterceptorFactory[] getInterceptorFactories() {
+	public TcpConnectionInterceptorFactory @Nullable [] getInterceptorFactories() {
 		return this.interceptorFactories; //NOSONAR
 	}
 

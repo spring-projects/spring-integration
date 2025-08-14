@@ -46,6 +46,7 @@ public class ConnectionFactoryShutDownTests {
 			}
 
 		};
+		factory.start();
 		factory.setActive(true);
 		Executor executor = factory.getTaskExecutor();
 		final CountDownLatch latch1 = new CountDownLatch(1);

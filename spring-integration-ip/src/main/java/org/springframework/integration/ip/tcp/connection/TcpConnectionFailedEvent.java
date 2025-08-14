@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.Serial;
+
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 
 /**
@@ -28,6 +30,7 @@ import org.springframework.integration.ip.event.IpIntegrationEvent;
  */
 public class TcpConnectionFailedEvent extends IpIntegrationEvent {
 
+	@Serial
 	private static final long serialVersionUID = -7460880274740273542L;
 
 	public TcpConnectionFailedEvent(Object source, Throwable cause) {

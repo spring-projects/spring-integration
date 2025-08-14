@@ -37,12 +37,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -76,7 +78,7 @@ public class UnicastSendingMessageHandler extends
 
 	private final Map<String, CountDownLatch> ackControl = Collections.synchronizedMap(new HashMap<>());
 
-	private final Expression destinationExpression;
+	private final @Nullable Expression destinationExpression;
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
@@ -85,7 +87,7 @@ public class UnicastSendingMessageHandler extends
 
 	private boolean acknowledge = false;
 
-	private String ackHost;
+	private @Nullable String ackHost;
 
 	private int ackPort;
 
@@ -95,22 +97,23 @@ public class UnicastSendingMessageHandler extends
 
 	private int soReceiveBufferSize = -1;
 
-	private String localAddress;
+	private @Nullable String localAddress;
 
-	private DatagramSocket socket;
+	private @Nullable DatagramSocket socket;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private boolean taskExecutorSet;
 
-	private Expression socketExpression;
+	private @Nullable Expression socketExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private SocketCustomizer socketCustomizer = (aSocket) -> {
 	};
 
-	private volatile CountDownLatch ackLatch;
+	private volatile @Nullable CountDownLatch ackLatch;
 
 	private volatile boolean ackThreadRunning;
 
@@ -157,7 +160,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * Can used to add a length to each packet which can be checked at the destination.
+	 * Can be used to add a length to each packet which can be checked at the destination.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
 	 * @param lengthCheck If true, packets will contain a length.
@@ -269,8 +272,9 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	protected void doStop() {
 		closeSocketIfNeeded();
-		if (!this.taskExecutorSet && this.taskExecutor != null) {
-			((ExecutorService) this.taskExecutor).shutdown();
+		Executor taskExecutorToShutdown = this.taskExecutor;
+		if (!this.taskExecutorSet && taskExecutorToShutdown != null) {
+			((ExecutorService) taskExecutorToShutdown).shutdown();
 			this.taskExecutor = null;
 		}
 	}
@@ -278,7 +282,7 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	public void handleMessageInternal(Message<?> message) {
 		if (this.acknowledge) {
-			Assert.state(this.isRunning(), "When 'acknowledge' is enabled, adapter must be running");
+			Assert.state(isRunning(), "When 'acknowledge' is enabled, adapter must be running");
 			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
@@ -294,7 +298,7 @@ public class UnicastSendingMessageHandler extends
 				this.ackControl.put(messageId, countdownLatch);
 			}
 			convertAndSend(message);
-			if (waitAck) {
+			if (countdownLatch != null) {
 				try {
 					if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
 						throw new MessagingException(message, "Failed to receive UDP Ack in "
@@ -320,6 +324,7 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
+	@SuppressWarnings("NullAway") // The logic might be changed to scoped variable eventually
 	public void startAckThread() {
 		if (!this.ackThreadRunning) {
 			this.lock.lock();
@@ -351,6 +356,7 @@ public class UnicastSendingMessageHandler extends
 		DatagramSocket datagramSocket;
 		if (this.socketExpression != null) {
 			datagramSocket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);
+			Assert.state(datagramSocket != null, () -> "The 'socketExpression' evaluated to null for: " + message);
 		}
 		else {
 			datagramSocket = getSocket();
@@ -376,22 +382,16 @@ public class UnicastSendingMessageHandler extends
 			destinationAddress = getDestinationAddress();
 		}
 		DatagramPacket packet = this.mapper.fromMessage(message);
-		if (packet != null) {
-			packet.setSocketAddress(destinationAddress);
-			datagramSocket.send(packet);
-			logger.debug(() -> "Sent packet for message " + message + " to " + packet.getSocketAddress());
-		}
-		else {
-			logger.debug(() -> "Mapper created no packet for message " + message);
-		}
+		packet.setSocketAddress(destinationAddress);
+		datagramSocket.send(packet);
+		logger.debug(() -> "Sent packet for message " + message + " to " + packet.getSocketAddress());
 	}
 
 	protected void setSocket(DatagramSocket socket) {
 		this.socket = socket;
 	}
 
-	@Nullable
-	protected DatagramSocket getTheSocket() {
+	protected @Nullable DatagramSocket getTheSocket() {
 		return this.socket;
 	}
 
@@ -484,7 +484,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * @return the acknowledge
+	 * @return true if acknowledgement is enabled.
 	 */
 	public boolean isAcknowledge() {
 		return this.acknowledge;
@@ -513,8 +513,9 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.mapper.setBeanFactory(getBeanFactory());
-		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		this.mapper.setBeanFactory(beanFactory);
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
 		if (this.socketExpression != null) {
 			Assert.state(!this.acknowledge, "'acknowledge' must be false when using a socket expression");
 		}
@@ -536,6 +537,7 @@ public class UnicastSendingMessageHandler extends
 	 * Process acknowledgments, if requested.
 	 */
 	@Override
+	@SuppressWarnings("NullAway") // The logic might be changed to scoped variable eventually
 	public void run() {
 		try {
 			this.ackThreadRunning = true;
@@ -566,6 +568,10 @@ public class UnicastSendingMessageHandler extends
 	 * (bind) error occurred, without bouncing the JVM.
 	 */
 	public void restartAckThread() {
+		Assert.state(this.acknowledge,
+				"The UnicastSendingMessageHandler has to be in the 'acknowledgment' mode to run ack thread.");
+		Assert.state(this.taskExecutor != null,
+				"The UnicastSendingMessageHandler is not running to schedule an ack thread.");
 		this.taskExecutor.execute(this);
 	}
 

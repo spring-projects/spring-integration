@@ -19,6 +19,8 @@ package org.springframework.integration.ip.tcp.serializer;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.util.SimplePool;
 import org.springframework.integration.util.SimplePool.PoolItemCallback;
 import org.springframework.util.Assert;
@@ -29,12 +31,13 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Ngoc Nhan
+ *
  * @since 4.3
  *
  */
 public abstract class AbstractPooledBufferByteArraySerializer extends AbstractByteArraySerializer {
 
-	private SimplePool<byte[]> pool;
+	private @Nullable SimplePool<byte[]> pool;
 
 	private long poolWaitTimeout = Long.MAX_VALUE;
 

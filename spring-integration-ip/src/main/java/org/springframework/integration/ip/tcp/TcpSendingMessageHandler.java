@@ -24,7 +24,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.springframework.context.ApplicationEventPublisher;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -39,7 +40,6 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -67,9 +67,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<>();
 
-	private AbstractConnectionFactory clientConnectionFactory;
+	private @Nullable AbstractConnectionFactory clientConnectionFactory;
 
-	private AbstractConnectionFactory serverConnectionFactory;
+	private @Nullable AbstractConnectionFactory serverConnectionFactory;
 
 	private boolean isClientMode;
 
@@ -77,9 +77,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
-	private volatile ScheduledFuture<?> scheduledFuture;
+	private volatile @Nullable ScheduledFuture<?> scheduledFuture;
 
-	private volatile ClientModeConnectionManager clientModeConnectionManager;
+	private volatile @Nullable ClientModeConnectionManager clientModeConnectionManager;
 
 	private volatile boolean active;
 
@@ -157,7 +157,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 		}
 		finally {
-			if (connection != null && this.isSingleUse
+			if (connection != null
+					&& this.isSingleUse
+					&& this.clientConnectionFactory != null
 					&& this.clientConnectionFactory.getListener() == null) {
 				// if there's no collaborating inbound adapter, close immediately, otherwise
 				// it will close after receiving the reply.
@@ -194,16 +196,17 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		return connection;
 	}
 
-	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException, String connectionId) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private void publishNoConnectionEvent(MessageHandlingException messageHandlingException,
+			@Nullable String connectionId) {
+
 		AbstractConnectionFactory cf =
 				this.serverConnectionFactory != null
 						? this.serverConnectionFactory
 						: this.clientConnectionFactory;
-		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
-					new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
-		}
+
+		cf.getApplicationEventPublisher().publishEvent(
+				new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
 	}
 
 	/**
@@ -267,10 +270,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					ClientModeConnectionManager manager =
 							new ClientModeConnectionManager(this.clientConnectionFactory);
 					this.clientModeConnectionManager = manager;
-					TaskScheduler taskScheduler = getTaskScheduler();
-					Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
 					this.scheduledFuture =
-							taskScheduler.scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
+							getTaskScheduler().scheduleAtFixedRate(manager, Duration.ofMillis(this.retryInterval));
 				}
 			}
 		}
@@ -285,8 +286,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		try {
 			if (this.active) {
 				this.active = false;
-				if (this.scheduledFuture != null) {
-					this.scheduledFuture.cancel(true);
+				ScheduledFuture<?> scheduledFutureToCancel = this.scheduledFuture;
+				if (scheduledFutureToCancel != null) {
+					scheduledFutureToCancel.cancel(true);
 				}
 				this.clientModeConnectionManager = null;
 				if (this.clientConnectionFactory != null) {
@@ -310,14 +312,14 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	/**
 	 * @return the clientConnectionFactory
 	 */
-	protected ConnectionFactory getClientConnectionFactory() {
+	protected @Nullable ConnectionFactory getClientConnectionFactory() {
 		return this.clientConnectionFactory;
 	}
 
 	/**
 	 * @return the serverConnectionFactory
 	 */
-	protected ConnectionFactory getServerConnectionFactory() {
+	protected @Nullable ConnectionFactory getServerConnectionFactory() {
 		return this.serverConnectionFactory;
 	}
 
@@ -359,8 +361,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public boolean isClientModeConnected() {
-		if (this.isClientMode && this.clientModeConnectionManager != null) {
-			return this.clientModeConnectionManager.isConnected();
+		ClientModeConnectionManager clientModeConnectionManagerToCheck = this.clientModeConnectionManager;
+		if (this.isClientMode && clientModeConnectionManagerToCheck != null) {
+			return clientModeConnectionManagerToCheck.isConnected();
 		}
 		else {
 			return false;
@@ -369,8 +372,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void retryConnection() {
-		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
-			this.clientModeConnectionManager.run();
+		ClientModeConnectionManager clientModeConnectionManagerToRun = this.clientModeConnectionManager;
+		if (this.active && this.isClientMode && clientModeConnectionManagerToRun != null) {
+			clientModeConnectionManagerToRun.run();
 		}
 	}
 

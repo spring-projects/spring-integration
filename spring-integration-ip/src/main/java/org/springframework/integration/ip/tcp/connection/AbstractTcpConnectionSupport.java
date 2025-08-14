@@ -20,6 +20,7 @@ package org.springframework.integration.ip.tcp.connection;
  * Base class for TCP Connection Support implementations.
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -47,7 +48,7 @@ public abstract class AbstractTcpConnectionSupport {
 	}
 
 	/**
-	 * The size of the push back buffer; defaults to 1.
+	 * The size of the push-back buffer; defaults to 1.
 	 * @param pushbackBufferSize the size.
 	 */
 	public void setPushbackBufferSize(int pushbackBufferSize) {

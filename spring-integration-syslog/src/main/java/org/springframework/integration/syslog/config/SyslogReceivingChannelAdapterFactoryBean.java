@@ -18,6 +18,7 @@ package org.springframework.integration.syslog.config;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -184,28 +185,38 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 	@Override
 	protected SyslogReceivingChannelAdapterSupport createInstance() {
 		SyslogReceivingChannelAdapterSupport adapter;
+		UnicastReceivingChannelAdapter udpAdapterToUse = this.udpAdapter;
+		BeanFactory beanFactory = getBeanFactory();
+		ApplicationEventPublisher applicationEventPublisherToUse = this.applicationEventPublisher;
 		if (this.protocol == Protocol.tcp) {
 			adapter = new TcpSyslogReceivingChannelAdapter();
 			if (this.connectionFactory != null) {
 				Assert.isNull(this.port, "Cannot specify both 'port' and 'connectionFactory'");
 				((TcpSyslogReceivingChannelAdapter) adapter).setConnectionFactory(this.connectionFactory);
 			}
-			else if (this.applicationEventPublisher != null) {
+			else if (applicationEventPublisherToUse != null) {
 				((TcpSyslogReceivingChannelAdapter) adapter)
-						.setApplicationEventPublisher(this.applicationEventPublisher);
+						.setApplicationEventPublisher(applicationEventPublisherToUse);
 			}
-			Assert.isNull(this.udpAdapter, "Cannot specify 'udp-attributes' when the protocol is 'tcp'");
+			Assert.isNull(udpAdapterToUse, "Cannot specify 'udp-attributes' when the protocol is 'tcp'");
 		}
 		else if (this.protocol == Protocol.udp) {
 			adapter = new UdpSyslogReceivingChannelAdapter();
-			if (this.udpAdapter != null) {
+			if (udpAdapterToUse != null) {
 				Assert.isNull(this.port, "Cannot specify both 'port' and 'udpAdapter'");
-				((UdpSyslogReceivingChannelAdapter) adapter).setUdpAdapter(this.udpAdapter);
+				if (beanFactory != null) {
+					udpAdapterToUse.setBeanFactory(beanFactory);
+				}
+				if (applicationEventPublisherToUse != null) {
+					udpAdapterToUse.setApplicationEventPublisher(applicationEventPublisherToUse);
+				}
+				udpAdapterToUse.afterPropertiesSet();
+				((UdpSyslogReceivingChannelAdapter) adapter).setUdpAdapter(udpAdapterToUse);
 			}
 			Assert.isNull(this.connectionFactory, "Cannot specify 'connection-factory' unless the protocol is 'tcp'");
 		}
 		else {
-			throw new IllegalStateException("Unsupported protocol: " + this.protocol.toString());
+			throw new IllegalStateException("Unsupported protocol: " + this.protocol);
 		}
 
 		adapter.setAutoStartup(this.autoStartup);
@@ -218,7 +229,8 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 				.acceptIfNotNull(this.sendTimeout, adapter::setSendTimeout)
 				.acceptIfNotNull(this.converter, adapter::setConverter)
 				.acceptIfNotNull(this.beanName, adapter::setBeanName)
-				.acceptIfNotNull(getBeanFactory(), adapter::setBeanFactory);
+				.acceptIfNotNull(beanFactory, adapter::setBeanFactory)
+				.acceptIfNotNull(applicationEventPublisherToUse, adapter::setApplicationEventPublisher);
 
 		adapter.afterPropertiesSet();
 		this.syslogAdapter = adapter;

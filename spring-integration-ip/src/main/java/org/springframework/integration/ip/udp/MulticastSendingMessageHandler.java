@@ -22,10 +22,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
-import java.net.URISyntaxException;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a
@@ -45,9 +45,9 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	private int timeToLive = -1;
 
-	private String localAddress;
+	private @Nullable String localAddress;
 
-	private volatile MulticastSocket multicastSocket;
+	private volatile @Nullable MulticastSocket multicastSocket;
 
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
@@ -75,7 +75,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
 	 * @param address The multicast address.
 	 * @param port The port.
-	 * @param acknowledge Whether or not acknowledgments are required.
+	 * @param acknowledge Whether acknowledgments are required.
 	 * @param ackHost The host to which acknowledgments should be sent; required if acknowledge is true.
 	 * @param ackPort The port to which acknowledgments should be sent; required if acknowledge is true.
 	 * @param ackTimeout How long to wait (milliseconds) for an acknowledgment.
@@ -92,7 +92,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * @param address The multicast address.
 	 * @param port The port.
 	 * @param lengthCheck Enable the lengthCheck option.
-	 * @param acknowledge Whether or not acknowledgments are required.
+	 * @param acknowledge Whether acknowledgments are required.
 	 * @param ackHost The host to which acknowledgments should be sent; required if acknowledge is true.
 	 * @param ackPort The port to which acknowledgments should be sent; required if acknowledge is true.
 	 * @param ackTimeout How long to wait (milliseconds) for an acknowledgment.
@@ -196,14 +196,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	@Override
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
-	}
-
-	@Override
-	protected void convertAndSend(Message<?> message) throws IOException, URISyntaxException {
-		super.convertAndSend(message);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sent packet to " + this.multicastSocket.getNetworkInterface());
-		}
 	}
 
 }

@@ -30,7 +30,7 @@ import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFa
  */
 public class AbstractTcpChannelAdapterTests {
 
-	private static final ApplicationEventPublisher NOOP_PUBLISHER = event -> {
+	static final ApplicationEventPublisher NOOP_PUBLISHER = event -> {
 	};
 
 	protected HelloWorldInterceptorFactory newInterceptorFactory() {

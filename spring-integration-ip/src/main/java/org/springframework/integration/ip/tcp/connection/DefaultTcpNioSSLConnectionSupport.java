@@ -26,15 +26,16 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link TcpNioConnectionSupport} for SSL
- * NIO connections.
+ * Implementation of {@link TcpNioConnectionSupport} for SSL NIO connections.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -76,7 +77,7 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 	 */
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+			@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName) {
 
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
 		postProcessSSLEngine(sslEngine);
@@ -115,12 +116,12 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 
 		private final String connectionId;
 
-		private volatile PushbackInputStream pushbackStream;
+		private volatile @Nullable PushbackInputStream pushbackStream;
 
-		private volatile InputStream wrapped;
+		private volatile @Nullable InputStream wrapped;
 
 		PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-				@Nullable ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+				@Nullable ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 				SSLEngine sslEngine,
 				int bufferSize) {
 
@@ -133,11 +134,13 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 		protected InputStream inputStream() {
 			InputStream wrappedStream = super.inputStream();
 			// It shouldn't be possible for the wrapped stream to change but, just in case...
-			if (this.pushbackStream == null || !wrappedStream.equals(this.wrapped)) {
-				this.pushbackStream = new PushbackInputStream(wrappedStream, this.pushbackBufferSize);
+			PushbackInputStream pushbackStreamToUse = this.pushbackStream;
+			if (pushbackStreamToUse == null || !wrappedStream.equals(this.wrapped)) {
+				pushbackStreamToUse = new PushbackInputStream(wrappedStream, this.pushbackBufferSize);
+				this.pushbackStream = pushbackStreamToUse;
 				this.wrapped = wrappedStream;
 			}
-			return this.pushbackStream;
+			return pushbackStreamToUse;
 		}
 
 		@Override

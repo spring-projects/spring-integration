@@ -51,7 +51,9 @@ public class TcpNetClientConnectionFactory extends
 	@Override
 	protected TcpConnectionSupport buildNewConnection() {
 		try {
-			Socket socket = createSocket(getHost(), getPort());
+			String host = getHost();
+			Assert.notNull(host, "The 'host' must not be null for TCP/IP client.");
+			Socket socket = createSocket(host, getPort());
 			setSocketAttributes(socket);
 			TcpConnectionSupport connection =
 					this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),

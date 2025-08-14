@@ -23,13 +23,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.SimplePool;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -139,7 +140,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public String getComponentType() {
+	public @Nullable String getComponentType() {
 		return this.targetConnectionFactory.getComponentType();
 	}
 
@@ -229,7 +230,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public String getHost() {
+	public @Nullable String getHost() {
 		return this.targetConnectionFactory.getHost();
 	}
 
@@ -239,7 +240,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public TcpSender getSender() {
+	public @Nullable TcpSender getSender() {
 		return this.targetConnectionFactory.getSender();
 	}
 
@@ -463,12 +464,12 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		@Override
 		public boolean onMessage(Message<?> message) {
 			Message<?> modifiedMessage;
+			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
 			if (message instanceof ErrorMessage) {
 				Map<String, Object> headers = new HashMap<>(message.getHeaders());
 				headers.put(IpHeaders.CONNECTION_ID, getConnectionId());
-				if (headers.get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-					headers.put(IpHeaders.ACTUAL_CONNECTION_ID,
-							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				if (connectionId != null) {
+					headers.putIfAbsent(IpHeaders.ACTUAL_CONNECTION_ID, connectionId);
 				}
 				modifiedMessage = new ErrorMessage((Throwable) message.getPayload(), headers);
 			}
@@ -478,8 +479,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 								.fromMessage(message)
 								.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
 				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
-							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID, connectionId);
 				}
 				modifiedMessage = messageBuilder.build();
 			}

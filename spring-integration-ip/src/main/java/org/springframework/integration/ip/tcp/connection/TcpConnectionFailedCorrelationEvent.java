@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.Serial;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.messaging.MessagingException;
 
@@ -24,21 +28,24 @@ import org.springframework.messaging.MessagingException;
  * connection; the cause is a messaging exception with the failed message.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
 public class TcpConnectionFailedCorrelationEvent extends IpIntegrationEvent {
 
+	@Serial
 	private static final long serialVersionUID = -7460880274740273542L;
 
-	private final String connectionId;
+	private final @Nullable String connectionId;
 
-	public TcpConnectionFailedCorrelationEvent(Object source, String connectionId, MessagingException cause) {
+	public TcpConnectionFailedCorrelationEvent(Object source, @Nullable String connectionId, MessagingException cause) {
 		super(source, cause);
 		this.connectionId = connectionId;
 	}
 
-	public String getConnectionId() {
+	public @Nullable String getConnectionId() {
 		return this.connectionId;
 	}
 
