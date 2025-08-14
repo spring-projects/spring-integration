@@ -24,10 +24,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,8 +57,10 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -85,6 +91,19 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
+
+	private final DefaultLockRegistry lockRegistry = new DefaultLockRegistry();
+
+	@SuppressWarnings("serial")
+	private final Map<String, List<F>> fetchCache =
+			Collections.synchronizedMap(new LinkedHashMap<>(100, 0.75f, true) {
+
+				@Override
+				protected boolean removeEldestEntry(Map.Entry<String, List<F>> eldest) {
+					return size() > 100;
+				}
+
+			});
 
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
@@ -331,9 +350,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			return;
 		}
 		String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
-		if (this.logger.isTraceEnabled()) {
-			this.logger.trace("Synchronizing " + remoteDirectory + " to " + localDirectory);
-		}
 		try {
 			Integer transferred = this.remoteFileTemplate.execute(session ->
 					transferFilesFromRemoteToLocal(remoteDirectory, localDirectory, maxFetchSize, session));
@@ -350,94 +366,142 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private Integer transferFilesFromRemoteToLocal(@Nullable String remoteDirectory, File localDirectory,
 			int maxFetchSize, Session<F> session) throws IOException {
 
+		String remoteDirectoryKey = remoteDirectory == null ? "" : remoteDirectory;
+
+		Lock remoteDirectoryLock = null;
+		if (maxFetchSize > 0) {
+			// The result of session.list is going to be sliced by this maxFetchSize and cached.
+			// Therefore, a lock for the directory to avoid race condition from different threads.
+			// The perfomance degration is minimal since session.list is filtered once,
+			// and all the later slices are handled only from the in-memory cache.
+			remoteDirectoryLock = this.lockRegistry.obtain(remoteDirectoryKey);
+			remoteDirectoryLock.lock();
+		}
+		else {
+			// The cache makes sense only for maxFetchSize > 0.
+			this.fetchCache.remove(remoteDirectoryKey);
+		}
+
+		try {
+			List<F> remoteFiles = null;
+			if (maxFetchSize > 0) {
+				remoteFiles = this.fetchCache.get(remoteDirectoryKey);
+			}
+
+			if (CollectionUtils.isEmpty(remoteFiles)) {
+				// The session.list and filter all the files only once.
+				// If maxFetchSize > 0, the rest of filtered files are going to be cached
+				// for subsequent fetches.
+				// If no maxFetchSize, all the files are transferred at once anyway.
+				remoteFiles = listAndFilterFiles(remoteDirectory, session);
+			}
+
+			List<F> sliceToTransfer = remoteFiles;
+			List<F> remoteFilesToCache = null;
+			if (!CollectionUtils.isEmpty(remoteFiles) && maxFetchSize > 0) {
+				remoteFilesToCache = remoteFiles;
+				sliceToTransfer = remoteFiles.stream().limit(maxFetchSize).toList();
+				remoteFilesToCache.removeAll(sliceToTransfer);
+			}
+
+			int copied = 0;
+
+			for (int i = 0; i < sliceToTransfer.size(); i++) {
+				F file = sliceToTransfer.get(i);
+				boolean transferred = false;
+				try {
+					if (transferFile(remoteDirectory, localDirectory, session, file)) {
+						copied++;
+					}
+				}
+				catch (RuntimeException | IOException ex) {
+					// The filtering has happened before transfer, so if it fails,
+					// all the following files have to be rest from the filter.
+					if (this.filter != null && this.filter.supportsSingleFileFiltering()) {
+						for (int j = i; j < remoteFiles.size(); j++) {
+							F fileToReset = remoteFiles.get(j);
+							resetFilterIfNecessary(fileToReset);
+						}
+					}
+					else {
+						rollbackFromFileToListEnd(remoteFiles, file);
+					}
+
+					if (maxFetchSize > 0) {
+						// When trasfer fails, reset the cache as well
+						// for a fresh session.list on the next synchronization.
+						this.fetchCache.remove(remoteDirectoryKey);
+					}
+
+					throw ex;
+				}
+			}
+
+			if (maxFetchSize > 0) {
+				if (!CollectionUtils.isEmpty(remoteFilesToCache)) {
+					this.fetchCache.put(remoteDirectoryKey, remoteFilesToCache);
+				}
+				else {
+					this.fetchCache.remove(remoteDirectoryKey);
+				}
+			}
+
+			return copied;
+		}
+		finally {
+			if (remoteDirectoryLock != null) {
+				remoteDirectoryLock.unlock();
+			}
+		}
+	}
+
+	private List<F> listAndFilterFiles(@Nullable String remoteDirectory, Session<F> session) throws IOException {
 		F[] files = session.list(remoteDirectory);
 		if (!ObjectUtils.isEmpty(files)) {
 			files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e), this.comparator);
 		}
+
 		if (!ObjectUtils.isEmpty(files)) {
-			boolean filteringOneByOne = this.filter != null && this.filter.supportsSingleFileFiltering();
-			List<F> filteredFiles = applyFilter(files, this.filter != null, filteringOneByOne, maxFetchSize);
-
-			int copied = filteredFiles.size();
-			int accepted = 0;
-
-			for (F file : filteredFiles) {
-				F fileToCopy = file;
-				if (filteringOneByOne) {
-					if ((maxFetchSize < 0 || accepted < maxFetchSize)
-							&& this.filter != null && this.filter.accept(fileToCopy)) {
-
-						accepted++;
-					}
-					else {
-						fileToCopy = null;
-						copied--;
+			List<F> filteredFiles;
+			if (this.filter != null) {
+				if (this.filter.supportsSingleFileFiltering()) {
+					filteredFiles = new ArrayList<>(files.length);
+					for (F file : files) {
+						if (this.filter.accept(file)) {
+							filteredFiles.add(file);
+						}
 					}
 				}
-				copied =
-						copyIfNotNull(remoteDirectory, localDirectory, session, filteringOneByOne,
-								filteredFiles, copied, fileToCopy);
+				else {
+					filteredFiles = filterFiles(files);
+				}
 			}
-			return copied;
+			else {
+				filteredFiles = new ArrayList<>();
+				Collections.addAll(filteredFiles, files);
+			}
+
+			return filteredFiles;
 		}
-		else {
-			return 0;
-		}
+
+		return Collections.emptyList();
 	}
 
-	private int copyIfNotNull(@Nullable String remoteDirectory, File localDirectory,
-			Session<F> session, boolean filteringOneByOne,
-			List<F> filteredFiles, int copied, @Nullable F file) throws IOException {
+	private boolean transferFile(@Nullable String remoteDirectory, File localDirectory, Session<F> session, F file)
+			throws IOException {
 
-		boolean renamedFailed = false;
 		EvaluationContext localFileEvaluationContext = null;
 		if (this.localFilenameGeneratorExpression != null) {
 			localFileEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 			localFileEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
 		}
-		try {
-			if (file != null &&
-					!copyFileToLocalDirectory(remoteDirectory, localFileEvaluationContext, file, localDirectory,
-							session)) {
 
-				renamedFailed = true;
-			}
-		}
-		catch (RuntimeException | IOException e1) {
-			if (filteringOneByOne) {
-				resetFilterIfNecessary(file);
-			}
-			else {
-				rollbackFromFileToListEnd(filteredFiles, file);
-			}
-			throw e1;
-		}
-		return renamedFailed ? copied - 1 : copied;
-	}
-
-	private List<F> applyFilter(F[] files, boolean haveFilter, boolean filteringOneByOne, int maxFetchSize) {
-		List<F> filteredFiles;
-		if (!filteringOneByOne && haveFilter) {
-			filteredFiles = filterFiles(files);
-		}
-		else {
-			filteredFiles = List.of(files);
-		}
-		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize && !filteringOneByOne) {
-			if (haveFilter) {
-				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-			}
-			filteredFiles = filteredFiles.stream()
-					.limit(maxFetchSize)
-					.collect(Collectors.toList());
-		}
-		return filteredFiles;
+		return copyFileToLocalDirectory(remoteDirectory, localFileEvaluationContext, file, localDirectory, session);
 	}
 
 	protected void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
-		if (this.filter instanceof ReversibleFileListFilter) {
-			((ReversibleFileListFilter<F>) this.filter)
-					.rollback(file, filteredFiles);
+		if (this.filter instanceof ReversibleFileListFilter<F> reversibleFileListFilter) {
+			reversibleFileListFilter.rollback(file, filteredFiles);
 		}
 	}
 
@@ -530,12 +594,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	private void resetFilterIfNecessary(F remoteFile) {
-		if (this.filter instanceof ResettableFileListFilter) {
+		if (this.filter instanceof ResettableFileListFilter<F> resettableFileListFilter) {
 			if (this.logger.isInfoEnabled()) {
 				this.logger.info("Removing the remote file '" + remoteFile +
 						"' from the filter for a subsequent transfer attempt");
 			}
-			((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
+			resettableFileListFilter.remove(remoteFile);
 		}
 	}
 

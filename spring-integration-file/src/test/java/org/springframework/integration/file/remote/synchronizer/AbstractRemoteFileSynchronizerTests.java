@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -39,6 +42,7 @@ import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,7 +101,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 
 		};
 		sync.setFilter(new AcceptOnceFileListFilter<>());
-		sync.setRemoteDirectory("foo");
+		sync.setRemoteDirectory("testRemoteDirectory");
 
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> sync.synchronizeToLocalDirectory(mock(File.class)))
@@ -114,12 +118,31 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
 
-		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		File localDirectory = FileUtils.getTempDirectory();
+		sync.synchronizeToLocalDirectory(localDirectory, 1);
 		assertThat(count.get()).isEqualTo(1);
-		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+
+		@SuppressWarnings("unchecked")
+		Map<String, List<String>> fetchCache = TestUtils.getPropertyValue(sync, "fetchCache", Map.class);
+		List<String> cachedFiles = fetchCache.get("testRemoteDirectory");
+		assertThat(cachedFiles).containsExactly("bar", "baz");
+
+		sync.synchronizeToLocalDirectory(localDirectory, 1);
 		assertThat(count.get()).isEqualTo(2);
-		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+
+		cachedFiles = fetchCache.get("testRemoteDirectory");
+		assertThat(cachedFiles).containsExactly("baz");
+
+		sync.synchronizeToLocalDirectory(localDirectory, 1);
 		assertThat(count.get()).isEqualTo(3);
+
+		cachedFiles = fetchCache.get("testRemoteDirectory");
+		assertThat(cachedFiles).isNull();
+
+		StringSession stringSession =
+				TestUtils.getPropertyValue(sync, "remoteFileTemplate.sessionFactory.session", StringSession.class);
+		assertThat(stringSession.listCallCount).isEqualTo(1);
+
 		sync.close();
 	}
 
@@ -287,15 +310,15 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 
 					@Override
 					public String getComponentType() {
-						return "foo";
+						return "MessageSource";
 					}
 
 				};
 		source.setMaxFetchSize(1);
-		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
+		source.setLocalDirectory(new File(FileUtils.getTempDirectoryPath() + File.separator + UUID.randomUUID()));
 		source.setAutoCreateLocalDirectory(true);
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		source.setBeanName("fooSource");
+		source.setBeanName("testSource");
 		return source;
 	}
 
@@ -334,21 +357,25 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 
 		};
 		sync.setFilter(new AcceptOnceFileListFilter<>());
-		sync.setRemoteDirectory("foo");
+		sync.setRemoteDirectory("testRemoteDirectory");
 		sync.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		return sync;
 	}
 
 	private static class StringSessionFactory implements SessionFactory<String> {
 
+		private final Session<String> session = new StringSession();
+
 		@Override
 		public Session<String> getSession() {
-			return new StringSession();
+			return this.session;
 		}
 
 	}
 
 	private static class StringSession implements Session<String> {
+
+		int listCallCount = 0;
 
 		StringSession() {
 		}
@@ -360,6 +387,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 
 		@Override
 		public String[] list(String path) {
+			this.listCallCount++;
 			return new String[] {"foo", "bar", "baz"};
 		}
 
