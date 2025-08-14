@@ -30,8 +30,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSpec)
-	: AbstractKotlinRouterSpec<RecipientListRouterSpec, RecipientListRouter>(delegate) {
+class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSpec) :
+	AbstractKotlinRouterSpec<RecipientListRouterSpec, RecipientListRouter>(delegate) {
 
 	fun recipient(channelName: String, expression: String? = null) {
 		this.delegate.recipient(channelName, expression)
@@ -63,8 +63,10 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 			this.delegate.recipient<P>(channel) { selector(it) }
 	}
 
-	inline fun <reified P : Any> recipientFlow(crossinline selector: (P) -> Boolean,
-										 crossinline subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
+	inline fun <reified P : Any> recipientFlow(
+		crossinline selector: (P) -> Boolean,
+		crossinline subFlow: KotlinIntegrationFlowDefinition.() -> Unit
+	) {
 
 		if (Message::class.java.isAssignableFrom(P::class.java))
 			this.delegate.recipientMessageSelectorFlow({ selector(it as P) })

@@ -31,8 +31,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 6.2
  */
-class KotlinSplitterSpec(override val delegate: SplitterSpec)
-	: KotlinConsumerEndpointSpec<SplitterSpec, AbstractMessageSplitter>(delegate) {
+class KotlinSplitterSpec(override val delegate: SplitterSpec) :
+	KotlinConsumerEndpointSpec<SplitterSpec, AbstractMessageSplitter>(delegate) {
 
 	/**
 	 * Provide a Kotlin function as a direct delegate for
@@ -60,7 +60,7 @@ class KotlinSplitterSpec(override val delegate: SplitterSpec)
 	 * Provide an expression to use an [ExpressionEvaluatingSplitter] for the target handler.
 	 * @param expression the SpEL expression to use.
 	 */
-	fun expression(expression: String){
+	fun expression(expression: String) {
 		this.delegate.expression(expression)
 	}
 
@@ -136,7 +136,7 @@ class KotlinSplitterSpec(override val delegate: SplitterSpec)
 	 * @param discardFlow the discard flow.
 	 */
 	fun discardFlow(discardFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.discardFlow {definition -> discardFlow(KotlinIntegrationFlowDefinition(definition)) }
+		this.delegate.discardFlow { definition -> discardFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 }

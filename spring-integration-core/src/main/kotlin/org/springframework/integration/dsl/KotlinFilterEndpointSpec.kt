@@ -28,8 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinFilterEndpointSpec(override val delegate: FilterEndpointSpec)
-	: KotlinConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>(delegate) {
+class KotlinFilterEndpointSpec(override val delegate: FilterEndpointSpec) :
+	KotlinConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>(delegate) {
 
 	fun throwExceptionOnRejection(throwExceptionOnRejection: Boolean) {
 		this.delegate.throwExceptionOnRejection(throwExceptionOnRejection)
@@ -48,7 +48,7 @@ class KotlinFilterEndpointSpec(override val delegate: FilterEndpointSpec)
 	}
 
 	fun discardFlow(subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		discardFlow {definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+		discardFlow { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 	fun discardFlow(subFlow: IntegrationFlow) {

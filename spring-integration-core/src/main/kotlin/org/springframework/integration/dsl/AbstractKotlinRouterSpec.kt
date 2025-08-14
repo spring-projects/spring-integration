@@ -28,8 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : AbstractMessageRouter>(override val delegate: S)
-	: KotlinConsumerEndpointSpec<S, R>(delegate) {
+abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : AbstractMessageRouter>(override val delegate: S) :
+	KotlinConsumerEndpointSpec<S, R>(delegate) {
 
 	fun ignoreSendFailures(ignoreSendFailures: Boolean) {
 		this.delegate.ignoreSendFailures(ignoreSendFailures)
@@ -48,7 +48,7 @@ abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : Abstra
 	}
 
 	fun defaultSubFlowMapping(subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		defaultSubFlowMapping {definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+		defaultSubFlowMapping { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 	fun defaultSubFlowMapping(subFlow: IntegrationFlow) {

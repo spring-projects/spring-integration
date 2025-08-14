@@ -30,8 +30,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinEnricherSpec(override val delegate: EnricherSpec)
-	: KotlinConsumerEndpointSpec<EnricherSpec, ContentEnricher>(delegate) {
+class KotlinEnricherSpec(override val delegate: EnricherSpec) :
+	KotlinConsumerEndpointSpec<EnricherSpec, ContentEnricher>(delegate) {
 
 	fun requestChannel(requestChannel: MessageChannel) {
 		this.delegate.requestChannel(requestChannel)
@@ -69,12 +69,12 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.requestPayloadExpression(requestPayloadExpression)
 	}
 
-	fun <P: Any> requestPayload(function: (Message<P>) -> Any) {
+	fun <P : Any> requestPayload(function: (Message<P>) -> Any) {
 		this.delegate.requestPayload(function)
 	}
 
 	fun requestSubFlow(subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		requestSubFlow {definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+		requestSubFlow { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 	fun requestSubFlow(subFlow: IntegrationFlow) {
@@ -93,7 +93,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.propertyExpression(key, expression)
 	}
 
-	fun <P: Any> propertyFunction(key: String, function: (Message<P>) -> Any) {
+	fun <P : Any> propertyFunction(key: String, function: (Message<P>) -> Any) {
 		this.delegate.propertyFunction(key, function)
 	}
 
@@ -105,7 +105,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.header(name, expression, overwrite)
 	}
 
-	fun <P: Any> headerFunction(name: String, function: (Message<P>) -> Any, overwrite: Boolean?) {
+	fun <P : Any> headerFunction(name: String, function: (Message<P>) -> Any, overwrite: Boolean?) {
 		this.delegate.header(name, function, overwrite)
 	}
 

@@ -74,8 +74,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.convert] providing a `convert<MyType>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified T: Any> convert(
-			crossinline configurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
+	inline fun <reified T : Any> convert(
+		crossinline configurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.convert(T::class.java) { configurer(it) }
@@ -125,9 +125,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.filter] providing a `filter<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P: Any> filter(
-			crossinline function: (P) -> Boolean,
-			crossinline filterConfigurer: KotlinFilterEndpointSpec.() -> Unit
+	inline fun <reified P : Any> filter(
+		crossinline function: (P) -> Boolean,
+		crossinline filterConfigurer: KotlinFilterEndpointSpec.() -> Unit
 	) {
 
 		this.delegate.filter(P::class.java, { function(it) }) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
@@ -147,8 +147,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * with reified generic type.
 	 */
 	inline fun <reified P : Any, T : Any?> route(
-			crossinline function: (P) -> T,
-			crossinline configurer: KotlinRouterSpec<T, MethodInvokingRouter>.() -> Unit
+		crossinline function: (P) -> T,
+		crossinline configurer: KotlinRouterSpec<T, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(P::class.java, { function(it) }) { configurer(KotlinRouterSpec(it)) }
@@ -209,16 +209,16 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * method specific implementation to allow the use of the 'subflow' subscriber capability.
 	 */
 	fun publishSubscribe(
-			broadcastCapableChannel: BroadcastCapableChannel,
-			vararg subscribeSubFlows: KotlinIntegrationFlowDefinition.() -> Unit
+		broadcastCapableChannel: BroadcastCapableChannel,
+		vararg subscribeSubFlows: KotlinIntegrationFlowDefinition.() -> Unit
 	) {
 
 		val publishSubscribeChannelConfigurer =
-				Consumer<BroadcastPublishSubscribeSpec> { spec ->
-					subscribeSubFlows.forEach { subFlow ->
-						spec.subscribe { subFlow(KotlinIntegrationFlowDefinition(it)) }
-					}
+			Consumer<BroadcastPublishSubscribeSpec> { spec ->
+				subscribeSubFlows.forEach { subFlow ->
+					spec.subscribe { subFlow(KotlinIntegrationFlowDefinition(it)) }
 				}
+			}
 		this.delegate.publishSubscribeChannel(broadcastCapableChannel, publishSubscribeChannelConfigurer)
 	}
 
@@ -242,8 +242,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun wireTap(wireTapConfigurer: WireTapSpec.() -> Unit, flow: KotlinIntegrationFlowDefinition.() -> Unit) {
 		this.delegate.wireTap(
-				IntegrationFlow { flow(KotlinIntegrationFlowDefinition(it)) },
-				Consumer(wireTapConfigurer)
+			IntegrationFlow { flow(KotlinIntegrationFlowDefinition(it)) },
+			Consumer(wireTapConfigurer)
 		)
 	}
 
@@ -354,8 +354,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [KotlinFilterEndpointSpec].
 	 */
 	fun filter(
-			messageProcessorSpec: MessageProcessorSpec<*>,
-			filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}
+		messageProcessorSpec: MessageProcessorSpec<*>,
+		filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}
 	) {
 
 		this.delegate.filter(messageProcessorSpec) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
@@ -368,8 +368,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * @since 5.3.1
 	 */
 	fun filter(
-			messageSelector: MessageSelector,
-			filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}
+		messageSelector: MessageSelector,
+		filterConfigurer: KotlinFilterEndpointSpec.() -> Unit = {}
 	) {
 
 		this.delegate.filter(Message::class.java, messageSelector) { filterConfigurer(KotlinFilterEndpointSpec(it)) }
@@ -407,8 +407,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(
-			beanName: String, methodName: String?,
-			endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
+		beanName: String, methodName: String?,
+		endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
 	) {
 
 		this.delegate.handle(beanName, methodName, endpointConfigurer)
@@ -431,8 +431,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(
-			service: Any, methodName: String?,
-			endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
+		service: Any, methodName: String?,
+		endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
 	) {
 
 		this.delegate.handle(service, methodName, endpointConfigurer)
@@ -454,8 +454,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	inline fun <reified P : Any> handle(
-			crossinline handler: (P, MessageHeaders) -> Any,
-			crossinline endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
+		crossinline handler: (P, MessageHeaders) -> Any,
+		crossinline endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit
 	) {
 
 		this.delegate.handle(P::class.java, { p, h -> handler(p, h) }) { endpointConfigurer(it) }
@@ -466,8 +466,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(
-			messageProcessorSpec: MessageProcessorSpec<*>,
-			endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
+		messageProcessorSpec: MessageProcessorSpec<*>,
+		endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.handle(messageProcessorSpec, endpointConfigurer)
@@ -479,8 +479,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun <H : MessageHandler> handle(
-			messageHandlerSpec: MessageHandlerSpec<*, H>,
-			endpointConfigurer: GenericEndpointSpec<H>.() -> Unit = {}
+		messageHandlerSpec: MessageHandlerSpec<*, H>,
+		endpointConfigurer: GenericEndpointSpec<H>.() -> Unit = {}
 	) {
 
 		this.delegate.handle(messageHandlerSpec, endpointConfigurer)
@@ -500,8 +500,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun handle(
-			messageHandler: (Message<*>) -> Unit,
-			endpointConfigurer: GenericEndpointSpec<MessageHandler>.() -> Unit
+		messageHandler: (Message<*>) -> Unit,
+		endpointConfigurer: GenericEndpointSpec<MessageHandler>.() -> Unit
 	) {
 
 		this.delegate.handle(MessageHandler { messageHandler(it) }, endpointConfigurer)
@@ -548,8 +548,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun enrichHeaders(
-			headers: MapBuilder<*, String, Any>,
-			endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
+		headers: MapBuilder<*, String, Any>,
+		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.enrichHeaders(headers, endpointConfigurer)
@@ -562,8 +562,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * to be evaluated against a request [Message].
 	 */
 	fun enrichHeaders(
-			headers: Map<String, Any>,
-			endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
+		headers: Map<String, Any>,
+		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.enrichHeaders(headers, endpointConfigurer)
@@ -631,8 +631,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [HeaderFilter].
 	 */
 	fun headerFilter(
-			headerFilter: HeaderFilter,
-			endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
+		headerFilter: HeaderFilter,
+		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
 	) {
 
 		this.delegate.headerFilter(headerFilter, endpointConfigurer)
@@ -644,8 +644,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun claimCheckIn(
-			messageStore: MessageStore,
-			endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
+		messageStore: MessageStore,
+		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.claimCheckIn(messageStore, endpointConfigurer)
@@ -665,8 +665,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
 	fun claimCheckOut(
-			messageStore: MessageStore, removeMessage: Boolean,
-			endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
+		messageStore: MessageStore, removeMessage: Boolean,
+		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
 	) {
 
 		this.delegate.claimCheckOut(messageStore, removeMessage, endpointConfigurer)
@@ -711,8 +711,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * with provided options from [KotlinRouterSpec].
 	 */
 	fun route(
-			beanName: String, method: String?,
-			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		beanName: String, method: String?,
+		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -731,8 +731,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * of the provided service and its method with provided options from [KotlinRouterSpec].
 	 */
 	fun route(
-			service: Any, methodName: String?,
-			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		service: Any, methodName: String?,
+		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -742,9 +742,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [ExpressionEvaluatingRouter] for provided SpEL expression
 	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun <T: Any?> route(
-			expression: String,
-			routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
+	fun <T : Any?> route(
+		expression: String,
+		routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
 	) {
 
 		this.delegate.route(expression) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -755,8 +755,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * from the provided [MessageProcessorSpec] with default options.
 	 */
 	fun route(
-			messageProcessorSpec: MessageProcessorSpec<*>,
-			routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit = {}
+		messageProcessorSpec: MessageProcessorSpec<*>,
+		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit = {}
 	) {
 
 		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -773,7 +773,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [ErrorMessageExceptionTypeRouter] with options from the [KotlinRouterSpec].
 	 */
 	fun routeByException(
-			routerConfigurer: KotlinRouterSpec<Class<out Throwable>, ErrorMessageExceptionTypeRouter>.() -> Unit
+		routerConfigurer: KotlinRouterSpec<Class<out Throwable>, ErrorMessageExceptionTypeRouter>.() -> Unit
 	) {
 
 		this.delegate.routeByException { routerConfigurer(KotlinRouterSpec(it)) }
@@ -836,13 +836,13 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * provided `subflow` with options from [GatewayEndpointSpec].
 	 */
 	fun gateway(
-			endpointConfigurer: GatewayEndpointSpec.() -> Unit,
-			flow: KotlinIntegrationFlowDefinition.() -> Unit
+		endpointConfigurer: GatewayEndpointSpec.() -> Unit,
+		flow: KotlinIntegrationFlowDefinition.() -> Unit
 	) {
 
 		this.delegate.gateway(
-				IntegrationFlow { flow(KotlinIntegrationFlowDefinition(it)) },
-				Consumer(endpointConfigurer)
+			IntegrationFlow { flow(KotlinIntegrationFlowDefinition(it)) },
+			Consumer(endpointConfigurer)
 		)
 	}
 
@@ -891,7 +891,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * the `org.springframework.integration.handler.LoggingHandler`
 	 * as a default logging category and function for the log message.
 	 */
-	fun <P: Any> log(function: (Message<P>) -> Any) {
+	fun <P : Any> log(function: (Message<P>) -> Any) {
 		this.delegate.log(function)
 	}
 
@@ -938,7 +938,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * the `org.springframework.integration.handler.LoggingHandler`
 	 * as a default logging category and function for the log message.
 	 */
-	fun <P: Any> log(level: LoggingHandler.Level, function: (Message<P>) -> Any) {
+	fun <P : Any> log(level: LoggingHandler.Level, function: (Message<P>) -> Any) {
 		this.delegate.log(level, function)
 	}
 
@@ -948,7 +948,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [LoggingHandler.Level] logging level,
 	 * the provided logging category and function for the log message.
 	 */
-	fun <P: Any> log(category: String, function: (Message<P>) -> Any) {
+	fun <P : Any> log(category: String, function: (Message<P>) -> Any) {
 		this.delegate.log(category, function)
 	}
 
@@ -958,7 +958,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [LoggingHandler.Level] logging level, logging category
 	 * and function for the log message.
 	 */
-	fun <P: Any> log(level: LoggingHandler.Level, category: String, function: (Message<P>) -> Any) {
+	fun <P : Any> log(level: LoggingHandler.Level, category: String, function: (Message<P>) -> Any) {
 		this.delegate.log(level, category, function)
 	}
 
@@ -987,8 +987,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * and [AggregatorSpec] for gathering function.
 	 */
 	fun scatterGather(
-			scatterChannel: MessageChannel, gatherer: AggregatorSpec.() -> Unit,
-			scatterGather: ScatterGatherSpec.() -> Unit
+		scatterChannel: MessageChannel, gatherer: AggregatorSpec.() -> Unit,
+		scatterGather: ScatterGatherSpec.() -> Unit
 	) {
 
 		this.delegate.scatterGather(scatterChannel, Consumer(gatherer), Consumer(scatterGather))
@@ -1010,7 +1010,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun scatterGather(scatterer: KotlinRecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit) {
 		this.delegate.scatterGather(Consumer { scatterer(KotlinRecipientListRouterSpec(it)) },
-				Consumer { gatherer(it) })
+			Consumer { gatherer(it) })
 	}
 
 	/**
@@ -1019,12 +1019,12 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * and [AggregatorSpec] for gathering function.
 	 */
 	fun scatterGather(
-			scatterer: KotlinRecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit,
-			scatterGather: ScatterGatherSpec.() -> Unit
+		scatterer: KotlinRecipientListRouterSpec.() -> Unit, gatherer: AggregatorSpec.() -> Unit,
+		scatterGather: ScatterGatherSpec.() -> Unit
 	) {
 
 		this.delegate.scatterGather(Consumer { scatterer(KotlinRecipientListRouterSpec(it)) },
-				Consumer { gatherer(it) }, Consumer { scatterGather(it) })
+			Consumer { gatherer(it) }, Consumer { scatterGather(it) })
 	}
 
 	/**
@@ -1041,8 +1041,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * and endpoint options from [GenericEndpointSpec].
 	 */
 	fun trigger(
-			triggerActionId: String,
-			endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
+		triggerActionId: String,
+		endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.trigger(triggerActionId, endpointConfigurer)
@@ -1053,8 +1053,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * and endpoint options from [GenericEndpointSpec].
 	 */
 	fun trigger(
-			triggerAction: MessageTriggerAction,
-			endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
+		triggerAction: MessageTriggerAction,
+		endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.trigger(triggerAction, Consumer(endpointConfigurer))

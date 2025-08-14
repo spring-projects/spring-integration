@@ -32,8 +32,8 @@ import org.springframework.integration.transformer.MethodInvokingTransformer
  *
  * @since 6.2
  */
-class KotlinTransformerEndpointSpec(override val delegate: TransformerEndpointSpec)
-	: KotlinConsumerEndpointSpec<TransformerEndpointSpec, MessageTransformingHandler>(delegate) {
+class KotlinTransformerEndpointSpec(override val delegate: TransformerEndpointSpec) :
+	KotlinConsumerEndpointSpec<TransformerEndpointSpec, MessageTransformingHandler>(delegate) {
 
 	/**
 	 * Provide a Kotlin function as a direct delegate for [MessageTransformingHandler].
@@ -51,7 +51,7 @@ class KotlinTransformerEndpointSpec(override val delegate: TransformerEndpointSp
 	 * @param <P> the input type.
 	 * @param <T> the output type.
 	 */
-	fun <P: Any, T: Any> transformer(transformer: GenericTransformer<P, T>) {
+	fun <P : Any, T : Any> transformer(transformer: GenericTransformer<P, T>) {
 		this.delegate.transformer(transformer)
 	}
 
