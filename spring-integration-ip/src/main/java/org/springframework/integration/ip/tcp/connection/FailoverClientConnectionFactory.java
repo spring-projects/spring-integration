@@ -461,7 +461,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * purposes.
 		 */
 		@Override
-		public boolean onMessage(Message<?> message) {
+		public void onMessage(Message<?> message) {
 			if (this.delegate.getConnectionId().equals(message.getHeaders().get(IpHeaders.CONNECTION_ID))) {
 				AbstractIntegrationMessageBuilder<?> messageBuilder =
 						getMessageBuilderFactory()
@@ -476,17 +476,15 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					if (this.logger.isDebugEnabled()) {
 						logger.debug("No listener for " + message);
 					}
-					return false;
 				}
 				else {
-					return listener.onMessage(messageBuilder.build());
+					listener.onMessage(messageBuilder.build());
 				}
 			}
 			else {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Message from defunct connection ignored " + message);
 				}
-				return false;
 			}
 		}
 

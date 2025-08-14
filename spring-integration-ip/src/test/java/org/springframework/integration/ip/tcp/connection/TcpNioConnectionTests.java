@@ -361,10 +361,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			final TcpNioConnection connection = new TcpNioConnection(channel, false, false,
 					null, null);
 			connection.setTaskExecutor(exec);
-			connection.registerListener(message -> {
-				messageLatch.countDown();
-				return false;
-			});
+			connection.registerListener(message -> messageLatch.countDown());
 			TcpMessageMapper mapper = new TcpMessageMapper();
 			mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			connection.setMapper(mapper);
@@ -535,7 +532,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		TcpListener listener = message1 -> {
 			inboundMessage.set(message1);
 			latch.countDown();
-			return false;
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.readPacket();
@@ -560,7 +556,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				threadName.set(Thread.currentThread().getName());
 				latch.countDown();
 			}
-			return false;
 		});
 		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory.afterPropertiesSet();
@@ -617,7 +612,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			if (!(message instanceof ErrorMessage)) {
 				latch.countDown();
 			}
-			return false;
 		});
 		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory.afterPropertiesSet();
@@ -720,7 +714,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				assembler.set(Thread.currentThread());
 				assemblerLatch.countDown();
 			}
-			return false;
 		});
 		ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
 		te.setCorePoolSize(3); // selector, reader, assembler
@@ -797,7 +790,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			watch.stop();
 			return null;
 		});
-		cf.registerListener(m -> false);
+		cf.registerListener(m -> {
+		});
 		final CountDownLatch listening = new CountDownLatch(1);
 		cf.setApplicationEventPublisher(e -> listening.countDown());
 		cf.afterPropertiesSet();
@@ -841,7 +835,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			server.registerListener(m -> {
 				messages.add(m);
 				latch.countDown();
-				return false;
 			});
 			server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			server.afterPropertiesSet();

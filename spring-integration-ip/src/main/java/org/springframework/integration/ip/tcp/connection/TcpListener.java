@@ -24,6 +24,7 @@ import org.springframework.messaging.Message;
  * {@link TcpConnection}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -33,8 +34,7 @@ public interface TcpListener {
 	/**
 	 * Called by a TCPConnection when a new message arrives.
 	 * @param message The message.
-	 * @return true if the message was intercepted
 	 */
-	boolean onMessage(Message<?> message);
+	void onMessage(Message<?> message);
 
 }

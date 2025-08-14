@@ -351,10 +351,7 @@ public class TcpInboundGatewayTests implements TestApplicationContextAware {
 		consumer.start();
 		AbstractClientConnectionFactory client = ccf.apply(port);
 		CountDownLatch latch = new CountDownLatch(1);
-		client.registerListener(message -> {
-			latch.countDown();
-			return false;
-		});
+		client.registerListener(message -> latch.countDown());
 		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();

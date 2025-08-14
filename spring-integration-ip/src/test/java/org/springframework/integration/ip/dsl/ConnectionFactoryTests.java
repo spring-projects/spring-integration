@@ -65,7 +65,6 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		server.registerListener(m -> {
 			received.set(new ObjectToStringTransformer().transform(m));
 			latch.countDown();
-			return false;
 		});
 		server.setApplicationEventPublisher(publisher);
 		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);

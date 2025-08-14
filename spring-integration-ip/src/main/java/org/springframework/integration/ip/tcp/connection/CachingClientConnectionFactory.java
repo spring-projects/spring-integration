@@ -462,7 +462,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		 * purposes.
 		 */
 		@Override
-		public boolean onMessage(Message<?> message) {
+		public void onMessage(Message<?> message) {
 			Message<?> modifiedMessage;
 			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
 			if (message instanceof ErrorMessage) {
@@ -492,7 +492,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					logger.debug("Message discarded; no listener: " + message);
 				}
 			}
-			return true;
 		}
 
 		private void physicallyClose() {

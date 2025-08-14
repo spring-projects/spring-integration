@@ -89,7 +89,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
 			semaphore.release();
-			return false;
 		});
 
 		// Fire up the sender.
@@ -122,7 +121,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				Thread.currentThread().interrupt();
 			}
 			semaphore.release();
-			return false;
 		});
 		int howMany = 2;
 		scf.setBacklog(howMany + 5);
@@ -146,7 +144,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
 			semaphore.release();
-			return false;
 		});
 		// Fire up the sender.
 
@@ -172,7 +169,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
 			semaphore.release();
-			return false;
 		});
 
 		// Fire up the sender.
@@ -205,7 +201,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -258,7 +253,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -312,7 +306,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -367,7 +360,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -419,7 +411,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -494,7 +485,6 @@ public class TcpNioConnectionReadTests implements TestApplicationContextAware {
 				errorMessageRef.set(((ErrorMessage) message).getPayload());
 				errorMessageLetch.countDown();
 			}
-			return false;
 		}, new TcpSender() {
 
 			@Override
