@@ -77,13 +77,13 @@ public class HazelcastMultiMapEventDrivenInboundChannelAdapterTests {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo("edMultiMap1");
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(1));
+				.getPayload()).key()).isEqualTo(Integer.valueOf(1));
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getId()).isEqualTo(1);
+				.getPayload()).value()).getId()).isEqualTo(1);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getName()).isEqualTo("TestName1");
+				.getPayload()).value()).getName()).isEqualTo("TestName1");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getSurname()).isEqualTo("TestSurname1");
+				.getPayload()).value()).getSurname()).isEqualTo("TestSurname1");
 	}
 
 	@Test
@@ -103,14 +103,14 @@ public class HazelcastMultiMapEventDrivenInboundChannelAdapterTests {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo("edMultiMap2");
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(2));
-		assertThat(((EntryEventMessagePayload<?, ?>) msg.getPayload()).value).isNull();
+				.getPayload()).key()).isEqualTo(Integer.valueOf(2));
+		assertThat(((EntryEventMessagePayload<?, ?>) msg.getPayload()).value()).isNull();
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getId()).isEqualTo(2);
+				.getPayload()).oldValue()).getId()).isEqualTo(2);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getName()).isEqualTo("TestName2");
+				.getPayload()).oldValue()).getName()).isEqualTo("TestName2");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).getSurname()).isEqualTo("TestSurname2");
+				.getPayload()).oldValue()).getSurname()).isEqualTo("TestSurname2");
 	}
 
 	@Test

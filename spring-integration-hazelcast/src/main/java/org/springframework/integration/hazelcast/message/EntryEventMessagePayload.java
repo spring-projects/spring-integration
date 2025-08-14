@@ -16,7 +16,7 @@
 
 package org.springframework.integration.hazelcast.message;
 
-import org.springframework.util.Assert;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Hazelcast Message Payload for Entry Events.
@@ -28,59 +28,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 6.0
+ *
+ * @param key The entry key.
+ * @param value The entry value.
+ * @param oldValue The entry old value if any.
  */
-public class EntryEventMessagePayload<K, V> {
-
-	/**
-	 * The entry key.
-	 */
-	public final K key;
-
-	/**
-	 * The entry value.
-	 */
-	public final V value;
-
-	/**
-	 * The entry old value if any.
-	 */
-	public final V oldValue;
-
-	public EntryEventMessagePayload(final K key, final V value, final V oldValue) {
-		Assert.notNull(key, "'key' must not be null");
-		this.key = key;
-		this.value = value;
-		this.oldValue = oldValue;
-	}
-
-	@Override
-	public String toString() {
-		return "EntryEventMessagePayload [key=" + this.key + ", value=" + this.value + ", oldValue=" + this.oldValue + "]";
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		EntryEventMessagePayload<?, ?> that = (EntryEventMessagePayload<?, ?>) o;
-
-		return this.key.equals(that.key) && !(this.value != null ? !this.value.equals(that.value)
-				: that.value != null) && !(this.oldValue != null
-				? !this.oldValue.equals(that.oldValue) : that.oldValue != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		int result = this.key.hashCode();
-		result = 31 * result + (this.value != null ? this.value.hashCode() : 0);
-		result = 31 * result + (this.oldValue != null ? this.oldValue.hashCode() : 0);
-		return result;
-	}
+public record EntryEventMessagePayload<K, V>(K key, @Nullable V value, @Nullable V oldValue) {
 
 }

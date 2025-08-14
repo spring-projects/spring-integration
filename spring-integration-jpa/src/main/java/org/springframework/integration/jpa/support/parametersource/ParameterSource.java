@@ -16,9 +16,13 @@
 
 package org.springframework.integration.jpa.support.parametersource;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -36,6 +40,7 @@ public interface ParameterSource {
 	 * @param paramName the name of the parameter
 	 * @return the value of the specified parameter
 	 */
+	@Nullable
 	Object getValue(String paramName);
 
 }

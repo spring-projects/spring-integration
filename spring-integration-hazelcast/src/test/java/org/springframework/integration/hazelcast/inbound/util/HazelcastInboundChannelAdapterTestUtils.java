@@ -88,13 +88,13 @@ public final class HazelcastInboundChannelAdapterTestUtils {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo(cacheName);
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(1));
+				.getPayload()).key()).isEqualTo(Integer.valueOf(1));
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getId()).isEqualTo(1);
+				.getPayload()).value()).getId()).isEqualTo(1);
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getName()).isEqualTo("TestName1");
+				.getPayload()).value()).getName()).isEqualTo("TestName1");
 		assertThat((((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).getSurname()).isEqualTo("TestSurname1");
+				.getPayload()).value()).getSurname()).isEqualTo("TestSurname1");
 	}
 
 	public static void testEventDrivenForDistributedMapEntryEvents(
@@ -223,11 +223,11 @@ public final class HazelcastInboundChannelAdapterTestUtils {
 		assertThat(msg.getHeaders().get(HazelcastHeaders.CACHE_NAME)).isEqualTo(cacheName);
 
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).key).isEqualTo(Integer.valueOf(1));
+				.getPayload()).key()).isEqualTo(Integer.valueOf(1));
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).oldValue).isNull();
+				.getPayload()).oldValue()).isNull();
 		assertThat(((EntryEventMessagePayload<Integer, HazelcastIntegrationTestUser>) msg
-				.getPayload()).value).isNull();
+				.getPayload()).value()).isNull();
 	}
 
 	public static void testDistributedSQLForENTRYIterationType(

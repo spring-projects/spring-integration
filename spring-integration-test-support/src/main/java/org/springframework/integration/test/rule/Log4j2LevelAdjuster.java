@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.Level;
+import org.jspecify.annotations.Nullable;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -57,7 +58,7 @@ public final class Log4j2LevelAdjuster implements MethodRule {
 		this(level, null, new String[] {"org.springframework.integration"});
 	}
 
-	private Log4j2LevelAdjuster(Level level, Class<?>[] classes, String[] categories) {
+	private Log4j2LevelAdjuster(Level level, Class<?> @Nullable [] classes, String[] categories) {
 		Assert.notNull(level, "'level' must be null");
 		this.level = level;
 		this.classes = classes != null ? classes : new Class<?>[0];

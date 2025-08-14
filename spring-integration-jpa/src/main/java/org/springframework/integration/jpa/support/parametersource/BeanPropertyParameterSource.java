@@ -18,7 +18,10 @@ package org.springframework.integration.jpa.support.parametersource;
 
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
@@ -29,6 +32,7 @@ import org.springframework.beans.PropertyAccessorFactory;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -37,7 +41,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 
 	private final BeanWrapper beanWrapper;
 
-	private String[] propertyNames;
+	private String @Nullable [] propertyNames;
 
 	/**
 	 * Create a new BeanPropertySqlParameterSource for the given bean.
@@ -53,19 +57,18 @@ public class BeanPropertyParameterSource implements ParameterSource {
 	}
 
 	@Override
-	public Object getValue(String paramName) {
+	public @Nullable Object getValue(String paramName) {
 		try {
 			return this.beanWrapper.getPropertyValue(paramName);
 		}
 		catch (NotReadablePropertyException ex) {
-			throw new IllegalArgumentException(ex.getMessage()); // NOSONAR - lost stack trace
+			throw new IllegalArgumentException(ex.getMessage());
 		}
 	}
 
 	/**
 	 * Provide access to the property names of the wrapped bean.
-	 * Uses support provided in the {@link org.springframework.beans.PropertyAccessor}
-	 * interface.
+	 * Uses support provided in the {@link org.springframework.beans.PropertyAccessor} interface.
 	 * @return an array containing all the known property names
 	 */
 	public String[] getReadablePropertyNames() {
@@ -77,9 +80,9 @@ public class BeanPropertyParameterSource implements ParameterSource {
 					names.add(pd.getName());
 				}
 			}
-			this.propertyNames = names.toArray(new String[names.size()]);
+			this.propertyNames = names.toArray(new String[0]);
 		}
-		return this.propertyNames; // NOSONAR - expose internals
+		return Arrays.copyOf(this.propertyNames, this.propertyNames.length);
 	}
 
 }

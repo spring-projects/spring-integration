@@ -20,12 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
 
 /**
@@ -58,31 +53,14 @@ final class ExpressionEvaluatingParameterSourceUtils {
 		final Map<String, Object> staticParameters = new HashMap<>();
 
 		for (JpaParameter parameter : jpaParameters) {
-			if (parameter.getValue() != null) {
-				staticParameters.put(parameter.getName(), parameter.getValue());
+			String name = parameter.getName();
+			Object value = parameter.getValue();
+			if (name != null && value != null) {
+				staticParameters.put(name, value);
 			}
 		}
 
 		return staticParameters;
-	}
-
-	/**
-	 * Simple {@link AbstractExpressionEvaluator} implementation
-	 * to increase the visibility of protected methods.
-	 */
-	public static class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
-
-		@Override
-		public EvaluationContext getEvaluationContext() { // NOSONAR - not useless, increases visibility
-			return super.getEvaluationContext();
-		}
-
-		@Override
-		@Nullable
-		public Object evaluateExpression(Expression expression, Object input) { // NOSONAR - not useless, increases vis.
-			return super.evaluateExpression(expression, input);
-		}
-
 	}
 
 }

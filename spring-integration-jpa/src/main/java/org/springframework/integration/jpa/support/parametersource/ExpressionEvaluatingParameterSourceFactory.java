@@ -30,7 +30,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceUtils.ParameterExpressionEvaluator;
 import org.springframework.util.Assert;
 
 /**
@@ -101,14 +100,16 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 			this.parameters = parameters;
 			this.parametersMap = new HashMap<>(parameters.size());
 			for (JpaParameter parameter : parameters) {
-				this.parametersMap.put(parameter.getName(), parameter);
+				String name = parameter.getName();
+				if (name != null) {
+					this.parametersMap.put(name, parameter);
+				}
 			}
 			this.values.putAll(ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 		}
 
 		@Override
-		@Nullable
-		public Object getValueByPosition(int position) {
+		public @Nullable Object getValueByPosition(int position) {
 			Assert.isTrue(position > 0, "The position must be non-negative.");
 			if (position <= this.parameters.size()) {
 				JpaParameter parameter = this.parameters.get(position - 1);
@@ -124,8 +125,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		}
 
 		@Override
-		@Nullable
-		public Object getValue(String paramName) {
+		public @Nullable Object getValue(String paramName) {
 			return this.values.computeIfAbsent(paramName,
 					(key) -> {
 						JpaParameter jpaParameter =
@@ -139,13 +139,11 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 					});
 		}
 
-		@Nullable
-		private Object obtainParameterValue(JpaParameter jpaParameter) {
-			Object value = null;
-			if (jpaParameter.getValue() != null) {
-				value = jpaParameter.getValue();
-			}
-			if (jpaParameter.getExpression() != null) {
+		private @Nullable Object obtainParameterValue(JpaParameter jpaParameter) {
+			Object value = jpaParameter.getValue();
+			if (value == null) {
+				Assert.notNull(jpaParameter.getExpression(),
+						() -> "One of the 'value' or 'expression' must be provided for 'JpaParameter': " + jpaParameter);
 				Expression expression;
 				if (this.input instanceof Collection<?>) {
 					expression = jpaParameter.getProjectionExpression();
@@ -153,9 +151,11 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 				else {
 					expression = jpaParameter.getSpelExpression();
 				}
-				value = this.expressionEvaluator.evaluateExpression(expression, this.input); // NOSONAR
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Resolved expression " + expression + " to " + value);
+				if (expression != null) {
+					value = this.expressionEvaluator.evaluateExpression(expression, this.input);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Resolved expression " + expression + " to " + value);
+					}
 				}
 			}
 			return value;
