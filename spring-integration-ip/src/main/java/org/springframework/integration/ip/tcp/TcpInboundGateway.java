@@ -203,6 +203,8 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void onInit() {
 		super.onInit();
+		Assert.state(this.serverConnectionFactory != null || this.clientConnectionFactory != null,
+				"An 'AbstractConnectionFactory' must not be provided.");
 		if (this.isClientMode) {
 			Assert.notNull(this.clientConnectionFactory, "For client-mode, connection factory must be type='client'");
 			Assert.isTrue(!this.clientConnectionFactory.isSingleUse(),

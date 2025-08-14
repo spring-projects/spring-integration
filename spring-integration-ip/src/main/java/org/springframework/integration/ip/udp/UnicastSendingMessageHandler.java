@@ -282,7 +282,7 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	public void handleMessageInternal(Message<?> message) {
 		if (this.acknowledge) {
-			Assert.state(this.isRunning(), "When 'acknowledge' is enabled, adapter must be running");
+			Assert.state(isRunning(), "When 'acknowledge' is enabled, adapter must be running");
 			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
@@ -568,9 +568,11 @@ public class UnicastSendingMessageHandler extends
 	 * (bind) error occurred, without bouncing the JVM.
 	 */
 	public void restartAckThread() {
-		if (this.taskExecutor != null) {
-			this.taskExecutor.execute(this);
-		}
+		Assert.state(this.acknowledge,
+				"The UnicastSendingMessageHandler has to be in the 'acknowledgment' mode to run ack thread.");
+		Assert.state(this.taskExecutor != null,
+				"The UnicastSendingMessageHandler is not running to schedule an ack thread.");
+		this.taskExecutor.execute(this);
 	}
 
 	private void closeSocketIfNeeded() {
