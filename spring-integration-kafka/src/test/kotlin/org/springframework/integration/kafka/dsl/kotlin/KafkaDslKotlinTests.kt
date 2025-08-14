@@ -45,7 +45,8 @@ import org.springframework.kafka.core.*
 import org.springframework.kafka.listener.*
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper
+import org.springframework.kafka.support.JsonKafkaHeaderMapper
+import org.springframework.kafka.support.KafkaHeaderMapper
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
@@ -120,7 +121,7 @@ class KafkaDslKotlinTests {
 	private lateinit var kafkaTemplateTopic2: KafkaTemplate<*, *>
 
 	@Autowired
-	private lateinit var mapper: DefaultKafkaHeaderMapper
+	private lateinit var mapper: KafkaHeaderMapper
 
 	@Autowired
 	private lateinit var config: ContextConfiguration
@@ -295,7 +296,7 @@ class KafkaDslKotlinTests {
 			}
 
 		@Bean
-		fun mapper() = DefaultKafkaHeaderMapper()
+		fun mapper() = JsonKafkaHeaderMapper()
 
 		private fun kafkaMessageHandler(producerFactory: ProducerFactory<Int, String>, topic: String) =
 			Kafka.outboundChannelAdapter(producerFactory)
