@@ -409,7 +409,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		@Override
 		public String getBeanName() {
-			return beanName;
+			return this.beanName;
 		}
 
 		@Override
