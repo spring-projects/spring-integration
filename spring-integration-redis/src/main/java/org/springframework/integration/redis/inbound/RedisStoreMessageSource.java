@@ -46,14 +46,14 @@ import org.springframework.util.Assert;
  *
  * @since 2.2
  */
-@SuppressWarnings("NullAway")
 public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 
 	private final RedisTemplate<String, ?> redisTemplate;
 
 	private final Expression keyExpression;
 
-	private @Nullable StandardEvaluationContext evaluationContext;
+	@SuppressWarnings("NullAway.Init")
+	private StandardEvaluationContext evaluationContext;
 
 	private CollectionType collectionType = CollectionType.LIST;
 
@@ -109,7 +109,9 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	 */
 	@Override
 	protected @Nullable RedisStore doReceive() {
-		String key = this.keyExpression.getValue(this.evaluationContext, String.class);
+		StandardEvaluationContext context = this.evaluationContext;
+		Assert.state(context != null, "'evaluationContext' must not be null");
+		String key = this.keyExpression.getValue(context, String.class);
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
 		RedisStore store = createStoreView(key);

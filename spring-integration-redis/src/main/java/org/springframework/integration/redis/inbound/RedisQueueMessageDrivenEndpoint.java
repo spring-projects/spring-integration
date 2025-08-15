@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,7 +58,6 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-@SuppressWarnings("NullAway")
 public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, BeanClassLoaderAware {
 
@@ -67,11 +67,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
-	private RedisSerializer<?> serializer;
+	private @Nullable RedisSerializer<?> serializer;
 
 	private boolean serializerExplicitlySet;
 
@@ -85,7 +86,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	private volatile boolean listening;
 
-	private volatile Runnable stopCallback;
+	private volatile @Nullable Runnable stopCallback;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -176,11 +177,14 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 					+ getComponentType());
 		}
 		BeanFactory beanFactory = getBeanFactory();
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
+		Executor executor = this.taskExecutor;
+		if (!(executor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
 			MessagePublishingErrorHandler errorHandler =
 					new MessagePublishingErrorHandler(ChannelResolverUtils.getChannelResolver(beanFactory));
-			errorHandler.setDefaultErrorChannel(getErrorChannel());
-			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+			if (getErrorChannel() != null) {
+				errorHandler.setDefaultErrorChannel(getErrorChannel());
+			}
+			this.taskExecutor = new ErrorHandlingTaskExecutor(executor, errorHandler);
 		}
 	}
 
@@ -189,16 +193,19 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		return "redis:queue-inbound-channel-adapter";
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	private void popMessageAndSend() {
-		byte[] value = popForValue();
+		@Nullable byte[] value = popForValue();
 
 		Message<Object> message = null;
 
 		if (value != null) {
 			if (this.expectMessage) {
 				try {
-					message = (Message<Object>) this.serializer.deserialize(value);
+					RedisSerializer<?> serializer = this.serializer;
+					if (serializer != null) {
+						message = (Message<Object>) serializer.deserialize(value);
+					}
 				}
 				catch (Exception e) {
 					throw new MessagingException("Deserialization of Message failed.", e);
@@ -230,8 +237,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		}
 	}
 
-	private byte[] popForValue() {
-		byte[] value = null;
+	@SuppressWarnings("NullAway")
+	private @Nullable byte[] popForValue() {
+		@Nullable byte[] value = null;
 		try {
 			if (this.rightPop) {
 				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
@@ -287,7 +295,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	}
 
 	private void restart() {
-		this.taskExecutor.execute(new ListenerTask());
+		Executor executor = this.taskExecutor;
+		Assert.state(executor != null, "'taskExecutor' must not be null");
+		executor.execute(new ListenerTask());
 	}
 
 	@Override
@@ -348,9 +358,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 				if (isActive()) {
 					restart();
 				}
-				else if (RedisQueueMessageDrivenEndpoint.this.stopCallback != null) {
-					RedisQueueMessageDrivenEndpoint.this.stopCallback.run();
-					RedisQueueMessageDrivenEndpoint.this.stopCallback = null;
+				else {
+					Runnable callback = RedisQueueMessageDrivenEndpoint.this.stopCallback;
+					if (callback != null) {
+						callback.run();
+						RedisQueueMessageDrivenEndpoint.this.stopCallback = null;
+					}
 				}
 			}
 		}

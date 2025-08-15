@@ -51,15 +51,16 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.1
  */
-@SuppressWarnings("NullAway")
 public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile String[] topics;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile String[] topicPatterns;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
