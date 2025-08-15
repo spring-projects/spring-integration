@@ -34,6 +34,7 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.lang.Contract;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -122,7 +123,8 @@ public final class MessagingAnnotationUtils {
 	 * @throws MessagingException if more than one of {@link Payload}, {@link Header}
 	 * or {@link Headers} annotations are presented.
 	 */
-	public static @Nullable Annotation findMessagePartAnnotation(Annotation[] annotations, boolean payloads) {
+	@Contract("null, _ -> null")
+	public static @Nullable Annotation findMessagePartAnnotation(Annotation @Nullable [] annotations, boolean payloads) {
 		if (annotations == null || annotations.length == 0) {
 			return null;
 		}

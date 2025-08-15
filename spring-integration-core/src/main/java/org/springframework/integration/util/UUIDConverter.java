@@ -94,6 +94,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		return UUID.nameUUIDFromBytes(input.getBytes(StandardCharsets.UTF_8));
 	}
 
+	@Contract("null -> null; !null -> !null")
 	private static byte @Nullable [] serialize(@Nullable Object object) {
 		if (object == null) {
 			return null;

@@ -561,7 +561,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.logger.debug(() -> "Handling message with correlationKey [" + correlationKey + "]: " + message);
 
 		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
-		Assert.notNull(groupIdUuid, "groupIdUuid must not be null.");
 		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 
 		boolean noOutput = true;
@@ -783,7 +782,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
 		UUID groupId = UUIDConverter.getUUID(correlationKey);
-		Assert.notNull(groupId, "groupId is must not be null");
 		Lock lock = this.lockRegistry.obtain(groupId.toString());
 		boolean removeGroup = true;
 		boolean noOutput = true;
