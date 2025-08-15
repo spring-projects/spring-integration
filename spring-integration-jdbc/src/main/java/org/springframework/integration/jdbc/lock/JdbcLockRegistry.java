@@ -22,7 +22,6 @@ import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -153,9 +152,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 	}
 
 	protected String pathFor(String input) {
-		UUID uuid = UUIDConverter.getUUID(input);
-		Assert.notNull(uuid, "UUID must not be null");
-		return uuid.toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 	@Override

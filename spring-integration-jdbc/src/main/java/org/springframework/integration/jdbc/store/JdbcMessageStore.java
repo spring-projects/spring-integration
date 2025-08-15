@@ -772,9 +772,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	private String getKey(Object input) {
-		UUID uuid = UUIDConverter.getUUID(input);
-		Assert.notNull(uuid, "UUID must not be null");
-		return uuid.toString();
+		return UUIDConverter.getUUID(input).toString();
 	}
 
 }

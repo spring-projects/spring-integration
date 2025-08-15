@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Contract;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -47,6 +48,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	@Override
+	@Contract("null -> null; !null -> !null")
 	public @Nullable UUID convert(@Nullable Object source) {
 		return getUUID(source);
 	}
@@ -65,6 +67,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * @param input an Object
 	 * @return a UUID constructed from the input
 	 */
+	@Contract("null -> null; !null -> !null")
 	public static @Nullable UUID getUUID(@Nullable Object input) {
 		if (input == null) {
 			return null;

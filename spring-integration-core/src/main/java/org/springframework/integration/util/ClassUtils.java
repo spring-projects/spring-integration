@@ -188,9 +188,9 @@ public abstract class ClassUtils {
 				closestMatch = candidate;
 			}
 			else if (failOnTie && typeDiffWeight < Integer.MAX_VALUE && (typeDiffWeight == minTypeDiffWeight)) {
-				Objects.requireNonNull(closestMatch, "closestMatch should not be null at this point");
 				throw new IllegalStateException("Unresolvable ambiguity while attempting to find closest match for [" +
-						type.getName() + "]. Candidate types [" + closestMatch.getName() + "] and [" +
+						type.getName() + "]. Candidate types [" +
+						(closestMatch != null ? closestMatch.getName() : "unknown") + "] and [" +
 						candidate.getName() + "] have equal weight.");
 			}
 		}
