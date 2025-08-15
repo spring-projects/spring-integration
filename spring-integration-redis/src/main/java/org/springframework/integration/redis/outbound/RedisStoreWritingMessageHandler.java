@@ -76,17 +76,17 @@ import org.springframework.util.NumberUtils;
  */
 public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression zsetIncrementScoreExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.ZSET_INCREMENT_SCORE));
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression keyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.KEY));
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Lambda can return null from getHeaders().get()
 	private Expression mapKeyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.MAP_KEY));
