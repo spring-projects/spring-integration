@@ -188,8 +188,11 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	private UnicastingDispatcher newPartition() {
 		ExecutorService executor = Executors.newSingleThreadExecutor(this.threadFactory);
 		this.executors.add(executor);
-		DelegateDispatcher delegateDispatcher =
-				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));
+
+		Executor effectiveExecutor = this.errorHandler != null
+				? new ErrorHandlingTaskExecutor(executor, this.errorHandler)
+				: executor;
+		DelegateDispatcher delegateDispatcher = new DelegateDispatcher(effectiveExecutor);
 		delegateDispatcher.setFailoverStrategy(this.failoverStrategy);
 		delegateDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		delegateDispatcher.setMessageHandlingTaskDecorator(this.messageHandlingTaskDecorator);

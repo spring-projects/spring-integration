@@ -74,7 +74,7 @@ public final class IntegrationReactiveUtils {
 	public static final boolean isContextPropagationPresent = ClassUtils.isPresent(
 			"io.micrometer.context.ContextSnapshot", IntegrationReactiveUtils.class.getClassLoader());
 
-	private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY =
+	private static final @Nullable ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY =
 			isContextPropagationPresent ? ContextSnapshotFactory.builder().build() : null;
 
 	private IntegrationReactiveUtils() {
@@ -89,6 +89,10 @@ public final class IntegrationReactiveUtils {
 	 * @since 6.2.5
 	 */
 	public static ContextView captureReactorContext() {
+		if (CONTEXT_SNAPSHOT_FACTORY == null) {
+			return Context.empty();
+		}
+
 		return isContextPropagationPresent
 				? CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty())
 				: Context.empty();
@@ -103,8 +107,10 @@ public final class IntegrationReactiveUtils {
 	 * Or null if there is no {@code io.micrometer:context-propagation} library is on classpath.
 	 * @since 6.2.5
 	 */
-	@Nullable
-	public static AutoCloseable setThreadLocalsFromReactorContext(ContextView context) {
+	public static @Nullable AutoCloseable setThreadLocalsFromReactorContext(ContextView context) {
+		if (CONTEXT_SNAPSHOT_FACTORY == null) {
+			return null;
+		}
 		return isContextPropagationPresent ? CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context) : null;
 	}
 

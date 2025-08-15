@@ -34,6 +34,7 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.lang.Contract;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -67,7 +68,7 @@ public final class MessagingAnnotationUtils {
 	 * @return The value.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T resolveAttribute(List<Annotation> annotations, String name, Class<T> requiredType) {
+	public static @Nullable <T> T resolveAttribute(List<Annotation> annotations, String name, Class<T> requiredType) {
 		for (Annotation annotation : annotations) {
 			Object value = AnnotationUtils.getValue(annotation, name);
 			if (requiredType.isInstance(value) && hasValue(value)) {
@@ -83,7 +84,7 @@ public final class MessagingAnnotationUtils {
 	 * @return {@code false} when {@code annotationValue} is null, an empty string, an empty array, or any annotation
 	 * whose 'value' field is set to {@link ValueConstants#DEFAULT_NONE} - {@code true} otherwise
 	 */
-	public static boolean hasValue(Object annotationValue) {
+	public static boolean hasValue(@Nullable Object annotationValue) {
 		if (annotationValue == null) {
 			return false;
 		}
@@ -100,7 +101,9 @@ public final class MessagingAnnotationUtils {
 				!ValueConstants.DEFAULT_NONE.equals(AnnotationUtils.getValue((Annotation) annotationValue));
 	}
 
-	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {
+	public static @Nullable Method findAnnotatedMethod(Object target,
+		final Class<? extends Annotation> annotationType) {
+
 		final AtomicReference<Method> reference = new AtomicReference<>();
 
 		ReflectionUtils.doWithMethods(AopProxyUtils.ultimateTargetClass(target),
@@ -120,7 +123,8 @@ public final class MessagingAnnotationUtils {
 	 * @throws MessagingException if more than one of {@link Payload}, {@link Header}
 	 * or {@link Headers} annotations are presented.
 	 */
-	public static Annotation findMessagePartAnnotation(Annotation[] annotations, boolean payloads) {
+	@Contract("null, _ -> null")
+	public static @Nullable Annotation findMessagePartAnnotation(Annotation @Nullable [] annotations, boolean payloads) {
 		if (annotations == null || annotations.length == 0) {
 			return null;
 		}

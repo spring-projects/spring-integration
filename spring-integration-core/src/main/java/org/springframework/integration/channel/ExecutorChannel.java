@@ -115,6 +115,8 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 		Assert.state(getDispatcher().getHandlerCount() == 0, "You cannot subscribe() until the channel "
 				+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 		super.onInit();
+
+		Assert.state(this.executor != null, "Executor must be configured");
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);

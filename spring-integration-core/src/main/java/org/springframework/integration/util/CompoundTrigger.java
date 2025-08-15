@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 
 import java.time.Instant;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
@@ -38,7 +40,7 @@ public class CompoundTrigger implements Trigger {
 
 	private volatile Trigger primary;
 
-	private volatile Trigger override;
+	private volatile @Nullable Trigger override;
 
 	/**
 	 * Construct a compound trigger with the supplied primary trigger.
@@ -62,12 +64,12 @@ public class CompoundTrigger implements Trigger {
 	 * primary trigger.
 	 * @param override the override trigger, or null.
 	 */
-	public void setOverride(Trigger override) {
+	public void setOverride(@Nullable Trigger override) {
 		this.override = override;
 	}
 
 	@Override
-	public Instant nextExecution(TriggerContext triggerContext) {
+	public @Nullable Instant nextExecution(TriggerContext triggerContext) {
 		if (this.override != null) {
 			return this.override.nextExecution(triggerContext);
 		}

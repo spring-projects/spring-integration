@@ -19,6 +19,8 @@ package org.springframework.integration.util;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Thin wrapper around a Semaphore that allows to create a potentially unlimited upper bound
  * to by used in buffers of messages (e.g. a QueueChannel or a MessageStore).
@@ -32,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class UpperBound {
 
-	private final Semaphore semaphore;
+	private final @Nullable Semaphore semaphore;
 
 	/**
 	 * Create an UpperBound with the given capacity. If the given capacity is less than 1

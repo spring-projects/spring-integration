@@ -23,7 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Contract;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -45,7 +48,8 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	@Override
-	public UUID convert(Object source) {
+	@Contract("null -> null; !null -> !null")
+	public @Nullable UUID convert(@Nullable Object source) {
 		return getUUID(source);
 	}
 
@@ -63,7 +67,8 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * @param input an Object
 	 * @return a UUID constructed from the input
 	 */
-	public static UUID getUUID(Object input) {
+	@Contract("null -> null; !null -> !null")
+	public static @Nullable UUID getUUID(@Nullable Object input) {
 		if (input == null) {
 			return null;
 		}
@@ -89,7 +94,8 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		return UUID.nameUUIDFromBytes(input.getBytes(StandardCharsets.UTF_8));
 	}
 
-	private static byte[] serialize(Object object) {
+	@Contract("null -> null; !null -> !null")
+	private static byte @Nullable [] serialize(@Nullable Object object) {
 		if (object == null) {
 			return null;
 		}
