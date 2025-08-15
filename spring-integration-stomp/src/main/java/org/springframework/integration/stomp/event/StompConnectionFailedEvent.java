@@ -16,6 +16,8 @@
 
 package org.springframework.integration.stomp.event;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * The {@link StompIntegrationEvent} implementation for the failed connection exceptions.
  *
@@ -25,7 +27,7 @@ package org.springframework.integration.stomp.event;
 @SuppressWarnings("serial")
 public class StompConnectionFailedEvent extends StompIntegrationEvent {
 
-	public StompConnectionFailedEvent(Object source, Throwable cause) {
+	public StompConnectionFailedEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}
 

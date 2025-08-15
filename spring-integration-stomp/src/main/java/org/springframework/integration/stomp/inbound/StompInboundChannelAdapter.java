@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
@@ -39,7 +41,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -82,13 +83,14 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	private final Lock destinationLock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private Class<?> payloadType = String.class;
 
 	private HeaderMapper<StompHeaders> headerMapper = new StompHeaderMapper();
 
-	private volatile StompSession stompSession;
+	private volatile @Nullable StompSession stompSession;
 
 	public StompInboundChannelAdapter(StompSessionManager stompSessionManager, String... destinations) {
 		Assert.notNull(stompSessionManager, "'stompSessionManager' is required.");
@@ -248,14 +250,14 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		}
 
 		@Override
-		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
+		public void handleException(StompSession session, @Nullable StompCommand command, StompHeaders headers, byte[] payload,
 				Throwable exception) {
 
 			String exceptionMessage = "STOMP Frame handling error in the [" + StompInboundChannelAdapter.this + ']';
 
 			MessageChannel errorChannel = getErrorChannel();
 
-			if (errorChannel != null) {
+			if (command != null && errorChannel != null) {
 				StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(command);
 				headerAccessor.copyHeaders(StompInboundChannelAdapter.this.headerMapper.toHeaders(headers));
 				Message<byte[]> failedMessage =

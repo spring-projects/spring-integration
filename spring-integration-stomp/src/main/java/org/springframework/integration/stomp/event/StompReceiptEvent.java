@@ -16,6 +16,8 @@
 
 package org.springframework.integration.stomp.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
 
@@ -31,18 +33,19 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 @SuppressWarnings("serial")
 public class StompReceiptEvent extends StompIntegrationEvent {
 
-	private final String destination;
+	private final @Nullable String destination;
 
-	private final String receiptId;
+	private final @Nullable String receiptId;
 
 	private final StompCommand stompCommand;
 
 	private final boolean lost;
 
-	private Message<?> message;
+	private @Nullable Message<?> message;
 
-	public StompReceiptEvent(Object source, String destination, String receiptId, StompCommand stompCommand,
-			boolean lost) {
+	public StompReceiptEvent(Object source, @Nullable String destination, @Nullable String receiptId,
+		StompCommand stompCommand, boolean lost) {
+
 		super(source);
 		this.destination = destination;
 		this.receiptId = receiptId;
@@ -50,11 +53,11 @@ public class StompReceiptEvent extends StompIntegrationEvent {
 		this.lost = lost;
 	}
 
-	public String getDestination() {
+	public @Nullable String getDestination() {
 		return this.destination;
 	}
 
-	public String getReceiptId() {
+	public @Nullable String getReceiptId() {
 		return this.receiptId;
 	}
 
@@ -66,7 +69,7 @@ public class StompReceiptEvent extends StompIntegrationEvent {
 		return this.lost;
 	}
 
-	public Message<?> getMessage() {
+	public @Nullable Message<?> getMessage() {
 		return this.message;
 	}
 
