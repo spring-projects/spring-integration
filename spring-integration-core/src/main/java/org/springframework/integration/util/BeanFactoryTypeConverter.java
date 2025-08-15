@@ -40,6 +40,7 @@ import org.springframework.util.ClassUtils;
  * @author Soby Chacko
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
@@ -86,7 +87,11 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	}
 
 	@Override
-	public boolean canConvert(TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
+	public boolean canConvert(@Nullable TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
+		if (sourceTypeDescriptor == null) {
+			return true;
+		}
+
 		if (this.conversionService.canConvert(sourceTypeDescriptor, targetTypeDescriptor)) {
 			return true;
 		}
@@ -97,7 +102,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	}
 
 	@Override // NOSONAR
-	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
+	public @Nullable Object convertValue(@Nullable Object value, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		// Echoes org.springframework.expression.common.ExpressionUtils.convertTypedValue()
 		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {
 			return null;
@@ -120,19 +125,19 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			return this.conversionService.convert(value, sourceType, targetType);
 		}
 
-		Object editorResult = valueFromEditorIfAny(value, sourceType.getType(), targetType);
-
-		if (editorResult == null) {
-			synchronized (this.delegate) {
-				return this.delegate.convertIfNecessary(value, targetType.getType());
+		if (sourceType != null) {
+			Object editorResult = valueFromEditorIfAny(value, sourceType.getType(), targetType);
+			if (editorResult != null) {
+				return editorResult;
 			}
 		}
-		else {
-			return editorResult;
+
+		synchronized (this.delegate) {
+			return this.delegate.convertIfNecessary(value, targetType.getType());
 		}
 	}
 
-	private PropertyEditor getDefaultEditor(Class<?> sourceType) {
+	private @Nullable PropertyEditor getDefaultEditor(Class<?> sourceType) {
 		PropertyEditor defaultEditor;
 		if (this.haveCalledDelegateGetDefaultEditor) {
 			defaultEditor = this.delegate.getDefaultEditor(sourceType);
@@ -147,8 +152,11 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		return defaultEditor;
 	}
 
-	@Nullable
-	private Object valueFromEditorIfAny(Object value, Class<?> sourceClass, TypeDescriptor targetType) {
+	private @Nullable Object valueFromEditorIfAny(@Nullable Object value, @Nullable Class<?> sourceClass, TypeDescriptor targetType) {
+		if (value == null || sourceClass == null) {
+			return null;
+		}
+
 		if (!String.class.isAssignableFrom(sourceClass)) {
 			PropertyEditor editor = this.delegate.findCustomEditor(sourceClass, null);
 			if (editor == null) {

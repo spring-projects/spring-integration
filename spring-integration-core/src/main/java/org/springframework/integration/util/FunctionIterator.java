@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
  */
 public class FunctionIterator<T, V> implements CloseableIterator<V> {
 
-	private final AutoCloseable closeable;
+	private final @Nullable AutoCloseable closeable;
 
 	private final Iterator<T> iterator;
 

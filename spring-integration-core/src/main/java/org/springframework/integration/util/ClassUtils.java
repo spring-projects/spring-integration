@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -46,12 +47,14 @@ public abstract class ClassUtils {
 	/**
 	 * The {@link Function#apply(Object)} method object.
 	 */
+	@SuppressWarnings("NullAway") // Reflection
 	public static final Method FUNCTION_APPLY_METHOD =
 			ReflectionUtils.findMethod(Function.class, "apply", (Class<?>[]) null);
 
 	/**
 	 * The {@link Supplier#get()} method object.
 	 */
+	@SuppressWarnings("NullAway") // Reflection
 	public static final Method SUPPLIER_GET_METHOD =
 			ReflectionUtils.findMethod(Supplier.class, "get", (Class<?>[]) null);
 
@@ -73,17 +76,17 @@ public abstract class ClassUtils {
 	/**
 	 * The {@code kotlin.jvm.functions.Function0} class object.
 	 */
-	public static final Class<?> KOTLIN_FUNCTION_0_CLASS;
+	public static final @Nullable Class<?> KOTLIN_FUNCTION_0_CLASS;
 
 	/**
 	 * The {@code kotlin.jvm.functions.Function0#invoke} method object.
 	 */
-	public static final Method KOTLIN_FUNCTION_0_INVOKE_METHOD;
+	public static final @Nullable Method KOTLIN_FUNCTION_0_INVOKE_METHOD;
 
 	/**
 	 * The {@code kotlin.jvm.functions.Function1} class object.
 	 */
-	public static final Class<?> KOTLIN_FUNCTION_1_CLASS;
+	public static final @Nullable Class<?> KOTLIN_FUNCTION_1_CLASS;
 
 	static {
 		PRIMITIVE_WRAPPER_TYPE_MAP.put(Boolean.class, boolean.class);
@@ -107,7 +110,9 @@ public abstract class ClassUtils {
 			ReflectionUtils.rethrowRuntimeException(e);
 		}
 
-		SELECTOR_ACCEPT_METHOD = ReflectionUtils.findMethod(genericSelectorClass, "accept", (Class<?>[]) null);
+		SELECTOR_ACCEPT_METHOD = Objects.requireNonNull(
+				ReflectionUtils.findMethod(genericSelectorClass, "accept", (Class<?>[]) null),
+				"Could not find 'accept' method on GenericSelector");
 
 		Class<?> genericTransformerClass = null;
 		try {
@@ -119,8 +124,9 @@ public abstract class ClassUtils {
 			ReflectionUtils.rethrowRuntimeException(e);
 		}
 
-		TRANSFORMER_TRANSFORM_METHOD =
-				ReflectionUtils.findMethod(genericTransformerClass, "transform", (Class<?>[]) null);
+		TRANSFORMER_TRANSFORM_METHOD = Objects.requireNonNull(
+				ReflectionUtils.findMethod(genericTransformerClass, "transform", (Class<?>[]) null),
+				"Could not find 'transform' method on GenericTransformer");
 
 		Class<?> genericHandlerClass = null;
 		try {
@@ -132,7 +138,9 @@ public abstract class ClassUtils {
 			ReflectionUtils.rethrowRuntimeException(e);
 		}
 
-		HANDLER_HANDLE_METHOD = ReflectionUtils.findMethod(genericHandlerClass, "handle", (Class<?>[]) null);
+		HANDLER_HANDLE_METHOD = Objects.requireNonNull(
+				ReflectionUtils.findMethod(genericHandlerClass, "handle", (Class<?>[]) null),
+				"Could not find 'handle' method on GenericHandler");
 
 		if (KotlinDetector.isKotlinPresent()) {
 			Class<?> kotlinClass = null;
@@ -170,7 +178,7 @@ public abstract class ClassUtils {
 		}
 	}
 
-	public static Class<?> findClosestMatch(Class<?> type, Set<Class<?>> candidates, boolean failOnTie) {
+	public static @Nullable Class<?> findClosestMatch(Class<?> type, Set<Class<?>> candidates, boolean failOnTie) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		Class<?> closestMatch = null;
 		for (Class<?> candidate : candidates) {
@@ -180,6 +188,7 @@ public abstract class ClassUtils {
 				closestMatch = candidate;
 			}
 			else if (failOnTie && typeDiffWeight < Integer.MAX_VALUE && (typeDiffWeight == minTypeDiffWeight)) {
+				Objects.requireNonNull(closestMatch, "closestMatch should not be null at this point");
 				throw new IllegalStateException("Unresolvable ambiguity while attempting to find closest match for [" +
 						type.getName() + "]. Candidate types [" + closestMatch.getName() + "] and [" +
 						candidate.getName() + "] have equal weight.");

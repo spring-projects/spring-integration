@@ -54,8 +54,10 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private boolean simpleEvaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile EvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();

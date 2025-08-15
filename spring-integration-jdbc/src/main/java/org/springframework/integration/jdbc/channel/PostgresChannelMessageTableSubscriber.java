@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -298,7 +299,9 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	private static String getKey(Object input) {
-		return UUIDConverter.getUUID(input).toString();
+		UUID uuid = UUIDConverter.getUUID(input);
+		Assert.notNull(uuid, "UUID must not be null");
+		return uuid.toString();
 	}
 
 	/**

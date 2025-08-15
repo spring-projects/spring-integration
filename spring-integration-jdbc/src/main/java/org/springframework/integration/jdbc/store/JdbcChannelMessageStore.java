@@ -481,7 +481,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @return Returns the UUID as String.
 	 */
 	private String getKey(Object input) {
-		return UUIDConverter.getUUID(input).toString();
+		UUID uuid = UUIDConverter.getUUID(input);
+		Assert.notNull(uuid, "UUID must not be null");
+		return uuid.toString();
 	}
 
 	/**
