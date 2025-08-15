@@ -19,6 +19,8 @@ package org.springframework.integration.stomp;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.util.Assert;
@@ -37,17 +39,20 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
  */
 public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
+	private static final Object[] EMPTY_URI_VARIABLES = new Object[0];
+
 	private final String url;
 
 	private final Object[] uriVariables;
 
-	private volatile WebSocketHttpHeaders handshakeHeaders;
+	private volatile @Nullable WebSocketHttpHeaders handshakeHeaders;
 
 	public WebSocketStompSessionManager(WebSocketStompClient webSocketStompClient, String url, Object... uriVariables) {
 		super(webSocketStompClient);
 		Assert.hasText(url, "'url' must not be empty.");
 		this.url = url;
-		this.uriVariables = uriVariables != null ? Arrays.copyOf(uriVariables, uriVariables.length) : null;
+		this.uriVariables = uriVariables != null ?
+				Arrays.copyOf(uriVariables, uriVariables.length) : EMPTY_URI_VARIABLES;
 	}
 
 	public void setHandshakeHeaders(WebSocketHttpHeaders handshakeHeaders) {

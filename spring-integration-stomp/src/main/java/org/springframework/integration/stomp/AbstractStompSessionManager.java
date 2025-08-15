@@ -31,6 +31,7 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -39,7 +40,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -94,23 +94,24 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private int phase = Integer.MAX_VALUE / 2;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private StompHeaders connectHeaders;
+	private @Nullable StompHeaders connectHeaders;
 
 	private boolean autoReceipt;
 
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private String name;
+	private @Nullable String name;
 
 	private volatile boolean connecting;
 
 	private volatile boolean connected;
 
-	private volatile CompletableFuture<StompSession> stompSessionFuture;
+	private volatile @Nullable CompletableFuture<StompSession> stompSessionFuture;
 
-	private volatile ScheduledFuture<?> reconnectFuture;
+	private volatile @Nullable ScheduledFuture<?> reconnectFuture;
 
 	public AbstractStompSessionManager(StompClientSupport stompClient) {
 		Assert.notNull(stompClient, "'stompClient' is required.");
@@ -226,6 +227,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private CountDownLatch addStompSessionCallback(int currentEpoch) {
+		Assert.notNull(this.stompSessionFuture, "'stompSessionFuture' is required.");
+
 		CountDownLatch connectLatch = new CountDownLatch(1);
 		this.stompSessionFuture.whenComplete((stompSession, throwable) -> {
 					if (throwable == null) {
@@ -254,7 +257,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		return connectLatch;
 	}
 
-	private void scheduleReconnect(Throwable e) {
+	private void scheduleReconnect(@Nullable Throwable e) {
 		this.epoch.incrementAndGet();
 		this.connecting = false;
 		this.connected = false;
@@ -353,7 +356,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		this.compositeStompSessionHandler.removeHandler(handler);
 	}
 
-	protected StompHeaders getConnectHeaders() {
+	protected @Nullable StompHeaders getConnectHeaders() {
 		return this.connectHeaders;
 	}
 
@@ -374,7 +377,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		private final Lock delegatesMonitor = new ReentrantLock();
 
-		private volatile StompSession session;
+		private volatile @Nullable StompSession session;
 
 		CompositeStompSessionHandler() {
 		}
@@ -383,7 +386,11 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.delegatesMonitor.lock();
 			try {
 				if (this.session != null) {
-					delegate.afterConnected(this.session, getConnectHeaders());
+					StompHeaders headers = getConnectHeaders();
+					if (headers == null) {
+						headers = new StompHeaders();
+					}
+					delegate.afterConnected(this.session, headers);
 				}
 				this.delegates.add(delegate);
 			}
@@ -443,7 +450,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		}
 
 		@Override
-		public void handleFrame(StompHeaders headers, Object payload) {
+		public void handleFrame(StompHeaders headers, @Nullable Object payload) {
 			this.delegatesMonitor.lock();
 			try {
 				for (StompSessionHandler delegate : this.delegates) {

@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.expression.EvaluationContext;
@@ -34,7 +36,6 @@ import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.support.StompHeaderMapper;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -72,17 +73,19 @@ public class StompMessageHandler extends AbstractMessageHandler
 
 	private HeaderMapper<StompHeaders> headerMapper = new StompHeaderMapper();
 
-	private Expression destinationExpression;
+	private @Nullable Expression destinationExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-	private volatile StompSession stompSession;
+	private volatile @Nullable StompSession stompSession;
 
-	private volatile Throwable transportError;
+	private volatile @Nullable Throwable transportError;
 
 	private volatile boolean running;
 
@@ -155,6 +158,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 			stompHeaders.setDestination(destination);
 		}
 
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		final StompSession.Receiptable receiptable = session.send(stompHeaders, message.getPayload());
 		if (receiptable.getReceiptId() != null) {
 			final String destination = stompHeaders.getDestination();
@@ -195,7 +199,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 							throw (ConnectionLostException) this.transportError;
 						}
 						else {
-							throw new ConnectionLostException(this.transportError.getMessage());
+							throw new ConnectionLostException("Failed to connect to STOMP broker", this.transportError);
 						}
 					}
 					else {
@@ -239,7 +243,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 		}
 
 		@Override
-		public void handleFrame(StompHeaders headers, Object payload) {
+		public void handleFrame(StompHeaders headers, @Nullable Object payload) {
 			Object thePayload = payload;
 			if (thePayload == null) {
 				thePayload = headers.getFirst(StompHeaderAccessor.STOMP_MESSAGE_HEADER);
