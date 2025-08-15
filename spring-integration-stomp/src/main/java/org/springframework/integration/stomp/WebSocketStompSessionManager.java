@@ -39,8 +39,6 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
  */
 public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
-	private static final Object[] EMPTY_URI_VARIABLES = new Object[0];
-
 	private final String url;
 
 	private final Object[] uriVariables;
@@ -52,7 +50,7 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 		Assert.hasText(url, "'url' must not be empty.");
 		this.url = url;
 		this.uriVariables = uriVariables != null ?
-				Arrays.copyOf(uriVariables, uriVariables.length) : EMPTY_URI_VARIABLES;
+				Arrays.copyOf(uriVariables, uriVariables.length) : new Object[0];
 	}
 
 	public void setHandshakeHeaders(WebSocketHttpHeaders handshakeHeaders) {
