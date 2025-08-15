@@ -57,7 +57,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-@SuppressWarnings({"rawtypes", "NullAway"})
+@SuppressWarnings("rawtypes")
 public class SubscribableRedisChannel extends AbstractMessageChannel
 		implements BroadcastCapableChannel, ManageableSmartLifecycle {
 
@@ -71,11 +71,12 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private @Nullable Executor taskExecutor;
 
+	@SuppressWarnings("NullAway.Init")
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
-	private RedisSerializer<?> serializer = new StringRedisSerializer();
+	private @Nullable RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private MessageConverter messageConverter = new SimpleMessageConverter();
+	private @Nullable MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile @Nullable Integer maxSubscribers;
 
@@ -127,7 +128,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long arg1) {
-		Object value = this.messageConverter.fromMessage(message, Object.class);
+		MessageConverter converter = this.messageConverter;
+		Assert.state(converter != null, "'messageConverter' must be configured");
+		Object value = converter.fromMessage(message, Object.class);
 		this.redisTemplate.convertAndSend(this.topicName, value); // NOSONAR - null can be sent
 		return true;
 	}
@@ -144,6 +147,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		if (this.messageConverter == null) {
 			this.messageConverter = new SimpleMessageConverter();
 		}
+		Assert.state(this.messageConverter != null, "'messageConverter' must be configured");
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.messageConverter instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(beanFactory);
@@ -160,7 +164,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		}
 		this.container.setTaskExecutor(this.taskExecutor);
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
-		adapter.setSerializer(this.serializer);
+		if (this.serializer != null) {
+			adapter.setSerializer(this.serializer);
+		}
 		adapter.afterPropertiesSet();
 		this.container.addMessageListener(adapter, new ChannelTopic(this.topicName));
 		this.container.afterPropertiesSet();
@@ -219,7 +225,15 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 		@SuppressWarnings({"unused"})
 		public void handleMessage(Object payload) {
-			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(payload, null);
+			MessageConverter converter = SubscribableRedisChannel.this.messageConverter;
+			Assert.state(converter != null, "'messageConverter' must be configured");
+			Message<?> siMessage = converter.toMessage(payload, null);
+			if (siMessage == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("MessageConverter returned null for payload: " + payload);
+				}
+				return;
+			}
 			try {
 				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}

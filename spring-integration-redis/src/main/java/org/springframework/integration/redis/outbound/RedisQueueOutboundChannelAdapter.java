@@ -26,6 +26,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -36,7 +37,6 @@ import org.springframework.util.Assert;
  * @author Rainer Frey
  * @since 3.0
  */
-@SuppressWarnings("NullAway")
 public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
@@ -45,6 +45,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final Expression queueNameExpression;
 
+	@Nullable
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile boolean extractPayload = true;
@@ -125,8 +126,10 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 			}
 		}
 
+		Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
-		// TODO: 5.2 assert both not null
+		Assert.notNull(queueName, "'queueName' must not be null");
+		Assert.notNull(value, "'value' must not be null");
 		if (this.leftPush) {
 			this.template.boundListOps(queueName).leftPush(value); // NOSONAR
 		}

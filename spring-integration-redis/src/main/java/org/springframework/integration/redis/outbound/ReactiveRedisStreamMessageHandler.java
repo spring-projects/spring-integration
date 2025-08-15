@@ -46,17 +46,18 @@ import org.springframework.util.Assert;
  *
  * @since 5.4
  */
-@SuppressWarnings("NullAway")
 public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHandler {
 
 	private final Expression streamKeyExpression;
 
 	private final ReactiveRedisConnectionFactory connectionFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private boolean extractPayload = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
 	private RedisSerializationContext<String, ?> serializationContext = RedisSerializationContext.string();

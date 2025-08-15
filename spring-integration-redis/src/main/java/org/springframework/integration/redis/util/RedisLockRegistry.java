@@ -100,7 +100,6 @@ import org.springframework.util.ReflectionUtils;
  * @since 4.0
  *
  */
-@SuppressWarnings("NullAway")
 public final class RedisLockRegistry
 		implements ExpirableLockRegistry<DistributedLock>, DisposableBean, RenewableLockRegistry<DistributedLock> {
 
@@ -147,6 +146,7 @@ public final class RedisLockRegistry
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
 	 * the separate thread when the current one is interrupted.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private Executor executor =
 			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
 
@@ -215,10 +215,12 @@ public final class RedisLockRegistry
 		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
 		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisPubSubLock.RedisUnLockNotifyMessageListener();
 		final Topic topic = new ChannelTopic(this.unLockChannelKey);
-		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
-		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
-		this.redisMessageListenerContainer.setSubscriptionExecutor(this.executor);
-		this.redisMessageListenerContainer.addMessageListener(this.unlockNotifyMessageListener, topic);
+		RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+		RedisPubSubLock.RedisUnLockNotifyMessageListener listener = RedisLockRegistry.this.unlockNotifyMessageListener;
+		container.setConnectionFactory(connectionFactory);
+		container.setTaskExecutor(this.executor);
+		container.setSubscriptionExecutor(this.executor);
+		container.addMessageListener(listener, topic);
 	}
 
 	/**
@@ -758,6 +760,8 @@ public final class RedisLockRegistry
 			}
 			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
+					Assert.state(RedisLockRegistry.this.unlockNotifyMessageListener != null,
+							"'unlockNotifyMessageListener' must be initialized");
 					Future<String> future = RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
 					//DCL
 					if (obtainLock(expireAfter)) {
@@ -775,7 +779,9 @@ public final class RedisLockRegistry
 					}
 				}
 				finally {
-					RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
+					if (RedisLockRegistry.this.unlockNotifyMessageListener != null) {
+						RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
+					}
 				}
 			}
 			return false;
@@ -789,11 +795,17 @@ public final class RedisLockRegistry
 						&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
 
 					if (RedisLockRegistry.this.redisMessageListenerContainer == null) {
-						setupUnlockMessageListener(RedisLockRegistry.this.redisTemplate.getConnectionFactory());
-						RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+						RedisConnectionFactory connectionFactory = RedisLockRegistry.this.redisTemplate.getConnectionFactory();
+						Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+						setupUnlockMessageListener(connectionFactory);
+						RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+						Assert.notNull(container, "RedisMessageListenerContainer must not be null after setup");
+						container.afterPropertiesSet();
 					}
 
-					RedisLockRegistry.this.redisMessageListenerContainer.start();
+					RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+					Assert.notNull(container, "RedisMessageListenerContainer must not be null");
+					container.start();
 					RedisLockRegistry.this.isRunningRedisMessageListenerContainer = true;
 				}
 			}
@@ -807,7 +819,7 @@ public final class RedisLockRegistry
 			private final Map<String, CompletableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
 			@Override
-			public void onMessage(Message message, @Nullable byte[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				final String lockKey = new String(message.getBody());
 				unlockNotify(lockKey);
 			}

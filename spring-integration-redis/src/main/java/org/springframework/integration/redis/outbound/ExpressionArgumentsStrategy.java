@@ -29,6 +29,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -37,17 +38,18 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 4.0
  */
-@SuppressWarnings("NullAway")
 public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFactoryAware, InitializingBean {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Expression[] argumentExpressions;
 
+	@Nullable
 	private EvaluationContext evaluationContext;
 
 	private final boolean useCommandVariable;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public ExpressionArgumentsStrategy(String[] argumentExpressions) {
@@ -77,6 +79,7 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 	@Override
 	public void afterPropertiesSet() {
 		if (this.evaluationContext == null) {
+			Assert.state(this.beanFactory != null, "BeanFactory must not be null");
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
 	}
@@ -86,10 +89,12 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 		EvaluationContext evaluationContextToUse = this.evaluationContext;
 
 		if (this.useCommandVariable) {
+			Assert.state(this.beanFactory != null, "BeanFactory must not be null");
 			evaluationContextToUse = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
 			evaluationContextToUse.setVariable("cmd", command);
 		}
 
+		Assert.state(evaluationContextToUse != null, "'evaluationContext' must not be null");
 		List<Object> arguments = new ArrayList<Object>();
 		for (Expression argumentExpression : this.argumentExpressions) {
 			Object argument = argumentExpression.getValue(evaluationContextToUse, message);

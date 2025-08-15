@@ -27,6 +27,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -38,7 +39,6 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @since 4.0
  */
-@SuppressWarnings("NullAway")
 public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
@@ -47,12 +47,14 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RedisTemplate<?, ?> redisTemplate;
 
+	@Nullable
 	private EvaluationContext evaluationContext;
 
 	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<Object>(Object.class);
 
 	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
 
+	@Nullable
 	private volatile ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
 
 	public RedisOutboundGateway(RedisTemplate<?, ?> redisTemplate) {
@@ -112,7 +114,9 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(command, "The 'command' must not evaluate to 'null'.");
 		byte[][] args = null;

@@ -38,7 +38,6 @@ import org.springframework.util.IdGenerator;
  *
  * @since 4.1
  */
-@SuppressWarnings("NullAway")
 public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";
@@ -55,6 +54,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private boolean extractPayload = true;
 
+	@Nullable
 	private RedisSerializer<?> serializer;
 
 	private boolean serializerExplicitlySet;
@@ -113,6 +113,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 				value = STRING_SERIALIZER.serialize((String) value);
 			}
 			else {
+				Assert.state(this.serializer != null, "'serializer' must not be null");
 				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
 			}
 		}
@@ -136,6 +137,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	@Nullable
 	private Object createReply(byte[] reply) {
+		Assert.state(this.serializer != null, "'serializer' must not be null");
 		Object replyMessage = this.serializer.deserialize(reply);
 		if (replyMessage == null) {
 			return null;

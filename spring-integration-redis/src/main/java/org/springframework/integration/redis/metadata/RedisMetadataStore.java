@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.metadata;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
@@ -38,7 +39,6 @@ import org.springframework.util.Assert;
  *
  * @since 3.0
  */
-@SuppressWarnings("NullAway")
 public class RedisMetadataStore implements ConcurrentMetadataStore {
 
 	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
@@ -123,7 +123,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	 * @param key Must not be null
 	 */
 	@Override
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Object value = this.properties.get(key);
 		if (value != null) {
@@ -133,8 +133,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	@Override
-
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Object removed = this.properties.remove(key);
 		if (removed != null) {
@@ -144,7 +143,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public @Nullable String putIfAbsent(String key, String value) {
 		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		Object oldValue = this.properties.putIfAbsent(key, value);

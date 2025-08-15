@@ -46,6 +46,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
@@ -73,23 +74,26 @@ import org.springframework.util.NumberUtils;
  *
  * @since 2.2
  */
-@SuppressWarnings("NullAway")
 public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
+	@SuppressWarnings("NullAway")
 	private Expression zsetIncrementScoreExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.ZSET_INCREMENT_SCORE));
 
+	@SuppressWarnings("NullAway")
 	private Expression keyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.KEY));
 
+	@SuppressWarnings("NullAway")
 	private Expression mapKeyExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.MAP_KEY));
 
 	private boolean mapKeyExpressionExplicitlySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
@@ -100,6 +104,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private boolean extractPayloadElements = true;
 
+	@Nullable
 	private RedisConnectionFactory connectionFactory;
 
 	private volatile boolean initialized;
@@ -255,6 +260,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 				template.setHashKeySerializer(serializer);
 				this.redisTemplate = template;
 			}
+			Assert.state(this.connectionFactory != null, "'connectionFactory' must not be null");
 			this.redisTemplate.setConnectionFactory(this.connectionFactory);
 			this.redisTemplate.afterPropertiesSet();
 		}
@@ -291,7 +297,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
+		@Nullable String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
 		Assert.hasText(key, () -> "Failed to determine a key for the Redis store based on the message: " + message);
 
 		RedisStore store = createStoreView(key);
@@ -357,7 +363,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private boolean extractZsetIncrementHeader(Message<?> message) {
-		Boolean value = this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
+		@Nullable Boolean value = this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
 		return value != null ? value : false;
 	}
 
@@ -433,7 +439,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private Object determineMapKey(Message<?> message, boolean property) {
-		Object mapKey = this.mapKeyExpression.getValue(this.evaluationContext, message);
+		@Nullable Object mapKey = this.mapKeyExpression.getValue(this.evaluationContext, message);
 		Assert.notNull(mapKey, () -> "Cannot determine a map key for the entry based on the message: " + message);
 		if (property) {
 			Assert.isInstanceOf(String.class, mapKey, "For property, key must be a String");

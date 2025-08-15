@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
@@ -44,7 +46,6 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-@SuppressWarnings("NullAway")
 public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		implements PriorityCapableChannelMessageStore {
 
@@ -100,6 +101,7 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 	}
 
 	@Override
+	@Nullable
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.isInstanceOf(String.class, groupId);
 		List<String> list = sortedKeys((String) groupId);
