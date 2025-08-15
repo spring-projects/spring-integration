@@ -181,7 +181,8 @@ public class SocketSupportTests implements TestApplicationContextAware {
 	@Test
 	public void testNioClientAndServer() throws Exception {
 		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(0);
-		serverConnectionFactory.registerListener(message -> false);
+		serverConnectionFactory.registerListener(message -> {
+		});
 		final AtomicInteger ppSocketCountServer = new AtomicInteger();
 		final AtomicInteger ppServerSocketCountServer = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -404,7 +405,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		server.registerListener(message -> {
 			messages.add(message);
 			latch.countDown();
-			return false;
 		});
 		SSLMapper mapper = new SSLMapper();
 		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -455,7 +455,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 				messages.add(message);
 				latch.countDown();
 			}
-			return false;
 		});
 		server.setTcpSocketSupport(new DefaultTcpSocketSupport(false) {
 
@@ -511,7 +510,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		server.registerListener(message -> {
 			messages.add(message);
 			latch.countDown();
-			return false;
 		});
 		SSLMapper mapper = new SSLMapper();
 		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -530,7 +528,8 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		client.setSslHandshakeTimeout(34);
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
-		client.registerListener(message -> false);
+		client.registerListener(message -> {
+		});
 		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
@@ -580,7 +579,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		server.registerListener(message -> {
 			messages.add(message);
 			latch.countDown();
-			return false;
 		});
 		server.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -633,7 +631,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 				throw new RuntimeException(e);
 			}
 			latch.countDown();
-			return false;
 		});
 		ByteArrayCrLfSerializer deserializer = new ByteArrayCrLfSerializer();
 		deserializer.setMaxMessageSize(120000);
@@ -658,7 +655,6 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		client.registerListener(message -> {
 			messages.add(message);
 			latch.countDown();
-			return false;
 		});
 		client.setDeserializer(deserializer);
 		client.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);

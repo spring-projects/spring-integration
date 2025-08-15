@@ -70,20 +70,17 @@ public class TcpReceivingChannelAdapter
 	private final AtomicInteger activeCount = new AtomicInteger();
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
 				logger.info(() -> "Inbound message ignored; shutting down; " + message);
 			}
-			else {
-				if (isErrorMessage) {
-					/*
-					 * Socket errors are sent here so they can be conveyed to any waiting thread.
-					 * There's not one here; simply ignore.
-					 */
-					return false;
-				}
+			/*
+			 * Socket errors are sent here so they can be conveyed to any waiting thread.
+			 * There's not one here; simply ignore.
+			 */
+			else if (!isErrorMessage) {
 				this.activeCount.incrementAndGet();
 				try {
 					sendMessage(message);
@@ -92,7 +89,6 @@ public class TcpReceivingChannelAdapter
 					this.activeCount.decrementAndGet();
 				}
 			}
-			return false;
 		}
 		finally {
 			String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);

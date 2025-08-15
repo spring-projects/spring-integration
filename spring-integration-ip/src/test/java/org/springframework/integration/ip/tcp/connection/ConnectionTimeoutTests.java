@@ -36,6 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 @LongRunningTest
@@ -66,7 +68,8 @@ public class ConnectionTimeoutTests {
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		client.registerListener(message -> false);
+		client.registerListener(message -> {
+		});
 		client.setSoTimeout(1000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
 		setupClientCallback(client);
@@ -81,7 +84,7 @@ public class ConnectionTimeoutTests {
 	}
 
 	/**
-	 * Ensure we don't timeout on the read side (client) if we sent a message within the
+	 * Ensure we don't time out on the read side (client) if we sent a message within the
 	 * current timeout.
 	 * @throws Exception
 	 */
@@ -94,7 +97,7 @@ public class ConnectionTimeoutTests {
 	}
 
 	/**
-	 * Ensure we don't timeout on the read side (client) if we sent a message within the
+	 * Ensure we don't time out on the read side (client) if we sent a message within the
 	 * current timeout.
 	 * @throws Exception
 	 */
@@ -107,15 +110,14 @@ public class ConnectionTimeoutTests {
 	}
 
 	private void notTimeoutGuts(AbstractServerConnectionFactory server, AbstractClientConnectionFactory client)
-			throws Exception, InterruptedException {
-		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
+			throws Exception {
+		final AtomicReference<Message<?>> reply = new AtomicReference<>();
 		final CountDownLatch replyLatch = new CountDownLatch(1);
 		client.registerListener(message -> {
 			if (!(message instanceof ErrorMessage)) {
 				reply.set(message);
 				replyLatch.countDown();
 			}
-			return false;
 		});
 		client.setSoTimeout(2000);
 		CountDownLatch clientClosedLatch = getCloseLatch(client);
@@ -147,7 +149,7 @@ public class ConnectionTimeoutTests {
 	public void testNetReplyTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		this.setupServerCallbacks(server, 4500);
-		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> reply = new AtomicReference<>();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
@@ -155,7 +157,6 @@ public class ConnectionTimeoutTests {
 			if (!(message instanceof ErrorMessage)) {
 				reply.set(message);
 			}
-			return false;
 		});
 		client.setSoTimeout(2000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
@@ -184,7 +185,7 @@ public class ConnectionTimeoutTests {
 	public void testNioReplyTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		this.setupServerCallbacks(server, 2100);
-		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> reply = new AtomicReference<>();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
@@ -192,7 +193,6 @@ public class ConnectionTimeoutTests {
 			if (!(message instanceof ErrorMessage)) {
 				reply.set(message);
 			}
-			return false;
 		});
 		client.setSoTimeout(1000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
@@ -212,7 +212,7 @@ public class ConnectionTimeoutTests {
 
 	private void setupServerCallbacks(AbstractServerConnectionFactory server, final int serverDelay) {
 		server.setComponentName("serverFactory");
-		final AtomicReference<TcpConnection> serverConnection = new AtomicReference<TcpConnection>();
+		final AtomicReference<TcpConnection> serverConnection = new AtomicReference<>();
 		server.registerListener(message -> {
 			try {
 				Thread.sleep(serverDelay);
@@ -221,7 +221,6 @@ public class ConnectionTimeoutTests {
 			catch (Exception e) {
 				e.printStackTrace();
 			}
-			return false;
 		});
 		server.registerSender(new TcpSender() {
 

@@ -26,6 +26,8 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -55,19 +57,18 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	}
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		if (!this.negotiated) {
 			synchronized (this) {
 				if (!this.negotiated) {
 					Object payload = message.getPayload();
-					logger.debug(this.toString() + " received " + payload);
+					logger.debug(this + " received " + payload);
 					if (this.isServer()) {
 						if (payload.equals(hello)) {
 							try {
-								logger.debug(this.toString() + " sending " + this.world);
+								logger.debug(this + " sending " + this.world);
 								super.send(MessageBuilder.withPayload(world).build());
 								this.negotiated = true;
-								return true;
 							}
 							catch (Exception e) {
 								throw new MessagingException("Negotiation error", e);
@@ -87,18 +88,18 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 							throw new MessagingException("Negotiation error - expected '" + world +
 									"' received " + payload);
 						}
-						return true;
 					}
+					return;
 				}
 			}
 		}
 		try {
-			return super.onMessage(message);
+			super.onMessage(message);
 		}
 		finally {
 			// on the server side, we don't want to close if we are expecting a response
-			if (!(this.isServer() && this.hasRealSender()) && !this.pendingSend) {
-				this.checkDeferredClose();
+			if (!(isServer() && hasRealSender()) && !this.pendingSend) {
+				checkDeferredClose();
 			}
 		}
 	}
@@ -109,7 +110,7 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 		try {
 			if (!this.negotiated) {
 				if (!this.isServer()) {
-					logger.debug(this.toString() + " Sending " + hello);
+					logger.debug(this + " Sending " + hello);
 					super.send(MessageBuilder.withPayload(hello).build());
 					try {
 						this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);

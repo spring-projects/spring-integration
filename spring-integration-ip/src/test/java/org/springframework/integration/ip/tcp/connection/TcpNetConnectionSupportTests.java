@@ -49,7 +49,6 @@ public class TcpNetConnectionSupportTests implements TestApplicationContextAware
 		server.registerListener(m -> {
 			message.set(m);
 			latch1.countDown();
-			return false;
 		});
 		AtomicBoolean firstTime = new AtomicBoolean(true);
 		server.setTcpNetConnectionSupport(new DefaultTcpNetConnectionSupport() {

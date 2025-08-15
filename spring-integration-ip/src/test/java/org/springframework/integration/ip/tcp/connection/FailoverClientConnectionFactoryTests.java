@@ -215,7 +215,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		FailoverClientConnectionFactory fccf = new FailoverClientConnectionFactory(List.of(cf1, cf2));
 
 		CompletableFuture<Message<?>> messageCompletableFuture = new CompletableFuture<>();
-		fccf.registerListener(messageCompletableFuture::complete);
+		fccf.registerListener(value -> messageCompletableFuture.complete(value));
 
 		fccf.start();
 		fccf.getConnection().send(new GenericMessage<>("test"));
@@ -392,10 +392,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(message -> {
-			latch1.countDown();
-			return false;
-		});
+		server1.registerListener(message -> latch1.countDown());
 		server1.afterPropertiesSet();
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -405,20 +402,19 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(message -> {
-			latch2.countDown();
-			return false;
-		});
+		server2.registerListener(message -> latch2.countDown());
 		server2.afterPropertiesSet();
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
 		int port2 = server2.getPort();
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(message -> false);
+		factory1.registerListener(message -> {
+		});
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(message -> false);
+		factory2.registerListener(message -> {
+		});
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
 		cachingFactory1.setBeanName("cache1");
@@ -535,10 +531,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(message -> {
-			latch1.countDown();
-			return false;
-		});
+		server1.registerListener(message -> latch1.countDown());
 		server1.afterPropertiesSet();
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -549,10 +542,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(message -> {
-			latch2.countDown();
-			return false;
-		});
+		server2.registerListener(message -> latch2.countDown());
 		server2.afterPropertiesSet();
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
@@ -560,14 +550,16 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(message -> false);
+		factory1.registerListener(message -> {
+		});
 		factory1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		factory1.afterPropertiesSet();
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(message -> false);
+		factory2.registerListener(message -> {
+		});
 		factory2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		factory2.afterPropertiesSet();

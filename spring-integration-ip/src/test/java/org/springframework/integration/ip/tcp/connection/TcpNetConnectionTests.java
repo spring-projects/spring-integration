@@ -50,7 +50,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -74,7 +74,7 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 		TcpNetConnection connection = new TcpNetConnection(socket, true, false, e -> {
 		}, null);
 		connection.setDeserializer(new ByteArrayStxEtxSerializer());
-		final AtomicReference<Object> log = new AtomicReference<Object>();
+		final AtomicReference<Object> log = new AtomicReference<>();
 		Log logger = mock(Log.class);
 		given(logger.isErrorEnabled()).willReturn(true);
 		doAnswer(invocation -> {
@@ -138,18 +138,17 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 		out.write(baos.toByteArray());
 		out.close();
 
-		final AtomicReference<Message<?>> inboundMessage = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> inboundMessage = new AtomicReference<>();
 		TcpListener listener = message1 -> {
 			if (!(message1 instanceof ErrorMessage)) {
 				inboundMessage.set(message1);
 			}
-			return false;
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.run();
 		assertThat(inboundMessage.get()).isNotNull();
 		assertThat(inboundMessage.get().getPayload()).isEqualTo("foo");
-		assertThat(inboundMessage.get().getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(inboundMessage.get().getHeaders()).containsEntry("bar", "baz");
 	}
 
 	@Test
@@ -165,7 +164,8 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 			}
 		};
 		server.setApplicationEventPublisher(publisher);
-		server.registerListener(message -> false);
+		server.registerListener(message -> {
+		});
 		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
@@ -173,8 +173,8 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port.get());
 		TcpNetConnection connection = new TcpNetConnection(socket, false, false, publisher, "socketClosedNextRead");
 		socket.close();
-		assertThatThrownBy(() -> connection.getPayload())
-				.isInstanceOf(SoftEndOfStreamException.class);
+		assertThatExceptionOfType(SoftEndOfStreamException.class)
+				.isThrownBy(connection::getPayload);
 		server.stop();
 	}
 

@@ -84,11 +84,11 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	private volatile boolean shuttingDown;
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		boolean isErrorMessage = message instanceof ErrorMessage;
 		try {
 			if (this.shuttingDown) {
-				logger.info(() -> "Inbound message ignored; shutting down; " + message.toString());
+				logger.info(() -> "Inbound message ignored; shutting down; " + message);
 			}
 			else {
 				if (isErrorMessage) {
@@ -96,17 +96,16 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 					 * Socket errors are sent here, so they can be conveyed to any waiting thread.
 					 * There's not one here; simply ignore.
 					 */
-					return false;
+					return;
 				}
 				this.activeCount.incrementAndGet();
 				try {
-					return doOnMessage(message);
+					doOnMessage(message);
 				}
 				finally {
 					this.activeCount.decrementAndGet();
 				}
 			}
-			return false;
 		}
 		finally {
 			String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
@@ -121,11 +120,11 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		}
 	}
 
-	private boolean doOnMessage(Message<?> message) {
+	private void doOnMessage(Message<?> message) {
 		Message<?> reply = sendAndReceiveMessage(message);
 		if (reply == null) {
 			logger.debug(() -> "null reply received for " + message + " nothing to send");
-			return false;
+			return;
 		}
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
 		if (connectionId != null) {
@@ -133,7 +132,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			if (connection == null) {
 				publishNoConnectionEvent(message, connectionId);
 				logger.error(() -> "Connection not found when processing reply " + reply + " for " + message);
-				return false;
+				return;
 			}
 			try {
 				connection.send(reply);
@@ -142,7 +141,6 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 				logger.error(ex, "Failed to send reply");
 			}
 		}
-		return false;
 	}
 
 	@SuppressWarnings("NullAway") // Dataflow analysis limitation

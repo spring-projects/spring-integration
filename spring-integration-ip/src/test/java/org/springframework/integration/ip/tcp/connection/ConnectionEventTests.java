@@ -283,7 +283,8 @@ public class ConnectionEventTests implements TestApplicationContextAware {
 
 		});
 		factory.setBeanName("sf");
-		factory.registerListener(message -> false);
+		factory.registerListener(message -> {
+		});
 		LogAccessor logger = spy(TestUtils.getPropertyValue(factory, "logger", LogAccessor.class));
 		doNothing().when(logger).error(any(Throwable.class), anyString());
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);

@@ -91,7 +91,6 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		server.registerListener(msg -> {
 			readThread.set(Thread.currentThread());
 			latch2.countDown();
-			return false;
 		});
 		server.setApplicationEventPublisher(event -> {
 			if (event instanceof TcpConnectionServerListeningEvent) {
@@ -174,7 +173,8 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		assertThat(((TcpConnectionServerListeningEvent) events.get(0)).getPort()).isEqualTo(serverFactory.getPort());
 		int port = serverFactory.getPort();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", port);
-		clientFactory.registerListener(message -> false);
+		clientFactory.registerListener(message -> {
+		});
 		clientFactory.setBeanName("clientFactory");
 		clientFactory.setApplicationEventPublisher(publisher);
 		clientFactory.start();
@@ -306,7 +306,6 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 					connection.get().send(msg);
 				}
 			}
-			return false;
 		});
 		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
@@ -324,7 +323,6 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 					result.set(true);
 				}
 				latch.countDown();
-				return false;
 			});
 			conn.send(new GenericMessage<>("PING"));
 			try {

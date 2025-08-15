@@ -95,9 +95,8 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	}
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		convertAndSend(message);
-		return false;
 	}
 
 }

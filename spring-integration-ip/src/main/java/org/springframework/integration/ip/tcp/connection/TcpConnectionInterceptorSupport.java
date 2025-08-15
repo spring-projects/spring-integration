@@ -194,16 +194,14 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		if (this.tcpListener == null) {
-			if (message instanceof ErrorMessage) {
-				return false;
-			}
-			else {
+			if (!(message instanceof ErrorMessage)) {
 				throw new NoListenerException("No listener registered for message reception");
 			}
+			return;
 		}
-		return this.tcpListener.onMessage(message);
+		this.tcpListener.onMessage(message);
 	}
 
 	@Override
@@ -250,12 +248,16 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 				return;
 			}
 			this.removed = true;
-			if (this.theConnection instanceof TcpConnectionInterceptorSupport tcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
+			if (this.theConnection instanceof TcpConnectionInterceptorSupport tcpConnectionInterceptorSupport
+					&& !this.theConnection.equals(this)) {
+
 				tcpConnectionInterceptorSupport.removeDeadConnection(this);
 			}
 			TcpSender sender = getSender();
-			if (sender != null && this.interceptedSenders != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
-				this.interceptedSenders.forEach(snder -> snder.removeDeadConnection(connection));
+			if (sender != null && this.interceptedSenders != null
+					&& !(sender instanceof TcpConnectionInterceptorSupport)) {
+
+				this.interceptedSenders.forEach(intercepted -> intercepted.removeDeadConnection(connection));
 			}
 		}
 		finally {

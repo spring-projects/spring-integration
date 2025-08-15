@@ -323,35 +323,32 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public boolean onMessage(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		String connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 		if (connectionId == null) {
 			if (unsolicitedSupported(message)) {
-				return false;
+				return;
 			}
 			logger.error("Cannot correlate response - no connection id");
 			publishNoConnectionEvent(message, null, "Cannot correlate response - no connection id");
-			return false;
+			return;
 		}
 		logger.trace(() -> "onMessage: " + connectionId + "(" + message + ")");
 		AsyncReply reply = this.pendingReplies.get(connectionId);
 		if (reply == null) {
-			if (message instanceof ErrorMessage) {
-				/*
-				 * Socket errors are sent here, so they can be conveyed to any waiting thread.
-				 * If there's not one, simply ignore.
-				 */
-				return false;
-			}
-			else {
+			/*
+			 * Socket errors are sent here, so they can be conveyed to any waiting thread.
+			 * If there's not one, simply ignore.
+			 */
+			if (!(message instanceof ErrorMessage)) {
 				if (unsolicitedSupported(message)) {
-					return false;
+					return;
 				}
 				String errorMessage = "Cannot correlate response - no pending reply for " + connectionId;
 				logger.error(errorMessage);
 				publishNoConnectionEvent(message, connectionId, errorMessage);
-				return false;
 			}
+			return;
 		}
 		if (isAsync()) {
 			reply.getFuture().complete(message);
@@ -360,7 +357,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		else {
 			reply.setReply(message);
 		}
-		return false;
 	}
 
 	private boolean unsolicitedSupported(Message<?> message) {
@@ -489,7 +485,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * Sender blocks here until the reply is received, or we time out.
 		 * @return The return message or null if we time out
 		 */
-		@Nullable Message<?> getReply() {
+		@Nullable
+		Message<?> getReply() {
 			try {
 				if (!this.latch.await(this.remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;

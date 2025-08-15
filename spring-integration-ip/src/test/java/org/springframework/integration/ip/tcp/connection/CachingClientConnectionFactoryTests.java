@@ -533,10 +533,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(message -> {
-			latch1.countDown();
-			return false;
-		});
+		server1.registerListener(message -> latch1.countDown());
 		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server1.afterPropertiesSet();
 		server1.start();
@@ -545,10 +542,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(message -> {
-			latch2.countDown();
-			return false;
-		});
+		server2.registerListener(message -> latch2.countDown());
 		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server2.afterPropertiesSet();
 		server2.start();
@@ -557,10 +551,12 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(message -> false);
+		factory1.registerListener(message -> {
+		});
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(message -> false);
+		factory2.registerListener(message -> {
+		});
 		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(factory1);
 		factories.add(factory2);
@@ -606,10 +602,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(message -> {
-			latch1.countDown();
-			return false;
-		});
+		server1.registerListener(message -> latch1.countDown());
 		server1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server1.afterPropertiesSet();
@@ -619,10 +612,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(message -> {
-			latch2.countDown();
-			return false;
-		});
+		server2.registerListener(message -> latch2.countDown());
 		server2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		server2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server2.afterPropertiesSet();
@@ -632,13 +622,15 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(message -> false);
+		factory1.registerListener(message -> {
+		});
 		factory1.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		factory1.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory1.afterPropertiesSet();
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(message -> false);
+		factory2.registerListener(message -> {
+		});
 		factory2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
 		factory2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		factory2.afterPropertiesSet();
@@ -682,7 +674,6 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 			connectionIds.add((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
 			latch1.countDown();
 			latch2.countDown();
-			return false;
 		});
 		in.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		in.afterPropertiesSet();
@@ -738,7 +729,6 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 				}
 				handler.handleMessage(message);
 			}
-			return false;
 		});
 		in.afterPropertiesSet();
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -827,7 +817,6 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 				received.set(message);
 				latch.countDown();
 			}
-			return false;
 		});
 		cachingFactory.start();
 
@@ -844,7 +833,9 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		return connection;
 	}
 
-	private static AbstractClientConnectionFactory createFactoryWithMockConnection(TcpConnectionSupport mockConn) throws Exception {
+	private static AbstractClientConnectionFactory createFactoryWithMockConnection(TcpConnectionSupport mockConn)
+			throws Exception {
+
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.getConnection()).thenReturn(mockConn);
 		when(factory.isActive()).thenReturn(true);
