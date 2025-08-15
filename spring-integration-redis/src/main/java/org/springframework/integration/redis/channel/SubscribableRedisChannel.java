@@ -18,6 +18,8 @@ package org.springframework.integration.redis.channel;
 
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -67,15 +69,16 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private final String topicName;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
+	@SuppressWarnings("NullAway.Init")
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
 	private RedisSerializer<?> serializer = new StringRedisSerializer();
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile Integer maxSubscribers;
+	private volatile @Nullable Integer maxSubscribers;
 
 	private volatile boolean initialized;
 
@@ -218,6 +221,12 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		@SuppressWarnings({"unused"})
 		public void handleMessage(Object payload) {
 			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(payload, null);
+			if (siMessage == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("MessageConverter returned null for payload: " + payload);
+				}
+				return;
+			}
 			try {
 				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}

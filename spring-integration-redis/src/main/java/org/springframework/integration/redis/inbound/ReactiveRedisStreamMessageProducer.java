@@ -39,7 +39,7 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.4
  */
+
 public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private final ReactiveRedisConnectionFactory reactiveConnectionFactory;
@@ -71,11 +72,11 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 					.pollTimeout(Duration.ZERO)
 					.onErrorResume(this::handleReceiverError);
 
-	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
+	private @Nullable ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
-	private StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions;
+	private StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions;
 
-	private StreamReceiver<String, ?> streamReceiver;
+	private @Nullable StreamReceiver<String, ?> streamReceiver;
 
 	private ReadOffset readOffset = ReadOffset.latest();
 
@@ -83,11 +84,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private boolean autoAck = true;
 
-	@Nullable
-	private String consumerGroup;
+	private @Nullable String consumerGroup;
 
-	@Nullable
-	private String consumerName;
+	private @Nullable String consumerName;
 
 	private boolean createConsumerGroup;
 
@@ -165,7 +164,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * @param streamReceiverOptions the desired receiver options
 	 * */
 	public void setStreamReceiverOptions(
-			@Nullable StreamReceiver.StreamReceiverOptions<String, ?> streamReceiverOptions) {
+			StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions) {
 
 		Assert.isTrue(!this.receiverBuilderOptionSet,
 				"The 'streamReceiverOptions' is mutually exclusive with 'pollTimeout', 'batchSize', " +
@@ -286,31 +285,38 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 		Flux<? extends Record<String, ?>> events;
 
+		StreamReceiver<String, ?> receiver = this.streamReceiver;
+		Assert.state(receiver != null, "'streamReceiver' must not be null");
+
 		if (!StringUtils.hasText(this.consumerName)) {
-			events = this.streamReceiver.receive(offset);
+			events = receiver.receive(offset);
 		}
 		else {
 			Mono<?> consumerGroupMono = Mono.empty();
+
+			String group = this.consumerGroup;
+			Assert.state(group != null, "'consumerGroup' must not be null ");
+
 			if (this.createConsumerGroup) {
+				ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
+				Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
 				consumerGroupMono =
-						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
-								.onErrorReturn(this.consumerGroup);
+						ops.createGroup(this.streamKey, group) // NOSONAR
+						.onErrorReturn(group);
 			}
 
-			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName); // NOSONAR
+			Consumer consumer = Consumer.from(group, this.consumerName);
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
 				// for consumer group offset id should be equal to '>'
 				offset = StreamOffset.create(this.streamKey, ReadOffset.lastConsumed());
 			}
 
-			events =
-					this.autoAck
-							? this.streamReceiver.receiveAutoAck(consumer, offset)
-							: this.streamReceiver.receive(consumer, offset);
+			events = this.autoAck
+					? receiver.receiveAutoAck(consumer, offset)
+					: receiver.receive(consumer, offset);
 
 			events = consumerGroupMono.thenMany(events);
-
 		}
 
 		Flux<? extends Message<?>> messageFlux =
@@ -327,12 +333,15 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 						.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
 						.setHeader(RedisHeaders.CONSUMER, this.consumerName);
 
-		if (!this.autoAck && this.consumerGroup != null) {
+		String group = this.consumerGroup;
+		if (!this.autoAck && group != null) {
+			ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
+			Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
 			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
 					(SimpleAcknowledgment) () ->
-							this.reactiveStreamOperations
-									.acknowledge(this.consumerGroup, record)
-									.subscribe());
+							ops
+								.acknowledge(group, record)
+								.subscribe());
 		}
 
 		return builder.build();
@@ -347,9 +356,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 				failedMessage = buildMessageFromRecord(record, false);
 			}
 		}
-		MessagingException conversionException =
-				new MessageConversionException(failedMessage, // NOSONAR
-						"Cannot deserialize Redis Stream Record", error);
+		MessagingException conversionException = (failedMessage != null)
+					? new MessageConversionException(failedMessage, "Cannot deserialize Redis Stream Record", error)
+					: new MessageConversionException("Cannot deserialize Redis Stream Record", error);
 		if (!sendErrorMessageIfNecessary(null, conversionException)) {
 			logger.getLog().error(conversionException);
 		}

@@ -43,6 +43,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
@@ -145,10 +146,11 @@ public final class RedisLockRegistry
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
 	 * the separate thread when the current one is interrupted.
 	 */
+	@SuppressWarnings("NullAway.Init")
 	private Executor executor =
 			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
 
-	private TaskScheduler renewalTaskScheduler;
+	private @Nullable TaskScheduler renewalTaskScheduler;
 
 	/**
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
@@ -163,12 +165,12 @@ public final class RedisLockRegistry
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisPubSubLock.RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
+	private volatile RedisPubSubLock.@Nullable RedisUnLockNotifyMessageListener unlockNotifyMessageListener;
 
 	/**
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
-	private volatile RedisMessageListenerContainer redisMessageListenerContainer;
+	private volatile @Nullable RedisMessageListenerContainer redisMessageListenerContainer;
 
 	/**
 	 * Create a lock registry with the default (60 second) lock expiration.
@@ -213,10 +215,12 @@ public final class RedisLockRegistry
 		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
 		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisPubSubLock.RedisUnLockNotifyMessageListener();
 		final Topic topic = new ChannelTopic(this.unLockChannelKey);
-		this.redisMessageListenerContainer.setConnectionFactory(connectionFactory);
-		this.redisMessageListenerContainer.setTaskExecutor(this.executor);
-		this.redisMessageListenerContainer.setSubscriptionExecutor(this.executor);
-		this.redisMessageListenerContainer.addMessageListener(this.unlockNotifyMessageListener, topic);
+		RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+		RedisPubSubLock.RedisUnLockNotifyMessageListener listener = RedisLockRegistry.this.unlockNotifyMessageListener;
+		container.setConnectionFactory(connectionFactory);
+		container.setTaskExecutor(this.executor);
+		container.setSubscriptionExecutor(this.executor);
+		container.addMessageListener(listener, topic);
 	}
 
 	/**
@@ -402,7 +406,7 @@ public final class RedisLockRegistry
 
 		private volatile long lockedAt;
 
-		private volatile ScheduledFuture<?> renewFuture;
+		private volatile @Nullable ScheduledFuture<?> renewFuture;
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
@@ -756,8 +760,9 @@ public final class RedisLockRegistry
 			}
 			while (time == -1 || expiredTime >= System.currentTimeMillis()) {
 				try {
-					Future<String> future =
-							RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
+					Assert.state(RedisLockRegistry.this.unlockNotifyMessageListener != null,
+							"'unlockNotifyMessageListener' must be initialized");
+					Future<String> future = RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
 					//DCL
 					if (obtainLock(expireAfter)) {
 						return true;
@@ -774,7 +779,9 @@ public final class RedisLockRegistry
 					}
 				}
 				finally {
-					RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
+					if (RedisLockRegistry.this.unlockNotifyMessageListener != null) {
+						RedisLockRegistry.this.unlockNotifyMessageListener.unSubscribeLock(this.lockKey);
+					}
 				}
 			}
 			return false;
@@ -788,11 +795,17 @@ public final class RedisLockRegistry
 						&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
 
 					if (RedisLockRegistry.this.redisMessageListenerContainer == null) {
-						setupUnlockMessageListener(RedisLockRegistry.this.redisTemplate.getConnectionFactory());
-						RedisLockRegistry.this.redisMessageListenerContainer.afterPropertiesSet();
+						RedisConnectionFactory connectionFactory = RedisLockRegistry.this.redisTemplate.getConnectionFactory();
+						Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+						setupUnlockMessageListener(connectionFactory);
+						RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+						Assert.notNull(container, "RedisMessageListenerContainer must not be null after setup");
+						container.afterPropertiesSet();
 					}
 
-					RedisLockRegistry.this.redisMessageListenerContainer.start();
+					RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
+					Assert.notNull(container, "RedisMessageListenerContainer must not be null");
+					container.start();
 					RedisLockRegistry.this.isRunningRedisMessageListenerContainer = true;
 				}
 			}
@@ -806,7 +819,7 @@ public final class RedisLockRegistry
 			private final Map<String, CompletableFuture<String>> notifyMap = new ConcurrentHashMap<>();
 
 			@Override
-			public void onMessage(Message message, byte[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				final String lockKey = new String(message.getBody());
 				unlockNotify(lockKey);
 			}

@@ -27,6 +27,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -41,13 +42,13 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
-	private volatile EvaluationContext evaluationContext;
+	private volatile @Nullable EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private volatile Expression topicExpression;
+	private volatile @Nullable Expression topicExpression;
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -100,9 +101,12 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void handleMessageInternal(Message<?> message) {
+		Assert.state(this.topicExpression != null, "'topicExpression' must not be null");
+		Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
 		String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 		Object value = this.messageConverter.fromMessage(message, Object.class);
-		// TODO: 5.2 assert both not null
+		Assert.notNull(topic, "'topic' must not be null");
+		Assert.notNull(value, "'value' must not be null");
 
 		if (value instanceof byte[]) {
 			this.template.convertAndSend(topic, value); // NOSONAR
