@@ -45,8 +45,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 
 	private final Expression queueNameExpression;
 
-	@Nullable
-	private volatile EvaluationContext evaluationContext;
+	private volatile @Nullable EvaluationContext evaluationContext;
 
 	private volatile boolean extractPayload = true;
 

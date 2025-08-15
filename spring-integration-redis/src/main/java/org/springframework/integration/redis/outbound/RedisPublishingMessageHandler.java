@@ -42,15 +42,13 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
-	@Nullable
-	private volatile EvaluationContext evaluationContext;
+	private volatile @Nullable EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	@Nullable
-	private volatile Expression topicExpression;
+	private volatile @Nullable Expression topicExpression;
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");

@@ -44,8 +44,7 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 
 	private final Expression[] argumentExpressions;
 
-	@Nullable
-	private EvaluationContext evaluationContext;
+	private @Nullable EvaluationContext evaluationContext;
 
 	private final boolean useCommandVariable;
 

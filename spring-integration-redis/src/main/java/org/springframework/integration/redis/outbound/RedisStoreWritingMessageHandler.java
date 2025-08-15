@@ -104,8 +104,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private boolean extractPayloadElements = true;
 
-	@Nullable
-	private RedisConnectionFactory connectionFactory;
+	private @Nullable RedisConnectionFactory connectionFactory;
 
 	private volatile boolean initialized;
 

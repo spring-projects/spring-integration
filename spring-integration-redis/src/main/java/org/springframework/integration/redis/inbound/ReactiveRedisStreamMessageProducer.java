@@ -84,11 +84,9 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private boolean autoAck = true;
 
-	@Nullable
-	private String consumerGroup;
+	private @Nullable String consumerGroup;
 
-	@Nullable
-	private String consumerName;
+	private @Nullable String consumerName;
 
 	private boolean createConsumerGroup;
 

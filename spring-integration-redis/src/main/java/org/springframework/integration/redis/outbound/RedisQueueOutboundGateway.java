@@ -54,8 +54,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private boolean extractPayload = true;
 
-	@Nullable
-	private RedisSerializer<?> serializer;
+	private @Nullable RedisSerializer<?> serializer;
 
 	private boolean serializerExplicitlySet;
 

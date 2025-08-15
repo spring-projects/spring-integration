@@ -47,15 +47,13 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RedisTemplate<?, ?> redisTemplate;
 
-	@Nullable
-	private EvaluationContext evaluationContext;
+	private @Nullable EvaluationContext evaluationContext;
 
 	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<Object>(Object.class);
 
 	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
 
-	@Nullable
-	private volatile ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
+	private volatile @Nullable ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
 
 	public RedisOutboundGateway(RedisTemplate<?, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");

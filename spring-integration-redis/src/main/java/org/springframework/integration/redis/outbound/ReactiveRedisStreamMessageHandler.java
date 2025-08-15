@@ -62,11 +62,9 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	private RedisSerializationContext<String, ?> serializationContext = RedisSerializationContext.string();
 
-	@Nullable
-	private HashMapper<String, ?, ?> hashMapper;
+	private @Nullable HashMapper<String, ?, ?> hashMapper;
 
-	@Nullable
-	private Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction;
+	private @Nullable Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction;
 
 	/**
 	 * Create an instance based on provided {@link ReactiveRedisConnectionFactory} and key for stream.
