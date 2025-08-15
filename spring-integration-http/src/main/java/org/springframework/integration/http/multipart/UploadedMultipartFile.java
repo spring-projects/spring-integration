@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,24 +35,27 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class UploadedMultipartFile implements MultipartFile {
 
-	private final File file;
+	private final @Nullable File file;
 
-	private final byte[] bytes;
+	private final byte @Nullable [] bytes;
 
 	private final long size;
 
-	private final String contentType;
+	private final @Nullable String contentType;
 
 	private final String formParameterName;
 
-	private final String originalFilename;
+	private final @Nullable String originalFilename;
 
-	public UploadedMultipartFile(File file, long size, String contentType, String formParameterName,
-			String originalFilename) {
+	public UploadedMultipartFile(File file, long size, @Nullable String contentType, String formParameterName,
+			@Nullable String originalFilename) {
+
 		Assert.notNull(file, "file must not be null");
 		Assert.hasText(contentType, "contentType is required");
 		Assert.hasText(formParameterName, "formParameterName is required");
@@ -63,8 +68,9 @@ public class UploadedMultipartFile implements MultipartFile {
 		this.originalFilename = originalFilename;
 	}
 
-	public UploadedMultipartFile(byte[] bytes, String contentType, String formParameterName, //NOSONAR - direct storage
-			String originalFilename) {
+	public UploadedMultipartFile(byte[] bytes, @Nullable String contentType, String formParameterName, //NOSONAR - direct storage
+			@Nullable String originalFilename) {
+
 		Assert.notNull(bytes, "bytes must not be null");
 		Assert.hasText(contentType, "contentType is required");
 		Assert.hasText(formParameterName, "formParameterName is required");
@@ -83,6 +89,7 @@ public class UploadedMultipartFile implements MultipartFile {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // file is not null when bytes is
 	public byte[] getBytes() throws IOException {
 		if (this.bytes != null) {
 			return this.bytes; //NOSONAR - direct access
@@ -91,11 +98,12 @@ public class UploadedMultipartFile implements MultipartFile {
 	}
 
 	@Override
-	public String getContentType() {
+	public @Nullable String getContentType() {
 		return this.contentType;
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // file is not null when bytes is
 	public InputStream getInputStream() throws IOException {
 		if (this.bytes != null) {
 			return new ByteArrayInputStream(this.bytes);
@@ -104,7 +112,7 @@ public class UploadedMultipartFile implements MultipartFile {
 	}
 
 	@Override
-	public String getOriginalFilename() {
+	public @Nullable String getOriginalFilename() {
 		return this.originalFilename;
 	}
 
@@ -119,6 +127,7 @@ public class UploadedMultipartFile implements MultipartFile {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // file is not null when bytes is
 	public void transferTo(File dest) throws IOException, IllegalStateException {
 		if (this.bytes != null) {
 			FileCopyUtils.copy(this.bytes, dest);

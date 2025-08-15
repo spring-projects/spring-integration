@@ -76,7 +76,7 @@ public class StandardIntegrationFlow
 
 	private @Nullable MessageChannel inputChannel;
 
-	private @Nullable boolean running;
+	private boolean running;
 
 	@SuppressWarnings("NullAway.Init")
 	private String beanName;
@@ -125,7 +125,7 @@ public class StandardIntegrationFlow
 	}
 
 	@Override
-	public @Nullable String getBeanName() {
+	public String getBeanName() {
 		return this.beanName;
 	}
 

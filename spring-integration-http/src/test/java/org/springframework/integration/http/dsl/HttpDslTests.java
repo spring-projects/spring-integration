@@ -48,6 +48,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -66,8 +67,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
-import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
@@ -123,7 +124,10 @@ public class HttpDslTests {
 
 	@Test
 	public void testHttpProxyFlow() throws Exception {
-		ClientHttpRequestFactory mockRequestFactory = new MockMvcClientHttpRequestFactory(this.mockMvc);
+		RestTestClient restTestClient = RestTestClient.bindTo(this.mockMvc).build();
+		ClientHttpRequestFactory mockRequestFactory =
+				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory",
+						ClientHttpRequestFactory.class);
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
 
 		this.mockMvc.perform(

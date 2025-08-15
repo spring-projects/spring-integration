@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -41,13 +42,13 @@ public class IntegrationGraphControllerParser implements BeanDefinitionParser {
 			new IntegrationGraphControllerRegistrar();
 
 	@Override
-	public BeanDefinition parse(final Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(final Element element, ParserContext parserContext) {
 		this.graphControllerRegistrar.registerBeanDefinitions(
 				new AnnotationMetadataAdapter() {
 
 					@Override
-					public Map<String, Object> getAnnotationAttributes(String annotationType) {
-						return Collections.singletonMap("value", element.getAttribute("path"));
+					public Map<String, @Nullable Object> getAnnotationAttributes(String annotationType) {
+						return Collections.<String, @Nullable Object>singletonMap("value", element.getAttribute("path"));
 					}
 
 					@Override

@@ -235,17 +235,17 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 		Map<String, Object> readHints = Collections.emptyMap();
 		if (adapter != null && adapter.isMultiValue()) {
-			Flux<?> flux = httpMessageReader.read(bodyType, elementType, request, response, readHints);
-			if (getValidator() != null) {
-				flux = flux.doOnNext(this::validate);
-			}
+			Flux<?> flux =
+					httpMessageReader
+							.read(bodyType, elementType, request, response, readHints)
+							.doOnNext(this::validate);
 			return Mono.just(adapter.fromPublisher(flux));
 		}
 		else {
-			Mono<?> mono = httpMessageReader.readMono(bodyType, elementType, request, response, readHints);
-			if (getValidator() != null) {
-				mono = mono.doOnNext(this::validate);
-			}
+			Mono<?> mono =
+					httpMessageReader
+							.readMono(bodyType, elementType, request, response, readHints)
+							.doOnNext(this::validate);
 			if (adapter != null) {
 				return Mono.just(adapter.fromPublisher(mono));
 			}

@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -42,6 +43,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.http.management.IntegrationGraphController;
+import org.springframework.util.Assert;
 
 /**
  * Registers the necessary beans for {@link EnableIntegrationGraphController}.
@@ -65,7 +67,7 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 			return;
 		}
 
-		Map<String, Object> annotationAttributes =
+		Map<String, @Nullable Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnableIntegrationGraphController.class.getName());
 		if (annotationAttributes == null) {
 			annotationAttributes = Collections.emptyMap(); // To satisfy sonar for subsequent references
@@ -76,14 +78,15 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 					new RootBeanDefinition(IntegrationGraphServer.class));
 		}
 
-		String path = (String) annotationAttributes.get("value");
+		String path = (String) annotationAttributes.get(AnnotationUtils.VALUE);
+		Assert.state(path != null, "The 'path' has to be provided on the 'EnableIntegrationGraphController'.");
 		String[] allowedOrigins = (String[]) annotationAttributes.get("allowedOrigins");
 		if (allowedOrigins != null && allowedOrigins.length > 0) {
 			registerControllerCorsConfigurer(registry, path, allowedOrigins);
 		}
 
 		if (!registry.containsBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME)) {
-			registerIntegrationGraphController(registry, (String) annotationAttributes.get(AnnotationUtils.VALUE));
+			registerIntegrationGraphController(registry, path);
 		}
 	}
 

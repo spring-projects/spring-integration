@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -52,8 +54,10 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 
 	private final FormattingConversionService conversionService;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public ControlBusController(ControlBusCommandRegistry controlBusCommandRegistry,
@@ -83,10 +87,10 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 	}
 
 	@PostMapping(name = "invokeCommand", path = "/{command}")
-	public Object invokeCommand(@PathVariable String command,
+	public @Nullable Object invokeCommand(@PathVariable String command,
 			@RequestBody(required = false) List<CommandArgument> arguments) {
 
-		Class<?>[] parameterTypes = new Class<?>[0];
+		Class<?>[] parameterTypes = {};
 		if (!CollectionUtils.isEmpty(arguments)) {
 			parameterTypes = arguments.stream()
 					.map(CommandArgument::parameterType)
@@ -95,7 +99,7 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 
 		Expression commandExpression = this.controlBusCommandRegistry.getExpressionForCommand(command, parameterTypes);
 
-		Object[] parameterValues = null;
+		@Nullable Object[] parameterValues = null;
 
 		if (!CollectionUtils.isEmpty(arguments)) {
 			parameterValues = arguments.stream()

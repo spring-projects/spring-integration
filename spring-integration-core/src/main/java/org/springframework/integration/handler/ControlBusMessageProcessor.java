@@ -74,7 +74,7 @@ public class ControlBusMessageProcessor extends AbstractMessageProcessor<Object>
 		@SuppressWarnings("unchecked")
 		List<Object> arguments =
 				message.getHeaders().get(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.class);
-		Class<?>[] parameterTypes = new Class<?>[0];
+		Class<?>[] parameterTypes = {};
 		if (!CollectionUtils.isEmpty(arguments)) {
 			parameterTypes =
 					arguments.stream()

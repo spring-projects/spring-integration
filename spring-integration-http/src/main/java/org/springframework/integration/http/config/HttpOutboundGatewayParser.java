@@ -58,7 +58,6 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 						.error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
 										"attributes are allowed when a 'header-mapper' has been specified.",
 								parserContext.extractSource(element));
-				return null;
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}

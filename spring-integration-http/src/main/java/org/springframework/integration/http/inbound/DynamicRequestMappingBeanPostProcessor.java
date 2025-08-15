@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.inbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -39,9 +41,10 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 public class DynamicRequestMappingBeanPostProcessor
 		implements BeanFactoryAware, DestructionAwareBeanPostProcessor, SmartInitializingSingleton {
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private IntegrationRequestMappingHandlerMapping integrationRequestMappingHandlerMapping;
+	private @Nullable IntegrationRequestMappingHandlerMapping integrationRequestMappingHandlerMapping;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -64,7 +67,7 @@ public class DynamicRequestMappingBeanPostProcessor
 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-		if (isHandler(bean.getClass())) {
+		if (this.integrationRequestMappingHandlerMapping != null && isHandler(bean.getClass())) {
 			RequestMappingInfo mapping =
 					this.integrationRequestMappingHandlerMapping.getMappingForEndpoint((BaseHttpInboundEndpoint) bean);
 			if (mapping != null) {

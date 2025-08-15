@@ -209,27 +209,29 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 	}
 
-	private volatile String[] outboundHeaderNames = {};
+	@SuppressWarnings("NullAway.Init")
+	private BeanFactory beanFactory;
 
-	private volatile String[] outboundHeaderNamesLowerWithContentType = {};
+	@SuppressWarnings("NullAway.Init")
+	private ConversionService conversionService;
 
-	private volatile String[] inboundHeaderNames = {};
+	private String[] outboundHeaderNames = {};
 
-	private volatile String[] inboundHeaderNamesLower = {};
+	private String[] outboundHeaderNamesLowerWithContentType = {};
 
-	private volatile String[] excludedOutboundStandardRequestHeaderNames = {};
+	private String[] inboundHeaderNames = {};
 
-	private volatile String[] excludedInboundStandardResponseHeaderNames = {};
+	private String[] inboundHeaderNamesLower = {};
 
-	private volatile String userDefinedHeaderPrefix = "";
+	private String[] excludedOutboundStandardRequestHeaderNames = {};
 
-	private volatile boolean isDefaultOutboundMapper;
+	private String[] excludedInboundStandardResponseHeaderNames = {};
 
-	private volatile boolean isDefaultInboundMapper;
+	private String userDefinedHeaderPrefix = "";
 
-	private volatile ConversionService conversionService;
+	private boolean isDefaultOutboundMapper;
 
-	private volatile BeanFactory beanFactory;
+	private boolean isDefaultInboundMapper;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -248,7 +250,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 * @param outboundHeaderNames The outbound header names.
 	 */
-	public void setOutboundHeaderNames(String... outboundHeaderNames) {
+	public void setOutboundHeaderNames(String @Nullable ... outboundHeaderNames) {
 		if (Arrays.equals(HTTP_REQUEST_HEADER_NAMES, outboundHeaderNames)) {
 			this.isDefaultOutboundMapper = true;
 		}
@@ -286,7 +288,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * that is an empty String.
 	 * @param inboundHeaderNamesArg The inbound header names.
 	 */
-	public void setInboundHeaderNames(String... inboundHeaderNamesArg) {
+	public void setInboundHeaderNames(String @Nullable ... inboundHeaderNamesArg) {
 		this.inboundHeaderNames =
 				inboundHeaderNamesArg != null
 						? Arrays.copyOf(inboundHeaderNamesArg, inboundHeaderNamesArg.length)
@@ -336,15 +338,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * empty string.
 	 * @param userDefinedHeaderPrefix The user defined header prefix.
 	 */
-	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
+	public void setUserDefinedHeaderPrefix(@Nullable String userDefinedHeaderPrefix) {
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		if (this.beanFactory != null) {
-			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
-		}
+		this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 	}
 
 	/**
@@ -361,7 +361,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			String name = entry.getKey();
 			Object value = entry.getValue();
 			String lowerName = name.toLowerCase(Locale.ROOT);
-			if (value != null && shouldMapOutboundHeader(lowerName)) {
+			if (shouldMapOutboundHeader(lowerName)) {
 				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
 						!HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName) &&
 						!MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
@@ -809,7 +809,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 	}
 
-	protected Object getHttpHeader(HttpHeaders source, String name) { // NOSONAR
+	protected @Nullable Object getHttpHeader(HttpHeaders source, String name) { // NOSONAR
 		return switch (name.toLowerCase(Locale.ROOT)) {
 			case ACCEPT_LOWER -> source.getAccept();
 			case ACCEPT_CHARSET_LOWER -> source.getAcceptCharset();
@@ -872,8 +872,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				}
 			}
 		}
-		else if (value instanceof Collection<?>) {
-			Collection<?> values = (Collection<?>) value;
+		else if (value instanceof Collection<?> values) {
 			if (!CollectionUtils.isEmpty(values)) {
 				if (values.size() == 1) {
 					target.put(name, values.iterator().next());
@@ -883,14 +882,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				}
 			}
 		}
-		else if (value != null) {
+		else {
 			target.put(name, value);
 		}
 	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
-		String[] outboundHeaderNamesLower = this.outboundHeaderNamesLowerWithContentType;
-
 		if (this.isDefaultInboundMapper) {
 			/*
 			 * When using the default response header name list, suppress the
@@ -905,7 +902,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			}
 		}
 		else if (this.isDefaultOutboundMapper) {
-			outboundHeaderNamesLower = this.outboundHeaderNamesLowerWithContentType;
 			/*
 			 * When using the default request header name list, suppress the
 			 * mapping of exclusions for specific headers.
@@ -918,7 +914,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				return false;
 			}
 		}
-		return shouldMapHeader(headerName, outboundHeaderNamesLower);
+		return shouldMapHeader(headerName, this.outboundHeaderNamesLowerWithContentType);
 	}
 
 	protected final boolean shouldMapInboundHeader(String headerName) {
@@ -928,14 +924,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	/**
 	 * @param headerName the header name (lower cased).
 	 * @param patterns the patterns (lower cased).
-	 * @return true if should be mapped.
+	 * @return true if headerName should be mapped.
 	 */
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
-		if (patterns != null && patterns.length > 0) {
-			for (String pattern : patterns) {
-				if (matchHeaderForPattern(headerName, pattern)) {
-					return true;
-				}
+		for (String pattern : patterns) {
+			if (matchHeaderForPattern(headerName, pattern)) {
+				return true;
 			}
 		}
 		if (this.logger.isDebugEnabled()) {
@@ -973,10 +967,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	@Nullable
 	protected String convertToString(Object value) {
-		if (this.conversionService != null &&
-				this.conversionService.canConvert(TypeDescriptor.forObject(value),
-						TypeDescriptor.valueOf(String.class))) {
-
+		if (this.conversionService.canConvert(TypeDescriptor.forObject(value), TypeDescriptor.valueOf(String.class))) {
 			return this.conversionService.convert(value, String.class);
 		}
 		return null;

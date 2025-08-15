@@ -25,6 +25,7 @@ import javax.xml.transform.Source;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -120,7 +121,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 	private boolean mergeWithDefaultConverters = false;
 
-	private MultipartResolver multipartResolver;
+	private @Nullable MultipartResolver multipartResolver;
 
 	/**
 	 * Construct a gateway that will wait for the {@link #setReplyTimeout(long)
@@ -226,7 +227,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	protected void onInit() {
 		super.onInit();
 		BeanFactory beanFactory = getBeanFactory();
-		if (this.multipartResolver == null && beanFactory != null) {
+		if (this.multipartResolver == null) {
 			try {
 				MultipartResolver resolver = beanFactory.getBean(
 						DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
@@ -251,7 +252,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * @param httpEntity the request entity to use.
 	 * @return The response Message.
 	 */
-	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity) {
+	protected final @Nullable Message<?> doHandleRequest(HttpServletRequest servletRequest,
+			RequestEntity<?> httpEntity) {
+
 		if (isRunning()) {
 			return actualDoHandleRequest(servletRequest, httpEntity);
 		}
@@ -260,7 +263,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		}
 	}
 
-	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity) {
+	private @Nullable Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity) {
 		this.activeCount.incrementAndGet();
 		try {
 			MultiValueMap<String, String> requestParams = convertParameterMap(servletRequest.getParameterMap());
@@ -287,12 +290,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				}
 
 				if (payload == null) {
-					if (httpEntity.getBody() != null) {
-						payload = httpEntity.getBody();
-					}
-					else {
-						payload = requestParams;
-					}
+					Object body = httpEntity.getBody();
+					payload = body != null ? body : requestParams;
 				}
 
 				message = prepareRequestMessage(servletRequest, httpEntity, headers, payload);
@@ -346,9 +345,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 		AbstractIntegrationMessageBuilder<?> messageBuilder;
 
-		if (getValidator() != null) {
-			validate(payload);
-		}
+		validate(payload);
 
 		if (payload instanceof Message<?>) {
 			messageBuilder =
@@ -357,7 +354,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 							.copyHeadersIfAbsent(headers);
 		}
 		else {
-			Assert.state(payload != null, "payload cannot be null");
 			messageBuilder = getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers);

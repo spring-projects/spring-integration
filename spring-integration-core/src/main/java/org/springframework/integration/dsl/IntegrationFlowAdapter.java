@@ -80,7 +80,6 @@ public abstract class IntegrationFlowAdapter
 		this.beanName = name;
 	}
 
-	@Nullable
 	@Override
 	public String getBeanName() {
 		return this.beanName;

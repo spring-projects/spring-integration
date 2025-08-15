@@ -117,7 +117,6 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	@Override
-	@Nullable
 	public String getBeanName() {
 		return this.beanName;
 	}
@@ -127,7 +126,6 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
 	@Override
-	@Nullable
 	public String getComponentName() {
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}

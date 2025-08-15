@@ -118,12 +118,11 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 
 		if (responseContent != null) {
 
-			if (responseContent instanceof HttpStatus) {
-				response.setStatusCode((HttpStatus) responseContent);
+			if (responseContent instanceof HttpStatus httpStatus) {
+				response.setStatusCode(httpStatus);
 			}
 			else {
-				if (responseContent instanceof ResponseEntity) {
-					ResponseEntity<?> responseEntity = (ResponseEntity<?>) responseContent;
+				if (responseContent instanceof ResponseEntity<?> responseEntity) {
 					responseContent = responseEntity.getBody();
 					response.setStatusCode(responseEntity.getStatusCode());
 
