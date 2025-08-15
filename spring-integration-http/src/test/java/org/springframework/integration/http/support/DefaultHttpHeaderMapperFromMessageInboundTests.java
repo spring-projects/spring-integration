@@ -486,6 +486,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeadersWithNonStringValuesAndNoConverter() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames("customHeader*");
+		ConversionService cs = new DefaultConversionService();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("integrationConversionService", cs);
+		mapper.setBeanFactory(beanFactory);
+		mapper.afterPropertiesSet();
 
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<>();

@@ -298,6 +298,11 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		BeanFactory beanFactory = getBeanFactory();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		this.simpleEvaluationContext = ExpressionUtils.createSimpleEvaluationContext(beanFactory);
+
+		if (this.headerMapper instanceof DefaultHttpHeaderMapper defaultHttpHeaderMapper) {
+			defaultHttpHeaderMapper.setBeanFactory(beanFactory);
+			defaultHttpHeaderMapper.afterPropertiesSet();
+		}
 	}
 
 	@Override

@@ -18,6 +18,7 @@ package org.springframework.integration.http.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -42,9 +43,10 @@ import org.springframework.integration.support.management.ControlBusCommandRegis
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class ControlBusControllerConfiguration {
 
-	private static final Log LOGGER = LogFactory.getLog(IntegrationGraphControllerRegistrar.class);
+	private static final Log LOGGER = LogFactory.getLog(ControlBusControllerConfiguration.class);
 
 	@Bean
+	@Nullable
 	ControlBusController controlBusController(ControlBusCommandRegistry controlBusCommandRegistry,
 			ObjectProvider<FormattingConversionService> conversionService) {
 
@@ -56,7 +58,7 @@ public class ControlBusControllerConfiguration {
 
 		controlBusCommandRegistry.setEagerInitialization(true);
 
-		return new ControlBusController(controlBusCommandRegistry, conversionService.getIfUnique());
+		return new ControlBusController(controlBusCommandRegistry, conversionService.getObject());
 	}
 
 }

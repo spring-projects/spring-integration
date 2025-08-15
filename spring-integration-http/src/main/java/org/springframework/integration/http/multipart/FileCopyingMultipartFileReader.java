@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
  * is provided, the Files will be created in the default temporary directory.
  *
  * @author Mark Fisher
- * @author Artyem Bilan
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -38,7 +39,7 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	private static final Log LOGGER = LogFactory.getLog(FileCopyingMultipartFileReader.class);
 
-	private final File directory;
+	private final @Nullable File directory;
 
 	private String prefix = "si_";
 
@@ -57,7 +58,7 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 	 * Files in the given directory.
 	 * @param directory The directory.
 	 */
-	public FileCopyingMultipartFileReader(File directory) {
+	public FileCopyingMultipartFileReader(@Nullable File directory) {
 		this.directory = directory;
 	}
 

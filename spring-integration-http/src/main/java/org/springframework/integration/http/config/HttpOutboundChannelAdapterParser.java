@@ -55,7 +55,6 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			if (StringUtils.hasText(mappedRequestHeaders)) {
 				parserContext.getReaderContext().error("The 'mapped-request-headers' attribute is not " +
 						"allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
-				return null;
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}

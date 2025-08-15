@@ -21,6 +21,8 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -77,7 +79,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	}
 
 	@Override
-	public boolean canRead(Class<?> clazz, MediaType mediaType) {
+	public boolean canRead(Class<?> clazz, @Nullable MediaType mediaType) {
 		if (!(MultiValueMap.class.isAssignableFrom(clazz) || byte[].class.isAssignableFrom(clazz))) {
 			return false;
 		}
@@ -91,18 +93,17 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	}
 
 	@Override
-	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+	public boolean canWrite(Class<?> clazz, @Nullable MediaType mediaType) {
 		return this.wrappedConverter.canWrite(clazz, mediaType);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public MultiValueMap<String, ?> read(Class<? extends MultiValueMap<String, ?>> clazz,
 			HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
 
 		MediaType contentType = inputMessage.getHeaders().getContentType();
 		if (!MediaType.MULTIPART_FORM_DATA.includes(contentType)) {
-			return (MultiValueMap<String, ?>) this.wrappedConverter.read(clazz, inputMessage);
+			return this.wrappedConverter.read(clazz, inputMessage);
 		}
 		Assert.state(inputMessage instanceof MultipartHttpInputMessage,
 				"A request with 'multipart/form-data' Content-Type must be a MultipartHttpInputMessage. "
@@ -127,7 +128,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	}
 
 	@Override
-	public void write(MultiValueMap<String, ?> map, MediaType contentType, HttpOutputMessage outputMessage)
+	public void write(MultiValueMap<String, ?> map, @Nullable MediaType contentType, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 
 		this.wrappedConverter.write(map, contentType, outputMessage);

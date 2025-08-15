@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -43,7 +45,7 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 		this.multipartServletRequest = multipartServletRequest;
 	}
 
-	public MultipartFile getFile(String name) {
+	public @Nullable MultipartFile getFile(String name) {
 		return this.multipartServletRequest.getFile(name);
 	}
 
@@ -72,7 +74,7 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 						LinkedMultiValueMap::addAll);
 	}
 
-	public String getMultipartContentType(String paramOrFileName) {
+	public @Nullable String getMultipartContentType(String paramOrFileName) {
 		return this.multipartServletRequest.getMultipartContentType(paramOrFileName);
 	}
 

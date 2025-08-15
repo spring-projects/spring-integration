@@ -18,6 +18,8 @@ package org.springframework.integration.http.inbound;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -38,7 +40,7 @@ public class RequestMapping {
 
 	private String name = "";
 
-	private String[] pathPatterns;
+	private String @Nullable [] pathPatterns;
 
 	private HttpMethod[] methods = {HttpMethod.GET, HttpMethod.POST};
 
@@ -63,8 +65,8 @@ public class RequestMapping {
 		this.pathPatterns = Arrays.copyOf(pathPatterns, pathPatterns.length);
 	}
 
-	public String[] getPathPatterns() {
-		return this.pathPatterns; // NOSONAR - expose internals
+	public String @Nullable [] getPathPatterns() {
+		return this.pathPatterns;
 	}
 
 	/**
