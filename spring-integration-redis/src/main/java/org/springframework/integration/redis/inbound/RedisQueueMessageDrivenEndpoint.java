@@ -70,7 +70,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private @Nullable Executor taskExecutor;
+	@SuppressWarnings("NullAway.Init")
+	private Executor taskExecutor;
 
 	private @Nullable RedisSerializer<?> serializer;
 
@@ -177,14 +178,13 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 					+ getComponentType());
 		}
 		BeanFactory beanFactory = getBeanFactory();
-		Executor executor = this.taskExecutor;
-		if (!(executor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			MessagePublishingErrorHandler errorHandler =
 					new MessagePublishingErrorHandler(ChannelResolverUtils.getChannelResolver(beanFactory));
 			if (getErrorChannel() != null) {
 				errorHandler.setDefaultErrorChannel(getErrorChannel());
 			}
-			this.taskExecutor = new ErrorHandlingTaskExecutor(executor, errorHandler);
+			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
 	}
 
@@ -193,7 +193,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		return "redis:queue-inbound-channel-adapter";
 	}
 
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings("unchecked")
 	private void popMessageAndSend() {
 		@Nullable byte[] value = popForValue();
 
@@ -202,8 +202,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		if (value != null) {
 			if (this.expectMessage) {
 				try {
-					RedisSerializer<?> serializer = this.serializer;
-					if (serializer != null) {
+					if (this.serializer != null) {
 						message = (Message<Object>) serializer.deserialize(value);
 					}
 				}
@@ -237,7 +236,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		}
 	}
 
-	@SuppressWarnings("NullAway")
 	private @Nullable byte[] popForValue() {
 		@Nullable byte[] value = null;
 		try {
@@ -295,9 +293,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	}
 
 	private void restart() {
-		Executor executor = this.taskExecutor;
-		Assert.state(executor != null, "'taskExecutor' must not be null");
-		executor.execute(new ListenerTask());
+		this.taskExecutor.execute(new ListenerTask());
 	}
 
 	@Override

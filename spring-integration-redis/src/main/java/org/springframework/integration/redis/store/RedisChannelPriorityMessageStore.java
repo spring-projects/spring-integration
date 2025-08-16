@@ -101,8 +101,7 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 	}
 
 	@Override
-	@Nullable
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.isInstanceOf(String.class, groupId);
 		List<String> list = sortedKeys((String) groupId);
 		Message<?> message;

@@ -109,9 +109,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	 */
 	@Override
 	protected @Nullable RedisStore doReceive() {
-		StandardEvaluationContext context = this.evaluationContext;
-		Assert.state(context != null, "'evaluationContext' must not be null");
-		String key = this.keyExpression.getValue(context, String.class);
+		String key = this.keyExpression.getValue(this.evaluationContext, String.class);
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
 		RedisStore store = createStoreView(key);

@@ -71,7 +71,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 
 	private boolean serializerExplicitlySet;
 
-	private @Nullable Executor taskExecutor;
+	@SuppressWarnings("NullAway.Init")
+	private Executor taskExecutor;
 
 	private @Nullable RedisSerializer<?> serializer;
 
@@ -266,9 +267,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		}
 		else {
 			try {
-				RedisSerializer<?> serializer = this.serializer;
-				if (serializer != null) {
-					requestMessage = (Message<Object>) serializer.deserialize(value);
+				if (this.serializer != null) {
+					requestMessage = (Message<Object>) this.serializer.deserialize(value);
 					if (requestMessage == null) {
 						return null;
 					}
@@ -281,7 +281,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		return requestMessage;
 	}
 
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings("unchecked")
 	private @Nullable byte[] extractReplyPayload(Message<?> replyMessage) {
 		byte[] value = null;
 		if (!(replyMessage.getPayload() instanceof byte[])) {
@@ -333,9 +333,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	}
 
 	private void restart() {
-		Executor executor = this.taskExecutor;
-		Assert.state(executor != null, "'taskExecutor' must not be null");
-		executor.execute(new ListenerTask());
+		this.taskExecutor.execute(new ListenerTask());
 	}
 
 	@Override

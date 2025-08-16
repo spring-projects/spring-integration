@@ -72,11 +72,13 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 					.pollTimeout(Duration.ZERO)
 					.onErrorResume(this::handleReceiverError);
 
-	private @Nullable ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
+	@SuppressWarnings("NullAway.Init")
+	private ReactiveStreamOperations<String, ?, ?> reactiveStreamOperations;
 
 	private StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions;
 
-	private @Nullable StreamReceiver<String, ?> streamReceiver;
+	@SuppressWarnings("NullAway.Init")
+	private StreamReceiver<String, ?> streamReceiver;
 
 	private ReadOffset readOffset = ReadOffset.latest();
 
@@ -84,7 +86,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 	private boolean autoAck = true;
 
-	private @Nullable String consumerGroup;
+	@SuppressWarnings("NullAway.Init")
+	private String consumerGroup;
 
 	private @Nullable String consumerName;
 
@@ -285,27 +288,18 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 
 		Flux<? extends Record<String, ?>> events;
 
-		StreamReceiver<String, ?> receiver = this.streamReceiver;
-		Assert.state(receiver != null, "'streamReceiver' must not be null");
-
 		if (!StringUtils.hasText(this.consumerName)) {
-			events = receiver.receive(offset);
+			events = this.streamReceiver.receive(offset);
 		}
 		else {
 			Mono<?> consumerGroupMono = Mono.empty();
-
-			String group = this.consumerGroup;
-			Assert.state(group != null, "'consumerGroup' must not be null ");
-
 			if (this.createConsumerGroup) {
-				ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
-				Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
 				consumerGroupMono =
-						ops.createGroup(this.streamKey, group) // NOSONAR
-						.onErrorReturn(group);
+						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
+						.onErrorReturn(this.consumerGroup);
 			}
 
-			Consumer consumer = Consumer.from(group, this.consumerName);
+			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
 
 			if (offset.getOffset().equals(ReadOffset.latest())) {
 				// for consumer group offset id should be equal to '>'
@@ -313,8 +307,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			}
 
 			events = this.autoAck
-					? receiver.receiveAutoAck(consumer, offset)
-					: receiver.receive(consumer, offset);
+					? this.streamReceiver.receiveAutoAck(consumer, offset)
+					: this.streamReceiver.receive(consumer, offset);
 
 			events = consumerGroupMono.thenMany(events);
 		}
@@ -333,15 +327,12 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 						.setHeader(RedisHeaders.CONSUMER_GROUP, this.consumerGroup)
 						.setHeader(RedisHeaders.CONSUMER, this.consumerName);
 
-		String group = this.consumerGroup;
-		if (!this.autoAck && group != null) {
-			ReactiveStreamOperations<String, ?, ?> ops = this.reactiveStreamOperations;
-			Assert.state(ops != null, "'reactiveStreamOperations' must not be null");
+		if (!this.autoAck && this.consumerGroup != null) {
 			builder.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
 					(SimpleAcknowledgment) () ->
-							ops
-								.acknowledge(group, record)
-								.subscribe());
+							this.reactiveStreamOperations
+									.acknowledge(this.consumerGroup, record)
+									.subscribe());
 		}
 
 		return builder.build();

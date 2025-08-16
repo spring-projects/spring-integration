@@ -47,13 +47,14 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RedisTemplate<?, ?> redisTemplate;
 
-	private @Nullable EvaluationContext evaluationContext;
+	@SuppressWarnings("NullAway.Init")
+	private EvaluationContext evaluationContext;
 
-	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<Object>(Object.class);
+	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<>(Object.class);
 
 	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
 
-	private volatile @Nullable ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
+	private volatile ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
 
 	public RedisOutboundGateway(RedisTemplate<?, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
@@ -90,7 +91,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
 	}
 
-	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {
+	public void setArgumentsStrategy(@Nullable ArgumentsStrategy argumentsStrategy) {
 		this.argumentsStrategy = argumentsStrategy;
 	}
 
@@ -112,9 +113,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	@SuppressWarnings("NullAway")
-	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		final String command = this.commandExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(command, "The 'command' must not evaluate to 'null'.");
 		byte[][] args = null;

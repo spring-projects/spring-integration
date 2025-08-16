@@ -152,8 +152,7 @@ public class RedisChannelMessageStore
 	}
 
 	@Override
-	@Nullable
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
 		return this.redisTemplate.boundListOps(groupId).rightPop();
 	}
 
