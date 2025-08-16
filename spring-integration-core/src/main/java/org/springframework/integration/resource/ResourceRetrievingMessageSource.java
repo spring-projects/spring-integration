@@ -19,6 +19,8 @@ package org.springframework.integration.resource;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
@@ -47,11 +49,13 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 
 	private final String pattern;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile ResourcePatternResolver patternResolver;
 
-	private volatile CollectionFilter<Resource> filter;
+	private volatile @Nullable CollectionFilter<Resource> filter;
 
 	public ResourceRetrievingMessageSource(String pattern) {
 		Assert.hasText(pattern, "pattern must not be empty");
@@ -85,7 +89,7 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 	}
 
 	@Override
-	protected Resource[] doReceive() {
+	protected Resource @Nullable [] doReceive() {
 		try {
 			Resource[] resources = this.patternResolver.getResources(this.pattern);
 			if (ObjectUtils.isEmpty(resources)) {
