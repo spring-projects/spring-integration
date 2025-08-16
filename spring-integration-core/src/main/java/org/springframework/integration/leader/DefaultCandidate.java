@@ -18,6 +18,7 @@ package org.springframework.integration.leader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Simple {@link Candidate} for leadership.
@@ -32,7 +33,7 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private volatile Context leaderContext;
+	private volatile @Nullable Context leaderContext;
 
 	/**
 	 * Instantiate a default candidate.

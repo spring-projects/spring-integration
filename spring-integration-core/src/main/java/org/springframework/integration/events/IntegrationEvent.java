@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationEvent;
 @SuppressWarnings("serial")
 public abstract class IntegrationEvent extends ApplicationEvent {
 
-	protected final Throwable cause; // NOSONAR protected final
+	protected final @Nullable Throwable cause; // NOSONAR protected final
 
 	public IntegrationEvent(Object source) {
 		this(source, null);
@@ -44,8 +44,7 @@ public abstract class IntegrationEvent extends ApplicationEvent {
 		this.cause = cause;
 	}
 
-	@Nullable
-	public Throwable getCause() {
+	public @Nullable Throwable getCause() {
 		return this.cause;
 	}
 

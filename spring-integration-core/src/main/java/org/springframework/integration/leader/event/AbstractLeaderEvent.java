@@ -16,6 +16,8 @@
 
 package org.springframework.integration.leader.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.integration.leader.Context;
 
@@ -30,9 +32,9 @@ import org.springframework.integration.leader.Context;
 @SuppressWarnings("serial")
 public abstract class AbstractLeaderEvent extends ApplicationEvent {
 
-	private final Context context;
+	private final @Nullable Context context;
 
-	private final String role;
+	private final @Nullable String role;
 
 	/**
 	 * Create a new ApplicationEvent.
@@ -50,7 +52,7 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 * @param context the context associated with this event
 	 * @param role the role of the leader
 	 */
-	public AbstractLeaderEvent(Object source, Context context, String role) {
+	public AbstractLeaderEvent(Object source, @Nullable Context context, @Nullable String role) {
 		super(source);
 		this.context = context;
 		this.role = role;
@@ -61,7 +63,7 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 *
 	 * @return the context
 	 */
-	public Context getContext() {
+	public @Nullable Context getContext() {
 		return this.context;
 	}
 
@@ -70,7 +72,7 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 *
 	 * @return the role
 	 */
-	public String getRole() {
+	public @Nullable String getRole() {
 		return this.role;
 	}
 

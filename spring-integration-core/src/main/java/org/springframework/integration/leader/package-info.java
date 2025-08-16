@@ -1,5 +1,5 @@
 /**
  * Temporary package until s-c-c-core is released.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.leader;
