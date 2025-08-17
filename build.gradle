@@ -100,7 +100,7 @@ ext {
     servletApiVersion = '6.0.0'
     smackVersion = '4.4.8'
     springAmqpVersion = '3.2.6'
-    springDataVersion = '2024.1.8'
+    springDataVersion = '2024.1.9'
     springGraphqlVersion = '1.3.6'
     springKafkaVersion = '3.3.8'
     springRetryVersion = '2.0.12'
