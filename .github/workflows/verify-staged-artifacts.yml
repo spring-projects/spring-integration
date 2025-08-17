@@ -19,7 +19,7 @@ jobs:
     steps:
 
       - name: Checkout Samples Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: spring-projects/spring-integration-samples
           ref: ${{ github.ref_name }}
