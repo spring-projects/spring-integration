@@ -171,7 +171,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private Duration assignmentDuration = DEFAULT_ASSIGNMENT_TIMEOUT;
 
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({"this-escape", "removal"})
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
 		this.kafkaTemplate = kafkaTemplate;
