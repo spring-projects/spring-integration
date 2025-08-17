@@ -53,6 +53,7 @@ import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.requestreply.RequestReplyFuture;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
@@ -91,6 +92,7 @@ import org.springframework.util.StringUtils;
  * @author Biju Kunjummen
  * @author Tom van den Berge
  * @author Ryan Riley
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  */
@@ -179,7 +181,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			updateNotPropagatedHeaders(
 					new String[] {KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY}, false);
 		}
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			this.headerMapper = new JsonKafkaHeaderMapper();
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			this.headerMapper = new DefaultKafkaHeaderMapper();
 		}
 		else {

@@ -64,7 +64,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.TopicPartitionOffset;
@@ -73,7 +73,7 @@ import org.springframework.kafka.support.converter.BatchMessagingMessageConverte
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.kafka.support.converter.StringJsonMessageConverter;
+import org.springframework.kafka.support.converter.StringJacksonJsonMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
@@ -108,6 +108,7 @@ import static org.mockito.Mockito.verify;
  * @author Biju Kunjummen
  * @author Cameron Mayfield
  * @author Urs Keller
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  *
@@ -500,7 +501,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
-		adapter.setRecordMessageConverter(new StringJsonMessageConverter());
+		adapter.setRecordMessageConverter(new StringJacksonJsonMessageConverter());
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -514,7 +515,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		template.setDefaultTopic(topic3);
 		Headers kHeaders = new RecordHeaders();
 		MessageHeaders siHeaders = new MessageHeaders(Collections.singletonMap("foo", "bar"));
-		new DefaultKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
+		new JsonKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
 		template.send(new ProducerRecord<>(topic3, 0, 1487694048607L, 1, "{\"bar\":\"baz\"}", kHeaders));
 
 		Message<?> received = out.receive(10000);
@@ -546,7 +547,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = Kafka
 				.messageDrivenChannelAdapter(container, ListenerMode.record)
-				.recordMessageConverter(new StringJsonMessageConverter())
+				.recordMessageConverter(new StringJacksonJsonMessageConverter())
 				.payloadType(Foo.class)
 				.getObject();
 		QueueChannel out = new QueueChannel();
@@ -562,7 +563,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		template.setDefaultTopic(topic6);
 		Headers kHeaders = new RecordHeaders();
 		MessageHeaders siHeaders = new MessageHeaders(Collections.singletonMap("foo", "bar"));
-		new DefaultKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
+		new JsonKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
 
 		template.sendDefault(1, "{\"bar\":\"baz\"}");
 

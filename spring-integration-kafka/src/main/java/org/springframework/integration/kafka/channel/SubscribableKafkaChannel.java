@@ -34,6 +34,7 @@ import org.springframework.kafka.listener.adapter.RecordMessagingMessageListener
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.MessageHandler;
@@ -45,6 +46,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  *
@@ -84,7 +86,16 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		Assert.notNull(factory, "'factory' cannot be null");
 		this.factory = factory;
 
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			var messageConverter = new MessagingMessageConverter();
+			var headerMapper = new JsonKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(
+					org.springframework.integration.support.json.JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
+							.toArray(new String[0]));
+			messageConverter.setHeaderMapper(headerMapper);
+			this.recordListener.setMessageConverter(messageConverter);
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			var messageConverter = new MessagingMessageConverter();
 			var headerMapper = new DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(

@@ -67,6 +67,7 @@ import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaUtils;
 import org.springframework.kafka.support.LogIfLevelEnabled;
@@ -105,6 +106,7 @@ import org.springframework.util.StringUtils;
  * @author Anshul Mehra
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  *
@@ -262,7 +264,14 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		messagingMessageConverter.setGenerateMessageId(true);
 		messagingMessageConverter.setGenerateTimestamp(true);
 
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			JsonKafkaHeaderMapper headerMapper = new JsonKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(
+					org.springframework.integration.support.json.JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
+							.toArray(new String[0]));
+			messagingMessageConverter.setHeaderMapper(headerMapper);
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(
 					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES

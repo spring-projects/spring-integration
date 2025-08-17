@@ -38,6 +38,6 @@
 
 	<bean id="ems" class="org.springframework.integration.kafka.config.xml.KafkaOutboundGatewayParserTests$EMS"/>
 
-	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper"/>
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.JsonKafkaHeaderMapper"/>
 
 </beans>
