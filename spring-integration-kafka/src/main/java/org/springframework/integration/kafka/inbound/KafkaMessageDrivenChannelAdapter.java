@@ -39,6 +39,7 @@ import org.springframework.integration.handler.advice.ErrorMessageSendingRecover
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -141,7 +142,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		if (JacksonPresent.isJackson3Present()) {
 			JsonKafkaHeaderMapper headerMapper = new JsonKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(
-					org.springframework.integration.support.json.JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
+					JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
 			this.recordListener.setMessageConverter(messageConverter);

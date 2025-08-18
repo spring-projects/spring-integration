@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaOperations;
@@ -90,7 +91,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 			var messageConverter = new MessagingMessageConverter();
 			var headerMapper = new JsonKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(
-					org.springframework.integration.support.json.JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
+					JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
 			this.recordListener.setMessageConverter(messageConverter);
