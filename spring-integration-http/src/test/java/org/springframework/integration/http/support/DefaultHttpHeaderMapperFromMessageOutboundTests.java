@@ -32,6 +32,9 @@ import java.util.TimeZone;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -689,6 +692,12 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames("*", "HTTP_REQUEST_HEADERS");
 		mapper.setUserDefinedHeaderPrefix("X-");
+		ConversionService cs = new DefaultConversionService();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("integrationConversionService", cs);
+		mapper.setBeanFactory(beanFactory);
+		mapper.afterPropertiesSet();
+
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("X-bar", "xbar");
@@ -697,13 +706,15 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		messageHeaders.put("Accept", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers.size()).isEqualTo(5);
+		assertThat(headers.size()).isEqualTo(7);
 		assertThat(headers.get("X-foobar")).hasSize(1);
 		assertThat(headers.get("x-foobar")).hasSize(1);
 		assertThat(headers.get("X-bar")).hasSize(1);
 		assertThat(headers.get("x-bar")).hasSize(1);
 		assertThat(headers.get("X-baz")).hasSize(1);
 		assertThat(headers.get("x-baz")).hasSize(1);
+		assertThat(headers.get("x-id")).hasSize(1);
+		assertThat(headers.get("x-timestamp")).hasSize(1);
 	}
 
 	@Test

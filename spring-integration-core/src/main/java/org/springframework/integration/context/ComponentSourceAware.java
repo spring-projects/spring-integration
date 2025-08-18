@@ -75,7 +75,6 @@ public interface ComponentSourceAware extends BeanNameAware {
 	 * Return the bean name populated by the {@link BeanNameAware#setBeanName(String)}.
 	 * @return the bean name.
 	 */
-	@Nullable
 	String getBeanName();
 
 }

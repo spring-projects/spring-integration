@@ -22,6 +22,7 @@ import java.util.HashMap;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -72,8 +73,9 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 */
 	public static final String DEFAULT_ERRORS_KEY = "errors";
 
-	private Expression viewExpression;
+	private @Nullable Expression viewExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	private String replyKey = DEFAULT_REPLY_KEY;
@@ -106,7 +108,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * @param replyKey The reply key.
 	 */
 	public void setReplyKey(String replyKey) {
-		this.replyKey = (replyKey != null) ? replyKey : DEFAULT_REPLY_KEY;
+		this.replyKey = replyKey;
 	}
 
 	/**

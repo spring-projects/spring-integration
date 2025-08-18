@@ -25,12 +25,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -91,6 +91,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
 		implements ApplicationListener<ContextRefreshedEvent> {
 
+	@SuppressWarnings("NullAway") // Reflection
 	private static final Method HANDLE_REQUEST_METHOD =
 			ReflectionUtils.findMethod(HttpRequestHandler.class, "handleRequest", HttpServletRequest.class,
 					HttpServletResponse.class);
@@ -105,8 +106,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	@Override
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handlerArg, HttpServletRequest request) {
 		Object handler = handlerArg;
-		if (handler instanceof HandlerMethod) {
-			HandlerMethod handlerMethod = (HandlerMethod) handler;
+		if (handler instanceof HandlerMethod handlerMethod) {
 			Object bean = handlerMethod.getBean();
 			if (bean instanceof HttpRequestHandlingEndpointSupport) {
 				handler = bean;
@@ -117,7 +117,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	@Override
-	protected CorsConfiguration getCorsConfiguration(Object handler, HttpServletRequest request) {
+	protected @Nullable CorsConfiguration getCorsConfiguration(Object handler, HttpServletRequest request) {
 		if (handler instanceof HandlerMethod) {
 			return super.getCorsConfiguration(handler, request);
 		}
@@ -146,7 +146,9 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	@Override
-	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+	protected @Nullable CorsConfiguration initCorsConfiguration(Object handler, Method method,
+			RequestMappingInfo mappingInfo) {
+
 		CrossOrigin crossOrigin = ((BaseHttpInboundEndpoint) handler).getCrossOrigin();
 		if (crossOrigin != null) {
 			return buildCorsConfiguration(crossOrigin, mappingInfo);
@@ -201,14 +203,15 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	RequestMappingInfo getMappingForEndpoint(BaseHttpInboundEndpoint endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
 
-		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
+		var pathPatterns = requestMapping.getPathPatterns();
+		if (ObjectUtils.isEmpty(pathPatterns)) {
 			return null;
 		}
 
 		Map<String, Object> requestMappingAttributes = new HashMap<>();
 		requestMappingAttributes.put("name", endpoint.getComponentName());
-		requestMappingAttributes.put("value", requestMapping.getPathPatterns());
-		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
+		requestMappingAttributes.put("value", pathPatterns);
+		requestMappingAttributes.put("path", pathPatterns);
 		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
 		requestMappingAttributes.put("params", requestMapping.getParams());
 		requestMappingAttributes.put("headers", requestMapping.getHeaders());

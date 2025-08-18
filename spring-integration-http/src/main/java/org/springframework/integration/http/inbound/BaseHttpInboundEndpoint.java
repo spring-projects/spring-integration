@@ -70,25 +70,26 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	private final boolean expectReply;
 
-	private Validator validator;
+	private @Nullable Validator validator;
 
-	private ResolvableType requestPayloadType = null;
+	private @Nullable ResolvableType requestPayloadType = null;
 
 	private HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
 	private boolean extractReplyPayload = true;
 
-	private Expression statusCodeExpression;
+	private @Nullable Expression statusCodeExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private RequestMapping requestMapping = new RequestMapping();
 
-	private Expression payloadExpression;
+	private @Nullable Expression payloadExpression;
 
-	private Map<String, Expression> headerExpressions;
+	private @Nullable Map<String, Expression> headerExpressions;
 
-	private CrossOrigin crossOrigin;
+	private @Nullable CrossOrigin crossOrigin;
 
 	public BaseHttpInboundEndpoint(boolean expectReply) {
 		super(expectReply);
@@ -146,7 +147,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	/**
-	 * Set the {@link CrossOrigin} to permit cross origin requests for this endpoint.
+	 * Set the {@link CrossOrigin} to permit cross-origin requests for this endpoint.
 	 * @param crossOrigin the CrossOrigin config.
 	 * @since 4.2
 	 */
@@ -154,15 +155,15 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		this.crossOrigin = crossOrigin;
 	}
 
-	public CrossOrigin getCrossOrigin() {
+	public @Nullable CrossOrigin getCrossOrigin() {
 		return this.crossOrigin;
 	}
 
-	protected Expression getPayloadExpression() {
+	protected @Nullable Expression getPayloadExpression() {
 		return this.payloadExpression;
 	}
 
-	protected Map<String, Expression> getHeaderExpressions() {
+	protected @Nullable Map<String, Expression> getHeaderExpressions() {
 		return this.headerExpressions;
 	}
 
@@ -189,7 +190,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request
 	 * content is read by the converters/encoders.
-	 * By default this value is null which means at runtime any "text" Content-Type will
+	 * By default, this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 */
@@ -200,7 +201,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request
 	 * content is read by the converters/encoders.
-	 * By default this value is null which means at runtime any "text" Content-Type will
+	 * By default, this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 */
@@ -208,7 +209,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		this.requestPayloadType = requestPayloadType;
 	}
 
-	protected ResolvableType getRequestPayloadType() {
+	protected @Nullable ResolvableType getRequestPayloadType() {
 		return this.requestPayloadType;
 	}
 
@@ -256,7 +257,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		this.statusCodeExpression = statusCodeExpression;
 	}
 
-	protected Expression getStatusCodeExpression() {
+	protected @Nullable Expression getStatusCodeExpression() {
 		return this.statusCodeExpression;
 	}
 
@@ -269,7 +270,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		this.validator = validator;
 	}
 
-	protected Validator getValidator() {
+	protected @Nullable Validator getValidator() {
 		return this.validator;
 	}
 
@@ -284,6 +285,11 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		}
 
 		getRequestMapping().setName(getComponentName());
+
+		if (this.headerMapper instanceof DefaultHttpHeaderMapper defaultHttpHeaderMapper) {
+			defaultHttpHeaderMapper.setBeanFactory(getBeanFactory());
+			defaultHttpHeaderMapper.afterPropertiesSet();
+		}
 	}
 
 	private void validateSupportedMethods() {
@@ -296,7 +302,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		}
 	}
 
-	protected HttpStatus evaluateHttpStatus(HttpEntity<?> httpEntity) {
+	protected @Nullable HttpStatus evaluateHttpStatus(HttpEntity<?> httpEntity) {
 		if (this.statusCodeExpression != null) {
 			Object value = this.statusCodeExpression.getValue(this.evaluationContext, httpEntity);
 			return buildHttpStatus(value);
@@ -306,12 +312,12 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		}
 	}
 
-	protected HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
+	protected @Nullable HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
 		Object httpStatusFromHeader = headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
 		return buildHttpStatus(httpStatusFromHeader);
 	}
 
-	private HttpStatus buildHttpStatus(Object httpStatusValue) {
+	private @Nullable HttpStatus buildHttpStatus(@Nullable Object httpStatusValue) {
 		HttpStatus httpStatus = null;
 		if (httpStatusValue instanceof HttpStatus castHttpStatus) {
 			httpStatus = castHttpStatus;
@@ -351,10 +357,12 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	protected void validate(Object value) {
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(value, "requestPayload");
-		ValidationUtils.invokeValidator(this.validator, value, errors);
-		if (errors.hasErrors()) {
-			throw new IntegrationWebExchangeBindException(getComponentName(), value, errors);
+		if (this.validator != null) {
+			BeanPropertyBindingResult errors = new BeanPropertyBindingResult(value, "requestPayload");
+			ValidationUtils.invokeValidator(this.validator, value, errors);
+			if (errors.hasErrors()) {
+				throw new IntegrationWebExchangeBindException(getComponentName(), value, errors);
+			}
 		}
 	}
 

@@ -376,6 +376,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		private final IntegrationFlow delegate;
 
+		@SuppressWarnings("NullAway.Init")
+		private String beanName;
+
 		private @Nullable Object beanSource;
 
 		private @Nullable String beanDescription;
@@ -404,15 +407,14 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 			return this.beanDescription;
 		}
 
-		@Nullable
 		@Override
 		public String getBeanName() {
-			return null;
+			return this.beanName;
 		}
 
 		@Override
 		public void setBeanName(String name) {
-
+			this.beanName = name;
 		}
 
 		@Override

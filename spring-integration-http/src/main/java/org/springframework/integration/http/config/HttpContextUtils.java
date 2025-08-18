@@ -19,6 +19,8 @@ package org.springframework.integration.http.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -85,17 +87,18 @@ public final class HttpContextUtils {
 	 * @return the {@link RequestMapping} annotation.
 	 * @since 5.0
 	 */
-	public static RequestMapping convertRequestMappingToAnnotation(
+	public static @Nullable RequestMapping convertRequestMappingToAnnotation(
 			org.springframework.integration.http.inbound.RequestMapping requestMapping) {
 
-		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
+		String[] pathPatterns = requestMapping.getPathPatterns();
+		if (ObjectUtils.isEmpty(pathPatterns)) {
 			return null;
 		}
 
 		Map<String, Object> requestMappingAttributes = new HashMap<>();
 		requestMappingAttributes.put("name", requestMapping.getName());
-		requestMappingAttributes.put("value", requestMapping.getPathPatterns());
-		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
+		requestMappingAttributes.put("value", pathPatterns);
+		requestMappingAttributes.put("path", pathPatterns);
 		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
 		requestMappingAttributes.put("params", requestMapping.getParams());
 		requestMappingAttributes.put("headers", requestMapping.getHeaders());

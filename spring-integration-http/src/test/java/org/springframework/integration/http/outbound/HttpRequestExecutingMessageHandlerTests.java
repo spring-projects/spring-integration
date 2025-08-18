@@ -55,7 +55,6 @@ import org.springframework.integration.http.converter.SerializingHttpMessageConv
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -840,9 +839,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		Sinks.One<HttpHeaders> httpHeadersSink = Sinks.one();
 		RestTemplate testRestTemplate = new RestTemplate() {
 
-			@Nullable
-			protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
-					@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+			protected <T> T doExecute(URI url, String uriTemplate, HttpMethod method,
+					RequestCallback requestCallback, ResponseExtractor<T> responseExtractor)
 					throws RestClientException {
 
 				try {
@@ -919,9 +917,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		private final AtomicReference<String> actualUrl = new AtomicReference<>();
 
-		@Nullable
-		protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
-				@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+		protected <T> T doExecute(URI url, String uriTemplate, HttpMethod method,
+				RequestCallback requestCallback, ResponseExtractor<T> responseExtractor)
 				throws RestClientException {
 
 			this.actualUrl.set(url.toString());
@@ -942,9 +939,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 			setUriTemplateHandler(uriBuilderFactory);
 		}
 
-		@Nullable
-		protected <T> T doExecute(URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
-				@Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+		protected <T> T doExecute(URI url, String uriTemplate, HttpMethod method,
+				RequestCallback requestCallback, ResponseExtractor<T> responseExtractor)
 				throws RestClientException {
 
 			this.actualUrl.set(url.toString());

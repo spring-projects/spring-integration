@@ -22,6 +22,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -43,7 +45,9 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	private static final MediaType APPLICATION_JAVA_SERIALIZED_OBJECT =
 			new MediaType("application", "x-java-serialized-object");
 
-	/** Creates a new instance of the {@code SerializingHttpMessageConverter}. */
+	/**
+	 * Creates a new instance of the {@code SerializingHttpMessageConverter}.
+	 */
 	public SerializingHttpMessageConverter() {
 		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
 	}
@@ -54,18 +58,19 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	}
 
 	@Override
-	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+	public boolean canWrite(Class<?> clazz, @Nullable MediaType mediaType) {
 		return Serializable.class.isAssignableFrom(clazz) && canWrite(mediaType);
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
-	public Serializable readInternal(Class clazz, HttpInputMessage inputMessage) throws IOException {
+	public Serializable readInternal(Class<? extends Serializable> clazz, HttpInputMessage inputMessage)
+			throws IOException {
+
 		try {
-			return (Serializable) new ObjectInputStream(inputMessage.getBody()).readObject(); //NOSONAR
+			return (Serializable) new ObjectInputStream(inputMessage.getBody()).readObject();
 		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException(e);
+		catch (ClassNotFoundException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 

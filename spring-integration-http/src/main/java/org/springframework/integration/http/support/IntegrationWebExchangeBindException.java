@@ -18,6 +18,8 @@ package org.springframework.integration.http.support;
 
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.support.WebExchangeBindException;
@@ -39,10 +41,11 @@ public class IntegrationWebExchangeBindException extends WebExchangeBindExceptio
 
 	private final Object failedPayload;
 
+	@SuppressWarnings("NullAway") // The super ServerWebInputException accepts null for MethodParameter
 	public IntegrationWebExchangeBindException(String endpointId, Object failedPayload,
 			BindingResult bindingResult) {
 
-		super(null, bindingResult); // NOSONAR - we ignore a MethodParameter in favor of payload and endpoint context
+		super(null, bindingResult);
 		this.endpointId = endpointId;
 		this.failedPayload = failedPayload;
 	}
@@ -64,17 +67,16 @@ public class IntegrationWebExchangeBindException extends WebExchangeBindExceptio
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof IntegrationWebExchangeBindException)) {
+		if (!(o instanceof IntegrationWebExchangeBindException that)) {
 			return false;
 		}
 		if (!super.equals(o)) {
 			return false;
 		}
-		IntegrationWebExchangeBindException that = (IntegrationWebExchangeBindException) o;
 		return Objects.equals(this.endpointId, that.endpointId) &&
 				Objects.equals(this.failedPayload, that.failedPayload);
 	}
