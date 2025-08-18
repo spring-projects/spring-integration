@@ -122,10 +122,10 @@ class JacksonMessagingUtilsTests {
 		String json = mapper.writeValueAsString(mimeType);
 
 		assertThat(json).isNotNull();
-		assertThat(json).contains("application\\/json");
+		assertThat(json).contains("application/json");
 	}
 
-	private Set<String> getModuleNames(Collection<JacksonModule> modules) {
+	private static Set<String> getModuleNames(Collection<JacksonModule> modules) {
 		return modules.stream()
 				.map(JacksonModule::getModuleName)
 				.collect(Collectors.toUnmodifiableSet());
