@@ -91,7 +91,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
 	}
 
-	public void setArgumentsStrategy(@Nullable ArgumentsStrategy argumentsStrategy) {
+	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {
 		this.argumentsStrategy = argumentsStrategy;
 	}
 
