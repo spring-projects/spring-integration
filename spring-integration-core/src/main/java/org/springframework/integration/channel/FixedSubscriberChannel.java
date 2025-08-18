@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.support.context.NamedComponent;
@@ -45,8 +46,7 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 
 	private final MessageHandler handler;
 
-	@SuppressWarnings("NullAway.Init")
-	private String beanName;
+	private @Nullable String beanName;
 
 	public FixedSubscriberChannel() {
 		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
@@ -60,11 +60,6 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
-	}
-
-	@Override
-	public String getBeanName() {
-		return this.beanName;
 	}
 
 	@Override

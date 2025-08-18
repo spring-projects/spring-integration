@@ -86,13 +86,6 @@ public class NullChannel implements PollableChannel,
 	}
 
 	@Override
-	@Nullable
-	public String getBeanName() {
-		return this.beanName;
-	}
-
-	@Override
-	@Nullable
 	public String getComponentName() {
 		return this.beanName;
 	}

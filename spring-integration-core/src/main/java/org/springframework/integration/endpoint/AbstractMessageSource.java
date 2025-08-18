@@ -92,11 +92,6 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public String getBeanName() {
-		return this.beanName;
-	}
-
-	@Override
 	public void setManagedType(String managedType) {
 		this.managedType = managedType;
 	}

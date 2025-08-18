@@ -91,7 +91,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public @Nullable String getComponentName() {
+	public String getComponentName() {
 		return this.connectionFactory.getComponentName();
 	}
 

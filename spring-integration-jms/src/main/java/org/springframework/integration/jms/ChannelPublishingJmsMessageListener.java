@@ -176,7 +176,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	@Override
-	public @Nullable String getComponentName() {
+	public String getComponentName() {
 		return this.gatewayDelegate.getComponentName();
 	}
 
