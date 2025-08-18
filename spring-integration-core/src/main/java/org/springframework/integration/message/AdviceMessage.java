@@ -19,6 +19,8 @@ package org.springframework.integration.message;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -81,18 +83,14 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
+	public boolean equals(@Nullable Object o) {
+		if (super.equals(o)) {
 			return true;
 		}
-		if (!(o instanceof AdviceMessage)) {
-			return false;
+		if (o instanceof AdviceMessage<?> that) {
+			return Objects.equals(this.inputMessage, that.inputMessage);
 		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		AdviceMessage<?> that = (AdviceMessage<?>) o;
-		return Objects.equals(this.inputMessage, that.inputMessage);
+		return false;
 	}
 
 	@Override

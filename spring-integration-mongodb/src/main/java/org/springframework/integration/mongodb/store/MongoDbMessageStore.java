@@ -838,6 +838,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				}
 			}
 
+			Assert.notNull(inputMessage, "'inputMessage' must not be null");
 			AdviceMessage<?> message = new AdviceMessage<>(
 					MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
 			enhanceHeaders(message.getHeaders(), headers);

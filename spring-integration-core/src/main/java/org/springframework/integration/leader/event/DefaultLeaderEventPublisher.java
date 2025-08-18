@@ -16,6 +16,8 @@
 
 package org.springframework.integration.leader.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.leader.Context;
@@ -30,7 +32,7 @@ import org.springframework.integration.leader.Context;
  */
 public class DefaultLeaderEventPublisher implements LeaderEventPublisher, ApplicationEventPublisherAware {
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Instantiates a new leader event publisher.
