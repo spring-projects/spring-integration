@@ -37,6 +37,7 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonMessagingUtils;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -45,6 +46,7 @@ import org.springframework.kafka.listener.adapter.RecordMessagingMessageListener
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
@@ -68,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Urs Keller
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  *
@@ -108,7 +111,16 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		this.messageListenerContainer.setAutoStartup(false);
 		this.kafkaTemplate = kafkaTemplate;
 		setErrorMessageStrategy(new RawRecordHeaderErrorMessageStrategy());
-		if (JacksonPresent.isJackson2Present()) {
+		if (JacksonPresent.isJackson3Present()) {
+			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
+			JsonKafkaHeaderMapper headerMapper = new JsonKafkaHeaderMapper();
+			headerMapper.addTrustedPackages(
+					JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
+							.toArray(new String[0]));
+			messageConverter.setHeaderMapper(headerMapper);
+			this.listener.setMessageConverter(messageConverter);
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(

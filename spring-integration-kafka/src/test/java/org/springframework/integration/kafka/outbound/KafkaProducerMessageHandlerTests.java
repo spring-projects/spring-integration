@@ -72,7 +72,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AssignmentCommitOption;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
@@ -118,6 +118,7 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  * @author Artem Bilan
  * @author Tom van den Berge
  * @author Ryan Riley
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  */
@@ -239,7 +240,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		assertThat(record).has(value("foo"));
 		assertThat(record).has(timestamp(1487694048607L));
 		Map<String, Object> headers = new HashMap<>();
-		new DefaultKafkaHeaderMapper().toHeaders(record.headers(), headers);
+		new JsonKafkaHeaderMapper().toHeaders(record.headers(), headers);
 		assertThat(headers.size()).isEqualTo(1);
 		assertThat(headers.get("baz")).isEqualTo("qux");
 
@@ -383,7 +384,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		handler.setHeaderMapper(new DefaultKafkaHeaderMapper("!*"));
+		handler.setHeaderMapper(new JsonKafkaHeaderMapper("!*"));
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -459,7 +460,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("foo"));
 		Map<String, Object> headers = new HashMap<>();
-		new DefaultKafkaHeaderMapper().toHeaders(record.headers(), headers);
+		new JsonKafkaHeaderMapper().toHeaders(record.headers(), headers);
 		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic6.getBytes());
 		ProducerRecord<Integer, String> pr = new ProducerRecord<>(topic6, 0, 1, "FOO", record.headers());
 		template.send(pr);

@@ -56,6 +56,6 @@
 
 	<int:channel id="successes" />
 
-	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.JsonKafkaHeaderMapper" />
 
 </beans>

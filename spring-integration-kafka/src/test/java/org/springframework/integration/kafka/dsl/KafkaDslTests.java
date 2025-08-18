@@ -69,7 +69,7 @@ import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -93,6 +93,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Biju Kunjummen
  * @author Gary Russell
  * @author Anshul Mehra
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  */
@@ -152,7 +153,7 @@ public class KafkaDslTests {
 	private KafkaTemplate<?, ?> kafkaTemplateTopic2;
 
 	@Autowired
-	private DefaultKafkaHeaderMapper mapper;
+	private JsonKafkaHeaderMapper mapper;
 
 	@Autowired
 	private ContextConfiguration config;
@@ -385,8 +386,8 @@ public class KafkaDslTests {
 		}
 
 		@Bean
-		public DefaultKafkaHeaderMapper mapper() {
-			return new DefaultKafkaHeaderMapper();
+		public JsonKafkaHeaderMapper mapper() {
+			return new JsonKafkaHeaderMapper();
 		}
 
 		@Bean
