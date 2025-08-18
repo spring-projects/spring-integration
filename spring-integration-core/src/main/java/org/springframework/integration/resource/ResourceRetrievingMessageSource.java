@@ -50,12 +50,12 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 	private final String pattern;
 
 	@SuppressWarnings("NullAway.Init")
-	private volatile ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
 	@SuppressWarnings("NullAway.Init")
-	private volatile ResourcePatternResolver patternResolver;
+	private ResourcePatternResolver patternResolver;
 
-	private volatile @Nullable CollectionFilter<Resource> filter;
+	private @Nullable CollectionFilter<Resource> filter;
 
 	public ResourceRetrievingMessageSource(String pattern) {
 		Assert.hasText(pattern, "pattern must not be empty");

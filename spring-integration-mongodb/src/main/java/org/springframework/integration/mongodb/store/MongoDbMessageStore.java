@@ -75,7 +75,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
@@ -838,10 +837,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					throw new IllegalStateException("failed to load class: " + inputMessageType, e);
 				}
 			}
-			else {
-				inputMessage = MessageBuilder.withPayload(new byte[0]).build();
-			}
 
+			Assert.notNull(inputMessage, "'inputMessage' must not be null");
 			AdviceMessage<?> message = new AdviceMessage<>(
 					MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
 			enhanceHeaders(message.getHeaders(), headers);
