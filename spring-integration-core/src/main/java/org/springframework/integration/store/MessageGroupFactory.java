@@ -48,7 +48,7 @@ public interface MessageGroupFactory {
 	/**
 	 * Create a {@link MessageGroup} instance based on the provided {@code groupId}
 	 * and with the {@code messages} for the group.
-	 * In addition the creating {@code timestamp} and {@code complete} flag may be used to customize
+	 * In addition, the creating {@code timestamp} and {@code complete} flag may be used to customize
 	 * the target {@link MessageGroup} object.
 	 * @param messages the messages for the group.
 	 * @param groupId the group id to use.
@@ -71,7 +71,7 @@ public interface MessageGroupFactory {
 	/**
 	 * Create a {@link MessageGroup} instance based on the provided {@code groupId}.
 	 * The {@link MessageGroupStore} may be consulted for the messages and metadata for the {@link MessageGroup}.
-	 * In addition the creating {@code timestamp} and {@code complete} flag may be used to customize
+	 * In addition, the creating {@code timestamp} and {@code complete} flag may be used to customize
 	 * the target {@link MessageGroup} object.
 	 * @param messageGroupStore the {@link MessageGroupStore} for additional {@link MessageGroup} information.
 	 * @param groupId the group id to use.

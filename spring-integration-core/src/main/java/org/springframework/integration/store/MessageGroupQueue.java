@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -165,11 +166,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	@Override
-	public Message<?> peek() {
+	public @Nullable Message<?> peek() {
 		try {
 			this.storeLock.lockInterruptibly();
 			try (Stream<Message<?>> messageStream = stream()) {
-				return messageStream.findFirst().orElse(null); // NOSONAR
+				return messageStream.findFirst().orElse(null);
 			}
 			finally {
 				this.storeLock.unlock();
@@ -182,7 +183,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	@Override
-	public Message<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
+	public @Nullable Message<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
 		Message<?> message;
 		long timeoutInNanos = unit.toNanos(timeout);
 		final Lock lock = this.storeLock;
@@ -202,7 +203,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	@Override
-	public Message<?> poll() {
+	public @Nullable Message<?> poll() {
 		Message<?> message = null;
 		final Lock lock = this.storeLock;
 		try {
@@ -317,17 +318,18 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		if (this.capacity == Integer.MAX_VALUE) {
 			return Integer.MAX_VALUE;
 		}
-		return this.capacity - this.size();
+		return this.capacity - size();
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // When size is not 0, then message is there.
 	public Message<?> take() throws InterruptedException {
 		Message<?> message;
 		final Lock lock = this.storeLock;
 		lock.lockInterruptibly();
 
 		try {
-			while (this.size() == 0) {
+			while (size() == 0) {
 				this.messageStoreNotEmpty.await();
 			}
 			message = doPoll();
@@ -351,9 +353,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown.
-	 * @return a message // TODO @Nullable
+	 * @return a message
 	 */
-	protected Message<?> doPoll() {
+	protected @Nullable Message<?> doPoll() {
 		Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 		this.messageStoreNotFull.signal();
 		return message;

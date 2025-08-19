@@ -16,7 +16,11 @@
 
 package org.springframework.integration.store;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -30,21 +34,21 @@ import org.springframework.util.Assert;
  */
 public class MessageHolder implements Serializable {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("serial")
-	private Message<?> message;
+	private final Message<?> message;
 
-	private MessageMetadata messageMetadata;
+	private final MessageMetadata messageMetadata;
 
-	private MessageHolder() {
-		//For Jackson deserialization
-	}
-
+	@JsonCreator
 	public MessageHolder(Message<?> message) {
 		Assert.notNull(message, "'message' must not be null.");
 		this.message = message;
-		this.messageMetadata = new MessageMetadata(message.getHeaders().getId());
+		UUID id = message.getHeaders().getId();
+		Assert.notNull(id, "Message 'id' must not be null.");
+		this.messageMetadata = new MessageMetadata(id);
 		this.messageMetadata.setTimestamp(System.currentTimeMillis());
 	}
 

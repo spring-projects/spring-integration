@@ -82,8 +82,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @return message by id if it belongs to requested group.
 	 * @since 6.1.5
 	 */
-	@Nullable
-	default Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+	default @Nullable Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
 		throw new UnsupportedOperationException("Not supported for this store");
 	}
 
@@ -154,7 +153,9 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @return The metadata.
 	 * @since 4.0
 	 */
-	MessageGroupMetadata getGroupMetadata(Object groupId);
+	default @Nullable MessageGroupMetadata getGroupMetadata(Object groupId) {
+		throw new UnsupportedOperationException("Not yet implemented for this store");
+	}
 
 	/**
 	 * Return the one {@link Message} from {@link MessageGroup}.
@@ -162,6 +163,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @return the {@link Message}.
 	 * @since 4.0
 	 */
+	@Nullable
 	Message<?> getOneMessageFromGroup(Object groupId);
 
 	/**

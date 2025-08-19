@@ -16,6 +16,7 @@
 
 package org.springframework.integration.store;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -41,6 +43,7 @@ import org.springframework.util.Assert;
  */
 public class MessageGroupMetadata implements Serializable {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("serial")
@@ -54,7 +57,7 @@ public class MessageGroupMetadata implements Serializable {
 
 	private volatile int lastReleasedMessageSequenceNumber;
 
-	private volatile String condition;
+	private volatile @Nullable String condition;
 
 	public MessageGroupMetadata() {
 		this.messageIds = new LinkedList<>();
@@ -69,7 +72,9 @@ public class MessageGroupMetadata implements Serializable {
 		this();
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
 		for (Message<?> message : messageGroup.getMessages()) {
-			this.messageIds.add(message.getHeaders().getId());
+			UUID id = message.getHeaders().getId();
+			Assert.notNull(id, "Message 'id' must not be null");
+			this.messageIds.add(id);
 		}
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
@@ -101,7 +106,7 @@ public class MessageGroupMetadata implements Serializable {
 		return this.messageIds.size();
 	}
 
-	public UUID firstId() {
+	public @Nullable UUID firstId() {
 		if (!this.messageIds.isEmpty()) {
 			return this.messageIds.get(0);
 		}
@@ -114,7 +119,7 @@ public class MessageGroupMetadata implements Serializable {
 	 * @return the list of messages ids stored in the group
 	 */
 	public List<UUID> getMessageIds() {
-		return new LinkedList<UUID>(this.messageIds);
+		return new LinkedList<>(this.messageIds);
 	}
 
 	public void complete() {
@@ -145,7 +150,7 @@ public class MessageGroupMetadata implements Serializable {
 		this.lastReleasedMessageSequenceNumber = lastReleasedMessageSequenceNumber;
 	}
 
-	public String getCondition() {
+	public @Nullable String getCondition() {
 		return this.condition;
 	}
 

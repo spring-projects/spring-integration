@@ -37,10 +37,11 @@ import org.springframework.util.Assert;
  */
 public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, SmartLifecycle {
 
-	private static Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
+	private static final Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageGroupStore messageGroupStore;
 
 	private boolean expireOnDestroy = false;

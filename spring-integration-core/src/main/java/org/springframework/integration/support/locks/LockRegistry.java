@@ -55,11 +55,14 @@ public interface LockRegistry<L extends Lock> {
 	default <E extends Throwable> void executeLocked(Object lockKey, CheckedRunnable<E> runnable)
 			throws E, InterruptedException {
 
-		executeLocked(lockKey,
-				() -> {
-					runnable.run();
-					return null;
-				});
+		Lock lock = obtain(lockKey);
+		lock.lockInterruptibly();
+		try {
+			runnable.run();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -72,7 +75,8 @@ public interface LockRegistry<L extends Lock> {
 	 * @throws InterruptedException from a lock operation
 	 * @since 6.2
 	 */
-	default <T, E extends Throwable> T executeLocked(Object lockKey, CheckedCallable<T, E> callable)
+	default <T, E extends Throwable> T executeLocked(Object lockKey,
+			CheckedCallable<T, E> callable)
 			throws E, InterruptedException {
 
 		Lock lock = obtain(lockKey);
@@ -98,11 +102,18 @@ public interface LockRegistry<L extends Lock> {
 	default <E extends Throwable> void executeLocked(Object lockKey, Duration waitLockDuration,
 			CheckedRunnable<E> runnable) throws E, InterruptedException, TimeoutException {
 
-		executeLocked(lockKey, waitLockDuration,
-				() -> {
-					runnable.run();
-					return null;
-				});
+		Lock lock = obtain(lockKey);
+		if (!lock.tryLock(waitLockDuration.toMillis(), TimeUnit.MILLISECONDS)) {
+			throw new TimeoutException(
+					"The lock [%s] was not acquired in time: %s".formatted(lockKey, waitLockDuration));
+		}
+
+		try {
+			runnable.run();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	/**

@@ -29,7 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 /**
@@ -50,7 +50,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 	private final MessageGroup original;
 
-	private volatile Message<?> oneMessage;
+	private volatile @Nullable Message<?> oneMessage;
 
 	private volatile int size;
 
@@ -79,6 +79,7 @@ class PersistentMessageGroup implements MessageGroup {
 	}
 
 	@Override
+	@Nullable
 	public Message<?> getOne() {
 		if (this.oneMessage == null) {
 			this.lock.lock();
@@ -105,9 +106,7 @@ class PersistentMessageGroup implements MessageGroup {
 		else {
 			Message<?> message = getOne();
 			if (message != null) {
-				Integer sequenceSize = message.getHeaders()
-						.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
-				return (sequenceSize != null ? sequenceSize : 0);
+				return StaticMessageHeaderAccessor.getSequenceSize(message);
 			}
 			else {
 				return 0;
@@ -190,7 +189,7 @@ class PersistentMessageGroup implements MessageGroup {
 	}
 
 	@Override
-	public void setCondition(String condition) {
+	public void setCondition(@Nullable String condition) {
 		this.original.setCondition(condition);
 	}
 
@@ -209,6 +208,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 		private final Lock innerLock = new ReentrantLock();
 
+		@SuppressWarnings("NullAway.Init")
 		private volatile Collection<Message<?>> collection;
 
 		PersistentCollection() {

@@ -16,8 +16,11 @@
 
 package org.springframework.integration.store;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * Value Object holding metadata about a Message in the MessageStore.
@@ -28,16 +31,14 @@ import java.util.UUID;
  */
 public class MessageMetadata implements Serializable {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
-	private UUID messageId;
+	private final UUID messageId;
 
 	private volatile long timestamp;
 
-	private MessageMetadata() {
-		//For Jackson deserialization
-	}
-
+	@JsonCreator
 	public MessageMetadata(UUID messageId) {
 		this.messageId = messageId;
 	}

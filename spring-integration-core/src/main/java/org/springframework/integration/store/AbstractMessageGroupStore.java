@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -51,8 +52,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		implements MessageGroupStore, Iterable<MessageGroup> {
 
 	protected static final String INTERRUPTED_WHILE_OBTAINING_LOCK = "Interrupted while obtaining lock";
-
-	protected static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
@@ -213,18 +212,12 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	@Override
-	public MessageGroupMetadata getGroupMetadata(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
-	}
-
-	@Override
 	public void removeMessagesFromGroup(Object key, Message<?>... messages) {
 		removeMessagesFromGroup(key, Arrays.asList(messages));
 	}
 
 	@Override
 	public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
-		Assert.notNull(key, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(key, () -> doRemoveMessagesFromGroup(key, messages));
 	}
 
@@ -232,7 +225,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(groupId, () -> doAddMessagesToGroup(groupId, messages));
 	}
 
@@ -246,7 +238,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void removeMessageGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(groupId, () -> doRemoveMessageGroup(groupId));
 	}
 
@@ -254,7 +245,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		return executeLocked(groupId, () -> doRemoveMessageFromGroupById(groupId, messageId));
 	}
 
@@ -264,7 +254,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(groupId, () -> doSetLastReleasedSequenceNumberForGroup(groupId, sequenceNumber));
 	}
 
@@ -272,7 +261,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void completeGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(groupId, () -> doCompleteGroup(groupId));
 	}
 
@@ -280,21 +268,21 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void setGroupCondition(Object groupId, String condition) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		executeLocked(groupId, () -> doSetGroupCondition(groupId, condition));
 	}
 
 	protected abstract void doSetGroupCondition(Object groupId, String condition);
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		return executeLocked(groupId, () -> doPollMessageFromGroup(groupId));
+	public @Nullable Message<?> pollMessageFromGroup(Object groupId) {
+		return this.<@Nullable Message<?>, RuntimeException>executeLocked(groupId, () -> doPollMessageFromGroup(groupId));
 	}
 
-	protected abstract Message<?> doPollMessageFromGroup(Object groupId);
+	protected abstract @Nullable Message<?> doPollMessageFromGroup(Object groupId);
 
-	protected <T, E extends RuntimeException> T executeLocked(Object groupId, CheckedCallable<T, E> runnable) {
+	protected <T, E extends RuntimeException> T executeLocked(Object groupId,
+			CheckedCallable<T, E> runnable) {
+
 		try {
 			return this.lockRegistry.executeLocked(groupId, runnable);
 		}

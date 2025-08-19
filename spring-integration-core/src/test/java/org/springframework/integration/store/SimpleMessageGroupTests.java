@@ -20,19 +20,15 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Iwein Fuld
@@ -81,14 +77,11 @@ public class SimpleMessageGroupTests {
 		assertThat(this.sequenceAwareGroup.canAdd(message1)).isTrue();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() {
-		Message<?> m1 = mock(Message.class);
-		willReturn(new MessageHeaders(mock(Map.class))).given(m1).getHeaders();
-		Message<?> m2 = mock(Message.class);
-		willReturn(new MessageHeaders(mock(Map.class))).given(m2).getHeaders();
-		final List<Message<?>> messages = new ArrayList<>();
+		Message<?> m1 = new GenericMessage<>("test1");
+		Message<?> m2 = new GenericMessage<>("test2");
+		List<Message<?>> messages = new ArrayList<>();
 		messages.add(m1);
 		messages.add(null);
 		messages.add(m2);
