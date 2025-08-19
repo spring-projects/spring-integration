@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -195,7 +196,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	@SuppressWarnings("unchecked")
 	private void popMessageAndSend() {
-		@Nullable byte[] value = popForValue();
+		byte[] value = popForValue();
 
 		Message<Object> message = null;
 
@@ -203,7 +204,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 			if (this.expectMessage) {
 				try {
 					if (this.serializer != null) {
-						message = (Message<Object>) serializer.deserialize(value);
+						message = (Message<Object>) this.serializer.deserialize(value);
 					}
 				}
 				catch (Exception e) {
@@ -236,8 +237,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		}
 	}
 
-	private @Nullable byte[] popForValue() {
-		@Nullable byte[] value = null;
+	private byte @Nullable [] popForValue() {
+		byte[] value = null;
 		try {
 			if (this.rightPop) {
 				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);

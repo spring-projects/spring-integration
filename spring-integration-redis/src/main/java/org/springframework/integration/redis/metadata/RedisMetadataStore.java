@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.metadata;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;

@@ -19,6 +19,8 @@ package org.springframework.integration.redis.inbound;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -37,7 +39,6 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -282,7 +283,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	}
 
 	@SuppressWarnings("unchecked")
-	private @Nullable byte[] extractReplyPayload(Message<?> replyMessage) {
+	private byte @Nullable [] extractReplyPayload(Message<?> replyMessage) {
 		byte[] value = null;
 		if (!(replyMessage.getPayload() instanceof byte[])) {
 			if (replyMessage.getPayload() instanceof String && !this.serializerExplicitlySet) {
@@ -324,12 +325,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	}
 
 	private void publishException(Exception e) {
-		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
-		}
-		else {
-			logger.debug(() -> "No application event publisher for exception: " + e.getMessage());
-		}
+		this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
 	}
 
 	private void restart() {
@@ -355,7 +351,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	/**
 	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
-	 * is returned. See also https://redis.io/commands/llen
+	 * is returned. See also <a href="https://redis.io/commands/llen">LLEN</a>
 	 * @return Size of the queue. Never negative.
 	 */
 	@ManagedMetric

@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFactoryAware, InitializingBean {
@@ -43,10 +44,10 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 
 	private final Expression[] argumentExpressions;
 
+	private final boolean useCommandVariable;
+
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
-
-	private final boolean useCommandVariable;
 
 	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
@@ -58,16 +59,12 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 	public ExpressionArgumentsStrategy(String[] argumentExpressions, boolean useCommandVariable) {
 		Assert.notNull(argumentExpressions, "'argumentExpressions' must not be null");
 		Assert.noNullElements(argumentExpressions, "'argumentExpressions' cannot have null values.");
-		List<Expression> expressions = new LinkedList<Expression>();
+		List<Expression> expressions = new LinkedList<>();
 		for (String argumentExpression : argumentExpressions) {
 			expressions.add(PARSER.parseExpression(argumentExpression));
 		}
-		this.argumentExpressions = expressions.toArray(new Expression[expressions.size()]);
+		this.argumentExpressions = expressions.toArray(new Expression[0]);
 		this.useCommandVariable = useCommandVariable;
-	}
-
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -77,9 +74,7 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 
 	@Override
 	public void afterPropertiesSet() {
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	@Override
@@ -90,7 +85,7 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 			evaluationContextToUse = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
 			evaluationContextToUse.setVariable("cmd", command);
 		}
-		List<Object> arguments = new ArrayList<Object>();
+		List<Object> arguments = new ArrayList<>();
 		for (Expression argumentExpression : this.argumentExpressions) {
 			Object argument = argumentExpression.getValue(evaluationContextToUse, message);
 			if (argument != null) {

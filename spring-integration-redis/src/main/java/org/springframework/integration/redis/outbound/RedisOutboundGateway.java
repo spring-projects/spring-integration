@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.outbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,9 +27,9 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -50,11 +52,13 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private volatile RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<>(Object.class);
+	private RedisSerializer<Object> argumentsSerializer = new GenericToStringSerializer<>(Object.class);
 
-	private volatile Expression commandExpression = PARSER.parseExpression("headers[" + RedisHeaders.COMMAND + "]");
+	@SuppressWarnings("NullAway") // Cannot see nullability on the generics
+	private Expression commandExpression =
+			new FunctionExpression<Message<?>>(message -> message.getHeaders().get(RedisHeaders.COMMAND));
 
-	private volatile ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
+	private @Nullable ArgumentsStrategy argumentsStrategy = new PayloadArgumentsStrategy();
 
 	public RedisOutboundGateway(RedisTemplate<?, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
@@ -63,7 +67,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	public RedisOutboundGateway(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		this.redisTemplate = new RedisTemplate<Object, Object>();
+		this.redisTemplate = new RedisTemplate<>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.afterPropertiesSet();
 	}
@@ -91,12 +95,8 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
 	}
 
-	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {
+	public void setArgumentsStrategy(@Nullable ArgumentsStrategy argumentsStrategy) {
 		this.argumentsStrategy = argumentsStrategy;
-	}
-
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -107,9 +107,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	protected void doInit() {
 		super.doInit();
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
@@ -124,14 +122,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 				for (int i = 0; i < arguments.length; i++) {
 					Object argument = arguments[i];
-					byte[] arg = null;
-					if (argument instanceof byte[]) {
-						arg = (byte[]) argument;
-					}
-					else {
-						arg = this.argumentsSerializer.serialize(argument);
-					}
-					args[i] = arg;
+					args[i] = argument instanceof byte[] bytes ? bytes : this.argumentsSerializer.serialize(argument);
 				}
 			}
 		}
@@ -139,7 +130,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		final byte[][] actualArgs = args != null ? args : EMPTY_ARGS;
 
 		return this.redisTemplate.execute(
-				(RedisCallback<Object>) connection -> connection.execute(command, actualArgs));
+				(RedisCallback<@Nullable Object>) connection -> connection.execute(command, actualArgs));
 	}
 
 	private static class PayloadArgumentsStrategy implements ArgumentsStrategy {

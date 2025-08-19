@@ -19,6 +19,7 @@ package org.springframework.integration.redis.inbound;
 import java.time.Duration;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,7 +40,6 @@ import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -136,7 +136,7 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 	 * {@link #createConsumerGroup}. If not set, the defined bean name {@link #getBeanName()} is used.
 	 * @param consumerGroup the Consumer Group on which this adapter should register to listen messages.
 	 */
-	public void setConsumerGroup(@Nullable String consumerGroup) {
+	public void setConsumerGroup(String consumerGroup) {
 		this.consumerGroup = consumerGroup;
 	}
 
@@ -295,8 +295,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			Mono<?> consumerGroupMono = Mono.empty();
 			if (this.createConsumerGroup) {
 				consumerGroupMono =
-						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup) // NOSONAR
-						.onErrorReturn(this.consumerGroup);
+						this.reactiveStreamOperations.createGroup(this.streamKey, this.consumerGroup)
+								.onErrorReturn(this.consumerGroup);
 			}
 
 			Consumer consumer = Consumer.from(this.consumerGroup, this.consumerName);
@@ -348,8 +348,8 @@ public class ReactiveRedisStreamMessageProducer extends MessageProducerSupport {
 			}
 		}
 		MessagingException conversionException = (failedMessage != null)
-					? new MessageConversionException(failedMessage, "Cannot deserialize Redis Stream Record", error)
-					: new MessageConversionException("Cannot deserialize Redis Stream Record", error);
+				? new MessageConversionException(failedMessage, "Cannot deserialize Redis Stream Record", error)
+				: new MessageConversionException("Cannot deserialize Redis Stream Record", error);
 		if (!sendErrorMessageIfNecessary(null, conversionException)) {
 			logger.getLog().error(conversionException);
 		}
