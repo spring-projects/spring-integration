@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +47,7 @@ public class ControlBusControllerConfiguration {
 	@Bean
 	@Nullable
 	ControlBusController controlBusController(ControlBusCommandRegistry controlBusCommandRegistry,
-			ObjectProvider<FormattingConversionService> conversionService) {
+			FormattingConversionService conversionService) {
 
 		if (!HttpContextUtils.WEB_MVC_PRESENT && !HttpContextUtils.WEB_FLUX_PRESENT) {
 			LOGGER.warn("The 'IntegrationGraphController' isn't registered with the application context because" +
@@ -58,7 +57,7 @@ public class ControlBusControllerConfiguration {
 
 		controlBusCommandRegistry.setEagerInitialization(true);
 
-		return new ControlBusController(controlBusCommandRegistry, conversionService.getObject());
+		return new ControlBusController(controlBusCommandRegistry, conversionService);
 	}
 
 }
