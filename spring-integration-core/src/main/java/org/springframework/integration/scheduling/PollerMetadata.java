@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
@@ -56,19 +57,19 @@ public class PollerMetadata {
 	 */
 	public static final String DEFAULT_POLLER = DEFAULT_POLLER_METADATA_BEAN_NAME;
 
-	private Trigger trigger;
+	private @Nullable Trigger trigger;
 
 	private long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
 	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-	private ErrorHandler errorHandler;
+	private @Nullable ErrorHandler errorHandler;
 
-	private List<Advice> adviceChain;
+	private @Nullable List<Advice> adviceChain;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
-	private TransactionSynchronizationFactory transactionSynchronizationFactory;
+	private @Nullable TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public void setTransactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
@@ -76,19 +77,19 @@ public class PollerMetadata {
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
-	public TransactionSynchronizationFactory getTransactionSynchronizationFactory() {
+	public @Nullable TransactionSynchronizationFactory getTransactionSynchronizationFactory() {
 		return this.transactionSynchronizationFactory;
 	}
 
-	public void setTrigger(Trigger trigger) {
+	public void setTrigger(@Nullable Trigger trigger) {
 		this.trigger = trigger;
 	}
 
-	public Trigger getTrigger() {
+	public @Nullable Trigger getTrigger() {
 		return this.trigger;
 	}
 
-	public ErrorHandler getErrorHandler() {
+	public @Nullable ErrorHandler getErrorHandler() {
 		return this.errorHandler;
 	}
 
@@ -124,7 +125,7 @@ public class PollerMetadata {
 		this.adviceChain = adviceChain;
 	}
 
-	public List<Advice> getAdviceChain() {
+	public @Nullable List<Advice> getAdviceChain() {
 		return this.adviceChain;
 	}
 
@@ -132,7 +133,7 @@ public class PollerMetadata {
 		this.taskExecutor = taskExecutor;
 	}
 
-	public Executor getTaskExecutor() {
+	public @Nullable Executor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 
@@ -141,7 +142,7 @@ public class PollerMetadata {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The poller metadata.
 	 */
-	public static PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
+	public static @Nullable PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		if (!beanFactory.containsBean(DEFAULT_POLLER_METADATA_BEAN_NAME)) {
 			return null;

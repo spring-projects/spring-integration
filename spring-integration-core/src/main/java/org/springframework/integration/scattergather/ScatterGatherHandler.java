@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scattergather;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -63,13 +65,15 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private final MessageHandler gatherer;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageChannel gatherChannel;
 
 	private String errorChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 
+	@SuppressWarnings("NullAway.Init")
 	private Long gatherTimeout;
 
-	private AbstractEndpoint gatherEndpoint;
+	private @Nullable AbstractEndpoint gatherEndpoint;
 
 	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
 		this(new FixedSubscriberChannel(scatterer), gatherer);
@@ -185,7 +189,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
 		PollableChannel gatherResultChannel = new QueueChannel();
 
