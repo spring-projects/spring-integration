@@ -16,6 +16,8 @@
 
 package org.springframework.integration.routingslip;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -37,6 +39,7 @@ public interface RoutingSlipRouteStrategy {
 	 * object, a {@link Message} or a {@code AbstractIntegrationMessageBuilder}.
 	 * @return a channel name or another {@link RoutingSlipRouteStrategy}.
 	 */
+	@Nullable
 	Object getNextPath(Message<?> requestMessage, Object reply);
 
 }

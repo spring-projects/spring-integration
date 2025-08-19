@@ -16,6 +16,8 @@
 
 package org.springframework.integration.routingslip;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -69,8 +71,10 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 
 	private final Expression expression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public ExpressionEvaluatingRoutingSlipRouteStrategy(String expression) {
@@ -98,7 +102,7 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 	}
 
 	@Override
-	public Object getNextPath(Message<?> requestMessage, Object reply) {
+	public @Nullable Object getNextPath(Message<?> requestMessage, Object reply) {
 		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply));
 	}
 

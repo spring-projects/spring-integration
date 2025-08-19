@@ -20,6 +20,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An advice that can be added to a poller's advice chain that determines
@@ -47,7 +48,7 @@ public class PollSkipAdvice implements MethodInterceptor {
 	}
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		if ("call".equals(invocation.getMethod().getName()) && this.pollSkipStrategy.skipPoll()) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Skipping poll because "
@@ -56,9 +57,7 @@ public class PollSkipAdvice implements MethodInterceptor {
 			}
 			return null;
 		}
-		else {
-			return invocation.proceed();
-		}
+		return invocation.proceed();
 	}
 
 	private static final class DefaultPollSkipStrategy implements PollSkipStrategy {

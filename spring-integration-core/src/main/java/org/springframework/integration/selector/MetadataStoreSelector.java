@@ -65,16 +65,15 @@ public class MetadataStoreSelector implements MessageSelector {
 
 	private final MessageProcessor<String> keyStrategy;
 
-	private final MessageProcessor<String> valueStrategy;
+	private final @Nullable MessageProcessor<String> valueStrategy;
 
-	@Nullable
-	private BiPredicate<String, String> compareValues;
+	private @Nullable BiPredicate<String, String> compareValues;
 
 	public MetadataStoreSelector(MessageProcessor<String> keyStrategy) {
 		this(keyStrategy, (MessageProcessor<String>) null);
 	}
 
-	public MetadataStoreSelector(MessageProcessor<String> keyStrategy, MessageProcessor<String> valueStrategy) {
+	public MetadataStoreSelector(MessageProcessor<String> keyStrategy, @Nullable MessageProcessor<String> valueStrategy) {
 		this(keyStrategy, valueStrategy, new SimpleMetadataStore());
 	}
 
@@ -82,7 +81,7 @@ public class MetadataStoreSelector implements MessageSelector {
 		this(keyStrategy, null, metadataStore);
 	}
 
-	public MetadataStoreSelector(MessageProcessor<String> keyStrategy, MessageProcessor<String> valueStrategy,
+	public MetadataStoreSelector(MessageProcessor<String> keyStrategy, @Nullable MessageProcessor<String> valueStrategy,
 			ConcurrentMetadataStore metadataStore) {
 		Assert.notNull(keyStrategy, "'keyStrategy' must not be null");
 		Assert.notNull(metadataStore, "'metadataStore' must not be null");
