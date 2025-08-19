@@ -126,7 +126,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			LockRegistry<?> lockRegistry) {
 
 		super(false);
-		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.individualUpperBound = new UpperBound(individualCapacity);
 		this.individualCapacity = individualCapacity;
 		this.groupCapacity = groupCapacity;
@@ -185,12 +184,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> getMessage(UUID key) {
-		return (key != null) ? this.idToMessage.get(key) : null;
+	public @Nullable Message<?> getMessage(UUID key) {
+		return this.idToMessage.get(key);
 	}
 
 	@Override
-	public MessageMetadata getMessageMetadata(UUID id) {
+	public @Nullable MessageMetadata getMessageMetadata(UUID id) {
 		Message<?> message = getMessage(id);
 		if (message != null) {
 			MessageMetadata messageMetadata = new MessageMetadata(id);
@@ -204,23 +203,16 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> removeMessage(UUID key) {
-		if (key != null) {
-			Message<?> message = this.idToMessage.remove(key);
-			if (message != null) {
-				this.individualUpperBound.release();
-			}
-			return message;
+	public @Nullable Message<?> removeMessage(UUID key) {
+		Message<?> message = this.idToMessage.remove(key);
+		if (message != null) {
+			this.individualUpperBound.release();
 		}
-		else {
-			return null;
-		}
+		return message;
 	}
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		if (group == null) {
 			return getMessageGroupFactory().create(groupId);
@@ -259,9 +251,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(messages, "'messages' must not be null");
-
 		Lock lock = getLockRegistry().obtain(groupId);
 		try {
 			lock.lockInterruptibly();
@@ -418,13 +407,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected Message<?> doPollMessageFromGroup(Object groupId) {
+	protected @Nullable Message<?> doPollMessageFromGroup(Object groupId) {
 		Collection<Message<?>> messageList = getMessageGroup(groupId).getMessages();
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)) {
 			message = messageList.iterator().next();
 			if (message != null) {
-				this.removeMessagesFromGroup(groupId, message);
+				removeMessagesFromGroup(groupId, message);
 			}
 		}
 		return message;
@@ -441,7 +430,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
 		return getMessageGroup(groupId).getOne();
 	}
 

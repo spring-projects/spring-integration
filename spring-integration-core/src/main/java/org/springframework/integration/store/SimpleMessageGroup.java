@@ -27,9 +27,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id.
@@ -63,14 +62,13 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private volatile boolean complete;
 
-	@Nullable
-	private volatile String condition;
+	private volatile @Nullable String condition;
 
 	public SimpleMessageGroup(Object groupId) {
 		this(Collections.emptyList(), groupId);
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
+	public SimpleMessageGroup(Collection<? extends @Nullable Message<?>> messages, Object groupId) {
 		this(messages, groupId, System.currentTimeMillis(), false);
 	}
 
@@ -79,23 +77,22 @@ public class SimpleMessageGroup implements MessageGroup {
 				messageGroup.isComplete());
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
+	public SimpleMessageGroup(Collection<? extends @Nullable Message<?>> messages, Object groupId, long timestamp,
 			boolean complete) {
 		this(new LinkedHashSet<>(), messages, groupId, timestamp, complete, false);
 	}
 
-	public SimpleMessageGroup(Collection<Message<?>> internalStore, Collection<? extends Message<?>> messages,
+	public SimpleMessageGroup(Collection<Message<?>> internalStore,
+			@Nullable Collection<? extends @Nullable Message<?>> messages,
 			Object groupId, long timestamp, boolean complete, boolean storePreLoaded) {
 
-		Assert.notNull(internalStore, "'internalStore' must not be null");
 		this.messages = internalStore;
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
-		if (!storePreLoaded) {
-			Assert.notNull(messages, "'messages' must not be null");
+		if (!storePreLoaded && messages != null) {
 			for (Message<?> message : messages) {
-				if (message != null) { //see INT-2666
+				if (message != null) {
 					addMessage(message);
 				}
 			}
@@ -129,7 +126,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public boolean remove(Message<?> message) {
-		this.sequences.remove(message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		this.sequences.remove(StaticMessageHeaderAccessor.getSequenceNumber(message));
 		return this.messages.remove(message);
 	}
 
@@ -139,8 +136,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	private boolean addMessage(Message<?> message) {
-		Integer sequence = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class);
-		this.sequences.add(sequence != null ? sequence : 0);
+		this.sequences.add(StaticMessageHeaderAccessor.getSequenceNumber(message));
 		return this.messages.add(message);
 	}
 
@@ -170,11 +166,12 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // if 'size() > 0', then 'getOne' is not null
 	public int getSequenceSize() {
 		if (size() == 0) {
 			return 0;
 		}
-		return new IntegrationMessageHeaderAccessor(getOne()).getSequenceSize();
+		return StaticMessageHeaderAccessor.getSequenceSize(getOne());
 	}
 
 	@Override
@@ -183,18 +180,17 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	@Override
-	public void setCondition(String condition) {
+	public void setCondition(@Nullable String condition) {
 		this.condition = condition;
 	}
 
 	@Override
-	@Nullable
-	public String getCondition() {
+	public @Nullable String getCondition() {
 		return this.condition;
 	}
 
 	@Override
-	public Message<?> getOne() {
+	public @Nullable Message<?> getOne() {
 		this.lock.lock();
 		try {
 			Iterator<Message<?>> iterator = this.messages.iterator();

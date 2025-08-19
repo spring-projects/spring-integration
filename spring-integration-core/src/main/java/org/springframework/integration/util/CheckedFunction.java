@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A Function-like interface which allows throwing Error.
  *
@@ -30,7 +32,7 @@ import java.util.function.Function;
  * @since 6.1
  */
 @FunctionalInterface
-public interface CheckedFunction<T, R, E extends Throwable> {
+public interface CheckedFunction<T, R extends @Nullable Object, E extends Throwable> {
 
 	R apply(T t) throws E;
 

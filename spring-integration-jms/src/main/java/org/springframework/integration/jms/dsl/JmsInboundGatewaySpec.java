@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
@@ -164,7 +165,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	 * @since 6.1
 	 * @see ChannelPublishingJmsMessageListener#setReplyToExpression(Expression)
 	 */
-	public S replyToFunction(CheckedFunction<Message, ?, JMSException> replyToFunction) {
+	public S replyToFunction(CheckedFunction<Message, ? extends @Nullable Object, JMSException> replyToFunction) {
 		return replyToExpression(new FunctionExpression<>(replyToFunction.unchecked()));
 	}
 

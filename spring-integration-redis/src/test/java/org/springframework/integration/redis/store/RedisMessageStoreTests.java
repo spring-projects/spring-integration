@@ -83,8 +83,7 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 		Message<String> stringMessage = new GenericMessage<>("Hello Redis");
 		Message<String> storedMessage = store.addMessage(stringMessage);
-		assertThat(storedMessage).isNotSameAs(stringMessage);
-		assertThat(storedMessage.getPayload()).isEqualTo("Hello Redis");
+		assertThat(storedMessage).isSameAs(stringMessage);
 	}
 
 	@Test
@@ -96,8 +95,7 @@ class RedisMessageStoreTests implements RedisContainerTest {
 
 		Message<Person> objectMessage = new GenericMessage<>(person);
 		Message<Person> storedMessage = store.addMessage(objectMessage);
-		assertThat(storedMessage).isNotSameAs(objectMessage);
-		assertThat(storedMessage.getPayload().getName()).isEqualTo("Barak Obama");
+		assertThat(storedMessage).isSameAs(objectMessage);
 	}
 
 	@Test

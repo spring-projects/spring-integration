@@ -16,6 +16,8 @@
 
 package org.springframework.integration.store;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 
@@ -23,6 +25,7 @@ import org.springframework.messaging.Message;
  * Defines a minimal message group store with basic capabilities.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.0
  *
@@ -59,6 +62,7 @@ public interface BasicMessageGroupStore {
 	 * @param groupId The group identifier.
 	 * @return The message.
 	 */
+	@Nullable
 	Message<?> pollMessageFromGroup(Object groupId);
 
 	/**

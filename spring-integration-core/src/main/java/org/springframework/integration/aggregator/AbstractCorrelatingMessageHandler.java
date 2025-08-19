@@ -831,7 +831,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					}
 					else {
 						/*
-						 * By default empty groups are removed on the same schedule as non-empty
+						 * By default, empty groups are removed on the same schedule as non-empty
 						 * groups. A longer timeout for empty groups can be enabled by
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
@@ -923,9 +923,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Never called with an empty group
 	protected void completeGroup(Object correlationKey, MessageGroup group, Lock lock) {
-		Message<?> first = group.getOne();
-		completeGroup(first, correlationKey, group, lock);
+		completeGroup(group.getOne(), correlationKey, group, lock);
 	}
 
 	@SuppressWarnings("unchecked")

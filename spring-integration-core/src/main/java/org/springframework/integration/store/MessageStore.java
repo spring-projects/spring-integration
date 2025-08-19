@@ -18,6 +18,8 @@ package org.springframework.integration.store;
 
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 
@@ -37,6 +39,7 @@ public interface MessageStore {
 	 * @param id The message identifier.
 	 * @return The Message with the given id, or <i>null</i> if no Message with that id exists in the MessageStore.
 	 */
+	@Nullable
 	Message<?> getMessage(UUID id);
 
 	/**
@@ -47,11 +50,12 @@ public interface MessageStore {
 	 * or the message has no metadata (legacy message from an earlier version).
 	 * @since 5.0
 	 */
+	@Nullable
 	MessageMetadata getMessageMetadata(UUID id);
 
 	/**
 	 * Put the provided Message into the MessageStore. The store may need to mutate the message internally, and if it
-	 * does then the return value can be different than the input. The id of the return value will be used as an index
+	 * does then the returned value can be different from the input. The id of the return value will be used as an index
 	 * so that the {@link #getMessage(UUID)} and {@link #removeMessage(UUID)} behave properly. Since messages are
 	 * immutable, putting the same message more than once is a no-op.
 	 *
@@ -69,6 +73,7 @@ public interface MessageStore {
 	 * @param id the message identifier.
 	 * @return the message (if any).
 	 */
+	@Nullable
 	Message<?> removeMessage(UUID id);
 
 	/**

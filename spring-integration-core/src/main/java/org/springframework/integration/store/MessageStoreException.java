@@ -16,6 +16,8 @@
 
 package org.springframework.integration.store;
 
+import java.io.Serial;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
@@ -23,10 +25,12 @@ import org.springframework.messaging.MessagingException;
  * Exception for problems that occur when using a {@link MessageStore} implementation.
  *
  * @author Oleg Zhurakousky
+ *
  * @since 2.1
  */
 public class MessageStoreException extends MessagingException {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	/**

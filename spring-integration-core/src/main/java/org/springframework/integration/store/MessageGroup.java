@@ -108,6 +108,7 @@ public interface MessageGroup {
 	/**
 	 * @return a single message from the group
 	 */
+	@Nullable
 	Message<?> getOne();
 
 	/**
@@ -127,7 +128,7 @@ public interface MessageGroup {
 	 * @param condition statement which could be consulted later on, e.g. from the release strategy.
 	 * @since 5.5
 	 */
-	void setCondition(String condition);
+	void setCondition(@Nullable String condition);
 
 	/**
 	 * Return the condition for this group to consult with, e.g. from the release strategy.

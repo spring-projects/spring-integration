@@ -63,8 +63,6 @@ import org.springframework.util.Assert;
 public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDbMessageStore
 		implements MessageStore {
 
-	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
-
 	public static final String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
 
 	public ConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate) {
@@ -97,14 +95,12 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
-		Assert.notNull(message, "'message' must not be null");
 		this.addMessageDocument(new MessageDocument(message));
 		return message;
 	}
 
 	@Override
 	public @Nullable Message<?> removeMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id)
 				.and(MessageDocumentFields.GROUP_ID).exists(false));
 		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, this.collectionName);
@@ -120,8 +116,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-
 		Query query = groupOrderQuery(groupId);
 		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 
@@ -151,9 +145,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messages, "'message' must not be null");
-
 		Query query = groupOrderQuery(groupId);
 		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 
@@ -187,9 +178,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messages, "'messageToRemove' must not be null");
-
 		Collection<UUID> ids = new ArrayList<>();
 		for (Message<?> messageToRemove : messages) {
 			ids.add(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
@@ -206,8 +194,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public @Nullable Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messageId, "'messageId' must not be null");
 		Query query =
 				Query.query(
 						Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageId)
@@ -218,8 +204,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messageId, "'messageId' must not be null");
 		Query query =
 				Query.query(
 						Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageId)
@@ -237,8 +221,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	protected @Nullable Message<?> doPollMessageFromGroup(final Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
 		Query query = groupIdQuery(groupId).with(sort);
 		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, collectionName);
@@ -299,7 +281,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = groupOrderQuery(groupId);
 		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 		if (messageDocument != null) {
@@ -312,7 +293,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = groupOrderQuery(groupId);
 		List<MessageDocument> documents = getMongoTemplate().find(query, MessageDocument.class, this.collectionName);
 
@@ -323,7 +303,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = groupOrderQuery(groupId);
 		Stream<MessageDocument> documents =
 				getMongoTemplate()

@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 
 import java.util.concurrent.Callable;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A Callable-like interface which allows throwing any Throwable.
  * Checked exceptions are wrapped in an IllegalStateException.
@@ -30,7 +32,7 @@ import java.util.concurrent.Callable;
  * @since 6.2
  */
 @FunctionalInterface
-public interface CheckedCallable<T, E extends Throwable> {
+public interface CheckedCallable<T extends @Nullable Object, E extends Throwable> {
 
 	T call() throws E;
 
