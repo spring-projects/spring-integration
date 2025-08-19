@@ -145,7 +145,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected void doAddMessage(Message<?> message, @Nullable Object groupId) {
 		UUID messageId = message.getHeaders().getId();
 		Assert.notNull(messageId, "Cannot store messages without an ID header");
-		String messageKey = this.messagePrefix + (groupId != null ? groupId.toString() + '_' : "") + messageId;
+		String messageKey =
+				new StringBuilder(this.messagePrefix)
+						.append(groupId != null ? groupId.toString() + '_' : "")
+						.append(messageId).toString();
 		doStoreIfAbsent(messageKey, new MessageHolder(message));
 	}
 
