@@ -163,8 +163,9 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @return the {@link Message}.
 	 * @since 4.0
 	 */
-	@Nullable
-	Message<?> getOneMessageFromGroup(Object groupId);
+	default @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
 
 	/**
 	 * Store messages with an association to a group id.

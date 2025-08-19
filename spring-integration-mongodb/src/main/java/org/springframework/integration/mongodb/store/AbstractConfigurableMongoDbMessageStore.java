@@ -281,11 +281,6 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
-		throw NOT_IMPLEMENTED;
-	}
-
-	@Override
 	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		throw NOT_IMPLEMENTED;
 	}

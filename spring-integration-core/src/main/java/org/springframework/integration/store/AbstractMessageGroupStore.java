@@ -280,9 +280,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	protected abstract @Nullable Message<?> doPollMessageFromGroup(Object groupId);
 
-	protected <T, E extends RuntimeException> T executeLocked(Object groupId,
-			CheckedCallable<T, E> runnable) {
-
+	protected <T, E extends RuntimeException> T executeLocked(Object groupId, CheckedCallable<T, E> runnable) {
 		try {
 			return this.lockRegistry.executeLocked(groupId, runnable);
 		}

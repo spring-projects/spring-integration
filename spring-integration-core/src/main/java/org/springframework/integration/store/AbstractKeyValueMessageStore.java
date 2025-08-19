@@ -212,7 +212,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			doAddMessage(message, groupId);
 			if (metadata != null) {
 				UUID id = message.getHeaders().getId();
-				Assert.notNull(id, "'id' must not be null");
+				Assert.state(id != null, () -> "Message 'id' must not be null: " + message);
 				metadata.add(id);
 			}
 			else {
@@ -243,7 +243,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			List<UUID> ids = new ArrayList<>();
 			for (Message<?> messageToRemove : messages) {
 				UUID id = messageToRemove.getHeaders().getId();
-				Assert.notNull(id, "Message 'id' must not be null");
+				Assert.state(id != null, () -> "Message 'id' must not be null: " + messageToRemove);
 				ids.add(id);
 			}
 
@@ -359,7 +359,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	private @Nullable Message<?> removeMessageFromGroup(UUID id, Object groupId) {
-		Assert.notNull(id, "'id' must not be null");
 		Object object = doRemove(this.messagePrefix + groupId + '_' + id);
 		if (object != null) {
 			return extractMessage(object);
@@ -370,12 +369,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
+	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupId);
 		Assert.state(groupMetadata != null, () -> "No group for: " + groupId);
 		UUID messageId = groupMetadata.firstId();
-		Assert.state(messageId != null, "The group must contain at least one message");
-		return getMessageFromGroup(messageId, groupId);
+		if (messageId != null) {
+			return getMessageFromGroup(messageId, groupId);
+		}
+		return null;
 	}
 
 	private Message<?> getMessageFromGroup(UUID messageId, Object groupId) {

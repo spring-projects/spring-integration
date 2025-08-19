@@ -923,7 +923,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	@SuppressWarnings("NullAway") // Never called with empty group
+	@SuppressWarnings("NullAway") // Never called with an empty group
 	protected void completeGroup(Object correlationKey, MessageGroup group, Lock lock) {
 		completeGroup(group.getOne(), correlationKey, group, lock);
 	}

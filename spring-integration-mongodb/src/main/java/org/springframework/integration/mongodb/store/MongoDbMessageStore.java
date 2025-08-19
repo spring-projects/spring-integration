@@ -111,8 +111,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static final String UNCHECKED = "unchecked";
 
-	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
-
 	private static final String DEFAULT_COLLECTION_NAME = "messages";
 
 	private static final String GROUP_ID_KEY = "_groupId";
@@ -214,7 +212,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
-		Assert.notNull(message, "'message' must not be null");
 		addMessageDocument(new MessageWrapper(message));
 		return message;
 	}
@@ -234,7 +231,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable Message<?> getMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
 		MessageWrapper messageWrapper =
 				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
@@ -242,7 +238,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable MessageMetadata getMessageMetadata(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
 		MessageWrapper messageWrapper =
 				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		if (messageWrapper != null) {
@@ -264,7 +259,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable Message<?> removeMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where("headers.id").is(id).and(GROUP_ID_KEY).exists(false));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null ? messageWrapper.getMessage() : null);
@@ -272,7 +266,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
@@ -297,8 +290,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messages, "'message' must not be null");
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
@@ -331,12 +322,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messages, "'messageToRemove' must not be null");
-
 		Collection<UUID> ids = new ArrayList<>();
 		for (Message<?> messageToRemove : messages) {
-			ids.add(messageToRemove.getHeaders().getId());
+			UUID id = messageToRemove.getHeaders().getId();
+			Assert.state(id != null, () -> "The message 'id' must notbe null:" + messageToRemove);
+			ids.add(id);
 			if (ids.size() >= getRemoveBatchSize()) {
 				bulkRemove(groupId, ids);
 				ids.clear();
@@ -359,8 +349,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messageId, "'messageId' must not be null");
 		MessageWrapper messageWrapper =
 				this.template.findOne(whereMessageIdIsAndGroupIdIs(messageId, groupId),
 						MessageWrapper.class, this.collectionName);
@@ -369,8 +357,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		Assert.notNull(messageId, "'messageId' must not be null");
 		return this.template.remove(whereMessageIdIsAndGroupIdIs(messageId, groupId), this.collectionName)
 				.wasAcknowledged();
 	}
@@ -397,7 +383,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected @Nullable Message<?> doPollMessageFromGroup(final Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdIs(groupId).with(Sort.by(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
@@ -432,7 +417,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public @Nullable Message<?> getOneMessageFromGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 		if (messageWrapper != null) {
@@ -445,7 +429,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
 
@@ -456,7 +439,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
-		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		Stream<MessageWrapper> messageWrappers =
 				this.template.stream(query, MessageWrapper.class, this.collectionName);
