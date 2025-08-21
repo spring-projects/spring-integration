@@ -1,9 +1,9 @@
 [[jdbc-dsl]]
 = Java DSL for JDBC Components
 
-Version 7.0 introduced the Java DSL API for channel adapters in JDBC module.
+Version 7.0 introduced the Java DSL API for channel adapters in the JDBC module.
 The central Java DSL class (and usually starting point) is a `org.springframework.integration.jdbc.dsl.Jdbc` factory.
-It provides self-explanatory method to initiate configuration for target channel adapter or gateway.
+It provides a self-explanatory method to initiate configuration for the target channel adapter or gateway.
 The standard `IntegrationComponentSpec` implementations for out-of-the-box channel adapters are:
 
 * `JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInboundChannelAdapterSpec, JdbcPollingChannelAdapter>`

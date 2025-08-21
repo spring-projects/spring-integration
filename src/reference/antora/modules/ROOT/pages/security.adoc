@@ -11,7 +11,7 @@ NOTE: Starting with version `6.3` the whole `spring-integration-security` module
 [[securing-channels]]
 == Securing channels
 
-To secure message channels in the integration flow, an `AuthorizationChannelInterceptor` has to be added to those channels, or it can be configured as a global channel interceptor with respective pattern:
+To secure message channels in the integration flow, an `AuthorizationChannelInterceptor` has to be added to those channels, or it can be configured as a global channel interceptor with a respective pattern:
 
 [tabs]
 ======

@@ -50,7 +50,7 @@ Otherwise, it is set to the current time.
 Starting with version 4.2, you can specify `remote-directory-expression` instead of `remote-directory`, which lets you dynamically determine the directory on each poll -- for example, `remote-directory-expression="@myBean.determineRemoteDir()"`.
 
 Sometimes, file filtering based on the simple pattern specified via `filename-pattern` attribute might not suffice.
-If this is the case, you can use the `filename-regex` attribute to specify a regular expression (for example, `filename-regex=".*\.test$"`).
+If this is the case, you can use the `filename-regex` attribute to specify a regular expression, for example, `filename-regex=".*\.test$"`.
 If you need complete control, you can use the `filter` attribute to provide a reference to a custom implementation of the `org.springframework.integration.file.filters.FileListFilter`, which is a strategy interface for filtering a list of files.
 This filter determines which remote files are retrieved.
 You can also combine a pattern-based filter with other filters (such as an `AcceptOnceFileListFilter`, to avoid synchronizing files that have previously been fetched) by using a `CompositeFileListFilter`.
@@ -70,11 +70,11 @@ You can handle any other use-cases by using `CompositeFileListFilter` (or `Chain
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
 By default, this is an`AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
-Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restart.
+Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restarts.
 
 Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
 
-For more information about this filter, and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
+For more information about this filter and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
@@ -171,7 +171,7 @@ If you wish to reprocess such files after a failure, you can use a configuration
 
 The preceding configuration works for any `ResettableFileListFilter`.
 
-Starting with version 5.0, the inbound channel adapter can build sub-directories locally, according to the generated local file name.
+Starting with version 5.0, the inbound channel adapter can build subdirectories locally, according to the generated local file name.
 That can be a remote sub-path as well.
 To be able to read a local directory recursively for modification according to the hierarchy support, you can now supply an internal `FileReadingMessageSource` with a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/synchronizer/AbstractInboundFileSynchronizingMessageSource.html#setScanner-org.springframework.integration.file.DirectoryScanner[`AbstractInboundFileSynchronizingMessageSource.setScanner()`] for more information.

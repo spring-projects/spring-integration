@@ -112,7 +112,7 @@ public interface AcknowledgmentCallback extends SimpleAcknowledgment {
 }
 ----
 
-Not all message sources (for example, a `KafkaMessageSource`) support the `REJECT` status.
+Not all message sources, (for example, a `KafkaMessageSource`) support the `REJECT` status.
 It is treated the same as `ACCEPT`.
 
 Applications can acknowledge a message at any time, as the following example shows:
@@ -145,7 +145,7 @@ template.poll(h -> {
 
 In both cases (`SourcePollingChannelAdapter` and `MessageSourcePollingTemplate`), you can disable auto ack/nack by calling `noAutoAck()` on the callback.
 You might do this if you hand off the message to another thread and wish to acknowledge later.
-Not all implementations support this (for example, Apache Kafka does not, because the offset commit has to be performed on the same thread).
+Not all implementations support this, for example, Apache Kafka does not, because the offset commit has to be performed on the same thread.
 
 
 [[conditional-pollers]]
@@ -183,7 +183,7 @@ You can even return a different message
 [IMPORTANT]
 ====
 If an `Advice` mutates the source, you should not configure the poller with a `TaskExecutor`.
-If an `Advice` mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high frequency pollers.
+If an `Advice` mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high-frequency pollers.
 If you need to process poll results concurrently, consider using a downstream `ExecutorChannel` instead of adding an executor to the poller.
 ====
 

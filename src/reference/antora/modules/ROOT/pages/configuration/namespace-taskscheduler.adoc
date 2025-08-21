@@ -20,7 +20,7 @@ However, when no task executor is provided for an endpoint's poller, it is invok
 
 CAUTION: Do not run long-running tasks on poller threads.
 Use a task executor instead.
-If you have a lot of polling endpoints, you can cause thread starvation, unless you increase the pool size.
+If you have a lot of polling endpoints, you can cause thread starvation unless you increase the pool size.
 Also, polling consumers have a default `receiveTimeout` of one second.
 Since the poller thread blocks for this time, we recommend that you use a task executor when many such endpoints exist, again to avoid starvation.
 Alternatively, you can reduce the `receiveTimeout`.
@@ -43,7 +43,7 @@ To do so, define a bean with the appropriate JNDI name for your environment, as 
 ----
 =====
 
-IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.
+IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above-mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.
 
 See also xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for more information.
 

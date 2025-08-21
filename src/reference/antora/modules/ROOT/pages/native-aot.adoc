@@ -50,6 +50,6 @@ Of course, configuration is just a piece of an integration solution.
 The most important part is data transferring over the network as well as persistent storage.
 That's where serialization comes handy for many use-cases.
 Spring Integration exposes serialization hints into a native image configuration for these types used by the framework internally: `String`, `Number`, `Long`, `Date`, `ArrayList`, `HashMap`, `Properties`, `Hashtable`, `Exception`, `UUID`, `GenericMessage`, `ErrorMessage`, `MessageHeaders`, `AdviceMessage`, `MutableMessage`, `MutableMessageHeaders`, `MessageGroupMetadata`, `MessageHolder`, `MessageMetadata`, `MessageHistory`, `MessageHistory.Entry`, `DelayHandler.DelayedMessageWrapper`.
-For user specific data, mostly present as a message payload, the serialization hint must be exposed manually via a `RuntimeHintsRegistrar` implementation, as is shown above for a gateway proxy, and the respective `RuntimeHints.serialization().registerType()` API.
+For user-specific data, mostly present as a message payload, the serialization hint must be exposed manually via a `RuntimeHintsRegistrar` implementation, as is shown above for a gateway proxy, and the respective `RuntimeHints.serialization().registerType()` API.
 
 NOTE: It is recommended that native integration applications are developed with Spring Boot, using its respective build tools.

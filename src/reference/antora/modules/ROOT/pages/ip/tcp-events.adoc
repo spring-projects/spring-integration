@@ -39,5 +39,5 @@ IMPORTANT: To avoid delaying the listening thread from accepting connections, th
 Starting with version 4.3.2, a `TcpConnectionFailedEvent` is emitted whenever a client connection cannot be created.
 The source of the event is the connection factory, which you can use to determine the host and port to which the connection could not be established.
 
-To use a single `ApplicationListener` (or `@EventListener` method) to receive all of these events (including `TcpConnectionEvent` s), configure the listener to receive `IpIntegrationEvent` s.
+To use a single `ApplicationListener` (or `@EventListener` method) to receive all of these events (including ``TcpConnectionEvent``s), configure the listener to receive ``IpIntegrationEvent``s.
 

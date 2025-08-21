@@ -11,7 +11,7 @@ This section documents the XML namespace support provided by Spring Integration 
 Certain configuration parameters are shared by all JPA components:
 
 `auto-startup`::
-Lifecycle attribute that signals whether this component should be started during application context startup.
+Lifecycle attribute that signals whether this component should be started during the application context startup.
 Defaults to `true`.
 Optional.
 
@@ -55,7 +55,7 @@ When retrieving data, you can specify the `entity-class` attribute to indicate t
 In that case, you must not define any of the query attributes (`jpa-query`, `native-query`, or `named-query`).
 +
 When persisting data, the `entity-class` attribute indicates the type of object to persist.
-If not specified (for persist operations) the entity class is automatically retrieved from the message's payload.
+If not specified for persist operations, the entity class is automatically retrieved from the message's payload.
 
 `jpa-query`::
 Defines the JPA query (Java Persistence Query Language) to be used.

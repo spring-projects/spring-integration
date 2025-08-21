@@ -128,9 +128,9 @@ By default, this is an empty `String`.
 Mutually exclusive with 'routing-key-expression'.
 Optional.
 <11> A SpEL expression that is evaluated to determine the routing-key to use when sending messages,
-with the message as the root object (for example, 'payload.key').
+with the message as the root object, (for example, `payload.key`).
 By default, this is an empty `String`.
-Mutually exclusive with 'routing-key'.
+Mutually exclusive with `routing-key`.
 Optional.
 <12> The default delivery mode for messages: `PERSISTENT` or `NON_PERSISTENT`.
 Overridden if the `header-mapper` sets the delivery mode.
@@ -170,7 +170,7 @@ Requires the underlying `AsyncRabbitTemplate` to have its `mandatory` property s
 Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional.
 <18> When set to `false`, the endpoint tries to connect to the broker during application context initialization.
-Doing so allows "`fail fast`" detection of bad configuration, by logging an error message if the broker is down.
+Doing so allows "`fail fast`" detection of bad configuration by logging an error message if the broker is down.
 When `true` (the default), the connection is established (if it does not already exist because some other component established
 it) when the first message is sent.
 

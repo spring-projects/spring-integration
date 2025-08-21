@@ -3,7 +3,7 @@
 
 Version 2.1 introduced support for https://www.mongodb.org/[MongoDB]: a "`high-performance, open source, document-oriented database`".
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -57,7 +57,7 @@ compile "org.mongodb:mongodb-driver-reactivestreams"
 ----
 ======
 
-For regular synchronous client you need to add its respective driver into dependencies:
+For a regular synchronous client you need to add its respective driver into dependencies:
 
 
 [tabs]
@@ -91,7 +91,7 @@ TIP: Spring Data provides the blocking MongoDB driver by default, but you may op
 [[using-mongodatabasefactory]]
 === Using `MongoDatabaseFactory`
 
-To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory` interface.
+To connect to MongoDB, you can use an implementation of the `MongoDatabaseFactory` interface.
 
 The following example shows how to use `SimpleMongoClientDatabaseFactory`:
 
@@ -246,7 +246,7 @@ To configure that scenario, you can extend one message store bean from the other
 ----
 [[abstract-configurable-mongodb-message-store-with-auto-index-creation-disable]]
 === Using AbstractConfigurableMongoDbMessageStore with auto index creation disable
-Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` implements a `setCreateIndex(boolean)` which can be use to desable or enable (default) the auto index creation.
+Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` implements a `setCreateIndex(boolean)` which can be used to disable or enable (default) the auto index creation.
 The following example shows how to declare a bean and disable the auto index creation:
 
 [source, java]
@@ -325,7 +325,7 @@ Sometimes, you may need to change those values at runtime, based on some conditi
 To do so, use their `-expression` equivalents (`query-expression` and `collection-name-expression`), where the provided expression can be any valid SpEL expression.
 
 Also, you may wish to do some post-processing to the successfully processed data that was read from the MongoDB.
-For example; you may want to move or remove a document after it has been processed.
+For example, you may want to move or remove a document after it has been processed.
 You can do so by using that transaction synchronization feature Spring Integration 2.2 added, as the following example shows:
 
 [source,xml]
@@ -367,7 +367,7 @@ public class DocumentCleaner {
 ----
 
 You can declare your poller to be transactional by using the `transactional` element.
-This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
+This element can reference a real transaction manager, for example, if some other part of your flow invokes JDBC.
 If you do not have a "`real`" transaction, you can use an instance of `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Mongo adapter when there is no actual transaction.
 
 IMPORTANT: Doing so does not make MongoDB itself transactional.
@@ -376,7 +376,7 @@ It lets the synchronization of actions be taken before or after success (commit)
 Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
 A `TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
 For your convenience, we have exposed a default SpEL-based `TransactionSynchronizationFactory` that lets you configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
-Expressions for before-commit, after-commit, and after-rollback events are supported, together with a channel for each event where the evaluation result (if any) is sent.
+Expressions for before-commit, after-commit, and after-rollback events are supported, together with a channel for each event where the evaluation results (if any) is sent.
 For each child element, you can specify `expression` and `channel` attributes.
 If only the `channel` attribute is present, the received message is sent there as part of the particular synchronization scenario.
 If only the `expression` attribute is present and the result of an expression is a non-null value, a message with the result as the payload is generated and sent to a default channel (`NullChannel`) and appears in the logs (on the `DEBUG` level).
@@ -386,14 +386,14 @@ If the result of an expression is null or void, no message is generated.
 For more information about transaction synchronization, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
 Starting with version 5.5, the `MongoDbMessageSource` can be configured with an `updateExpression`, which must evaluate to a `String` with the MongoDb `update` syntax or to an `org.springframework.data.mongodb.core.query.Update` instance.
-It can be used as an alternative to described above post-processing procedure, and it modifies those entities that were fetched from the collection, so they won't be pulled from the collection again on the next polling cycle (assuming the update changes some value used in the query).
+It can be used as an alternative to describe the above post-processing procedure, and it modifies those entities that were fetched from the collection, so they won't be pulled from the collection again on the next polling cycle (assuming the update changes some value used in the query).
 It is still recommended to use transactions to achieve execution isolation and data consistency, when several instances of the `MongoDbMessageSource` for the same collection are used in the cluster.
 
 [[mongodb-change-stream-channel-adapter]]
 == MongoDB Change Stream Inbound Channel Adapter
 
 Starting with version 5.3, the `spring-integration-mongodb` module introduces the `MongoDbChangeStreamMessageProducer` - a reactive `MessageProducerSupport` implementation for the Spring Data `ReactiveMongoOperations.changeStream(String, ChangeStreamOptions, Class)` API.
-This component produces a `Flux` of messages with a `body` of `ChangeStreamEvent` as the payload by default and some change stream related headers (see `MongoHeaders`).
+This component produces a `Flux` of messages with a `body` of `ChangeStreamEvent` as the payload by default and some change stream-related headers (see `MongoHeaders`).
 It is recommended that this `MongoDbChangeStreamMessageProducer` is combined with a `FluxMessageChannel` as the `outputChannel` for on-demand subscription and event consumption downstream.
 
 The Java DSL configuration for this channel adapter may look like this:
@@ -413,10 +413,10 @@ IntegrationFlow changeStreamFlow(ReactiveMongoOperations mongoTemplate) {
 ----
 
 When the `MongoDbChangeStreamMessageProducer` is stopped, or the subscription is cancelled downstream, or the MongoDb change stream produces an `OperationType.INVALIDATE`, the `Publisher` is completed.
-The channel adapter can be started again and a new `Publisher` of source data is created and it is automatically subscribed in the `MessageProducerSupport.subscribeToPublisher(Publisher<? extends Message<?>>)`.
-This channel adapter can be reconfigured for new options between starts, if there is a requirement to consume change stream events from other places.
+The channel adapter can be started again and a new `Publisher` of source data is created, and it is automatically subscribed in the `MessageProducerSupport.subscribeToPublisher(Publisher<? extends Message<?>>)`.
+This channel adapter can be reconfigured for new options between starts if there is a requirement to consume change stream events from other places.
 
-See more information about change stream support in Spring Data MongoDb https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#change-streams[documentation].
+See more information about change stream support in the Spring Data MongoDB https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#change-streams[documentation].
 
 [[mongodb-outbound-channel-adapter]]
 == MongoDB Outbound Channel Adapter
@@ -437,7 +437,7 @@ As the preceding configuration shows, you can configure a MongoDB outbound chann
 * `mongo-converter`: Reference to an instance of `o.s.data.mongodb.core.convert.MongoConverter` that assists with converting a raw Java object to a JSON document representation.
 * `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`.
 * `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`.
-NOTE: you can not have both mongo-template and mongodb-factory set.
+NOTE: you cannot have both `mongo-template` and `mongodb-factory` set.
 * Other attributes that are common across all inbound adapters (such as 'channel').
 
 The preceding example is relatively simple and static, since it has a literal value for the `collection-name`.
@@ -448,8 +448,8 @@ To do that,  use `collection-name-expression`, where the provided expression is 
 == MongoDB Outbound Gateway
 
 Version 5.0 introduced the MongoDB outbound gateway.
-It allows you query a database by sending a message to its request channel.
-The gateway then send the response to the reply channel.
+It allows you to query a database by sending a message to its request channel.
+The gateway then sends the response to the reply channel.
 You can use the message payload and headers to specify the query and the collection name, as the following example shows:
 
 
@@ -590,7 +590,7 @@ See the https://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for
 * `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
 Preferable an instance of `o.s.i.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
 See its Javadocs for more information.
-NOTE: You can not have both `collection-callback` and any of the query attributes.
+NOTE: You cannot have both `collection-callback` and any of the query attributes.
 
 As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `collectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
 The following example specifies a count operation:
@@ -613,8 +613,8 @@ They are based on the `ReactiveMongoOperations` from Spring Data and requires a 
 The `ReactiveMongoDbStoringMessageHandler` is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
 See more information in the xref:reactive-streams.adoc#reactive-message-handler[ReactiveMessageHandler].
 
-From configuration perspective there is no difference with many other standard channel adapters.
-For example with Java DSL such a channel adapter could be used like:
+From a configuration perspective, there is no difference with many other standard channel adapters.
+For example, with Java DSL such a channel adapter could be used like:
 
 [source, java]
 ----
@@ -630,9 +630,9 @@ In this sample we are going to connect to the MongoDb via provided `ReactiveMong
 The real operation is going to be performed on-demand from the reactive stream composition in the internally created `ReactiveStreamsConsumer`.
 
 The `ReactiveMongoDbMessageSource` is an `AbstractMessageSource` implementation based on the provided `ReactiveMongoDatabaseFactory` or `ReactiveMongoOperations` and MongoDb query (or expression), calls `find()` or `findOne()` operation according an `expectSingleResult` option with an expected `entityClass` type to convert a query result.
-A query execution and result evaluation is performed on demand when `Publisher` (`Flux` or `Mono` according `expectSingleResult` option) in the payload of produced message is subscribed.
+A query execution and result evaluation is performed on demand when `Publisher` (`Flux` or `Mono` according `expectSingleResult` option) in the payload of a produced message is subscribed.
 The framework can subscribe to such a payload automatically (essentially `flatMap`) when splitter and `FluxMessageChannel` are used downstream.
-Otherwise, it is target application responsibility to subscribe into a polled publishers in downstream endpoints.
+Otherwise, it is target application responsibility to subscribe into a polled publisher in downstream endpoints.
 
 With Java DSL such a channel adapter could be configured like:
 

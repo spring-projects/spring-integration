@@ -16,7 +16,7 @@ The following example shows how to use `LoggingHandler`:
 
 In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
 
-Starting with version 6.0, the behavior of this operator in the end of flow is aligned with its usage in the middle.
+Starting with version 6.0, the behavior of this operator at the end of the flow is aligned with its usage in the middle.
 In other words the behavior of the flow remains the same even if the `log()` operator is removed.
 So, if a reply is not expected to be produced in the end of the flow, the `nullChannel()` is recommended to be used after the last `log()`.
 

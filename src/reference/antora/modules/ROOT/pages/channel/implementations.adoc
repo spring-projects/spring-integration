@@ -36,9 +36,9 @@ public QueueChannel(int capacity)
 A channel that has not reached its capacity limit stores messages in its internal queue, and the `send(Message<?>)` method returns immediately, even if no receiver is ready to handle the message.
 If the queue has reached capacity, the sender blocks until room is available in the queue.
 Alternatively, if you use the send method that has an additional timeout parameter, the queue blocks until either room is available or the timeout period elapses, whichever occurs first.
-Similarly, a `receive()` call returns immediately if a message is available on the queue, but, if the queue is empty, then a receive call may block until either a message is available or the timeout, if provided, elapses.
+Similarly, a `receive()` call returns immediately if a message is available on the queue, but, if the queue is empty, then a `receive` call may block until either a message is available or the timeout, if provided, elapses.
 In either case, it is possible to force an immediate return regardless of the queue's state by passing a timeout value of 0.
-Note, however, that calls to the versions of `send()` and `receive()` with no `timeout` parameter block indefinitely.
+Note, however, that calls the versions of `send()` and `receive()` with no `timeout` parameter block indefinitely.
 
 [[channel-implementations-prioritychannel]]
 == `PriorityChannel`
@@ -77,12 +77,12 @@ In addition to being the simplest point-to-point channel option, one of its most
 For example, if a handler subscribes to a `DirectChannel`, then sending a `Message` to that channel triggers invocation of that handler's `handleMessage(Message)` method directly in the sender's thread, before the `send()` method invocation can return.
 
 The key motivation for providing a channel implementation with this behavior is to support transactions that must span across the channel while still benefiting from the abstraction and loose coupling that the channel provides.
-If the `send()` call is invoked within the scope of a transaction, the outcome of the handler's invocation (for example, updating a database record) plays a role in determining the ultimate result of that transaction (commit or rollback).
+If the `send()` call is invoked within the scope of a transaction, the outcome of the handler's invocation, (for example, updating a database record) plays a role in determining the ultimate result of that transaction (commit or rollback).
 
 NOTE: Since the `DirectChannel` is the simplest option and does not add any additional overhead that would be required for scheduling and managing the threads of a poller, it is the default channel type within Spring Integration.
 The general idea is to define the channels for an application, consider which of those need to provide buffering or to throttle input, and modify those to be queue-based `PollableChannels`.
 Likewise, if a channel needs to broadcast messages, it should not be a `DirectChannel` but rather a `PublishSubscribeChannel`.
-Later, we show how each of these channels can be configured.
+Later we show how each of these channels can be configured.
 
 The `DirectChannel` internally delegates to a message dispatcher to invoke its subscribed message handlers, and that dispatcher can have a load-balancing strategy exposed by `load-balancer` or `load-balancer-ref` attributes (mutually exclusive).
 The load balancing strategy is used by the message dispatcher to help determine how messages are distributed amongst message handlers when multiple message handlers subscribe to the same channel.

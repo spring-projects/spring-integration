@@ -16,7 +16,7 @@ However, in most cases, such a migration is hidden behind Spring Integration API
 The most drastic changed has happened with a `DefaultSftpSessionFactory` which is based now on the `org.apache.sshd.client.SshClient` and exposes some if its configuration properties.
 
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

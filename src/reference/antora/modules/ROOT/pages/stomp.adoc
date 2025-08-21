@@ -6,7 +6,7 @@ It is based on the architecture, infrastructure, and API from the Spring Framewo
 Spring Integration uses many of Spring STOMP components (such as `StompSession` and `StompClientSupport`).
 For more information, see the https://docs.spring.io/spring-framework/reference/web/websocket/stomp/client.html[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -48,7 +48,7 @@ The `StompClientSupport` class is designed as a _factory_ to produce a `StompSes
 With the Spring Integration _adapter_ abstraction, we need to provide some managed shared object to represent our application as a STOMP client with its unique session.
 For this purpose, Spring Integration provides the `StompSessionManager` abstraction to manage the _single_ `StompSession` between any provided `StompSessionHandler`.
 This allows the use of _inbound_ or _outbound_ channel adapters (or both) for the particular STOMP Broker.
-See `StompSessionManager` (and its implementations) JavaDocs for more information.
+See `StompSessionManager` (and its implementations) Javadocs for more information.
 
 [[stomp-inbound-adapter]]
 == STOMP Inbound Channel Adapter

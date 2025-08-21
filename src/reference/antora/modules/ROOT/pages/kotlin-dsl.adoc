@@ -71,7 +71,7 @@ fun messageSourceFlow() =
         }
 ----
 
-In addition, Kotlin extensions are provided for the Java DSL API which needs some refinement for Kotlin structures.
+In addition, Kotlin extensions are provided for the Java DSL API, which needs some refinement for Kotlin structures.
 For example `IntegrationFlowDefinition<*>` requires a reifying for many methods with `Class<P>` argument:
 
 [source, kotlin]

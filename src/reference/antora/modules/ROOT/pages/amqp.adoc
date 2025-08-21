@@ -3,7 +3,7 @@
 
 Spring Integration provides channel adapters for receiving and sending messages by using the Advanced Message Queuing Protocol (AMQP).
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

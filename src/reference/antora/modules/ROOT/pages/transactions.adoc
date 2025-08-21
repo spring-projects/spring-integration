@@ -15,7 +15,7 @@ It covers the following topics:
 Spring Integration exposes several hooks to address the transactional needs of your message flows.
 To better understand these hooks and how you can benefit from them, we must first revisit the six mechanisms that you can use to initiate message flows and see how you can address the transactional needs of these flows within each of these mechanisms.
 
-The following six mechanisms initiate a message flow (details for each are provided throughout this manual):
+The following six mechanisms initiate a message flow (detail for each are provided throughout this manual):
 
 * Gateway proxy: A basic messaging gateway.
 
@@ -23,7 +23,7 @@ The following six mechanisms initiate a message flow (details for each are provi
 
 * Message publisher: The way to initiate a message flow as the by-product of method invocations on Spring beans.
 
-* Inbound channel adapters and gateways: The way to initiate a message flow based on connecting third-party system with the Spring Integration messaging system (for example, `[JmsMessage] -> Jms Inbound Adapter[SI Message] -> SI Channel`).
+* Inbound channel adapters and gateways: The way to initiate a message flow based on connecting third-party system with the Spring Integration messaging system, (for example, `[JmsMessage] -> Jms Inbound Adapter[SI Message] -> SI Channel`).
 
 * Scheduler: The way to initiate a message flow based on scheduling events distributed by a pre-configured scheduler.
 
@@ -41,7 +41,7 @@ Clearly the gateway proxy, `MessageChannel.send(...)` and `MessagePublisher` all
 So, how can you address transactional needs in various scenarios within each category, and is there a need for Spring Integration to provide something explicit with regard to transactions for a particular scenario?
 Or can you use Spring's transaction support instead?
 
-Spring itself provides first class support for transaction management.
+Spring itself provides first-class support for transaction management.
 So our goal here is not to provide something new but rather use Spring to benefit from its existing support for transactions.
 In other words, as a framework, we must expose hooks to Spring's transaction management functionality.
 However, since Spring Integration configuration is based on Spring configuration, we need not always expose these hooks, because Spring already exposes them .
@@ -52,7 +52,7 @@ With this goal in mind, we can again consider the two scenarios: message flows i
 Message flows that are initiated by a user process and configured in a Spring application context are subject to the usual transactional configuration of such processes.
 Therefore, they need not be explicitly configured by Spring Integration to support transactions.
 The transaction could and should be initiated through Spring's standard transaction support.
-The Spring Integration message flow naturally honors the transactional semantics of the components, because it is itself configured by Spring.
+The Spring Integration message flow naturally honors the transactional semantics of the components because it is itself configured by Spring.
 For example, a gateway or service activator method could be annotated with `@Transactional`, or a `TransactionInterceptor` could be defined in an XML configuration with a pointcut expression that points to specific methods that should be transactional.
 The bottom line is that you have full control over transaction configuration and boundaries in these scenarios.
 
@@ -73,7 +73,7 @@ If we were to add the same support for channels, the added transactions would af
 That provides a rather wide scope for transaction demarcation without any strong reason, especially when Spring already provides several ways to address the transactional needs of any component downstream.
 However, the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
 
-Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes,as the following example shows:
+Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes, as the following example shows:
 
 [source,xml]
 ----
@@ -128,10 +128,10 @@ If you need to address only the transactional concerns of the poller, you can st
 
 Another important factor is the boundaries of Transactions within a Message flow.
 When a transaction is started, the transaction context is bound to the current thread.
-So regardless of how many endpoints and channels you have in your Message flow your transaction context will be preserved as long as you are ensuring that the flow continues on the same thread.
+So regardless of how many endpoints and channels you have in your Message flow, your transaction context will be preserved as long as you are ensuring that the flow continues on the same thread.
 As soon as you break it by introducing a _Pollable Channel_ or _Executor Channel_ or initiate a new thread manually in some service, the Transactional boundary will be broken as well.
-Essentially the Transaction will END right there, and if a successful handoff has transpired between the threads, the flow would be considered a success and a COMMIT signal would be sent even though the flow will continue and might still result in an Exception somewhere downstream.
-If such a flow were synchronous, that Exception could be thrown back to the initiator of the Message flow who is also the initiator of the transactional context and the transaction would result in a ROLLBACK.
+Essentially, the Transaction will END right there, and if a successful handoff has transpired between the threads, the flow would be considered a success, and a COMMIT signal would be sent even though the flow will continue and might still result in an Exception somewhere downstream.
+If such a flow were synchronous, that Exception could be thrown back to the initiator of the Message flow who is also the initiator of the transactional context, and the transaction would result in a ROLLBACK.
 The middle ground is to use transactional channels at any point where a thread boundary is being broken.
 For example, you can use a Queue-backed Channel that delegates to a transactional MessageStore strategy, or you could use a JMS-backed channel.
 
@@ -216,7 +216,7 @@ If you wish to send the entire payload for further Spring Integration processing
 =====
 It is important to understand that this synchronizes the actions with a transaction.
 It does not make a resource that is not inherently transactional actually be transactional.
-Instead, the transaction (be it JDBC or otherwise) is started before the poll and either committed or rolled back when the flow completes, followed by the synchronized action.
+Instead, the transaction, be it JDBC or otherwise, is started before the poll and either committed or rolled back when the flow completes, followed by the synchronized action.
 
 If you provide a custom `TransactionSynchronizationFactory`, it is responsible for creating a resource synchronization that causes the bound resource to be unbound automatically when the transaction completes.
 The default `TransactionSynchronizationFactory` does so by returning a subclass of `ResourceHolderSynchronization`, with the default `shouldUnbindAtCompletion()` returning `true`.
@@ -251,6 +251,6 @@ The following example shows how to do so:
 
 Starting with version 5.3, a `ReactiveTransactionManager` can also be used together with a `TransactionInterceptor` advice for endpoints returning a reactive type.
 This includes `MessageSource` and `ReactiveMessageHandler` implementations (e.g. `ReactiveMongoDbMessageSource`) which produce a message with a `Flux` or `Mono` payload.
-All other reply producing message handler implementations can rely on a `ReactiveTransactionManager` when their reply payload is also some reactive type.
+All other reply-producing message handler implementations can rely on a `ReactiveTransactionManager` when their reply payload is also some reactive type.
 
 

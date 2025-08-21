@@ -2,7 +2,7 @@
 = SFTP Streaming Inbound Channel Adapter
 
 Version 4.3 introduced the streaming inbound channel adapter.
-This adapter produces message with payloads of type `InputStream`, letting you fetch files without writing to the local file system.
+This adapter produces a message with payloads of type `InputStream`, letting you fetch files without writing to the local file system.
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.

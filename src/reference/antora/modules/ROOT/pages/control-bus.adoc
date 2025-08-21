@@ -4,7 +4,7 @@
 As described in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] (EIP) book, the idea behind the control bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
 In Spring Integration, we build upon the adapters described above so that you can send messages as a means of invoking exposed operations.
 
-IMPORTANT: Since Control Bus is powerful enough to make changes into the system state, it is recommended to secure its messages reception (see `SecurityContextChannelInterceptor`) and expose Control Bus management (message source) only into DMZ.
+IMPORTANT: Since Control Bus is powerful enough to make changes into the system state, it is recommended to secure its message reception (see `SecurityContextChannelInterceptor`) and expose a Control Bus management (message source) only into DMZ.
 
 The following example shows how to configure a control bus with XML:
 
@@ -22,7 +22,7 @@ The arguments for the target method parameters must be supplied as a list in the
 The bean and the method to call is resolved from the `ControlBusCommandRegistry` infrastructure bean.
 By default, the `ControlBusCommandRegistry` registers commands on demand: its `eagerInitialization` flag can be turned on via `@EnableIntegrationManagement(loadControlBusCommands = "true")`.
 
-The functionality of Control Bus is similar to JMX, therefore method eligibility for command must honor these requirements:
+The functionality of Control Bus is similar to JMX, therefore, method eligibility for command must honor these requirements:
 
 - The method that has been annotated with `@ManagedAttribute` or `@ManagedOperation`;
 - Spring's `Lifecycle` interface (and its `Pausable` extension since version 5.2);

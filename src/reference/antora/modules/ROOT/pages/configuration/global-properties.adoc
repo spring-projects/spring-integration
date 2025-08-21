@@ -54,7 +54,7 @@ See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for m
 Since version 5.5.
 
 <10> The default number of milliseconds for request and reply timeouts in endpoints.
-Default value is 30 seconds to avoid indefinite blocking.
+The default value is 30 seconds to avoid indefinite blocking.
 Can be configured to a negative value to restore infinite blocking behavior in endpoints.
 Since version 6.2.
 ====

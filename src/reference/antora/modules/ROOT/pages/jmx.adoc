@@ -3,7 +3,7 @@
 
 Spring Integration provides channel Adapters for receiving and publishing JMX Notifications.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -63,8 +63,7 @@ It does not require any poller configuration.
 
 [NOTE]
 ====
-For this component only, the `object-name` attribute can contain an object name pattern (for example,
-"org.something:type=MyType,name=*").
+For this component only, the `object-name` attribute can contain an object name pattern, for example, `org.something:type=MyType,name=*`.
 In that case, the adapter receives notifications from all MBeans with object names that match the pattern.
 In addition, the `object-name` attribute can contain a SpEL reference to a `<util:list>` of object name patterns, as the following example shows:
 
@@ -124,7 +123,7 @@ Alternatively, you can provide a fallback `default-notification-type` attribute 
 == Attribute-polling Channel Adapter
 
 The attribute-polling channel adapter is useful when you need to periodically check on some value that is available through an MBean as a managed attribute.
-You can configure the poller in the same way as any other polling adapter in Spring Integration (or you can rely on the default poller).
+You can configure the poller in the same way as any other polling adapter in Spring Integration, or you can rely on the default poller.
 The `object-name` and the `attribute-name` are required.
 An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
@@ -145,7 +144,7 @@ The following example shows how to configure an attribute-polling channel adapte
 
 The tree-polling channel adapter queries the JMX MBean tree and sends a message with a payload that is the graph of objects that matches the query.
 By default, the MBeans are mapped to primitives and simple objects, such as `Map`, `List`, and arrays.
-Doing so permits simple transformation to (for example) JSON.
+Doing so permits a simple transformation to, for example, JSON.
 An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
 The following example shows how to configure a tree-polling channel adapter with XML:
@@ -297,7 +296,7 @@ The `bean` attribute in the object names for sources and handlers takes one of t
 | An indication that the enclosing endpoint did not have a user-specified bean name, so the JMX name is the input channel name.
 
 | internal
-| For well known Spring Integration default components
+| For well-known Spring Integration default components
 
 | handler/source
 | None of the above.
@@ -342,7 +341,7 @@ Starting with version 5.1, any bean names (represented by the `name` key in the 
 Version 4.2 introduced some important improvements, representing a fairly major overhaul to the JMX support in the framework.
 These resulted in a significant performance improvement of the JMX statistics collection and much more control thereof.
 However, it has some implications for user code in a few specific (uncommon) situations.
-These changes are detailed below, with a caution where necessary.
+These changes are detailed below, with caution where necessary.
 
 @IntegrationManagedResource::
 Similar to the `@ManagedResource` annotation, the `@IntegrationManagedResource` marks a class as being eligible to be exported as an MBean.

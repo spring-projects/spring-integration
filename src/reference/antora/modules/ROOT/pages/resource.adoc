@@ -55,9 +55,9 @@ public interface CollectionFilter<T> {
 }
 ----
 
-The `CollectionFilter` receives a collection of un-filtered elements (which are `Resource` objects in the preceding example), and it returns a collection of filtered elements of that same type.
+The `CollectionFilter` receives a collection of unfiltered elements (which are `Resource` objects in the preceding example), and it returns a collection of filtered elements of that same type.
 
-If you define the adapter with XML but you do not specify a filter reference, the resource inbound channel adapter uses a default implementation of `CollectionFilter`.
+If you define the adapter with XML, but you do not specify a filter reference, the resource inbound channel adapter uses a default implementation of `CollectionFilter`.
 The implementation class of that default filter is `org.springframework.integration.util.AcceptOnceCollectionFilter`.
 It remembers the elements passed in the previous invocation in order to avoid returning those elements more than once.
 
@@ -75,4 +75,4 @@ To inject your own implementation of `CollectionFilter` instead, use the `filter
 <bean id="myFilter" class="org.example.MyFilter"/>
 ----
 
-If you do not need any filtering and want to disable even the default `CollectionFilter` strategy, provide an empty value for the filter attribute (for example, `filter=""`)
+If you do not need any filtering and want to disable even the default `CollectionFilter` strategy, provide an empty value for the filter attribute, for example, `filter=""`.

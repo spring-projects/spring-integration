@@ -19,7 +19,7 @@ The application context interaction is based on the https://docs.spring.io/sprin
 See the documentation for those projects for further information.
 
 Thanks to the canonical implementation of the EIP in Spring Integration Framework and its first-class citizens (such as `MessageChannel`, `Endpoint` and `MessageHandler`), abstractions, and loose coupling principles, you can implement integration solutions of any complexity.
-With the Spring Integration API for the flow definitions, you can improve, modify or even replace some part of the flow without impacting (mostly) other components in the integration solution.
+With the Spring Integration API for the flow definitions, you can improve, modify, or even replace some parts of the flow without impacting (mostly) other components in the integration solution.
 Testing such an integration solution is still a challenge, both from an end-to-end approach and from an in-isolation approach.
 Several existing tools can help to test or mock some integration protocols, and they work well with Spring Integration channel adapters.
 Examples of such tools include the following:
@@ -33,7 +33,7 @@ Examples of such tools include the following:
 * Hazelcast can be run as real-data grid nodes in the tests.
 * The Curator Framework provides a `TestingServer` for Zookeeper interaction.
 * Apache Kafka provides admin tools to embed a Kafka Broker in the tests.
-* The GreenMail is an open source, intuitive and easy-to-use test suite of email servers for testing purposes.
+* The GreenMail is an open-source, intuitive and easy-to-use test suite of email servers for testing purposes.
 
 Most of these tools and libraries are used in Spring Integration tests.
 Also, from the GitHub https://github.com/spring-projects/spring-integration[repository] (in the `test` directory of each module), you can discover ideas for how to build your own tests for integration solutions.
@@ -202,7 +202,7 @@ The `@SpringIntegrationTest` annotation populates a `MockIntegrationContext` bea
 With the `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting.
 The endpoints are matched to the provided patterns, which support the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*`, and `xxx*yyy`.
 
-This is useful when we would like to not have real connections to the target systems from inbound channel adapters (for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
+This is useful when we would like to not have real connections to the target systems from inbound channel adapters, (for example, an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
 
 The `@SpringIntegrationTest` honors the `org.springframework.test.context.NestedTestConfiguration` semantics, hence it can be declared on the outer class (or even its super class) - and `@SpringIntegrationTest` environment will be available to inherited `@Nested` tests.
 
@@ -237,9 +237,9 @@ public void tearDown() {
 
 Starting with version 6.3, the `MockIntegrationContext.substituteTriggerFor()` API has been introduced.
 This can be used to replace the real `Trigger` in the `AbstractPollingEndpoint`.
-For example the production configuration may rely on daily (or even weekly) cron schedule.
+For example the production configuration may rely on a daily (or even weekly) cron schedule.
 Any custom `Trigger` can be injected into the target endpoint to mitigate the time span.
-For example, the mentioned above <<using-onlyoncetrigger, `OnlyOnceTrigger`>> suggests a behavior to schedule polling task immediately and do that only once.
+For example, the mentioned above <<using-onlyoncetrigger, `OnlyOnceTrigger`>> suggests a behavior to schedule a polling task immediately and do that only once.
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/context/MockIntegrationContext.html[Javadoc] for more information.
 
@@ -247,7 +247,7 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 == Integration Mocks
 
 The `org.springframework.integration.test.mock` package offers tools and utilities for mocking, stubbing, and verification of activity on Spring Integration components.
-The mocking functionality is fully based on and compatible with the well known Mockito Framework.
+The mocking functionality is fully based on and compatible with the well-known Mockito Framework.
 (The current Mockito transitive dependency is on version 2.5.x or higher.)
 
 [[mockintegration]]

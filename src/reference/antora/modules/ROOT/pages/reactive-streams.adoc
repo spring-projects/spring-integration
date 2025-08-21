@@ -10,9 +10,9 @@ We will discuss most of them here with appropriate links to the target chapters 
 To recap, Spring Integration extends the Spring programming model to support the well-known Enterprise Integration Patterns.
 Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters.
 Spring Integration’s primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
-This goal is achieved in the target application using first class citizens like `message`, `channel` and `endpoint`, which allow us to build an integration flow (pipeline), where (in most cases) one endpoint produces messages into a channel to be consumed by another endpoint.
+This goal is achieved in the target application using first-class citizens like `message`, `channel` and `endpoint`, which allow us to build an integration flow (pipeline), where (in most cases) one endpoint produces messages into a channel to be consumed by another endpoint.
 This way we distinguish an integration interaction model from the target business logic.
-The crucial part here is a channel in between: the flow behavior depends on its implementation leaving endpoints untouched.
+The crucial part here is a channel in between: the flow behavior depends on its implementation, leaving endpoints untouched.
 
 On the other hand, the Reactive Streams is a standard for asynchronous stream processing with non-blocking back pressure.
 The main goal of Reactive Streams is to govern the exchange of stream data across an asynchronous boundary – like passing elements on to another thread or thread-pool – while ensuring that the receiving side is not forced to buffer arbitrary amounts of data.
@@ -61,8 +61,8 @@ The `FluxMessageChannel` is a combined implementation of `MessageChannel` and `P
 A `Flux`, as a hot source, is created internally for sinking incoming messages from the `send()` implementation.
 The `Publisher.subscribe()` implementation is delegated to that internal `Flux`.
 Also, for on demand upstream consumption, the `FluxMessageChannel` provides an implementation for the `ReactiveStreamsSubscribableChannel` contract.
-Any upstream `Publisher` (see Source Polling Channel Adapter and splitter below, for example) provided for this channel is auto-subscribed when subscription is ready for this channel.
-Events from this delegating publishers are sunk into an internal `Flux` mentioned above.
+Any upstream `Publisher` (see Source Polling Channel Adapter and splitter below, for example) provided for this channel, is auto-subscribed when subscription is ready for this channel.
+Events from this delegating publisher are sunk into an internal `Flux` mentioned above.
 
 A consumer for the `FluxMessageChannel` must be a `org.reactivestreams.Subscriber` instance for honoring the Reactive Streams contract.
 Fortunately, all of the `MessageHandler` implementations in Spring Integration also implement a `CoreSubscriber` from project Reactor.
@@ -119,7 +119,7 @@ This `ReactiveMessageSourceProducer` could be used for any use-case when a polli
 
 When an `AbstractMessageSplitter` gets a `Publisher` for its logic, the process goes naturally over the items in the `Publisher` to map them into messages for sending to the `outputChannel`.
 If this channel is a `ReactiveStreamsSubscribableChannel`, the `Flux` wrapper for the `Publisher` is subscribed on demand from that channel and this splitter behavior looks more like a `flatMap` Reactor operator, when we map an incoming event into multi-value output `Publisher`.
-It makes most sense when the whole integration flow is built with a `FluxMessageChannel` before and after the splitter, aligning Spring Integration configuration with a Reactive Streams requirements and its operators for event processing.
+It makes most sense when the whole integration flow is built with a `FluxMessageChannel` before and after the splitter, aligning Spring Integration configuration with a Reactive Streams requirement and its operators for event processing.
 With a regular channel, a `Publisher` is converted into an `Iterable` for standard iterate-and-produce splitting logic.
 
 A `FluxAggregatorMessageHandler` is another sample of specific Reactive Streams logic implementation which could be treated as a `"reactive operator"` in terms of Project Reactor.
@@ -135,7 +135,7 @@ See xref:splitter.adoc#split-stream-and-flux[Stream and Flux Splitting] and xref
 
 An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlow.from(Publisher<Message<T>>)`).
 Also, with an `IntegrationFlowBuilder.toReactivePublisher()` operator, the `IntegrationFlow` can be turned into a reactive hot source.
-A `FluxMessageChannel` is used internally in both cases; it can subscribe to an inbound `Publisher` according to its `ReactiveStreamsSubscribableChannel` contract and it is a `Publisher<Message<?>>` by itself for downstream subscribers.
+A `FluxMessageChannel` is used internally in both cases; it can subscribe to an inbound `Publisher` according to its `ReactiveStreamsSubscribableChannel` contract, and it is a `Publisher<Message<?>>` by itself for downstream subscribers.
 With a dynamic `IntegrationFlow` registration we can implement a powerful logic combining Reactive Streams with this integration flow bridging to/from `Publisher`.
 
 Starting with version 5.5.6, a `toReactivePublisher(boolean autoStartOnSubscribe)` operator variant is present to control a lifecycle of the whole `IntegrationFlow` behind the returned `Publisher<Message<?>>`.
@@ -166,7 +166,7 @@ See xref:mongodb.adoc#mongodb-reactive-channel-adapters[MongoDB Reactive Channel
 Starting with version 6.1, the `IntegrationFlowDefinition` exposes a convenient `handleReactive(ReactiveMessageHandler)` terminal operator.
 Any `ReactiveMessageHandler` implementation (even just a plain lambda using the `Mono` API) can be used for this operator.
 The framework subscribes to the returned `Mono<Void>` automatically.
-Here is a simple sample of possible configuration for this operator:
+Here is a simple sample of a possible configuration for this operator:
 
 [source, java]
 ----
@@ -189,9 +189,9 @@ See the next section following links to the target technologies with respective 
 
 When the target protocol for integration provides a Reactive Streams solution, it becomes straightforward to implement channel adapters in Spring Integration.
 
-An inbound, event-driven channel adapter implementation is about wrapping a request (if necessary) into a deferred `Mono` or `Flux` and perform a send (and produce reply, if any) only when a protocol component initiates a subscription into a `Mono` returned from the listener method.
+An inbound, event-driven channel adapter implementation is about wrapping a request (if necessary) into a deferred `Mono` or `Flux` and perform a `send` (and produce reply, if any) only when a protocol component initiates a subscription into a `Mono` returned from the listener method.
 This way we have a reactive stream solution encapsulated exactly in this component.
-Of course, downstream integration flow subscribed on the output channel should honor Reactive Streams specification and be performed in the on demand, back-pressure ready manner.
+Of course, downstream integration flow subscribed on the output channel should honor Reactive Streams specification and be performed in the on-demand, back-pressure ready manner.
 
 This is not always available by the nature (or with the current implementation) of `MessageHandler` processor used in the integration flow.
 This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
@@ -276,7 +276,7 @@ public class MainFlow {
 ----
 
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
-An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
+An inbound payload could be a reactive type per se or as an event of the whole integration flow, which is a part of the reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in a one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
 
 An example for a reactive outbound channel adapter:
@@ -355,7 +355,7 @@ For many other non-reactive channel adapters thread pools are recommended to avo
 == Reactive to Imperative Context Propagation
 
 When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and store them into a `Subscriber` context.
-The opposite operation is also possible, when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.
+The opposite operation is also possible when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.
 See more information in Project Reactor https://projectreactor.io/docs/core/release/reference/#context.propagation[documentation] about its special operators for context propagation.
 The storing and restoring context works smoothly if our whole solution is a single reactive stream composition since a `Subscriber` context is visible from downstream up to the beginning of the composition(`Flux` or `Mono`).
 But, if the application switches between different `Flux` instances or into imperative processing and back, then the context tied to the `Subscriber` might not be available.
@@ -385,7 +385,7 @@ private Message<?> messageWithReactorContextIfAny(Message<?> message, ContextVie
 }
 ----
 
-Note, that we still need to use a `handle()` operator to make Reactor restore `ThreadLocal` values from the context.
+Note that we still need to use a `handle()` operator to make Reactor restore `ThreadLocal` values from the context.
 Even if it is sent as a header, the framework cannot make an assumption if it is going to be to restore onto `ThreadLocal` values downstream.
 
 To restore the context from a `Message` on the other `Flux` or `Mono` composition, this logic can be performed:

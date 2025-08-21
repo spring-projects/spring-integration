@@ -14,6 +14,6 @@ It provides access to the underlying `ChannelSftp`, which enables access to low-
 Version 5.0 introduced the `RemoteFileOperations.invoke(OperationsCallback<F, T> action)` method.
 This method lets several `RemoteFileOperations` calls be called in the scope of the same thread-bounded `Session`.
 This is useful when you need to perform several high-level operations of the `RemoteFileTemplate` as one unit of work.
-For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command implementation, where we perform a `put` operation for each file in the provided directory and recursively for its sub-directories.
+For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command implementation, where we perform a `put` operation for each file in the provided directory and recursively for its subdirectories.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html#invoke-org.springframework.integration.file.remote.OperationsCallback-[Javadoc] for more information.
 

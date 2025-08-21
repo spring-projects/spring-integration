@@ -144,7 +144,7 @@ For programmatic changes to the map, we recommend that you use the `setChannelMa
 [[dynamic-routers-jmx]]
 == Manage Router Mappings by Using JMX
 
-You can also use Spring's JMX support to expose a router instance and then use your favorite JMX client (for example, JConsole) to manage those operations (methods) for changing the router's configuration.
+You can also use Spring's JMX support to expose a router instance and then use your favorite JMX client, (for example, JConsole) to manage those operations (methods) for changing the router's configuration.
 
 NOTE: For more information about Spring Integration's JMX support, see xref:jmx.adoc[JMX Support].
 

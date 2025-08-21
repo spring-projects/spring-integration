@@ -51,7 +51,7 @@ public void testTcpGateways() {
 This is useful when we have multiple configuration options and have to create several instances of similar flows.
 To do so, we can iterate our options and create and register `IntegrationFlow` instances within a loop.
 Another variant is when our source of data is not Spring-based, so we must create it on the fly.
-Such a sample is Reactive Streams event source, as the following example shows:
+Such a sample is the Reactive Streams event source, as the following example shows:
 
 [source,java]
 ----

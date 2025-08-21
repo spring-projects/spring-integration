@@ -7,7 +7,7 @@ Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framew
 * xref:zookeeper.adoc#zk-lock-registry[A lock registry]
 * xref:zookeeper.adoc#zk-leadership[Leadership event handling]
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

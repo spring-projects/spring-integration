@@ -2,10 +2,8 @@
 = FTP Streaming Inbound Channel Adapter
 
 Version 4.3 introduced the streaming inbound channel adapter.
-This adapter produces message with payloads of type `InputStream`, letting files be fetched without writing to the
-local file system.
-Since the session remains open, the consuming application is responsible for closing the session when the file has been
-consumed.
+This adapter produces a message with payloads of type `InputStream`, letting files be fetched without writing to the local file system.
+Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
 See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.

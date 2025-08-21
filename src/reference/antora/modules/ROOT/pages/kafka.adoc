@@ -6,7 +6,7 @@
 
 Spring Integration for Apache Kafka is based on the https://projects.spring.io/spring-kafka/[Spring for Apache Kafka project].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -80,7 +80,7 @@ If a `send-failure-channel` (`sendFailureChannel`) is provided and a `send()` fa
 The payload is a `KafkaSendFailureException` with `failedMessage`, `record` (the `ProducerRecord`) and `cause` properties.
 You can override the `DefaultErrorMessageStrategy` by setting the `error-message-strategy` property.
 
-If a `send-success-channel` (`sendSuccessChannel`) is provided, a message with a payload of type `org.apache.kafka.clients.producer.RecordMetadata` is sent after a successful send.
+If a `send-success-channel` (`sendSuccessChannel`) is provided, a message with a payload of type `org.apache.kafka.clients.producer.RecordMetadata` is sent after a successful sending.
 
 IMPORTANT: If your application uses transactions and the same channel adapter is used to publish messages where the transaction is started by a listener container, as well as publishing where there is no existing transaction, you must configure a `transactionIdPrefix` on the `KafkaTemplate` to override the prefix used by the container or transaction manager.
 The prefix used by container-initiated transactions (the producer factory or transaction manager property) must be the same on all application instances.
@@ -445,7 +445,7 @@ XML::
 ----
 ======
 
-Refer to the javadocs for available properties.
+Refer to the Javadocs for available properties.
 
 [[max-poll-records]]
 By default, `max.poll.records` must be either explicitly set in the consumer factory, or it will be forced to 1 if the consumer factory is a `DefaultKafkaConsumerFactory`.
@@ -530,7 +530,7 @@ XML::
 ----
 ======
 
-Refer to the javadocs for available properties.
+Refer to the Javadocs for available properties.
 
 Notice that the same class as the xref:kafka.adoc#kafka-outbound[outbound channel adapter] is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation]  for more information.
@@ -626,7 +626,7 @@ XML::
 ----
 ======
 
-Refer to the javadocs for available properties.
+Refer to the Javadocs for available properties.
 
 When a `RetryTemplate` is provided, delivery failures are retried according to its retry policy.
 If an `error-channel` is also supplied, a default `ErrorMessageSendingRecoverer` will be used as the recovery callback after retries are exhausted.
@@ -883,18 +883,18 @@ public IntegrationFlow flow() {
 }
 ----
 
-When an integration flow starts with an interface, the proxy that is created has the name of the flow bean, appended with ".gateway" so this bean name can be used a a `@Qualifier` if needed.
+When an integration flow starts with an interface, the proxy that is created has the name of the flow bean, appended with ".gateway" so this bean name can be used a `@Qualifier` if needed.
 
 [[read-process-write]]
 == Performance Considerations for read/process/write Scenarios
 
-Many applications consume from a topic, perform some processing and write to another topic.
+Many applications consume from a topic, perform some processing, and write to another topic.
 In most, cases, if the `write` fails, the application would want to throw an exception so the incoming request can be retried and/or sent to a dead letter topic.
 This functionality is supported by the underlying message listener container, together with a suitably configured error handler.
 However, in order to support this, we need to block the listener thread until the success (or failure) of the write operation so that any exceptions can be thrown to the container.
 When consuming single records, this is achieved by setting the `sync` property on the outbound adapter.
-However, when consuming batches, using `sync` causes a significant performance degradation because the application would wait for the result of each send before sending the next message.
-You also can perform multiple sends and then wait for the results of those sends afterwards.
+However, when consuming batches, using `sync` causes a significant performance degradation because the application would wait for the result of each sending before producing the next message.
+You also can perform multiple sends and then wait for the results of those sending afterward.
 This is achieved by adding a `futuresChannel` to the message handler.
 To enable the feature add `KafkaIntegrationHeaders.FUTURE_TOKEN` to the outbound messages; this can then be used to correlate a `Future` to a particular sent message.
 Here is an example of how you might use this feature:

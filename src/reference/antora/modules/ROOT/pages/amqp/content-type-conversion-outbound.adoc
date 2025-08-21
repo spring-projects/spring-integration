@@ -52,6 +52,6 @@ There is now a property called `headersMappedLast` on the outbound channel adapt
 Setting this to `true` restores the behavior of overwriting the property added by the converter.
 
 Starting with version 5.1.9, a similar `replyHeadersMappedLast` is provided for the `AmqpInboundGateway` when we produce a reply and would like to override headers populated by the converter.
-See its JavaDocs for more information.
+See its Javadocs for more information.
 ====
 

@@ -464,7 +464,7 @@ You should also keep in mind that the `task-executor` attribute can provide a re
 The `executor` element shown earlier is provided for convenience.
 
 As mentioned earlier in the xref:endpoint.adoc#endpoint-pollingconsumer[background section for polling consumers], you can also configure a polling consumer in such a way as to emulate event-driven behavior.
-With a long receive timeout and a short interval in the trigger, you can ensure a very timely reaction to arriving messages even on a polled message source.
+With the long receive timeout and a short interval in the trigger, you can ensure a very timely reaction to arriving messages even on a polled message source.
 Note that this applies only  to sources that have a blocking wait call with a timeout.
 For example, the file poller does not block.
 Each `receive()` call returns immediately and either contains new files or not.
@@ -481,7 +481,7 @@ The following example shows how a polling consumer can receive messages nearly i
 </int:service-activator>
 ----
 
-Using this approach does not carry much overhead, since, internally, it is nothing more then a timed-wait thread, which does not require nearly as much CPU resource usage as (for example) a thrashing, infinite while loop.
+Using this approach does not carry much overhead, since, internally, it is nothing more than a timed-wait thread, which does not require nearly as much CPU resource usage as, for example, a thrashing, infinite while loop.
 
 [[polling-consumer-change-polling-rate]]
 == Changing Polling Rate at Runtime
@@ -667,7 +667,7 @@ However, new tasks are being scheduled at a rate of 20 per second, so the intern
 
 One of the ways to handle this is to set the `queue-capacity` attribute of the task executor.
 Even 0 is a reasonable value.
-You can also manage it by specifying what to do with messages that can not be queued by setting the `rejection-policy` attribute of the Task Executor (for example, to `DISCARD`).
+You can also manage it by specifying what to do with messages that cannot be queued by setting the `rejection-policy` attribute of the Task Executor, for example, to `DISCARD`.
 In other words, there are certain details you must understand when configuring `TaskExecutor`.
 See https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling["`Task Execution and Scheduling`"] in the Spring reference manual for more detail on the subject.
 

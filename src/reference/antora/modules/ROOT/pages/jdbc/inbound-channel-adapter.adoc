@@ -24,7 +24,7 @@ The following example defines an inbound channel adapter with an update query an
 
 NOTE: The parameters in the update query are specified with a colon (`:`) prefix to the name of a parameter (which, in the preceding example, is an expression to be applied to each of the rows in the polled result set).
 This is a standard feature of the named parameter JDBC support in Spring JDBC, combined with a convention (projection onto the polled result list) adopted in Spring Integration.
-The underlying Spring JDBC features limit the available expressions (for example, most special characters other than a period are disallowed), but since the target is usually a list of objects (possibly a list of one) that are addressable by bean paths this is not unduly restrictive.
+The underlying Spring JDBC features limit the available expressions, (for example, most special characters other than a period are disallowed), but since the target is usually a list of objects, (possibly a list of one) that are addressable by bean paths this is not unduly restrictive.
 
 To change the parameter generation strategy, you can inject a `SqlParameterSourceFactory` into the adapter to override the default behavior (the adapter has a `sql-parameter-source-factory` attribute).
 Spring Integration provides `ExpressionEvaluatingSqlParameterSourceFactory`, which creates a SpEL-based parameter source, with the results of the query as the `#root` object.
@@ -33,7 +33,7 @@ If the same parameter name appears multiple times in the update query, it is eva
 
 You can also use a parameter source for the select query.
 In this case, since there is no "`result`" object to evaluate against, a single parameter source is used each time (rather than using a parameter source factory).
-Starting with version 4.0, you can use Spring to create a SpEL based parameter source, as the following example shows:
+Starting with version 4.0, you can use Spring to create a SpEL-based parameter source, as the following example shows:
 
 [source,xml]
 ----
@@ -136,6 +136,6 @@ In contrast, the `max-rows` attribute, if greater than `0`, specifies the maximu
 If the attribute is set to `0`, all rows are included in the resulting message.
 The attribute defaults to `0`.
 
-NOTE: It is recommended to use result set limiting via vendor-specific query options, for example MySQL `LIMIT` or SQL Server `TOP` or Oracle's `ROWNUM`.
+NOTE: It is recommended to use result set limiting via vendor-specific query options, for example, MySQL `LIMIT` or SQL Server `TOP` or Oracle's `ROWNUM`.
 See the particular vendor documentation for more information.
 

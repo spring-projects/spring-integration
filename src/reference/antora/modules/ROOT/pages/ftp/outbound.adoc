@@ -55,7 +55,7 @@ The modes are defined by the `FileExistsMode` enumeration, which includes the fo
 `FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
 
 Version 5.2 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+You can use the conventional Unix octal format, (for example, `600` allows read-write for the file owner only).
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
@@ -70,7 +70,7 @@ To deal with this issue, Spring Integration FTP adapters use a common algorithm:
 By default, every file that is in the process of being transferred appears in the file system with an additional suffix, which, by default, is `.writing`.
 You can change this suffix by setting the `temporary-file-suffix` attribute.
 
-However, there may be situations where you do not want to use this technique (for example, if the server does not permit renaming files).
+However, there may be situations where you do not want to use this technique, for example, if the server does not permit renaming files.
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
 When this attribute is `false`, the file is written with its final name and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
 

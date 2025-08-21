@@ -23,7 +23,7 @@ You can also customize the `value` for `ConcurrentMetadataStore` by using an add
 By default, `MetadataStoreSelector` uses the `timestamp` message header.
 
 Normally, the selector selects a message for acceptance if there is no existing value for the key.
-In some cases, it is useful to compare the current and new values for a key, to determine whether the message should be accepted.
+In some cases, it is useful to compare the current and new values for a key to determine whether the message should be accepted.
 Starting with version 5.3, the `compareValues` property is provided which references a `BiPredicate<String, String>`; the first parameter is the old value; return `true` to accept the message and replace the old value with the new value in the `MetadataStore`.
 This can be useful to reduce the number of keys; for example, when processing lines in a file, you can store the file name in the key and the current line number in the value.
 Then, after a restart, you can skip lines that have already been processed.

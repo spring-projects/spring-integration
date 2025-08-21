@@ -1,7 +1,7 @@
 [[jdbc-message-store]]
 = JDBC Message Store
 
-Spring Integration provides two JDBC specific message store implementations.
+Spring Integration provides two JDBC-specific message store implementations.
 The `JdbcMessageStore` is suitable for use with aggregators and the claim check pattern.
 The `JdbcChannelMessageStore` implementation provides a more targeted and scalable implementation specifically for message channel.
 
@@ -20,10 +20,10 @@ Before starting to use JDBC message store components, you should provision a tar
 
 Spring Integration ships with some sample scripts that can be used to initialize a database.
 In the `spring-integration-jdbc` JAR file, you can find scripts in the `org.springframework.integration.jdbc` package.
-It provides an example create and an example drop script for a range of common database platforms.
+It provides an example creation and an example drop script for a range of common database platforms.
 A common way to use these scripts is to reference them in a https://docs.spring.io/spring-framework/reference/data-access/jdbc/initializing-datasource.html[Spring JDBC data source initializer].
 Note that the scripts are provided as samples and as specifications of the required table and column names.
-You may find that you need to enhance them for production use (for, example, by adding index declarations).
+You may find that you need to enhance them for production use, for example, by adding index declarations.
 
 Starting with version 6.2, the `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform a`SELECT COUNT` query, on their respective tables, in the `start()` method to ensure that the required table (according to the provided prefix) is present in the target database.
 If the required table does not exist, the application context fails to start.
@@ -81,7 +81,7 @@ If your database is not listed, you can implement the `ChannelMessageStoreQueryP
 Version 4.0 added the `MESSAGE_SEQUENCE` column to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 
 Starting with version 6.2, `ChannelMessageStoreQueryProvider` exposes a `isSingleStatementForPoll` flag, where the  `PostgresChannelMessageStoreQueryProvider` returns `true` and its queries for polls are now based on a single `DELETE...RETURNING` statement.
-The `JdbcChannelMessageStore` consults with the `isSingleStatementForPoll` option and skips a separate `DELETE` statement if only single poll statement is supported.
+The `JdbcChannelMessageStore` consults with the `isSingleStatementForPoll` option and skips a separate `DELETE` statement if only a single poll statement is supported.
 
 [[custom-message-insertion]]
 === Custom Message Insertion
@@ -115,7 +115,7 @@ For further reference, see the following resource:
 
 * https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
 
-If you are still planning to use your database as a queue, consider using PostgreSQL and its notification mechanism which is described xref:jdbc/message-store.adoc#postgresql-push[in a subsequent section].
+If you are still planning to use your database as a queue, consider using PostgreSQL and its notification mechanism, which is described xref:jdbc/message-store.adoc#postgresql-push[in a subsequent section].
 ====
 
 [[concurrent-polling]]
@@ -205,7 +205,7 @@ To configure that scenario, you can extend one message store bean from the other
 
 It is common to use a `JdbcMessageStore` as a global store for a group of applications or nodes in the same application.
 To provide some protection against name clashes and to give control over the database meta-data configuration, the message store lets the tables be partitioned in two ways.
-One way is to use separate table names, by changing the prefix (as xref:jdbc/message-store.adoc#jdbc-message-store-generic[described earlier]).
+One way is to use separate table names by changing the prefix (as xref:jdbc/message-store.adoc#jdbc-message-store-generic[described earlier]).
 The other way is to specify a `region` name for partitioning data within a single table.
 An important use case for the second approach is when the `MessageStore` is managing persistent queues that back a Spring Integration Message Channel.
 The message data for a persistent channel is keyed in the store on the channel name.

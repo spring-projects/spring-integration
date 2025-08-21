@@ -2,7 +2,7 @@
 = Outbound Gateways
 
 The JPA inbound channel adapter lets you poll a database to retrieve one or more JPA entities.
-The retrieved data is consequently used to start a Spring Integration flow that uses the retrieved data as message payload.
+The retrieved data is consequently used to start a Spring Integration flow that uses the retrieved data as a message payload.
 
 Additionally, you can use JPA outbound channel adapters at the end of your flow in order to persist data, essentially stopping the flow at the end of the persistence operation.
 
@@ -44,7 +44,7 @@ For configuration examples see xref:jpa/outbound-gateways.adoc#outboundGatewaySa
 == Common Configuration Parameters
 
 JPA Outbound Gateways always have access to the Spring Integration `Message` as input.
-Consequently, the following parameters is available:
+Consequently, the following parameters are available:
 
 `parameter-source-factory`::
 An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource`.
@@ -98,7 +98,7 @@ The following listing shows all the attributes that you can set on an updating-o
 <1> The channel from which the outbound gateway receives messages for performing the desired operation.
 This attribute is similar to the `channel` attribute of the `outbound-channel-adapter`.
 Optional.
-<2> The channel to which the gateway send the response after performing the required JPA operation.
+<2> The channel to which the gateway sends the response after performing the required JPA operation.
 If this attribute is not defined, the request message must have a `replyChannel` header.
 Optional.
 <3> Specifies the time the gateway waits to send the result to the reply channel.
@@ -317,12 +317,12 @@ All other attributes are disallowed if you use `id-expression`.
 Optional.
 <2> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
 If this flag is set to `true`, a single entity is sent as the payload of the message.
-If multiple entities are returned, an exception thrown.
+If multiple entities are returned, an exception is thrown.
 If `false`, the `List` of entities sent as the payload of the message.
 It defaults to `false`.
 Optional.
 <3> This non-zero, non-negative integer value tells the adapter not to select more than the specified number of rows on execution of the select operation.
-By default, if this attribute is not set, all the possible records are selected by given query.
+By default, if this attribute is not set, all the possible records are selected by a given query.
 This attribute is mutually exclusive with `max-results-expression`.
 Optional.
 <4> An expression that can be used to find the maximum number of results in a result set.
@@ -332,7 +332,7 @@ Optional.
 This attribute is mutually exclusive with `first-result-expression`.
 Version 3.0 introduced this attribute.
 Optional.
-<6> This expression is evaluated against the message, to find the position of the first record in the result set.
+<6> This expression is evaluated against the message to find the position of the first record in the result set.
 This attribute is mutually exclusive to `first-result`.
 Version 3.0 introduced this attribute.
 Optional.

@@ -26,7 +26,7 @@ If you wish to programmatically invoke the method, you need to inject or otherwi
 If no `id` attribute is provided on the `<int-jmx:mbean-export/>` definition, the bean has a generated name.
 This name contains a random component to avoid `ObjectName` collisions if multiple Spring Integration contexts exist in the same JVM (`MBeanServer`).
 
-For this reason, if you wish to invoke the method programmatically, we recommend that you provide the exporter with an `id` attribute so that you can easily access it in the application context.
+For this reason, if you wish to invoke the method programmatically, we recommend that you provide the exporter with an `id` attribute so that you can access it in the application context.
 
 Finally, the operation can be invoked by using the `<control-bus>` element.
 See the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/monitoring[monitoring Spring Integration sample application] for details.

@@ -37,7 +37,7 @@ The following example bean defines an HTTP inbound endpoint:
 
 The `HttpRequestHandlingMessagingGateway` accepts a list of `HttpMessageConverter` instances or else relies on a default list.
 The converters allow customization of the mapping from `HttpServletRequest` to `Message`.
-The default converters encapsulate simple strategies, which (for example) create a `String` message for a `POST` request where the content type starts with `text`.
+The default converters encapsulate simple strategies, which, for example, create a `String` message for a `POST` request where the content type starts with `text`.
 See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for full details.
 An additional flag (`mergeWithDefaultConverters`) can be set along with the list of custom `HttpMessageConverter` to add the default converters after the custom converters.
 By default, this flag is set to `false`, meaning that the custom converters replace the default list.
@@ -114,5 +114,5 @@ By default, the key for that map entry is 'reply', but you can override this def
 
 Starting with version 5.2, the HTTP inbound endpoints can be supplied with a `Validator` to check a payload before sending into the channel.
 This payload is already a result of conversion and extraction after `payloadExpression` to narrow a validation scope in regard to the valuable data.
-The validation failure handling is fully the same what we have in Spring MVC https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet/exceptionhandlers.html[Error Handling].
+The validation failure handling is fully the same as what we have in Spring MVC https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet/exceptionhandlers.html[Error Handling].
 

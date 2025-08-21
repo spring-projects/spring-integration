@@ -106,7 +106,7 @@ Mutually exclusive with 'routing-key-expression'.
 Optional.
 <11> A SpEL expression that is evaluated to determine the `routing-key` to use when sending messages, with the message as the root object (for example, 'payload.key').
 By default, this is an empty `String`.
-Mutually exclusive with 'routing-key'.
+Mutually exclusive with `routing-key`.
 Optional.
 <12> The default delivery mode for messages: `PERSISTENT` or `NON_PERSISTENT`.
 Overridden if the `header-mapper` sets the delivery mode.
@@ -118,8 +118,8 @@ Optional.
 An expression defining correlation data.
 When provided, this configures the underlying AMQP template to receive publisher confirms.
 Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to `true`.
-When a publisher confirm is received and correlation data is supplied, it is written to either the `confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type.
-The payload of the confirm is the correlation data, as defined by this expression.
+When a publisher `confirm` is received and correlation data is supplied, it is written to either the `confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type.
+The payload of the `confirm` is the correlation data, as defined by this expression.
 The message has a header 'amqp_publishConfirm' set to `true` (`ack`) or `false` (`nack`).
 For `nack` confirmations, Spring Integration provides an additional header `amqp_publishConfirmNackCause`.
 Examples: `headers['myCorrelationData']` and `payload`.
@@ -163,6 +163,5 @@ When using multiple outbound endpoints with returns, a separate `RabbitTemplate`
 IMPORTANT: The underlying `AmqpTemplate` has a default `replyTimeout` of five seconds.
 If you require a longer timeout, you must configure it on the `template`.
 
-Note that the only difference between the outbound adapter and outbound gateway configuration is the setting of the
-`expectReply` property.
+Note that the only difference between the outbound adapter and outbound gateway configuration is the setting of the `expectReply` property.
 

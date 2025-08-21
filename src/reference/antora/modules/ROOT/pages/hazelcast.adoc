@@ -3,7 +3,7 @@
 
 Spring Integration provides channel adapters and other utility components to interact with an in-memory data grid https://hazelcast.com[Hazelcast].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -84,8 +84,8 @@ There are no cache event types for `ITopic`.
 
 * `cache-listening-policy`: Specifies the cache listening policy as `SINGLE` or `ALL`.
 It is an optional attribute and its default value is `SINGLE`.
-Each Hazelcast inbound channel adapter listening to the same cache object with the same cache-events attribute, can receive a single event message or all event messages.
-If it is `ALL`, all Hazelcast inbound channel adapters listening to the same cache object with the same cache-events attribute, will receive all event messages.
+Each Hazelcast inbound channel adapter listening to the same cache object with the same cache-events attribute can receive a single event message or all event messages.
+If it is `ALL`, all Hazelcast inbound channel adapters listening to the same cache object with the same cache-events attribute will receive all event messages.
 If it is `SINGLE`, they will receive unique event messages.
 
 Some configuration samples:
@@ -220,7 +220,7 @@ public HazelcastEventDrivenMessageProducer hazelcastEventDrivenMessageProducer()
 == Hazelcast Continuous Query Inbound Channel Adapter
 
 Hazelcast Continuous Query enables listening to modifications performed on specific map entries.
-The Hazelcast Continuous Query Inbound Channel Adapter is an event-driven channel adapter which listens to the related distributed map events in the light of the defined predicate.
+The Hazelcast Continuous Query Inbound Channel Adapter is an event-driven channel adapter that listens to the related distributed map events in the light of the defined predicate.
 
 [tabs]
 ======
@@ -296,8 +296,8 @@ Mandatory;
 Optional with `true` being the default;
 * `cache-listening-policy`: Specifies the cache listening policy as `SINGLE` or `ALL`.
 Optional with the default value being `SINGLE`.
-Each Hazelcast CQ inbound channel adapter listening to the same cache object with the same cache-events attribute, can receive a single event message or all event messages.
-If it is `ALL`, all Hazelcast CQ inbound channel adapters listening to the same cache object with the same cache-events attribute, will receive all event messages.
+Each Hazelcast CQ inbound channel adapter listening to the same cache object with the same cache-events attribute can receive a single event message or all event messages.
+If it is `ALL`, all Hazelcast CQ inbound channel adapters listening to the same cache object with the same cache-events attribute will receive all event messages.
 If it is `SINGLE`, they will receive unique event messages.
 
 [[hazelcast-cluster-monitor]]
@@ -433,18 +433,18 @@ It requires a poller and supports four attributes:
 * `channel`: Specifies the channel to which messages are sent.
 It is a mandatory attribute;
 * `cache`: Specifies the distributed `IMap` reference which is queried.
-It is mandatory attribute;
-* `iteration-type`: Specifies result type.
+It is a mandatory attribute;
+* `iteration-type`: Specifies a result type.
 Distributed SQL can be run on `EntrySet`, `KeySet`, `LocalKeySet` or `Values`.
 It is an optional attribute with `VALUE` being the default.
 Supported values are `ENTRY, `KEY`, `LOCAL_KEY` and `VALUE`;
-* `distributed-sql`: Specifies the where clause of the sql statement.
+* `distributed-sql`: Specifies the where clause of the SQL statement.
 It is a mandatory attribute.
 
 [[hazelcast-outbound-channel-adapter]]
 == Hazelcast Outbound Channel Adapter
 
-The Hazelcast Outbound Channel Adapter listens to its defined channel and writes incoming messages to related distributed cache.
+The Hazelcast Outbound Channel Adapter listens to its defined channel and writes incoming messages to a related distributed cache.
 It expects one of `cache`, `cache-expression` or `HazelcastHeaders.CACHE_NAME` for distributed object definition.
 Supported Distributed Objects are: `IMap`, `MultiMap`, `ReplicatedMap`, `IList`, `ISet`, `IQueue` and `ITopic`.
 
@@ -505,7 +505,7 @@ Optional attribute with `true` being the default.
 If it is true, just the payload will be written to the distributed object.
 Otherwise, the whole message will be written by converting both message headers and payload.
 
-By setting distributed object name in the header, messages can be written to different distributed objects via same channel.
+By setting the distributed object name in the header, messages can be written to different distributed objects via the same channel.
 If `cache` or `cache-expression` attributes are not defined, a `HazelcastHeaders.CACHE_NAME` header has to be set in a request `Message`.
 
 [[hazelcast-message-store]]
@@ -565,7 +565,7 @@ PollableChannel hazelcastQueueChannel(HazelcastInstance hazelcastInstance) {
 }
 ----
 
-Placing this config on several nodes in Hazelcast cluster of the application, will make the `QueueChannel` as distributed and only one node will be able to poll a single `Message` from that `IQueue`.
+Placing this config on several nodes in Hazelcast cluster of the application will make the `QueueChannel` as distributed and only one node will be able to poll a single `Message` from that `IQueue`.
 This works similar to xref:jms.adoc#jms-channel[`PollableJmsChannel`], xref:kafka.adoc#kafka-channels[`PollableKafkaChannel`] or xref:amqp/channels.adoc[`PollableAmqpChannel`].
 
 If the producer side is not a Spring Integration application, there is no way to configure a `QueueChannel`, and therefore the plain Hazelcast `IQueue` API is used to produce the data.
@@ -617,7 +617,7 @@ The `com.hazelcast.topic.MessageListener` is a functional interface, too, hence 
 So, a subscriber to the `fromHazelcastTopicChannel` will consume all messages sent to the mentioned `ITopic`.
 
 An `ExecutorChannel` can be supplied with an `IExecutorService`.
-For example, with respective configuration a cluster-wide singleton can be achieved:
+For example, with the respective configuration a cluster-wide singleton can be achieved:
 
 [source,java]
 ----

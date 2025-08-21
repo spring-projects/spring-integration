@@ -4,7 +4,7 @@
 Spring Integration provides channel adapters for receiving and sending messages by using database queries.
 Through those adapters, Spring Integration supports not only plain JDBC SQL queries but also stored procedure and stored function calls.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

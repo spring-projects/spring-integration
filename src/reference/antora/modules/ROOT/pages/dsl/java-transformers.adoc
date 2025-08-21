@@ -17,13 +17,13 @@ public IntegrationFlow transformFlow() {
 
 It avoids inconvenient coding using setters and makes the flow definition more straightforward.
 Note that you can use `Transformers` to declare target `Transformer` instances as `@Bean` instances and, again, use them from `IntegrationFlow` definition as bean methods.
-Nevertheless, the DSL parser takes care of bean declarations for inline objects, if they are not yet defined as beans.
+Nevertheless, the DSL parser takes care of bean declarations for inline objects if they are not yet defined as beans.
 
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html[Transformers] in the Javadoc for more information and supported factory methods.
 
 Starting with version 6.2, a `transformWith(Consumer<TransformerEndpointSpec>)` variant has been introduced to have all the transformer and its endpoint options to be configured via single builder argument.
 This style gives DSL more readability and increases developer experience while modifying code.
-This also make Groovy and Kotlin DSLs more straightforward.
+This also makes Groovy and Kotlin DSLs more straightforward.
 
 Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
 

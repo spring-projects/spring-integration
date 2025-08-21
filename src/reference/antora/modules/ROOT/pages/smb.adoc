@@ -5,7 +5,7 @@ Spring Integration provides support for file transfer operations with SMB.
 
 The https://en.wikipedia.org/wiki/Server_Message_Block[Server Message Block] (SMB) is a simple network protocol that lets you transfer files to a shared file server.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -811,15 +811,15 @@ Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.t
 [[smb-remote-file-info]]
 == Remote File Information
 
-The `SmbStreamingMessageSource` (xref:smb.adoc#smb-streaming-inbound[SMB Streaming Inbound Channel Adapter]), `SmbInboundFileSynchronizingMessageSource` (xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter]) and "read"-commands of the `SmbOutboundGateway` (xref:smb.adoc#smb-outbound-gateway[SMB Outbound Gateway]) provide additional headers in the message to produce with an information about the remote file:
+The `SmbStreamingMessageSource` (xref:smb.adoc#smb-streaming-inbound[SMB Streaming Inbound Channel Adapter]), `SmbInboundFileSynchronizingMessageSource` (xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter]) and "read"-commands of the `SmbOutboundGateway` (xref:smb.adoc#smb-outbound-gateway[SMB Outbound Gateway]) provide additional headers in the message to produce with information about the remote file:
 
 * `FileHeaders.REMOTE_HOST_PORT` - the host:port pair the remote session has been connected to during file transfer operation;
 * `FileHeaders.REMOTE_DIRECTORY` - the remote directory the operation has been performed;
 * `FileHeaders.REMOTE_FILE` - the remote file name; applicable only for single file operations.
 
-Since the `SmbInboundFileSynchronizingMessageSource` doesn't produce messages against remote files, but using a local copy, the `AbstractInboundFileSynchronizer` stores an information about remote file in the `MetadataStore` (which can be configured externally) in the URI style (`protocol://host:port/remoteDirectory#remoteFileName`) during synchronization operation.
-This metadata is retrieved by the `SmbInboundFileSynchronizingMessageSource` when local file is polled.
-When local file is deleted, it is recommended to remove its metadata entry.
+Since the `SmbInboundFileSynchronizingMessageSource` doesn't produce messages against remote files, but using a local copy, the `AbstractInboundFileSynchronizer` stores an information about a remote file in the `MetadataStore` (which can be configured externally) in the URI style (`protocol://host:port/remoteDirectory#remoteFileName`) during synchronization operation.
+This metadata is retrieved by the `SmbInboundFileSynchronizingMessageSource` when a local file is polled.
+When a local file is deleted, it is recommended to remove its metadata entry.
 The `AbstractInboundFileSynchronizer` provides a `removeRemoteFileMetadata()` callback for this purpose.
 In addition, there is a `setMetadataStorePrefix()` to be used in the metadata keys.
 It is recommended to have this prefix be different from the one used in the `MetadataStore`-based `FileListFilter` implementations, when the same `MetadataStore` instance is shared between these components, to avoid entry overriding because both filter and `AbstractInboundFileSynchronizer` use the same local file name for the metadata entry key.

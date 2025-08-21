@@ -18,7 +18,7 @@ The input parameter is a message payload.
 If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
 The return value is incorporated as a payload of the returned message.
 
-The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
+The following example shows a single unannotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
 
 [source,java]
 ----
@@ -102,7 +102,7 @@ The following example shows how to explicitly map a method to a header:
 public String doSomething(@Payload String s, @Header("someheader") String b)
 ----
 
-As you can see later on, without an annotation this signature would result in an ambiguous condition.
+As you can see later on, without an annotation, this signature would result in an ambiguous condition.
 However, by explicitly mapping the first argument to a `Message` payload and the second argument to a value of the `someheader` message header, we avoid any ambiguity.
 
 The following example is nearly identical to the preceding example:
@@ -125,7 +125,7 @@ public String foo(String s, @Header("foo") String b)
 
 The only difference is that the first argument is implicitly mapped to the message payload.
 
-The following example shows yet another signature that would definitely be treated as ambiguous without annotations, because it has more than two arguments:
+The following example shows yet another signature that would definitely be treated as ambiguous without annotations because it has more than two arguments:
 
 [source,java]
 ----
@@ -134,7 +134,7 @@ public String soSomething(@Headers Map m, @Header("something") Map f, @Header("s
 
 This example would be especially problematic, because two of its arguments are `Map` instances.
 However, with annotation-based mapping, the ambiguity is easily avoided.
-In this example the first argument is mapped to all the message headers, while the second and third argument map to the values of the message headers named 'something' and 'someotherthing'.
+In this example the first argument is mapped to all the message headers, while the second and third argument maps to the values of the message headers named 'something' and 'someotherthing'.
 The payload is not being mapped to any argument.
 
 [[complex-scenarios]]
@@ -142,7 +142,7 @@ The payload is not being mapped to any argument.
 
 The following example uses multiple parameters:
 
-Multiple parameters can create a lot of ambiguity in regards to determining the appropriate mappings.
+Multiple parameters can create a lot of ambiguity in regard to determining the appropriate mappings.
 The general advice is to annotate your method parameters with `@Payload`, `@Header`, and `@Headers`.
 The examples in this section show ambiguous conditions that result in an exception being raised.
 
@@ -175,7 +175,7 @@ Although one might argue that one `Map` could be mapped to the message payload a
 
 TIP: Any method signature with more than one method argument that is not (`Map`, `<T>`) and with unannotated parameters results in an ambiguous condition and triggers an exception.
 
-The next set of examples each show multiple methods that result in ambiguity.
+The next set of examples each shows multiple methods that result in ambiguity.
 
 Message handlers with multiple methods are mapped based on the same rules that are described earlier (in the examples).
 However, some scenarios might still look confusing.

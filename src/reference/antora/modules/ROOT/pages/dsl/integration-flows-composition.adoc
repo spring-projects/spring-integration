@@ -1,8 +1,8 @@
 [[integration-flows-composition]]
 = Integration Flows Composition
 
-With the `MessageChannel` abstraction as a first class citizen in Spring Integration, the composition of integration flows was always assumed.
-The input channel of any endpoint in the flow can be used to send messages from any other endpoint and not only from the one which has this channel as an output.
+With the `MessageChannel` abstraction as a first-class citizen in Spring Integration, the composition of integration flows was always assumed.
+The input channel of any endpoint in the flow can be used to send messages from any other endpoint and not only from the one that has this channel as an output.
 Furthermore, with a `@MessagingGateway` contract, Content Enricher components, composite endpoints like a `<chain>`, and now with `IntegrationFlow` beans (e.g. `IntegrationFlowAdapter`), it is straightforward enough to distribute the business logic between shorter, reusable parts.
 All that is needed for the final composition is knowledge about a `MessageChannel` to send to or receive from.
 

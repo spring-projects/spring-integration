@@ -94,7 +94,7 @@ The preceding configuration selects all the methods from the `exampleHandler` th
 The target method for invocation at runtime is selected for each request message by their `payload` type or as a fallback to the `Message<?>` type if such a method is present on target class.
 
 Starting with version 5.0, one service method can be marked with the `@org.springframework.integration.annotation.Default` as a fallback for all non-matching cases.
-This can be useful when using xref:endpoint.adoc#content-type-conversion[ content-type conversion] with the target method being invoked after conversion.
+This can be useful when using xref:endpoint.adoc#content-type-conversion[content-type conversion] with the target method being invoked after conversion.
 
 To delegate to an explicitly defined method of any object, you can add the `method` attribute, as the following example shows:
 
@@ -125,7 +125,7 @@ If your method returns a result, and you want to discard it and end the flow, yo
 For convenience, the framework registers one with the name, `nullChannel`.
 See xref:channel/special-channels.adoc[Special Channels] for more information.
 
-The service activator is one of those components that is not required to produce a reply message.
+The service activator is one of those components that are not required to produce a reply message.
 If your method returns `null` or has a `void` return type, the service activator exits after the method invocation, without any signals.
 This behavior can be controlled by the `AbstractReplyProducingMessageHandler.requiresReply` option, which is also exposed as `requires-reply` when configuring with the XML namespace.
 If the flag is set to `true` and the method returns null, a `ReplyRequiredException` is thrown.
@@ -221,20 +221,20 @@ An `ErrorMessage` is sent to the `errorChannel` message header, if present.
 Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
 
 Starting with version 6.1, if the output channel of the `AbstractMessageProducingHandler` is configured to a `ReactiveStreamsSubscribableChannel`, the async mode is turned on by default.
-If the handler result is not a reactive type or `CompletableFuture<?>`, then regular reply producing process happens despite the output channel type.
+If the handler result is not a reactive type or `CompletableFuture<?>`, then a regular reply-producing process happens despite the output channel type.
 
 See also xref:reactive-streams.adoc[Reactive Streams Support] for more information.
 
 [[service-activator-return-type]]
 == Service Activator and Method Return Type
 
-The service method can return any type which becomes reply message payload.
+The service method can return any type that becomes reply message payload.
 In this case a new `Message<?>` object is created and all the headers from a request message are copied.
 This works the same way for most Spring Integration `MessageHandler` implementations, when interaction is based on a POJO method invocation.
 
 A complete `Message<?>` object can also be returned from the method.
 However, keep in mind that, unlike xref:transformer.adoc[transformers], for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
 So, if your method parameter is a `Message<?>` and you copy some, but not all, existing headers in your service method, they will reappear in the reply message.
-It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely-coupled principle, it is better to add a `HeaderFilter` in the integration flow.
+It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely coupled principle, it is better to add a `HeaderFilter` in the integration flow.
 Alternatively, a Transformer can be used instead of a Service Activator but, in that case, when returning a full `Message<?>` the method is completely responsible for the message, including copying request message headers (if needed).
 You must ensure that important framework headers (e.g. `replyChannel`, `errorChannel`), if present, have to be preserved.

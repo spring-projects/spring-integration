@@ -20,7 +20,7 @@ To enable Spring Integration's core namespace support within your Spring configu
 
 (We have emphasized the lines that are particular to Spring Integration.)
 
-You can choose any name after "xmlns:".
+You can choose any name after `xmlns:`.
 We use `int` (short for Integration) for clarity, but you might prefer another abbreviation.
 On the other hand, if you use an XML editor or IDE support, the availability of auto-completion may convince you to keep the longer name for clarity.
 Alternatively, you can create configuration files that use the Spring Integration schema as the primary namespace, as the following example shows:

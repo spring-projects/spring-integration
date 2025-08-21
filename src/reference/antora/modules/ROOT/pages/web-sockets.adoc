@@ -6,7 +6,7 @@ It is based on the architecture, infrastructure, and API from the Spring Framewo
 Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
 For more information, see the https://docs.spring.io/spring-framework/reference/web/websocket.html[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -192,9 +192,9 @@ If you use it as a `uriTemplate` with URI variable placeholders, the `uri-variab
 The values are replaced into the placeholders according to their order in the `uri`.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponents.html#expand-java.lang.Object[`UriComponents.expand(Object...uriVariableValues)`].
 <5> The `Origin` Handshake HTTP header value.
-<6> The WebSocket session 'send' timeout limit.
+<6> The WebSocket session `send` timeout limit.
 Defaults to `10000`.
-<7> The WebSocket session 'send' message size limit.
+<7> The WebSocket session `send` message size limit.
 Defaults to `524288`.
 <8> The WebSocket session send buffer overflow strategy
 determines the behavior when a session's outbound message buffer has reached the `send-buffer-size-limit`.
@@ -247,7 +247,7 @@ Supports exact path mapping URIs (such as `/myPath`) and ant-style path patterns
 Defaults to `DefaultHandshakeHandler`.
 <4> List of `HandshakeInterceptor` bean references.
 <5> List of one or more factories (`WebSocketHandlerDecoratorFactory`) that decorate the handler used to process WebSocket messages.
-This may be useful for some advanced use cases (for example, to allow Spring Security to forcibly close
+This may be useful for some advanced use cases, (for example, to allow Spring Security to forcibly close
 the WebSocket session when the corresponding HTTP session expires).
 See the https://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project] for more information.
 <6> See the same option on the <<websocket-client-container-attributes,`<int-websocket:client-container>`>>.
@@ -258,23 +258,23 @@ See `ConcurrentWebSocketSessionDecorator.OverflowStrategy` for possible values a
 <9> The allowed origin header values.
 You can specify multiple origins as a comma-separated list.
 This check is mostly designed for browser clients.
-There is nothing preventing other types of client from modifying the origin header value.
+There is nothing preventing other types of a client from modifying the origin header value.
 When SockJS is enabled and allowed origins are restricted, transport types that do not use origin headers for cross-origin requests (`jsonp-polling`, `iframe-xhr-polling`, `iframe-eventsource`, and `iframe-htmlfile`) are disabled.
 As a consequence, IE6 and IE7 are not supported, and IE8 and IE9 are supported only without cookies.
 By default, all origins are allowed.
 <10> Transports with no native cross-domain communication (such as `eventsource` and `htmlfile`) must get a simple page from the "`foreign`" domain in an invisible iframe so that code in the iframe can run from a domain local to the SockJS server.
-Since the iframe needs to load the SockJS javascript client library, this property lets you specify the location from which to load it.
+Since the iframe needs to load the SockJS JavaScript client library, this property lets you specify the location from which to load it.
 By default, it points to `https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js`.
 However, you can also set it to point to a URL served by the application.
 Note that it is possible to specify a relative URL, in which case the URL must be relative to the iframe URL.
-For example, assuming a SockJS endpoint mapped to `/sockjs` and the resulting iframe URL is `/sockjs/iframe.html`, the relative URL must start with "../../" to traverse up to the location above the SockJS mapping.
+For example, assuming a SockJS endpoint mapped to `/sockjs` and the resulting iframe URL is `/sockjs/iframe.html`, the relative URL must start with `../../` to traverse up to the location above the SockJS mapping.
 For prefix-based servlet mapping, you may need one more traversal.
 <11> Minimum number of bytes that can be sent over a single HTTP streaming request before it is closed.
 Defaults to `128K` (that is, 128*1024 or 131072 bytes).
 <12> The `cookie_needed` value in the response from the SockJs `/info` endpoint.
-This property indicates whether a `JSESSIONID` cookie is required for the application to function correctly (for example, for load balancing or in Java Servlet containers for the use of an HTTP session).
+This property indicates whether a `JSESSIONID` cookie is required for the application to function correctly, (for example, for load balancing or in Java Servlet containers for the use of an HTTP session).
 <13> The amount of time (in milliseconds) when the server has not sent any messages and after which the server should
-send a heartbeat frame to the client in order to keep the connection from breaking.
+send a heartbeat frame to the client to keep the connection from breaking.
 The default value is `25,000` (25 seconds).
 <14> The amount of time (in milliseconds) before a client is considered disconnected after not having a receiving connection (that is, an active connection over which the server can send data to the client).
 The default value is `5000`.
@@ -289,7 +289,7 @@ This scheduler instance is used for scheduling heart-beat messages.
 <18> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
 By default, `Jackson2SockJsMessageCodec` is used, which requires the Jackson library to be present on the classpath.
 <19> List of `TransportHandler` bean references.
-<20> Whether to disable automatic addition of CORS headers for SockJS requests.
+<20> Whether to disable the automatic addition of CORS headers for SockJS requests.
 The default value is `false`.
 
 [[websocket-outbound-channel-adapter-attributes]]
@@ -433,4 +433,4 @@ dynamicServerFlow.destroy();
 NOTE: It is important to call `.addBean(serverWebSocketContainer)` on the dynamic flow registration to add the instance of `ServerWebSocketContainer` into an `ApplicationContext` for endpoint registration.
 When a dynamic flow registration is destroyed, the associated `ServerWebSocketContainer` instance is destroyed, too, as well as the respective endpoint registration, including URL path mappings.
 
-IMPORTANT: The dynamic Websocket endpoints can only be registered via Spring Integration mechanism: when regular Spring `@EnableWebsocket` is used, Spring Integration configuration backs off and no infrastructure for dynamic endpoints is registered.
+IMPORTANT: The dynamic Websocket endpoints can only be registered via a Spring Integration mechanism: when regular Spring `@EnableWebsocket` is used, Spring Integration configuration backs off and no infrastructure for dynamic endpoints is registered.

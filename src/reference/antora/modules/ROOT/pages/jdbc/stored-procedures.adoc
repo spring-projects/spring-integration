@@ -2,8 +2,8 @@
 = Stored Procedures
 
 In certain situations, plain JDBC support is not sufficient.
-Maybe you deal with legacy relational database schemas or you have complex data processing needs, but, ultimately, you have to use https://en.wikipedia.org/wiki/Stored_procedure[stored procedures] or stored functions.
-Since Spring Integration 2.1, we provide three components to execute stored procedures or stored functions:
+Maybe you deal with legacy relational database schemas, or you have complex data processing needs, but, ultimately, you have to use https://en.wikipedia.org/wiki/Stored_procedure[stored procedures] or stored functions.
+Since Spring Integration 2.1, we've provided three components to execute stored procedures or stored functions:
 
 * Stored Procedures Inbound Channel Adapter
 * Stored Procedures Outbound Channel Adapter
@@ -42,7 +42,7 @@ Nevertheless, it is very important to thoroughly test those usage scenarios.
 [[sp-configuration]]
 == Configuration
 
-The stored procedure components provide full XML Namespace support, and configuring the components is similar as for the general purpose JDBC components discussed earlier.
+The stored procedure components provide full XML Namespace support, and configuring the components is the same as for the general purpose JDBC components discussed earlier.
 
 [[sp-common-config-params]]
 == Common Configuration Attributes
@@ -188,7 +188,7 @@ Optional.
 <4> The scale of the SQL parameter.
 Only used for numeric and decimal parameters.
 Optional.
-<5> The `typeName` for types that are user-named, such as: `STRUCT`, `DISTINCT`, `JAVA_OBJECT`, and named array types.
+<5> The `typeName` for types that are user-named such as: `STRUCT`, `DISTINCT`, `JAVA_OBJECT`, and named array types.
 This attribute is mutually exclusive with the `scale` attribute.
 Optional.
 <6> The reference to a custom value handler for complex types.

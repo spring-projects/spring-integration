@@ -53,5 +53,5 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 [IMPORTANT]
 ====
 When using `FileExistsMode.APPEND`, temporary filename functionality is automatically disabled regardless of the `useTemporaryFileName` setting.
-This is because appending to a temporary file and then renaming it would not achieve the intended append behavior.
+This is because appending to a temporary file and then renaming it would not achieve the intended `append` behavior.
 ====

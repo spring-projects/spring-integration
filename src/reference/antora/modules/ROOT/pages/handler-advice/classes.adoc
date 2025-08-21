@@ -26,7 +26,7 @@ The thread pauses (if configured to do so) and retries the action.
 
 Stateful Retry::
 Stateful retry is the case where the retry state is managed within the advice but where an exception is thrown and the caller resubmits the request.
-An example for stateful retry is when we want the message originator (for example,JMS) to be responsible for resubmitting, rather than performing it on the current thread.
+An example for stateful retry is when we want the message originator, (for example, JMS) to be responsible for resubmitting, rather than performing it on the current thread.
 Stateful retry needs some mechanism to detect a retried submission.
 
 For more information on `spring-retry`, see https://docs.spring.io/spring-integration/api/[the project's Javadoc] and the reference documentation for https://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
@@ -107,7 +107,7 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]
 Stateless Retry with Customized Policies, and Recovery::
 For more sophistication, we can provide the advice with a customized `RetryTemplate`.
 This example continues to use the `SimpleRetryPolicy` but increases the attempts to four.
-It also adds an `ExponentialBackoffPolicy` where the first retry waits one second, the second waits five seconds and the third waits 25 (for four attempts in all).
+It also adds an `ExponentialBackoffPolicy` where the first retry waits one second, the second waits five seconds, and the third waits 25 (for four attempts in all).
 The following listing shows the example and its `DEBUG` output:
 +
 [source,xml]
@@ -262,7 +262,7 @@ If you compare the preceding example with the stateless examples, you can see th
 
 Exception Classification for Retry::
 Spring Retry has a great deal of flexibility for determining which exceptions can invoke retry.
-The default configuration retries for all exceptions and the exception classifier looks at the top-level exception.
+The default configuration retries for all exceptions, and the exception classifier looks at the top-level exception.
 If you configure it to, say, retry only on `MyException` and your application throws a `SomeOtherException` where the cause is a `MyException`, retry does not occur.
 +
 Since Spring Retry 1.0.3, the `BinaryExceptionClassifier` has a property called `traverseCauses` (the default is `false`).
@@ -284,10 +284,10 @@ When it is in the open state, new requests "`fail fast`" and no attempt is made 
 
 When that time has expired, the circuit breaker is set to the half-open state.
 When in this state, if even a single attempt fails, the breaker immediately goes to the open state.
-If the attempt succeeds, the breaker goes to the closed state, in which case it does not go to the open state again until the configured number of consecutive failures again occur.
+If the attempt succeeds, the breaker goes to the closed state, in which case it does not go to the open state again until the configured number of consecutive failures again occurs.
 Any successful attempt resets the state to zero failures for the purpose of determining when the breaker might go to the open state again.
 
-Typically, this advice might be used for external services, where it might take some time to fail (such as a timeout attempting to make a network connection).
+Typically, this advice might be used for external services, where it might take some time to fail, such as a timeout attempting to make a network connection.
 
 The `RequestHandlerCircuitBreakerAdvice` has two properties: `threshold` and `halfOpenAfter`.
 The `threshold` property represents the number of consecutive failures that need to occur before the breaker goes open.
@@ -411,7 +411,7 @@ public class EerhaApplication {
 == Rate Limiter Advice
 
 The Rate Limiter advice (`RateLimiterRequestHandlerAdvice`) allows to ensure that an endpoint does not get overloaded with requests.
-When the rate limit is breached the request will go in a blocked state.
+When the rate limit is breached, the request will go in a blocked state.
 
 A typical use case for this advice might be an external service provider not allowing more than `n` number of request per minute.
 
@@ -450,7 +450,7 @@ Every `CacheOperation` can be configured separately or have shared options, like
 This configuration functionality is similar to Spring Framework's `@CacheConfig` and `@Caching` annotation combination.
 If a `CacheManager` is not provided, a single bean is resolved by default from the `BeanFactory` in the `CacheAspectSupport`.
 
-The following example configures two advices with different set of caching operations:
+The following example configures two advice with different sets of caching operations:
 
 [source, java]
 ----

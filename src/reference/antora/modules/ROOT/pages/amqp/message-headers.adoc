@@ -72,7 +72,7 @@ Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapp
 Starting with version 4.3, patterns in the header mappings can be negated by preceding the pattern with `!`.
 Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,ba*,!thing2,!thing3,qux,!thing1` does not map `thing1` (nor `thing2` nor `thing3`).
 The standard headers plus `bad` and `qux` are mapped.
-The negation technique can be useful for example to not map JSON type headers for incoming messages when a JSON deserialization logic is done in the receiver downstream different way.
+The negation technique can be useful, for example, to not map JSON type headers for incoming messages when a JSON deserialization logic is done in the receiver downstream a different way.
 For this purpose a `!json_*` pattern should be configured for header mapper of the inbound channel adapter/gateway.
 
 IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
@@ -86,12 +86,12 @@ It is useful to populate the `messageId` property when message consumers are usi
 == The `contentType` Header
 
 Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
-For example an inbound HTTP message sent to a RabbitMQ queue.
+For example, an inbound HTTP message sent to a RabbitMQ queue.
 
-The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ's `content_type` property.
+The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ `content_type` property.
 
 Prior to version 5.1, this header was also mapped as an entry in the `MessageProperties.headers` map; this was incorrect and, furthermore, the value could be wrong since the underlying Spring AMQP message converter might have changed the content type.
 Such a change would be reflected in the first-class `content_type` property, but not in the RabbitMQ headers map.
-Inbound mapping ignored the headers map value.
-`contentType` is no longer mapped to an entry in the headers map.
+Inbound mapping ignored the header map value.
+`contentType` is no longer mapped to an entry in the header map.
 

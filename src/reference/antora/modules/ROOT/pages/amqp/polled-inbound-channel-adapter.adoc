@@ -41,16 +41,10 @@ public AmqpMessageSource source(ConnectionFactory connectionFactory) {
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/inbound/AmqpMessageSource.html[Javadoc] for configuration properties.
 
-[source, xml, role="secondary"]
-.XML
-----
-This adapter currently does not have XML configuration support.
-----
-
 [[amqp-polled-debatching]]
 == Batched Messages
 
 See xref:amqp/inbound-channel-adapter.adoc#amqp-debatching[Batched Messages].
 
-For the polled adapter, there is no listener container, batched messages are always debatched (if the `BatchingStrategy` supports doing so).
+For the polled adapter, there is no listener container; batched messages are always debatched (if the `BatchingStrategy` supports doing so).
 

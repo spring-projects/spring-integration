@@ -59,7 +59,7 @@ The `client-mode` is not currently available with the outbound gateway.
 
 Starting with version 5.2, the outbound gateway can be configured with the property `closeStreamAfterSend`.
 If the connection factory is configured for `single-use` (a new connection for each request/reply) the gateway will close the output stream; this signals EOF to the server.
-This is useful if the server uses the EOF to determine the end of message, rather than some delimiter in the stream, but leaves the connection open in order to receive the reply.
+This is useful if the server uses the EOF to determine the end of a message, rather than some delimiter in the stream, but leaves the connection open in order to receive the reply.
 
 Normally, the calling thread will block in the gateway, waiting for the reply (or a timeout).
 Starting with version 5.3, you can set the `async` property on the gateway and the sending thread is released to do other work.

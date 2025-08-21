@@ -32,7 +32,7 @@ Thus, assuming that the XML file passed to the following router configuration co
 ----
 
 If the returned values do not represent the channel names directly, you can specify additional mapping parameters to map those returned values to actual channel names.
-For example if the `/request/responders` expression results in two values (`responderA` and `responderB`), but you do not want to couple the responder names to channel names, you can provide additional mapping configuration, such as the following:
+For example, if the `/request/responders` expression results in two values (`responderA` and `responderB`), but you do not want to couple the responder names to channel names, you can provide additional mapping configuration, such as the following:
 
 [source,xml]
 ----
@@ -72,7 +72,7 @@ XPath 1.0 specifies 4 data types:
 * Boolean
 
 When the XPath Router evaluates expressions by using the optional `evaluate-as-string` attribute, the return value is determined by the `string()` function, as defined in the XPath specification.
-This means that, if the expression selects multiple nodes, it return the string value of the first node.
+This means that if the expression selects multiple nodes, it returns the string value of the first node.
 
 For further information, see:
 

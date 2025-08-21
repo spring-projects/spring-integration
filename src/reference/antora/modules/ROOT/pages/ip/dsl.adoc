@@ -2,7 +2,7 @@
 = Using the Java DSL for TCP Components
 
 DSL support for TCP components includes specs for adapters and gateways, the `Tcp` class with factory methods to create connection factory beans, and the `TcpCodecs` class with factory methods to create serializers and deserializers.
-Refer to their javadocs for more information.
+Refer to their Javadocs for more information.
 
 Here are some examples of using the DSL to configure flows using the DSL.
 

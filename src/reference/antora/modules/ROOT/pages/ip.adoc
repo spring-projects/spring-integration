@@ -7,7 +7,7 @@ Each adapter provides for one-way communication over the underlying protocol.
 In addition, Spring Integration provides simple inbound and outbound TCP gateways.
 These are used when two-way communication is needed.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

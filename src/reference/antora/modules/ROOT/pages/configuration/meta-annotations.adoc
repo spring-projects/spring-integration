@@ -1,7 +1,7 @@
 [[meta-annotations]]
 = Messaging Meta-Annotations
 
-Starting with version 4.0, all messaging annotations can be configured as meta-annotations and all user-defined messaging annotations can define the same attributes to override their default values.
+Starting with version 4.0, all messaging annotations can be configured as meta-annotations, and all user-defined messaging annotations can define the same attributes to override their default values.
 In addition, meta-annotations can be configured hierarchically, as the following example shows:
 
 [source,java]

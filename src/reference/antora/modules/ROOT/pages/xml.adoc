@@ -14,7 +14,7 @@ Spring Integration's XML support extends the core of Spring Integration with the
 * xref:xml/xpath-spel-function.adoc[#xpath SpEL Function]
 * xref:xml/validating-filter.adoc[Validating Filter]
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -39,7 +39,7 @@ compile "org.springframework.integration:spring-integration-xml:{project-version
 
 These components make working with XML messages in Spring Integration simpler.
 The messaging components work with XML that is represented in a range of formats, including instances of `java.lang.String`, `org.w3c.dom.Document`, and `javax.xml.transform.Source`.
-However, where a DOM representation is required (for example, in order to evaluate an XPath expression), the `String` payload is converted into the required type and then converted back to `String`.
+However, where a DOM representation is required, (for example, in order to evaluate an XPath expression), the `String` payload is converted into the required type and then converted back to `String`.
 Components that require an instance of `DocumentBuilder` create a namespace-aware instance if you do not provide one.
 When you require greater control over document creation, you can provide an appropriately configured instance of `DocumentBuilder`.
 

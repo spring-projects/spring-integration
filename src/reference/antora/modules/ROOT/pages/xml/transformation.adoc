@@ -132,7 +132,7 @@ For more information and examples, see xref:xml/transformation.adoc#xml-using-re
 [[xml-transformer-namespace]]
 == Namespace Support for XML Transformers
 
-Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which was xref:xpath-namespace-support[shown earlier].
+Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which was xref:xml/xpath-namespace-support.adoc[shown earlier].
 The namespace support for transformers creates an instance of either `EventDrivenConsumer` or `PollingConsumer`, according to the type of the provided input channel.
 The namespace support is designed to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer that use one element.
 
@@ -140,7 +140,7 @@ The namespace support is designed to reduce the amount of XML configuration by a
 === Using an `UnmarshallingTransformer`
 
 The namespace support for the `UnmarshallingTransformer` is shown below.
-Since the namespace create an endpoint instance rather than a transformer, you can nest a poller within the element to control the polling of the input channel.
+Since the namespace creates an endpoint instance rather than a transformer, you can nest a poller within the element to control the polling of the input channel.
 The following example shows how to do so:
 
 [source,xml]
@@ -191,7 +191,7 @@ NOTE: Internally, the `StringResult` and `DomResult` result types are represente
 
 Namespace support for the `XsltPayloadTransformer` lets you  either pass in a `Resource` (in order to create the https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[`Templates`] instance) or  pass in a pre-created `Templates` instance as a reference.
 As with the marshalling transformer, you can control the type of the result output by specifying either the `result-factory` or the `result-type` attribute.
-When you need to convert result before sending, you can use a `result-transformer` attribute to reference an implementation of `ResultTransformer`.
+When you need to convert a result before sending, you can use a `result-transformer` attribute to reference an implementation of `ResultTransformer`.
 
 IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, the `alwaysUseResultFactory` property on the underlying https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[`XsltPayloadTransformer`] is set to `true` by the https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html[`XsltPayloadTransformerParser`].
 
@@ -210,7 +210,7 @@ The following example configures two XSLT transformers:
 ----
 
 You may need to have access to `Message` data, such as the `Message` headers, in order to assist with transformation.
-For example, you may need to get access to certain `Message` headers and pass them on as parameters to a transformer (for example, `transformer.setParameter(..)`).
+For example, you may need to get access to certain `Message` headers and pass them on as parameters to a transformer, for example, `transformer.setParameter(..)`.
 Spring Integration provides two convenient ways to accomplish this, as the following example shows:
 
 [source,xml]
@@ -242,7 +242,7 @@ Starting with Spring Integration 3.0, you can now specify the transformer factor
 == Namespace Configuration and Result Transformers
 
 We cover using result transformers in xref:xml/transformation.adoc#xml-using-result-transformers[Using `ResultTransformer` Implementations].
-The examples in this section use XML namespace configuration to illustrates several special use cases.
+The examples in this section use XML namespace configuration to illustrate several special use cases.
 First, we define the `ResultTransformer`, as the following example shows:
 
 [source,xml]
@@ -252,7 +252,7 @@ First, we define the `ResultTransformer`, as the following example shows:
 
 This `ResultTransformer` accepts either a `StringResult` or a `DOMResult` as input and converts the input into a `Document`.
 
-Now we can declare the transformer, as follows:
+Now we can declare the transformer as follows:
 
 [source,xml]
 ----
@@ -292,12 +292,12 @@ Consequently, the referenced `ResultToDocumentTransformer` is used.
 
 Therefore, if you transform a payload of type `String`, the resulting payload is of type https://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html[`Document`].
 
-[[xsltpayloadtransformer-and-<xsl:output-method=-text-/>]]
+[[xsltpayloadtransformer-and-output-method]]
 === `XsltPayloadTransformer` and `<xsl:output method="text"/>`
 
 `<xsl:output method="text"/>` tells the XSLT template to produce only text content from the input source.
 In this particular case, we have no reason to use a `DomResult`.
 Therefore, the https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[`XsltPayloadTransformer`] defaults to `StringResult` if the https://docs.oracle.com/javase/7/docs/api/javax/xml/transform/Transformer.html#getOutputProperties()[output property] called `method` of the underlying `javax.xml.transform.Transformer` returns `text`.
-This coercion is performed independently from the inbound payload type.
-This behavior is available only you set the if the `result-type` attribute or the `result-factory` attribute for the `<int-xml:xslt-transformer>` component.
+This coercion is performed independently of the inbound payload type.
+This behavior is available only if the `result-type` attribute or the `result-factory` attribute for the `<int-xml:xslt-transformer>` component is set.
 

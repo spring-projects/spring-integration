@@ -6,7 +6,7 @@ However, it can also be used as the ultimate consumer of any flow.
 For example, consider a flow that ends with a `<service-activator>` that returns a result, but you wish to discard that result.
 To do that, you could send the result to `NullChannel`.
 Alternatively, you can route it to an `INFO` level `<logging-channel-adapter>`.
-That way, you can see the discarded message when logging at `INFO` level but not see it when logging at (for example) the `WARN` level.
+That way, you can see the discarded message when logging at `INFO` level but not see it when logging at, for example, the `WARN` level.
 With a `NullChannel`, you would see only the discarded message when logging at the `DEBUG` level.
 The following listing shows all the possible attributes for the `logging-channel-adapter` element:
 
@@ -23,7 +23,7 @@ The following listing shows all the possible attributes for the `logging-channel
 ----
 
 <1> The channel connecting the logging adapter to an upstream component.
-<2> The logging level at which messages sent to this adapter will be logged.
+<2> The logging level at which messages are sent to this adapter will be logged.
 Default: `INFO`.
 <3> A SpEL expression representing exactly what parts of the message are logged.
 Default: `payload` -- only the payload is logged.

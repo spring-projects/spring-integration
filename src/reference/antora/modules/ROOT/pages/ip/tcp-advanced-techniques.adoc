@@ -165,7 +165,7 @@ As with the `DefaultTcpNetConnectionSupport`, these implementations also support
 == Example: Enabling SSL Client Authentication
 
 To enable client certificate authentication when you use SSL, the technique depends on whether you use NIO.
-When you do not NIO , provide a custom `TcpSocketSupport` implementation to post-process the server socket:
+When you do not NIO, provide a custom `TcpSocketSupport` implementation to post-process the server socket:
 
 [source, java]
 ----

@@ -2,13 +2,13 @@
 = Metrics and Management
 
 This section describes how to capture metrics for Spring Integration.
-In recent versions, we have relied more on Micrometer (see https://micrometer.io), and we plan to use Micrometer even more in future releases.
+In recent versions, we have relied more on https://micrometer.io/[Micrometer], and we plan to use Micrometer even more in future releases.
 
 [[disabling-logging-in-high-volume-environments]]
 == Disabling Logging in High Volume Environments
 
 You can control debug logging in the main message flow.
-In very high volume applications, calls to `isDebugEnabled()` can be quite expensive with some logging subsystems.
+In very high-volume applications, calls to `isDebugEnabled()` can be quite expensive with some logging subsystems.
 You can disable all such logging to avoid this overhead.
 Exception logging (debug or otherwise) is not affected by this setting.
 
@@ -155,7 +155,7 @@ Starting with version 6.0, Spring Integration utilizes a Micrometer Observation 
 
 The observation handling is enabled on the `IntegrationManagement` components whenever an `ObservationRegistry` bean is present in the application context and an `@EnableIntegrationManagement` is configured.
 To customize what set of components should be instrumented, an `observationPatterns()` attribute is exposed on the `@EnableIntegrationManagement` annotation.
-See its javadocs for a pattern matching algorithm.
+See its Javadocs for a pattern matching algorithm.
 
 IMPORTANT: By default, none of the `IntegrationManagement` components are instrumented with an `ObservationRegistry` bean.
 Can be configured as `*` to match all components.
@@ -177,7 +177,7 @@ So, the `IntegrationObservation.PRODUCER` observation is based on a `MessageSend
 An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.
 For example an `AbstractMessageHandler` expects a `MessageReceiverObservationConvention` via its `setObservationConvention()` API.
 
-The following are supported metrics, spans and conventions for Observation API:
+The following are supported metrics, spans, and conventions for Observation API:
 
 include::partial$metrics.adoc[]
 

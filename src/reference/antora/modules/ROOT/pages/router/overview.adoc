@@ -306,7 +306,7 @@ a| image::tickmark.png[]
 [IMPORTANT]
 =====
 As of Spring Integration 2.1, router parameters have been more standardized across all router implementations.
-Consequently, a few minor changes may break older Spring Integration based applications.
+Consequently, a few minor changes may break older Spring Integration-based applications.
 
 Since Spring Integration 2.1, the `ignore-channel-name-resolution-failures` attribute is removed in favor of consolidating its behavior with the `resolution-required` attribute.
 Also, the `resolution-required` attribute now defaults to `true`.

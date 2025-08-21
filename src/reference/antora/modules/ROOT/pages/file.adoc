@@ -3,7 +3,7 @@
 
 Spring Integration's file support extends the Spring Integration core with a dedicated vocabulary to deal with reading, writing, and transforming files.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

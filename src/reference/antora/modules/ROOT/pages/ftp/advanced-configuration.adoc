@@ -47,7 +47,7 @@ See https://scarybeastsecurity.blogspot.cz/2009/02/vsftpd-210-released.html for 
 Currently, the Apache FTPSClient does not support this feature.
 See https://issues.apache.org/jira/browse/NET-408[NET-408].
 
-The following solution, courtesy of https://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow], uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
+The following solution (courtesy of https://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow]), uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
 The stack overflow answer was submitted in 2015, and the solution has been tested by the Spring Integration team on JDK 1.8.0_112.
 
 The following example shows how to create an FTPS session:

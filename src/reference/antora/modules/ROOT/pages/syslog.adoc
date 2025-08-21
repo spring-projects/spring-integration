@@ -3,7 +3,7 @@
 
 Spring Integration 2.2 introduced the syslog transformer: `SyslogToMapTransformer`.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

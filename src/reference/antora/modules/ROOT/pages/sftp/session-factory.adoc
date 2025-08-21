@@ -77,7 +77,7 @@ Can be configured with a proxy jump property.
 
 `port`::The port over which the SFTP connection shall be established.
 If not specified, this value defaults to `22`.
-If specified, this properties must be a positive number.
+If specified, this property must be a positive number.
 
 `user`::The remote user to use.
 Required.

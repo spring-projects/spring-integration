@@ -1,7 +1,7 @@
 [[amqp-inbound-gateway]]
 = Inbound Gateway
 
-The inbound gateway supports all the attributes on the inbound channel adapter (except that 'channel' is replaced by 'request-channel'), plus some additional attributes.
+The inbound gateway supports all the attributes on the inbound channel adapter (except that `channel` is replaced by `request-channel`), plus some additional attributes.
 The following listing shows the available attributes:
 
 [tabs]

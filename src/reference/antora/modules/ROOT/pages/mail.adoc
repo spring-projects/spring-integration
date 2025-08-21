@@ -3,7 +3,7 @@
 
 This section describes how to work with mail messages in Spring Integration.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -168,7 +168,7 @@ Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
 
 For a `text/*` email, the payload is a `String` and the `contentType` header is the same as `mail_contentType`.
 
-For a messages with embedded `jakarta.mail.Part` instances, the `DataHandler` usually renders a `Part` object.
+For a message with embedded `jakarta.mail.Part` instances, the `DataHandler` usually renders a `Part` object.
 These objects are not `Serializable` and are not suitable for serialization with alternative technologies such as `Kryo`.
 For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the `Part` data.
 Examples of `Part` are `Message` and `Multipart`.
@@ -393,7 +393,7 @@ If not specified, the previous behavior is retained (peek is `true`).
 [[imap-idle-and-lost-connections]]
 === IMAP `idle` and Lost Connections
 
-When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
+When using an IMAP `idle` channel adapter, connections to the server may be lost, (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
 Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3.
 Depending on which one is used, you must pay special attention to some JavaMail properties that need to be set with regard to auto-reconnect.
 
@@ -408,17 +408,17 @@ However, if the connection was lost for a long period of time (over 10 min), `IM
 Consequently, the only way to make re-connecting work with JavaMail 1.4.1 is to set the `mail.imaps.timeout` property explicitly to some value, but it also means that such value should be relatively short (under 10 min) and the connection should be re-established relatively quickly.
 Again, it may be different with providers other than Gmail.
 With JavaMail 1.4.3 introduced significant improvements to the API, ensuring that there is always a condition that forces the `IMAPFolder.idle()` method to return  `StoreClosedException` or `FolderClosedException` or to simply return, thus letting you proceed with auto-reconnecting.
-Currently, auto-reconnecting runs infinitely making attempts to reconnect every ten seconds.
+Currently, auto-reconnecting runs infinitely, making attempts to reconnect every ten seconds.
 
 IMPORTANT: In both configurations, `channel` and `should-delete-messages` are required attributes.
 You should understand why `should-delete-messages` is required.
 The issue is with the POP3 protocol, which does not have any knowledge of messages that were read.
 It can only know what has been read within a single session.
-This means that, when your POP3 mail adapter runs, emails are successfully consumed as they become available during each poll and no single email message is delivered more then once.
+This means that, when your POP3 mail adapter runs, emails are successfully consumed as they become available during each poll and no single email message is delivered more than once.
 However, as soon as you restart your adapter and begin a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
 That is the nature of POP3.
 Some might argue that `should-delete-messages` should be `true` by default.
-In other words, there are two valid and mutually exclusive use that make it very hard to pick a single best default.
+In other words, there are two valid and mutually exclusive uses that make it very hard to pick the single best default.
 You may want to configure your adapter as the only email receiver, in which case you want to be able to restart your adapter without fear that previously delivered messages are not delivered again.
 In this case, setting `should-delete-messages` to `true` would make the most sense.
 However, you may have another use case where you may want to have multiple adapters monitor email servers and their content.
@@ -481,7 +481,7 @@ This is similar to looking at your email client while scrolling through all the 
 
 Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
 This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
-For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).\*Spring Integration.*"`.
+For example, if you would like to read-only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).\*Spring Integration.*"`.
 
 Since `jakarta.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
 This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.
@@ -502,7 +502,7 @@ So, in the following example, only messages that match the filter expression are
 In the preceding example, thanks to the `mail-filter-expression` attribute, only messages that contain 'Spring Integration' in the subject line are produced by this adapter.
 
 Another reasonable question is what happens on the next poll or idle event or what happens when such an adapter is restarted.
-Can there be duplication of massages to be filtered? In other words, if, on the last retrieval where you had five new messages and only one passed the filter, what would happen with the other four?
+Can there be duplication of massages to be filtered? In other words, if, on the last retrieval where you had five new messages and only one passed the filter, what happens with the other four?
 Would they go through the filtering logic again on the next poll or idle?
 After all, they were not marked as `SEEN`.
 The answer is no.
@@ -579,7 +579,7 @@ IMPORTANT: For the message to be still available for manipulation after the tran
 [[mail-java-dsl-configuration]]
 == Configuring channel adapters with the Java DSL
 
-To configure mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
+To configure a mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
 
 [source, java]
 ----

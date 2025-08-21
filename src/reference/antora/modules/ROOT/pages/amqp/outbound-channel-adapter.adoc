@@ -86,7 +86,7 @@ Mutually exclusive with 'routing-key-expression'.
 Optional.
 <8> A SpEL expression that is evaluated to determine the routing key to use when sending messages, with the message as the root object (for example, 'payload.key').
 By default, this is an empty `String`.
-Mutually exclusive with 'routing-key'.
+Mutually exclusive with `routing-key`.
 Optional.
 <9> The default delivery mode for messages: `PERSISTENT` or `NON_PERSISTENT`.
 Overridden if the `header-mapper` sets the delivery mode.
@@ -123,7 +123,7 @@ Pending confirms are checked every 50% of this value, so the actual time a nack 
 Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Default none (nacks will not be generated).
 <14> When set to true, the calling thread will block, waiting for a publisher confirmation.
-This requires a `RabbitTemplate` configured for confirms as well as a `confirm-correlation-expression`.
+This requires a `RabbitTemplate` configured for `confirms` as well as a `confirm-correlation-expression`.
 The thread will block for up to `confirm-timeout` (or 5 seconds by default).
 If a timeout occurs, a `MessageTimeoutException` will be thrown.
 If returns are enabled and a message is returned, or any other exception occurs while awaiting the confirmation, a `MessageHandlingException` will be thrown, with an appropriate message.
@@ -136,8 +136,8 @@ Optional.
 <16> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
 <17> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
 By default, only standard AMQP properties (such as `contentType`) are copied to the Spring Integration `MessageHeaders`.
-Any user-defined headers is not copied to the message by the default`DefaultAmqpHeaderMapper`.
-Not allowed if 'request-header-names' is provided.
+Any user-defined headers are not copied to the message by the default`DefaultAmqpHeaderMapper`.
+Not allowed if `request-header-names` is provided.
 Optional.
 <18> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
 Not allowed if the 'header-mapper' reference is provided.
@@ -148,7 +148,7 @@ When `true` (the default), the connection is established (if it does not already
 <20> When set to `true`, payloads of type `Iterable<Message<?>>` will be sent as discrete messages on the same channel within the scope of a single `RabbitTemplate` invocation.
 Requires a `RabbitTemplate`.
 When `wait-for-confirms` is true, `RabbitTemplate.waitForConfirmsOrDie()` is invoked after the messages have been sent.
-With a transactional template, the sends will be performed in either a new transaction or one that has already been started (if present).
+With a transactional template, the sending will be performed in either a new transaction or one that has already been started (if present).
 
 [IMPORTANT]
 .return-channel

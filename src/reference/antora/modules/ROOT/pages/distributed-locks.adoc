@@ -11,7 +11,7 @@ Spring Integration provides a `LockRegistry` abstraction with an in-memory `Defa
 The `obtain(Object)` method of the `LockRegistry` requires a `lock key` for specific context.
 For example, an aggregator uses a `correlationKey` to lock operations around its group.
 This way different locks can be used concurrently.
-This `obtain(Object)` method returns a `java.util.concurrent.locks.Lock` instance (depending on the `LockRegistry` implementation), therefore the rest of the logic is the same as standard Java Concurrency algorithm.
+This `obtain(Object)` method returns a `java.util.concurrent.locks.Lock` instance (depending on the `LockRegistry` implementation), therefore, the rest of the logic is the same as standard Java Concurrency algorithm.
 
 Starting with version 6.2, the `LockRegistry` provides an `executeLocked()` API (`default` methods in this interface) to perform some task while locked.
 The behavior of this API is similar to well-known `JdbcTemplate`, `JmsTemplate` or `RestTemplate`.
@@ -29,7 +29,6 @@ In addition, a variant with `Duration` throws a `java.util.concurrent.TimeoutExc
 
 Spring Integration provides these `LockRegistry` implementations for distributed locks:
 
-* xref:hazelcast.adoc#hazelcast-lock-registry[Hazelcast]
 * xref:jdbc/lock-registry.adoc[JDBC]
 * xref:redis.adoc#redis-lock-registry[Redis]
 * xref:zookeeper.adoc#zk-lock-registry[Zookeeper]

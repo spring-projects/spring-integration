@@ -4,7 +4,7 @@
 Spring Integration provides support for syndication through feed adapters.
 The implementation is based on the https://rometools.github.io/rome/[ROME Framework].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

@@ -5,12 +5,12 @@ All the examples shown so far illustrate how the DSL supports a messaging archit
 However, we have yet to do any real integration.
 Doing so requires access to remote resources over HTTP, JMS, AMQP, TCP, JDBC, FTP, SMTP, and so on or access to the local file system.
 Spring Integration supports all of these and more.
-Ideally, the DSL should offer first class support for all of them, but it is a daunting task to implement all of these and keep up as new adapters are added to Spring Integration.
+Ideally, the DSL should offer first-class support for all of them, but it is a daunting task to implement all of these and keep up as new adapters are added to Spring Integration.
 So the expectation is that the DSL is continually catching up with Spring Integration.
 
 Consequently, we provide the high-level API to seamlessly define protocol-specific messaging.
 We do so with the factory and builder patterns and with lambdas.
-You can think of the factory classes as "`Namespace Factories`", because they play the same role as the XML namespace for components from the concrete protocol-specific Spring Integration modules.
+You can think of the factory classes as "`Namespace Factories`" because they play the same role as the XML namespace for components from the concrete protocol-specific Spring Integration modules.
 Currently, Spring Integration Java DSL supports the `Amqp`, `Feed`, `Jms`, `Files`, `(S)Ftp`, `Http`, `JPA`, `MongoDb`,  `TCP/UDP`, `Mail`, `WebFlux`, and `Scripts` namespace factories.
 The following example shows how to use three of them (`Amqp`, `Jms`, and `Mail`):
 

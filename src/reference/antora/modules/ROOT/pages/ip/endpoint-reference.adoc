@@ -224,7 +224,7 @@ The following table describes attributes that you can set to configure UDP inbou
 | `pool-size`
 |
 | Specifies how many packets can be handled concurrently.
-It only applies if task-executor is not configured.
+It only applies if the `task-executor` is not configured.
 Default: 5.
 
 | task-executor
@@ -352,7 +352,7 @@ For a multicast adapter, it also determines which interface the multicast packet
 | `task-executor`
 |
 | Specifies a specific executor to be used for acknowledgment handling.
-If not supplied, an internal single threaded executor is used.
+If not supplied, an internal single-threaded executor is used.
 Needed on some platforms that require the use of specific task executors, such as a `WorkManagerTaskExecutor`.
 One thread is dedicated to handling acknowledgments (if the `acknowledge` option is true).
 
@@ -376,7 +376,7 @@ The following table describes attributes that you can set to configure TCP inbou
 
 | `channel`
 |
-| The channel to which inbound messages is sent.
+| The channel to which inbound messages are sent.
 
 | `connection-factory`
 |
@@ -541,7 +541,7 @@ Only applies if the reply-channel might block (such as a bounded QueueChannel th
 
 | `async`
 |
-| Release the sending thread after the send; the reply (or error) will be sent on the receiving thread.
+| Release the sending thread after the sending; the reply (or error) will be sent on the receiving thread.
 
 | `unsolicited`
 `MessageChannel`

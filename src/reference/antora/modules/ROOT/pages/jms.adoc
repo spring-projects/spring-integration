@@ -3,7 +3,7 @@
 
 Spring Integration provides channel adapters for receiving and sending JMS messages.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -146,7 +146,7 @@ In earlier versions, you had to inject a `JmsTemplate` with `sessionTransacted` 
 Note, however, that setting `session-transacted` to `true` has little value, because the transaction is committed
 immediately after the `receive()` operation and before the message is sent to the `channel`.
 
-If you want the entire flow to be transactional (for example, if there is a downstream outbound channel adapter), you must use a `transactional` poller with a `JmsTransactionManager`.
+If you want the entire flow to be transactional, (for example, if there is a downstream outbound channel adapter), you must use a `transactional` poller with a `JmsTransactionManager`.
 Alternatively, consider using a `jms-message-driven-channel-adapter` with `acknowledge` set to `transacted` (the default).
 
 [[jms-message-driven-channel-adapter]]
@@ -233,7 +233,7 @@ In that case, the attributes on the adapter are transferred to an instance of yo
 =====
 You can't use the Spring JMS namespace element `<jms:listener-container/>` to configure a container reference for the `<int-jms:message-driven-channel-adapter>` since that element doesn't actually reference a container.
 Each `<jms:listener/>` sub-element gets its own `DefaultMessageListenerContainer` (with shared attributes defined on the parent `<jms:listener-container/>` element).
-You can give each listener sub-element an `id`, and use that to inject into the channel adapter, however, the `<jms:/>` namespace requires a real listener.
+You can give each listener subelement an `id`, and use that to inject into the channel adapter, however, the `<jms:/>` namespace requires a real listener.
 
 It is recommended to configure a regular `<bean>` for the `DefaultMessageListenerContainer` and use it as a reference in the channel adapter.
 =====
@@ -418,7 +418,7 @@ The default is 'true'.
 
 Similarly, for an inbound-gateway, the 'extract-reply-payload' property applies to the Spring Integration message that is to be converted into a reply JMS Message.
 If you want to pass the whole Spring Integration message (as the body of a JMS ObjectMessage), set value this to 'false'.
-By default, it is also 'true' that the Spring Integration message payload is converted into a JMS Message (for example, a `String` payload becomes a JMS TextMessage).
+By default, it is also 'true' that the Spring Integration message payload is converted into a JMS Message, (for example, a `String` payload becomes a JMS TextMessage).
 
 As with anything else, gateway invocation might result in error.
 By default, a producer is not notified of the errors that might have occurred on the consumer side and times out waiting for the reply.
@@ -525,7 +525,7 @@ If you specify a reply listener and specify a reply destination (or reply destin
 This is because there is no way to configure a selector in this case.
 Thus, there is no way to avoid a reply going to a different gateway that might be configured with the same reply destination.
 
-Note that, in this situation, a new consumer is used for each request, and consumers can build up in memory as described in the caution above; therefore cached consumers should not be used in this case.
+Note that, in this situation, a new consumer is used for each request, and consumers can build up in memory as described in the caution above; therefore, cached consumers should not be used in this case.
 ====
 
 The following example shows a reply listener with default attributes:
@@ -559,7 +559,7 @@ See `idle-reply-listener-timeout` in xref:jms.adoc#jms-og-attributes[Attribute R
 === Gateway Reply Correlation
 
 This section describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies to only its requests), depending on how the gateway is configured.
-See xref:jms.adoc#jms-og-attributes[Attribute Reference] for complete description of the attributes discussed here.
+See xref:jms.adoc#jms-og-attributes[Attribute Reference] for a complete description of the attributes discussed here.
 
 The following list describes the various scenarios (the numbers are for identification -- order does not matter):
 
@@ -804,7 +804,7 @@ They are considered to be QoS properties and therefore have to be propagated to 
 For this reason the `DefaultJmsHeaderMapper` doesn't map appropriate Spring Integration headers (or expression results) into the mentioned JMS message properties.
 Instead, a `DynamicJmsTemplate` is used by the `JmsSendingMessageHandler` to propagate header values from the request message into the `MessageProducer.send()` API.
 To enable this feature, you must configure the outbound endpoint with a `DynamicJmsTemplate` with its `explicitQosEnabled` property set to true.
-The Spring Integration Java DSL configures a `DynamicJmsTemplate` by default but you must still set the `explicitQosEnabled` property.
+The Spring Integration Java DSL configures a `DynamicJmsTemplate` by default, but you must still set the `explicitQosEnabled` property.
 
 IMPORTANT: Since version 4.0, the `JMSPriority` header is mapped to the standard `priority` header for inbound messages.
 Previously, the `priority` header was only used for outbound messages.

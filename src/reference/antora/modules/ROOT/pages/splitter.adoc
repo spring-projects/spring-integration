@@ -42,7 +42,7 @@ In Spring Integration, any POJO can implement the splitting algorithm, provided 
 In this case, the return value of the method is interpreted as described earlier.
 The input argument might either be a `Message` or a simple POJO.
 In the latter case, the splitter receives the payload of the incoming message.
-We recommend this approach, because it decouples the code from the Spring Integration API and is typically easier to test.
+We recommend this approach because it decouples the code from the Spring Integration API and is typically easier to test.
 
 [[iterators]]
 === Iterators
@@ -69,7 +69,7 @@ In addition, if the splitter's output channel is an instance of a `ReactiveStrea
 
 Starting with version 5.2, the splitter supports a `discardChannel` option for sending those request messages for which a split function has returned an empty container (collection, array, stream, `Flux` etc.).
 In this case there is just no item to iterate for sending to the `outputChannel`.
-The `null` splitting result remains as an end of flow indicator.
+The `null` splitting result remains as an end-of-flow indicator.
 
 [[configuring-a-splitter-with-java-groovy-and-kotlin-dsls]]
 == Configuring a Splitter with Java, Groovy and Kotlin DSLs
@@ -145,14 +145,14 @@ A splitter can be configured through XML as follows:
 <2> A reference to a bean defined in the application context.
 The bean must implement the splitting logic, as described in the earlier section.
 Optional.
-If a reference to a bean is not provided, it is assumed that the payload of the message that arrived on the `input-channel` is an implementation of `java.util.Collection` and the default splitting logic is applied to the collection, incorporating each individual element into a message and sending it to the `output-channel`.
+If a reference to a bean is not provided, it is assumed that the payload of the message that arrived at the `input-channel` is an implementation of `java.util.Collection` and the default splitting logic is applied to the collection, incorporating each individual element into a message and sending it to the `output-channel`.
 <3> The method (defined on the bean) that implements the splitting logic.
 Optional.
 <4> The input channel of the splitter.
 Required.
 <5> The channel to which the splitter sends the results of splitting the incoming message.
 Optional (because incoming messages can specify a reply channel themselves).
-<6> The channel to which the request message is sent in case of empty splitting result.
+<6> The channel to which the request message is sent in case of an empty splitting result.
 Optional (they will stop as in case of `null` result).
 
 We recommend using a `ref` attribute if the custom splitter implementation can be referenced in other `<splitter>` definitions.

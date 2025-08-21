@@ -122,10 +122,10 @@ If the transfer is ignored, the remote file is not deleted, because the `FileExi
 
 The message payload resulting from an `mget` operation is a `List<File>` object (that is, a `List` of `File` objects, each representing a retrieved file).
 
-IMPORTANT: Starting with version 5.0, if the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contain files that were not fetched due to the file already existing.
+IMPORTANT: Starting with version 5.0, if the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contains files that were not fetched due to the file already existing.
 Previously, the array contained all files, including those that already existed.
 
-The expression you use determine the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
+The expression you use determines the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
 
 Starting with version 5.0, you can use a recursive `MGET`, combined with the `FileExistsMode.REPLACE_IF_MODIFIED` mode, to periodically synchronize an entire remote directory tree locally.
 This mode sets the local file's last modified timestamp to the remote file's timestamp, regardless of the `-P` (preserve timestamp) option.
@@ -191,7 +191,7 @@ See the https://github.com/spring-projects/spring-integration/tree/main/spring-i
 The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
 
 Version 4.3 introduced the `chmod` attribute, which changes the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+You can use the conventional Unix octal format, for example, `600` allows read-write for the file owner only.
 When configuring the adapter using java, you can use `setChmod(0600)`.
 
 [[using-the-mput-command]]
@@ -214,7 +214,7 @@ The message payload resulting from an `mput` operation is a `List<String>` objec
 See also xref:sftp/outbound-gateway.adoc#sftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 Version 4.3 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+You can use the conventional Unix octal format, for example, `600` allows read-write for the file owner only.
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
 [[using-the-rm-command]]
@@ -256,7 +256,7 @@ The `get` and `mget` commands support the `local-directory-expression` attribute
 It defines a SpEL expression to generate the names of local directories during the transfer.
 The root object of the evaluation context is the request message.
 The `remoteDirectory` variable is also available.
-It is particularly useful for mget (for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`).
+It is particularly useful for `mget`, for example, `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`.
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
@@ -277,7 +277,7 @@ The following example shows a gateway configured for an `ls` command:
 
 The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
 If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
-You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
+You can provide options as a space-delimited list, for example, `command-options="-1 -dirs -links"`.
 
 Starting with version 4.2, the `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
 This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).

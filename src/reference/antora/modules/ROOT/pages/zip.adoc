@@ -9,7 +9,7 @@ The following components are provided:
 * xref:zip.adoc#zip-transformer[UnZip Transformer]
 * xref:zip.adoc#unzip-splitter[UnZip Result Splitter]
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -60,7 +60,7 @@ The following example shows a typical setup:
 
 The `ZipTransformer` implements a zipping functionality for these types of input `payload`: `File`, `String`, `byte[]` and `Iterable`.
 In input data types can be mixed as part of an `Iterable`.
-For example, it should be easily to compress a collection containing Strings, byte arrays and Files.
+For example, it should be easy to compress a collection containing Strings, byte arrays and Files.
 It is important to note that nested Iterables are *NOT SUPPORTED* at present time.
 
 The `ZipTransformer` can be customized by setting several properties:
@@ -76,7 +76,7 @@ Unless it is already present as a result of this generator.
 
 In addition, a `ZipHeaders.ZIP_ENTRY_FILE_NAME` and `ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE` can be supplied for the name of zip entry and its `lastmodified` attribute.
 If not provided, the entry name is exact result of the `fileNameGenerator` and `lastmodified` falls back to the current date and time.
-If the payload of request message is an `Iterable`, then this entry name is modified with an index starting `1`.
+If the payload of a request message is an `Iterable`, then this entry name is modified with an index starting `1`.
 
 For example to zip a simple `test.txt` file into a `test.txt.zip`, only this configuration is enough:
 
@@ -142,7 +142,7 @@ See `ZipTransformer` Javadocs for more information.
 
 An `UnZipTransformer` supports these of input `payload`: `File`, `byte[]` and `InputStream`.
 When unzipping data, an `expectSingleResult` property can be specified.
-If set to `true` and more than `1` zip entry were detected, a `MessagingException` will be raised.
+If set to `true` and more than `1` zip entry was detected, a `MessagingException` will be raised.
 This property also influences the return type of the payload.
 If set to `false` (default), then the payload will be of type `SortedMap`, if `true`, however, the actual zip entry will be returned.
 
@@ -224,7 +224,7 @@ The `UnZipResultSplitter` is useful in cases where zip files contain more than `
 Essentially it has to be used as the next step in the integration flow after the mentioned above `UnZipTransformer`.
 It supports only a `Map` as an input data and emits every entry into an `outputChannel` with `FileHeaders.FILENAME` and `ZipHeaders.ZIP_ENTRY_PATH` headers.
 
-The following example demonstrates a simple configuration for splitting unzipped result:
+The following example demonstrates a simple configuration for splitting an unzipped result:
 
 [tabs]
 ======

@@ -17,7 +17,7 @@ If we believe your sample adds value, we would be more than glad to add it to th
 
 The Spring Integration Samples project is hosted on https://github.com/spring-projects/spring-integration-samples/[GitHub].
 In order to check out or clone the samples, you must have a Git client installed on your system.
-There are several GUI-based products available for many platforms (such as https://eclipse.org/egit/[EGit] for the Eclipse IDE).
+There are several GUI-based products available for many platforms, such as https://eclipse.org/egit/[EGit] for the Eclipse IDE.
 A simple Google search can help you find them.
 You can also use the command line interface for https://git-scm.com/[Git].
 
@@ -49,7 +49,7 @@ We greatly appreciate any effort toward improving the samples, including the sha
 === How Can I Contribute My Own Samples?
 
 GitHub is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
-If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GutHub issue] that provides some details regarding your sample.
+If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GitHub issue] that provides some details regarding your sample.
 
 [IMPORTANT]
 .Sign the contributor license agreement
@@ -99,7 +99,7 @@ Basic (`samples/basic`)::
 This is a good place to get started.
 The samples here are technically motivated and demonstrate the bare minimum with regard to configuration and code.
 These should help you to get started quickly by introducing you to the basic concepts, API, and configuration of Spring Integration as well as Enterprise Integration Patterns (EIP).
-For example, if you are looking for an answer on how to implement and wire a service activator to a message channel, how to use a messaging gateway as a facade to your message exchange, or how to get started with MAIL, TCP/UDP or other modules, this is the right place to find a good sample.
+For example, if you are looking for an answer on how to implement and wire a service activator to a message channel, how to use a messaging gateway as a facade to your message exchange, or how to get started with MAIL, TCP/UDP, or other modules, this is the right place to find a good sample.
 The bottom line is `samples/basic` is a good place to get started.
 
 Intermediate (`samples/intermediate`)::
@@ -108,7 +108,7 @@ For example, if you are looking for an answer on how to handle errors in various
 
 Advanced (`samples/advanced`)::
 This category targets developers who are very familiar with the Spring Integration framework but are looking to extend it to address a specific custom need by using Spring Integration's public API.
-For example, if you are looking for samples showing you how to implement a custom channel or consumer (event-based or polling-based) or you are trying to figure out the most appropriate way to implement a custom bean parser on top of the Spring Integration bean parser hierarchy (perhaps when implementing your own namespace and schema for a custom component), this is the right place to look.
+For example, if you are looking for samples showing you how to implement a custom channel or consumer (event-based or polling-based), or you are trying to figure out the most appropriate way to implement a custom bean parser on top of the Spring Integration bean parser hierarchy (perhaps when implementing your own namespace and schema for a custom component), this is the right place to look.
 Here you can also find samples that will help you with adapter development.
 Spring Integration comes with an extensive library of adapters to let you connect remote systems with the Spring Integration messaging framework.
 However, you might need to integrate with a system for which the core framework does not provide an adapter.
@@ -158,7 +158,7 @@ EIP extends this architecture by further defining:
 [[samples-loan-broker-requirements]]
 Chapter 9 of the EIP book nicely describes the details and variations of this use case, but here is the brief summary: While shopping for the best loan quote, a consumer subscribes to the services of a loan broker, which handles such details as:
 
-* Consumer pre-screening (for example, obtaining and reviewing the consumer's Credit history)
+* Consumer pre-screening, (for example, obtaining and reviewing the consumer's Credit history)
 
 * Determining the most appropriate banks (for example, based on the consumer's credit history or score)
 
@@ -217,16 +217,16 @@ Our current gateway provides two methods that could be invoked.
 One that returns the best single quote and another one that returns all quotes.
 Somehow, downstream, we need to know what type of reply the caller needs.
 The best way to achieve this in messaging architecture is to enrich the content of the message with some metadata that describes your intentions.
-Content Enricher is one of the patterns that addresses this.
+Content Enricher is one of the patterns that address this.
 Spring Integration does, as a convenience, provide a separate configuration element to enrich message headers with arbitrary data (described later)
-However, since the `gateway` element is responsible for constructing the initial message, it includes ability to enrich the newly created message with arbitrary message headers.
+However, since the `gateway` element is responsible for constructing the initial message, it includes the ability to enrich the newly created message with arbitrary message headers.
 In our example, we add a `RESPONSE_TYPE` header with a value of `BEST` whenever the `getBestQuote()` method is invoked.
 For other methods, we do not add any header.
 Now we can check downstream for the existence of this header.
 Based on its presence and its value, we can determine what type of reply the caller wants.
 
-Based on the use case, we also know that some pre-screening steps need to be performed, such as getting and evaluating the consumer's credit score, because some premiere banks only accept quote requests from consumers that meet a minimum credit score requirement.
-So it would be nice if the message would be enriched with such information before it is forwarded to the banks.
+Based on the use case, we also know that some pre-screening steps need to be performed, such as getting and evaluating the consumer's credit score, because some première banks only accept quote requests from consumers that meet a minimum credit score requirement.
+So it would be nice if the message was enriched with such information before it is forwarded to the banks.
 It would also be nice if, when several processes need to be completed to provide such meta-information, those processes could be grouped in a single unit.
 In our use case, we need to determine the credit score and, based on the credit score and some rule, select a list of message channels (bank channels) to which to send quote request.
 
@@ -281,8 +281,8 @@ Note that we never provided the value for this header.
 It was automatically set earlier by the router, when it generated a separate message for each bank channel.
 
 Once the messages are correlated, they are released to the actual aggregator implementation.
-Although Spring Integration provides a default aggregator, its strategy (gather the list of payloads from all messages and construct a new message with this list as its payload) does not satisfy our requirement.
-Having all the results in the message is a problem, because our consumer might require a single best quote or all quotes.
+Although Spring Integration provides a default aggregator, its strategy (gathers the list of payloads from all messages and constructs a new message with this list as its payload) does not satisfy our requirement.
+Having all the results in the message is a problem because our consumer might require the single best quote or all quotes.
 To communicate the consumer's intention, earlier in the process we set the `RESPONSE_TYPE` header.
 Now we have to evaluate this header and return either all the quotes (the default aggregation strategy would work) or the best quote (the default aggregation strategy does not work because we have to determine which loan quote is the best).
 
@@ -300,8 +300,8 @@ As a developer, you should not need to port your Swing or console-based applicat
 This sample and the other samples in this section are built on top of Enterprise Integration Patterns.
 You can consider them to be "`building blocks`" for your solution.
 They are not intended to be complete solutions.
-Integration concerns exist in all types of application (whether server-based or not).
-Our goal is to make is so that integrating applications does not require changes in design, testing, and deployment strategy.
+Integration concerns exist in all types of application, (whether server-based or not).
+Our goal is to make is so that integrating applications do not require changes in design, testing, and deployment strategy.
 
 [[samples-cafe]]
 === The Cafe Sample
@@ -317,7 +317,7 @@ image::cafe-eip.png[align="center", scaledwidth=100%]
 The `Order` object may contain multiple `OrderItems`.
 Once the order is placed, a splitter breaks the composite order message into a single message for each drink.
 Each of these is then processed by a router that determines whether the drink is hot or cold (by checking the `OrderItem` object's 'isIced' property).
-The `Barista` prepares each drink, but hot and cold drink preparation are handled by two distinct methods: 'prepareHotDrink' and 'prepareColdDrink'.
+The `Barista` prepares each drink, but hot and cold drink preparation is handled by two distinct methods: 'prepareHotDrink' and 'prepareColdDrink'.
 The prepared drinks are then sent to the `Waiter` where they are aggregated into a `Delivery` object.
 
 The following listing shows the XML configuration:
@@ -401,7 +401,7 @@ public class DrinkRouter {
 ----
 
 Now, turning back to the XML, you can see that there are two `<service-activator>` elements.
-Each of these is delegating to the same `Barista` instance but with different methods (`prepareHotDrink` or `prepareColdDrink`), each corresponding to one of the two channels where order items have been routed.
+Each of these is delegating to the same `Barista` instance but with different methods (`prepareHotDrink` or `prepareColdDrink`), each is corresponding to one of the two channels where order items have been routed.
 The following listing shows the Barista class (which contains the `prepareHotDrink` and `prepareColdDrink` methods)
 
 [source,java]
@@ -538,7 +538,7 @@ NOTE: This sample shows that the namespace prefix can be whatever you want.
 While we usually use, `int-xml` for integration XML components, the sample uses `si-xml`.
 (`int` is short for "`Integration`", and `si` is short for "`Spring Integration`".)
 
-First, the order is split into a number of messages, each one representing a single order item from the XPath splitter component.
+First, the order is split into a number of messages, each one is representing a single order item from the XPath splitter component.
 The following listing shows the configuration of the splitter:
 
 [source,xml]

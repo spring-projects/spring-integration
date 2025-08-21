@@ -30,7 +30,7 @@ MessageFilter filter = new MessageFilter(someSelector);
 [[filter-dsl]]
 == Configuring a Filter with Java, Groovy and Kotlin DSLs
 
-The `IntegrationFlowBuilder` provided by the Java DSL (which is also used as a base for the Groovy and Kotlin DSLs) provides a number of overloaded methods for the `filter()` operator.
+The `IntegrationFlowBuilder` provided by the Java DSL, which is also used as a base for the Groovy and Kotlin DSLs, provides a number of overloaded methods for the `filter()` operator.
 The `MessageSelector` abstraction mentioned above can be used as a Lambda in a `filter()` definition:
 
 [tabs]
@@ -108,7 +108,7 @@ The following example shows how to configure a filter that uses the `method` att
 ----
 
 If the selector or adapted POJO method returns `false`, a few settings  control the handling of the rejected message.
-By default, (if configured as in the preceding example) rejected messages are silently dropped.
+By default, if configured as in the preceding example, rejected messages are silently dropped.
 If rejection should instead result in an error condition, set the `throw-exception-on-rejection` attribute to `true`, as the following example shows:
 
 [source,xml]
@@ -169,7 +169,7 @@ If you must include the result of an expression in the scope of the application 
             expression="payload.matches(#{filterPatterns.nonsensePattern})"/>
 ----
 
-If the expression itself needs to be dynamic, you can use an 'expression' sub-element.
+If the expression itself needs to be dynamic, you can use an 'expression' subelement.
 That provides a level of indirection for resolving the expression by its key from an `ExpressionSource`.
 That is a strategy interface that you can implement directly, or you can rely upon a version available in Spring Integration that loads expressions from a "`resource bundle`" and can check for modifications after a given number of seconds.
 All of this is demonstrated in the following configuration example, where the expression could be reloaded within one minute if the underlying file had been modified:
@@ -197,8 +197,8 @@ The 'config/integration/expressions.properties' file (or any more-specific versi
 filterPatterns.example=payload > 100
 ----
 
-NOTE: All of these examples that use `expression` as an attribute or sub-element can also be applied within transformer, router, splitter, service-activator, and header-enricher elements.
-The semantics and role of the given component type would affect the interpretation of the evaluation result, in the same way that the return value of a method-invocation would be interpreted.
+NOTE: All of these examples that use `expression` as an attribute or subelement can also be applied within transformer, router, splitter, service-activator, and header-enricher elements.
+The semantics and role of the given component type would affect the interpretation of the evaluation result in the same way that the return value of a method-invocation would be interpreted.
 For example, an expression can return strings that are to be treated as message channel names by a router component.
 However, the underlying functionality of evaluating the expression against the message as the root object and resolving bean names if prefixed with '@' is consistent across all of the core EIP components within Spring Integration.
 

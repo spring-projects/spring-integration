@@ -24,8 +24,8 @@ The following listing shows all the available configuration parameters:
 ----
 
 <1> Specifies the default boolean value for whether to overwrite existing header values.
-It takes effect only for child elements that do not provide their own 'overwrite' attribute.
-If you do not set the 'default- overwrite' attribute, the specified header values do not overwrite any existing ones with the same header names.
+It takes effect only for child elements that do not provide their own `overwrite` attribute.
+If you do not set the `default-overwrite` attribute, the specified header values do not overwrite any existing ones with the same header names.
 Optional.
 <2> ID for the underlying bean definition.
 Optional.

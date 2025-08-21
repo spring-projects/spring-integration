@@ -113,7 +113,7 @@ Note that the actual time to expire an empty group is also affected by the reape
 <20> By default, when a group is completed due to a timeout (or by a `MessageGroupStoreReaper`), the empty group's metadata is retained.
 Late arriving messages are immediately discarded.
 Set this to `true` to remove the group completely.
-Then, late arriving messages start a new group and are not be discarded until the group again times out.
+Then, late arriving messages start a new group and are not discarded until the group again times out.
 The new group is never released normally because of the "`hole`" in the sequence range that caused the timeout.
 Empty groups can be expired (completely removed) later by using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
 Starting with version 5.0, empty groups are also scheduled for removal after the `empty-group-min-timeout` elapses.

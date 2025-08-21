@@ -3,7 +3,7 @@
 
 The RSocket Spring Integration module (`spring-integration-rsocket`) allows for executions of https://rsocket.io/[RSocket application protocol].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -29,13 +29,13 @@ compile "org.springframework.integration:spring-integration-rsocket:{project-ver
 This module is available starting with version 5.2 and is based on the Spring Messaging foundation with its RSocket component implementations, such as `RSocketRequester`, `RSocketMessageHandler` and `RSocketStrategies`.
 See https://docs.spring.io/spring-framework/reference/rsocket.html[Spring Framework RSocket Support] for more information about the RSocket protocol, terminology and components.
 
-Before starting an integration flow processing via channel adapters, we need to establish an RSocket connection between server and client.
+Before starting integration flow processing via channel adapters, we need to establish an RSocket connection between server and client.
 For this purpose, Spring Integration RSocket support provides the `ServerRSocketConnector` and `ClientRSocketConnector` implementations of the `AbstractRSocketConnector`.
 
 The `ServerRSocketConnector` exposes a listener on the host and port according to provided `io.rsocket.transport.ServerTransport` for accepting connections from clients.
 An internal `RSocketServer` instance can be customized with the `setServerConfigurer()`, as well as other options that can be configured, e.g. `RSocketStrategies` and `MimeType` for payload data and headers metadata.
 When a `setupRoute` is provided from the client requester (see `ClientRSocketConnector` below), a connected client is stored as a `RSocketRequester` under the key determined by the `clientRSocketKeyStrategy` `BiFunction<Map<String, Object>, DataBuffer, Object>`.
-By default, a connection data is used for the key as a converted value to string with UTF-8 charset.
+By default, connection data is used for the key as a converted value to string with UTF-8 charset.
 Such an `RSocketRequester` registry can be used in the application logic to determine a particular client connection for interaction with it, or for publishing the same message to all connected clients.
 When a connection is established from the client, an `RSocketConnectedEvent` is emitted from the `ServerRSocketConnector`.
 This is similar to what is provided by the `@ConnectMapping` annotation in Spring Messaging module.
@@ -111,7 +111,7 @@ public ClientRSocketConnector clientRSocketConnector() {
 Most of these options (including `RSocketStrategies` bean) are optional.
 Note how we connect to the locally started RSocket server on the arbitrary port.
 See `ServerRSocketConnector.clientRSocketKeyStrategy` for `setupData` use cases.
-Also see `ClientRSocketConnector` and its `AbstractRSocketConnector` superclass JavaDocs for more information.
+Also see `ClientRSocketConnector` and its `AbstractRSocketConnector` superclass Javadocs for more information.
 
 Both `ClientRSocketConnector` and `ServerRSocketConnector` are responsible for mapping inbound channel adapters to their `path` configuration for routing incoming RSocket requests.
 See the next section for more information.
@@ -288,7 +288,7 @@ public IntegrationFlow rsocketUpperCaseFlow() {
 }
 ----
 
-A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`/uppercase`" path and expected interaction model as "`request channel`".
+A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`/uppercase`" path and expected interaction model as "`a request channel`".
 
 The following example shows how to configure a RSocket outbound gateway with Java:
 
@@ -328,4 +328,4 @@ public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector client
 }
 ----
 
-See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as a Gateway] for more information how to use a mentioned `Function` interface in the beginning of the flow above.
+See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as a Gateway] for more information how to use a mentioned `Function` interface at the beginning of the flow above.

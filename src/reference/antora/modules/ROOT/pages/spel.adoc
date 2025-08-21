@@ -8,7 +8,7 @@ In most cases, the `#root` object is the `Message`, which has two properties (`h
 In some cases, additional variables are provided.
 For example, `<int-http:inbound-gateway/>` provides `#requestParams` (parameters from the HTTP request) and `#pathVariables` (values from path placeholders in the URI).
 
-For all SpEL expressions, a `BeanResolver` is available to enable references to any bean in the application context (for example, `@myBean.foo(payload)`).
+For all SpEL expressions, a `BeanResolver` is available to enable references to any bean in the application context, for example, `@myBean.foo(payload)`.
 In addition, two `PropertyAccessors` are available.
 A `MapAccessor` enables accessing values in a `Map` by using a key and a `ReflectivePropertyAccessor`, which allows access to fields and JavaBean compliant properties (by using getters and setters).
 This is how you can access the `Message` headers and payload properties.
@@ -51,13 +51,13 @@ The following configuration shows how to directly configure the `IntegrationEval
 ----
 
 Starting with version 6.4, the `AbstractEvaluationContextFactoryBean` supports an injection of `IndexAccessor` instances.
-See `AbstractEvaluationContextFactoryBean` method JavaDocs for more information.
+See `AbstractEvaluationContextFactoryBean` method Javadocs for more information.
 
 For convenience, Spring Integration provides namespace support for both property accessors and functions, as described in the following sections.
 The framework automatically configures the factory bean on your behalf.
 
 This factory bean definition overrides the default `integrationEvaluationContext` bean definition.
-It adds the custom accessor and one custom function to the list (which also includes the standard accessors xref:spel.adoc[mentioned earlier]).
+It adds the custom accessor and one custom function to the list, which also includes the standard accessors xref:spel.adoc[mentioned earlier].
 
 Note that custom functions are static methods.
 In the preceding example, the custom function is a static method called `calc` on a class called `MyFunctions` and takes a single parameter of type `MyThing`.
@@ -130,7 +130,7 @@ Each context has its own instance of the `integrationEvaluationContext` factory 
 [[built-in-spel-functions]]
 === Built-in SpEL Functions
 
-Spring Integration provides the following standard functions, which are registered with the application context automatically on start up:
+Spring Integration provides the following standard functions, which are registered with the application context automatically on startup:
 
 * `#jsonPath`: Evaluates a 'jsonPath' on a specified object.
 This function invokes `JsonPathUtils.evaluate(...)`, which delegates to the https://github.com/json-path/JsonPath[Jayway JsonPath library].
@@ -155,7 +155,7 @@ The following listing shows some usage examples:
 NOTE: Using this function requires the Jayway JsonPath library (`json-path.jar`) to be on the classpath.
 Otherwise, the `#jsonPath` SpEL function is not registered.
 +
-For more information regarding JSON see 'JSON Transformers' in xref:transformer.adoc[Transformer].
+For more information regarding JSON, see 'JSON Transformers' in xref:transformer.adoc[Transformer].
 
 * `#xpath`: To evaluate an xpath on some provided object.
 For more information regarding XML and XPath, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
@@ -199,7 +199,7 @@ public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
 [NOTE]
 ====
 Custom `PropertyAccessor` instances declared in a parent context are also made available in any child contexts.
-They are placed at the end of result list (but before the default `org.springframework.context.expression.MapAccessor` and `o.s.expression.spel.support.ReflectivePropertyAccessor`).
+They are placed at the end of a result list (but before the default `org.springframework.context.expression.MapAccessor` and `o.s.expression.spel.support.ReflectivePropertyAccessor`).
 If you declare a `PropertyAccessor` with the same bean ID in a child context, it overrides the parent accessor.
 Beans declared within a `<spel-property-accessors/>` must have an 'id' attribute.
 The final order of usage is as follows:

@@ -3,7 +3,7 @@
 
 Spring Integration provides inbound and outbound channel adapters to support the Message Queueing Telemetry Transport (MQTT) protocol.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -29,7 +29,7 @@ compile "org.springframework.integration:spring-integration-mqtt:{project-versio
 The current implementation uses the https://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
 Starting with version 6.5, the `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency is an `optional` dependency, so has to be included explicitly in the target project for MQTT v3 support.
 
-IMPORTANT: The XML configuration and most of this chapter are about MQTT v3.1 protocol support and respective Paho Client.
+IMPORTANT: The XML configuration and most of this chapter are about MQTT v3.1 protocol support and the respective Paho Client.
 See xref:mqtt.adoc#mqtt-v5[MQTT v5 Support] paragraph for respective protocol support.
 
 Configuration of both adapters is achieved using the `DefaultMqttPahoClientFactory`.
@@ -86,7 +86,7 @@ The following listing shows the available attributes:
 <2> The broker URL.
 <3> A comma-separated list of topics from which this adapter receives messages.
 <4> A comma-separated list of QoS values.
-It can be a single value that is applied to all topics or a value for each topic (in which case, the lists must be the same length).
+It can be a single value that is applied to all topics or a value for each topic, in which case, the lists must be the same length.
 <5> An `MqttMessageConverter` (optional).
 By default, the default `DefaultPahoMessageConverter` produces a message with a `String` payload with the following headers:
 * `mqtt_topic`: The topic from which the message was received
@@ -314,7 +314,7 @@ This enables, for example, connection to a highly available (HA) cluster.
 [[mqtt-outbound-java-configuration]]
 === Configuring with Java Configuration
 
-The following Spring Boot application show an example of how to configure the outbound adapter with Java configuration:
+The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
 [source, java]
 ----
@@ -399,8 +399,8 @@ Certain application events are published by the adapters.
 * `MqttConnectionFailedEvent` - published by both adapters if we fail to connect or a connection is subsequently lost.
 For the MQTT v5 Paho client, this event is also emitted when the server performs a normal disconnection, in which case the `cause` of the lost connection is `null`.
 * `MqttMessageSentEvent` - published by the outbound adapter when a message has been sent, if running in asynchronous mode.
-* `MqttMessageDeliveredEvent` - published by the outbound adapter when the client indicates that a message has been delivered, if running in asynchronous mode.
-* `MqttMessageNotDeliveredEvent` - published by the outbound adapter when the client indicates that a message has not been delivered, if running in asynchronous mode.
+* `MqttMessageDeliveredEvent` - published by the outbound adapter when the client indicates that a message has been delivered if running in asynchronous mode.
+* `MqttMessageNotDeliveredEvent` - published by the outbound adapter when the client indicates that a message has not been delivered if running in asynchronous mode.
 * `MqttSubscribedEvent` - published by the inbound adapter after subscribing to the topics.
 
 These events can be received by an `ApplicationListener<MqttIntegrationEvent>` or with an `@EventListener` method.
@@ -452,7 +452,7 @@ public IntegrationFlow mqttOutFlow() {
 
 IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageHandler` since its contract is aimed only for the MQTT v3 protocol.
 
-If connection fails on start up or at runtime, the `Mqttv5PahoMessageHandler` tries to reconnect on the next message produced to this handler.
+If connection fails on startup or at runtime, the `Mqttv5PahoMessageHandler` tries to reconnect on the next message produced to this handler.
 If this manual reconnection fails, the connection is exception is thrown back to the caller.
 In this case the standard Spring Integration error handling procedure is applied, including request handler advices, e.g. retry or circuit breaker.
 
@@ -493,15 +493,15 @@ IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverte
 See more information in the `Mqttv5PahoMessageDrivenChannelAdapter` javadocs and its superclass.
 
 IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReconnect(boolean)` set to true to let an internal `IMqttAsyncClient` instance to handle reconnects.
-Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
+Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnecting, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
 
 [[mqtt-shared-client]]
 == Shared MQTT Client Support
 
 If a single MQTT ClientID is required for several integrations, multiple MQTT client instances cannot be used because MQTT brokers may have a limitation on a number of connections per ClientID (typically, a single connection is allowed).
 For having a single client reused for different channel adapters, a `org.springframework.integration.mqtt.core.ClientManager` component may be used and passed to any channel adapter needed.
-It will manage MQTT connection lifecycle and do automatic reconnects if needed.
-Also, a custom connection options and `MqttClientPersistence` may be provided to the client manager just as currently it can be done for channel adapter components.
+It will manage the MQTT connection lifecycle and do automatic reconnects if needed.
+Also, a custom connection option and `MqttClientPersistence` may be provided to the client manager just as currently it can be done for channel adapter components.
 
 Note that both MQTT v5 and v3 channel adapters are supported.
 

@@ -4,7 +4,7 @@
 In Spring Integration 2.0, we added Groovy support, letting you use the Groovy scripting language to provide the logic for various integration components -- similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation, and other integration concerns.
 For more information about Groovy, see the Groovy documentation, which you can find on the https://groovy-lang.org/[project website].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -57,7 +57,7 @@ Also note that the `lang` attribute on the `<script>` tag is not valid in this n
 [[groovy-object-customization]]
 == Groovy Object Customization
 
-If you need to customize the Groovy object itself (beyond setting variables) you can reference a bean that implements `GroovyObjectCustomizer` by using the `customizer` attribute.
+If you need to customize the Groovy object itself (beyond setting variables), you can reference a bean that implements `GroovyObjectCustomizer` by using the `customizer` attribute.
 For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script.
 The following example shows how to do so:
 

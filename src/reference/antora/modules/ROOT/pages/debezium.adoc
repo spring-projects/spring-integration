@@ -28,7 +28,7 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 ======
 
 You also need to include a https://debezium.io/documentation/reference/connectors/index.html[debezium connector] dependency for your input Database.
-For example to use Debezium with PostgreSQL you will need the postgres debezium connector:
+For example, to use Debezium with PostgreSQL, you will need the postgres debezium connector:
 
 [tabs]
 ======
@@ -88,7 +88,7 @@ The default `DefaultDebeziumHeaderMapper` implementation provides a setter for `
 By default, all headers are mapped.
 - `taskExecutor` - Set a custom `TaskExecutor` for the Debezium engine.
 
-The following code snippets demonstrate various configuration for this channel adapter:
+The following code snippets demonstrate various configurations for this channel adapter:
 
 [[configuring-with-java-configuration]]
 === Configuring with Java Configuration

@@ -4,7 +4,7 @@
 Spring Integration 2.1 introduced support for https://redis.io/[Redis]: "`an open source advanced key-value store`".
 This support comes in the form of a Redis-based `MessageStore` as well as publish-subscribe messaging adapters that are supported by Redis through its https://redis.io/topics/pubsub[`PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE`] commands.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -239,7 +239,7 @@ If you do not provide the `channel` attribute, a `DirectChannel` is created and 
 In this case, the endpoint itself is registered with the bean name `id` plus `.adapter`.
 (If the bean name were `thing1`, the endpoint is registered as `thing1.adapter`.)
 <2> The `MessageChannel` to which to send `Message` instances from this Endpoint.
-<3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context start or not.
+<3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context starts or not.
 It defaults to `true`.
 <4> A `SmartLifecycle` attribute to specify the phase in which this endpoint is started.
 It defaults to `0`.
@@ -317,7 +317,7 @@ Since version 4.3.
 [[redis-application-events]]
 === Redis Application Events
 
-Since Spring Integration 3.0, the Redis module provides an implementation of `IntegrationEvent`, which, in turn, is a `org.springframework.context.ApplicationEvent`.
+Since Spring Integration 3.0, the Redis module has provided an implementation of `IntegrationEvent`, which, in turn, is a `org.springframework.context.ApplicationEvent`.
 The `RedisExceptionEvent` encapsulates exceptions from Redis operations (with the endpoint being the "`source`" of the event).
 For example, the `<int-redis:queue-inbound-channel-adapter/>` emits those events after catching exceptions from the `BoundListOperations.rightPop` operation.
 The exception may be any generic `org.springframework.data.redis.RedisSystemException` or a `org.springframework.data.redis.RedisConnectionFailureException`.
@@ -375,7 +375,7 @@ While you can use this to back a `QueueChannel` for persistence, a specialized `
 This store uses a `LIST` for each channel, `LPUSH` when sending messages, and `RPOP` when receiving messages.
 By default, this store also uses JDK serialization, but you can modify the value serializer, as xref:redis.adoc#redis-message-store[described earlier].
 
-We recommend using this store backing channels, instead of using the general `RedisMessageStore`.
+We recommend using this store backing channel, instead of using the general `RedisMessageStore`.
 The following example defines a Redis message store and uses it in a channel with a queue:
 
 [source,xml]
@@ -513,7 +513,7 @@ The following example uses `key-expression` and transaction synchronization:
 ----
 
 You can declare your poller to be transactional by using a `transactional` element.
-This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
+This element can reference a real transaction manager, for example, if some other part of your flow invokes JDBC.
 If you do not have a "`real`" transaction, you can use an `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Redis adapter when there is no actual transaction.
 
 IMPORTANT: This does not make the Redis activities themselves transactional.
@@ -522,7 +522,7 @@ It lets the synchronization of actions be taken before or after success (commit)
 Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
 `TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
 For your convenience, we have exposed a default SpEL-based `TransactionSynchronizationFactory`, which lets you configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
-Expressions for before-commit, after-commit, and after-rollback are supported, together with channels (one for each kind of event) where the evaluation result (if any) is sent.
+Expressions for before-commit, after-commit, and after-rollback are supported, together with channels (one for each kind of event) where the evaluation results (if any) is sent.
 For each child element, you can specify `expression` and `channel` attributes.
 If only the `channel` attribute is present, the received message is sent there as part of the particular synchronization scenario.
 If only the `expression` attribute is present and the result of an expression is a non-null value, a message with the result as the payload is generated and sent to a default channel (`NullChannel`) and appears in the logs (at the `DEBUG` level).
@@ -604,11 +604,11 @@ A `ReplyRequiredException` is thrown when Redis returns a `null` value.
 It is typically applied for queue-based limited reply-channels.
 <5> A reference to a `RedisConnectionFactory` bean.
 It defaults to `redisConnectionFactory`.
-It is mutually exclusive with 'redis-template' attribute.
+It is mutually exclusive with `redis-template` attribute.
 <6> A reference to a `RedisTemplate` bean.
-It is mutually exclusive with 'connection-factory' attribute.
+It is mutually exclusive with `connection-factory` attribute.
 <7> A reference to an instance of `org.springframework.data.redis.serializer.RedisSerializer`.
-It is used to serialize each command argument to byte[], if necessary.
+It is used to serialize each command argument to `byte[]`, if necessary.
 <8> The SpEL expression that returns the command key.
 It defaults to the `redis_command` message header.
 It must not evaluate to `null`.
@@ -635,9 +635,9 @@ The following example shows how to get incremented values from Redis atomic numb
 The `Message` payload should have a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
 
 The `RedisConnection#execute` method has a generic `Object` as its return type.
-Real result depends on command type.
+The real result depends on the command type.
 For example, `MGET` returns a `List<byte[]>`.
-For more information about commands, their arguments and result type, see https://redis.io/commands[Redis Specification].
+For more information about commands, their arguments, and result type, see https://redis.io/commands[Redis Specification].
 
 [[redis-queue-outbound-gateway]]
 == Redis Queue Outbound Gateway
@@ -713,7 +713,7 @@ It defaults to a `SimpleAsyncTaskExecutor`.
 It is typically applied for queue-based limited reply-channels.
 <5> A reference to a `RedisConnectionFactory` bean.
 It defaults to `redisConnectionFactory`.
-It is mutually exclusive with 'redis-template' attribute.
+It is mutually exclusive with `redis-template` attribute.
 <6> The name of the Redis list for the conversation `UUID`.
 <7> The order of this inbound gateway when multiple gateways are registered.
 <8> The `RedisSerializer` bean reference.
@@ -722,7 +722,7 @@ In this case, the raw `byte[]` from the inbound Redis message is sent to the `ch
 It defaults to a `JdkSerializationRedisSerializer`.
 (Note that, in releases before version 4.3, it was a `StringRedisSerializer` by default.
 To restore that behavior, provide a reference to a `StringRedisSerializer`).
-<9> The timeout (in milliseconds) to wait until the receive message is fetched.
+<9> The timeout (in milliseconds) to wait until the received message is fetched.
 It is typically applied for queue-based limited request-channels.
 <10> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
 If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
@@ -757,7 +757,7 @@ public ReactiveRedisStreamMessageHandler reactiveValidatorMessageHandler(
 Another constructor variant is based on a SpEL expression to evaluate a stream key against a request message.
 <2> Set a `RedisSerializationContext` used to serialize a record key and value before adding to the stream.
 <3> Set `HashMapper` which provides contract between Java types and Redis hashes/maps.
-<4> If 'true', channel adapter will extract payload from a request message for a stream record to add.
+<4> If 'true', the channel adapter will extract the payload from a request message for a stream record to add.
 Or use the whole message as a value.
 It defaults to `true`.
 
@@ -767,7 +767,7 @@ Starting with version 6.5, the `ReactiveRedisStreamMessageHandler` provides a `s
 == Redis Stream Inbound Channel Adapter
 
 Spring Integration 5.4 introduced the Reactive Stream inbound channel adapter for reading messages from a Redis Stream.
-Inbound channel adapter uses `StreamReceiver.receive(...)` or `StreamReceiver.receiveAutoAck()` based on auto acknowledgement flag to read record from Redis stream.
+Inbound channel adapter uses `StreamReceiver.receive(...)` or `StreamReceiver.receiveAutoAck()` based on an auto acknowledgement flag to read record from Redis stream.
 The following example shows how to use Java configuration for Redis Stream Inbound Channel Adapter.
 
 [source,java]
@@ -792,33 +792,33 @@ ReactiveRedisStreamMessageProducer messageProducer =
     return messageProducer;
 }
 ----
-<1> Construct an instance of `ReactiveRedisStreamMessageProducer` using `ReactiveRedisConnectionFactory` and stream key to read records.
+<1> Construct an instance of `ReactiveRedisStreamMessageProducer` using `ReactiveRedisConnectionFactory` and a stream key to read records.
 <2> A `StreamReceiver.StreamReceiverOptions` to consume redis stream using reactive infrastructure.
-<3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context start or not.
+<3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context starts or not.
 It defaults to `true`.
 If `false`, `RedisStreamMessageProducer` should be started manually `messageProducer.start()`.
 <4> If `false`, received messages are not auto acknowledged.
-The acknowledgement of the message will be deferred to the client consuming message.
+The acknowledgement of the message will be deferred to the client-consuming message.
 It defaults to `true`.
 <5> If `true`, a consumer group will be created.
 During creation of consumer group stream will be created (if not exists yet), too.
-Consumer group track message delivery and distinguish between consumers.
+Consumer group tracks message delivery and distinguishes between consumers.
 It defaults to `false`.
-<6> Set Consumer Group name.
+<6> Set the Consumer Group name.
 It defaults to the defined bean name.
 <7> Set Consumer name.
-Reads message as `my-consumer` from group `my-group`.
+Reads a message as `my-consumer` from group `my-group`.
 <8> The message channel to which to send messages from this endpoint.
-<9> Define the offset to read message.
+<9> Define the offset to read a message.
 It defaults to `ReadOffset.latest()`.
 <10> If 'true', channel adapter will extract payload value from the `Record`.
 Otherwise, the whole `Record` is used as a payload.
 It defaults to `true`.
 
-If the `autoAck` is set to `false`, the `Record` in Redis Stream is not acknowledge automatically by the Redis driver, instead an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header is added into a message to produce with a `SimpleAcknowledgment` instance as a value.
+If the `autoAck` is set to `false`, the `Record` in Redis Stream is not acknowledged automatically by the Redis driver, instead an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header is added into a message to produce with a `SimpleAcknowledgment` instance as a value.
 It is a target integration flow responsibility to call its `acknowledge()` callback whenever the business logic is done for the message based on such a record.
 Similar logic is required even when an exception happens during deserialization and `errorChannel` is configured.
-So, target error handler must decide to ack or nack such a failed message.
+So, the target error handler must decide to ack or nack such a failed message.
 Alongside with `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`, the `ReactiveRedisStreamMessageProducer` also populates these headers into the message to produce: `RedisHeaders.STREAM_KEY`, `RedisHeaders.STREAM_MESSAGE_ID`, `RedisHeaders.CONSUMER_GROUP` and `RedisHeaders.CONSUMER`.
 
 Starting with version 5.5, you can configure `StreamReceiver.StreamReceiverOptionsBuilder` options explicitly on the `ReactiveRedisStreamMessageProducer`, including the newly introduced `onErrorResume` function, which is required if the Redis Stream consumer should continue polling when deserialization errors occur.
@@ -829,7 +829,7 @@ All these `StreamReceiver.StreamReceiverOptionsBuilder` are mutually exclusive w
 == Redis Lock Registry
 
 Spring Integration 4.0 introduced the `RedisLockRegistry`.
-Certain components (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
+Certain components, (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
 The `DefaultLockRegistry` performs this function within a single component.
 You can now configure an external lock registry on these components.
 When you use it with a shared `MessageGroupStore`, you can use the `RedisLockRegistry` to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
@@ -855,8 +855,8 @@ Starting with version 5.5.13, the `RedisLockRegistry` exposes a `setRedisLockTyp
 Default.
 - `RedisLockType.PUB_SUB_LOCK` - The lock is acquired by redis pub-sub subscription.
 
-The pub-sub is preferred mode - less network chatter between client Redis server, and more performant - the lock is acquired immediately when subscription is notified about unlocking in the other process.
-However, the Redis does not support pub-sub in the Master/Replica connections (for example in AWS ElastiCache environment), therefore a busy-spin mode is chosen as a default to make the registry working in any environment.
+The pub-sub is the preferred mode - less network chatter between client Redis server, and more performant - the lock is acquired immediately when subscription is notified about unlocking in the other process.
+However, the Redis does not support pub-sub in the Master/Replica connections, (for example, in AWS ElastiCache environment), therefore, a busy-spin mode is chosen as a default to make the registry working in any environment.
 
 Starting with version 6.4, instead of throwing `IllegalStateException`, the `RedisLockRegistry.RedisLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
 

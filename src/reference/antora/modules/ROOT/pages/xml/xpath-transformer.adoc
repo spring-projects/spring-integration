@@ -7,7 +7,7 @@ You can do so by defining XPath transformers with the  `<xpath-transformer/>` el
 [[simple-xpath-transformation]]
 == Simple XPath Transformation
 
-Consider following transformer configuration:
+Consider the following transformer configuration:
 
 [source,xml]
 ----
@@ -25,7 +25,7 @@ Message<?> message =
 
 After sending this message to the 'inputChannel', the XPath transformer configured earlier transforms this XML Message to a simple `Message` with a payload of 'John Doe', all based on the simple XPath Expression specified in the `xpath-expression` attribute.
 
-XPath also lets you perform simple conversion of an extracted element to a desired type.
+XPath also lets you perform a simple conversion of an extracted element to a desired type.
 Valid return types are defined in `javax.xml.xpath.XPathConstants` and follow the conversion rules specified by the `javax.xml.xpath.XPath` interface.
 
 The following constants are defined by the `XPathConstants` class: `BOOLEAN`, `DOM_OBJECT_MODEL`, `NODE`, `NODESET`, `NUMBER`, and `STRING`.

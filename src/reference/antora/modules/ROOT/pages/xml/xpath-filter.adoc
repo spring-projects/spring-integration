@@ -2,11 +2,11 @@
 = Using the XPath Filter
 
 This component defines an XPath-based message filter.
-Internally, these components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
+Internally, these components use a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
 
 NOTE: See xref:filter.adoc[Filter] for further details.
 
-to use the XPath filter you must, at a minimum, provide an XPath expression either by declaring the `xpath-expression` element or by referencing an XPath Expression in the `xpath-expression-ref` attribute.
+To use the XPath filter, you must, at a minimum, provide an XPath expression either by declaring the `xpath-expression` element or by referencing an XPath Expression in the `xpath-expression-ref` attribute.
 
 If the provided XPath expression evaluates to a `boolean` value, no further configuration parameters are necessary.
 However, if the XPath expression evaluates to a `String`, you should set the `match-value` attribute, against which the evaluation result is matched.

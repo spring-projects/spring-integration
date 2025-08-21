@@ -3,7 +3,7 @@
 
 Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
 To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store] for more information).
-These filters are used to prevent fetching the same file multiple times (unless it's modified time changes).
+These filters are used to prevent fetching the same file multiple times (unless its modified time changes).
 Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
 
 IMPORTANT: In the event of a catastrophic failure (such as power loss), it is possible that the file currently being fetched will remain in the filter and won't be re-fetched when restarting the application.
@@ -24,7 +24,7 @@ If a filter returns `true` in `supportsSingleFileFiltering`, it **must** impleme
 
 If a remote filter does not support single file filtering (such as the `AbstractMarkerFilePresentFileListFilter`), the adapters revert to the previous behavior.
 
-If multiple filters are in used (using a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.
+If multiple filters are in used(a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.
 
 The persistent file list filters now have a boolean property `forRecursion`.
 Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.

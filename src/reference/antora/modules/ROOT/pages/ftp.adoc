@@ -6,7 +6,7 @@ Spring Integration provides support for file transfer operations with FTP and FT
 The File Transfer Protocol (FTP) is a simple network protocol that lets you transfer files between two computers on the Internet.
 FTPS stands for "`FTP over SSL`".
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

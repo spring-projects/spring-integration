@@ -7,7 +7,7 @@ However, there are times when we want to hide data temporarily.
 For example, in a distributed system, we may receive a message with a very large payload.
 Some intermittent message processing steps may not need access to this payload and some may only need to access certain headers, so carrying the large message payload through each processing step may cause performance degradation, may produce a security risk, and may make debugging more difficult.
 
-The https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[store in library] (or claim check) pattern describes a mechanism that lets you store data in a well known place while maintaining only a pointer (a claim check) to where that data is located.
+The https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[store in a library] (or claim check) pattern describes a mechanism that lets you store data in a well-known place while maintaining only a pointer (a claim check) to where that data is located.
 You can pass that pointer around as the payload of a new message, thereby letting any component within the message flow get the actual data as soon as it needs it.
 This approach is very similar to the certified mail process, where you get a claim check in your mailbox and then have to go to the post office to claim your actual package.
 It is also the same idea as baggage claim after a flight or in a hotel.
@@ -38,7 +38,7 @@ That ID is the claim check for that message.
 The claim check also becomes the payload of the new (transformed) message that is sent to the `output-channel`.
 
 Now, assume that at some point you do need access to the actual message.
-You can access the message store manually and get the contents of the message, or you can use the same approach (creating a transformer) except that now you transform the Claim Check to the actual message by using an outgoing claim check transformer.
+You can access the message store manually and get the contents of the message, or you can use the same approach (to creating a transformer) except that now you transform the Claim Check to the actual message by using an outgoing claim check transformer.
 
 The following listing provides an overview of all available parameters of an incoming claim check transformer:
 
@@ -139,7 +139,7 @@ Optional.
 This attribute is not available inside a `Chain` element.
 Optional.
 <7> If set to `true`, the message is removed from the `MessageStore` by this transformer.
-This setting is useful when Message can be "`claimed`" only once.
+This setting is useful when a message can be "`claimed`" only once.
 It defaults to `false`.
 Optional.
 <8> Specifies the maximum amount of time (in milliseconds) to wait when sending a reply message to the output channel.
@@ -154,9 +154,9 @@ Optional.
 == Claim Once
 
 Sometimes, a particular message must be claimed only once.
-As an analogy, consider process of handling airplane luggage.
+As an analogy, consider a process of handling airplane luggage.
 You're checking in your luggage on departure and claiming it on arrival.
-Once the luggage has been claimed, it can not be claimed again without first checking it back in.
+Once the luggage has been claimed, it cannot be claimed again without first checking it back in.
 To accommodate such cases, we introduced a `remove-message` boolean attribute on the `claim-check-out` transformer.
 This attribute is set to `false` by default.
 However, if set to `true`, the claimed message is removed from the `MessageStore` so that it cannot be claimed again.

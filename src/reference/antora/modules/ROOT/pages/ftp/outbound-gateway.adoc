@@ -60,7 +60,7 @@ The remote directory that the `nlst` command acted on is provided in the `file_r
 
 Unlike the `-1` option for the xref:ftp/outbound-gateway.adoc#ftp-using-ls[`ls` command], which uses the `LIST` command, the `nlst` command sends an `NLST` command to the target FTP server.
 This command is useful when the server does not support `LIST` (due to security restrictions, for example).
-The result of the `nlst` operation is the names without other detail.
+The result of the `nlst` operation is the names without another detail.
 Therefore, the framework cannot determine if an entity is a directory, to perform filtering or recursive listing, for example.
 
 [[using-the-get-command]]
@@ -201,7 +201,7 @@ See the https://github.com/spring-projects/spring-integration/tree/main/spring-i
 The message payload resulting from a `put` operation is a `String` that represents the full path of the file on the server after transfer.
 
 Version 5.2 introduced the `chmod` attribute, which changes the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+You can use the conventional Unix octal format, for example, `600` allows read-write for the file owner only.
 When configuring the adapter using java, you can use `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
@@ -226,7 +226,7 @@ The message payload resulting from an `mput` operation is a `List<String>` objec
 See also xref:ftp/outbound-gateway.adoc#ftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 Version 5.2 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+You can use the conventional Unix octal format, for example, `600` allows read-write for the file owner only.
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
@@ -398,7 +398,7 @@ In this case (starting with version 4.2), a `PartialSuccessException` is thrown.
 As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional properties:
 
 * `partialResults`: The successful transfer results.
-* `derivedInput`: The list of files generated from the request message (for example, local files to transfer for an `mput`).
+* `derivedInput`: The list of files generated from the request message, for example, local files to transfer for an `mput`.
 
 These attributes let you determine which files were successfully transferred and which were not.
 

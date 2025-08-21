@@ -48,7 +48,7 @@ XML::
 ======
 
 You can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in xref:channel/implementations.adoc[Message Channel Implementations]).
-The following sections shows examples of each channel type.
+The following sections show examples of each channel type.
 
 [[channel-configuration-directchannel]]
 == `DirectChannel` Configuration
@@ -126,7 +126,7 @@ Another way would be to use a content-based router and route messages with non-c
 This would work, but a simpler way to accomplish the same thing is to apply the https://www.enterpriseintegrationpatterns.com/DatatypeChannel.html[Datatype Channel] pattern.
 You can use separate datatype channels for each specific payload data type.
 
-To create a datatype channel that accepts only messages that contain a certain payload type, provide the data type's fully-qualified class name in the channel element's `datatype` attribute, as the following example shows:
+To create a datatype channel that accepts only messages that contain a certain payload type, provide the data type's fully qualified class name in the channel element's `datatype` attribute, as the following example shows:
 
 [tabs]
 ======
@@ -193,7 +193,7 @@ inChannel.send(new GenericMessage<String>("5"));
 ----
 
 Typically, this would be a perfectly legal operation.
-However, since we use Datatype Channel, the result of such operation would generate an exception similar to the following:
+However, since we use Datatype Channel, the result of such an operation would generate an exception similar to the following:
 
 [source]
 ----
@@ -227,7 +227,7 @@ Java::
 ----
 @Bean
 @IntegrationConverter
-public StringToIntegerConverter strToInt {
+public StringToIntegerConverter strToInt() {
     return new StringToIntegerConverter();
 }
 ----
@@ -327,7 +327,7 @@ These schemas are located in the org.springframework.integration.jdbc.store.chan
 IMPORTANT: One important feature is that, with any transactional persistent store (such as `JdbcChannelMessageStore`), as long as the poller has a transaction configured, a message removed from the store can be permanently removed only if the transaction completes successfully.
 Otherwise, the transaction rolls back, and the `Message` is not lost.
 
-Many other implementations of the message store are available as the growing number of Spring projects related to "`NoSQL`" data stores come to provide underlying support for these stores.
+Many other implementations of the message store are available as the growing number of Spring projects related to "`NoSQL`" data stores comes to provide underlying support for these stores.
 You can also provide your own implementation of the `MessageGroupStore` interface if you cannot find one that meets your particular needs.
 
 Since version 4.0, we recommend that `QueueChannel` instances be configured to use a `ChannelMessageStore`, if possible.
@@ -503,7 +503,7 @@ XML::
 
 [NOTE]
 =====
-The `load-balancer` and `failover` options are also both available on the <dispatcher/> sub-element, as described earlier in xref:channel/configuration.adoc#channel-configuration-directchannel[`DirectChannel` Configuration].
+The `load-balancer` and `failover` options are also both available on the `<dispatcher/>` subelement, as described earlier in xref:channel/configuration.adoc#channel-configuration-directchannel[`DirectChannel` Configuration].
 The same defaults apply.
 Consequently, the channel has a round-robin load-balancing strategy with failover enabled unless explicit configuration is provided for one or both of those attributes, as the following example shows:
 
@@ -582,7 +582,7 @@ You can find sample configuration in xref:jdbc/message-store.adoc#jdbc-message-s
 [[channel-configuration-rendezvouschannel]]
 == `RendezvousChannel` Configuration
 
-A `RendezvousChannel` is created when the queue sub-element is a `<rendezvous-queue>`.
+A `RendezvousChannel` is created when the queue subelement is a `<rendezvous-queue>`.
 It does not provide any additional configuration options to those described earlier, and its queue does not accept any capacity value, since it is a zero-capacity direct handoff queue.
 The following example shows how to declare a `RendezvousChannel`:
 
@@ -670,7 +670,7 @@ In this case, you can escape the `!` in the pattern with `\`.
 The pattern `\!thing1` matches a bean named `!thing1`.
 
 The order attribute lets you manage where this interceptor is injected when there are multiple interceptors on a given channel.
-For example, channel 'inputChannel' could have individual interceptors configured locally (see below), as the following example shows:
+For example, channel 'inputChannel' could have individual interceptors configured locally, as the following example shows:
 
 [source,xml]
 ----
@@ -681,7 +681,7 @@ For example, channel 'inputChannel' could have individual interceptors configure
 </int:channel>
 ----
 
-A reasonable question is "`how is a global interceptor injected in relation to other interceptors configured locally or through other global interceptor definitions?`"
+A reasonable question is "`how a global interceptor is injected in relation to other interceptors configured locally or through other global interceptor definitions?`"
 The current implementation provides a simple mechanism for defining the order of interceptor execution.
 A positive number in the `order` attribute ensures interceptor injection after any existing interceptors, while a negative number ensures that the interceptor is injected before existing interceptors.
 This means that, in the preceding example, the global interceptor is injected after (since its `order` is greater than `0`) the 'wire-tap' interceptor configured locally.
@@ -713,7 +713,7 @@ TIP: The 'logging-channel-adapter' also accepts an 'expression' attribute so tha
 Alternatively, to log the full message `toString()` result, provide a value of `true` for the 'log-full-message' attribute.
 By default, it is `false` so that only the payload is logged.
 Setting it to `true` enables logging of all headers in addition to the payload.
-The 'expression' option provides the most flexibility (for example, `expression="payload.user.name"`).
+The 'expression' option provides the most flexibility, (for example, `expression="payload.user.name"`).
 
 One of the common misconceptions about the wire tap and other similar components (xref:message-publishing.adoc#message-publishing-config[Message Publishing Configuration]) is that they are automatically asynchronous in nature.
 By default, wire tap as a component is not invoked asynchronously.
@@ -725,9 +725,9 @@ It is not just an internal, implicit realization of the EIP pattern.
 It is fully exposed as a configurable component to the end user.
 So, the wire tap component is only responsible for performing the following tasks:
 
-* Intercept a message flow by tapping into a channel (for example, `channelA`)
+* Intercept a message flow by tapping into a channel, (for example, `channelA`)
 * Grab each message
-* Send the message to another channel (for example, `channelB`)
+* Send the message to another channel, (for example, `channelB`)
 
 It is essentially a variation of the bridge pattern, but it is encapsulated within a channel definition (and hence easier to enable and disable without disrupting a flow).
 Also, unlike the bridge, it basically forks another message flow.
@@ -736,8 +736,8 @@ We have the following options: direct channel, pollable channel, and executor ch
 The last two break the thread boundary, making communication over such channels asynchronous, because the dispatching of the message from that channel to its subscribed handlers happens on a different thread than the one used to send the message to that channel.
 That is what is going to make your wire-tap flow synchronous or asynchronous.
 It is consistent with other components within the framework (such as message publisher) and adds a level of consistency and simplicity by sparing you from worrying in advance (other than writing thread-safe code) about whether a particular piece of code should be implemented as synchronous or asynchronous.
-The actual wiring of two pieces of code (say, component A and component B) over a message channel is what makes their collaboration synchronous or asynchronous.
-You may even want to change from synchronous to asynchronous in the future, and message channel lets you do it swiftly without ever touching the code.
+The actual wiring of two pieces of code, (say, component A and component B) over a message channel is what makes their collaboration synchronous or asynchronous.
+You may even want to change from synchronous to asynchronous in the future, and a message channel lets you do it swiftly without ever touching the code.
 
 One final point regarding the wire tap is that, despite the rationale provided above for not being asynchronous by default, you should keep in mind that it is usually desirable to hand off the message as soon as possible.
 Therefore, it would be quite common to use an asynchronous channel option as the wire tap's outbound channel.

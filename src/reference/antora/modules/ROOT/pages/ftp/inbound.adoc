@@ -1,7 +1,7 @@
 [[ftp-inbound]]
 = FTP Inbound Channel Adapter
 
-The FTP inbound channel adapter is a special listener that connects to the FTP server and listens for the remote directory events (for example, new file created) at which point it initiates a file transfer.
+The FTP inbound channel adapter is a special listener that connects to the FTP server and listens for the remote directory events, (for example, a new file created) at which point it initiates a file transfer.
 The following example shows how to configure an `inbound-channel-adapter`:
 
 [source,xml]
@@ -75,7 +75,7 @@ Unless your application removes files after processing, the adapter will re-proc
 
 Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not let this new file be processed.
 
-For more information about this filter, and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
+For more information about this filter and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
@@ -95,7 +95,7 @@ The `remote-file-separator` attribute lets you configure a file separator charac
 See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on these attributes.
 
 You should also understand that the FTP inbound channel adapter is a polling consumer.
-Therefore, you must configure a poller (by using either a global default or a local sub-element).
+Therefore, you must configure a poller (by using either a global default or a local subelement).
 Once a file has been transferred, a message with a `java.io.File` as its payload is generated and sent to the channel identified by the `channel` attribute.
 
 Starting with version 6.2, you can filter FTP files based on last-modified strategy using `FtpLastModifiedFileListFilter`.
@@ -159,23 +159,19 @@ For example, a value of `10` means that, on each poll, it tries to process no mo
 == Recovering from Failures
 
 It is important to understand the architecture of the adapter.
-There is a file synchronizer that fetches the files and a `FileReadingMessageSource` that emits a message for each
-synchronized file.
+There is a file synchronizer that fetches the files and a `FileReadingMessageSource` that emits a message for each synchronized file.
 As discussed earlier, two filters are involved.
-The `filter` attribute (and patterns) refers to the remote (FTP) file list, to avoid fetching files that have already
-been fetched.
+The `filter` attribute (and patterns) refers to the remote (FTP) file list, to avoid fetching files that have already been fetched.
 The `local-filter` is used by the `FileReadingMessageSource` to determine which files are to be sent as messages.
 
 The synchronizer lists the remote files and consults its filter.
 The files are then transferred.
-If an IO error occurs during file transfer, any files that have already been added to the filter are removed so that they
-are eligible to be re-fetched on the next poll.
+If an IO error occurs during file transfer, any files that have already been added to the filter are removed so that they are eligible to be re-fetched on the next poll.
 This only applies if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
 
 If, after synchronizing the files, an error occurs on the downstream flow processing a file, no automatic rollback of the filter occurs, so the failed file is not reprocessed by default.
 
-If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate
-the removal of the failed file from the filter:
+If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate the removal of the failed file from the filter:
 
 [source, xml]
 ----
@@ -204,7 +200,7 @@ the removal of the failed file from the filter:
 
 The preceding configuration works for any `ResettableFileListFilter`.
 
-Starting with version 5.0, the inbound channel adapter can build sub-directories locally that correspond to the generated local file name.
+Starting with version 5.0, the inbound channel adapter can build subdirectories locally that correspond to the generated local file name.
 That can be a remote sub-path as well.
 To be able to read a local directory recursively for modification according to the hierarchy support, you can now supply an internal `FileReadingMessageSource` with a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/synchronizer/AbstractInboundFileSynchronizingMessageSource.html#setScanner[`AbstractInboundFileSynchronizingMessageSource.setScanner()`] for more information.
@@ -217,7 +213,7 @@ See xref:file/reading.adoc#watch-service-directory-scanner[`WatchServiceDirector
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration
 
-The following Spring Boot application show an example of how to configure the inbound adapter with Java configuration:
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
 [source, java]
 ----

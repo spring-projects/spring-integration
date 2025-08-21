@@ -24,7 +24,7 @@ It can be one of the String constants (`string`, `boolean`, `number`, `node`, `n
 By default, the `#xpath` SpEL function returns a `String` representation of the XPath evaluation.
 
 NOTE: To enable the `#xpath` SpEL function, you can add the `spring-integration-xml.jar` to the classpath.
-You need no declare any components from the Spring Integration XML Namespace.
+You do not need to declare any components from the Spring Integration XML Namespace.
 
 For more information, see "`xref:spel.adoc[Spring Expression Language (SpEL)].
 

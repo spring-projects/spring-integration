@@ -177,7 +177,7 @@ In the preceding example, that is `http://www.example.org/orders`.
 You can, however, arbitrarily choose the namespace prefix.
 In fact, providing an empty string actually works.
 (However, null is not allowed.)
-In the case of a namespace prefix consisting of an empty string, your Xpath expression must use a colon (":") to indicate the default namespace.
+In the case of a namespace prefix consisting of an empty string, your Xpath expression must use a colon (`:`) to indicate the default namespace.
 If you leave off the colon, the XPath expression does not match.
 The following XPath Expression matches against the XML document in the preceding example:
 

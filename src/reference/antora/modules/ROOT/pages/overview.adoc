@@ -37,7 +37,7 @@ Business components are further isolated from the infrastructure, and developers
 
 As an extension of the Spring programming model, Spring Integration provides a wide variety of configuration options, including annotations, XML with namespace support, XML with generic "`bean`" elements, and direct usage of the underlying API.
 That API is based upon well-defined strategy interfaces and non-invasive, delegating adapters.
-Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well known patterns described in https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_], by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
+Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well-known patterns described in https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_], by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
 Developers who have read that book should be immediately comfortable with the Spring Integration concepts and terminology.
 
 [[overview-goalsandprinciples]]
@@ -212,7 +212,7 @@ Spring Integration provides a number of channel adapters, which are described in
 .An inbound channel adapter endpoint connects a source system to a `MessageChannel`.
 image::source-endpoint.jpg[align="center", scaledwidth=100%]
 
-NOTE: Message sources can be pollable (for example, POP3) or message-driven (for example, IMAP Idle).
+NOTE: Message sources can be pollable, (for example, POP3) or message-driven, (for example, IMAP Idle).
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (message-driven).
 
 .An outbound channel adapter endpoint connects a `MessageChannel` to a target system.
@@ -389,7 +389,7 @@ For example, many endpoints consist of a `MessageHandler` bean and a `ConsumerEn
 The first time a Spring Integration namespace element is encountered, the framework automatically declares a number of beans (a task scheduler, an implicit channel creator, and others) that are used to support the runtime environment.
 
 IMPORTANT: Version 4.0 introduced the `@EnableIntegration` annotation, to allow the registration of Spring Integration infrastructure beans (see the https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[Javadoc]).
-This annotation is required when only Java configuration is used -- for example with Spring Boot or Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
+This annotation is required when only Java configuration is used -- for example, with Spring Boot or Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
 
 The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components and two or more child contexts that use Spring Integration.
 It lets these common components be declared once only, in the parent context.
@@ -427,8 +427,8 @@ See xref:configuration/annotations.adoc[Annotation Support] for more information
 [[programming-considerations]]
 === Programming Considerations
 
-Most classes in Spring Integration (unless stated otherwise) must be declared as beans in the application context and as singletons.
-That means instances of these classes are thread-safe and their lifecycle and connection with other components are managed by Spring dependency injection container.
+Most classes in Spring Integration, unless stated otherwise, must be declared as beans in the application context and as singletons.
+That means instances of these classes are thread-safe and their lifecycle and connection with other components are managed by the Spring dependency injection container.
 The utility and builder classes (`JacksonMessagingUtils`, `MessageBuilder`, `ExpressionEvalMap`, `IntegrationReactiveUtils` etc.) can be used directly in the Java code.
 However, Java DSL factories and `IntegrationComponentSpec` implementation results still have to be registered as beans into the application context.
 The `Session` abstraction, present in many modules, is not thread-safe, typically created by the `Factory` pattern implementation, and used from thread-safe `Template` pattern.
@@ -591,7 +591,7 @@ Its main implementations are:
 When you use messaging annotations or the Java DSL, you don't need to worry about these components, because the Framework automatically produces them with appropriate annotations and `BeanPostProcessor` implementations.
 When building components manually, you should use the `ConsumerEndpointFactoryBean` to help determine the target `AbstractEndpoint` consumer implementation to create, based on the provided `inputChannel` property.
 
-On the other hand, the `ConsumerEndpointFactoryBean` delegates to an another first class citizen in the Framework - `org.springframework.messaging.MessageHandler`.
+On the other hand, the `ConsumerEndpointFactoryBean` delegates to another first-class citizen in the Framework - `org.springframework.messaging.MessageHandler`.
 The goal of the implementation of this interface is to handle the message consumed by the endpoint from the channel.
 All EIP components in Spring Integration are `MessageHandler` implementations (for example, `AggregatingMessageHandler`, `MessageTransformingHandler`, `AbstractMessageSplitter`, and others).
 The target protocol outbound adapters (`FileWritingMessageHandler`, `HttpRequestExecutingMessageHandler`, `AbstractMqttMessageHandler`, and others) are also `MessageHandler` implementations.
@@ -621,7 +621,7 @@ produce messages.
 Listening components can be one-way `MessageProducerSupport` implementations, (such as `AbstractMqttMessageDrivenChannelAdapter` and `ImapIdleChannelAdapter`) or request-reply  `MessagingGatewaySupport` implementations (such as `AmqpInboundGateway` and `AbstractWebServiceInboundGateway`).
 
 Polling inbound endpoints are for those protocols that do not provide a listener API or are not intended for
-such a behavior, including any file based protocol (such as FTP), any data bases (RDBMS or NoSQL), and others.
+such a behavior, including any file-based protocol (such as FTP), any databases (RDBMS or NoSQL), and others.
 
 These inbound endpoints consist of two components: the poller configuration, to initiate the polling task periodically,
 and a message source class to read data from the target protocol and produce a message for the downstream integration flow.
@@ -645,7 +645,7 @@ public MessageSource<?> storedProc(DataSource dataSource) {
 You can find all the required inbound and outbound classes for the target protocols in the particular Spring Integration module (in most cases, in the respective package).
 For example, the `spring-integration-websocket` adapters are:
 
-* `o.s.i.websocket.inbound.WebSocketInboundChannelAdapter`: Implements `MessageProducerSupport` to listen for frames on the socket and produce message to the channel.
+* `o.s.i.websocket.inbound.WebSocketInboundChannelAdapter`: Implements `MessageProducerSupport` to listen for frames on the socket and produce a message to the channel.
 * `o.s.i.websocket.outbound.WebSocketOutboundMessageHandler`: The one-way `AbstractMessageHandler` implementation to convert incoming messages to the appropriate frame and send over websocket.
 
 If you are familiar with Spring Integration XML configuration, starting with version 4.3, we provide information in the

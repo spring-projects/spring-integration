@@ -11,13 +11,13 @@ If you are interested in the changes and features that were introduced in earlie
 
 For more details, see the https://github.com/spring-projects/spring-integration/issues[GitHub Issues] that were resolved as part of the 7.0 development process.
 
-In general the project has been moved to the latest dependency versions.
-Java 17 is still baseline, but Java 24 is supported.
+In general, the project has been moved to the latest dependency versions.
+Java 17 is still the baseline, but Java 24 is supported.
 
 [[x7.0-general]]
 == General Changes
 
-Junit 4 Based Support Components are deprecated.
+Junit 4-Based Support Components are deprecated.
 
 The project now leverages https://jspecify.dev/docs/start-here/[JSpecify] annotations to expose null-safe APIs and to check the consistency of those nullability declarations with https://github.com/uber/NullAway[NullAway] as part of its build.
 
@@ -29,7 +29,7 @@ See xref:distributed-locks.adoc[] for more information.
 
 The Jackson 2 support has been deprecated for removal.
 Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
-See their JavaDocs for more information, and deprecated classes for migration path.
+See their Javadocs for more information and deprecated classes for a migration path.
 
 [[x7.0-jdbc-changes]]
 === JDBC Changes

@@ -3,9 +3,9 @@
 :page-section-summary-toc: 1
 
 Starting with version 5.3, a `ReactiveRequestHandlerAdvice` can be used for request message handlers producing a `Mono` replies.
-A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this advice and it is called from the `Mono.transform()` operator on a reply produced by the intercepted `handleRequestMessage()` method implementation.
+A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this advice, and it is called from the `Mono.transform()` operator on a reply produced by the intercepted `handleRequestMessage()` method implementation.
 Typically, such a `Mono` customization is necessary when we would like to control network fluctuations via `timeout()`, `retry()` and similar support operators.
-For example when we can an HTTP request over WebFlux client, we could use below configuration to not wait for response more than 5 seconds:
+For example, when we can an HTTP request over the WebFlux client, we could use the below configuration to not wait for a response more than 5 seconds:
 
 [source, java]
 ----

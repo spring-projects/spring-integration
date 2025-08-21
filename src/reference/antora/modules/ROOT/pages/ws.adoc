@@ -10,7 +10,7 @@ This chapter describes Spring Integration's support for web services, including:
 * xref:ws.adoc#ws-message-headers[WS Message Headers]
 * xref:ws.adoc#mtom-support[MTOM Support]
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -163,7 +163,7 @@ Starting with version 5.0, the `web-service-template` reference attribute lets y
 [[webservices-dsl]]
 == Web Service Java DSL Support
 
-The equivalent configuration for the gateways shown in xref:ws.adoc#webservices-namespace[Web Service Namespace Support] are shown in the following snippets:
+The equivalent configuration for the gateways shown in xref:ws.adoc#webservices-namespace[Web Service Namespace Support] is shown in the following snippets:
 
 [source, java]
 ----
@@ -401,9 +401,9 @@ The result of the preceding examples is the following SOAP envelope:
 [[mtom-support]]
 == MTOM Support
 
-The marshalling inbound and outbound web service gateways support attachments directly through built-in functionality of the marshaller (for example, `Jaxb2Marshaller` provides the `mtomEnabled` option).
+The marshalling inbound and outbound web service gateways support attachments directly through built-in functionality of the marshaller, (for example, `Jaxb2Marshaller` provides the `mtomEnabled` option).
 Starting with version 5.0, the simple web service gateways can directly operate with inbound and outbound `MimeMessage` instances, which have an API to manipulate attachments.
-When you need to send web service message with attachments (either a reply from a server or a client request) you should use the `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway.
+When you need to send a web service message with attachments (either a reply from a server or a client request) you should use the `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway.
 The following example shows how to do so:
 
 [source, java]

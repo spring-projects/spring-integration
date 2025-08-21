@@ -99,7 +99,7 @@ The `ByteArrayLfSerializer`^*^ converts a byte array to a stream of bytes follow
 The `ByteArrayStxEtxSerializer`^*^ converts a byte array to a stream of bytes preceded by an STX (`0x02`) and followed by an ETX (`0x03`).
 
 The `ByteArrayLengthHeaderSerializer` converts a byte array to a stream of bytes preceded by a binary length in network byte order (big endian).
-This an efficient deserializer because it does not have to parse every byte to look for a termination character sequence.
+This is an efficient deserializer because it does not have to parse every byte to look for a termination character sequence.
 It can also be used for payloads that contain binary data.
 The preceding serializers support only text in the payload.
 The default size of the length header is four bytes (an Integer), allowing for messages up to (2^31 - 1) bytes.
@@ -149,9 +149,9 @@ The buffer is automatically returned to the pool.
 Version 5.0 added the `ByteArrayElasticRawDeserializer`.
 This is similar to the deserializer side of `ByteArrayRawSerializer` above, except that it is not necessary to set a `maxMessageSize`.
 Internally, it uses a `ByteArrayOutputStream` that lets the buffer grow as needed.
-The client must close the socket in an orderly manner to signal end of message.
+The client must close the socket in an orderly manner to signal the end of a message.
 
-WARNING: This deserializer should only be used when the peer is trusted; it is susceptible to a DoS attach due to out of memory conditions.
+WARNING: This deserializer should only be used when the peer is trusted; it is susceptible to an DoS attachment due to out-of-memory conditions.
 
 The `MapJsonSerializer` uses a Jackson `ObjectMapper` to convert between a `Map` and JSON.
 You can use this serializer in conjunction with a `MessageConvertingTcpMessageMapper` and a `MapMessageConverter` to transfer selected headers and the payload in JSON.
@@ -162,7 +162,7 @@ By default, a `ByteArrayLfSerializer` is used, resulting in messages with a form
 (The next example shows how to do so.)
 
 The final standard serializer is `org.springframework.core.serializer.DefaultSerializer`, which you can use to convert serializable objects with Java serialization.
-`org.springframework.core.serializer.DefaultDeserializer` is provided for inbound deserialization of streams that contain serializable objects.
+The `org.springframework.core.serializer.DefaultDeserializer` is provided for inbound deserialization of streams that contain serializable objects.
 
 If you do not wish to use the default serializer and deserializer (`ByteArrayCrLfSerializer`), you must set the `serializer` and `deserializer` attributes on the connection factory.
 The following example shows how to do so:

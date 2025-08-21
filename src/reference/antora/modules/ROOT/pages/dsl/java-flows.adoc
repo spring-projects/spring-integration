@@ -2,7 +2,7 @@
 = Working With Message Flows
 
 `IntegrationFlowBuilder` provides a top-level API to produce integration components wired to message flows.
-When your integration may be accomplished with a single flow (which is often the case), this is convenient.
+When your integration may be accomplished with a single flow, (which is often the case), this is convenient.
 Alternately `IntegrationFlow` instances can be joined via `MessageChannel` instances.
 
 By default, `MessageFlow` behaves as a "`chain`" in Spring Integration parlance.

@@ -89,7 +89,7 @@ See also xref:channel-adapter.adoc#channel-adapter-expressions-and-scripts[Chann
 NOTE: If no poller is provided, then a single default poller must be registered within the context.
 See xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support] for more detail.
 
-NOTE: The default trigger for polling endpoint is a `PeriodicTrigger` instance with a 1 second fixed delay period.
+NOTE: The default trigger for polling endpoint is a `PeriodicTrigger` instance with a `1` second fixed delay period.
 
 [IMPORTANT]
 .Important: Poller Configuration
@@ -189,7 +189,7 @@ XML::
 ----
 ======
 
-If the channel being adapted is a `PollableChannel`, you must provide a poller sub-element (the `@Poller` sub-annotation on the `@ServiceActivator`), as the following example shows:
+If the channel being adapted is a `PollableChannel`, you must provide a poller subelement (the `@Poller` sub-annotation on the `@ServiceActivator`), as the following example shows:
 
 [tabs]
 ======

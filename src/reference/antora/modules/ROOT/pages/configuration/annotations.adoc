@@ -84,7 +84,7 @@ public class ThingService {
 }
 ----
 
-NOTE: The value of the annotation can also be a SpEL expression (for example, `someHeader.toUpperCase()`), which is useful when you wish to manipulate the header value before injecting it.
+NOTE: The value of the annotation can also be a SpEL expression, (for example, `someHeader.toUpperCase()`), which is useful when you wish to manipulate the header value before injecting it.
 It also provides an optional `required` property, which specifies whether the attribute value must be available within the headers.
 The default value for the `required` property is `true`.
 
@@ -114,7 +114,7 @@ The processing of these annotations creates the same beans as the corresponding 
 See xref:configuration/meta-annotations.adoc#annotations_on_beans[Annotations on `@Bean` Methods].
 The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`.
 In the preceding example the bean name is `thingService.otherThing.serviceActivator` for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
-Such a name can be customized using an `@EndpointId` annotation alongside with these messaging annotations.
+Such a name can be customized using an `@EndpointId` annotation alongside these messaging annotations.
 The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by xref:message-history.adoc[the message history].
 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
@@ -125,7 +125,7 @@ For these purposes, you should use the `beanName` mentioned earlier in the prece
 
 [IMPORTANT]
 =====
-Channels automatically created after parsing the mentioned annotations (when no specific channel bean is configured), and the corresponding consumer endpoints, are declared as beans near the end of the context initialization.
+Channels are automatically created after parsing the mentioned annotations (when no specific channel bean is configured), and the corresponding consumer endpoints are declared as beans near the end of the context initialization.
 These beans **can** be autowired in other services, but they have to be marked with the `@Lazy` annotation because the definitions, typically, won't yet be available during normal autowiring processing.
 
 [source, java]
@@ -234,7 +234,7 @@ This attribute plays the same role as `error-channel` in the `<poller>` XML comp
 See xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support] for more information.
 
 The `poller()` attribute on the messaging annotations is mutually exclusive with the `reactive()` attribute.
-See next section for more information.
+See the next section for more information.
 
 [[configuration-using-reactive-annotation]]
 == Using `@Reactive` Annotation
@@ -293,7 +293,7 @@ It allows "`late binding`" logic: The target `MessageChannel` bean from the cons
 
 The first example requires that the default poller has been declared elsewhere in the application context.
 
-Using the `@MessagingGateway` Annotation
+== Using the `@MessagingGateway` Annotation
 
 See xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation].
 

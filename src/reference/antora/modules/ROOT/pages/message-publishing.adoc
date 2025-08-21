@@ -261,7 +261,7 @@ public String echo(Object complexPayload) {
 ----
 
 So, instead of hooking up the complex flow to the output channel, we use the message-publishing feature instead.
-We configure it to create a new message, by using the input argument of the service method (shown in the preceding example), and send that to the 'localProcessChannel'.
+We configure it to create a new message by using the input argument of the service method (shown in the preceding example) and send that to the 'localProcessChannel'.
 To make sure this flow is asynchronous, all we need to do is send it to any type of asynchronous channel (`ExecutorChannel` in the next example).
 The following example shows how to an asynchronous `publishing-interceptor`:
 

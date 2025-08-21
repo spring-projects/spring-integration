@@ -61,7 +61,8 @@ The `CompositeCodec` is a codec that combines multiple codecs into a single code
 This implementation associates object types with their appropriate codecs while providing a fallback default codec for unregistered types.
 
 An example implementation can be seen below:
-```java
+[source,java]
+----
 void encodeDecodeSample() {
         Codec codec = getFullyQualifiedCodec();
 
@@ -107,7 +108,7 @@ static Codec getFullyQualifiedCodec() {
 record Dog(String name, int age, String tag) {}
 record Cat(String name, int age, int lives) {}
 record Animal(String name, int age){}
-```
+----
 
 In some cases a single type of object may return multiple codecs.
 In these cases an `IllegalStateException` is thrown.
@@ -149,8 +150,8 @@ The `Serializer` interface exposes `Kryo`, `Input`, and `Output`, which provide 
 
 NOTE: When registering your custom serializer, you need a registration ID.
 The registration IDs are arbitrary.
-However, in our case, the IDs must be explicitly defined, because each Kryo instance across the distributed application must use the same IDs.
-Kryo recommends small positive integers and reserves a few ids (value < 10).
+However, in our case, the IDs must be explicitly defined because each Kryo instance across the distributed application must use the same IDs.
+Kryo recommends small positive integers and reserves a little ids (value < 10).
 Spring Integration currently defaults to using 40, 41, and 42 (for the file and message header serializers mentioned earlier).
 We recommend you start at 60, to allow for expansion in the framework.
 You can override these framework defaults by configuring the registrars mentioned earlier.
@@ -158,7 +159,7 @@ You can override these framework defaults by configuring the registrars mentione
 [[using-a-custom-kryo-serializer]]
 ==== Using a Custom Kryo Serializer
 
-If you need custom serialization, see the https://github.com/EsotericSoftware/kryo[Kryo] documentation, because you need to use the native API to do the customization.
+If you need custom serialization, see the https://github.com/EsotericSoftware/kryo[Kryo] documentation because you need to use the native API to do the customization.
 For an example, see the `org.springframework.integration.codec.kryo.MessageCodec` implementation.
 
 [[implementing-kryoserializable]]

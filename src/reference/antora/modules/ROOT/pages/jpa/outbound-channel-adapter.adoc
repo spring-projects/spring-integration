@@ -96,7 +96,7 @@ By using native queries, we lose database vendor independence, which we get usin
 
 One of the things we can achieve by using native queries is to perform database inserts, which is not possible with JPA QL.
 (To perform inserts, we send JPA entities to the channel adapter, as xref:jpa/outbound-channel-adapter.adoc#jpa-outbound-channel-adapter-entity-class[described earlier]).
-Below is a small xml fragment that demonstrates the use of native query to insert values in a table.
+Below is a small XML fragment that demonstrates the use of native query to insert values in a table.
 
 IMPORTANT: Named parameters may not be supported by your JPA provider in conjunction with native SQL queries.
 While they work fine with Hibernate, OpenJPA and EclipseLink do not support them.

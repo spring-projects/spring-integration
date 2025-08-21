@@ -157,7 +157,7 @@ Required.
 [[scatter-gather-error-handling]]
 == Error Handling
 
-Since Scatter-Gather is a multi request-reply component, error handling has some extra complexity.
+Since Scatter-Gather is a multi-request-reply component, error handling has some extra complexity.
 In some cases, it is better to just catch and ignore downstream exceptions if the `ReleaseStrategy` allows the process to finish with fewer replies than requests.
 In other cases something like a "`compensation message`" should be considered for returning from sub-flow, when an error happens.
 
@@ -167,7 +167,7 @@ See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for m
 
 Synchronous flows may use an `ExpressionEvaluatingRequestHandlerAdvice` for ignoring the exception or returning a compensation message.
 When an exception is thrown from one of the sub-flows to the `ScatterGatherHandler`, it is just re-thrown to upstream.
-This way all other sub-flows will work for nothing and their replies are going to be ignored in the `ScatterGatherHandler`.
+This way all other sub-flows will work for nothing, and their replies are going to be ignored in the `ScatterGatherHandler`.
 This might be an expected behavior sometimes, but in most cases it would be better to handle the error in the particular sub-flow without impacting all others and the expectations in the gatherer.
 
 Starting with version 5.1.3, the `ScatterGatherHandler` is supplied with the `errorChannelName` option.

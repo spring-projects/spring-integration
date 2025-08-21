@@ -8,12 +8,12 @@ There are two properties that you should consider when you configure inbound cha
 The following scenarios assume the starting state is an empty local directory:
 
 * `max-messages-per-poll=2` and `max-fetch-size=1`: The adapter fetches one file, emits it, fetches the next file, emits it, and then sleeps until the next poll.
-* `max-messages-per-poll=2` and `max-fetch-size=2`): The adapter fetches both files and then emits each one.
+* `max-messages-per-poll=2` and `max-fetch-size=2`: The adapter fetches both files and then emits each one.
 * `max-messages-per-poll=2` and `max-fetch-size=4`: The adapter fetches up to four files (if available) and emits the first two (if there are at least two).
 The next two files are emitted on the next poll.
 * `max-messages-per-poll=2` and `max-fetch-size` not specified: The adapter fetches all remote files and emits the first two (if there are at least two).
 The subsequent files are emitted on subsequent polls (two at a time).
-When all files are consumed, the remote fetch is attempted again, to pick up any new files.
+When all files are consumed, the remote fetch is attempted again to pick up any new files.
 
 IMPORTANT: When you deploy multiple instances of an application, we recommend a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 

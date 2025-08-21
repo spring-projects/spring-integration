@@ -38,19 +38,19 @@ Starting with version 5.1.8, the `JdbcLockRegistry` can be configured with the `
 By default, it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
 
 Starting with version 5.4, the `RenewableLockRegistry` interface has been introduced and added to `JdbcLockRegistry`.
-The `renewLock()` method must be called during locked process in case of the locked process would be longer than time to live of the lock.
-So the time to live can be highly reduce and deployments can retake a lost lock quickly.
+The `renewLock()` method must be called during a locked process in case of the locked process would be longer than time to live of the lock.
+So the time to live can be highly reduced, and deployments can retake a lost lock quickly.
 
 NOTE: The lock renewal can be done only if the lock is held by the current thread.
 
-Starting with version 5.5.6, the `JdbcLockRegistry` is support automatically clean up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
-See its JavaDocs for more information.
+Starting with version 5.5.6, the `JdbcLockRegistry` is support automatically clean-up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
+See its Javadocs for more information.
 
 Starting with version 6.0, the `DefaultLockRepository` can be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 
 Starting with version 6.1, the `DefaultLockRepository` can be configured for custom `insert`, `update` and `renew` queries.
 For this purpose the respective setters and getters are exposed.
-For example, an insert query for PostgreSQL hint can be configured like this:
+For example, an insert query for a PostgreSQL hint can be configured like this:
 
 [source,java]
 ----

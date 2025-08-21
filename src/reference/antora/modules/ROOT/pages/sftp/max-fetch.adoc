@@ -9,12 +9,12 @@ The following scenarios assume the starting state is an empty local directory:
 
 * `max-messages-per-poll=2` and `max-fetch-size=1`: The adapter fetches one file, emits it, fetches the next file, and emit it.
 Then it sleeps until the next poll.
-* `max-messages-per-poll=2` and `max-fetch-size=2`): The adapter fetch both files and then emits each one.
+* `max-messages-per-poll=2` and `max-fetch-size=2`: The adapter fetches both files and then emits each one.
 * `max-messages-per-poll=2` and `max-fetch-size=4`: The adapter fetches up to 4 files (if available) and emits the first two (if there are at least two).
-The next two files will be emitted on the next poll.
+The next two files will be emitted in the next poll.
 * `max-messages-per-poll=2` and `max-fetch-size` not specified: The adapter fetches all remote files and emits the first two (if there are at least two).
 The subsequent files are emitted on subsequent polls (two at a time).
-When all are consumed, the remote fetch is attempted again, to pick up any new files.
+When all are consumed, the remote fetch is attempted again to pick up any new files.
 
 IMPORTANT: When you deploy multiple instances of an application, we recommend setting a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
@@ -26,6 +26,6 @@ Starting with version 5.1, the synchronizer can be provided with a `Comparator<?
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 Starting with version 6.4, the `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
-The references stay in cache because polling configuration does not allow to process all of them in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
+The references stay in cache because polling configuration does not allow processing all of them in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
 
 Also see general xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter] chapter for information about `FileListFilter` configuration.

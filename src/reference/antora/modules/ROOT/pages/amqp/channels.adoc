@@ -2,9 +2,8 @@
 = AMQP-backed Message Channels
 
 There are two message channel implementations available.
-One is point-to-point, and the other is publish-subscribe.
-Both of these channels provide a wide range of configuration attributes for the underlying `AmqpTemplate` and
-`SimpleMessageListenerContainer` (as shown earlier in this chapter for the channel adapters and gateways).
+One is `point-to-point`, and the other is `publish-subscribe`.
+Both of these channels provide a wide range of configuration attributes for the underlying `AmqpTemplate` and `SimpleMessageListenerContainer` (as shown earlier in this chapter for the channel adapters and gateways).
 However, the examples we show here have minimal configuration.
 Explore the XML schema to view the available attributes.
 
@@ -43,7 +42,7 @@ Note that, previously, `channel-transacted` was `true` by default.
 Now, by default, it is `false` for the `AbstractMessageListenerContainer`.
 
 Prior to version 4.3, AMQP-backed channels only supported messages with `Serializable` payloads and headers.
-The entire message was converted (serialized) and sent to RabbitMQ.
+The entire message was converted, (serialized) and sent to RabbitMQ.
 Now, you can set the `extract-payload` attribute (or `setExtractPayload()` when using Java configuration) to `true`.
 When this flag is `true`, the message payload is converted and the headers are mapped, in a manner similar to when you use channel adapters.
 This arrangement lets AMQP-backed channels be used with non-serializable payloads (perhaps with another message converter, such as the `Jackson2JsonMessageConverter`).

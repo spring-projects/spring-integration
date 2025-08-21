@@ -17,7 +17,7 @@ The `source` property of each event is a `FtpSession`, from which you can obtain
 
 Events other than session open/close have another property `FtpRequest` which has properties such as the command and arguments.
 
-To configure the server with the listener (which must be a Spring bean), add it to the server factory:
+To configure the server with the listener, (which must be a Spring bean), add it to the server factory:
 
 [source, java]
 ----

@@ -78,7 +78,7 @@ public MessageHandler jdbcMessageHandler(DataSource dataSource) {
             "INSERT INTO imagedb (image_name, content, description) VALUES (?, ?, ?)");
     jdbcMessageHandler.setPreparedStatementSetter((ps, m) -> {
         ps.setString(1, m.getHeaders().get(FileHeaders.FILENAME));
-        try (FileInputStream inputStream = new FileInputStream((File) m.getPayload()); ) {
+        try (FileInputStream inputStream = new FileInputStream((File) m.getPayload())) {
             ps.setBlob(2, inputStream);
         }
         catch (Exception e) {

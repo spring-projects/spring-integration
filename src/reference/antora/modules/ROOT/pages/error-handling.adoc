@@ -60,7 +60,7 @@ By default, it has a `LoggingHandler` as a subscriber with an `ERROR` logging le
 If you subscribe additional consuming endpoints, that might throw an exception, and you don't want to preempt the logging, ensure that the additional handlers have a higher order.
 
 The most important thing to understand here is that the messaging-based error handling applies only to exceptions that are thrown by a Spring Integration task that is executing within a `TaskExecutor`.
-This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example, through a `DirectChannel` as described earlier in this section).
+This does not apply to exceptions thrown by a handler that operates within the same thread as the sender, (for example, through a `DirectChannel` as described earlier in this section).
 
 NOTE: When exceptions occur in a scheduled poller task's execution, those exceptions are wrapped in `ErrorMessage` instances and sent to the 'errorChannel' as well.
 This is done via a `MessagePublishingErrorHandler` injected into the global `taskScheduler` bean.
@@ -85,7 +85,7 @@ The `DefaultErrorMessageStrategy` does exactly that.
 Starting with version 5.2, all the `MessageHandlingException` instances thrown by the framework components, includes a component `BeanDefinition` resource and source to determine a configuration point form the exception.
 In case of XML configuration, a resource is an XML file path and source an XML tag with its `id` attribute.
 With Java & Annotation configuration, a resource is a `@Configuration` class and source is a `@Bean` method.
-In most case the target integration flow solution is based on the out-of-the-box components and their configuration options.
+In most cases the target integration flow solution is based on the out-of-the-box components and their configuration options.
 When an exception happens at runtime, there is no any end-user code involved in stack trace because an execution is against beans, not their configuration.
 Including a resource and source of the bean definition helps to determine possible configuration mistakes and provides better developer experience.
 

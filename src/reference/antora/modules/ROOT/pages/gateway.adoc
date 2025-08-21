@@ -41,7 +41,7 @@ It lets you configure an interface as a service, as the following example shows:
 ----
 
 With this configuration defined, the `cafeService` can now be injected into other beans, and the code that invokes the methods on that proxied instance of the `Cafe` interface has no awareness of the Spring Integration API.
-See the xref:samples.adoc#samples-impl["`Samples`"] Appendix for an example that uses the `gateway` element (in the Cafe demo).
+See the xref:samples.adoc#samples-impl["`Samples`"] Appendix for an example that uses the `gateway` element (in the Café demo).
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.
 If a reply timeout is not specified, the calling thread waits for a reply for 30 seconds.
@@ -68,8 +68,8 @@ In this case, you want two things:
 * A named channel to which you can subscribe
 * That channel to be a publish-subscribe-channel
 
-The default strategy used by the gateway does not satisfy those needs, because the reply channel added to the header is anonymous and point-to-point.
-This means that no other subscriber can get a handle to it and, even if it could, the channel has point-to-point behavior such that only one subscriber would get the message.
+The default strategy used by the gateway does not satisfy those needs because the reply channel added to the header is anonymous and point-to-point.
+This means that no other subscriber can get a handle on it and, even if it could, the channel has point-to-point behavior such that only one subscriber would get the message.
 By defining a `default-reply-channel` you can point to a channel of your choosing.
 In this case, that is a `publish-subscribe-channel`.
 The gateway creates a bridge from it to the temporary, anonymous reply channel that is stored in the header.
@@ -124,7 +124,7 @@ You can also use XML to provide individual headers for each method invocation.
 This could be useful if the headers you want to set are static in nature, and you do not want to embed them in the gateway's method signature by using `@Header` annotations.
 For example, in the loan broker example, we want to influence how aggregation of the loan quotes is done, based on what type of request was initiated (single quote or all quotes).
 Determining the type of the request by evaluating which gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a Java artifact).
-However, expressing your intention (meta information) in message headers is natural in a messaging architecture.
+However, expressing your intention (meta-information) in message headers is natural in a messaging architecture.
 The following example shows how to add a different message header for each of two methods:
 
 [source,xml]
@@ -483,7 +483,7 @@ It emulates a socket IO error to the waiting thread by using an `aggregator` wit
 == Gateway Timeouts
 
 Gateways have two timeout properties: `requestTimeout` and `replyTimeout`.
-The request timeout applies only if the channel can block (for example, a bounded `QueueChannel` that is full).
+The request timeout applies only if the channel can block, for example, a bounded `QueueChannel` that is full.
 The `replyTimeout` value is how long the gateway waits for a reply or returns `null`.
 It defaults to infinity.
 
@@ -562,8 +562,8 @@ For a more detailed example, see the https://github.com/spring-projects/spring-i
 
 Also, starting with version 6.5, the Java DSL `gateway()` operator fully supports an `async(true)` behaviour.
 Internally, an `AsyncRequestReplyExchanger` service interface is provided for the `GatewayProxyFactoryBean`.
-And since `AsyncRequestReplyExchanger` contract is a `CompletableFuture<Message<?>>`, the whole request-reply is executed in asynchronous manner.
-This behavior is useful, for example, in case of splitter-aggregator scenario when another flow has to be called for each item.
+And since `AsyncRequestReplyExchanger` contract is a `CompletableFuture<Message<?>>`, the whole request-reply is executed in an asynchronous manner.
+This behavior is useful, for example, in the case of a splitter-aggregator scenario when another flow has to be called for each item.
 However, the order is not important - only their group gathering on the aggregator after all processing.
 
 [[gateway-asynctaskexecutor]]
@@ -640,7 +640,7 @@ CompletableFuture<Invoice> order(Order order);
 ----
 
 In the following  scenario, the caller thread returns with a `CompletableFuture<Invoice>` when the downstream flow provides it as the payload of the reply to the gateway.
-Some other process must complete the future when the invoice is ready.
+Some other process must be completed in the future when the invoice is ready.
 
 [source, java]
 ----
@@ -654,7 +654,7 @@ CompletableFuture<Invoice> order(Order order);
 ----
 
 In the following scenario, the caller thread returns with a `CompletableFuture<Invoice>` when the downstream flow provides it as the payload of the reply to the gateway.
-Some other process must complete the future when the invoice is ready.
+Some other process must be completed in the future when the invoice is ready.
 If `DEBUG` logging is enabled, a log entry is emitted, indicating that the async executor cannot be used for this scenario.
 
 [source, java]
@@ -689,7 +689,7 @@ String out = result.get(10, TimeUnit.SECONDS);
 Starting with version 5.0, the `GatewayProxyFactoryBean` allows the use of https://projectreactor.io/[Project Reactor] with gateway interface methods, using a https://github.com/reactor/reactor-core[`Mono<T>`] return type.
 The internal `AsyncInvocationTask` is wrapped in a `Mono.fromCallable()`.
 
-A `Mono` can be used to retrieve the result later (similar to a `Future<?>`), or you can consume from it with the dispatcher by invoking your `Consumer` when the result is returned to the gateway.
+A `Mono` can be used to retrieve the result later (similarly to a `Future<?>`), or you can consume from it with the dispatcher by invoking your `Consumer` when the result is returned to the gateway.
 
 IMPORTANT: The `Mono` is not immediately flushed by the framework.
 Consequently, the underlying message flow is not started before the gateway method returns (as it is with a `Future<?>` `Executor` task).
@@ -713,7 +713,7 @@ public Integer multiply(Integer value) {
 }
 ----
 
-where such a gateway can be used in some service which deals with the `Flux` of data:
+where such a gateway can be used in some service that deals with the `Flux` of data:
 
 [source,java]
 ----
@@ -746,7 +746,7 @@ Also see xref:kotlin-functions.adoc#kotlin-coroutines[Kotlin Coroutines] for mor
 === Downstream Flows Returning an Asynchronous Type
 
 As mentioned in the xref:gateway.adoc#gateway-asynctaskexecutor[`AsyncTaskExecutor`] section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
-The flow is then invoked on the caller thread and the result can be retrieved later.
+The flow is then invoked on the caller thread, and the result can be retrieved later.
 
 [[asynchronous-void-return-type]]
 === Asynchronous `void` Return Type
@@ -785,17 +785,17 @@ The rest of this section covers various scenarios and how to make the gateway be
 Certain attributes can be configured to make synchronous gateway behavior more predictable, but some of them might not always work as you might expect.
 One of them is `reply-timeout` (at the method level or `default-reply-timeout` at the gateway level).
 We examine the `reply-timeout` attribute to see how it can and cannot influence the behavior of the synchronous gateway in various scenarios.
-We examine a single-threaded scenario (all components downstream are connected through a direct channel) and multi-threaded scenarios (for example, somewhere downstream you may have a pollable or executor channel that breaks the single-thread boundary).
+We examine a single-threaded scenario (all components downstream are connected through a direct channel) and multithreaded scenarios, (for example, somewhere downstream you may have a pollable or executor channel that breaks the single-thread boundary).
 
 [[long-running-process-downstream]]
 === Long-running Process Downstream
 
 Sync Gateway, single-threaded::
 If a component downstream is still running (perhaps because of an infinite loop or a slow service), setting a `reply-timeout` has no effect, and the gateway method call does not return until the downstream service exits (by returning or throwing an exception).
-Sync Gateway, multi-threaded::
-If a component downstream is still running (perhaps because of an infinite loop or a slow service) in a multi-threaded message flow, setting the `reply-timeout` has an effect by allowing gateway method invocation to return once the timeout has been reached, because the `GatewayProxyFactoryBean`  polls on the reply channel, waiting for a message until the timeout expires.
+Sync Gateway, multithreaded::
+If a component downstream is still running (perhaps because of an infinite loop or a slow service) in a multithreaded message flow, setting the `reply-timeout` has an effect by allowing gateway method invocation to return once the timeout has been reached, because the `GatewayProxyFactoryBean`  polls on the reply channel, waiting for a message until the timeout expires.
 However, if the timeout has been reached before the actual reply was produced, it could result in a 'null' return from the gateway method.
-You should understand that the reply message (if produced) is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
+You should understand that the reply message, if produced, is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
 
 Also see the `errorOnTimeout` property to throw a `MessageTimeoutException` instead of returning `null`, when a timeout occurs.
 
@@ -805,7 +805,7 @@ Also see the `errorOnTimeout` property to throw a `MessageTimeoutException` inst
 Sync Gateway -- single-threaded::
 If a component downstream returns 'null' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely, unless the `requires-reply` attribute has been set on the downstream component (for example, a service activator) that might return 'null'.
 In this case, an exception would be thrown and propagated to the gateway.
-Sync Gateway -- multi-threaded::
+Sync Gateway -- multithreaded::
 The behavior is the same as the previous case.
 
 [[downstream-component-return-signature-is-void-while-gateway-method-signature-is-non-void]]
@@ -813,7 +813,7 @@ The behavior is the same as the previous case.
 
 Sync Gateway -- single-threaded::
 If a component downstream returns 'void' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely.
-Sync Gateway -- multi-threaded::
+Sync Gateway -- multithreaded::
 The behavior is the same as the previous case.
 
 [[downstream-component-results-in-runtime-exception]]
@@ -821,7 +821,7 @@ The behavior is the same as the previous case.
 
 Sync Gateway -- single-threaded::
 If a component downstream throws a runtime exception, the exception is propagated through an error message back to the gateway and re-thrown.
-Sync Gateway -- multi-threaded::
+Sync Gateway -- multithreaded::
 The behavior is the same as the previous case.
 
 IMPORTANT: You should understand that, by default, `reply-timeout` is unbounded.
@@ -833,9 +833,9 @@ However, you should also realize that there are some scenarios (see xref:gateway
 That means it is also important to analyze your message flow and decide when to use a synchronous gateway rather than an asynchronous gateway.
 As xref:jms.adoc#jms-async-gateway[described earlier], the latter case is a matter of defining gateway methods that return `Future` instances.
 Then you are guaranteed to receive that return value, and you have more granular control over the results of the invocation.
-Also, when dealing with a router, you should remember that setting the `resolution-required` attribute to 'true' results in an exception thrown by the router if it can not resolve a particular channel.
+Also, when dealing with a router, you should remember that setting the `resolution-required` attribute to 'true' results in an exception thrown by the router if it cannot resolve a particular channel.
 Likewise, when dealing with a Filter, you can set the `throw-exception-on-rejection` attribute.
-In both of these cases, the resulting flow behaves like it contain a service activator with the 'requires-reply' attribute.
+In both of these cases, the resulting flow behaves like it contains a service activator with the 'requires-reply' attribute.
 In other words, it helps to ensure a timely response from the gateway method invocation.
 
 IMPORTANT: You should understand that the timer starts when the thread returns to the gateway -- that is, when the flow completes or a message is handed off to another thread.
@@ -844,7 +844,7 @@ If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
 Starting with version 6.2, the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport` is exposed on the `@MessagingGateway` and `GatewayEndpointSpec`.
-This option has exactly the same meaning as for any inbound gateway explained in the end of xref:endpoint-summary.adoc#endpoint-summary[Endpoint Summary] chapter.
+This option has exactly the same meaning as for any inbound gateway explained at the end of the xref:endpoint-summary.adoc#endpoint-summary[Endpoint Summary] chapter.
 In other words, setting this option to `true`, would lead to the `MessageTimeoutException` being thrown from a send-and-receive gateway operation instead of returning `null` when the receive timeout is exhausted.
 
 See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as Gateway] in the Java DSL chapter for options to define gateways through `IntegrationFlow`.

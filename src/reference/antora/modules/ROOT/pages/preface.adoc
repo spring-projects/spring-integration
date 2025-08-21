@@ -29,7 +29,7 @@ Spring Integration 7.0.x requires Spring Framework 7.0 or later.
 Spring Framework 2.0 introduced support for namespaces, which simplifies the XML configuration of the application context and lets Spring Integration provide broad namespace support.
 
 In this reference guide, the `int` namespace prefix is used for Spring Integration's core namespace support.
-Each Spring Integration adapter type (also called a module) provides its own namespace, which is configured by using the following convention:
+Each Spring Integration adapter type, (also called a `module`) provides its own namespace, which is configured by using the following convention:
 
 
 The following example shows the `int`, `int-event`, and `int-stream` namespaces in use:
@@ -88,4 +88,4 @@ Spring Boot provides a quick (and opinionated) way to create a production-ready 
 It is based on the Spring Framework, favors convention over configuration, and is designed to get you up and running as quickly as possible.
 
 You can use https://start.spring.io/[start.spring.io] to generate a basic project (add `integration` as dependency) or follow one of the https://spring.io/guides["Getting Started" guides], such as https://spring.io/guides/gs/integration/[Getting Started Building an Integrating Data].
-As well as being easier to digest, these guides are very task focused, and most of them are based on Spring Boot.
+As well as being easier to digest, these guides are very task-focused, and most of them are based on Spring Boot.

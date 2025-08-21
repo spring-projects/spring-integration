@@ -15,7 +15,7 @@ Two popular implementations are https://www.igniterealtime.org/projects/openfire
 
 Spring integration provides support for XMPP by providing XMPP adapters, which support sending and receiving both XMPP chat messages and presence changes from other entries in a client's roster.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -397,7 +397,7 @@ The `mycustom.providers` file might be as follows:
 ----
 
 For example, the most popular XMPP messaging extension is https://developers.google.com/cloud-messaging/[Google Cloud Messaging] (GCM).
-The Smack library provides `org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider` for that purposes.
+The Smack library provides `org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider` for that purpose.
 By default, it registers that class with the `smack-experimental` jar in the classpath by using the `experimental.providers` resource, as the following Maven example shows:
 
 [source,xml]

@@ -79,7 +79,7 @@ public static class Config {
 
 <2> Searches for `@MessagingGateway` interfaces.
 
-<3> The entry point to the client-side of the flow.
+<3> The entry points to the client-side of the flow.
 The calling application can use `@Autowired` for this `Gateway` bean and invoke its method.
 
 <4> Outbound endpoints consist of a `MessageHandler` and a consumer that wraps it.

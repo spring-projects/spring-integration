@@ -3,7 +3,7 @@
 
 Spring Integration's JPA (Java Persistence API) module provides components for performing various database operations using JPA.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

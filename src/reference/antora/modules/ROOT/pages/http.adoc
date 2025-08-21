@@ -5,7 +5,7 @@ Spring Integration's HTTP support allows for the running of HTTP requests and th
 The HTTP support consists of the following gateway implementations: `HttpInboundEndpoint` and `HttpRequestExecutingMessageHandler`.
 See also xref:webflux.adoc[WebFlux Support].
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======

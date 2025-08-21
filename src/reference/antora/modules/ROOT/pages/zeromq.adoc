@@ -5,7 +5,7 @@ Spring Integration provides components to support https://zeromq.org/[ZeroMQ] co
 The implementation is based on the well-supported Java API of the https://github.com/zeromq/jeromq[JeroMQ] library.
 All components encapsulate ZeroMQ socket lifecycles and manage threads for them internally making interactions with these components lock-free and thread-safe.
 
-You need to include this dependency into your project:
+This dependency is required for the project:
 
 [tabs]
 ======
@@ -77,7 +77,7 @@ In distributed mode it has to be connected to an externally managed ZeroMQ proxy
 The connection url option is a standard ZeroMQ connection string with the protocol and host and a pair of ports over colon for frontend and backend sockets of the ZeroMQ proxy.
 For convenience, the channel could be supplied with the `ZeroMqProxy` instance instead of connection string, if it is configured in the same application as the proxy.
 
-Both sending and receiving sockets are managed in their own dedicated threads making this channel concurrency-friendly.
+Both sending and receiving sockets are managed in their own dedicated threads, making this channel concurrency-friendly.
 This way we can publish and consume to/from a `ZeroMqChannel` from different threads without synchronization.
 
 By default, the `ZeroMqChannel` uses an `EmbeddedHeadersJsonMessageMapper` to (de)serialize the `Message` (including headers) from/to `byte[]` using a Jackson JSON processor.

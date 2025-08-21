@@ -11,7 +11,7 @@ Each system, from AMQP to Zookeeper, has its own integration requirements, and t
 
 As discussed in the earlier sections, Spring Integration provides a number of endpoints used to interface with external systems, file systems, and others.
 
-For transparent dependency management Spring Integration provides a bill-of-materials POM to be imported into the Maven configuration:
+For transparent dependency management, Spring Integration provides a bill-of-materials POM to be imported into the Maven configuration:
 
 [source, xml, subs="normal"]
 ----
@@ -265,4 +265,4 @@ The equivalent of an outbound gateway in this context is using a service activat
 
 Starting with version `5.2.2`, all the inbound gateways can be configured with an `errorOnTimeout` boolean flag to throw a `MessageTimeoutException` when the downstream flow doesn't return a reply during the reply timeout.
 The timer is not started until the thread returns control to the gateway, so usually it is only useful when the downstream flow is asynchronous, or it stops because of a `null` return from some handler, e.g. xref:filter.adoc[filter].
-Such an exception can be handled on the `errorChannel` flow, e.g. producing a compensation reply for requesting client.
+Such an exception can be handled on the `errorChannel` flow, e.g. producing a compensation reply for a requesting client.

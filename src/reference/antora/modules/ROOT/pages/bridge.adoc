@@ -10,7 +10,7 @@ The poller's trigger determines the rate at which messages arrive at the second 
 
 Another valid use for a messaging bridge is to connect two different systems.
 In such a scenario, Spring Integration's role is limited to making the connection between these systems and managing a poller, if necessary.
-It is probably more common to have at least a transformer between the two systems, to translate between their formats.
+It is probably more common to have at least a transformer between the two systems to translate between their formats.
 In that case, the channels can be provided as the 'input-channel' and 'output-channel' of a transformer endpoint.
 If data format translation is not required, the messaging bridge may indeed be sufficient.
 
@@ -35,7 +35,7 @@ When performing this role, the messaging bridge may also serve as a throttler:
  </int:bridge>
 ----
 
-You can use a similar mechanism to connecting channel adapters.
+You can use a similar mechanism to connect channel adapters.
 The following example shows a simple "`echo`" between the `stdin` and `stdout` adapters from Spring Integration's `stream` namespace:
 
 [source,xml]

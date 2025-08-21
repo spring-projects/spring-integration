@@ -21,7 +21,7 @@ image::http-outbound-gateway.png[align="center"]
 
 //TODO These images are too small, and the text within them is much too small.
 
-You may want to configure the HTTP related timeout behavior, when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
+You may want to configure the HTTP-related timeout behavior when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
 In those instances, these two components use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[`RestTemplate`] support to execute HTTP requests.
 
 To configure timeouts for the HTTP outbound gateway and the HTTP outbound channel adapter, you can either reference a `RestTemplate` bean directly (by using the `rest-template` attribute) or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
@@ -78,7 +78,7 @@ More precisely, the property is set on the extended `AbstractReplyProducingMessa
 
 The value of the _sendTimeout_ property defaults to `30` seconds and will be applied to the connected `MessageChannel`.
 This means, that depending on the implementation, the Message Channel's _send_ method may block indefinitely.
-Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
+Furthermore, the _sendTimeout_ property is only used when the actual MessageChannel implementation has a blocking sending (such as 'full' bounded QueueChannel).
 
 [[http-inbound-gateway]]
 == HTTP Inbound Gateway

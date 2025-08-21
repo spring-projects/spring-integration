@@ -12,7 +12,7 @@ This section contains several examples of configuring a delayer.
 == Configuring a Delayer
 
 The `<delayer>` element is used to delay the message flow between two message channels.
-As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and the 'expression' element) that determine the number of milliseconds by which each message should be delayed.
+As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and the 'expression' element) that determines the number of milliseconds by which each message should be delayed.
 The following example delays all messages by three seconds:
 
 [source,xml]
@@ -89,14 +89,14 @@ For any message that has a delay of `0` (or less), the message is sent immediate
 NOTE: The XML parser uses a message group ID of `<beanName>.messageGroupId`.
 
 TIP: The delay handler supports expression evaluation results that represent an interval in milliseconds (any `Object` whose `toString()` method produces a value that can be parsed into a `Long`) as well as `java.util.Date` instances representing an absolute time.
-In the first case, the milliseconds are counted from the current time (for example a value of `5000` would delay the message for at least five seconds from the time it is received by the delayer).
+In the first case, the milliseconds are counted from the current time, for example, a value of `5000` would delay the message for at least five seconds from the time it is received by the delayer.
 With a `Date` instance, the message is not released until the time represented by that `Date` object.
 A value that equates to a non-positive delay or a Date in the past results in no delay.
 Instead, it is sent directly to the output channel on the original sender's thread.
-If the expression evaluation result is not a `Date` and can not be parsed as a `Long`, the default delay (if any -- the default is `0`) is applied.
+If the expression evaluation result is not a `Date` and cannot be parsed as a `Long`, the default delay (if any -- the default is `0`) is applied.
 
 IMPORTANT: The expression evaluation may throw an evaluation exception for various reasons, including an invalid expression or other conditions.
-By default, such exceptions are ignored (though logged at the DEBUG level) and the delayer falls back to the default delay (if any).
+By default, such exceptions are ignored (though logged at the DEBUG level), and the delayer falls back to the default delay (if any).
 You can modify this behavior by setting the `ignore-expression-failures` attribute.
 By default, this attribute is set to `true` and the delayer behavior is as described earlier.
 However, if you wish to not ignore expression evaluation exceptions and throw them to the delayer's caller, set the `ignore-expression-failures` attribute to `false`.
@@ -117,7 +117,7 @@ The second results in something similar to the following:
 		   Field or property 'delay' cannot be found on object of type 'org.springframework.messaging.MessageHeaders'
 ----
 
-Consequently, if there is a possibility of the header being omitted and you want to fall back to the default delay, it is generally more efficient (and recommended) using the indexer syntax instead of dot property accessor syntax, because detecting the null is faster than catching an exception.
+Consequently, if there is a possibility of the header being omitted, and you want to fall back to the default delay, it is generally more efficient (and recommended) using the indexer syntax instead of dot property accessor syntax, because detecting the null is faster than catching an exception.
 =====
 
 The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.

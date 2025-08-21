@@ -250,7 +250,7 @@ XML::
 If you need to serialize an `Object` to a byte array or deserialize a byte array back into an `Object`, Spring Integration provides symmetrical serialization transformers.
 These use standard Java serialization by default, but you can provide an implementation of Spring `Serializer` or `Deserializer` strategies by using the `serializer` and `deserializer` attributes, respectively.
 See also the `Transformers` factory class.
-The following example shows to use Spring's serializer and deserializer:
+The following example shows how to use Spring's serializer and deserializer:
 
 [tabs]
 ======
@@ -364,7 +364,7 @@ The two classes in the preceding example are transformed to the following `Map`:
 {name=George, child={name=Jenna, nickNames=[Bimbo, ...]}}
 ----
 
-To configure these transformers, Spring Integration provides respective XML component and Java DSL factory:
+To configure these transformers, Spring Integration provides the respective XML component and Java DSL factory:
 
 [tabs]
 ======
@@ -416,7 +416,7 @@ XML::
 ----
 ======
 
-Spring Integration provides XML namespace support for Map-to-Object and the Java DSL factory has the `fromMap()` method, as the following example shows:
+Spring Integration provides XML namespace support for Map-to-Object, and the Java DSL factory has the `fromMap()` method, as the following example shows:
 
 [tabs]
 ======
@@ -663,7 +663,7 @@ The default SpEL expression is `headers[avro_type]` (`AvroHeaders.TYPE`) which, 
 If the expression returns `null`, the `defaultType` is used.
 
 The `SimpleToAvroTransformer` also has a `setTypeExpression` method.
-This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type and the consumer then maps that token to a type.
+This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type, and the consumer then maps that token to a type.
 
 [[Protobuf-transformers]]
 === Protocol Buffers Transformers
@@ -783,7 +783,7 @@ XML::
 
 As you can see, configuration of a header filter is quite simple.
 It is a typical endpoint with input and output channels and a `header-names` attribute.
-That attribute accepts the names of the headers (delimited by commas if there are multiple) that need to be removed.
+That attribute accepts the names of the headers (delimited by commas if there are multiple of them) that need to be removed.
 So, in the preceding example, the headers named 'lastName' and 'state' are not present on the outbound message.
 
 

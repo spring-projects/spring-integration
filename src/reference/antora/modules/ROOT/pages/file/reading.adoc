@@ -129,7 +129,7 @@ For this purpose, all the XML components for file handling (local and remote), a
 Version 5.0.5 introduced the `DiscardAwareFileListFilter` implementations that have an interest in rejected files.
 For this purpose, such a filter implementation should be supplied with a callback through `addDiscardCallback(Consumer<File>)`.
 In the framework, this functionality is used from the `FileReadingMessageSource.WatchServiceDirectoryScanner`, in combination with `LastModifiedFileListFilter`.
-Unlike the regular `DirectoryScanner`, the `WatchService` provides files for processing according to the events on the target file system.
+Unlike the regular `DirectoryScanner`, the `WatchService` provides files for processing, according to the events on the target file system.
 At the moment of polling an internal queue with those files, the `LastModifiedFileListFilter` may discard them because they are too young relative to its configured `age`.
 Therefore, we lose the file for future possible considerations.
 The discard callback hook lets us retain the file in the internal queue so that it is available to be checked against the `age` in subsequent polls.
@@ -141,7 +141,7 @@ Starting with version 5.1, the `FileReadingMessageSource` doesn't check a direct
 Previously, there was no simple way to prevent the operating system permissions error when referencing the directory, for example from tests, or when permissions are applied later.
 
 In opposition to the `LastModifiedFileListFilter`, a `RecentFileListFilter` strategy has been introduced starting version 6.5.
-It is an extension for local file system of the `AbstractRecentFileListFilter`.
+It is an extension for a local file system of the `AbstractRecentFileListFilter`.
 By default, it accepts files which are not older than 1 day.
 See its other implementations for respective remote file protocol.
 
@@ -178,7 +178,7 @@ Therefore, to process files in a specific order, you should provide a comparator
 Version 5.0 introduced `RecursiveDirectoryScanner` to perform file tree visiting.
 The implementation is based on the `Files.walk(Path start, int maxDepth, FileVisitOption... options)` functionality.
 The root directory (`DirectoryScanner.listFiles(File)`) argument is excluded from the result.
-All other sub-directories inclusions and exclusions are based on the target `FileListFilter` implementation.
+All other subdirectories inclusions and exclusions are based on the target `FileListFilter` implementation.
 For example, the `SimplePatternFileListFilter` filters out directories by default.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/AbstractDirectoryAwareFileListFilter.html[`AbstractDirectoryAwareFileListFilter`] and its implementations for more information.
 
@@ -243,7 +243,7 @@ The second channel adapter example uses a custom filter, the third uses the `fil
 The `filename-pattern` and `filename-regex` attributes are each mutually exclusive with the regular `filter` reference attribute.
 However, you can use the `filter` attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern-based filters to fit your particular needs.
 
-When multiple processes read from the same directory, you may want to lock files to prevent them from being picked up concurrently.
+When multiple processes are read from the same directory, you may want to lock files to prevent them from being picked up concurrently.
 To do so, you can use a `FileLocker`.
 There is a `java.nio`-based implementation available, but it is also possible to implement your own locking scheme.
 The `nio` locker can be injected as follows:
@@ -301,8 +301,8 @@ The `FileReadingMessageSource.WatchServiceDirectoryScanner` relies on file-syste
 During initialization, the directory is registered to generate events.
 The initial file list is also built during initialization.
 While walking the directory tree, any subdirectories encountered are also registered to generate events.
-On the first poll, the initial file list from walking the directory is returned.
-On subsequent polls, files from new creation events are returned.
+In the first poll, the initial file list from walking the directory is returned.
+In subsequent polls, files from new creation events are returned.
 If a new subdirectory is added, its creation event is used to walk the new subtree to find existing files and register any new subdirectories found.
 
 NOTE: There is an issue with `WatchKey` when its internal events `queue` is not drained by the program as quickly as the directory modification events occur.
@@ -326,12 +326,12 @@ As a result, if a file with the same name appears, it passes the filter and is s
 For this purpose, the `watch-events` property (`FileReadingMessageSource.setWatchEvents(WatchEventType... watchEvents)`) has been introduced.
 (`WatchEventType` is a public inner enumeration in `FileReadingMessageSource`.)
 With such an option, we can use one downstream flow logic for new files and use some other logic for modified files.
-The following example shows how to configure different logic for create and modify events in the same directory:
+The following example shows how to configure different logic to create and modify events in the same directory:
 
-It is worth mentioning that the `ENTRY_DELETE` event is involved in the rename operation of sub-directory of the watched directory.
+It is worth mentioning that the `ENTRY_DELETE` event is involved in the rename operation of subdirectory of the watched directory.
 More specifically, `ENTRY_DELETE` event, which is related to the previous directory name, precedes `ENTRY_CREATE` event which notifies about the new (renamed) directory.
 On some operating systems (like Windows), the `ENTRY_DELETE` event has to be registered to deal with that situation.
-Otherwise, renaming watched sub-directory in the File Explorer could result in the new files not being detected in that sub-directory.
+Otherwise, renaming watched subdirectory in the File Explorer could result in the new files not being detected in that sub-directory.
 
 [source,xml]
 ----
@@ -566,7 +566,7 @@ By default, they append `.writing` to the file name and remove it when the trans
 Another common technique is to write a second "`marker`" file to indicate that the file transfer is complete.
 In this scenario, you should not consider `somefile.txt` (for example) to be available for use until `somefile.txt.complete` is also present.
 Spring Integration version 5.0 introduced new filters to support this mechanism.
-Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), xref:ftp/inbound.adoc#ftp-incomplete[FTP] and xref:sftp/inbound.adoc#sftp-incomplete[SFTP].
+Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), xref:ftp/inbound.adoc#ftp-incomplete[FTP], and xref:sftp/inbound.adoc#sftp-incomplete[SFTP].
 They are configurable such that the marker file can have any name, although it is usually related to the file being transferred.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/FileSystemMarkerFilePresentFileListFilter.html[Javadoc] for more information.
 

@@ -14,7 +14,7 @@ See xref:dsl.adoc#java-dsl[Java DSL] for more information.
 TIP: Spring Integration's `Filter` provides a boolean property: `throwExceptionOnRejection`.
 When you provide multiple selective consumers on the same point-to-point channel with different acceptance criteria, you should set this value 'true' (the default is `false`) so that the dispatcher knows that the message was rejected and, as a result, tries to pass the message on to other subscribers.
 If the exception were not thrown, it would appear to the dispatcher that the message had been passed on successfully even though the filter had dropped the message to prevent further processing.
-If you do indeed want to "`drop`" the messages, the filter's 'discard-channel' might be useful, since it does give you a chance to perform some operation with the dropped message (such as sending it to a JMS queue or writing it to a log).
+If you do indeed want to "`drop`" the messages, the filter's 'discard-channel' might be useful, since it does give you a chance to perform some operation with the dropped message, such as sending it to a JMS queue or writing it to a log.
 
 The handler chain simplifies configuration while internally maintaining the same degree of loose coupling between components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required.
 
@@ -57,7 +57,7 @@ A header enricher is a specialization of `Transformer` that touches only header 
 You could obtain the same result by implementing a `MessageHandler` that did the header modifications and wiring that as a bean, but the header-enricher is a simpler option.
 
 The `<chain>` can be configured as the last "`closed-box`" consumer of the message flow.
-For this solution, you can to put it at the end of the <chain> some <outbound-channel-adapter>, as the following example shows:
+For this solution, you can put it at the end of the <chain> some <outbound-channel-adapter>, as the following example shows:
 
 [source,xml]
 ----
@@ -75,7 +75,7 @@ For this solution, you can to put it at the end of the <chain> some <outbound-ch
 [IMPORTANT]
 =====
 Certain attributes, such as `order` and `input-channel` are not allowed to be specified on components used within a chain.
-The same is true for the poller sub-element.
+The same is true for the poller subelement.
 
 For the Spring Integration core components, the XML schema itself enforces some of these constraints.
 However, for non-core components or your own custom components, these constraints are enforced by the XML namespace parser, not by the XML schema.
@@ -104,7 +104,7 @@ In the preceding example:
 * The `<chain>` root element has an `id` of 'somethingChain'.
 Consequently, the `AbstractEndpoint` implementation (`PollingConsumer` or `EventDrivenConsumer`, depending on the `input-channel` type) bean takes this value as its bean name.
 
-* The `MessageHandlerChain` bean acquires a bean alias ('somethingChain.handler'), which allows direct access to this bean from the `BeanFactory`.
+* The `MessageHandlerChain` bean acquires a bean alias (`somethingChain.handler`), which allows direct access to this bean from the `BeanFactory`.
 
 * The `<service-activator>` is not a fully fledged messaging endpoint (it is not a `PollingConsumer` or `EventDrivenConsumer`).
 It is a `MessageHandler` within the `<chain>`.
@@ -123,7 +123,7 @@ However, its `componentName` has a value that is useful for logging and other pu
 The `id` attribute for `<chain>` elements lets them be eligible for xref:jmx.adoc#jmx-mbean-exporter[JMX export], and they are trackable in the xref:message-history.adoc[message history].
 You can access them from the `BeanFactory` by using the appropriate bean name, as discussed earlier.
 
-TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of sub-components in logs and to provide access to them from the `BeanFactory` etc.
+TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of subcomponents in logs and to provide access to them from the `BeanFactory` etc.
 
 [[chain-gateway]]
 == Calling a Chain from within a Chain

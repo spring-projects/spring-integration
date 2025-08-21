@@ -30,17 +30,17 @@ If you wish to revert to the previous behavior of giving reads priority, set the
 The pool size attribute is no longer used.
 Previously, it specified the size of the default thread pool when a task-executor was not specified.
 It was also used to set the connection backlog on server sockets.
-The first function is no longer needed (see the next paragraph).
+The first function is no longer needed; see the next paragraph.
 The second function is replaced by the `backlog` attribute.
 
-Previously, when using a fixed thread pool task executor (which was the default) with NIO, it was possible to get a deadlock and processing would stop.
+Previously, when using a fixed thread pool task executor, (which was the default) with NIO, it was possible to get a deadlock and processing would stop.
 The problem occurred when a buffer was full, a thread reading from the socket was trying to add more data to the buffer, and no threads were available to make space in the buffer.
 This only occurred with a very small pool size, but it could be possible under extreme conditions.
 Since 2.2, two changes have eliminated this problem.
 First, the default task executor is a cached thread pool executor.
 Second, deadlock detection logic has been added such that, if thread starvation occurs, instead of deadlocking, an exception is thrown, thus releasing the deadlocked resources.
 
-IMPORTANT: Now that the default task executor is unbounded, it is possible that an out-of-memory condition might occur with high rates of incoming messages, if message processing takes extended time.
+IMPORTANT: Now that the default task executor is unbounded, it is possible that an out-of-memory condition might occur with high rates of incoming messages if message processing takes extended time.
 If your application exhibits this type of behavior, you should use a pooled task executor with an appropriate pool size, but see xref:ip/note-nio.adoc#io-thread-pool-task-executor-caller-runs[the next section].
 
 [[io-thread-pool-task-executor-caller-runs]]
@@ -76,7 +76,7 @@ In addition, the task executors should be configured to use an `AbortPolicy` (`A
 When an I/O task cannot be completed, it is deferred for a short time and continually retried until it can be completed and have an assembler allocated.
 By default, the delay is 100ms, but you can change it by setting the `readDelay` property on the connection factory (`read-delay` when configuring with the XML namespace).
 
-The following three examples shows how to configure the composite executor:
+The following three examples show how to configure the composite executor:
 
 [source,java]
 ----
