@@ -35,7 +35,7 @@ The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen 
 Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
 
 The SMB Channel Adapters and support classes implementations are fully similar to existing components for (S)FTP or AWS S3 protocols.
-So, if you familiar with those components it is pretty straightforward to use.
+So, if you are familiar with those components, it is pretty straightforward to use.
 
 Spring Integration supports sending and receiving files over SMB by providing three client-side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
 It also provides convenient namespace-based configuration options for defining these client components.
@@ -117,7 +117,7 @@ And then its bean can be injected into channel adapters described below.
 
 To download SMB files locally the `SmbInboundFileSynchronizingMessageSource` is provided.
 It is simple extension of the `AbstractInboundFileSynchronizingMessageSource` which  requires `SmbInboundFileSynchronizer` injection.
-For filtering remote files you still can use any existing `FileListFilter` implementations, but particular `SmbRegexPatternFileListFilter` and `SmbSimplePatternFileListFilter` are provided.
+For filtering remote files, you still can use any existing `FileListFilter` implementations, but particular `SmbRegexPatternFileListFilter` and `SmbSimplePatternFileListFilter` are provided.
 
 [source,java]
 ----
@@ -215,7 +215,7 @@ public class SmbJavaApplication {
 [[smb-streaming-inbound]]
 == SMB Streaming Inbound Channel Adapter
 
-This adapter produces message with payloads of type `InputStream`, letting files be fetched without writing to the local file system.
+This adapter produces a message with payloads of type `InputStream`, letting files be fetched without writing to the local file system.
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
@@ -324,12 +324,12 @@ There are two properties that you should consider when you configure inbound cha
 The following scenarios assume the starting state is an empty local directory:
 
 * `max-messages-per-poll=2` and `max-fetch-size=1`: The adapter fetches one file, emits it, fetches the next file, emits it, and then sleeps until the next poll.
-* `max-messages-per-poll=2` and `max-fetch-size=2`): The adapter fetches both files and then emits each one.
+* `max-messages-per-poll=2` and `max-fetch-size=2`: The adapter fetches both files and then emits each one.
 * `max-messages-per-poll=2` and `max-fetch-size=4`: The adapter fetches up to four files (if available) and emits the first two (if there are at least two).
 The next two files are emitted on the next poll.
 * `max-messages-per-poll=2` and `max-fetch-size` not specified: The adapter fetches all remote files and emits the first two (if there are at least two).
-The subsequent files are emitted on subsequent polls (two at a time).
-When all files are consumed, the remote fetch is attempted again, to pick up any new files.
+The subsequent files are emitted on later polls (two at a time).
+When all files are consumed, the remote fetch is attempted again to pick up any new files.
 
 IMPORTANT: When you deploy multiple instances of an application, we recommend a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
@@ -427,7 +427,7 @@ The supported commands are:
 * `mget` (retrieve file(s))
 * `rm` (remove file(s))
 * `mv` (move/rename file)
-* `put` (send file)
+* `put` (send a file)
 * `mput` (send multiple files)
 
 [[using-the-ls-command]]
@@ -437,7 +437,7 @@ The supported commands are:
 
 * `-1`: Retrieve a list of filenames.
 The default is to retrieve a list of `FileInfo` objects
-* `-a`: Include all files (including those starting with '.')
+* `-a`: Include all files (including those starting with a `.`)
 * `-f`: Do not sort the list
 * `-dirs`: Include directories (excluded by default)
 * `-links`: Include symbolic links (excluded by default)
@@ -533,10 +533,10 @@ If the transfer is ignored, the remote file is not deleted, because the `FileExi
 
 The message payload resulting from an `mget` operation is a `List<File>` object (that is, a `List` of `File` objects, each representing a retrieved file).
 
-IMPORTANT: If the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contain files that were not fetched due to the file already existing.
+IMPORTANT: If the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contains files that were not fetched due to the file already existing.
 Previously, the array contained all files, including those that already existed.
 
-The expression you use determine the remote path should produce a result that ends with `*` for example `myfiles/*` fetches the complete tree under `myfiles`.
+The expression you use determines the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
 
 You can use a recursive `MGET`, combined with the `FileExistsMode.REPLACE_IF_MODIFIED` mode, to periodically synchronize an entire remote directory tree locally.
 This mode sets the local file's last modified timestamp to the remote file's timestamp, regardless of the `-P` (preserve timestamp) option.
@@ -662,7 +662,7 @@ It is particularly useful for mget (for example: `local-directory-expression="'/
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
-For the `mget` command, the expression might evaluate to `*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
+For the `mget` command, the expression might evaluate to `\*`, meaning to retrieve all files, `somedirectory/\*`, and other values that end with `*`.
 
 The following example shows a gateway configured for an `ls` command:
 
@@ -679,7 +679,7 @@ The following example shows a gateway configured for an `ls` command:
 
 The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
 If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
-You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
+You can provide options as a space-delimited list, for example, `command-options="-1 -dirs -links"`.
 
 The `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
 This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).
@@ -811,7 +811,7 @@ Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.t
 [[smb-remote-file-info]]
 == Remote File Information
 
-The `SmbStreamingMessageSource` (xref:smb.adoc#smb-streaming-inbound[SMB Streaming Inbound Channel Adapter]), `SmbInboundFileSynchronizingMessageSource` (xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter]) and "read"-commands of the `SmbOutboundGateway` (xref:smb.adoc#smb-outbound-gateway[SMB Outbound Gateway]) provide additional headers in the message to produce with information about the remote file:
+The `SmbStreamingMessageSource` (xref:smb.adoc#smb-streaming-inbound[SMB Streaming Inbound Channel Adapter]), `SmbInboundFileSynchronizingMessageSource` (xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter,]) and "read"-commands of the `SmbOutboundGateway` (xref:smb.adoc#smb-outbound-gateway[SMB Outbound Gateway]) provide additional headers in the message to produce with information about the remote file:
 
 * `FileHeaders.REMOTE_HOST_PORT` - the host:port pair the remote session has been connected to during file transfer operation;
 * `FileHeaders.REMOTE_DIRECTORY` - the remote directory the operation has been performed;
