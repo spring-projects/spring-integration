@@ -136,15 +136,13 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	protected void doInit() {
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
-		if (this.selector instanceof AbstractMessageProcessingSelector) {
+		if (this.selector instanceof AbstractMessageProcessingSelector abstractMessageProcessingSelector) {
 			ConversionService conversionService = getConversionService();
-			if (conversionService != null) {
-				((AbstractMessageProcessingSelector) this.selector).setConversionService(conversionService);
-			}
+			abstractMessageProcessingSelector.setConversionService(conversionService);
 		}
 		BeanFactory beanFactory = getBeanFactory();
-		if (this.selector instanceof BeanFactoryAware && beanFactory != null) {
-			((BeanFactoryAware) this.selector).setBeanFactory(beanFactory);
+		if (this.selector instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 	}
 
