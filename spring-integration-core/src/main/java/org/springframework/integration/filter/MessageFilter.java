@@ -16,6 +16,8 @@
 
 package org.springframework.integration.filter;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
@@ -53,9 +55,9 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	private boolean throwExceptionOnRejection;
 
-	private MessageChannel discardChannel;
+	private  @Nullable MessageChannel discardChannel;
 
-	private String discardChannelName;
+	private  @Nullable String discardChannelName;
 
 	/**
 	 * Create a MessageFilter that will delegate to the given {@link MessageSelector}.
@@ -111,7 +113,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
-	public MessageChannel getDiscardChannel() {
+	public  @Nullable MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;
 		if (channelName != null) {
 			this.discardChannel = getChannelResolver().resolveDestination(channelName);
@@ -166,7 +168,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
-	protected Object doHandleRequestMessage(Message<?> message) {
+	protected @Nullable Object doHandleRequestMessage(Message<?> message) {
 		if (this.selector.accept(message)) {
 			return message;
 		}

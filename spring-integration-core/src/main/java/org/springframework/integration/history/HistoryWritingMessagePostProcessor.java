@@ -16,6 +16,8 @@
 
 package org.springframework.integration.history;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -29,7 +31,7 @@ import org.springframework.util.Assert;
  */
 public class HistoryWritingMessagePostProcessor implements MessagePostProcessor {
 
-	private volatile TrackableComponent trackableComponent;
+	private volatile @Nullable TrackableComponent trackableComponent;
 
 	private volatile boolean shouldTrack;
 
