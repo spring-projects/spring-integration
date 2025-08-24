@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -40,7 +42,7 @@ public interface IntegrationConsumer extends NamedComponent {
 	 * Return the output channel (maybe null).
 	 * @return the output channel.
 	 */
-	MessageChannel getOutputChannel();
+	@Nullable MessageChannel getOutputChannel();
 
 	/**
 	 * Return the consumer's handler.

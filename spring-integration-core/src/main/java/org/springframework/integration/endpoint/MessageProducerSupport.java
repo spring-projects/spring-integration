@@ -22,7 +22,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationPattern;
@@ -68,17 +67,18 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	@Nullable
 	private MessageReceiverObservationConvention observationConvention;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageChannel outputChannel;
 
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
 	private boolean shouldTrack = false;
 
-	private volatile Subscription subscription;
+	private volatile @Nullable Subscription subscription;
 
 	@SuppressWarnings("this-escape")
 	protected MessageProducerSupport() {
@@ -219,10 +219,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	@Override
 	protected void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
+		this.messagingTemplate.setBeanFactory(getBeanFactory());
 	}
 
 	/**
@@ -248,7 +245,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		}
 	}
 
-	protected void sendMessage(Message<?> message) {
+	protected void sendMessage(@Nullable Message<?> message) {
 		if (message == null) {
 			throw new MessagingException("cannot send a null message");
 		}

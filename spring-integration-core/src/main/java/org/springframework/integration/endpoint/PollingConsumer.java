@@ -21,6 +21,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.context.Lifecycle;
@@ -59,7 +60,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 
 	private final MessageHandler handler;
 
-	private final List<ChannelInterceptor> channelInterceptors;
+	private final @Nullable List<ChannelInterceptor> channelInterceptors;
 
 	private PollableChannel inputChannel;
 
@@ -92,7 +93,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	}
 
 	@Override
-	public MessageChannel getOutputChannel() {
+	public @Nullable MessageChannel getOutputChannel() {
 		if (this.handler instanceof MessageProducer messageProducer) {
 			return messageProducer.getOutputChannel();
 		}
@@ -177,7 +178,8 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		}
 	}
 
-	private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
+	private @Nullable Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
 		Message<?> theMessage = message;
 		for (ChannelInterceptor interceptor : this.channelInterceptors) {
 			if (interceptor instanceof ExecutorChannelInterceptor executorInterceptor) {
@@ -194,7 +196,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		return theMessage;
 	}
 
-	private void triggerAfterMessageHandled(Message<?> message, Exception ex,
+	private void triggerAfterMessageHandled(Message<?> message, @Nullable Exception ex,
 			Deque<ExecutorChannelInterceptor> interceptorStack) {
 
 		Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
@@ -210,7 +212,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	}
 
 	@Override
-	protected Message<?> receiveMessage() {
+	protected @Nullable Message<?> receiveMessage() {
 		return (this.receiveTimeout >= 0)
 				? this.inputChannel.receive(this.receiveTimeout)
 				: this.inputChannel.receive();

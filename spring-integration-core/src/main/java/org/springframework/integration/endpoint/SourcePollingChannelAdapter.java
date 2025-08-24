@@ -22,11 +22,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import org.jspecify.annotations.Nullable;
+import reactor.core.publisher.Flux;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.expression.Expression;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
@@ -64,17 +65,20 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private final Lock lock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageSource<?> originalSource;
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
-	private MessageReceiverObservationConvention observationConvention;
+	private @Nullable MessageReceiverObservationConvention observationConvention;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile MessageSource<?> source;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile MessageChannel outputChannel;
 
-	private volatile String outputChannelName;
+	private volatile @Nullable String outputChannelName;
 
 	private volatile boolean shouldTrack;
 
@@ -89,7 +93,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		this.originalSource = target != null ? (MessageSource<?>) target : source;
 
 		if (source instanceof ExpressionCapable expressionCapable) {
-			setPrimaryExpression(expressionCapable.getExpression());
+			Expression expression = expressionCapable.getExpression();
+			Assert.state(expression != null, "'expression' must not be null");
+			setPrimaryExpression(expression);
 		}
 	}
 
@@ -182,7 +188,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		super.doStart();
 
 		if (isReactive()) {
-			((ReactiveStreamsSubscribableChannel) this.outputChannel).subscribeTo(getPollingFlux());
+			Flux<Message<?>> pollingFlux = getPollingFlux();
+			Assert.state(pollingFlux != null, "'pollingFlux' must not be null");
+			((ReactiveStreamsSubscribableChannel) getOutputChannel()).subscribeTo(pollingFlux);
 		}
 	}
 
@@ -201,10 +209,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 						|| (this.outputChannelName != null && this.outputChannel == null),
 				"One and only one of 'outputChannelName' or 'outputChannel' is required.");
 		super.onInit();
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
+		this.messagingTemplate.setBeanFactory(getBeanFactory());
 	}
 
 	public MessageChannel getOutputChannel() {
@@ -246,7 +251,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	@Override
-	protected Message<?> receiveMessage() {
+	protected @Nullable Message<?> receiveMessage() {
 		return this.source.receive();
 	}
 
@@ -296,7 +301,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	@Nullable
-	private static Object extractProxyTarget(Object target) {
+	private static Object extractProxyTarget(@Nullable Object target) {
 		if (!(target instanceof Advised advised)) {
 			return target;
 		}

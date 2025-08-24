@@ -61,19 +61,20 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private final Set<MeterFacade> meters = ConcurrentHashMap.newKeySet();
 
-	private Map<String, Expression> headerExpressions;
+	private @Nullable Map<String, Expression> headerExpressions;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private String managedType;
+	private @Nullable String managedType;
 
-	private String managedName;
+	private @Nullable String managedName;
 
 	private boolean loggingEnabled = true;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	public void setHeaderExpressions(@Nullable Map<String, Expression> headerExpressions) {
 		if (!CollectionUtils.isEmpty(headerExpressions)) {
@@ -97,7 +98,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public String getManagedType() {
+	public @Nullable String getManagedType() {
 		return this.managedType;
 	}
 
@@ -107,7 +108,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public String getManagedName() {
+	public @Nullable String getManagedName() {
 		return this.managedName;
 	}
 
@@ -133,7 +134,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public final Message<T> receive() {
+	public final @Nullable Message<T> receive() {
 		try {
 			return buildMessage(doReceive());
 		}
@@ -146,12 +147,12 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Message<T> buildMessage(Object result) {
+	protected @Nullable Message<T> buildMessage(@Nullable Object result) {
 		if (result == null) {
 			return null;
 		}
 		Message<?> message;
-		Map<String, Object> headers = evaluateHeaders();
+		Map<String, @Nullable Object> headers = evaluateHeaders();
 		if (result instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
 			if (!CollectionUtils.isEmpty(headers)) {
 				messageBuilder.copyHeaders(headers);
@@ -190,9 +191,10 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		this.receiveCounter.increment();
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	private CounterFacade createCounter(boolean success, String exception) {
 		CounterFacade counter = this.metricsCaptor.counterBuilder(RECEIVE_COUNTER_NAME)
-				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("name", getComponentName())
 				.tag("type", "source")
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
@@ -203,7 +205,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Nullable
-	private Map<String, Object> evaluateHeaders() {
+	private Map<String, @Nullable Object> evaluateHeaders() {
 		return CollectionUtils.isEmpty(this.headerExpressions)
 				? null
 				: ExpressionEvalMap.from(this.headerExpressions)
