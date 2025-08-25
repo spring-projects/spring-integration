@@ -22,15 +22,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import tools.jackson.databind.ObjectMapper;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
@@ -114,8 +111,7 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 		List<MessageConverter> converters = new LinkedList<>();
 
 		if (JacksonPresent.isJackson3Present()) {
-			ObjectMapper objectMapper = new JacksonJsonObjectMapper().getObjectMapper();
-			JacksonJsonMessageConverter jsonMessageConverter = new JacksonJsonMessageConverter(objectMapper);
+			JacksonJsonMessageConverter jsonMessageConverter = new JacksonJsonMessageConverter();
 			jsonMessageConverter.setStrictContentTypeMatch(true);
 			converters.add(jsonMessageConverter);
 		}
