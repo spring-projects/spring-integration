@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.management.MessageSourceManagement;
 
 /**
@@ -43,7 +45,7 @@ public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMess
 	}
 
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		return doReceive(this.maxFetchSize);
 	}
 
@@ -55,6 +57,6 @@ public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMess
 	 * necessary.
 	 * @return The value returned.
 	 */
-	protected abstract Object doReceive(int maxFetchSizeToReceive);
+	protected abstract @Nullable Object doReceive(int maxFetchSizeToReceive);
 
 }

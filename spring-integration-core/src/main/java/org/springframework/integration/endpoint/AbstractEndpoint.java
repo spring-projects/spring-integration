@@ -18,6 +18,8 @@ package org.springframework.integration.endpoint;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -50,9 +52,9 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	protected final ReentrantLock lifecycleLock = new ReentrantLock(); // NOSONAR
 
-	private String role;
+	private @Nullable String role;
 
-	private SmartLifecycleRoleController roleController;
+	private @Nullable SmartLifecycleRoleController roleController;
 
 	private boolean autoStartup = true;
 
@@ -81,11 +83,11 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	 * @see org.springframework.context.SmartLifecycle
 	 * @see org.springframework.integration.support.SmartLifecycleRoleController
 	 */
-	public void setRole(String role) {
+	public void setRole(@Nullable String role) {
 		this.role = role;
 	}
 
-	public String getRole() {
+	public @Nullable String getRole() {
 		return this.role;
 	}
 

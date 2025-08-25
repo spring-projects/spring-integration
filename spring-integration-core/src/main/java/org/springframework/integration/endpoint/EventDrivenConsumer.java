@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
@@ -60,7 +62,7 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	}
 
 	@Override
-	public MessageChannel getOutputChannel() {
+	public @Nullable MessageChannel getOutputChannel() {
 		if (this.handler instanceof MessageProducer messageProducer) {
 			return messageProducer.getOutputChannel();
 		}

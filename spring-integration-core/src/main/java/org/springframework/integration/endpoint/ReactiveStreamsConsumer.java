@@ -75,9 +75,10 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	@Nullable
 	private Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>> reactiveCustomizer;
 
+	@SuppressWarnings("NullAway.Init")
 	private ErrorHandler errorHandler;
 
-	private volatile Disposable subscription;
+	private volatile @Nullable Disposable subscription;
 
 	@SuppressWarnings("unchecked")
 	public ReactiveStreamsConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
@@ -145,7 +146,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	}
 
 	@Override
-	public MessageChannel getOutputChannel() {
+	public @Nullable MessageChannel getOutputChannel() {
 		if (this.handler instanceof MessageProducer messageProducer) {
 			return messageProducer.getOutputChannel();
 		}
@@ -212,7 +213,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 		private final Consumer<Message<?>> consumer;
 
-		private Subscription subscription;
+		private @Nullable Subscription subscription;
 
 		private final MessageHandler messageHandler;
 
