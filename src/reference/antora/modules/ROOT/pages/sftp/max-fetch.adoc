@@ -26,6 +26,19 @@ Starting with version 5.1, the synchronizer can be provided with a `Comparator<?
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 Starting with version 6.4, the `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
-The references stay in cache because polling configuration does not allow processing all of them in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
+The references stay in cache because polling configuration does not allow processing all of them in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g., via `RotatingServerAdvice`.
+
+Starting with version 7.0, the `AbstractInboundFileSynchronizer` caches a filtered `Session.list(remoteDirectory)` after applying a `maxFetchSize` slicing.
+The logic of the `AbstractInboundFileSynchronizer.transferFilesFromRemoteToLocal()` method is the following:
+
+- If `maxFetchSize > 0`, the lock is acquired against `remoteDirectory` to avoid race condition from different threads, when work is done around cache.
+The performance degradation is minimal since all the later synchronizations deal only with in-memory cached leftover;
+- If no cache entry for the `remoteDirectory`, the `Session.list(remoteDirectory)` is called and all returned remote files are filtered;
+- the filtered result then sliced to the `maxFetchSize`;
+- then these file entries are being transferred to the local directory;
+- the rest of filtered remote files are cached for later synchronizations;
+- if there is a cache entry for the `remoteDirectory`, such a list is sliced to the maxFetchSize and iterated for the transfer to the local directory;
+- if one of the transfers fails, the `filter` is reset from the failed remote file.
+The cache is also evicted; therefore, the next synchronization would start from a clean state.
 
 Also see general xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter] chapter for information about `FileListFilter` configuration.
