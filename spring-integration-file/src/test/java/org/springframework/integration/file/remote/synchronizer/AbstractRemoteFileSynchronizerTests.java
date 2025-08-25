@@ -62,7 +62,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 
 	@Test
 	public void testRollback() throws Exception {
-		final AtomicBoolean failWhenCopyingBar = new AtomicBoolean(true);
+		final AtomicBoolean failWhenCopyingTestFile2 = new AtomicBoolean(true);
 		final AtomicInteger count = new AtomicInteger();
 		SessionFactory<String> sf = new StringSessionFactory();
 		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<>(sf) {
@@ -92,7 +92,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 					EvaluationContext localFileEvaluationContext, String remoteFile,
 					File localDirectory, Session<String> session) throws IOException {
 
-				if ("bar".equals(remoteFile) && failWhenCopyingBar.getAndSet(false)) {
+				if ("testFile2".equals(remoteFile) && failWhenCopyingTestFile2.getAndSet(false)) {
 					throw new IOException("fail");
 				}
 				count.incrementAndGet();
@@ -125,13 +125,13 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> fetchCache = TestUtils.getPropertyValue(sync, "fetchCache", Map.class);
 		List<String> cachedFiles = fetchCache.get("testRemoteDirectory");
-		assertThat(cachedFiles).containsExactly("bar", "baz");
+		assertThat(cachedFiles).containsExactly("testFile2", "testFile3");
 
 		sync.synchronizeToLocalDirectory(localDirectory, 1);
 		assertThat(count.get()).isEqualTo(2);
 
 		cachedFiles = fetchCache.get("testRemoteDirectory");
-		assertThat(cachedFiles).containsExactly("baz");
+		assertThat(cachedFiles).containsExactly("testFile3");
 
 		sync.synchronizeToLocalDirectory(localDirectory, 1);
 		assertThat(count.get()).isEqualTo(3);
@@ -388,7 +388,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		@Override
 		public String[] list(String path) {
 			this.listCallCount++;
-			return new String[] {"foo", "bar", "baz"};
+			return new String[] {"testFile1", "testFile2", "testFile3"};
 		}
 
 		@Override
