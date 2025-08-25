@@ -425,7 +425,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		catch (Exception ex) {
 			pollingTaskError = ex;
-			if (ex instanceof MessagingException messagingException) { // NOSONAR
+			if (ex instanceof MessagingException messagingException) {
 				throw messagingException;
 			}
 			else {
