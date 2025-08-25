@@ -43,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jdbc.channel.PgConnectionSupplier;
 import org.springframework.integration.jdbc.channel.PostgresChannelMessageTableSubscriber;
@@ -57,7 +59,6 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -246,7 +247,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		AtomicInteger actualTries = new AtomicInteger();
 
 		int maxAttempts = 2;
-		postgresSubscribableChannel.setRetryTemplate(RetryTemplate.builder().maxAttempts(maxAttempts).build());
+		postgresSubscribableChannel.setRetryTemplate(
+				new RetryTemplate(RetryPolicy.builder().maxAttempts(maxAttempts).build()));
 
 		if (transactionsEnabled) {
 			postgresSubscribableChannel.setTransactionManager(transactionManager);
