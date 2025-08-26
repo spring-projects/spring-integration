@@ -142,9 +142,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	 * Subclasses may implement this method to provide component type information.
 	 */
 	@Override
-	@Nullable
 	public String getComponentType() {
-		return null;
+		return "integration-object-support";
 	}
 
 	@Override

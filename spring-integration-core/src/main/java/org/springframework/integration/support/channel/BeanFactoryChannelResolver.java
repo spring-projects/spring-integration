@@ -53,7 +53,8 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 
 	private final Lock lock = new ReentrantLock();
 
-	private @Nullable BeanFactory beanFactory;
+	@SuppressWarnings("NullAway.Init")
+	private BeanFactory beanFactory;
 
 	private @Nullable HeaderChannelRegistry replyChannelRegistry;
 
@@ -90,7 +91,6 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 
 	@Override
 	public MessageChannel resolveDestination(String name) {
-		Assert.state(this.beanFactory != null, "BeanFactory is required");
 		try {
 			return this.beanFactory.getBean(name, MessageChannel.class);
 		}

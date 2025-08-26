@@ -28,7 +28,6 @@ public interface NamedComponent {
 
 	String getComponentName();
 
-	@Nullable
 	String getComponentType();
 
 	default String getBeanName() {
