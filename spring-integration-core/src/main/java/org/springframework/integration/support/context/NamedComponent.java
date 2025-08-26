@@ -16,8 +16,6 @@
 
 package org.springframework.integration.support.context;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * @author Mark Fisher
  * @author Artem Bilan
