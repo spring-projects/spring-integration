@@ -19,12 +19,12 @@ package org.springframework.integration.amqp.dsl;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.support.RetryTemplate;
 
 /**
  * A base {@link MessagingGatewaySpec} implementation for {@link AmqpInboundGateway} endpoint options.

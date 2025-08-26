@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -34,6 +35,7 @@ import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.Pausable;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
@@ -63,7 +65,6 @@ import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
@@ -99,7 +100,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private @Nullable RetryTemplate retryTemplate;
 
-	private @Nullable RecoveryCallback<?> recoveryCallback;
+	private org.springframework.retry.@Nullable RecoveryCallback<?> recoveryCallback;
 
 	private boolean filterInRetry;
 
@@ -239,7 +240,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param recoveryCallback the recovery callback.
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
-		this.recoveryCallback = recoveryCallback;
+		this.recoveryCallback = (context) ->
+				recoveryCallback.recover(context, Objects.requireNonNull(context.getLastThrowable()));
 	}
 
 	/**
@@ -309,7 +311,12 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			if (this.retryTemplate != null) {
 				MessageChannel errorChannel = getErrorChannel();
 				if (this.recoveryCallback != null && errorChannel != null) {
-					this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
+					// TODO https://github.com/spring-projects/spring-integration/issues/10345
+					ErrorMessageSendingRecoverer errorMessageSendingRecoverer =
+							new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
+					this.recoveryCallback =
+							context ->
+									errorMessageSendingRecoverer.recover(context, context.getLastThrowable());
 				}
 			}
 			if (!doFilterInRetry && this.recordFilterStrategy != null) {

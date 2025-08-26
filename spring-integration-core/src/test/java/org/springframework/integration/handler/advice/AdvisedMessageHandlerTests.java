@@ -534,7 +534,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
 			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 
-		advice.setRecoveryCallback(context -> "baz");
+		advice.setRecoveryCallback((context, cause) -> "baz");
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
@@ -619,11 +619,12 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
-		assertThat(error).isNotNull();
-		assertThat(error.getPayload() instanceof ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException)
-				.isTrue();
-		assertThat(((MessagingException) error.getPayload()).getFailedMessage()).isNotNull();
-		assertThat(((MessagingException) error.getPayload()).getFailedMessage()).isSameAs(message);
+		assertThat(error)
+				.isNotNull()
+				.extracting("payload").
+				isInstanceOf(ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException.class)
+				.extracting("failedMessage")
+				.isSameAs(message);
 	}
 
 	@Test

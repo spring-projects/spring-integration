@@ -35,10 +35,13 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -46,17 +49,15 @@ import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessag
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.EndpointUtils;
 import org.springframework.integration.amqp.support.MappingUtils;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.support.RetrySynchronizationManager;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
- * Spring Integration Messages, and sends the results to a Message Channel.
+ * Spring Integration messages and sends the results to a Message Channel.
  * If a reply Message is received, it will be converted and sent back to
  * the AMQP 'replyTo'.
  *
@@ -237,13 +238,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	/**
 	 * When mapping headers for the outbound (reply) message, determine whether the headers are
-	 * mapped before the message is converted, or afterwards. This only affects headers
+	 * mapped before the message is converted, or afterward. This only affects headers
 	 * that might be added by the message converter. When false, the converter's headers
 	 * win; when true, any headers added by the converter will be overridden (if the
 	 * source message has a header that maps to those headers). You might wish to set this
 	 * to true, for example, when using a
 	 * {@link org.springframework.amqp.support.converter.SimpleMessageConverter} with a
-	 * String payload that contains json; the converter will set the content type to
+	 * String payload that contains JSON; the converter will set the content type to
 	 * {@code text/plain} which can be overridden to {@code application/json} by setting
 	 * the {@link AmqpHeaders#CONTENT_TYPE} message header. Default: false.
 	 * @param replyHeadersMappedLast true if reply headers are mapped after conversion.
@@ -286,11 +287,11 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				"Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, but not both");
 		if (messageRecovererToUse != null) {
 			this.recoveryCallback =
-					context -> {
+					(context, cause) -> {
 						Message messageToRecover =
 								(Message) context.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 						if (messageToRecover != null) {
-							messageRecovererToUse.recover(messageToRecover, context.getLastThrowable());
+							messageRecovererToUse.recover(messageToRecover, cause);
 						}
 						return null;
 					};
@@ -310,9 +311,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	/**
-	 * If there's a retry template, it will set the attributes holder via the listener. If
-	 * there's no retry template, but there's an error channel, we create a new attributes
-	 * holder here. If an attributes holder exists (by either method), we set the
+	 * If there's a retry template, it will set the attribute holder via the listener. If
+	 * there's no retry template, but there's an error channel, we create a new attribute
+	 * holder here. If an attribute holder exists (by either method), we set the
 	 * attributes for use by the
 	 * {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param amqpMessage the AMQP message to use.
@@ -322,19 +323,15 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private void setAttributesIfNecessary(Message amqpMessage,
 			org.springframework.messaging.@Nullable Message<?> message) {
 
-		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
-		boolean needAttributes = needHolder || this.retryTemplate != null;
+		boolean needHolder = getErrorChannel() != null || this.retryTemplate != null;
 		if (needHolder) {
-			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
-		}
-		if (needAttributes) {
-			AttributeAccessor attributes = this.retryTemplate != null
-					? RetrySynchronizationManager.getContext()
-					: ATTRIBUTES_HOLDER.get();
-			if (attributes != null) {
-				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
+			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
+			if (attributes == null) {
+				attributes = ErrorMessageUtils.getAttributeAccessor(null, null);
+				ATTRIBUTES_HOLDER.set(attributes);
 			}
+			attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+			attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
 		}
 	}
 
@@ -357,30 +354,43 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, @Nullable Channel channel) {
-			if (AmqpInboundGateway.this.retryTemplate == null) {
-				try {
+			try {
+				if (AmqpInboundGateway.this.retryTemplate == null) {
+
 					org.springframework.messaging.Message<Object> converted = convert(message, channel);
 					if (converted != null) {
 						process(message, converted);
 					}
 				}
-				finally {
-					ATTRIBUTES_HOLDER.remove();
-				}
-			}
-			else {
-				org.springframework.messaging.Message<Object> converted = convert(message, channel);
-				if (converted != null) {
-					AmqpInboundGateway.this.retryTemplate.execute(context -> {
+				else {
+					org.springframework.messaging.Message<Object> converted = convert(message, channel);
+					if (converted != null) {
+						try {
+							AmqpInboundGateway.this.retryTemplate.execute(() -> {
 								AtomicInteger deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(converted);
 								if (deliveryAttempt != null) {
 									deliveryAttempt.incrementAndGet();
 								}
 								process(message, converted);
 								return null;
-							},
-							(RecoveryCallback<Object>) AmqpInboundGateway.this.recoveryCallback);
+							});
+						}
+						catch (RetryException ex) {
+							if (AmqpInboundGateway.this.recoveryCallback != null) {
+								AmqpInboundGateway.this.recoveryCallback.recover(getErrorMessageAttributes(converted),
+										ex.getCause());
+							}
+							else {
+								throw new ListenerExecutionFailedException(
+										"Failed handling message after '" + ex.getRetryCount() + "' retries", ex,
+										message);
+							}
+						}
+					}
 				}
+			}
+			finally {
+				ATTRIBUTES_HOLDER.remove();
 			}
 		}
 

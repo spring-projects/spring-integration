@@ -16,16 +16,17 @@
 
 package org.springframework.integration.handler.advice;
 
+import java.io.Serial;
+
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.core.ErrorMessagePublisher;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryContext;
 
 /**
  * A {@link RecoveryCallback} that sends the final throwable as an
@@ -43,8 +44,8 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 
 	/**
 	 * Construct instance with the default {@code errorChannel}
-	 * to publish recovery error message.
-	 * The {@link DefaultErrorMessageStrategy} is used for building error message to publish.
+	 * to publish a recovery error message.
+	 * The {@link DefaultErrorMessageStrategy} is used for building an error message to publish.
 	 * @since 4.3.10
 	 */
 	public ErrorMessageSendingRecoverer() {
@@ -52,8 +53,8 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	}
 
 	/**
-	 * Construct instance based on the provided message channel.
-	 * The {@link DefaultErrorMessageStrategy} is used for building error message to publish.
+	 * Construct an instance based on the provided message channel.
+	 * The {@link DefaultErrorMessageStrategy} is used for building an error message to publish.
 	 * @param channel the message channel to publish error messages on recovery action.
 	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
@@ -80,8 +81,8 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	}
 
 	@Override
-	public Object recover(RetryContext context) {
-		publish(context.getLastThrowable(), context);
+	public Object recover(AttributeAccessor context, Throwable cause) {
+		publish(cause, context);
 		return null;
 	}
 
@@ -91,7 +92,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 		String description = "No retry exception available; " +
 				"this can occur, for example, if the RetryPolicy allowed zero attempts " +
 				"to execute the handler; " +
-				"RetryContext: " + context.toString();
+				"RetryContext: " + context;
 		return message == null
 				? new RetryExceptionNotAvailableException(description)
 				: new RetryExceptionNotAvailableException(message, description);
@@ -99,6 +100,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 
 	public static class RetryExceptionNotAvailableException extends MessagingException {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		RetryExceptionNotAvailableException(String description) {
