@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,8 @@ import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
@@ -66,7 +69,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -346,7 +348,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -375,7 +377,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -409,7 +411,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -438,7 +440,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -591,7 +593,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		adapter.setRetryTemplate(new RetryTemplate());
 		adapter.setMessageRecoverer((message, cause) -> {
 		});
-		adapter.setRecoveryCallback(context -> null);
+		adapter.setRecoveryCallback((context, cause) -> null);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalStateException()
 				.isThrownBy(adapter::afterPropertiesSet)
@@ -721,7 +723,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -768,7 +770,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		AtomicReference<List<org.springframework.amqp.core.Message>> recoveredMessages = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);

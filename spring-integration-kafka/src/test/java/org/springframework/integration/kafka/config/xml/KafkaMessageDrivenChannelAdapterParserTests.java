@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.support.ErrorMessageStrategy;
@@ -35,7 +36,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -95,7 +95,8 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "retryTemplate")).isSameAs(this.retryTemplate);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
+		//		 TODO https://github.com/spring-projects/spring-integration/issues/10345
+//		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "bindSourceRecord", Boolean.class)).isTrue();

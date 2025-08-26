@@ -18,12 +18,12 @@ package org.springframework.integration.amqp.dsl;
 
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.dsl.MessageProducerSpec;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.support.RetryTemplate;
 
 /**
  * The base {@link MessageProducerSpec} implementation for a {@link AmqpInboundChannelAdapter}.

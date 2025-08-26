@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
@@ -33,7 +34,6 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 

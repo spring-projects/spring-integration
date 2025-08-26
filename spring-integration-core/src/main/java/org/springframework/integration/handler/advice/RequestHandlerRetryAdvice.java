@@ -16,11 +16,11 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
@@ -47,7 +47,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 
 	private RetryTemplate retryTemplate = new RetryTemplate();
 
-	private RecoveryCallback<Object> recoveryCallback;
+	private org.springframework.retry.RecoveryCallback<Object> recoveryCallback;
 
 	// Stateless unless a state generator is provided
 	private RetryStateGenerator retryStateGenerator = message -> null;
@@ -63,7 +63,8 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	}
 
 	public void setRecoveryCallback(RecoveryCallback<Object> recoveryCallback) {
-		this.recoveryCallback = recoveryCallback;
+		this.recoveryCallback = (context) ->
+				recoveryCallback.recover(context, context.getLastThrowable());
 	}
 
 	public void setRetryStateGenerator(RetryStateGenerator retryStateGenerator) {

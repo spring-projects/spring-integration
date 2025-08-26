@@ -109,7 +109,6 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.messagingTemplate;
 	}
 
-	@Nullable
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
 		return this.channelResolver;
 	}
@@ -158,10 +157,10 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * Publish an error message for the supplied throwable and context.
 	 * The {@link #errorMessageStrategy} is used to build a {@link ErrorMessage}
 	 * to publish.
-	 * @param throwable the throwable. May be null.
+	 * @param throwable the throwable. Maybe null.
 	 * @param context the context for {@link ErrorMessage} properties.
 	 */
-	public void publish(Throwable throwable, AttributeAccessor context) {
+	public void publish(@Nullable Throwable throwable, AttributeAccessor context) {
 		populateChannel();
 		Throwable payload = determinePayload(throwable, context);
 		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(payload, context);
@@ -179,7 +178,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * @return the throwable for the {@link ErrorMessage} payload
 	 * @see ErrorMessageUtils
 	 */
-	protected Throwable determinePayload(Throwable throwable, AttributeAccessor context) {
+	protected Throwable determinePayload(@Nullable Throwable throwable, AttributeAccessor context) {
 		Throwable lastThrowable = throwable;
 		if (lastThrowable == null) {
 			lastThrowable = payloadWhenNull(context);
@@ -214,9 +213,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 				if (recoveryChannelName == null) {
 					recoveryChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 				}
-				if (this.channelResolver != null) {
-					this.channel = this.channelResolver.resolveDestination(recoveryChannelName);
-				}
+				this.channel = this.channelResolver.resolveDestination(recoveryChannelName);
 			}
 
 			this.messagingTemplate.setDefaultChannel(this.channel);
