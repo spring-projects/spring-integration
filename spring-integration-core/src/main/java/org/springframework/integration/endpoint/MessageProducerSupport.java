@@ -67,8 +67,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	@Nullable
 	private MessageReceiverObservationConvention observationConvention;
 
-	@SuppressWarnings("NullAway.Init")
-	private MessageChannel outputChannel;
+	private @Nullable MessageChannel outputChannel;
 
 	private @Nullable String outputChannelName;
 
@@ -103,7 +102,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	}
 
 	@Override
-	public MessageChannel getOutputChannel() {
+	public @Nullable MessageChannel getOutputChannel() {
 		String channelName = this.outputChannelName;
 		if (channelName != null) {
 			this.outputChannel = getChannelResolver().resolveDestination(channelName);
