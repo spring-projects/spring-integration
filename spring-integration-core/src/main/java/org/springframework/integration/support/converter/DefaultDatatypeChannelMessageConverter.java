@@ -72,13 +72,11 @@ public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 	 * @return the converted payload or null if conversion is not possible.
 	 */
 	@Override
-	public Object fromMessage(Message<?> message, Class<?> targetClass) {
+	public @Nullable Object fromMessage(Message<?> message, Class<?> targetClass) {
 		if (this.conversionService.canConvert(message.getPayload().getClass(), targetClass)) {
 			return this.conversionService.convert(message.getPayload(), targetClass);
 		}
-		else {
-			return null;
-		}
+		return null;
 	}
 
 	@Override

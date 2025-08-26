@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support.channel;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.MessageChannel;
@@ -37,7 +39,7 @@ public interface HeaderChannelRegistry {
 	 * @param channel The channel.
 	 * @return The channel name, or the channel if it is not a MessageChannel.
 	 */
-	Object channelToChannelName(Object channel);
+	@Nullable Object channelToChannelName(Object channel);
 
 	/**
 	 * Converts the channel to a name (String). If the channel is not a
@@ -48,7 +50,7 @@ public interface HeaderChannelRegistry {
 	 * @return The channel name, or the channel if it is not a MessageChannel.
 	 * @since 4.1
 	 */
-	Object channelToChannelName(Object channel, long timeToLive);
+	@Nullable Object channelToChannelName(Object channel, long timeToLive);
 
 	/**
 	 * Converts the channel name back to a {@link MessageChannel} (if it is
@@ -56,7 +58,7 @@ public interface HeaderChannelRegistry {
 	 * @param name The name of the channel.
 	 * @return The channel, or null if there is no channel registered with the name.
 	 */
-	MessageChannel channelNameToChannel(String name);
+	@Nullable MessageChannel channelNameToChannel(String name);
 
 	/**
 	 * @return the current size of the registry

@@ -57,8 +57,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 
 	private final Deserializer<Object> deserializer;
 
-	@Nullable
-	private final ClassLoader defaultDeserializerClassLoader;
+	private final @Nullable ClassLoader defaultDeserializerClassLoader;
 
 	private final boolean usingDefaultDeserializer;
 
@@ -136,15 +135,14 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 			if (this.usingDefaultDeserializer) {
 				return deserialize(byteStream);
 			}
-			else {
-				Object result = this.deserializer.deserialize(byteStream);
-				/* Even if there is no knowledge what is the target deserialization algorithm
-				 and malicious code may be executed already, it is still better to fail
-				 with untrusted data rather than just let it pass downstream.
-				 */
-				checkAllowList(result.getClass());
-				return result;
-			}
+
+			Object result = this.deserializer.deserialize(byteStream);
+			/* Even if there is no knowledge what is the target deserialization algorithm
+			 and malicious code may be executed already, it is still better to fail
+			 with untrusted data rather than just let it pass downstream.
+			 */
+			checkAllowList(result.getClass());
+			return result;
 		}
 		catch (Exception ex) {
 			throw new SerializationFailedException("Failed to deserialize payload. " +

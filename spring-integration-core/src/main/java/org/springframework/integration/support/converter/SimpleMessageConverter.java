@@ -51,7 +51,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	private boolean messageBuilderFactorySet;
 
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	public SimpleMessageConverter() {
 	}
@@ -104,9 +104,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		return this.messageBuilderFactory;
 	}
 
-	@Nullable
 	@Override
-	public Message<?> toMessage(Object object, @Nullable MessageHeaders headers) {
+	public @Nullable Message<?> toMessage(Object object, @Nullable MessageHeaders headers) {
 		try {
 			return this.inboundMessageMapper.toMessage(object, headers);
 		}
@@ -115,9 +114,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 	}
 
-	@Nullable
 	@Override
-	public Object fromMessage(Message<?> message, Class<?> targetClass) {
+	public @Nullable Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
 			return this.outboundMessageMapper.fromMessage(message);
 		}
@@ -132,7 +130,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 
 		@Override
-		public Message<?> toMessage(@Nullable Object object, @Nullable Map<String, Object> headers) {
+		public @Nullable Message<?> toMessage(@Nullable Object object, @Nullable Map<String, Object> headers) {
 			if (object == null) {
 				return null;
 			}
@@ -153,8 +151,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 
 		@Override
-		public Object fromMessage(@Nullable Message<?> message) {
-			return (message != null) ? message.getPayload() : null;
+		public Object fromMessage(Message<?> message) {
+			return message.getPayload();
 		}
 
 	}

@@ -43,13 +43,12 @@ public class PassThruMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
+	public @Nullable Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		if (payload instanceof byte[]) {
 			return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		}
-		else {
-			return null;
-		}
+
+		return null;
 	}
 
 }

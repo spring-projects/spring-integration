@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support.context;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * @author Mark Fisher
  * @author Artem Bilan
@@ -26,6 +28,7 @@ public interface NamedComponent {
 
 	String getComponentName();
 
+	@Nullable
 	String getComponentType();
 
 	default String getBeanName() {
