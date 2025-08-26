@@ -63,6 +63,7 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 
 	private String[] componentNamePatterns = {"*"};
 
+	@SuppressWarnings("NullAway.Init")
 	private ListableBeanFactory beanFactory;
 
 	private boolean autoStartup = true;

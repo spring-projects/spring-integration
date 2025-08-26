@@ -16,12 +16,17 @@
 
 package org.springframework.integration.jdbc.channel;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.core.retry.Retryable;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
@@ -29,7 +34,6 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -69,7 +73,8 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private @Nullable TransactionTemplate transactionTemplate;
 
-	private RetryTemplate retryTemplate = RetryTemplate.builder().maxAttempts(1).build();
+	private RetryTemplate retryTemplate =
+			new RetryTemplate(RetryPolicy.builder().maxAttempts(1).delay(Duration.ZERO).build());
 
 	private ErrorHandler errorHandler = ReflectionUtils::rethrowRuntimeException;
 
@@ -117,7 +122,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	}
 
 	/**
-	 * Set the retry template to use for retries in case of exception in downstream processing
+	 * Set the retry template to use it for retries in case of exception in downstream processing
 	 * @param retryTemplate The retry template to use
 	 * @since 6.0.5
 	 * @see RetryTemplate
@@ -207,7 +212,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		if (this.hasHandlers) {
 			TransactionTemplate transactionTemplateToUse = this.transactionTemplate;
 			if (transactionTemplateToUse != null) {
-				return this.retryTemplate.execute(context ->
+				return executeWithRetry(() ->
 						transactionTemplateToUse.execute(status ->
 								pollMessage()
 										.filter(message -> {
@@ -221,10 +226,24 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 			}
 			else {
 				return pollMessage()
-						.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
+						.map(message -> executeWithRetry(() -> dispatch(message)));
 			}
 		}
 		return Optional.empty();
+	}
+
+	@SuppressWarnings("NullAway") // Never null, according to the logic in the 'doPollAndDispatchMessage()'.
+	private <T> T executeWithRetry(Retryable<T> retryable) {
+		try {
+			return this.retryTemplate.execute(retryable);
+		}
+		catch (RetryException ex) {
+			Throwable cause = ex.getCause();
+			if (cause instanceof RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			throw new IllegalStateException(cause);
+		}
 	}
 
 	private Optional<Message<?>> pollMessage() {

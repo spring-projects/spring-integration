@@ -56,3 +56,10 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 
 The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
 See xref:mqtt.adoc[] for more information.
+
+[[x7.0-remote-files-changes]]
+=== Remote Files Support Changes
+
+The `AbstractInboundFileSynchronizer` now caches a filtered result of the `Session.list(remoteDirectory)` after slicing by the `maxFetchSize`.
+So, later synchronizations deal with the cache only by the `maxFetchSize` until the cache is exhausted.
+See xref:sftp/max-fetch.adoc[] for more information.
