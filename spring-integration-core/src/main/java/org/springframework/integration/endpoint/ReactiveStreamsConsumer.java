@@ -164,6 +164,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	}
 
 	@Override
+	public String getComponentType() {
+		return "reactive-streams-consumer";
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		if (this.errorHandler == null) {

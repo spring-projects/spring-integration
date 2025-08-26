@@ -127,6 +127,11 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	}
 
 	@Override
+	public String getComponentType() {
+		return "polling-consumer";
+	}
+
+	@Override
 	protected void doStart() {
 		if (this.handler instanceof Lifecycle lifecycle) {
 			lifecycle.start();

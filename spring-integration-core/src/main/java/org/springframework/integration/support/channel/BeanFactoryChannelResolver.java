@@ -21,6 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -52,9 +53,10 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 
 	private final Lock lock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private HeaderChannelRegistry replyChannelRegistry;
+	private @Nullable HeaderChannelRegistry replyChannelRegistry;
 
 	private volatile boolean initialized;
 
@@ -89,7 +91,6 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 
 	@Override
 	public MessageChannel resolveDestination(String name) {
-		Assert.state(this.beanFactory != null, "BeanFactory is required");
 		try {
 			return this.beanFactory.getBean(name, MessageChannel.class);
 		}

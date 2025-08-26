@@ -73,6 +73,11 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "advice";
+	}
+
 	/**
 	 * Subclasses implement this method to apply behavior to the {@link MessageHandler}.
 	 * <p>

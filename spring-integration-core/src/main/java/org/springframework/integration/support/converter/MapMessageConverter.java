@@ -49,7 +49,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private boolean filterHeadersInToMessage;
 
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
@@ -97,7 +97,6 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 		this.filterHeadersInToMessage = filterHeadersInToMessage;
 	}
 
-	@Nullable
 	@Override
 	public Message<?> toMessage(Object object, @Nullable MessageHeaders messageHeaders) {
 		Assert.isInstanceOf(Map.class, object, "This converter expects a Map");
@@ -119,7 +118,6 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 				.build();
 	}
 
-	@Nullable
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> clazz) {
 		Map<String, Object> map = new HashMap<>();

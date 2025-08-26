@@ -140,7 +140,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public @Nullable String getComponentType() {
+	public String getComponentType() {
 		return this.targetConnectionFactory.getComponentType();
 	}
 

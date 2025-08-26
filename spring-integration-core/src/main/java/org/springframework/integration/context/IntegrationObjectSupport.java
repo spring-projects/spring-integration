@@ -138,15 +138,6 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.componentName = componentName;
 	}
 
-	/**
-	 * Subclasses may implement this method to provide component type information.
-	 */
-	@Override
-	@Nullable
-	public String getComponentType() {
-		return null;
-	}
-
 	@Override
 	public void setComponentSource(Object source) {
 		this.beanSource = source;

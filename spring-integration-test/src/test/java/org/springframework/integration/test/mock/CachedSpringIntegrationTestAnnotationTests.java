@@ -78,6 +78,11 @@ public abstract class CachedSpringIntegrationTestAnnotationTests {
 			return new AbstractEndpoint() {
 
 				@Override
+				public String getComponentType() {
+					return "some-endpoint";
+				}
+
+				@Override
 				protected void doStart() {
 
 				}

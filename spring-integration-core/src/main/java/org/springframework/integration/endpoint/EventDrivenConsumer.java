@@ -80,6 +80,11 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	}
 
 	@Override
+	public String getComponentType() {
+		return "event-driven-consumer";
+	}
+
+	@Override
 	protected void doStart() {
 		this.logComponentSubscriptionEvent(true);
 		this.inputChannel.subscribe(this.handler);

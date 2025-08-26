@@ -202,6 +202,11 @@ public class MessageProducerSupportTests implements TestApplicationContextAware 
 			this.stopped.set(true);
 		}
 
+		@Override
+		public String getComponentType() {
+			return "custom-endpoint";
+		}
+
 	}
 
 }
