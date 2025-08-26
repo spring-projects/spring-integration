@@ -74,6 +74,7 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests implements TestAp
 		adapter.setErrorHandler(t -> {
 			throw new IllegalStateException("unexpected exception in test", t);
 		});
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.start();
 		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {

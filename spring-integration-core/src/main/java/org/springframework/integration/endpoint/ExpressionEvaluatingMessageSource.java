@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.util.Assert;
@@ -46,7 +48,7 @@ public class ExpressionEvaluatingMessageSource<T> extends AbstractMessageSource<
 	}
 
 	@Override
-	public T doReceive() {
+	public @Nullable T doReceive() {
 		return this.evaluateExpression(this.expression, this.expectedType);
 	}
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.MessageProcessor;
 
 /**
@@ -42,7 +44,7 @@ public class MessageProcessorMessageSource extends AbstractMessageSource<Object>
 	}
 
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		return this.messageProcessor.processMessage(null);
 	}
 

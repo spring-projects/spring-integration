@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -33,8 +35,9 @@ import org.springframework.util.Assert;
  */
 public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport {
 
-	private volatile Expression payloadExpression;
+	private volatile @Nullable Expression payloadExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile EvaluationContext evaluationContext;
 
 	/**
@@ -70,6 +73,7 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 		Object evaluationResult = payload;
 		if (this.payloadExpression != null) {
 			evaluationResult = this.payloadExpression.getValue(this.evaluationContext, payload);
+			Assert.state(evaluationResult != null, "the evaluation result from the payloadExpression must not be null");
 		}
 		return evaluationResult;
 	}

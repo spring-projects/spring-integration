@@ -62,7 +62,6 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ReflectionUtils;
@@ -98,27 +97,29 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private boolean syncExecutor = true;
 
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	@SuppressWarnings("NullAway.Init")
+	private ClassLoader beanClassLoader;
 
 	private Trigger trigger = new PeriodicTrigger(Duration.ofMillis(DEFAULT_POLLING_PERIOD));
 
-	private ErrorHandler errorHandler;
+	private @Nullable ErrorHandler errorHandler;
 
 	private boolean errorHandlerIsDefault;
 
-	private List<Advice> adviceChain;
+	private @Nullable List<Advice> adviceChain;
 
-	private TransactionSynchronizationFactory transactionSynchronizationFactory;
+	private @Nullable TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	private volatile long maxMessagesPerPoll = -1;
 
-	private volatile Callable<Message<?>> pollingTask;
+	@SuppressWarnings("NullAway.Init")
+	private volatile Callable<@Nullable Message<?>> pollingTask;
 
-	private volatile Flux<Message<?>> pollingFlux;
+	private volatile @Nullable Flux<Message<?>> pollingFlux;
 
-	private volatile Subscription subscription;
+	private volatile @Nullable Subscription subscription;
 
-	private volatile ScheduledFuture<?> runningTask;
+	private volatile @Nullable ScheduledFuture<?> runningTask;
 
 	private volatile boolean initialized;
 
@@ -127,11 +128,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.setPhase(Integer.MAX_VALUE / 2);
 	}
 
-	public void setTaskExecutor(Executor taskExecutor) {
+	public void setTaskExecutor(@Nullable Executor taskExecutor) {
 		this.taskExecutor = (taskExecutor != null ? taskExecutor : new SyncTaskExecutor());
 		this.syncExecutor = this.taskExecutor instanceof SyncTaskExecutor
-				|| (this.taskExecutor instanceof ErrorHandlingTaskExecutor
-				&& ((ErrorHandlingTaskExecutor) this.taskExecutor).isSyncExecutor());
+				|| (this.taskExecutor instanceof ErrorHandlingTaskExecutor errorHandlingTaskExecutor
+				&& errorHandlingTaskExecutor.isSyncExecutor());
 	}
 
 	protected Executor getTaskExecutor() {
@@ -142,11 +143,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return this.syncExecutor;
 	}
 
-	public void setTrigger(Trigger trigger) {
+	public void setTrigger(@Nullable Trigger trigger) {
 		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(Duration.ofMillis(DEFAULT_POLLING_PERIOD)));
 	}
 
-	public void setAdviceChain(List<Advice> adviceChain) {
+	public void setAdviceChain(@Nullable List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
 	}
 
@@ -167,7 +168,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return this.maxMessagesPerPoll;
 	}
 
-	public void setErrorHandler(ErrorHandler errorHandler) {
+	public void setErrorHandler(@Nullable ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}
 
@@ -177,7 +178,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	public void setTransactionSynchronizationFactory(
-			TransactionSynchronizationFactory transactionSynchronizationFactory) {
+			@Nullable TransactionSynchronizationFactory transactionSynchronizationFactory) {
 
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
@@ -188,7 +189,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @return the channel or null.
 	 * @since 4.3
 	 */
-	public MessageChannel getDefaultErrorChannel() {
+	public @Nullable MessageChannel getDefaultErrorChannel() {
 		if (!this.errorHandlerIsDefault && this.errorHandler
 				instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
 
@@ -255,11 +256,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return false;
 	}
 
-	protected Flux<Message<?>> getPollingFlux() {
+	protected @Nullable Flux<Message<?>> getPollingFlux() {
 		return this.pollingFlux;
 	}
 
-	protected Object getReceiveMessageSource() {
+	protected @Nullable Object getReceiveMessageSource() {
 		return null;
 	}
 
@@ -275,7 +276,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.trigger, "Trigger is required");
-			if (this.taskExecutor != null && !(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+			if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
 					this.errorHandlerIsDefault = true;
@@ -314,13 +315,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		else {
 			TaskScheduler taskScheduler = getTaskScheduler();
-			Assert.state(taskScheduler != null, "unable to start polling, no taskScheduler available");
 			this.runningTask = taskScheduler.schedule(createPoller(), this.trigger);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private Callable<Message<?>> createPollingTask() {
+	private Callable<@Nullable Message<?>> createPollingTask() {
 		List<Advice> receiveOnlyAdviceChain = null;
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			receiveOnlyAdviceChain = this.adviceChain.stream()
@@ -328,7 +328,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					.toList();
 		}
 
-		Callable<Message<?>> task = this::doPoll;
+		Callable<@Nullable Message<?>> task = this::doPoll;
 
 		List<Advice> advices = this.adviceChain;
 		if (!CollectionUtils.isEmpty(advices)) {
@@ -338,7 +338,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						.filter(advice -> !isReceiveOnlyAdvice(advice))
 						.forEach(proxyFactory::addAdvice);
 			}
-			task = (Callable<Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
+			task = (Callable<@Nullable Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
 		}
 		if (!CollectionUtils.isEmpty(receiveOnlyAdviceChain)) {
 			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
@@ -418,31 +418,36 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				.doOnSubscribe(subs -> this.subscription = subs);
 	}
 
-	private Message<?> pollForMessage() {
+	private @Nullable Message<?> pollForMessage() {
 		Exception pollingTaskError = null;
 		try {
 			return this.pollingTask.call();
 		}
 		catch (Exception ex) {
 			pollingTaskError = ex;
-			if (ex instanceof MessagingException messagingException) { // NOSONAR
+			if (ex instanceof MessagingException messagingException) {
 				throw messagingException;
 			}
 			else {
 				Message<?> failedMessage = null;
 				if (this.transactionSynchronizationFactory != null) {
-					Object resource = TransactionSynchronizationManager.getResource(getResourceToBind());
+					Object resource = null;
+					Object resourceToBind = getResourceToBind();
+					if (resourceToBind != null) {
+						resource = TransactionSynchronizationManager.getResource(resourceToBind);
+					}
 					if (resource instanceof IntegrationResourceHolder integrationResourceHolder) {
 						failedMessage = integrationResourceHolder.getMessage();
 					}
 				}
-				throw new MessagingException(failedMessage, ex); // NOSONAR (null failedMessage)
+				throw failedMessage == null ? new MessagingException((String) null, ex)
+						: new MessagingException(failedMessage, ex);
 			}
 		}
 		finally {
 			if (this.transactionSynchronizationFactory != null) {
 				Object resource = getResourceToBind();
-				if (TransactionSynchronizationManager.hasResource(resource)) {
+				if (resource != null && TransactionSynchronizationManager.hasResource(resource)) {
 					TransactionSynchronizationManager.unbindResource(resource);
 				}
 			}
@@ -450,7 +455,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
-	private Message<?> doPoll() {
+	private @Nullable Message<?> doPoll() {
 		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(getResourceKey(), getResourceToBind());
 		Message<?> message = null;
 		try {
@@ -517,7 +522,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * if no message is immediately available.
 	 * @return The message or null.
 	 */
-	protected abstract Message<?> receiveMessage();
+	protected abstract @Nullable Message<?> receiveMessage();
 
 	/**
 	 * Handle a message.
@@ -530,7 +535,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * synchronization.
 	 * @return The resource, or null if transaction synchronization is not required.
 	 */
-	protected Object getResourceToBind() {
+	protected @Nullable Object getResourceToBind() {
 		return null;
 	}
 
@@ -540,14 +545,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * {@link org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor}
 	 * makes this attribute available as a variable in SpEL expressions.
 	 * @return The key, or null (default) if the resource shouldn't be
-	 * made available as a attribute.
+	 * made available as an attribute.
 	 */
-	protected String getResourceKey() {
+	protected @Nullable String getResourceKey() {
 		return null;
 	}
 
 	@Nullable
-	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
+	private IntegrationResourceHolder bindResourceHolderIfNecessary(@Nullable String key, @Nullable Object resource) {
 		if (this.transactionSynchronizationFactory != null && resource != null &&
 				TransactionSynchronizationManager.isActualTransactionActive()) {
 

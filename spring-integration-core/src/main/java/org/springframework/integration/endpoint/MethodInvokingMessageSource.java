@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.MessagingException;
@@ -37,11 +39,13 @@ import org.springframework.util.ReflectionUtils;
  */
 public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements ManageableLifecycle {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Object object;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Method method;
 
-	private volatile String methodName;
+	private volatile @Nullable String methodName;
 
 	private volatile boolean initialized;
 
@@ -67,6 +71,7 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 		return "inbound-channel-adapter";
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	@Override
 	protected void onInit() {
 		this.initializationMonitor.lock();
@@ -111,7 +116,7 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 	}
 
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		try {
 			if (!this.initialized) {
 				this.afterPropertiesSet();
