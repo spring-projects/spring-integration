@@ -165,6 +165,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		return this.applicationEventPublisher;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "connection";
+	}
+
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.

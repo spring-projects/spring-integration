@@ -45,6 +45,11 @@ public abstract class AbstractTransformer extends IntegrationObjectSupport imple
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "transformer";
+	}
+
 	/**
 	 * Subclasses must implement this method to provide the transformation
 	 * logic. If the return value is itself a Message, it will be used as the

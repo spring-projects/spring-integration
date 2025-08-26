@@ -77,4 +77,9 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "converter";
+	}
+
 }

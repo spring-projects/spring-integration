@@ -131,6 +131,11 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
+	@Override
+	public String getComponentType() {
+		return "processor";
+	}
+
 	private void doProcess(IntegrationResourceHolder holder, Expression expression,
 			@Nullable MessageChannel messageChannel, String expressionType) {
 

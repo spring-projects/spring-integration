@@ -185,6 +185,11 @@ public class MessageHandlerChainTests {
 			output.send(message);
 		}
 
+		@Override
+		public String getComponentType() {
+			return "producer";
+		}
+
 	}
 
 }

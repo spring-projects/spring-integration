@@ -278,6 +278,11 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 			}
 		}
 
+		@Override
+		public String getComponentType() {
+			return "router-mapping-provider";
+		}
+
 	}
 
 }
