@@ -302,6 +302,11 @@ public class MBeanExporterIntegrationTests {
 		protected void doStop() {
 		}
 
+		@Override
+		public String getComponentType() {
+			return "bogus-endpoint";
+		}
+
 	}
 
 	public static class DateFactoryBean implements FactoryBean<Date> {

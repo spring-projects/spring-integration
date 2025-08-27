@@ -201,11 +201,6 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		}
 	}
 
-	@Override
-	public String getComponentType() {
-		return "endpoint";
-	}
-
 	/**
 	 * Stop the component and invoke callback.
 	 * @param callback the Runnable to invoke.

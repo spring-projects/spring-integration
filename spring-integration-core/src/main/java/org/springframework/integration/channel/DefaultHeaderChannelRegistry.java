@@ -261,7 +261,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public String getComponentType() {
-		return "channel";
+		return "header-channel-registry";
 	}
 
 	protected record MessageChannelWrapper(MessageChannel channel, long expireAt) {

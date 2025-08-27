@@ -167,7 +167,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	@Override
 	public String getComponentType() {
-		return "connection";
+		return "connection-factory";
 	}
 
 	/**

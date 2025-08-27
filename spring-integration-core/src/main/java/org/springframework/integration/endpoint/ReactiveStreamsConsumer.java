@@ -208,6 +208,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "reactive-streams";
+	}
+
 	private static final class MessageHandlerSubscriber
 			implements CoreSubscriber<Message<?>>, Disposable, Lifecycle {
 

@@ -1055,6 +1055,11 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.gatewayMap.values().forEach(MethodInvocationGateway::destroy);
 	}
 
+	@Override
+	public String getComponentType() {
+		return "gateway-proxy-factory";
+	}
+
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
 		private Expression receiveTimeoutExpression;

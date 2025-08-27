@@ -183,6 +183,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "polling-endpoint";
+	}
+
 	/**
 	 * Return the default error channel if the error handler is explicitly provided and
 	 * it is a {@link MessagePublishingErrorHandler}.

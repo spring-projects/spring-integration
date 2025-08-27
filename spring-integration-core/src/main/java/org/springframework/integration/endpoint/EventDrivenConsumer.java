@@ -123,4 +123,9 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "event-driven";
+	}
+
 }

@@ -674,6 +674,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.url != null ? this.url.toString() : urlName;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "mail-receiver";
+	}
+
 	@Nullable Store getStore() {
 		return this.store;
 	}

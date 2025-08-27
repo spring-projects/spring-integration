@@ -111,6 +111,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		return this.outputChannel;
 	}
 
+	@Override
+	public String getComponentType() {
+		return "message-producer";
+	}
+
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
 	}
