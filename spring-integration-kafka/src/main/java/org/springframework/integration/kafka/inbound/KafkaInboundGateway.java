@@ -46,7 +46,6 @@ import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -123,7 +122,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 		else if (JacksonPresent.isJackson2Present()) {
 			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
-			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			var headerMapper = new org.springframework.kafka.support.DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(
 					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));

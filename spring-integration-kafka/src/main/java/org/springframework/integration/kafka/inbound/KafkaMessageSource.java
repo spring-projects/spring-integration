@@ -66,7 +66,6 @@ import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ErrorHandlingUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -273,7 +272,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			messagingMessageConverter.setHeaderMapper(headerMapper);
 		}
 		else if (JacksonPresent.isJackson2Present()) {
-			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
+			var headerMapper = new org.springframework.kafka.support.DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(
 					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));

@@ -248,7 +248,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 		int maxAttempts = 2;
 		postgresSubscribableChannel.setRetryTemplate(
-				new RetryTemplate(RetryPolicy.builder().maxAttempts(maxAttempts).build()));
+				new RetryTemplate(RetryPolicy.builder().maxAttempts(maxAttempts).delay(Duration.ZERO).build()));
 
 		if (transactionsEnabled) {
 			postgresSubscribableChannel.setTransactionManager(transactionManager);
