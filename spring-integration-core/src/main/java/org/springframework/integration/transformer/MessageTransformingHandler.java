@@ -19,15 +19,16 @@ package org.springframework.integration.transformer;
 import java.util.Collection;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A reply-producing {@link org.springframework.messaging.MessageHandler}
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
+	@SuppressWarnings("NullAway.Init")
 	private Transformer transformer;
 
 	/**
@@ -76,15 +78,15 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	public String getComponentType() {
-		return (this.transformer instanceof NamedComponent)
-				? ((NamedComponent) this.transformer).getComponentType()
+		return (this.transformer instanceof NamedComponent namedComponent)
+				? namedComponent.getComponentType()
 				: "transformer";
 	}
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
-		return (this.transformer instanceof IntegrationPattern)
-				? ((IntegrationPattern) this.transformer).getIntegrationPatternType()
+		return (this.transformer instanceof IntegrationPattern integrationPattern)
+				? integrationPattern.getIntegrationPatternType()
 				: IntegrationPatternType.transformer;
 	}
 
@@ -98,39 +100,44 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	protected void doInit() {
 		Assert.notNull(this.transformer, "transformer must not be null");
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null && this.transformer instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.transformer).setBeanFactory(beanFactory);
+		if (this.transformer instanceof IntegrationObjectSupport integrationObjectSupport) {
+			integrationObjectSupport.setBeanFactory(beanFactory);
+			integrationObjectSupport.setComponentSource(this);
+			if (!StringUtils.hasText(integrationObjectSupport.getComponentName())) {
+				integrationObjectSupport.setComponentName(getComponentName());
+			}
+			integrationObjectSupport.afterPropertiesSet();
 		}
-
 		populateNotPropagatedHeadersIfAny();
 	}
 
 	private void populateNotPropagatedHeadersIfAny() {
 		Collection<String> notPropagatedHeaders = getNotPropagatedHeaders();
 
-		if (this.transformer instanceof AbstractMessageProcessingTransformer && !notPropagatedHeaders.isEmpty()) {
-			((AbstractMessageProcessingTransformer) this.transformer)
-					.setNotPropagatedHeaders(notPropagatedHeaders.toArray(new String[0]));
+		if (this.transformer instanceof AbstractMessageProcessingTransformer abstractMessageProcessingTransformer
+				&& !notPropagatedHeaders.isEmpty()) {
+
+			abstractMessageProcessingTransformer.setNotPropagatedHeaders(notPropagatedHeaders.toArray(new String[0]));
 		}
 	}
 
 	@Override
 	public void start() {
-		if (this.transformer instanceof Lifecycle) {
-			((Lifecycle) this.transformer).start();
+		if (this.transformer instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.transformer instanceof Lifecycle) {
-			((Lifecycle) this.transformer).stop();
+		if (this.transformer instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.transformer instanceof Lifecycle) || ((Lifecycle) this.transformer).isRunning();
+		return !(this.transformer instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 	@Override
@@ -138,11 +145,11 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 		try {
 			return this.transformer.transform(message);
 		}
-		catch (Exception e) {
-			if (e instanceof MessageTransformationException) { // NOSONAR
-				throw (MessageTransformationException) e;
+		catch (Exception ex) {
+			if (ex instanceof MessageTransformationException messageTransformationException) {
+				throw messageTransformationException;
 			}
-			throw new MessageTransformationException(message, "Failed to transform Message in " + this, e);
+			throw new MessageTransformationException(message, "Failed to transform Message in " + this, ex);
 		}
 	}
 

@@ -39,7 +39,6 @@ public class ClaimCheckInTransformer extends AbstractTransformer implements Inte
 
 	/**
 	 * Create a claim check-in transformer that will delegate to the provided MessageStore.
-	 *
 	 * @param messageStore The message store.
 	 */
 	public ClaimCheckInTransformer(MessageStore messageStore) {
@@ -59,7 +58,6 @@ public class ClaimCheckInTransformer extends AbstractTransformer implements Inte
 
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.notNull(message, "message must not be null");
 		UUID id = message.getHeaders().getId();
 		Assert.notNull(id, "ID header must not be null");
 		this.messageStore.addMessage(message);

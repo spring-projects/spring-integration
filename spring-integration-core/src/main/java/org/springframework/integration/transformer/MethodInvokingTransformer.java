@@ -35,17 +35,23 @@ import org.springframework.util.Assert;
 public class MethodInvokingTransformer extends AbstractMessageProcessingTransformer {
 
 	public MethodInvokingTransformer(Object object, Method method) {
-		super(new MethodInvokingMessageProcessor<Object>(object, method));
+		super(new MethodInvokingMessageProcessor<>(object, method));
 		Assert.state(!Void.class.isAssignableFrom(method.getReturnType()), "'transformer' method must not be 'void'.");
 	}
 
 	public MethodInvokingTransformer(Object object, String methodName) {
-		super(new MethodInvokingMessageProcessor<Object>(object, methodName));
+		super(new MethodInvokingMessageProcessor<>(object, methodName));
 	}
 
 	public MethodInvokingTransformer(Object object) {
-		super(object instanceof MessageProcessor<?> ? (MessageProcessor<?>) object :
-				new MethodInvokingMessageProcessor<Object>(object, Transformer.class));
+		super(object instanceof MessageProcessor<?> messageProcessor
+				? messageProcessor
+				: new MethodInvokingMessageProcessor<>(object, Transformer.class));
+	}
+
+	@Override
+	public String getComponentType() {
+		return "method-invoking-transformer";
 	}
 
 }

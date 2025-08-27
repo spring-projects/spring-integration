@@ -29,11 +29,11 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.IOUtils;
-import org.jspecify.annotations.Nullable;
 import org.zeroturnaround.zip.ZipEntryCallback;
 import org.zeroturnaround.zip.ZipException;
 import org.zeroturnaround.zip.ZipUtil;
 
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -54,7 +54,6 @@ public class UnZipTransformer extends AbstractZipTransformer {
 	private volatile boolean expectSingleResult = false;
 
 	/**
-	 *
 	 * This parameter indicates that only one result object shall be returned as
 	 * a result from the executed Unzip operation. If set to <code>true</code> and
 	 * more than 1 element is returned, then that
@@ -71,7 +70,12 @@ public class UnZipTransformer extends AbstractZipTransformer {
 	}
 
 	@Override
-	protected @Nullable Object doZipTransform(final Message<?> message) {
+	public String getComponentType() {
+		return "unzip-transformer";
+	}
+
+	@Override
+	protected Object doZipTransform(Message<?> message) {
 		Object payload = message.getPayload();
 		Object unzippedData;
 
@@ -150,7 +154,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 					tempDir.mkdirs(); //NOSONAR false positive
 					final File destinationFile = new File(tempDir, zipEntryName);
 
-					/* If we see the relative traversal string of ".." we need to make sure
+					/* If we see the relative traversal string, of ".." we need to make sure
 					 * that the outputdir + name doesn't leave the outputdir.
 					 */
 					if (!destinationFile.getCanonicalPath()
@@ -164,8 +168,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 			});
 
 			if (uncompressedData.isEmpty()) {
-				logger.warn(() -> "No data unzipped from payload with message Id " + messageId);
-				unzippedData = null;
+				throw new MessageTransformationException(message, "No data unzipped from message");
 			}
 			else {
 

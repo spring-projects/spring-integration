@@ -31,6 +31,21 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	@Override
+	protected Object getResourceToBind() {
+		return this;
+	}
+
+	@Override
+	protected String getResourceKey() {
+		return "PollingEndpointStub";
+	}
+
+	@Override
+	public String getComponentType() {
+		return "polling-endpoint-stub";
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));
@@ -44,16 +59,6 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 	@Override
 	protected Message<?> receiveMessage() {
 		return new GenericMessage<>("test message");
-	}
-
-	@Override
-	protected Object getResourceToBind() {
-		return this;
-	}
-
-	@Override
-	protected String getResourceKey() {
-		return "PollingEndpointStub";
 	}
 
 }

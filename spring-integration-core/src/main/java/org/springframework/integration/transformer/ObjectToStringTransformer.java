@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.util.Assert;
 
@@ -32,6 +33,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Andrew Cowlin
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.1
  */
 public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object, String> {
@@ -39,7 +42,7 @@ public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object
 	private final String charset;
 
 	public ObjectToStringTransformer() {
-		this.charset = "UTF-8";
+		this(StandardCharsets.UTF_8.name());
 	}
 
 	public ObjectToStringTransformer(String charset) {
@@ -54,16 +57,16 @@ public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object
 
 	@Override
 	protected String transformPayload(Object payload) {
-		if (payload instanceof byte[]) {
+		if (payload instanceof byte[] bytes) {
 			try {
-				return new String((byte[]) payload, this.charset);
+				return new String(bytes, this.charset);
 			}
-			catch (UnsupportedEncodingException e) {
-				throw new IllegalStateException(e);
+			catch (UnsupportedEncodingException ex) {
+				throw new IllegalStateException(ex);
 			}
 		}
-		else if (payload instanceof char[]) {
-			return new String((char[]) payload);
+		else if (payload instanceof char[] chars) {
+			return new String(chars);
 		}
 		else {
 			return payload.toString();

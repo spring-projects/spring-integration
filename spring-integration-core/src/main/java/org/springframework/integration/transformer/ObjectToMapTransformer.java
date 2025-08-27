@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.util.Assert;
@@ -32,10 +34,10 @@ import org.springframework.util.StringUtils;
 /**
  * Transforms an object graph into a Map. It supports a conventional Map (map of maps)
  * where complex attributes are represented as Map values as well as a flat Map
- * where keys document the path to the value. By default it will transform to a flat Map.
+ * where keys document the path to the value. By default, it will transform to a flat Map.
  * If you need to transform to a Map of Maps set the 'shouldFlattenKeys' property to 'false'
  * via the {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method.
- * It supports Collections, Maps and Arrays which means that for flat maps it will flatten
+ * It supports Collections, Maps and Arrays, which means that for flat maps it will flatten
  * an Object's properties. Below is an example showing how a flattened
  * Object hierarchy is represented when 'shouldFlattenKeys' is TRUE.
  *<p>
@@ -94,9 +96,14 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	}
 
 	@Override
+	public String getComponentType() {
+		return "object-to-map-transformer";
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
-	protected Map<String, Object> transformPayload(Object payload) {
-		Map<String, Object> result;
+	protected Map<String, @Nullable Object> transformPayload(Object payload) {
+		Map<String, @Nullable Object> result;
 		try {
 			result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
 		}
@@ -104,54 +111,54 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 			throw new UncheckedIOException(e);
 		}
 		if (this.shouldFlattenKeys) {
-			result = this.flattenMap(result);
+			result = flattenMap(result);
 		}
 		return result;
 	}
 
-	@Override
-	public String getComponentType() {
-		return "object-to-map-transformer";
+	private Map<String, @Nullable Object> flattenMap(Map<String, @Nullable Object> result) {
+		Map<String, @Nullable Object> resultMap = new HashMap<>();
+		doFlatten("", result, resultMap);
+		return resultMap;
+	}
+
+	private void doFlatten(String propertyPrefixArg, Map<String, @Nullable Object> inputMap,
+			Map<String, @Nullable Object> resultMap) {
+
+		String propertyPrefix = propertyPrefixArg;
+		if (StringUtils.hasText(propertyPrefix)) {
+			propertyPrefix = propertyPrefix + ".";
+		}
+		for (Entry<String, Object> entry : inputMap.entrySet()) {
+			doProcessElement(propertyPrefix + entry.getKey(), entry.getValue(), resultMap);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void doProcessElement(String propertyPrefix, Object element, Map<String, Object> resultMap) {
+	private void doProcessElement(String propertyPrefix, @Nullable Object element,
+			Map<String, @Nullable Object> resultMap) {
+
 		if (element instanceof Map) {
-			this.doFlatten(propertyPrefix, (Map<String, Object>) element, resultMap);
+			doFlatten(propertyPrefix, (Map<String, @Nullable Object>) element, resultMap);
 		}
-		else if (element instanceof Collection) {
-			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
+		else if (element instanceof Collection<?> collection) {
+			doProcessCollection(propertyPrefix, collection, resultMap);
 		}
 		else if (element != null && element.getClass().isArray()) {
 			Collection<?> collection = CollectionUtils.arrayToList(element);
-			this.doProcessCollection(propertyPrefix, collection, resultMap);
+			doProcessCollection(propertyPrefix, collection, resultMap);
 		}
 		else {
 			resultMap.put(propertyPrefix, element);
 		}
 	}
 
-	private Map<String, Object> flattenMap(Map<String, Object> result) {
-		Map<String, Object> resultMap = new HashMap<>();
-		this.doFlatten("", result, resultMap);
-		return resultMap;
-	}
+	private void doProcessCollection(String propertyPrefix, Collection<?> list,
+			Map<String, @Nullable Object> resultMap) {
 
-	private void doFlatten(String propertyPrefixArg, Map<String, Object> inputMap, Map<String, Object> resultMap) {
-		String propertyPrefix = propertyPrefixArg;
-		if (StringUtils.hasText(propertyPrefix)) {
-			propertyPrefix = propertyPrefix + ".";
-		}
-		for (Entry<String, Object> entry : inputMap.entrySet()) {
-			this.doProcessElement(propertyPrefix + entry.getKey(), entry.getValue(), resultMap);
-		}
-	}
-
-	private void doProcessCollection(String propertyPrefix, Collection<?> list, Map<String, Object> resultMap) {
 		int counter = 0;
 		for (Object element : list) {
-			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);
-			counter++;
+			doProcessElement(propertyPrefix + "[" + (counter++) + "]", element, resultMap);
 		}
 	}
 

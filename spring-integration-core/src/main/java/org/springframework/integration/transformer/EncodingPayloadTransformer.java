@@ -23,12 +23,12 @@ import org.springframework.integration.codec.Codec;
 import org.springframework.util.Assert;
 
 /**
- * {@link AbstractPayloadTransformer} that delegates to a codec to encode the
- * payload into a byte[].
+ * {@link AbstractPayloadTransformer} that delegates to a codec to encode the payload into a byte[].
  *
  * @param <T> inbound payload type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
  */
@@ -42,12 +42,17 @@ public class EncodingPayloadTransformer<T> extends AbstractPayloadTransformer<T,
 	}
 
 	@Override
+	public String getComponentType() {
+		return "payload-encoding-transformer";
+	}
+
+	@Override
 	protected byte[] transformPayload(T payload) {
 		try {
 			return this.codec.encode(payload);
 		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 

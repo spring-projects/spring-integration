@@ -34,6 +34,7 @@ import org.springframework.util.ClassUtils;
  * or from {@code String} in case of {@code application/json} content type.
  *
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 6.1
  */
@@ -41,12 +42,15 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 
 	private final ProtobufMessageConverter protobufMessageConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader beanClassLoader;
 
+	@SuppressWarnings("NullAway.Init")
+	private EvaluationContext evaluationContext;
+
+	@SuppressWarnings("NullAway") // Doesn't a generic nullability
 	private Expression expectedTypeExpression =
 			new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(ProtoHeaders.TYPE));
-
-	private EvaluationContext evaluationContext;
 
 	/**
 	 * Construct an instance with the supplied default type to create.
@@ -106,6 +110,11 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	}
 
 	@Override
+	public String getComponentType() {
+		return "from-protobuf-transformer";
+	}
+
+	@Override
 	protected void onInit() {
 		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 	}
@@ -118,14 +127,14 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 		if (value instanceof Class<?>) {
 			targetClass = (Class<? extends com.google.protobuf.Message>) value;
 		}
-		else if (value instanceof String) {
+		else if (value instanceof String stringValue) {
 			try {
 				targetClass =
 						(Class<? extends com.google.protobuf.Message>)
-								ClassUtils.forName((String) value, this.beanClassLoader);
+								ClassUtils.forName(stringValue, this.beanClassLoader);
 			}
-			catch (ClassNotFoundException | LinkageError e) {
-				throw new IllegalStateException(e);
+			catch (ClassNotFoundException | LinkageError ex) {
+				throw new IllegalStateException(ex);
 			}
 		}
 
@@ -134,7 +143,11 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 					"The 'expectedTypeExpression' (" + this.expectedTypeExpression + ") returned 'null'.");
 		}
 
-		return this.protobufMessageConverter.fromMessage(message, targetClass);
+		Object result = this.protobufMessageConverter.fromMessage(message, targetClass);
+		if (result == null) {
+			throw new MessageTransformationException(message, "Failed to convert from Protobuf");
+		}
+		return result;
 	}
 
 }

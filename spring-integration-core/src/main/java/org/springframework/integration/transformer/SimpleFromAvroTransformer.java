@@ -50,11 +50,14 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 
 	private final DecoderFactory decoderFactory = new DecoderFactory();
 
+	@SuppressWarnings("NullAway") // Does not see a generic nullability
 	private Expression typeIdExpression =
 			new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(AvroHeaders.TYPE));
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader beanClassLoader;
 
 	/**
@@ -120,6 +123,11 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	}
 
 	@Override
+	public String getComponentType() {
+		return "from-avro-transformer";
+	}
+
+	@Override
 	protected void onInit() {
 		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 	}
@@ -133,12 +141,12 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 		if (value instanceof Class) {
 			type = (Class<? extends SpecificRecord>) value;
 		}
-		else if (value instanceof String) {
+		else if (value instanceof String stringValue) {
 			try {
-				type = (Class<? extends SpecificRecord>) ClassUtils.forName((String) value, this.beanClassLoader);
+				type = (Class<? extends SpecificRecord>) ClassUtils.forName(stringValue, this.beanClassLoader);
 			}
-			catch (ClassNotFoundException | LinkageError e) {
-				throw new IllegalStateException(e);
+			catch (ClassNotFoundException | LinkageError ex) {
+				throw new IllegalStateException(ex);
 			}
 		}
 		if (type == null) {
@@ -148,8 +156,8 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 		try {
 			return reader.read(null, this.decoderFactory.binaryDecoder((byte[]) message.getPayload(), null));
 		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 

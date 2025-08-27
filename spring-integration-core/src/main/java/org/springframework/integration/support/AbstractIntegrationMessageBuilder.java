@@ -154,7 +154,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	 * @see #copyHeadersIfAbsent(Map)
 	 */
 	public AbstractIntegrationMessageBuilder<T> filterAndCopyHeadersIfAbsent(Map<String, ?> headersToCopy,
-			@Nullable String... headerPatternsToFilter) {
+			String @Nullable ... headerPatternsToFilter) {
 
 		Map<String, ?> headers = headersToCopy;
 

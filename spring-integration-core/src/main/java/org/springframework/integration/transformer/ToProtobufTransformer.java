@@ -31,9 +31,10 @@ import org.springframework.util.Assert;
  * <p>
  * If the content type is set to {@code application/json} and
  * the {@code com.google.protobuf:protobuf-java-util} dependency is on the
- * classpath, the output message payload if of type String.
+ * classpath, the output message payload of type String.
  *
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 6.1
  */
@@ -51,6 +52,11 @@ public class ToProtobufTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "to-protobuf-transformer";
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) {
 		Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
 				"Payload must be an implementation of 'com.google.protobuf.Message'");
@@ -61,7 +67,11 @@ public class ToProtobufTransformer extends AbstractTransformer {
 			accessor.setContentType(ProtobufMessageConverter.PROTOBUF);
 		}
 
-		return this.protobufMessageConverter.toMessage(message.getPayload(), accessor.getMessageHeaders());
+		Message<?> result = this.protobufMessageConverter.toMessage(message.getPayload(), accessor.getMessageHeaders());
+		if (result == null) {
+			throw new MessageTransformationException(message, "Failed to convert to Protobuf");
+		}
+		return result;
 	}
 
 }

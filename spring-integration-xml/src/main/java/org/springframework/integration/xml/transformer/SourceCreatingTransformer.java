@@ -27,6 +27,7 @@ import org.springframework.integration.xml.source.SourceFactory;
  * Defaults to using a {@link DomSourceFactory} if an alternative is not provided.
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class SourceCreatingTransformer extends AbstractPayloadTransformer<Object, Source> {
 
@@ -38,6 +39,11 @@ public class SourceCreatingTransformer extends AbstractPayloadTransformer<Object
 
 	public SourceCreatingTransformer(SourceFactory sourceFactory) {
 		this.sourceFactory = sourceFactory;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "xml:source-creating-transformer";
 	}
 
 	@Override

@@ -29,13 +29,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class PayloadTransformerTests {
 
 	@Test
 	public void testSuccessfulTransformation() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
-		Message<?> message = new GenericMessage<String>("foo");
+		Message<?> message = new GenericMessage<>("foo");
 		Message<?> result = transformer.transform(message);
 		assertThat(result.getPayload()).isEqualTo(3);
 	}
@@ -43,7 +44,7 @@ public class PayloadTransformerTests {
 	@Test
 	public void testExceptionThrownByTransformer() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
-		Message<?> message = new GenericMessage<String>("bad");
+		Message<?> message = new GenericMessage<>("bad");
 		assertThatThrownBy(() -> transformer.transform(message))
 				.isInstanceOf(MessagingException.class);
 	}
@@ -51,7 +52,7 @@ public class PayloadTransformerTests {
 	@Test
 	public void testWrongPayloadType() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
-		Message<?> message = new GenericMessage<Date>(new Date());
+		Message<?> message = new GenericMessage<>(new Date());
 		assertThatThrownBy(() -> transformer.transform(message))
 				.isInstanceOf(MessagingException.class);
 	}
@@ -60,6 +61,11 @@ public class PayloadTransformerTests {
 
 		TestPayloadTransformer() {
 			super();
+		}
+
+		@Override
+		public String getComponentType() {
+			return "payload-test-transformer";
 		}
 
 		@Override

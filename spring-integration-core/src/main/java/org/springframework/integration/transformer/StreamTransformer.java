@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
@@ -39,13 +41,13 @@ import org.springframework.util.FileCopyUtils;
  */
 public class StreamTransformer extends AbstractTransformer {
 
-	private final String charset;
+	private final @Nullable String charset;
 
 	/**
 	 * Construct an instance to transform an {@link InputStream} to a {@code byte[]}.
 	 */
 	public StreamTransformer() {
-		this(null);
+		this.charset = null;
 	}
 
 	/**
@@ -55,6 +57,11 @@ public class StreamTransformer extends AbstractTransformer {
 	 */
 	public StreamTransformer(String charset) {
 		this.charset = charset;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "to-avro-transformer";
 	}
 
 	@Override

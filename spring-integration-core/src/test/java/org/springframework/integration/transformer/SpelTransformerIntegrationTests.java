@@ -28,7 +28,6 @@ import org.springframework.expression.TypedValue;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -39,6 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.Assert;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -91,12 +91,9 @@ public class SpelTransformerIntegrationTests {
 
 	@Test
 	public void testInt2755ChainChildIdWithinExceptionMessage() {
-		try {
-			this.transformerChainInput.send(new GenericMessage<>("foo"));
-		}
-		catch (ReplyRequiredException e) {
-			assertThat(e.getMessage()).contains("No reply produced by handler 'transformerChain$child#0'");
-		}
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> this.transformerChainInput.send(new GenericMessage<>("test")))
+				.withMessage("MessageProcessor returned null in: transformerChain$child#0");
 	}
 
 	@Test

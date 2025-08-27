@@ -18,15 +18,14 @@ package org.springframework.integration.transformer;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -40,17 +39,12 @@ import org.springframework.util.ObjectUtils;
  * @author Ngoc Nhan
  */
 public abstract class AbstractMessageProcessingTransformer
-		implements Transformer, BeanFactoryAware, ManageableLifecycle {
+		extends IntegrationObjectSupport
+		implements Transformer, ManageableLifecycle {
 
 	private final MessageProcessor<?> messageProcessor;
 
-	private BeanFactory beanFactory;
-
-	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private boolean messageBuilderFactorySet;
-
-	private String[] notPropagatedHeaders;
+	private String @Nullable [] notPropagatedHeaders;
 
 	private boolean selectiveHeaderPropagation;
 
@@ -60,21 +54,11 @@ public abstract class AbstractMessageProcessingTransformer
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+	protected void onInit() {
+		super.onInit();
 		if (this.messageProcessor instanceof BeanFactoryAware beanFactoryAware) {
-			beanFactoryAware.setBeanFactory(beanFactory);
+			beanFactoryAware.setBeanFactory(getBeanFactory());
 		}
-	}
-
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			this.messageBuilderFactorySet = true;
-		}
-		return this.messageBuilderFactory;
 	}
 
 	@Override
@@ -99,7 +83,7 @@ public abstract class AbstractMessageProcessingTransformer
 	/**
 	 * Set headers that will NOT be copied from the inbound message if
 	 * the handler is configured to copy headers.
-	 * @param headers the headers to not propagate from the inbound message.
+	 * @param headers the headers do not propagate from the inbound message.
 	 * @since 5.1
 	 */
 	public void setNotPropagatedHeaders(String... headers) {
@@ -115,16 +99,17 @@ public abstract class AbstractMessageProcessingTransformer
 	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		if (result == null) {
-			return null;
+			throw new MessageTransformationException(message,
+					"MessageProcessor returned null in: " + getComponentName());
 		}
-		if (result instanceof Message<?>) {
-			return (Message<?>) result;
+		if (result instanceof Message<?> messageToReply) {
+			return messageToReply;
 		}
 
 		AbstractIntegrationMessageBuilder<?> messageBuilder;
 
-		if (result instanceof AbstractIntegrationMessageBuilder<?>) {
-			messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+		if (result instanceof AbstractIntegrationMessageBuilder<?> integrationMessageBuilder) {
+			messageBuilder = integrationMessageBuilder;
 		}
 		else {
 			messageBuilder = getMessageBuilderFactory().withPayload(result);

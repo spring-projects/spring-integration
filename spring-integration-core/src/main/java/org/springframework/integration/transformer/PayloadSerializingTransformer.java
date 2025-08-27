@@ -20,11 +20,12 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
 
 /**
- * Transformer that serializes the inbound payload into a byte array by delegating to a
- * Converter&lt;Object, byte[]&gt;. Default delegate is a {@link SerializingConverter} using
- * Java serialization.
+ * Transformer that serializes the inbound payload into a byte array
+ * by delegating to the {@link SerializingConverter} using Java serialization.
  *
  * <p>The payload instance must be Serializable if the default converter is used.
+ *
+ * <p>A custom {@link Serializer} can be provided via {@link #setSerializer(Serializer)}.
  *
  * @author Mark Fisher
  * @author Gary Russell
@@ -45,6 +46,11 @@ public class PayloadSerializingTransformer extends PayloadTypeConvertingTransfor
 
 	public void setSerializer(Serializer<Object> serializer) {
 		setConverter(new SerializingConverter(serializer));
+	}
+
+	@Override
+	public String getComponentType() {
+		return "serializing-payload-transformer";
 	}
 
 }

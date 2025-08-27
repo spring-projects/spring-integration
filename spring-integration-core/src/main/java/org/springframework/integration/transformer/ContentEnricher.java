@@ -64,7 +64,7 @@ import org.springframework.util.ReflectionUtils;
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
 	/**
-	 * Customized SpelExpressionParser to allow to specify nested properties when parent is null.
+	 * Customized SpelExpressionParser to allow specifying nested properties when the parent is null.
 	 */
 	private static final SpelExpressionParser SPEL_PARSER =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
@@ -77,31 +77,33 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext sourceEvaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext targetEvaluationContext;
 
 	private boolean shouldClonePayload = false;
 
-	private Expression requestPayloadExpression;
+	private @Nullable Expression requestPayloadExpression;
 
-	private MessageChannel requestChannel;
+	private @Nullable MessageChannel requestChannel;
 
-	private String requestChannelName;
+	private @Nullable String requestChannelName;
 
-	private MessageChannel replyChannel;
+	private @Nullable MessageChannel replyChannel;
 
-	private String replyChannelName;
+	private @Nullable String replyChannelName;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
-	private Gateway gateway;
+	private @Nullable Long requestTimeout;
 
-	private Long requestTimeout;
+	private @Nullable Long replyTimeout;
 
-	private Long replyTimeout;
+	private @Nullable Gateway gateway;
 
 	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
 		this.nullResultPropertyExpressions = convertExpressions(nullResultPropertyExpressions);
@@ -156,7 +158,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Set the content enricher reply channel. If not specified, yet the request
-	 * channel is set, an anonymous reply channel will automatically created for each
+	 * channel is set, an anonymous reply channel will automatically create for each
 	 * request.
 	 * @param replyChannel The reply channel.
 	 */
@@ -206,17 +208,17 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * By default the original message's payload will be used as the actual payload that
-	 * will be send to the request-channel.
+	 * By default, the original message's payload will be used as the actual payload that
+	 * will be sent to the request-channel.
 	 * <p>
-	 * By providing a SpEL expression as value for this setter, a subset of the original
+	 * By providing a SpEL expression as a value for this setter, a subset of the original
 	 * payload, a header value or any other resolvable SpEL expression can be used as the
-	 * basis for the payload, that will be send to the request-channel.
+	 * basis for the payload that will be sent to the request-channel.
 	 * <p>
 	 * For the Expression evaluation the full message is available as the <b>root
 	 * object</b>.
 	 * <p>
-	 * For instance the following SpEL expressions (among others) are possible:
+	 * For instance, the following SpEL expressions (among others) are possible:
 	 * <ul>
 	 *   <li>payload.foo</li>
 	 *   <li>headers.foobar</li>
@@ -241,10 +243,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.shouldClonePayload = shouldClonePayload;
 	}
 
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.sourceEvaluationContext = evaluationContext;
-	}
-
 	@Override
 	public String getComponentType() {
 		return "enricher";
@@ -266,35 +264,32 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		BeanFactory beanFactory = getBeanFactory();
 
 		if (this.requestChannel != null || this.requestChannelName != null) {
-			this.gateway = new Gateway();
+			Gateway gatewayToUse = new Gateway();
 
 			JavaUtils.INSTANCE
-					.acceptIfNotNull(this.requestChannel, this.gateway::setRequestChannel)
-					.acceptIfNotNull(this.requestChannelName, this.gateway::setRequestChannelName)
-					.acceptIfNotNull(this.requestTimeout, this.gateway::setRequestTimeout)
-					.acceptIfNotNull(this.replyTimeout, this.gateway::setReplyTimeout)
-					.acceptIfNotNull(this.replyChannel, this.gateway::setReplyChannel)
-					.acceptIfNotNull(this.replyChannelName, this.gateway::setReplyChannelName)
-					.acceptIfNotNull(this.errorChannel, this.gateway::setErrorChannel)
-					.acceptIfNotNull(this.errorChannelName, this.gateway::setErrorChannelName)
-					.acceptIfNotNull(beanFactory, this.gateway::setBeanFactory);
+					.acceptIfNotNull(this.requestChannel, gatewayToUse::setRequestChannel)
+					.acceptIfNotNull(this.requestChannelName, gatewayToUse::setRequestChannelName)
+					.acceptIfNotNull(this.requestTimeout, gatewayToUse::setRequestTimeout)
+					.acceptIfNotNull(this.replyTimeout, gatewayToUse::setReplyTimeout)
+					.acceptIfNotNull(this.replyChannel, gatewayToUse::setReplyChannel)
+					.acceptIfNotNull(this.replyChannelName, gatewayToUse::setReplyChannelName)
+					.acceptIfNotNull(this.errorChannel, gatewayToUse::setErrorChannel)
+					.acceptIfNotNull(this.errorChannelName, gatewayToUse::setErrorChannelName)
+					.acceptIfNotNull(beanFactory, gatewayToUse::setBeanFactory);
 
-			this.gateway.afterPropertiesSet();
+			gatewayToUse.afterPropertiesSet();
+			this.gateway = gatewayToUse;
 		}
 
-		if (this.sourceEvaluationContext == null) {
-			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
-		}
+		this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 
 		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		// bean resolution is NOT allowed for the target of the enrichment
-		targetContext.setBeanResolver(null); // NOSONAR (null)
+		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
 
-		if (beanFactory != null) {
-			configureHeaderExpressions(beanFactory, this.headerExpressions);
-			configureHeaderExpressions(beanFactory, this.nullResultHeaderExpressions);
-		}
+		configureHeaderExpressions(beanFactory, this.headerExpressions);
+		configureHeaderExpressions(beanFactory, this.nullResultHeaderExpressions);
 	}
 
 	private void validateConfiguration() {
@@ -338,7 +333,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		Object targetPayload = prepareTargetPayload(requestMessage);
 		Message<?> actualRequestMessage = prepareActualRequestMessage(requestMessage);
 
@@ -399,8 +394,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		return requestMessage;
 	}
 
-	@Nullable
-	private Object processNullReply(Message<?> requestMessage, Object targetPayload) {
+	private @Nullable Object processNullReply(Message<?> requestMessage, Object targetPayload) {
 		if (this.nullResultPropertyExpressions.isEmpty() && this.nullResultHeaderExpressions.isEmpty()) {
 			return null;
 		}
@@ -424,7 +418,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	private AbstractIntegrationMessageBuilder<?> buildReplyWithHeaders(Message<?> message,
 			Object targetPayload, Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
 
-		Map<String, Object> targetHeaders = new HashMap<>(headerExpressions.size());
+		Map<String, @Nullable Object> targetHeaders = new HashMap<>(headerExpressions.size());
 		for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : headerExpressions.entrySet()) {
 			String header = entry.getKey();
 			HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
@@ -492,7 +486,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 
 		@Override
-		protected Message<?> sendAndReceiveMessage(Object object) { // NOSONAR - not useless, increases visibility
+		protected @Nullable Message<?> sendAndReceiveMessage(Object object) {
 			return super.sendAndReceiveMessage(object);
 		}
 

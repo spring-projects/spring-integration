@@ -121,7 +121,7 @@ The return value of the method can be any type.
 If the return value is itself a `Message`, that is passed along to the transformer's output channel.
 
 As of Spring Integration 2.0, a message transformer's transformation method can no longer return `null`.
-Returning `null` results in an exception, because a message transformer should always be expected to transform each source message into a valid target message.
+Returning `null` results in an exception (a `MessageTransformationException` to be precise), because a message transformer should always be expected to transform each source message into a valid target message.
 In other words, a message transformer should not be used as a message filter, because there is a dedicated `<filter>` option for that.
 However, if you do need this type of behavior (where a component might return `null` and that should not be considered an error), you could use a service activator.
 Its `requires-reply` value is `false` by default, but that can be set to `true` in order to have exceptions thrown for `null` return values, as with the transformer.

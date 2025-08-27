@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 
 /**
@@ -33,7 +34,13 @@ import org.springframework.util.Assert;
  */
 public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTransformer<T, U> {
 
+	@SuppressWarnings("NullAway.Init")
 	private Converter<T, U> converter;
+
+	@Override
+	public String getComponentType() {
+		return "converting-payload-transformer";
+	}
 
 	/**
 	 * Specify the converter to use.
@@ -64,7 +71,11 @@ public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTrans
 
 	@Override
 	protected U transformPayload(T payload) {
-		return this.converter.convert(payload);
+		U converted = this.converter.convert(payload);
+		if (converted == null) {
+			throw new MessageConversionException("The converter '" + this.converter + "' returned null");
+		}
+		return converted;
 	}
 
 }

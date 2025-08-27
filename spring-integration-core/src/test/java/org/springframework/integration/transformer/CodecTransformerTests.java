@@ -16,7 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -24,8 +23,8 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.codec.Codec;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -33,52 +32,59 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
-public class CodecTransformerTests {
+public class CodecTransformerTests implements TestApplicationContextAware {
 
 	@Test
-	public void testCodec() throws Exception {
+	public void testCodec() {
 		MyCodec codec = new MyCodec();
-		EncodingPayloadTransformer<String> enc = new EncodingPayloadTransformer<String>(codec);
-		Message<?> message = new GenericMessage<String>("bar");
+		EncodingPayloadTransformer<String> enc = new EncodingPayloadTransformer<>(codec);
+		Message<?> message = new GenericMessage<>("bar");
 		byte[] transformed = enc.doTransform(message);
 		assertThat(transformed).isEqualTo("foo".getBytes());
-		DecodingTransformer<?> dec = new DecodingTransformer<String>(codec, String.class);
-		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed))).isEqualTo("foo");
+		DecodingTransformer<?> dec = new DecodingTransformer<>(codec, String.class);
+		assertThat(dec.doTransform(new GenericMessage<>(transformed))).isEqualTo("foo");
 
 		dec = new DecodingTransformer<Integer>(codec, new SpelExpressionParser().parseExpression("T(Integer)"));
-		dec.setEvaluationContext(new StandardEvaluationContext());
-		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed))).isEqualTo(42);
+		dec.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		dec.afterPropertiesSet();
+		assertThat(dec.doTransform(new GenericMessage<>(transformed))).isEqualTo(42);
 
 		dec = new DecodingTransformer<Integer>(codec, new SpelExpressionParser().parseExpression("headers['type']"));
-		dec.setEvaluationContext(new StandardEvaluationContext());
-		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed,
+		dec.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		dec.afterPropertiesSet();
+		assertThat(dec.doTransform(new GenericMessage<>(transformed,
 				Collections.singletonMap("type", Integer.class)))).isEqualTo(42);
 	}
 
 	public static class MyCodec implements Codec {
 
 		@Override
-		public void encode(Object object, OutputStream outputStream) throws IOException {
+		public void encode(Object object, OutputStream outputStream) {
 		}
 
 		@Override
-		public byte[] encode(Object object) throws IOException {
+		public byte[] encode(Object object) {
 			return "foo".getBytes();
 		}
 
 		@Override
-		public <T> T decode(InputStream inputStream, Class<T> type) throws IOException {
+		public <T> T decode(InputStream inputStream, Class<T> type) {
 			return null;
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T decode(byte[] bytes, Class<T> type) throws IOException {
-			return (T) (type.equals(String.class) ? new String(bytes) :
-					type.equals(Integer.class) ? Integer.valueOf(42) : Integer.valueOf(43));
+		public <T> T decode(byte[] bytes, Class<T> type) {
+			return (T) (type.equals(String.class)
+					? new String(bytes)
+					: type.equals(Integer.class)
+						? Integer.valueOf(42)
+						: Integer.valueOf(43));
 		}
 
 	}

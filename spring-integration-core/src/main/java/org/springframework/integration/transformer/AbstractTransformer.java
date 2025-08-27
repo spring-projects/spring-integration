@@ -24,30 +24,24 @@ import org.springframework.messaging.Message;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public abstract class AbstractTransformer extends IntegrationObjectSupport implements Transformer {
 
 	@Override
 	public final Message<?> transform(Message<?> message) {
 		try {
-			Object result = this.doTransform(message);
-			if (result == null) {
-				return null;
-			}
-			return (result instanceof Message) ? (Message<?>) result
+			Object result = doTransform(message);
+			return result instanceof Message<?> resultMessage
+					? resultMessage
 					: getMessageBuilderFactory().withPayload(result).copyHeaders(message.getHeaders()).build();
 		}
-		catch (MessageTransformationException e) { // NOSONAR - catch and throw
-			throw e;
+		catch (Exception ex) {
+			if (ex instanceof MessageTransformationException messageTransformationException) {
+				throw messageTransformationException;
+			}
+			throw new MessageTransformationException(message, "failed to transform message", ex);
 		}
-		catch (Exception e) {
-			throw new MessageTransformationException(message, "failed to transform message", e);
-		}
-	}
-
-	@Override
-	public String getComponentType() {
-		return "transformer";
 	}
 
 	/**
@@ -55,7 +49,6 @@ public abstract class AbstractTransformer extends IntegrationObjectSupport imple
 	 * logic. If the return value is itself a Message, it will be used as the
 	 * result. Otherwise, any non-null return value will be used as the payload
 	 * of the result Message.
-	 *
 	 * @param message The message.
 	 * @return The result of the transformation.
 	 */

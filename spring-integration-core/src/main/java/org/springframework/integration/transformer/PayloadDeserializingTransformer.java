@@ -52,7 +52,7 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 	/**
 	 * When using a {@link AllowListDeserializingConverter} (the default) add patterns
 	 * for packages/classes that are allowed to be deserialized.
-	 * A class can be fully qualified or a wildcard '*' is allowed at the
+	 * A class can be fully qualified, or a wildcard '*' is allowed at the
 	 * beginning or end of the class name.
 	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
@@ -62,6 +62,11 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 		Assert.isTrue(getConverter() instanceof AllowListDeserializingConverter,
 				"Patterns can only be provided when using a 'AllowListDeserializingConverter'");
 		((AllowListDeserializingConverter) getConverter()).setAllowedPatterns(patterns);
+	}
+
+	@Override
+	public String getComponentType() {
+		return "deserializing-payload-transformer";
 	}
 
 }

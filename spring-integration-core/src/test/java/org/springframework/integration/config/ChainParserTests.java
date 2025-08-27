@@ -39,12 +39,12 @@ import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
-import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.ObjectToMapTransformer;
 import org.springframework.messaging.Message;
@@ -58,7 +58,6 @@ import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -454,25 +453,13 @@ public class ChainParserTests {
 	@Test
 	public void testInt2755SubComponentException() {
 		GenericMessage<String> testMessage = new GenericMessage<>("test");
-		try {
-			this.chainReplyRequiredChannel.send(testMessage);
-			fail("Expected ReplyRequiredException");
-		}
-		catch (Exception e) {
-			assertThat(e instanceof ReplyRequiredException).isTrue();
-			assertThat(e.getMessage().contains("'chainReplyRequired$child.transformerReplyRequired'")).isTrue();
-		}
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> this.chainReplyRequiredChannel.send(testMessage))
+				.withMessageContaining("chainReplyRequired$child.transformerReplyRequired");
 
-		try {
-			this.chainMessageRejectedExceptionChannel.send(testMessage);
-			fail("Expected MessageRejectedException");
-		}
-		catch (Exception e) {
-			assertThat(e instanceof MessageRejectedException).isTrue();
-			assertThat(e.getMessage().contains("chainMessageRejectedException$child.filterMessageRejectedException"))
-					.isTrue();
-		}
-
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> this.chainMessageRejectedExceptionChannel.send(testMessage))
+				.withMessageContaining("chainMessageRejectedException$child.filterMessageRejectedException");
 	}
 
 	@Test

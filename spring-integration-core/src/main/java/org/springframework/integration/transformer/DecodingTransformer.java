@@ -19,6 +19,8 @@ package org.springframework.integration.transformer;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.codec.Codec;
@@ -33,6 +35,7 @@ import org.springframework.util.Assert;
  * @param <T> the payload type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
  */
@@ -40,11 +43,12 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 
 	private final Codec codec;
 
-	private final Class<T> type;
+	private final @Nullable Class<T> type;
 
-	private final Expression typeExpression;
+	private final @Nullable Expression typeExpression;
 
-	private volatile StandardEvaluationContext evaluationContext;
+	@SuppressWarnings("NullAway.Init")
+	private StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Construct an instance to use the supplied codec to decode to the supplied type.
@@ -72,15 +76,14 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 		this.typeExpression = typeExpression;
 	}
 
-	public void setEvaluationContext(StandardEvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	@Override
+	public String getComponentType() {
+		return "decoding-transformer";
 	}
 
 	@Override
 	protected void onInit() {
-		if (this.evaluationContext == null) {
-			this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
-		}
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 	}
 
 	@Override
@@ -95,9 +98,8 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"}) // Dataflow analysis limitation
 	private Class<T> type(Message<?> message) {
-		Assert.state(this.evaluationContext != null, "EvaluationContext required");
 		return this.typeExpression.getValue(this.evaluationContext, message, Class.class);
 	}
 

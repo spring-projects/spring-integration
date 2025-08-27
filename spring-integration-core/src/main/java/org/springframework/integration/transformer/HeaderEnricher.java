@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -47,16 +49,15 @@ import org.springframework.messaging.MessageHeaders;
  */
 public class HeaderEnricher extends IntegrationObjectSupport implements Transformer, IntegrationPattern {
 
-	private final Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd;
+	private final Map<String, HeaderValueMessageProcessor<?>> headersToAdd = new HashMap<>();
 
-	private volatile MessageProcessor<?> messageProcessor;
+	private @Nullable MessageProcessor<?> messageProcessor;
 
-	private volatile boolean defaultOverwrite = false;
+	private boolean defaultOverwrite = false;
 
-	private volatile boolean shouldSkipNulls = true;
+	private boolean shouldSkipNulls = true;
 
 	public HeaderEnricher() {
-		this(null);
 	}
 
 	/**
@@ -64,10 +65,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	 * @param headersToAdd The headers to add.
 	 */
 	public HeaderEnricher(Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd) {
-		this.headersToAdd =
-				headersToAdd != null
-						? headersToAdd
-						: new HashMap<String, HeaderValueMessageProcessor<Object>>();
+		this.headersToAdd.putAll(headersToAdd);
 	}
 
 	public <T> void setMessageProcessor(MessageProcessor<T> messageProcessor) {
@@ -107,10 +105,8 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 		shouldOverwrite = initializeHeadersToAdd(shouldOverwrite, checkReadOnlyHeaders);
 		BeanFactory beanFactory = getBeanFactory();
 
-		if (this.messageProcessor != null
-				&& this.messageProcessor instanceof BeanFactoryAware
-				&& beanFactory != null) {
-			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
+		if (this.messageProcessor != null && this.messageProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
@@ -132,8 +128,8 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			}
 
 			HeaderValueMessageProcessor<?> processor = entry.getValue();
-			if (processor instanceof BeanFactoryAware && beanFactory != null) {
-				((BeanFactoryAware) processor).setBeanFactory(beanFactory);
+			if (processor instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
 			}
 			Boolean processorOverwrite = processor.isOverwrite();
 			if (processorOverwrite != null) {
@@ -164,7 +160,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			boolean headerDoesNotExist = messageHeaders.get(key) == null;
 
 			/*
-			 * Only evaluate value expression if necessary
+			 * Only evaluate a value expression if necessary
 			 */
 			if (headerDoesNotExist || shouldOverwrite) {
 				Object value = valueProcessor.processMessage(message);
@@ -182,9 +178,8 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 
 		if (this.messageProcessor != null) {
 			Object result = this.messageProcessor.processMessage(message);
-			if (result instanceof Map) {
+			if (result instanceof Map<?, ?> resultMap) {
 				MessageHeaders messageHeaders = message.getHeaders();
-				Map<?, ?> resultMap = (Map<?, ?>) result;
 				for (Entry<?, ?> entry : resultMap.entrySet()) {
 					Object key = entry.getKey();
 					if (key instanceof String) {

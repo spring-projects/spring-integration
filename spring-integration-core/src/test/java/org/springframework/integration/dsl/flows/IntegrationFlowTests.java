@@ -298,7 +298,7 @@ public class IntegrationFlowTests {
 	@Test
 	public void testLambdas() {
 		assertThat(this.beanFactory.containsBean("lambdasFlow.filter#0")).isTrue();
-		assertThat(this.beanFactory.containsBean("lambdasFlow.transformer#0")).isTrue();
+		assertThat(this.beanFactory.containsBean("lambdasFlow.method-invoking-transformer#0")).isTrue();
 
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("World".getBytes())

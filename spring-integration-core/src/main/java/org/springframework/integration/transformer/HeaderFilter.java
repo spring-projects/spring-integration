@@ -40,13 +40,14 @@ import org.springframework.util.Assert;
  */
 public class HeaderFilter extends IntegrationObjectSupport implements Transformer, IntegrationPattern {
 
+	@SuppressWarnings("NullAway.Init")
 	private String[] headersToRemove;
 
-	private volatile boolean patternMatch = true;
+	private boolean patternMatch = true;
 
 	/**
 	 * Create an instance of the class.
-	 * The {@link #setHeadersToRemove} must be called afterwards.
+	 * The {@link #setHeadersToRemove} must be called afterward.
 	 * @since 6.2
 	 */
 	public HeaderFilter() {
@@ -86,8 +87,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 		super.onInit();
 		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
 			for (String header : this.headersToRemove) {
-				if (!header.contains("*")
-						&& (MessageHeaders.ID.equals(header) || MessageHeaders.TIMESTAMP.equals(header))) {
+				if ((MessageHeaders.ID.equals(header) || MessageHeaders.TIMESTAMP.equals(header))) {
 					throw new BeanInitializationException(
 							"HeaderFilter cannot remove 'id' and 'timestamp' read-only headers.\n" +
 									"Wrong 'headersToRemove' [" + Arrays.toString(this.headersToRemove)

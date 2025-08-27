@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link Transformer} implementation that applies a Zip transformation to the message payload.
- * Keep in mind that Zip entry timestamps are recorded only to 2 second precision:
+ * Keep in mind that Zip entry timestamps are recorded only to 2-second precision:
  * <p>
  * See also: <a href="https://www.mindprod.com/jgloss/zip.html"/>
  * <p>
@@ -92,6 +92,11 @@ public class ZipTransformer extends AbstractZipTransformer {
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
 		this.fileNameGenerator = fileNameGenerator;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "zip-transformer";
 	}
 
 	@Override
@@ -146,7 +151,7 @@ public class ZipTransformer extends AbstractZipTransformer {
 			zippedData = zippedBytes;
 		}
 		else {
-			throw new IllegalStateException("Unsupported zipResultType " + this.zipResultType);
+			throw new IllegalStateException("Unsupported zipResultType: " + this.zipResultType);
 		}
 
 		deleteFilesIfAny(payload);

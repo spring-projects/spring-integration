@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
@@ -37,10 +38,12 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * <p>
  * The evaluation result type will depend on either the enumeration value provided to
  * {@link #setEvaluationType(XPathEvaluationType)} or the presence of a {@link NodeMapper},
- * which takes precedence. If no {@link NodeMapper} or evaluation type is configured explicitly,
+ * which takes precedence. If no {@link NodeMapper} or an evaluation type is configured explicitly,
  * the default evaluation type is {@link XPathEvaluationType#STRING_RESULT}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XPathTransformer extends AbstractTransformer {
@@ -111,14 +114,19 @@ public class XPathTransformer extends AbstractTransformer {
 	}
 
 	@Override
-	protected @Nullable Object doTransform(Message<?> message) {
+	protected Object doTransform(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
-		Object result = null;
-		if (this.nodeMapper != null) {
-			result = this.xpathExpression.evaluateAsObject(node, this.nodeMapper);
+		Object result;
+		NodeMapper<?> nodeMapperToUse = this.nodeMapper;
+		if (nodeMapperToUse != null) {
+			result = this.xpathExpression.evaluateAsObject(node, nodeMapperToUse);
 		}
 		else {
 			result = this.evaluationType.evaluateXPath(this.xpathExpression, node);
+		}
+
+		if (result == null) {
+			throw new MessageTransformationException(message, "XPath expression evaluated to null");
 		}
 		return result;
 	}

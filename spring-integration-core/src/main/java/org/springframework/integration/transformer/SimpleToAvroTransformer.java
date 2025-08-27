@@ -38,8 +38,9 @@ import org.springframework.util.Assert;
  * An Apache Avro transformer for generated {@link SpecificRecord} objects.
  *
  * @author Gary Russell
- * @since 5.2
+ * @author Artem Bilan
  *
+ * @since 5.2
  */
 public class SimpleToAvroTransformer extends AbstractTransformer {
 
@@ -48,6 +49,7 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 	private Expression typeIdExpression =
 			new FunctionExpression<Message<?>>((message) -> message.getPayload().getClass());
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	/**
@@ -99,6 +101,11 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public String getComponentType() {
+		return "to-avro-transformer";
+	}
+
+	@Override
 	protected void onInit() {
 		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 	}
@@ -115,10 +122,11 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 			writer.write(specific, encoder);
 			encoder.flush();
 		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
-		return getMessageBuilderFactory().withPayload(out.toByteArray())
+		return getMessageBuilderFactory()
+				.withPayload(out.toByteArray())
 				.copyHeaders(message.getHeaders())
 				.setHeader(AvroHeaders.TYPE, this.typeIdExpression.getValue(this.evaluationContext, message))
 				.build();

@@ -34,7 +34,7 @@ public abstract class AbstractPayloadTransformer<T, U> extends AbstractTransform
 	@Override
 	@SuppressWarnings("unchecked")
 	public final U doTransform(Message<?> message) {
-		return this.transformPayload((T) message.getPayload());
+		return transformPayload((T) message.getPayload());
 	}
 
 	protected abstract U transformPayload(T payload);

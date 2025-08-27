@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,7 +44,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -135,81 +134,84 @@ public class DelegatingConsumerParserTests {
 	@Qualifier("refTransformerARPMH.handler")
 	private MessageHandler refTransformerARPMH;
 
-	private static QueueChannel replyChannel = new QueueChannel();
+	private static final QueueChannel replyChannel = new QueueChannel();
 
 	@Test
 	public void testDelegates() {
-		assertThat(directFilter instanceof MyFilter).isTrue();
+		assertThat(directFilter).isInstanceOf(MyFilter.class);
 		testHandler(directFilter);
-		assertThat(refFilter instanceof MyFilter).isTrue();
+		assertThat(refFilter).isInstanceOf(MyFilter.class);
 		testHandler(refFilter);
 		// MessageSelector (wrapped in MessageFilter) wins here
 		assertThat(filterWithMessageSelectorThatsAlsoAnARPMH instanceof MessageFilter).isTrue();
 		testHandler(filterWithMessageSelectorThatsAlsoAnARPMH);
 
-		assertThat(directRouter instanceof MyRouter).isTrue();
+		assertThat(directRouter).isInstanceOf(MyRouter.class);
 		testHandler(directRouter);
-		assertThat(refRouter instanceof MyRouter).isTrue();
+		assertThat(refRouter).isInstanceOf(MyRouter.class);
 		testHandler(refRouter);
-		assertThat(directRouterMH instanceof MyRouterMH).isTrue();
+		assertThat(directRouterMH).isInstanceOf(MyRouterMH.class);
 		testHandler(directRouterMH);
-		assertThat(refRouterMH instanceof MyRouterMH).isTrue();
+		assertThat(refRouterMH).isInstanceOf(MyRouterMH.class);
 		testHandler(refRouterMH);
-		assertThat(directRouterARPMH instanceof MyRouterARPMH).isTrue();
+		assertThat(directRouterARPMH).isInstanceOf(MyRouterARPMH.class);
 		testHandler(directRouterARPMH);
-		assertThat(refRouterARPMH instanceof MyRouterARPMH).isTrue();
+		assertThat(refRouterARPMH).isInstanceOf(MyRouterARPMH.class);
 		testHandler(refRouterARPMH);
 
-		assertThat(directServiceARPMH instanceof MyServiceARPMH).isTrue();
+		assertThat(directServiceARPMH).isInstanceOf(MyServiceARPMH.class);
 		testHandler(directServiceARPMH);
-		assertThat(refServiceARPMH instanceof MyServiceARPMH).isTrue();
+		assertThat(refServiceARPMH).isInstanceOf(MyServiceARPMH.class);
 		testHandler(refServiceARPMH);
 
-		assertThat(directSplitter instanceof MySplitter).isTrue();
+		assertThat(directSplitter).isInstanceOf(MySplitter.class);
 		testHandler(directSplitter);
-		assertThat(refSplitter instanceof MySplitter).isTrue();
+		assertThat(refSplitter).isInstanceOf(MySplitter.class);
 		testHandler(refSplitter);
-		assertThat(splitterWithARPMH instanceof MySplitterThatsAnARPMH).isTrue();
+		assertThat(splitterWithARPMH).isInstanceOf(MySplitterThatIsAnARPMH.class);
 		testHandler(splitterWithARPMH);
-		assertThat(splitterWithARPMHWithAtts instanceof MySplitterThatsAnARPMH).isTrue();
+		assertThat(splitterWithARPMHWithAtts).isInstanceOf(MySplitterThatIsAnARPMH.class);
 		assertThat(TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class))
 				.isEqualTo(Long.valueOf(123));
 		testHandler(splitterWithARPMHWithAtts);
 
-		assertThat(directTransformer instanceof MessageTransformingHandler).isTrue();
+		assertThat(directTransformer).isInstanceOf(MessageTransformingHandler.class);
 		assertThat(TestUtils.getPropertyValue(directTransformer, "transformer") instanceof MyTransformer).isTrue();
 		testHandler(directTransformer);
-		assertThat(refTransformer instanceof MessageTransformingHandler).isTrue();
+		assertThat(refTransformer).isInstanceOf(MessageTransformingHandler.class);
 		assertThat(TestUtils.getPropertyValue(refTransformer, "transformer") instanceof MyTransformer).isTrue();
 		testHandler(refTransformer);
-		assertThat(directTransformerARPMH instanceof MyTransformerARPMH).isTrue();
+		assertThat(directTransformerARPMH).isInstanceOf(MyTransformerARPMH.class);
 		testHandler(directTransformerARPMH);
-		assertThat(refTransformerARPMH instanceof MyTransformerARPMH).isTrue();
+		assertThat(refTransformerARPMH).isInstanceOf(MyTransformerARPMH.class);
 		testHandler(refTransformerARPMH);
 
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testOneRefOnly() {
 		ServiceActivatorFactoryBean fb = new ServiceActivatorFactoryBean();
-		fb.setBeanFactory(mock(BeanFactory.class));
+		fb.setBeanFactory(mock());
 		MyServiceARPMH service = new MyServiceARPMH();
 		service.setBeanName("foo");
 		fb.setTargetObject(service);
 		fb.getObject();
 
-		assertThat(TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS", Set.class).contains(service)).isTrue();
+		assertThat((Set<Object>) TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS"))
+				.contains(service);
 
 		ServiceActivatorFactoryBean fb2 = new ServiceActivatorFactoryBean();
-		fb2.setBeanFactory(mock(BeanFactory.class));
+		fb2.setBeanFactory(mock());
 		fb2.setTargetObject(service);
-		assertThatExceptionOfType(Exception.class)
+		assertThatException()
 				.isThrownBy(fb2::getObject)
 				.withMessage("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
 						+ "use scope=\"prototype\"");
 
 		fb.destroy();
-		assertThat(TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS", Set.class).contains(service)).isFalse();
+		assertThat((Set<Object>) TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS"))
+				.doesNotContain(service);
 	}
 
 	private void testHandler(MessageHandler handler) {
@@ -229,7 +231,7 @@ public class DelegatingConsumerParserTests {
 
 	}
 
-	public static class MySelectorShouldntBeUsedAsTheHandler extends AbstractReplyProducingMessageHandler
+	public static class MySelectorShouldNotBeUsedAsTheHandler extends AbstractReplyProducingMessageHandler
 			implements MessageSelector {
 
 		@Override
@@ -286,6 +288,11 @@ public class DelegatingConsumerParserTests {
 	public static class MyTransformer extends AbstractTransformer {
 
 		@Override
+		public String getComponentType() {
+			return "test-transformer";
+		}
+
+		@Override
 		protected Object doTransform(Message<?> message) {
 			return message;
 		}
@@ -310,7 +317,7 @@ public class DelegatingConsumerParserTests {
 
 	}
 
-	public static class MySplitterThatsAnARPMH extends AbstractReplyProducingMessageHandler {
+	public static class MySplitterThatIsAnARPMH extends AbstractReplyProducingMessageHandler {
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {

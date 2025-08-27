@@ -47,7 +47,6 @@ public class ClaimCheckOutTransformer extends AbstractTransformer implements Int
 
 	/**
 	 * Create a claim check-out transformer that will delegate to the provided MessageStore.
-	 *
 	 * @param messageStore The message store.
 	 */
 	public ClaimCheckOutTransformer(MessageStore messageStore) {
@@ -71,7 +70,6 @@ public class ClaimCheckOutTransformer extends AbstractTransformer implements Int
 
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.notNull(message, "message must not be null");
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");
 		UUID id = (UUID) message.getPayload();
 		Message<?> retrievedMessage;

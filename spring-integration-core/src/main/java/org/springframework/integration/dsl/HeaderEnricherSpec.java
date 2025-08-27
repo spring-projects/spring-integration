@@ -59,12 +59,15 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 
 	private static final String HEADERS_MUST_NOT_BE_NULL = "'headers' must not be null";
 
-	protected final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<>(); // NOSONAR - final
+	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<>();
 
-	protected final HeaderEnricher headerEnricher = new HeaderEnricher(this.headerToAdd); // NOSONAR - final
+	private boolean defaultOverwrite;
+
+	private boolean shouldSkipNulls;
+
+	private @Nullable MessageProcessor<?> messageProcessor;
 
 	protected HeaderEnricherSpec() {
-		this.handler = new MessageTransformingHandler(this.headerEnricher);
 	}
 
 	/**
@@ -75,7 +78,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setDefaultOverwrite(boolean)
 	 */
 	public HeaderEnricherSpec defaultOverwrite(boolean defaultOverwrite) {
-		this.headerEnricher.setDefaultOverwrite(defaultOverwrite);
+		this.defaultOverwrite = defaultOverwrite;
 		return _this();
 	}
 
@@ -85,7 +88,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setShouldSkipNulls(boolean)
 	 */
 	public HeaderEnricherSpec shouldSkipNulls(boolean shouldSkipNulls) {
-		this.headerEnricher.setShouldSkipNulls(shouldSkipNulls);
+		this.shouldSkipNulls = shouldSkipNulls;
 		return _this();
 	}
 
@@ -99,7 +102,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setMessageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(MessageProcessor<?> messageProcessor) {
-		this.headerEnricher.setMessageProcessor(messageProcessor);
+		this.messageProcessor = messageProcessor;
 		return _this();
 	}
 
@@ -877,7 +880,14 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> doGet() {
-		this.componentsToRegister.put(this.headerEnricher, null);
+		HeaderEnricher headerEnricher = new HeaderEnricher(this.headerToAdd);
+		headerEnricher.setDefaultOverwrite(this.defaultOverwrite);
+		headerEnricher.setShouldSkipNulls(this.shouldSkipNulls);
+		if (this.messageProcessor != null) {
+			headerEnricher.setMessageProcessor(this.messageProcessor);
+		}
+		this.handler = new MessageTransformingHandler(headerEnricher);
+		this.componentsToRegister.put(headerEnricher, null);
 		return super.doGet();
 	}
 

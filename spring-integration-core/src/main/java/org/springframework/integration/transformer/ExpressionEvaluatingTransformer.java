@@ -25,12 +25,18 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  * payload of a new Message unless it is itself already a Message.
  *
  * @author Mark Fisher
+ *
  * @since 2.0
  */
 public class ExpressionEvaluatingTransformer extends AbstractMessageProcessingTransformer {
 
 	public ExpressionEvaluatingTransformer(Expression expression) {
-		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
+		super(new ExpressionEvaluatingMessageProcessor<>(expression));
+	}
+
+	@Override
+	public String getComponentType() {
+		return "expression-transformer";
 	}
 
 }

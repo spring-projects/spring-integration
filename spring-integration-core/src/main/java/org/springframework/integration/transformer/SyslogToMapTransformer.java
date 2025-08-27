@@ -63,15 +63,20 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([a-zA-Z0-9]{0,32})(.*)", Pattern.DOTALL);
 
 	@Override
+	public String getComponentType() {
+		return "syslog-payload-transformer";
+	}
+
+	@Override
 	protected Map<String, ?> transformPayload(Object payload) {
 		boolean isByteArray = payload instanceof byte[];
 		boolean isString = payload instanceof String;
 		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
 		if (isByteArray) {
-			return this.transform((byte[]) payload);
+			return transform((byte[]) payload);
 		}
 		else {
-			return this.transform((String) payload);
+			return transform((String) payload);
 		}
 	}
 
@@ -124,9 +129,9 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 			int month = calendar.get(Calendar.MONTH);
 			calendar.setTime(Date.valueOf(localDate));
 			/*
-			 * syslog date doesn't include a year so we
+			 * syslog date doesn't include a year, so we
 			 * need to insert the current year - adjusted
-			 * if necessary if close to midnight on Dec 31.
+			 * if necessary when close to midnight on Dec 31.
 			 */
 			if (month == Calendar.DECEMBER && calendar.get(Calendar.MONTH) == Calendar.JANUARY) {
 				calendar.set(Calendar.YEAR, year + 1);

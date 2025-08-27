@@ -298,7 +298,7 @@ public abstract class Transformers {
 	 * @return the {@link StreamTransformer} instance.
 	 */
 	public static StreamTransformer fromStream() {
-		return fromStream(null);
+		return new StreamTransformer();
 	}
 
 	/**
@@ -307,7 +307,7 @@ public abstract class Transformers {
 	 * @param charset the charset.
 	 * @return the {@link StreamTransformer} instance.
 	 */
-	public static StreamTransformer fromStream(@Nullable String charset) {
+	public static StreamTransformer fromStream(String charset) {
 		return new StreamTransformer(charset);
 	}
 
