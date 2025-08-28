@@ -54,12 +54,12 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 			new ConcurrentReferenceHashMap<>(10, ReferenceType.WEAK);
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		if (!method.isDefault()) {
 			return invocation.proceed();
 		}
-		Object[] arguments = invocation.getArguments();
+		@Nullable Object[] arguments = invocation.getArguments();
 		Object proxy = ((ProxyMethodInvocation) invocation).getProxy();
 		return getMethodHandle(method)
 				.bindTo(proxy)
@@ -122,9 +122,9 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
 			private volatile boolean constructorResolved;
 
-			private transient Constructor<Lookup> constructor;
+			private transient @Nullable Constructor<Lookup> constructor;
 
-			private final Supplier<Constructor<Lookup>> constructorSupplier =
+			private final Supplier<@Nullable Constructor<Lookup>> constructorSupplier =
 					() -> {
 						if (!this.constructorResolved) {
 							Constructor<Lookup> ctor = null;

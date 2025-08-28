@@ -63,6 +63,7 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanExpressionContext expressionContext;
 
 	public AnnotationGatewayProxyFactoryBean(Class<T> serviceInterface) {
@@ -100,7 +101,10 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 	@Override
 	protected void onInit() {
 		if (getBeanFactory() instanceof ConfigurableBeanFactory beanFactory) {
-			this.resolver = beanFactory.getBeanExpressionResolver();
+			BeanExpressionResolver beanExpressionResolverToUse = beanFactory.getBeanExpressionResolver();
+			if (beanExpressionResolverToUse != null) {
+				this.resolver = beanExpressionResolverToUse;
+			}
 			this.expressionContext = new BeanExpressionContext(beanFactory, null);
 		}
 
@@ -131,12 +135,13 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 		setErrorOnTimeout(this.gatewayAttributes.getBoolean("errorOnTimeout"));
 
 		boolean proxyDefaultMethods = this.gatewayAttributes.getBoolean("proxyDefaultMethods");
-		if (proxyDefaultMethods) { // Override only if annotation attribute is different
+		if (proxyDefaultMethods) { // Override only if the annotation attribute is different
 			setProxyDefaultMethods(true);
 		}
 		super.onInit();
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void populateGatewayMethodMetadataIfAny() {
 		if (getGlobalMethodMetadata() != null) {
 			return;
@@ -210,14 +215,12 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 		}
 	}
 
-	@Nullable
-	private String resolveAttribute(String attributeName) {
+	private @Nullable String resolveAttribute(String attributeName) {
 		ConfigurableBeanFactory beanFactory = (ConfigurableBeanFactory) getBeanFactory();
 		return beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString(attributeName));
 	}
 
-	@Nullable
-	private <V> V evaluateExpression(@Nullable String value, Class<V> targetClass) {
+	private <V> @Nullable V evaluateExpression(@Nullable String value, Class<V> targetClass) {
 		if (StringUtils.hasText(value)) {
 			Object result = this.resolver.evaluate(value, this.expressionContext);
 			return getConversionService().convert(result, targetClass);

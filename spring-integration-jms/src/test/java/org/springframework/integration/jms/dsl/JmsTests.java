@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms.dsl;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -76,7 +79,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -462,7 +464,8 @@ public class JmsTests extends ActiveMQMultiContextTests {
 											.pubSubDomain(false)
 											.taskExecutor(Executors.newCachedThreadPool()))
 							.id("observedJmsMessageDrivenChannelAdapter")
-							.retryTemplate(new RetryTemplate()))
+							.retryTemplate(new RetryTemplate(
+									RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build())))
 					.handle((p, h) -> {
 						if (h.get(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, AtomicInteger.class).get() < 3) {
 							throw new RuntimeException("intentional for retry");

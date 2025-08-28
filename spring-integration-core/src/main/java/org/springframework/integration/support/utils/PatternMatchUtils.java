@@ -19,9 +19,13 @@ package org.springframework.integration.support.utils;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.Contract;
+
 /**
  * Utility methods for pattern matching.
- * This utilities provide support of negative pattern matching as well
+ * This utility provides support of negative pattern matching as well
  * unlike {@link org.springframework.util.PatternMatchUtils}.
  *
  * @author Meherzad Lahewala
@@ -37,25 +41,26 @@ public final class PatternMatchUtils {
 	}
 
 	/**
-	 * Pattern match against the supplied patterns ignoring case; also supports negated ('!')
+	 * Pattern match against the supplied patterns ignoring a case; also supports negated ('!')
 	 * patterns. First match wins (positive or negative).
 	 * To match the names starting with {@code !} symbol,
 	 * you have to escape it prepending with the {@code \} symbol in the pattern definition.
 	 * @param str the string to match.
 	 * @param patterns the patterns.
-	 * @return true for positive match; false for negative; null if no pattern matches.
+	 * @return true for a positive match; false for a negative; null if no pattern matches.
 	 * @since 5.0.5
 	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String[], String)
 	 */
-	public static Boolean smartMatchIgnoreCase(String str, String... patterns) {
-		if (patterns != null) {
+	@Contract("null, _ -> null; _, null -> null")
+	public static @Nullable Boolean smartMatchIgnoreCase(@Nullable String str, String @Nullable ... patterns) {
+		if (patterns != null && str != null) {
 			return smartMatch(str.toLowerCase(Locale.ROOT),
 					Arrays.stream(patterns)
 							.map((pattern) -> pattern.toLowerCase(Locale.ROOT))
 							.toArray(String[]::new));
 		}
 
-		return null; //NOSONAR - intentional null return
+		return null;
 	}
 
 	/**
@@ -65,10 +70,11 @@ public final class PatternMatchUtils {
 	 * you have to escape it prepending with the {@code \} symbol in the pattern definition.
 	 * @param str the string to match.
 	 * @param patterns the patterns.
-	 * @return true for positive match; false for negative; null if no pattern matches.
+	 * @return true for a positive match; false for a negative; null if no pattern matches.
 	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String[], String)
 	 */
-	public static Boolean smartMatch(String str, String... patterns) {
+	@Contract("_, null -> null")
+	public static @Nullable Boolean smartMatch(@Nullable String str, String @Nullable ... patterns) {
 		if (patterns != null) {
 			for (String pattern : patterns) {
 				boolean reverse = false;
@@ -86,7 +92,7 @@ public final class PatternMatchUtils {
 			}
 		}
 
-		return null; //NOSONAR - intentional null return
+		return null;
 	}
 
 }

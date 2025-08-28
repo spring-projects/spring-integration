@@ -28,11 +28,11 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Contract;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * General utility methods.
@@ -64,11 +64,15 @@ public final class IntegrationUtils {
 	}
 
 	/**
-	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @param beanFactory BeanFactory for lookup; must not be null.
 	 * @return The {@link ConversionService} bean whose name is "integrationConversionService" if available.
 	 */
-	public static ConversionService getConversionService(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
+	public static @Nullable ConversionService getConversionService(BeanFactory beanFactory) {
+		if (beanFactory.containsBean(INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)) {
+			return beanFactory.getBean(INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
+		}
+
+		return null;
 	}
 
 	/**
@@ -105,27 +109,20 @@ public final class IntegrationUtils {
 		return messageBuilderFactory;
 	}
 
-	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {
-		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		if (!beanFactory.containsBean(beanName)) {
-			return null;
-		}
-		return beanFactory.getBean(beanName, type);
-	}
-
 	/**
 	 * Utility method for null-safe conversion from String to byte[].
 	 * @param value the String to be converted
 	 * @param encoding the encoding
-	 * @return the byte[] corresponding to the given String and encoding, null if provided String argument was null
+	 * @return the byte[] corresponding to the given String and encoding, null if the provided String argument was null
 	 * @throws IllegalArgumentException if the encoding is not supported
 	 */
-	public static byte[] stringToBytes(String value, String encoding) {
+	@Contract("null, _ -> null; !null, _ -> !null")
+	public static byte @Nullable [] stringToBytes(@Nullable String value, String encoding) {
 		try {
 			return value != null ? value.getBytes(encoding) : null;
 		}
-		catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
+		catch (UnsupportedEncodingException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 
@@ -133,15 +130,17 @@ public final class IntegrationUtils {
 	 * Utility method for null-safe conversion from byte[] to String.
 	 * @param bytes the byte[] to be converted
 	 * @param encoding the encoding
-	 * @return the String corresponding to the given byte[] and encoding, null if provided byte[] argument was null
+	 * @return the String corresponding to the given byte[] and encoding,
+	 * {@code null} if provided {@code byte[]} argument was null
 	 * @throws IllegalArgumentException if the encoding is not supported
 	 */
-	public static String bytesToString(byte[] bytes, String encoding) {
+	@Contract("null, _ -> null; !null, _ -> !null")
+	public static @Nullable String bytesToString(byte @Nullable [] bytes, String encoding) {
 		try {
 			return bytes == null ? null : new String(bytes, encoding);
 		}
-		catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException(e);
+		catch (UnsupportedEncodingException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 

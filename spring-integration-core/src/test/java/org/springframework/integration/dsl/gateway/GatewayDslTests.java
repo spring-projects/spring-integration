@@ -212,8 +212,8 @@ public class GatewayDslTests {
 		public IntegrationFlow functionGateway() {
 			return IntegrationFlow.from(MessageFunction.class,
 							(gateway) -> gateway
-									.header("gatewayMethod", MethodArgsHolder::getMethod)
-									.header("gatewayArgs", MethodArgsHolder::getArgs)
+									.header("gatewayMethod", MethodArgsHolder::method)
+									.header("gatewayArgs", MethodArgsHolder::args)
 									.replyTimeout(10)
 									.requestTimeout(20))
 					.bridge()
@@ -223,7 +223,7 @@ public class GatewayDslTests {
 		@Bean
 		public IntegrationFlow routingGatewayFlow() {
 			return IntegrationFlow.from(RoutingGateway.class,
-							(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::getMethod))
+							(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::method))
 					.route(Message.class, (message) ->
 									message.getHeaders().get("gatewayMethod", Method.class).getName(),
 							(router) -> router

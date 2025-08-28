@@ -26,9 +26,6 @@ import org.springframework.expression.Expression;
 /**
  * Represents the metadata associated with a Gateway method. This is most useful when there are
  * multiple methods per Gateway interface.
- * <p>
- * The sub-element of a &lt;gateway&gt; element would look like this:
- * &lt;method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/&gt;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -40,18 +37,17 @@ public class GatewayMethodMetadata {
 
 	private final Map<String, Expression> headerExpressions = new HashMap<>();
 
-	private Expression payloadExpression;
+	private @Nullable Expression payloadExpression;
 
-	private String requestChannelName;
+	private @Nullable String requestChannelName;
 
-	private String replyChannelName;
+	private @Nullable String replyChannelName;
 
-	private String requestTimeout;
+	private @Nullable String requestTimeout;
 
-	private String replyTimeout;
+	private @Nullable String replyTimeout;
 
-	@Nullable
-	public Expression getPayloadExpression() {
+	public @Nullable Expression getPayloadExpression() {
 		return this.payloadExpression;
 	}
 
@@ -70,7 +66,7 @@ public class GatewayMethodMetadata {
 		}
 	}
 
-	public String getRequestChannelName() {
+	public @Nullable String getRequestChannelName() {
 		return this.requestChannelName;
 	}
 
@@ -78,7 +74,7 @@ public class GatewayMethodMetadata {
 		this.requestChannelName = requestChannelName;
 	}
 
-	public String getReplyChannelName() {
+	public @Nullable String getReplyChannelName() {
 		return this.replyChannelName;
 	}
 
@@ -86,8 +82,7 @@ public class GatewayMethodMetadata {
 		this.replyChannelName = replyChannelName;
 	}
 
-	@Nullable
-	public String getRequestTimeout() {
+	public @Nullable String getRequestTimeout() {
 		return this.requestTimeout;
 	}
 
@@ -95,8 +90,7 @@ public class GatewayMethodMetadata {
 		this.requestTimeout = requestTimeout;
 	}
 
-	@Nullable
-	public String getReplyTimeout() {
+	public @Nullable String getReplyTimeout() {
 		return this.replyTimeout;
 	}
 

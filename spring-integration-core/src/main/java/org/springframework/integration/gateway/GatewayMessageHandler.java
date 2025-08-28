@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
@@ -43,31 +44,33 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	private final Lock lock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile GatewayProxyFactoryBean<?> gatewayProxyFactoryBean;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Object exchanger;
 
 	private volatile boolean running;
 
-	private MessageChannel requestChannel;
+	private @Nullable MessageChannel requestChannel;
 
-	private String requestChannelName;
+	private @Nullable String requestChannelName;
 
-	private MessageChannel replyChannel;
+	private @Nullable MessageChannel replyChannel;
 
-	private String replyChannelName;
+	private @Nullable String replyChannelName;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
-	private Long requestTimeout;
+	private @Nullable Long requestTimeout;
 
-	private Long replyTimeout;
+	private @Nullable Long replyTimeout;
 
 	private boolean errorOnTimeout;
 
-	private Executor executor = new SimpleAsyncTaskExecutor();
+	private @Nullable Executor executor = new SimpleAsyncTaskExecutor();
 
 	public void setRequestChannel(MessageChannel requestChannel) {
 		this.requestChannel = requestChannel;
@@ -135,45 +138,45 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	private void initialize() {
+		GatewayProxyFactoryBean<?> newGatewayProxyFactoryBean;
 		if (isAsync()) {
-			this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(AsyncRequestReplyExchanger.class);
+			newGatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(AsyncRequestReplyExchanger.class);
 		}
 		else {
-			this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(RequestReplyExchanger.class);
+			newGatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(RequestReplyExchanger.class);
 		}
 
-		this.gatewayProxyFactoryBean.setDefaultRequestChannel(this.requestChannel);
-		this.gatewayProxyFactoryBean.setDefaultRequestChannelName(this.requestChannelName);
-		this.gatewayProxyFactoryBean.setDefaultReplyChannel(this.replyChannel);
-		this.gatewayProxyFactoryBean.setDefaultReplyChannelName(this.replyChannelName);
-		this.gatewayProxyFactoryBean.setErrorChannel(this.errorChannel);
-		this.gatewayProxyFactoryBean.setErrorChannelName(this.errorChannelName);
-		this.gatewayProxyFactoryBean.setErrorOnTimeout(this.errorOnTimeout);
-		this.gatewayProxyFactoryBean.setAsyncExecutor(this.executor);
-		if (this.requestTimeout != null) {
-			this.gatewayProxyFactoryBean.setDefaultRequestTimeout(this.requestTimeout);
-		}
-		if (this.replyTimeout != null) {
-			this.gatewayProxyFactoryBean.setDefaultReplyTimeout(this.replyTimeout);
-		}
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(this.requestChannel, newGatewayProxyFactoryBean::setDefaultRequestChannel)
+				.acceptIfHasText(this.requestChannelName, newGatewayProxyFactoryBean::setDefaultRequestChannelName)
+				.acceptIfNotNull(this.replyChannel, newGatewayProxyFactoryBean::setDefaultReplyChannel)
+				.acceptIfHasText(this.replyChannelName, newGatewayProxyFactoryBean::setDefaultReplyChannelName)
+				.acceptIfNotNull(this.errorChannel, newGatewayProxyFactoryBean::setErrorChannel)
+				.acceptIfHasText(this.errorChannelName, newGatewayProxyFactoryBean::setErrorChannelName)
+				.acceptIfNotNull(this.requestTimeout, newGatewayProxyFactoryBean::setDefaultRequestTimeout)
+				.acceptIfNotNull(this.replyTimeout, newGatewayProxyFactoryBean::setDefaultReplyTimeout);
 
-		this.gatewayProxyFactoryBean.setBeanName(getComponentName() + "#gpfb");
-		this.gatewayProxyFactoryBean.setBeanFactory(getBeanFactory());
-		this.gatewayProxyFactoryBean.setApplicationContext(getApplicationContext());
-		this.gatewayProxyFactoryBean.setBeanClassLoader(getBeanClassLoader());
-		this.gatewayProxyFactoryBean.afterPropertiesSet();
+		newGatewayProxyFactoryBean.setAsyncExecutor(this.executor);
+		newGatewayProxyFactoryBean.setErrorOnTimeout(this.errorOnTimeout);
+		newGatewayProxyFactoryBean.setBeanName(getComponentName() + "#gpfb");
+		newGatewayProxyFactoryBean.setBeanFactory(getBeanFactory());
+		newGatewayProxyFactoryBean.setApplicationContext(getApplicationContext());
+		newGatewayProxyFactoryBean.setBeanClassLoader(getBeanClassLoader());
+		newGatewayProxyFactoryBean.afterPropertiesSet();
 
 		try {
-			this.exchanger = this.gatewayProxyFactoryBean.getObject();
+			this.exchanger = newGatewayProxyFactoryBean.getObject();
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Can't instantiate the GatewayProxyFactoryBean: " + this, e);
 		}
 		if (this.running) {
 			// We must stop gatewayProxyFactoryBean because after the normal start its "gatewayMap" is still empty
-			this.gatewayProxyFactoryBean.stop();
-			this.gatewayProxyFactoryBean.start();
+			newGatewayProxyFactoryBean.stop();
+			newGatewayProxyFactoryBean.start();
 		}
+
+		this.gatewayProxyFactoryBean = newGatewayProxyFactoryBean;
 	}
 
 	@Override

@@ -79,6 +79,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * <p>
@@ -613,6 +614,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	public String[] getHandlerNames() {
 		return this.handlers.values().stream()
 				.map(IntegrationManagement::getManagedName)
+				.filter(Objects::nonNull)
 				.toArray(String[]::new);
 	}
 
@@ -756,9 +758,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	 * patterns. First match wins (positive or negative).
 	 * @param patterns the patterns.
 	 * @param name the name to match.
-	 * @return true if positive match, false if no match or negative match.
+	 * @return true if a positive match, false if no match or negative match.
 	 */
-	private boolean matches(String[] patterns, String name) {
+	private static boolean matches(String[] patterns, @Nullable String name) {
 		Boolean match = PatternMatchUtils.smartMatch(name, patterns);
 		return match != null && match;
 	}
@@ -787,33 +789,35 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private String getHandlerBeanKey(IntegrationManagement monitor) {
-		// This ordering of keys seems to work with default settings of JConsole
+		// This ordering of keys seems to work with the default settings of JConsole
 		return String.format(this.domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
 				quoteIfNecessary(monitor.getManagedName()), quoteIfNecessary(monitor.getManagedType()));
 	}
 
 	private String getSourceBeanKey(IntegrationInboundManagement monitor) {
-		// This ordering of keys seems to work with default settings of JConsole
+		// This ordering of keys seems to work with the default settings of JConsole
 		return String.format(this.domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
 				quoteIfNecessary(monitor.getManagedName()), quoteIfNecessary(monitor.getManagedType()));
 	}
 
-	private String getEndpointBeanKey(String name, String source) {
-		// This ordering of keys seems to work with default settings of JConsole
+	private String getEndpointBeanKey(String name, @Nullable String source) {
+		// This ordering of keys seems to work with the default settings of JConsole
 		return String.format(this.domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(),
 				quoteIfNecessary(name), source);
 	}
 
-	/*
-	 * https://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html
+	/**
+	 * See <a href="https://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html">JMX Object Name Quoting</a>.
 	 * The set of characters in a value is also limited. If special characters may
-	 * occur, it is recommended that the value be quoted, using ObjectName.quote. If
+	 * occur, it is recommended that the value be quoted using {@link ObjectName#quote}. If
 	 * the value for a given key is sometimes quoted, then it should always be quoted.
 	 * By default, if a value is a string (rather than a number, say), then it should
 	 * be quoted unless you are sure that it will never contain special characters.
 	 */
-	private String quoteIfNecessary(String name) {
-		return SourceVersion.isName(name) ? name : ObjectName.quote(name);
+	private String quoteIfNecessary(@Nullable String name) {
+		return StringUtils.hasText(name)
+				? SourceVersion.isName(name) ? name : ObjectName.quote(name)
+				: "null";
 	}
 
 	private String getStaticNames() {
@@ -883,17 +887,12 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		}
 		if (managedName != null && managedName.startsWith(IntegrationContextUtils.BASE_PACKAGE) && endpoint != null) {
 			MessageChannel inputChannel = endpoint.getInputChannel();
-			if (inputChannel != null) {
-				managedName = buildAnonymousManagedName(this.anonymousHandlerCounters, inputChannel);
-				managedType = "anonymous";
-			}
+			managedName = buildAnonymousManagedName(this.anonymousHandlerCounters, inputChannel);
+			managedType = "anonymous";
 		}
 
 		if (managedName == null) {
 			managedName = monitor2.getComponentName();
-			if (managedName == null) {
-				managedName = monitor2.toString();
-			}
 			managedType = "handler";
 		}
 

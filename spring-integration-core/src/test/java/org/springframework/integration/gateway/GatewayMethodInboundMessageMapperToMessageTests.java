@@ -259,7 +259,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests implements TestAppl
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
+		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.args()[0]));
 		Message<?> message = mapper.toMessage(new Object[] {map});
 		assertThat(message.getPayload()).isEqualTo(map);
 	}
@@ -287,7 +287,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests implements TestAppl
 		mapB.put("2", "TWO");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
+		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.args()[0]));
 		Message<?> message = mapper.toMessage(new Object[] {mapA, mapB});
 		assertThat(message.getPayload()).isEqualTo(mapA);
 		assertThat(message.getHeaders().get("1")).isEqualTo(mapB.get("1"));

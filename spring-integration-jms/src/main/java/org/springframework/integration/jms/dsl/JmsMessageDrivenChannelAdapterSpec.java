@@ -23,6 +23,8 @@ import java.util.function.Consumer;
 import jakarta.jms.Destination;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
@@ -31,8 +33,6 @@ import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -84,9 +84,9 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	}
 
 	/**
-	 * Set to 'false' to prevent listener container shutdown when the endpoint is stopped.
+	 * Set to 'false' to prevent the listener container shutdown when the endpoint is stopped.
 	 * Then, if so configured, any cached consumer(s) in the container will remain.
-	 * Otherwise, the shared connection and will be closed and the listener invokers shut
+	 * Otherwise, the shared connection and will be closed, and the listener invokers shut
 	 * down; this behavior is new starting with version 5.1. Default: true.
 	 * @param shutdown false to not shutdown.
 	 * @return the spec.

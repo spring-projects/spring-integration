@@ -61,14 +61,14 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	default void setManagedName(String managedName) {
 	}
 
-	default String getManagedName() {
+	default @Nullable String getManagedName() {
 		return null;
 	}
 
 	default void setManagedType(String managedType) {
 	}
 
-	default String getManagedType() {
+	default @Nullable String getManagedType() {
 		return null;
 	}
 
@@ -77,8 +77,7 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 	 * @return the overrides.
 	 * @since 5.0
 	 */
-	@Nullable
-	default ManagementOverrides getOverrides() {
+	default @Nullable ManagementOverrides getOverrides() {
 		return null;
 	}
 

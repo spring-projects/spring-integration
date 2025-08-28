@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
@@ -52,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author Gary Russell
  */
 @SuppressWarnings("unchecked")
-public class MessagingGatewayTests implements TestApplicationContextAware {
+public class MessagingGatewayTests {
 
 	private final TestApplicationContext applicationContext = TestUtils.createTestApplicationContext();
 
@@ -188,12 +187,6 @@ public class MessagingGatewayTests implements TestApplicationContextAware {
 	}
 
 	@Test
-	public void sendNullAndReceiveObject() {
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> this.messagingGateway.sendAndReceive(null));
-	}
-
-	@Test
 	public void sendObjectAndReceiveMessage() {
 		Mockito.when(messageMock.getPayload()).thenReturn("foo");
 		Mockito.when(replyChannel.receive(100L)).thenReturn(messageMock);
@@ -282,7 +275,7 @@ public class MessagingGatewayTests implements TestApplicationContextAware {
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
-		this.messagingGateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		this.messagingGateway.setBeanFactory(this.applicationContext);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 

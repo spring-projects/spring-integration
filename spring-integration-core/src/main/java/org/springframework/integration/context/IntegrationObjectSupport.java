@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -290,6 +291,9 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		ConversionService conversionServiceToUse = this.conversionService;
 		if (conversionServiceToUse == null) {
 			conversionServiceToUse = IntegrationUtils.getConversionService(this.beanFactory);
+			if (conversionServiceToUse == null) {
+				conversionServiceToUse = DefaultConversionService.getSharedInstance();
+			}
 			this.conversionService = conversionServiceToUse;
 		}
 		return conversionServiceToUse;

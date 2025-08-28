@@ -43,7 +43,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -82,7 +81,6 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -120,49 +118,50 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	private final Set<Method> havePayloadExpressions = new HashSet<>();
 
-	private MessageChannel defaultRequestChannel;
+	private @Nullable MessageChannel defaultRequestChannel;
 
-	private String defaultRequestChannelName;
+	private @Nullable String defaultRequestChannelName;
 
-	private MessageChannel defaultReplyChannel;
+	private @Nullable MessageChannel defaultReplyChannel;
 
-	private String defaultReplyChannelName;
+	private @Nullable String defaultReplyChannelName;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
-	private Expression defaultRequestTimeout;
+	private @Nullable Expression defaultRequestTimeout;
 
-	private Expression defaultReplyTimeout;
+	private @Nullable Expression defaultReplyTimeout;
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
 	private boolean shouldTrack = false;
 
-	private TypeConverter typeConverter = new SimpleTypeConverter();
+	@SuppressWarnings("NullAway.Init")
+	private ClassLoader beanClassLoader;
 
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
+	@SuppressWarnings("NullAway.Init")
 	private T serviceProxy;
 
-	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+	private @Nullable AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
 	private boolean asyncExecutorExplicitlySet;
 
 	private volatile boolean initialized;
 
-	private Map<String, GatewayMethodMetadata> methodMetadataMap;
+	private @Nullable Map<String, GatewayMethodMetadata> methodMetadataMap;
 
-	private GatewayMethodMetadata globalMethodMetadata;
+	private @Nullable GatewayMethodMetadata globalMethodMetadata;
 
-	private MethodArgsMessageMapper argsMapper;
+	private @Nullable MethodArgsMessageMapper argsMapper;
 
 	private boolean proxyDefaultMethods;
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
 	private boolean errorOnTimeout;
 
@@ -201,13 +200,11 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.defaultRequestChannelName = defaultRequestChannelName;
 	}
 
-	@Nullable
-	protected MessageChannel getDefaultRequestChannel() {
+	protected @Nullable MessageChannel getDefaultRequestChannel() {
 		return this.defaultRequestChannel;
 	}
 
-	@Nullable
-	protected String getDefaultRequestChannelName() {
+	protected @Nullable String getDefaultRequestChannelName() {
 		return this.defaultRequestChannelName;
 	}
 
@@ -234,13 +231,11 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.defaultReplyChannelName = defaultReplyChannelName;
 	}
 
-	@Nullable
-	protected MessageChannel getDefaultReplyChannel() {
+	protected @Nullable MessageChannel getDefaultReplyChannel() {
 		return this.defaultReplyChannel;
 	}
 
-	@Nullable
-	protected String getDefaultReplyChannelName() {
+	protected @Nullable String getDefaultReplyChannelName() {
 		return this.defaultReplyChannelName;
 	}
 
@@ -265,13 +260,11 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.errorChannelName = errorChannelName;
 	}
 
-	@Nullable
-	protected MessageChannel getErrorChannel() {
+	protected @Nullable MessageChannel getErrorChannel() {
 		return this.errorChannel;
 	}
 
-	@Nullable
-	protected String getErrorChannelName() {
+	protected @Nullable String getErrorChannelName() {
 		return this.errorChannelName;
 	}
 
@@ -308,8 +301,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 	}
 
-	@Nullable
-	protected Expression getDefaultRequestTimeout() {
+	protected @Nullable Expression getDefaultRequestTimeout() {
 		return this.defaultRequestTimeout;
 	}
 
@@ -346,8 +338,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 	}
 
-	@Nullable
-	protected Expression getDefaultReplyTimeout() {
+	protected @Nullable Expression getDefaultReplyTimeout() {
 		return this.defaultReplyTimeout;
 	}
 
@@ -380,9 +371,13 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.asyncExecutorExplicitlySet = true;
 	}
 
+	/**
+	 * Set the {@link TypeConverter}.
+	 * @param typeConverter the {@link TypeConverter}
+	 * @deprecated since 7.0 in favor of {@link ConversionService} from the application context.
+	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public void setTypeConverter(TypeConverter typeConverter) {
-		Assert.notNull(typeConverter, "typeConverter must not be null");
-		this.typeConverter = typeConverter;
 	}
 
 	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
@@ -393,8 +388,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.globalMethodMetadata = globalMethodMetadata;
 	}
 
-	@Nullable
-	protected GatewayMethodMetadata getGlobalMethodMetadata() {
+	protected @Nullable GatewayMethodMetadata getGlobalMethodMetadata() {
 		return this.globalMethodMetadata;
 	}
 
@@ -412,8 +406,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.argsMapper = mapper;
 	}
 
-	@Nullable
-	protected MethodArgsMessageMapper getMapper() {
+	protected @Nullable MethodArgsMessageMapper getMapper() {
 		return this.argsMapper;
 	}
 
@@ -430,8 +423,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		this.proxyDefaultMethods = proxyDefaultMethods;
 	}
 
-	@Nullable
-	protected AsyncTaskExecutor getAsyncExecutor() {
+	protected @Nullable AsyncTaskExecutor getAsyncExecutor() {
 		return this.asyncExecutor;
 	}
 
@@ -456,7 +448,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	}
 
 	/**
-	 * If errorOnTimeout is true, null won't be returned as a result of a gateway method invocation, when a timeout occurs.
+	 * If errorOnTimeout is true, null won't be returned as a result of a gateway method invocation when a timeout occurs.
 	 * Instead, a {@link org.springframework.integration.MessageTimeoutException} is thrown
 	 * or an error message is published to the error channel.
 	 * @param errorOnTimeout true to create the error message on reply timeout.
@@ -476,7 +468,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 				return;
 			}
 			BeanFactory beanFactory = getBeanFactory();
-			if (this.channelResolver == null && beanFactory != null) {
+			if (this.channelResolver == null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 			}
 
@@ -514,15 +506,14 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	@Override
 	public T getObject() {
 		if (this.serviceProxy == null) {
-			this.onInit();
+			onInit();
 			Assert.notNull(this.serviceProxy, "failed to initialize proxy");
 		}
 		return this.serviceProxy;
 	}
 
 	@Override
-	@Nullable
-	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
+	public @Nullable Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		Class<?> returnType;
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
@@ -554,8 +545,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 	}
 
-	@Nullable
-	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable { // NOSONAR
+	protected @Nullable Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable {
 		if (AopUtils.isToStringMethod(invocation.getMethod())) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
@@ -564,12 +554,11 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 		catch (Throwable e) { //NOSONAR - ok to catch, rethrown below
 			rethrowExceptionCauseIfPossible(e, invocation.getMethod());
-			return null; // preceding call should always throw something
+			return null; // the preceding call should always throw something
 		}
 	}
 
-	@Nullable
-	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) {
+	private @Nullable Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) {
 		if (!this.initialized) {
 			afterPropertiesSet();
 		}
@@ -605,8 +594,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return response(gateway.returnType, shouldReturnMessage, response);
 	}
 
-	@Nullable
-	private Object response(Class<?> returnType, boolean shouldReturnMessage, @Nullable Object response) {
+	private @Nullable Object response(Class<?> returnType, boolean shouldReturnMessage, @Nullable Object response) {
 		if (shouldReturnMessage) {
 			return response;
 		}
@@ -619,8 +607,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return method.isAnnotationPresent(Payload.class) || this.havePayloadExpressions.contains(method);
 	}
 
-	@Nullable
-	private Object receive(MethodInvocationGateway gateway, Method method, boolean shouldReply,
+	private @Nullable Object receive(MethodInvocationGateway gateway, Method method, boolean shouldReply,
 			boolean shouldReturnMessage) {
 
 		Long receiveTimeout = null;
@@ -648,11 +635,10 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 				" gateway invocation. Consider to use different signature or 'payloadExpression'.");
 	}
 
-	@Nullable
-	private Object sendOrSendAndReceive(MethodInvocation invocation, MethodInvocationGateway gateway,
+	private @Nullable Object sendOrSendAndReceive(MethodInvocation invocation, MethodInvocationGateway gateway,
 			boolean shouldReturnMessage, boolean shouldReply) {
 
-		Object[] args = invocation.getArguments();
+		@Nullable Object[] args = invocation.getArguments();
 		if (shouldReply) {
 			if (gateway.isMonoReturn || gateway.isSuspendingFunction) {
 				Mono<Message<?>> messageMono = gateway.sendAndReceiveMessageReactive(args);
@@ -678,8 +664,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return null;
 	}
 
-	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method)
-			throws Throwable { // NOSONAR
+	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable {
 		Class<?>[] exceptionTypes = method.getExceptionTypes();
 		Throwable t = originalException;
 		while (t != null) {
@@ -688,7 +673,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 					throw t;
 				}
 			}
-			if (t instanceof RuntimeException // NOSONAR boolean complexity
+			if (t instanceof RuntimeException
 					&& !(t instanceof MessagingException)
 					&& !(t instanceof UndeclaredThrowableException)
 					&& !(t instanceof IllegalStateException && "Unexpected exception thrown".equals(t.getMessage()))) {
@@ -727,8 +712,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 				requestChannelName, replyChannelName, requestTimeout, replyTimeout);
 	}
 
-	@Nullable
-	private Expression extractPayloadExpressionFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+	private @Nullable Expression extractPayloadExpressionFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
 			@Nullable GatewayMethodMetadata methodMetadata) {
 
 		Expression payloadExpression =
@@ -755,8 +739,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return payloadExpression;
 	}
 
-	@Nullable
-	private String extractRequestChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+	private @Nullable String extractRequestChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
 			@Nullable GatewayMethodMetadata methodMetadata) {
 
 		if (gatewayAnnotation != null) {
@@ -768,8 +751,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return null;
 	}
 
-	@Nullable
-	private String extractReplyChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+	private @Nullable String extractReplyChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
 			@Nullable GatewayMethodMetadata methodMetadata) {
 
 		if (gatewayAnnotation != null) {
@@ -781,8 +763,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return null;
 	}
 
-	@Nullable
-	private Expression extractRequestTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+	private @Nullable Expression extractRequestTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
 			@Nullable GatewayMethodMetadata methodMetadata) {
 
 		Expression requestTimeout = this.defaultRequestTimeout;
@@ -807,8 +788,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return requestTimeout;
 	}
 
-	@Nullable
-	private Expression extractReplyTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+	private @Nullable Expression extractReplyTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
 			@Nullable GatewayMethodMetadata methodMetadata) {
 
 		Expression replyTimeout = this.defaultReplyTimeout;
@@ -880,7 +860,9 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		gateway.setBeanName(gatewayMethodBeanName);
 		gateway.setBeanFactory(getBeanFactory());
 		gateway.setShouldTrack(this.shouldTrack);
-		gateway.registerMetricsCaptor(this.metricsCaptor);
+		if (this.metricsCaptor != null) {
+			gateway.registerMetricsCaptor(this.metricsCaptor);
+		}
 		gateway.setErrorOnTimeout(this.errorOnTimeout);
 		gateway.afterPropertiesSet();
 
@@ -898,8 +880,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 				headers, this.argsMapper, getMessageBuilderFactory());
 	}
 
-	@Nullable // NOSONAR - complexitty
-	private Map<String, Object> headers(Method method, Map<String, Expression> headerExpressions) {
+	private @Nullable Map<String, Object> headers(Method method, Map<String, Expression> headerExpressions) {
 		Map<String, Object> headers = null;
 		// We don't want to eagerly resolve the error channel here
 		Object errorChannelForVoidReturn = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
@@ -989,7 +970,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	}
 
 	private void setChannel(@Nullable MessageChannel channel, Consumer<MessageChannel> channelMethod,
-			String channelName, Consumer<String> channelNameMethod) {
+			@Nullable String channelName, Consumer<String> channelNameMethod) {
 
 		if (channel != null) {
 			channelMethod.accept(channel);
@@ -999,8 +980,8 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 	}
 
-	private void setChannel(@Nullable String channelName1, String channelName2, Consumer<String> channelNameMethod,
-			MessageChannel channel, Consumer<MessageChannel> channelMethod) {
+	private void setChannel(@Nullable String channelName1, @Nullable String channelName2,
+			Consumer<String> channelNameMethod, @Nullable MessageChannel channel, Consumer<MessageChannel> channelMethod) {
 
 		if (StringUtils.hasText(channelName1)) {
 			channelNameMethod.accept(channelName1);
@@ -1008,7 +989,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		else if (StringUtils.hasText(channelName2)) {
 			channelNameMethod.accept(channelName2);
 		}
-		else {
+		else if (channel != null) {
 			channelMethod.accept(channel);
 		}
 	}
@@ -1038,15 +1019,8 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		return doConvert(source, expectedReturnType);
 	}
 
-	@Nullable
-	private <P> P doConvert(Object source, Class<P> expectedReturnType) {
-		ConversionService conversionService = getConversionService();
-		if (conversionService != null) {
-			return conversionService.convert(source, expectedReturnType);
-		}
-		else {
-			return this.typeConverter.convertIfNecessary(source, expectedReturnType);
-		}
+	private <P> @Nullable P doConvert(Object source, Class<P> expectedReturnType) {
+		return getConversionService().convert(source, expectedReturnType);
 	}
 
 	@Override
@@ -1057,13 +1031,14 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	@Override
 	public String getComponentType() {
-		return "gateway-proxy-factory";
+		return "messaging-gateway-proxy";
 	}
 
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
-		private Expression receiveTimeoutExpression;
+		private @Nullable Expression receiveTimeoutExpression;
 
+		@SuppressWarnings("NullAway.Init")
 		private Class<?> returnType;
 
 		private boolean expectMessage;
@@ -1097,6 +1072,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 			this.receiveTimeoutExpression = receiveTimeoutExpression;
 		}
 
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		void setupReturnType(Class<?> serviceInterface, Method method) {
 			ResolvableType resolvableType;
 			if (Function.class.isAssignableFrom(serviceInterface) && "apply".equals(method.getName())) {
@@ -1145,8 +1121,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		}
 
 		@Override
-		@Nullable
-		public Object get() {
+		public @Nullable Object get() {
 			try {
 				return doInvoke(this.invocation, false);
 			}

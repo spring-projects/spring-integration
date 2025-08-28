@@ -116,17 +116,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
-	private MessageChannel requestChannel;
+	private @Nullable MessageChannel requestChannel;
 
-	private String requestChannelName;
+	private @Nullable String requestChannelName;
 
-	private MessageChannel replyChannel;
+	private @Nullable MessageChannel replyChannel;
 
-	private String replyChannelName;
+	private @Nullable String replyChannelName;
 
-	private MessageChannel errorChannel;
+	private @Nullable MessageChannel errorChannel;
 
-	private String errorChannelName;
+	private @Nullable String errorChannelName;
 
 	private boolean requestTimeoutSet;
 
@@ -136,22 +136,21 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private boolean loggingEnabled = true;
 
-	private String managedType;
+	private @Nullable String managedType;
 
-	private String managedName;
+	private @Nullable String managedName;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
-	@Nullable
-	private MessageRequestReplyReceiverObservationConvention observationConvention;
+	private @Nullable MessageRequestReplyReceiverObservationConvention observationConvention;
 
-	private MessageReceiverObservationConvention receiverObservationConvention;
+	private @Nullable MessageReceiverObservationConvention receiverObservationConvention;
 
-	private volatile AbstractEndpoint replyMessageCorrelator;
+	private volatile @Nullable AbstractEndpoint replyMessageCorrelator;
 
 	private volatile boolean initialized;
 
@@ -349,7 +348,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
-	public String getManagedType() {
+	public @Nullable String getManagedType() {
 		return this.managedType;
 	}
 
@@ -359,7 +358,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
-	public String getManagedName() {
+	public @Nullable String getManagedName() {
 		return this.managedName;
 	}
 
@@ -390,7 +389,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		this.observationConvention = observationConvention;
 	}
 
-	public void setReceiverObservationConvention(MessageReceiverObservationConvention receiverObservationConvention) {
+	public void setReceiverObservationConvention(
+			@Nullable MessageReceiverObservationConvention receiverObservationConvention) {
+
 		this.receiverObservationConvention = receiverObservationConvention;
 	}
 
@@ -406,16 +407,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 		this.historyWritingPostProcessor.setMessageBuilderFactory(messageBuilderFactory);
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-			if (this.requestMapper instanceof DefaultRequestMapper) {
-				((DefaultRequestMapper) this.requestMapper).setMessageBuilderFactory(messageBuilderFactory);
-			}
-			if (this.requestMapper instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.requestMapper).setBeanFactory(beanFactory);
-			}
-			this.messageConverter.setBeanFactory(beanFactory);
+		this.messagingTemplate.setBeanFactory(beanFactory);
+		if (this.requestMapper instanceof DefaultRequestMapper) {
+			((DefaultRequestMapper) this.requestMapper).setMessageBuilderFactory(messageBuilderFactory);
 		}
+		if (this.requestMapper instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.requestMapper).setBeanFactory(beanFactory);
+		}
+		this.messageConverter.setBeanFactory(beanFactory);
 		long endpointsDefaultTimeout = getIntegrationProperties().getEndpointsDefaultTimeout();
 		if (!this.requestTimeoutSet) {
 			this.messagingTemplate.setSendTimeout(endpointsDefaultTimeout);
@@ -438,8 +437,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the channel.
 	 * @since 4.2
 	 */
-	@Nullable
-	public MessageChannel getRequestChannel() {
+	public @Nullable MessageChannel getRequestChannel() {
 		if (this.requestChannel == null && this.requestChannelName != null) {
 			this.requestChannel = getChannelResolver().resolveDestination(this.requestChannelName);
 		}
@@ -451,8 +449,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the reply channel instance
 	 * @since 5.1
 	 */
-	@Nullable
-	public MessageChannel getReplyChannel() {
+	public @Nullable MessageChannel getReplyChannel() {
 		if (this.replyChannel == null && this.replyChannelName != null) {
 			this.replyChannel = getChannelResolver().resolveDestination(this.replyChannelName);
 		}
@@ -465,8 +462,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the channel or null.
 	 * @since 4.3
 	 */
-	@Nullable
-	public MessageChannel getErrorChannel() {
+	public @Nullable MessageChannel getErrorChannel() {
 		if (this.errorChannel == null && this.errorChannelName != null) {
 			this.errorChannel = getChannelResolver().resolveDestination(this.errorChannelName);
 		}
@@ -489,7 +485,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			sendWithObservation(channel, requestMessage);
 		}
 		else if (this.metricsCaptor != null) {
-			sendWithMetrics(channel, requestMessage);
+			sendWithMetrics(channel, requestMessage, this.metricsCaptor);
 		}
 		else {
 			doSend(channel, requestMessage);
@@ -510,8 +506,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
-	private void sendWithMetrics(MessageChannel channel, Message<?> message) {
-		SampleFacade sample = this.metricsCaptor.start();
+	private void sendWithMetrics(MessageChannel channel, Message<?> message, MetricsCaptor metricsCaptor) {
+		SampleFacade sample = metricsCaptor.start();
 		try {
 			this.messagingTemplate.send(channel, message);
 			sample.stop(sendTimer());
@@ -541,39 +537,39 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
-	@Nullable
-	protected Object receive() {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	protected @Nullable Object receive() {
 		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receiveAndConvert(channel, Object.class);
 	}
 
-	@Nullable
-	protected Message<?> receiveMessage() {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	protected @Nullable Message<?> receiveMessage() {
 		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receive(channel);
 	}
 
-	@Nullable
-	protected Object receive(long timeout) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	protected @Nullable Object receive(long timeout) {
 		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receiveAndConvert(channel, timeout);
 	}
 
-	@Nullable
-	protected Message<?> receiveMessage(long timeout) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	protected @Nullable Message<?> receiveMessage(long timeout) {
 		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receive(channel, timeout);
 	}
 
-	private void assertPollableChannel(@Nullable MessageChannel channel) {
+	private static void assertPollableChannel(@Nullable MessageChannel channel) {
 		Assert.state(channel instanceof PollableChannel,
 				"receive is not supported, because no pollable reply channel has been configured");
 	}
@@ -591,7 +587,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Nullable
 	private Object sendAndReceive(Object object, boolean shouldConvert) {
 		initializeIfNecessary();
-		Assert.notNull(object, "request must not be null");
 		MessageChannel channel = getRequestChannel();
 		if (channel == null) {
 			throw new MessagingException("No request channel available. Cannot send request message.");
@@ -609,7 +604,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				replyMessage = sendAndReceiveWithObservation(channel, object, requestMessage);
 			}
 			else if (this.metricsCaptor != null) {
-				replyMessage = sendAndReceiveWithMetrics(channel, object, requestMessage);
+				replyMessage = sendAndReceiveWithMetrics(channel, object, requestMessage, this.metricsCaptor);
 			}
 			else {
 				replyMessage = doSendAndReceive(channel, object, requestMessage);
@@ -668,9 +663,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Nullable
 	private Message<?> sendAndReceiveWithMetrics(MessageChannel requestChannel, Object object,
-			Message<?> requestMessage) {
+			Message<?> requestMessage, MetricsCaptor metricsCaptor) {
 
-		SampleFacade sample = this.metricsCaptor.start();
+		SampleFacade sample = metricsCaptor.start();
 		try {
 			Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
 			sample.stop(sendTimer());
@@ -716,7 +711,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			Throwable errorToReThrow = error;
 			if (error instanceof MessagingException &&
 					requestMessage != null && requestMessage.getHeaders().getErrorChannel() != null) {
-				// We are in nested flow where upstream expects errors in its own errorChannel header.
+				// A nested flow where upstream expects errors in its own errorChannel header.
 				errorToReThrow = new MessageHandlingException(requestMessage, error);
 			}
 			rethrow(errorToReThrow, "gateway received checked Exception");
@@ -838,20 +833,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						captor.start().stop(sendTimer());
 					}
 				})
-				.map(replyMessage -> {
+				.handle((replyMessage, sink) -> {
 					if (!error && replyMessage instanceof ErrorMessage em) {
-						if (em.getPayload() instanceof MessagingException) {
-							throw (MessagingException) em.getPayload();
+						if (em.getPayload() instanceof MessagingException messagingException) {
+							sink.error(messagingException);
 						}
 						else {
-							throw new MessagingException(requestMessage, em.getPayload());
+							sink.error(new MessagingException(requestMessage, em.getPayload()));
 						}
 					}
 					else {
-						return MessageBuilder.fromMessage(replyMessage)
+						sink.next(MessageBuilder.fromMessage(replyMessage)
 								.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
 								.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
-								.build();
+								.build());
 					}
 				});
 	}
@@ -882,10 +877,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.successTimer;
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected TimerFacade buildSendTimer(boolean success, String exception) {
 		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "source")
-				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("name", getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
@@ -900,13 +896,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return (sendTimeout != null ? sendTimeout : this.messagingTemplate.getSendTimeout());
 	}
 
-	@Nullable
-	private Long headerToLong(@Nullable Object headerValue) {
-		if (headerValue instanceof Number) {
-			return ((Number) headerValue).longValue();
+	private @Nullable Long headerToLong(@Nullable Object headerValue) {
+		if (headerValue instanceof Number numberValue) {
+			return numberValue.longValue();
 		}
-		else if (headerValue instanceof String) {
-			return Long.parseLong((String) headerValue);
+		else if (headerValue instanceof String stringValue) {
+			return Long.parseLong(stringValue);
 		}
 		else {
 			return null;
@@ -941,12 +936,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		throw wrapExceptionIfNecessary(t, description);
 	}
 
-	private RuntimeException wrapExceptionIfNecessary(Throwable t, String description) {
-		if (t instanceof RuntimeException) {
-			return (RuntimeException) t;
+	private RuntimeException wrapExceptionIfNecessary(Throwable throwable, String description) {
+		if (throwable instanceof RuntimeException runtimeException) {
+			return runtimeException;
 		}
 		else {
-			return new MessagingException(description, t);
+			return new MessagingException(description, throwable);
 		}
 	}
 
@@ -954,22 +949,21 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		MessageChannel replyChan = getReplyChannel();
 		if (replyChan != null && this.replyMessageCorrelator == null) {
 			this.replyMessageCorrelatorMonitor.lock();
+			AbstractEndpoint correlator = null;
 			try {
 				if (this.replyMessageCorrelator != null) {
 					return;
 				}
-				AbstractEndpoint correlator;
+
 				BridgeHandler handler = new BridgeHandler();
 				BeanFactory beanFactory = getBeanFactory();
-				if (beanFactory != null) {
-					handler.setBeanFactory(beanFactory);
-				}
+				handler.setBeanFactory(beanFactory);
 				handler.afterPropertiesSet();
-				if (replyChan instanceof SubscribableChannel) {
-					correlator = new EventDrivenConsumer((SubscribableChannel) replyChan, handler);
+				if (replyChan instanceof SubscribableChannel subscribableChannel) {
+					correlator = new EventDrivenConsumer(subscribableChannel, handler);
 				}
-				else if (replyChan instanceof PollableChannel) {
-					correlator = new PollingConsumer((PollableChannel) replyChan, handler);
+				else if (replyChan instanceof PollableChannel pollableChannel) {
+					correlator = new PollingConsumer(pollableChannel, handler);
 				}
 				else if (replyChan instanceof ReactiveStreamsSubscribableChannel) {
 					correlator = new ReactiveStreamsConsumer(replyChan, (Subscriber<Message<?>>) handler);
@@ -979,9 +973,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 							+ "SubscribableChannel or PollableChannel type are supported.");
 				}
 
-				if (beanFactory != null) {
-					correlator.setBeanFactory(beanFactory);
-				}
+				correlator.setBeanFactory(beanFactory);
 				correlator.afterPropertiesSet();
 				this.replyMessageCorrelator = correlator;
 			}
@@ -989,22 +981,24 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				this.replyMessageCorrelatorMonitor.unlock();
 			}
 			if (isRunning()) {
-				this.replyMessageCorrelator.start();
+				correlator.start();
 			}
 		}
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		if (this.replyMessageCorrelator != null) {
-			this.replyMessageCorrelator.start();
+		AbstractEndpoint replyMessageCorrelatorToStart = this.replyMessageCorrelator;
+		if (replyMessageCorrelatorToStart != null) {
+			replyMessageCorrelatorToStart.start();
 		}
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		if (this.replyMessageCorrelator != null) {
-			this.replyMessageCorrelator.stop();
+		AbstractEndpoint replyMessageCorrelatorToStop = this.replyMessageCorrelator;
+		if (replyMessageCorrelatorToStop != null) {
+			replyMessageCorrelatorToStop.stop();
 		}
 	}
 
@@ -1028,8 +1022,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		@Override
 		public Message<?> toMessage(Object object, @Nullable Map<String, Object> headers) {
-			if (object instanceof Message<?>) {
-				return (Message<?>) object;
+			if (object instanceof Message<?> message) {
+				return message;
 			}
 			return this.messageBuilderFactory.withPayload(object).copyHeadersIfAbsent(headers).build();
 		}

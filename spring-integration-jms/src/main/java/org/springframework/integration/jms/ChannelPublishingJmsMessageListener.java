@@ -34,11 +34,15 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryOperations;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.jms.support.JmsMessageHeaderErrorMessageStrategy;
@@ -52,6 +56,7 @@ import org.springframework.integration.support.management.observation.MessageRec
 import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.jms.listener.adapter.ListenerExecutionFailedException;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -61,10 +66,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryOperations;
-import org.springframework.retry.support.RetrySynchronizationManager;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -465,9 +466,7 @@ public class ChannelPublishingJmsMessageListener
 
 	@Override
 	public void afterPropertiesSet() {
-		if (this.beanFactory != null) {
-			this.gatewayDelegate.setBeanFactory(this.beanFactory);
-		}
+		this.gatewayDelegate.setBeanFactory(this.beanFactory);
 		this.gatewayDelegate.afterPropertiesSet();
 		if (this.gatewayDelegate.retryTemplate != null) {
 			Assert.state(this.gatewayDelegate.getErrorChannel() == null,
@@ -621,21 +620,30 @@ public class ChannelPublishingJmsMessageListener
 					send(requestMessage);
 				}
 				else {
-					this.retryTemplate.execute(
-							context -> {
-								var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
-								Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
-								deliveryAttempt.incrementAndGet();
-								setAttributesIfNecessary(jmsMessage, requestMessage);
-								send(requestMessage);
-								return null;
-							}, this.recoveryCallback);
+					try {
+						this.retryTemplate.execute(
+								() -> {
+									var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
+									Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
+									deliveryAttempt.incrementAndGet();
+									setAttributesIfNecessary(jmsMessage, requestMessage);
+									send(requestMessage);
+									return null;
+								});
+					}
+					catch (RetryException ex) {
+						if (this.recoveryCallback != null) {
+							this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage), ex.getCause());
+						}
+						else {
+							throw new ListenerExecutionFailedException(
+									"Failed handling message after '" + ex.getRetryCount() + "' retries", ex);
+						}
+					}
 				}
 			}
 			finally {
-				if (this.retryTemplate == null) {
-					ATTRIBUTES_HOLDER.remove();
-				}
+				ATTRIBUTES_HOLDER.remove();
 			}
 		}
 
@@ -646,20 +654,30 @@ public class ChannelPublishingJmsMessageListener
 					return sendAndReceiveMessage(requestMessage);
 				}
 				else {
-					return this.retryTemplate.execute(
-							context -> {
-								var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
-								Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
-								deliveryAttempt.incrementAndGet();
-								setAttributesIfNecessary(jmsMessage, requestMessage);
-								return sendAndReceiveMessage(requestMessage);
-							}, this.recoveryCallback);
+					try {
+						return this.retryTemplate.execute(
+								() -> {
+									var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
+									Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");
+									deliveryAttempt.incrementAndGet();
+									setAttributesIfNecessary(jmsMessage, requestMessage);
+									return sendAndReceiveMessage(requestMessage);
+								});
+					}
+					catch (RetryException ex) {
+						if (this.recoveryCallback != null) {
+							return this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage),
+									ex.getCause());
+						}
+						else {
+							throw new ListenerExecutionFailedException(
+									"Failed handling message after '" + ex.getRetryCount() + "' retries", ex);
+						}
+					}
 				}
 			}
 			finally {
-				if (this.retryTemplate == null) {
-					ATTRIBUTES_HOLDER.remove();
-				}
+				ATTRIBUTES_HOLDER.remove();
 			}
 		}
 
@@ -688,20 +706,15 @@ public class ChannelPublishingJmsMessageListener
 		}
 
 		private void setAttributesIfNecessary(Object jmsMessage, Message<?> message) {
-			boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
-			boolean needAttributes = needHolder || this.retryTemplate != null;
+			boolean needHolder = getErrorChannel() != null || this.retryTemplate != null;
 			if (needHolder) {
-				ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
-			}
-			if (needAttributes) {
-				AttributeAccessor attributes =
-						this.retryTemplate != null
-								? RetrySynchronizationManager.getContext()
-								: ATTRIBUTES_HOLDER.get();
-				if (attributes != null) {
-					attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-					attributes.setAttribute(JmsMessageHeaderErrorMessageStrategy.JMS_RAW_MESSAGE, jmsMessage);
+				AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
+				if (attributes == null) {
+					attributes = ErrorMessageUtils.getAttributeAccessor(null, null);
+					ATTRIBUTES_HOLDER.set(attributes);
 				}
+				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+				attributes.setAttribute(JmsMessageHeaderErrorMessageStrategy.JMS_RAW_MESSAGE, jmsMessage);
 			}
 		}
 
