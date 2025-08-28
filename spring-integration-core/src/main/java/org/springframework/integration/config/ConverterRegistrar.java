@@ -59,8 +59,8 @@ class ConverterRegistrar implements InitializingBean, ApplicationContextAware {
 	@Override
 	public void afterPropertiesSet() {
 		ConversionService conversionService = IntegrationUtils.getConversionService(this.applicationContext);
-		if (conversionService instanceof GenericConversionService) {
-			registerConverters((GenericConversionService) conversionService);
+		if (conversionService instanceof GenericConversionService genericConversionService) {
+			registerConverters(genericConversionService);
 		}
 		else {
 			Assert.notNull(conversionService,

@@ -47,6 +47,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -336,7 +337,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	/**
 	 * Sets the prefix to use with user-defined (non-standard) headers. The default is an
 	 * empty string.
-	 * @param userDefinedHeaderPrefix The user defined header prefix.
+	 * @param userDefinedHeaderPrefix The user defined the header prefix.
 	 */
 	public void setUserDefinedHeaderPrefix(@Nullable String userDefinedHeaderPrefix) {
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
@@ -344,7 +345,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	@Override
 	public void afterPropertiesSet() {
-		this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
+		ConversionService conversionServiceToUse = IntegrationUtils.getConversionService(this.beanFactory);
+		if (conversionServiceToUse == null) {
+			conversionServiceToUse = DefaultConversionService.getSharedInstance();
+		}
+		this.conversionService = conversionServiceToUse;
 	}
 
 	/**
