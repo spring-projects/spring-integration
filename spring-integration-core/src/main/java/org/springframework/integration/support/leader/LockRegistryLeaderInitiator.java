@@ -21,6 +21,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,8 +62,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3.1
  */
-public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean,
-		ApplicationEventPublisherAware {
+public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
 	public static final long DEFAULT_HEART_BEAT_TIME = 500L;
 
@@ -115,14 +117,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	private boolean publishFailedEvents = false;
 
-	private LeaderSelector leaderSelector;
+	private @Nullable LeaderSelector leaderSelector;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Leader event publisher if set.
 	 */
-	private LeaderEventPublisher leaderEventPublisher;
+	private @Nullable LeaderEventPublisher leaderEventPublisher;
 
 	/**
 	 * @see SmartLifecycle
@@ -132,7 +135,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
-	private int phase = Integer.MAX_VALUE - 1000; // NOSONAR magic number
+	private int phase = Integer.MAX_VALUE - 1000;
 
 	/**
 	 * Time in milliseconds to wait in between attempts to acquire the lock, if it is not
@@ -155,7 +158,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * Future returned by submitting an {@link LeaderSelector} to
 	 * {@link #taskExecutor}. This is used to cancel leadership.
 	 */
-	private volatile Future<?> future;
+	private volatile @Nullable Future<?> future;
 
 	/**
 	 * Create a new leader initiator with the provided lock registry and a default
@@ -279,7 +282,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	public void start() {
 		this.lock.lock();
 		try {
-			if (this.leaderEventPublisher == null && this.applicationEventPublisher != null) {
+			if (this.leaderEventPublisher == null) {
 				this.leaderEventPublisher = new DefaultLeaderEventPublisher(this.applicationEventPublisher);
 			}
 			if (!this.running) {
@@ -309,8 +312,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		try {
 			if (this.running) {
 				this.running = false;
-				if (this.future != null) {
-					this.future.cancel(true);
+				Future<?> futureToCancel = this.future;
+				if (futureToCancel != null) {
+					futureToCancel.cancel(true);
 				}
 				this.future = null;
 				LOGGER.debug(() -> "Stopped LeaderInitiator for " + getContext());
@@ -334,7 +338,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		private final String lockKey;
 
-		private final LockContext context = new LockContext();
+		private final LockContext context = new LockContext(this);
 
 		private volatile boolean locked = false;
 
@@ -421,7 +425,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 		}
 
-		private boolean unlockAndHandleException(Exception ex) { // NOSONAR
+		private boolean unlockAndHandleException(@Nullable Exception ex) {
 			if (this.locked) {
 				this.locked = false;
 				try {
@@ -450,18 +454,31 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
 					}
 					catch (InterruptedException e1) {
-						// Ignore interruption and let it be caught on the next cycle.
+						// Ignore the interruption and let it be caught on the next cycle.
 						Thread.currentThread().interrupt();
 					}
 				}
-				LOGGER.debug(ex, () ->
-						"Error acquiring the lock for " + this.context + ". " + (isRunning() ? "Retrying..." : ""));
+				Supplier<CharSequence> debugMessage =
+						() -> "Error acquiring the lock for " + this.context + ". " + (isRunning() ? "Retrying..." : "");
+				if (ex != null) {
+					LOGGER.debug(ex, debugMessage);
+				}
+				else {
+					LOGGER.debug(debugMessage);
+				}
 			}
 			return false;
 		}
 
-		private void restartSelectorBecauseOfError(Exception ex) {
-			LOGGER.warn(ex, () -> "Restarting LeaderSelector for " + this.context + " because of error.");
+		private void restartSelectorBecauseOfError(@Nullable Exception ex) {
+			Supplier<CharSequence> warnMessage =
+					() -> "Restarting LeaderSelector for " + this.context + " because of error.";
+			if (ex != null) {
+				LOGGER.warn(ex, warnMessage);
+			}
+			else {
+				LOGGER.warn(warnMessage);
+			}
 			LockRegistryLeaderInitiator.this.future =
 					LockRegistryLeaderInitiator.this.taskExecutor.submit(
 							() -> {
@@ -523,18 +540,21 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private class LockContext implements Context {
 
-		LockContext() {
+		private final LeaderSelector selector;
+
+		LockContext(LeaderSelector leaderSelector) {
+			this.selector = leaderSelector;
 		}
 
 		@Override
 		public boolean isLeader() {
-			return LockRegistryLeaderInitiator.this.leaderSelector.isLeader();
+			return this.selector.isLeader();
 		}
 
 		@Override
 		public void yield() {
 			LOGGER.debug(() -> "Yielding leadership from " + this);
-			LockRegistryLeaderInitiator.this.leaderSelector.yielding = true;
+			this.selector.yielding = true;
 		}
 
 		@Override
