@@ -35,7 +35,9 @@ import org.springframework.messaging.Message;
  */
 public class MessageProcessorMessageSource extends AbstractMessageSource<Object> {
 
-	// provide a fake message since the contract of processMessage requires a NonNull Message.
+	/**
+	 * A fake message since the {@link MessageProcessor#processMessage(Message)} requires a non-null.
+ 	 */
 	static final Message<Object> FAKE_MESSAGE = MutableMessageBuilder.withPayload(new Object(), false).build();
 
 	private final MessageProcessor<?> messageProcessor;

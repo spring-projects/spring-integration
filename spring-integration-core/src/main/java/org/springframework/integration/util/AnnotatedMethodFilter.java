@@ -49,6 +49,7 @@ public class AnnotatedMethodFilter implements MethodFilter {
 
 	public AnnotatedMethodFilter(@Nullable Class<? extends Annotation> annotationType, @Nullable String methodName,
 			boolean requiresReply) {
+
 		this.annotationType = annotationType;
 		this.methodName = methodName;
 		this.requiresReply = requiresReply;
@@ -67,14 +68,14 @@ public class AnnotatedMethodFilter implements MethodFilter {
 			if (StringUtils.hasText(this.methodName) && !this.methodName.equals(method.getName())) {
 				continue;
 			}
-			if (this.annotationType != null && AnnotationUtils.findAnnotation(method, this.annotationType) != null) {
+			if (AnnotationUtils.findAnnotation(method, this.annotationType) != null) {
 				annotatedCandidates.add(method);
 			}
 			else {
 				fallbackCandidates.add(method);
 			}
 		}
-		return (!annotatedCandidates.isEmpty()) ? annotatedCandidates : fallbackCandidates;
+		return !annotatedCandidates.isEmpty() ? annotatedCandidates : fallbackCandidates;
 	}
 
 }

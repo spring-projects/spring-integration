@@ -82,11 +82,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private boolean asyncExplicitlySet;
 
-	@Nullable
-	private String outputChannelName;
+	private @Nullable String outputChannelName;
 
-	@Nullable
-	private MessageChannel outputChannel;
+	private @Nullable MessageChannel outputChannel;
 
 	private String @Nullable [] notPropagatedHeaders;
 
@@ -142,7 +140,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * that will NOT be copied from the inbound message if
 	 * {@link #shouldCopyRequestHeaders() shouldCopyRequestHeaaders} is true.
 	 * At least one pattern as "*" means do not copy headers at all.
-	 * @param headers the headers to not propagate from the inbound message.
+	 * @param headers the headers do not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see org.springframework.util.PatternMatchUtils
 	 */
@@ -201,7 +199,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * Add header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
 	 * that will NOT be copied from the inbound message if
 	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing set.
-	 * @param headers the headers to not propagate from the inbound message.
+	 * @param headers the headers do not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
@@ -262,7 +260,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
-	protected void produceOutput(Object replyArg, final Message<?> requestMessage) {
+	protected void produceOutput(Object replyArg, Message<?> requestMessage) {
 		MessageHeaders requestHeaders = requestMessage.getHeaders();
 		Object reply = replyArg;
 		Object replyChannel = null;
@@ -288,8 +286,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		doProduceOutput(requestMessage, requestHeaders, reply, replyChannel);
 	}
 
-	@Nullable
-	private Map<?, ?> obtainRoutingSlipHeader(MessageHeaders requestHeaders, Object reply) {
+	private @Nullable Map<?, ?> obtainRoutingSlipHeader(MessageHeaders requestHeaders, Object reply) {
 		Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 		if (routingSlipHeader == null) {
 			if (reply instanceof Message<?> replyMessage) {
@@ -303,8 +300,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return routingSlipHeader;
 	}
 
-	@Nullable
-	private Object obtainReplyChannel(MessageHeaders requestHeaders, Object reply) {
+	private @Nullable Object obtainReplyChannel(MessageHeaders requestHeaders, Object reply) {
 		Object replyChannel = requestHeaders.getReplyChannel();
 		if (replyChannel == null) {
 			if (reply instanceof Message<?> replyMessage) {
@@ -422,11 +418,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	protected AbstractIntegrationMessageBuilder<?> messageBuilderForReply(Object reply) {
 		AbstractIntegrationMessageBuilder<?> builder;
-		if (reply instanceof Message) {
-			builder = getMessageBuilderFactory().fromMessage((Message<?>) reply);
+		if (reply instanceof Message<?> message) {
+			builder = getMessageBuilderFactory().fromMessage(message);
 		}
-		else if (reply instanceof AbstractIntegrationMessageBuilder) {
-			builder = (AbstractIntegrationMessageBuilder<?>) reply;
+		else if (reply instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
+			builder = messageBuilder;
 		}
 		else {
 			builder = getMessageBuilderFactory().withPayload(reply);
@@ -434,8 +430,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
-	private @Nullable Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
-			AtomicInteger routingSlipIndex) {
+	private @Nullable Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage,
+			List<?> routingSlip, AtomicInteger routingSlipIndex) {
 
 		if (routingSlipIndex.get() >= routingSlip.size()) {
 			return null;
@@ -473,18 +469,18 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
 		AbstractIntegrationMessageBuilder<?> builder;
-		if (output instanceof Message<?>) {
+		if (output instanceof Message<?> message) {
 			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
-				return (Message<?>) output;
+				return message;
 			}
-			builder = getMessageBuilderFactory().fromMessage((Message<?>) output);
+			builder = getMessageBuilderFactory().fromMessage(message);
 		}
-		else if (output instanceof AbstractIntegrationMessageBuilder) {
-			builder = (AbstractIntegrationMessageBuilder<?>) output;
+		else if (output instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
+			builder = messageBuilder;
 		}
 		else {
 			builder = getMessageBuilderFactory().withPayload(output);
-			// Assuming that message in the payload collection is a copy of request message.
+			// Assuming that a message in the payload collection is a copy of the request message.
 			if (output instanceof Iterable<?> iterable) {
 				Iterator<?> iterator = iterable.iterator();
 				if (iterator.hasNext() && iterator.next() instanceof Message<?>) {
@@ -523,16 +519,16 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (replyChannel instanceof MessageChannel messageChannel) {
-			if (output instanceof Message<?>) {
-				this.messagingTemplate.send(messageChannel, (Message<?>) output);
+			if (output instanceof Message<?> message) {
+				this.messagingTemplate.send(messageChannel, message);
 			}
 			else {
 				this.messagingTemplate.convertAndSend(messageChannel, output);
 			}
 		}
 		else if (replyChannel instanceof String string) {
-			if (output instanceof Message<?>) {
-				this.messagingTemplate.send(string, (Message<?>) output);
+			if (output instanceof Message<?> message) {
+				this.messagingTemplate.send(string, message);
 			}
 			else {
 				this.messagingTemplate.convertAndSend(string, output);
@@ -613,8 +609,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		private final Message<?> requestMessage;
 
-		@Nullable
-		private final Object replyChannel;
+		private final @Nullable Object replyChannel;
 
 		ReplyFutureCallback(Message<?> requestMessage, @Nullable Object replyChannel) {
 			this.requestMessage = requestMessage;
@@ -642,8 +637,14 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				}
 			}
 			else if (exception != null) {
-				onFailure(exception instanceof CompletionException && exception.getCause() != null
-						? exception.getCause() : exception);
+				Throwable throwableToHandle = exception;
+				if (exception instanceof CompletionException) {
+					Throwable cause = exception.getCause();
+					if (cause != null) {
+						throwableToHandle = cause;
+					}
+				}
+				onFailure(throwableToHandle);
 			}
 		}
 

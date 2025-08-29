@@ -84,7 +84,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 			return Level.valueOf(level.toUpperCase());
 		}
 		catch (@SuppressWarnings("unused") IllegalArgumentException e) {
-			throw new IllegalArgumentException("Invalid log level '" + level // NOSONAR lost stack trace
+			throw new IllegalArgumentException("Invalid log level '" + level
 					+ "'. The (case-insensitive) supported values are: "
 					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
 		}

@@ -85,7 +85,7 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 	 * Messages will be discarded or
 	 * enriched with {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE}
 	 * header and returned as normal to the {@code invocation.proceed()}.
-	 * Typically this value would <em>not</em> be <code>true</code> when
+	 * Typically, this value would <em>not</em> be <code>true</code> when
 	 * a discard channel is provided, but if it is, it will cause the
 	 * exception to be thrown <em>after</em>
 	 * the Message is sent to the discard channel,
@@ -104,8 +104,7 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
 	 * trigger an exception. That value is evaluated regardless of the presence
 	 * of a discard channel.
-	 * <p>
-	 * If there is needed just silently 'drop' rejected messages configure the
+	 * <p> If there is needed just silently 'drop' rejected messages configure the
 	 * {@link #discardChannel} to the {@code nullChannel}.
 	 * @param discardChannel The discard channel.
 	 * @see #setThrowExceptionOnRejection(boolean)
@@ -122,11 +121,9 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
 	 * trigger an exception. That value is evaluated regardless of the presence
 	 * of a discard channel.
-	 * <p>
-	 * If there is needed just silently 'drop' rejected messages configure the
+	 * <p> If there is needed just silently 'drop' rejected messages configure the
 	 * {@link #discardChannel} to the {@code nullChannel}.
-	 * <p>
-	 * Only applies if a {@link #setDiscardChannel(MessageChannel) discardChannel}
+	 * <p> Only applies if a {@link #setDiscardChannel(MessageChannel) discardChannel}
 	 * is not provided.
 	 * @param discardChannelName The discard channel name.
 	 * @since 5.0.1

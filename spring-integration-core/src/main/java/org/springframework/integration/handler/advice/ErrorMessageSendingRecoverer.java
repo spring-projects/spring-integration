@@ -51,7 +51,6 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * @since 4.3.10
 	 */
 	public ErrorMessageSendingRecoverer() {
-		this(null);
 	}
 
 	/**
@@ -60,7 +59,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * @param channel the message channel to publish error messages on recovery action.
 	 */
 	@SuppressWarnings("this-escape")
-	public ErrorMessageSendingRecoverer(@Nullable MessageChannel channel) {
+	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		setChannel(channel);
 	}
 
@@ -77,10 +76,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	@SuppressWarnings("this-escape")
 	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
 		setChannel(channel);
-		setErrorMessageStrategy(
-				errorMessageStrategy == null
-						? new DefaultErrorMessageStrategy()
-						: errorMessageStrategy);
+		setErrorMessageStrategy(errorMessageStrategy);
 	}
 
 	@Override

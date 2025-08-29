@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * Message Handler that delegates to a {@link MessageSelector}. If and only if
  * the selector {@link MessageSelector#accept(Message) accepts} the Message, it
  * will be passed to this filter's output channel. Otherwise, the message will
- * either be silently dropped (the default) with a warning into logs,
+ * either be silently dropped (the default) with a warning into logs
  * or will trigger the throwing of a {@link MessageRejectedException}
  * depending on the value of its {@link #throwExceptionOnRejection} property.
  * If a discard channel is provided, the rejected Messages will be sent to that channel.
@@ -55,9 +55,9 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	private boolean throwExceptionOnRejection;
 
-	private  @Nullable MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	private  @Nullable String discardChannelName;
+	private @Nullable String discardChannelName;
 
 	/**
 	 * Create a MessageFilter that will delegate to the given {@link MessageSelector}.
@@ -113,7 +113,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
-	public  @Nullable MessageChannel getDiscardChannel() {
+	public @Nullable MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;
 		if (channelName != null) {
 			this.discardChannel = getChannelResolver().resolveDestination(channelName);
@@ -148,21 +148,21 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	public void start() {
-		if (this.selector instanceof Lifecycle) {
-			((Lifecycle) this.selector).start();
+		if (this.selector instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.selector instanceof Lifecycle) {
-			((Lifecycle) this.selector).stop();
+		if (this.selector instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.selector instanceof Lifecycle) || ((Lifecycle) this.selector).isRunning();
+		return !(this.selector instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 	@Override

@@ -59,37 +59,32 @@ public class ReactiveRequestHandlerAdvice implements MethodInterceptor {
 		this.replyCustomizer = replyCustomizer;
 	}
 
-	@SuppressWarnings("NullAway") // dataflow analysis limitation, replyMono won't be null.
 	@Override
 	public final @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		Object result = invocation.proceed();
 
 		Method method = invocation.getMethod();
+		String methodName = method.getName();
 		Object invocationThis = invocation.getThis();
+		if (invocationThis == null) {
+			invocationThis = invocation.getStaticPart();
+		}
 		@Nullable Object[] arguments = invocation.getArguments();
-		boolean isReactiveMethod =
-				method.getName().equals("handleRequestMessage") &&
-						(arguments.length == 1 && arguments[0] instanceof Message) &&
-						result instanceof Mono<?>;
-		if (!isReactiveMethod) {
-			if (LOGGER.isWarnEnabled()) {
-				String clazzName =
-						invocationThis == null
-								? method.getDeclaringClass().getName()
-								: invocationThis.getClass().getName();
-				LOGGER.warn("This advice " + getClass().getName() +
-						" can only be used for MessageHandlers with reactive reply; an attempt to advise method '"
-						+ method.getName() + "' in '" + clazzName + "' is ignored.");
-			}
-			return result;
+		if (methodName.equals("handleRequestMessage") &&
+				(arguments.length == 1 && arguments[0] instanceof Message<?> requestMessage) &&
+				result instanceof Mono<?> replyMono) {
+
+			return replyMono.transform(mono -> this.replyCustomizer.apply(requestMessage, mono));
 		}
 
-		Mono<?> replyMono = (Mono<?>) result;
+		if (LOGGER.isWarnEnabled()) {
+			String clazzName = invocationThis.getClass().getName();
+			LOGGER.warn("This advice " + getClass().getName() +
+					" can only be used for MessageHandlers with reactive reply; an attempt to advise method '"
+					+ methodName + "' in '" + clazzName + "' is ignored.");
+		}
 
-		Message<?> requestMessage = (Message<?>) arguments[0];
-
-		return replyMono
-				.transform(mono -> this.replyCustomizer.apply(requestMessage, mono));
+		return result;
 	}
 
 }

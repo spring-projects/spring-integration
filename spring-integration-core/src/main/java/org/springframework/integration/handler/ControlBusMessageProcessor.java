@@ -79,10 +79,10 @@ public class ControlBusMessageProcessor extends AbstractMessageProcessor<Object>
 				message.getHeaders().get(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.class);
 		Class<?>[] parameterTypes = {};
 		if (!CollectionUtils.isEmpty(arguments)) {
-			parameterTypes =
-					arguments.stream()
-							.map(Object::getClass)
-							.toArray(Class<?>[]::new);
+			parameterTypes = new Class<?>[arguments.size()];
+			for (int i = 0; i < arguments.size(); i++) {
+				parameterTypes[i] = arguments.get(i).getClass();
+			}
 		}
 		Expression commandExpression = this.controlBusCommandRegistry.getExpressionForCommand(command, parameterTypes);
 		return evaluateExpression(commandExpression, arguments);

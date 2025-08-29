@@ -136,8 +136,6 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 
-				// If this 'handler' is a nested non-last &lt;chain&gt;, it is  necessary
-				// to 'force' re-init it for check its configuration in conjunction with current MessageHandlerChain.
 				if (handler instanceof MessageHandlerChain messageHandlerChain) {
 					messageHandlerChain.initialized = false;
 					messageHandlerChain.afterPropertiesSet();

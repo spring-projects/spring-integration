@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * for request-reply scenarios, e.g. {@code @ServiceActivator} annotation configuration.
  * <p>
  * This class is used internally by Framework in cases when request-reply is important
- * and there is no other way to apply advice chain.
+ * and there is no other way to apply an advice chain.
  * <p>
  * The lifecycle control is delegated to the {@code target} {@link MessageHandler}.
  *

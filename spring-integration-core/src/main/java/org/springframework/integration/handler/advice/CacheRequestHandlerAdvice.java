@@ -80,7 +80,8 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 		}
 		finally {
 			Assert.state(requestHandlerClass != null, "'requestHandlerClass' must not be null");
-			Method handleRequestMethod = ReflectionUtils.findMethod(requestHandlerClass, "handleRequestMessage", Message.class);
+			Method handleRequestMethod =
+					ReflectionUtils.findMethod(requestHandlerClass, "handleRequestMessage", Message.class);
 			Assert.state(handleRequestMethod != null, "'handleRequestMessage' method must not be null");
 			HANDLE_REQUEST_METHOD = handleRequestMethod;
 		}
@@ -254,9 +255,8 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 	}
 
-	@Nullable
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		CacheOperationInvoker operationInvoker =
 				() -> {
 					Object result = callback.execute();

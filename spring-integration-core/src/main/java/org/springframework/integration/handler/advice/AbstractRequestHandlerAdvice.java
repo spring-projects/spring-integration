@@ -46,20 +46,23 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	@SuppressWarnings("NullAway") // dataflow analysis limitation, invocationThis and message won't be null.
 	@Override
 	public final @Nullable Object invoke(final MethodInvocation invocation) throws Throwable {
-
 		Method method = invocation.getMethod();
+		String methodName = method.getName();
 		@Nullable Object[] arguments = invocation.getArguments();
-		boolean isMessageMethod = (method.getName().equals("handleRequestMessage") || method.getName().equals("handleMessage"))
-				&& (arguments.length == 1 && arguments[0] instanceof Message);
+		boolean isMessageMethod =
+				(methodName.equals("handleRequestMessage") || methodName.equals("handleMessage"))
+						&& (arguments.length == 1 && arguments[0] instanceof Message);
 
 		Object invocationThis = invocation.getThis();
+		if (invocationThis == null) {
+			invocationThis = invocation.getStaticPart();
+		}
 		if (!isMessageMethod) {
-			boolean isMessageHandler = invocationThis != null
-					&& MessageHandler.class.isAssignableFrom(invocationThis.getClass());
+			boolean isMessageHandler = MessageHandler.class.isAssignableFrom(invocationThis.getClass());
 			if (!isMessageHandler && this.logger.isWarnEnabled()) {
-				String clazzName = invocationThis == null ? method.getDeclaringClass().getName() : invocationThis.getClass().getName();
-				this.logger.warn("This advice " + this.getClass().getName() +
-						" can only be used for MessageHandlers; an attempt to advise method '" + method.getName() +
+				String clazzName = invocationThis.getClass().getName();
+				this.logger.warn("This advice " + getClass().getName() +
+						" can only be used for MessageHandlers; an attempt to advise method '" + methodName +
 						"' in '" + clazzName + "' is ignored");
 			}
 			return invocation.proceed();
@@ -68,8 +71,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		try {
 			return doInvoke(new CallbackImpl(invocation), invocationThis, message);
 		}
-		catch (Exception e) {
-			throw this.unwrapThrowableIfNecessary(e);
+		catch (Exception ex) {
+			throw unwrapThrowableIfNecessary(ex);
 		}
 
 	}
@@ -93,14 +96,13 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 	/**
 	 * Unwrap the cause of a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}.
-	 * @param e The exception.
-	 * @return The cause, or e, if not a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}
+	 * @param exception The exception.
+	 * @return The cause, or exception, if not a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}
 	 */
-	protected Exception unwrapExceptionIfNecessary(Exception e) {
-		Exception actualException = e;
-		if (e instanceof ThrowableHolderException
-				&& e.getCause() instanceof Exception) {
-			actualException = (Exception) e.getCause();
+	protected Exception unwrapExceptionIfNecessary(Exception exception) {
+		Exception actualException = exception;
+		if (exception instanceof ThrowableHolderException && exception.getCause() instanceof Exception cause) {
+			actualException = cause;
 		}
 		return actualException;
 	}
@@ -119,7 +121,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	}
 
 	/**
-	 * Called by subclasses in doInvoke() to proceed() the invocation. Callers
+	 * Called by subclasses in {@link #doInvoke} to {@code proceed()} the invocation. Callers
 	 * unwrap {@link AbstractRequestHandlerAdvice.ThrowableHolderException}s and use
 	 * the cause for evaluation and re-throwing purposes.
 	 * See {@link AbstractRequestHandlerAdvice#unwrapExceptionIfNecessary(Exception)}.
@@ -128,7 +130,6 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 		/**
 		 * Call this for a normal invocation.proceed().
-		 *
 		 * @return The result of the execution.
 		 */
 		@Nullable
@@ -137,8 +138,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		/**
 		 * Call this when it is necessary to clone the invocation before
 		 * calling proceed() - such as when the invocation might be called
-		 * multiple times - for example in a retry advice.
-		 *
+		 * multiple times - for example, in a retry advice.
 		 * @return The result of the execution.
 		 */
 		@Nullable
@@ -146,21 +146,15 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 	}
 
-	private static final class CallbackImpl implements ExecutionCallback {
-
-		private final MethodInvocation invocation;
-
-		CallbackImpl(MethodInvocation invocation) {
-			this.invocation = invocation;
-		}
+	private record CallbackImpl(MethodInvocation invocation) implements ExecutionCallback {
 
 		@Override
 		public @Nullable Object execute() {
 			try {
 				return this.invocation.proceed();
 			}
-			catch (Throwable e) { // ok to catch; unwrapped and rethrown below
-				throw new ThrowableHolderException(e);
+			catch (Throwable ex) { // ok to catch; unwrapped and rethrown below
+				throw new ThrowableHolderException(ex);
 			}
 		}
 
@@ -168,7 +162,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		public @Nullable Object cloneAndExecute() {
 			try {
 				/*
-				 * If we don't copy the invocation carefully it won't keep a reference to the other
+				 * If we don't copy the invocation carefully, it won't keep a reference to the other
 				 * interceptors in the chain.
 				 */
 				if (this.invocation instanceof ProxyMethodInvocation proxyMethodInvocation) {
@@ -180,15 +174,15 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 									" so please raise an issue if you see this exception");
 				}
 			}
-			catch (Exception e) { // catch necessary so we can wrap Errors
+			catch (Exception ex) { // catch necessary so we can wrap Errors
 				Message<?> argument = (Message<?>) this.invocation.getArguments()[0];
 				// just in case, although argument should not be null.
 				throw argument == null
-						? new MessagingException("Failed to handle", e)
-						: new MessagingException(argument, "Failed to handle", e);
+						? new MessagingException("Failed to handle", ex)
+						: new MessagingException(argument, "Failed to handle", ex);
 			}
-			catch (Throwable e) { // ok to catch; unwrapped and rethrown below
-				throw new ThrowableHolderException(e);
+			catch (Throwable ex) { // ok to catch; unwrapped and rethrown below
+				throw new ThrowableHolderException(ex);
 			}
 		}
 

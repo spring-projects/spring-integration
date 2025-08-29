@@ -38,7 +38,7 @@ public class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
 	}
 
 	@Override
-	public @Nullable Object evaluateExpression(Expression expression, Object input) {
+	public @Nullable Object evaluateExpression(Expression expression, @Nullable Object input) {
 		return super.evaluateExpression(expression, input);
 	}
 

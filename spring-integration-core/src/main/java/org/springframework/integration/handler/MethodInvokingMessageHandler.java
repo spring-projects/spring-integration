@@ -36,8 +36,6 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 
 	private final MethodInvokingMessageProcessor<Object> processor;
 
-	private String componentType = "method-invoking-handler";
-
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		Assert.isTrue(method.getReturnType().equals(void.class),
 				"MethodInvokingMessageHandler requires a void-returning method");
@@ -54,13 +52,9 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 		this.processor.setBeanFactory(beanFactory);
 	}
 
-	public void setComponentType(String componentType) {
-		this.componentType = componentType;
-	}
-
 	@Override
 	public String getComponentType() {
-		return this.componentType;
+		return "method-outbound-channel-adapter";
 	}
 
 	@Override

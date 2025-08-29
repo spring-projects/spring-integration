@@ -217,8 +217,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		this(targetObject, method, null, canProcessMessageList);
 	}
 
-	public MessagingMethodInvokerHelper(Object targetObject, @Nullable String methodName, @Nullable Class<?> expectedType,
-			boolean canProcessMessageList) {
+	public MessagingMethodInvokerHelper(Object targetObject, @Nullable String methodName,
+			@Nullable Class<?> expectedType, boolean canProcessMessageList) {
 
 		this(targetObject, null, methodName, expectedType, canProcessMessageList);
 	}
@@ -331,7 +331,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		try {
 			return JsonObjectMapperProvider.newInstance();
 		}
-		catch (IllegalStateException e) {
+		catch (IllegalStateException ex) {
 			return null;
 		}
 	}
@@ -349,13 +349,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			BeanExpressionResolver beanExpressionResolver = ((ConfigurableListableBeanFactory) beanFactory)
-					.getBeanExpressionResolver();
+		if (beanFactory instanceof ConfigurableListableBeanFactory configurableListableBeanFactory) {
+			BeanExpressionResolver beanExpressionResolver = configurableListableBeanFactory.getBeanExpressionResolver();
 			if (beanExpressionResolver != null) {
 				this.resolver = beanExpressionResolver;
 			}
-			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
+			this.expressionContext = new BeanExpressionContext(configurableListableBeanFactory, null);
 		}
 	}
 
@@ -401,8 +400,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			checkSpelInvokerRequired(getTargetClass(this.targetObject), method, newHandlerMethod);
 			return newHandlerMethod;
 		}
-		catch (IneligibleMethodException e) {
-			throw new IllegalArgumentException(e);
+		catch (IneligibleMethodException ex) {
+			throw new IllegalArgumentException(ex);
 		}
 	}
 
@@ -526,8 +525,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private boolean isProvidedMessageHandlerFactoryBean() {
 		BeanFactory beanFactory = getBeanFactory();
-		return beanFactory != null
-				&& beanFactory.containsBean(
+		return beanFactory.containsBean(
 				this.canProcessMessageList
 						? IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME
 						: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME);
@@ -580,7 +578,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException ex) {
 			return processInvokeExceptionAndFallbackToExpressionIfAny(handlerMethod, parameters, ex);
 		}
-		catch (RuntimeException ex) { // NOSONAR no way to handle conditional catch according Sonar rules
+		catch (RuntimeException ex) {
 			throw ex;
 		}
 		catch (Exception ex) {
@@ -591,20 +589,24 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private @Nullable Object processInvokeExceptionAndFallbackToExpressionIfAny(HandlerMethod handlerMethod,
 			ParametersWrapper parameters, RuntimeException ex) {
 
+		Throwable cause = ex.getCause();
+
 		if (ex instanceof MessageConversionException) {
-			if (ex.getCause() instanceof ConversionFailedException &&
-					!(ex.getCause().getCause() instanceof ConverterNotFoundException)) {
+			if (cause instanceof ConversionFailedException &&
+					!(cause.getCause() instanceof ConverterNotFoundException)) {
+
 				throw ex;
 			}
 		}
 		else if (ex instanceof IllegalStateException &&
-				(!(ex.getCause() instanceof IllegalArgumentException) ||
+				(!(cause instanceof IllegalArgumentException) ||
 						!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
-						(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
-								ex.getCause().getMessage() != null &&
+						(!"argument type mismatch".equals(cause.getMessage()) &&
+								cause.getMessage() != null &&
 								// JVM generates GeneratedMethodAccessor### after several calls with less error
 								// checking
-								!ex.getCause().getMessage().startsWith("java.lang.ClassCastException@")))) {
+								!cause.getMessage().startsWith("java.lang.ClassCastException@")))) {
+
 			throw ex;
 		}
 
@@ -640,10 +642,14 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		Throwable evaluationException = ex;
 		if ((ex instanceof EvaluationException || ex instanceof MessageHandlingException)
 				&& ex.getCause() != null) {
-			evaluationException = ex.getCause();
+
+			Throwable cause = ex.getCause();
+			if (cause != null) {
+				evaluationException = cause;
+			}
 		}
-		if (evaluationException instanceof RuntimeException) {
-			return (RuntimeException) evaluationException;
+		if (evaluationException instanceof RuntimeException runtimeException) {
+			return runtimeException;
 		}
 		return new IllegalStateException("Cannot process message", evaluationException);
 	}
@@ -651,7 +657,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	/*
 	 * If there's a single method, it is SpEL only, the content is JSON,
 	 * the payload is a String or byte[], the parameter doesn't match the payload,
-	 * and there is a Json Object Mapper on the CP, convert.
+	 * and there is a JSON Object Mapper on the CP, convert.
 	 */
 	private void convertJsonPayloadIfNecessary(ParametersWrapper parameters) {
 		if (parameters.message != null &&
@@ -660,8 +666,9 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				this.jsonObjectMapper != null) {
 
 			Class<?> type = this.handlerMethod.targetParameterType;
-			if ((parameters.getPayload() instanceof String && !type.equals(String.class) // NOSONAR
-					|| parameters.getPayload() instanceof byte[] && !type.equals(byte[].class))
+			Object payload = parameters.getPayload();
+			if ((payload instanceof String && !type.equals(String.class)
+					|| payload instanceof byte[] && !type.equals(byte[].class))
 					&& contentTypeIsJson(parameters.message)) {
 
 				doConvertJsonPayload(parameters);
@@ -675,7 +682,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			Object targetPayload =
 					this.jsonObjectMapper.fromJson(parameters.getPayload(), this.handlerMethod.targetParameterType);
 
-			if (this.handlerMethod.targetParameterTypeDescriptor.isAssignableTo(MESSAGE_TYPE_DESCRIPTOR)) {
+			if (MESSAGE_TYPE_DESCRIPTOR.isAssignableTo(this.handlerMethod.targetParameterTypeDescriptor)) {
 				parameters.message =
 						getMessageBuilderFactory()
 								.withPayload(targetPayload)
@@ -720,7 +727,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				&& ServiceActivator.class.equals(this.annotationType)) {
 			/*
 			 * When there are ambiguous fallback methods,
-			 * a Service Activator can finally fallback to RequestReplyExchanger.exchange(m).
+			 * a Service Activator can finally fall back to RequestReplyExchanger.exchange(m).
 			 * Ambiguous means > 1 method that takes the same payload type, or > 1 method
 			 * that takes a Message with the same generic type.
 			 */
@@ -742,8 +749,10 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void validateFallbackMethods(Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
 			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType) {
+
 		Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
 				() -> "Target object of type [" + this.targetObject.getClass() +
 						"] has no eligible methods for handling Messages.");
@@ -760,7 +769,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private void processMethodsFromTarget(Map<Class<?>, HandlerMethod> candidateMethods,
 			Map<Class<?>, HandlerMethod> candidateMessageMethods, Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
 			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType, Class<?> targetClass) {
 
 		ReflectionUtils.doWithMethods(targetClass, method1 -> {
@@ -807,7 +817,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				&& ReflectionUtils.findMethod(Pausable.class, pausableMethod.getName(),
 				pausableMethod.getParameterTypes()) != null;
 		if (pausable) {
-			this.logger.trace(() -> pausableMethod + " is not considered a candidate method unless explicitly requested");
+			this.logger.trace(() ->
+					pausableMethod + " is not considered a candidate method unless explicitly requested");
 		}
 		return pausable;
 	}
@@ -835,7 +846,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private void populateHandlerMethod(Map<Class<?>, HandlerMethod> candidateMethods,
 			Map<Class<?>, HandlerMethod> candidateMessageMethods, Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
 			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType, boolean matchesAnnotation,
 			HandlerMethod handlerMethod1) {
 
@@ -875,7 +887,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			else {
 				if (fallbackMethods.containsKey(targetParameterType)) {
 					// we need to check for duplicate type matches,
-					// but only if we end up falling back
+					// but only if we end up falling back,
 					// and we'll only keep track of the first one
 					ambiguousFallbackType.compareAndSet(null, targetParameterType);
 				}
@@ -884,8 +896,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	@Nullable
-	private Method obtainFrameworkMethod(Class<?> targetClass) {
+	private @Nullable Method obtainFrameworkMethod(Class<?> targetClass) {
 		for (Class<?> iface : ClassUtils.getAllInterfacesForClass(targetClass)) {
 			try {
 				// Can't use real class because of package tangle
@@ -904,6 +915,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private void findSingleSpecificMethodOnInterfacesIfProxy(Map<Class<?>, HandlerMethod> candidateMessageMethods,
 			Map<Class<?>, HandlerMethod> candidateMethods) {
+
 		if (AopUtils.isAopProxy(this.targetObject)) {
 			final AtomicReference<@Nullable Method> targetMethod = new AtomicReference<>();
 			Class<?>[] interfaces = ((Advised) this.targetObject).getProxiedInterfaces();
@@ -1059,7 +1071,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		@SuppressWarnings("NullAway.Init")
 		private Expression expression;
 
-		private @Nullable TypeDescriptor targetParameterTypeDescriptor;
+		@SuppressWarnings("NullAway.Init")
+		private TypeDescriptor targetParameterTypeDescriptor;
 
 		private Class<?> targetParameterType = Void.class;
 
@@ -1075,7 +1088,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		// The number of times InvocableHandlerMethod was attempted and failed - enables us to eventually
 		// give up trying to call it when it just doesn't seem to be possible.
-		// Switching to 'spelOnly' afterwards forever.
+		// Switching to 'spelOnly' afterward forever.
 		private volatile int failedAttempts = 0;
 
 		HandlerMethod(Method method, boolean canProcessMessageList) {

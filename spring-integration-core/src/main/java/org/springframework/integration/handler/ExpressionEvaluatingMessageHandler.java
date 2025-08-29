@@ -35,8 +35,6 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
 	private final ExpressionEvaluatingMessageProcessor<Void> processor;
 
-	private String componentType = "expression-evaluating-handler";
-
 	@SuppressWarnings("this-escape")
 	public ExpressionEvaluatingMessageHandler(Expression expression) {
 		Assert.notNull(expression, "'expression' must not be null");
@@ -44,13 +42,9 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 		setPrimaryExpression(expression);
 	}
 
-	public void setComponentType(String componentType) {
-		this.componentType = componentType;
-	}
-
 	@Override
 	public String getComponentType() {
-		return this.componentType;
+		return "expression-outbound-channel-adapter";
 	}
 
 	@Override

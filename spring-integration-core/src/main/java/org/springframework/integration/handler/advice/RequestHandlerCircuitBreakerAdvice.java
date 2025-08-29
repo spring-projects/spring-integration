@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
+import java.io.Serial;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -122,6 +123,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	 */
 	public static final class CircuitBreakerOpenException extends MessagingException {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		public CircuitBreakerOpenException(Message<?> message, String description) {

@@ -28,6 +28,9 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 
 /**
+ * The standard <a href="https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessagingAdapter.html">Service Activator pattern</a> implementation.
+ * An extension of {@link AbstractReplyProducingMessageHandler}.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell

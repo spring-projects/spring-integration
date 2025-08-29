@@ -22,11 +22,12 @@ import org.springframework.messaging.Message;
 
 /**
  * Implementations of this interface are subclasses of
- * {@link AbstractMessageHandler} that perform post processing after the
+ * {@link AbstractMessageHandler} that perform post-processing after the
  * {@link AbstractMessageHandler#handleMessageInternal(org.springframework.messaging.Message)}
  * call.
  *
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
@@ -38,6 +39,7 @@ public interface PostProcessingMessageHandler {
 	 * @param message The message.
 	 * @return The post-processed result.
 	 */
-	@Nullable Object postProcess(Message<?> message, @Nullable Object result);
+	@Nullable
+	Object postProcess(Message<?> message, @Nullable Object result);
 
 }

@@ -203,6 +203,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // need rework on retry
 	protected void onInit() {
 		super.onInit();
 		if (this.retryTemplate != null) {

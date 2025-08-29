@@ -46,7 +46,7 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, InitializingBean {
 
-	protected final LogAccessor logger = new LogAccessor(this.getClass()); // NOSONAR final
+	protected final LogAccessor logger = new LogAccessor(this.getClass());
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -63,7 +63,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	/**
-	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
+	 * Specify a BeanFactory in order to enable resolution via {@code @beanName} in the expression.
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -76,9 +76,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	public void setConversionService(ConversionService conversionService) {
-		if (conversionService != null) {
-			this.typeConverter.setConversionService(conversionService);
-		}
+		this.typeConverter.setConversionService(conversionService);
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -88,7 +86,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	/**
 	 * The flag to indicate that a {@link org.springframework.expression.spel.support.SimpleEvaluationContext}
 	 * must be used for expression evaluations.
-	 * @param simpleEvaluationContext true to use the
+	 * @param simpleEvaluationContext true to use a
 	 * {@link org.springframework.expression.spel.support.SimpleEvaluationContext}
 	 * @since 6.4
 	 */
@@ -99,9 +97,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	@Override
 	public final void afterPropertiesSet() {
 		getEvaluationContext();
-		if (this.beanFactory != null) {
-			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-		}
+		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 
 		onInit();
 	}
@@ -132,21 +128,21 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	private EvaluationContext obtainEvaluationContext(boolean beanFactoryRequired) {
-		if (this.beanFactory == null && !beanFactoryRequired) {
-			return
-					this.simpleEvaluationContext
-							? ExpressionUtils.createSimpleEvaluationContext()
-							: ExpressionUtils.createStandardEvaluationContext();
-		}
-		else {
+		if (beanFactoryRequired) {
 			return this.simpleEvaluationContext
 					? ExpressionUtils.createSimpleEvaluationContext(this.beanFactory)
 					: ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+
 		}
+
+		return this.simpleEvaluationContext
+				? ExpressionUtils.createSimpleEvaluationContext()
+				: ExpressionUtils.createStandardEvaluationContext();
 	}
 
-	@Nullable
-	protected <T> T evaluateExpression(Expression expression, Message<?> message, @Nullable Class<T> expectedType) {
+	protected <T> @Nullable T evaluateExpression(Expression expression, Message<?> message,
+			@Nullable Class<T> expectedType) {
+
 		try {
 			return evaluateExpression(expression, (Object) message, expectedType);
 		}
@@ -162,34 +158,32 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		}
 	}
 
-	@Nullable
-	protected Object evaluateExpression(String expression, Object input) {
+	protected @Nullable Object evaluateExpression(String expression, @Nullable Object input) {
 		return evaluateExpression(expression, input, null);
 	}
 
-	@Nullable
-	protected <T> T evaluateExpression(String expression, Object input, @Nullable Class<T> expectedType) {
+	protected <T> @Nullable T evaluateExpression(String expression, @Nullable Object input,
+			@Nullable Class<T> expectedType) {
+
 		return EXPRESSION_PARSER.parseExpression(expression)
 				.getValue(getEvaluationContext(), input, expectedType);
 	}
 
-	@Nullable
-	protected Object evaluateExpression(Expression expression, @Nullable Object input) {
+	protected @Nullable Object evaluateExpression(Expression expression, @Nullable Object input) {
 		return evaluateExpression(expression, input, null);
 	}
 
-	@Nullable
-	protected <T> T evaluateExpression(Expression expression, @Nullable Class<T> expectedType) {
+	protected <T> @Nullable T evaluateExpression(Expression expression, @Nullable Class<T> expectedType) {
 		return expression.getValue(getEvaluationContext(), expectedType);
 	}
 
-	@Nullable
-	protected Object evaluateExpression(Expression expression) {
+	protected @Nullable Object evaluateExpression(Expression expression) {
 		return expression.getValue(getEvaluationContext());
 	}
 
-	@Nullable
-	protected <T> T evaluateExpression(Expression expression, @Nullable Object input, @Nullable Class<T> expectedType) {
+	protected <T> @Nullable T evaluateExpression(Expression expression, @Nullable Object input,
+			@Nullable Class<T> expectedType) {
+
 		return expression.getValue(getEvaluationContext(), input, expectedType);
 	}
 

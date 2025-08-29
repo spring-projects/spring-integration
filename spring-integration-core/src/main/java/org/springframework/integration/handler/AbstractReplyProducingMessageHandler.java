@@ -60,8 +60,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	private volatile @Nullable RequestHandler advisedRequestHandler;
 
 	/**
-	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
-	 * If false an incoming message MAY result in a reply message being sent. Default is false.
+	 * Flag whether a reply is required. If {@code true} an incoming message MUST result in a reply message being sent.
+	 * If {@code false} an incoming message may result in a reply message being sent. Default is false.
 	 * @param requiresReply true if a reply is required.
 	 */
 	public void setRequiresReply(boolean requiresReply) {
@@ -107,9 +107,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		// Most out-of-the-box Spring Integration implementations provide an outbound gateway
-		// for particular external protocol. If an implementation doesn't belong to this category,
+		// for a particular external protocol. If an implementation doesn't belong to this category,
 		// it overrides this method to provide its own specific integration pattern type:
-		// service-activator, splitter, aggregator, router etc.
+		// service-activator, splitter, aggregator, router, etc.
 		return IntegrationPatternType.outbound_gateway;
 	}
 
@@ -211,8 +211,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 
 		@Override
-		@Nullable
-		public Object handleRequestMessage(Message<?> requestMessage) {
+		public @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 			return AbstractReplyProducingMessageHandler.this.handleRequestMessage(requestMessage);
 		}
 

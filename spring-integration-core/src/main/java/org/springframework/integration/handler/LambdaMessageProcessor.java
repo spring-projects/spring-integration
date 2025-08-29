@@ -133,15 +133,15 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			if (e.getTargetException() instanceof ClassCastException classCastException) {
 				logClassCastException(classCastException);
 			}
-			if (cause instanceof RuntimeException) { // NOSONAR
-				throw (RuntimeException) cause;
+			if (cause instanceof RuntimeException runtimeException) {
+				throw runtimeException;
 			}
-			throw new IllegalStateException(// NOSONAR lost stack trace
+			throw new IllegalStateException(
 					"Could not invoke the method '" + this.method + "'", cause);
 		}
 		catch (Exception ex) {
-			if (ex instanceof RuntimeException) { // NOSONAR
-				throw (RuntimeException) ex;
+			if (ex instanceof RuntimeException runtimeException) {
+				throw runtimeException;
 			}
 			throw new IllegalStateException(
 					"error occurred during processing message in 'LambdaMessageProcessor' for method [" +
@@ -191,7 +191,9 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	@SuppressWarnings({"unchecked", "rawtypes", "NullAway"})
 	// allow null items passing into the underlying functional method
-	private @Nullable Object invokeMethod(@Nullable Object[] args) throws InvocationTargetException, IllegalAccessException {
+	private @Nullable Object invokeMethod(@Nullable Object[] args)
+			throws InvocationTargetException, IllegalAccessException {
+
 		if (this.target instanceof Consumer consumer) {
 			consumer.accept(args[0]);
 			return null;

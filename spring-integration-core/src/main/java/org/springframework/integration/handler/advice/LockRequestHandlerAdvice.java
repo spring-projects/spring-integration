@@ -75,7 +75,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * Construct an advice instance based on a {@link LockRegistry}
 	 * and SpEL expression for the lock key against request message.
 	 * @param lockRegistry the {@link LockRegistry} to use.
-	 * @param lockKeyExpression the SpEL expression to evaluate a lock key against request message.
+	 * @param lockKeyExpression the SpEL expression to evaluate a lock key against a request message.
 	 */
 	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Expression lockKeyExpression) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
@@ -88,7 +88,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * Construct an advice instance based on a {@link LockRegistry}
 	 * and function for the lock key against request message.
 	 * @param lockRegistry the {@link LockRegistry} to use.
-	 * @param lockKeyFunction the function to evaluate a lock key against request message.
+	 * @param lockKeyFunction the function to evaluate a lock key against a request message.
 	 */
 	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Function<Message<?>, Object> lockKeyFunction) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
@@ -108,7 +108,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 
 	/**
 	 * The SpEL expression to evaluate a {@link Lock#tryLock(long, TimeUnit)} duration
-	 * against request message.
+	 * against a request message.
 	 * Can be evaluated to {@link Duration}, {@code long} (with meaning as milliseconds),
 	 * or to string in the duration ISO-8601 format.
 	 * @param waitLockDurationExpression SpEL expression for duration.
@@ -119,7 +119,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 
 	/**
 	 * The SpEL expression to evaluate a {@link Lock#tryLock(long, TimeUnit)} duration
-	 * against request message.
+	 * against a request message.
 	 * Can be evaluated to {@link Duration}, {@code long} (with meaning as milliseconds),
 	 * or to string in the duration ISO-8601 format.
 	 * @param waitLockDurationExpression SpEL expression for duration.
@@ -152,7 +152,6 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
-	@SuppressWarnings("NullAway") // CheckedCallable.call() is nullable
 	@Override
 	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		Object lockKey = this.lockKeyExpression.getValue(this.evaluationContext, message);
@@ -160,10 +159,12 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 			Duration waitLockDuration = getWaitLockDuration(message);
 			try {
 				if (waitLockDuration == null) {
-					return this.lockRegistry.executeLocked(lockKey, callback::execute);
+					return this.lockRegistry.<@Nullable Object, RuntimeException>executeLocked(
+							lockKey, callback::execute);
 				}
 				else {
-					return this.lockRegistry.executeLocked(lockKey, waitLockDuration, callback::execute);
+					return this.lockRegistry.<@Nullable Object, RuntimeException>executeLocked(
+							lockKey, waitLockDuration, callback::execute);
 				}
 			}
 			catch (InterruptedException ex) {
@@ -187,8 +188,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 		}
 	}
 
-	@Nullable
-	private Duration getWaitLockDuration(Message<?> message) {
+	private @Nullable Duration getWaitLockDuration(Message<?> message) {
 		if (this.waitLockDurationExpression != null) {
 			Object value = this.waitLockDurationExpression.getValue(this.evaluationContext, message);
 			if (value != null) {

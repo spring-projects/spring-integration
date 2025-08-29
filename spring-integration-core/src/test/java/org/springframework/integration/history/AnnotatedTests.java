@@ -17,10 +17,10 @@
 package org.springframework.integration.history;
 
 import java.lang.reflect.Field;
-import java.util.Properties;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -33,14 +33,12 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class AnnotatedTests {
@@ -48,17 +46,12 @@ public class AnnotatedTests {
 	@Test
 	public void testHistoryWithAnnotatedComponents() throws Exception {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("annotated-config.xml", this.getClass());
-		ApplicationListener<ApplicationEvent> listener = new ApplicationListener<ApplicationEvent>() {
+		CompletableFuture<Message<?>> eventMessage = new CompletableFuture<>();
+		ApplicationListener<ApplicationEvent> listener =
+				event -> {
+					eventMessage.complete((Message<?>) event.getSource());
 
-			@Override
-			public void onApplicationEvent(ApplicationEvent event) {
-				MessageHistory history = MessageHistory.read((Message<?>) event.getSource());
-				Properties adapterHistory = history.get(1);
-				assertThat(adapterHistory.get("name")).isEqualTo("myAdapter");
-				assertThat(adapterHistory.get("type")).isEqualTo("outbound-channel-adapter");
-			}
-		};
-		listener = spy(listener);
+				};
 		ac.addApplicationListener(listener);
 
 		MessageChannel channel = ac.getBean("inputChannel", MessageChannel.class);
@@ -67,8 +60,14 @@ public class AnnotatedTests {
 		Field handlerField = consumer.getClass().getDeclaredField("handler");
 		handlerField.setAccessible(true);
 		handlerField.set(consumer, handler);
-		channel.send(new GenericMessage<String>("hello"));
-		verify(listener, times(1)).onApplicationEvent((ApplicationEvent) Mockito.any());
+		channel.send(new GenericMessage<>("hello"));
+
+		assertThat(eventMessage).succeedsWithin(Duration.ofSeconds(10))
+				.extracting(MessageHistory::read)
+				.extracting(history -> history.get(1))
+				.extracting("name", "type").containsExactly("myAdapter", "method-outbound-channel-adapter");
+
+		ac.removeApplicationListener(listener);
 		ac.close();
 	}
 

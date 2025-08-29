@@ -98,7 +98,6 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 			consumerBuilder.addConstructorArgValue(hasMethod ? methodName : "handleMessage");
 		}
 
-		consumerBuilder.addPropertyValue("componentType", "outbound-channel-adapter");
 		return consumerBuilder.getBeanDefinition();
 	}
 

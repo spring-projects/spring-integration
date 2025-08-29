@@ -31,7 +31,6 @@ import org.springframework.integration.support.management.observation.MessageRec
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageHandler} implementations.
@@ -42,8 +41,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
-	@Nullable
-	private MessageReceiverObservationConvention observationConvention;
+	private @Nullable MessageReceiverObservationConvention observationConvention;
 
 	/**
 	 * Set a custom {@link MessageReceiverObservationConvention} for {@link IntegrationObservation#HANDLER}.
@@ -57,7 +55,6 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 
 	@Override
 	public void handleMessage(Message<?> message) {
-		Assert.notNull(message, "Message must not be null");
 		if (isLoggingEnabled()) {
 			this.logger.debug(() -> this + " received message: " + message);
 		}
@@ -112,7 +109,6 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 
 	@Override
 	public void onSubscribe(Subscription subscription) {
-		Assert.notNull(subscription, "'subscription' must not be null");
 		subscription.request(Long.MAX_VALUE);
 	}
 

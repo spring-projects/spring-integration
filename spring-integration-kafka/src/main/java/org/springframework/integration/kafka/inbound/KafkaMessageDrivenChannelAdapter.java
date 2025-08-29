@@ -297,6 +297,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // need rework on retry
 	protected void onInit() {
 		super.onInit();
 

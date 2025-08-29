@@ -50,18 +50,16 @@ import org.springframework.util.Assert;
  */
 public class ErrorMessagePublisher implements BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+	protected final Log logger = LogFactory.getLog(getClass());
 
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
-	@Nullable
-	private MessageChannel channel;
+	private @Nullable MessageChannel channel;
 
-	@Nullable
-	private String channelName;
+	private @Nullable String channelName;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
@@ -70,7 +68,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
-	public final void setChannel(@Nullable MessageChannel channel) {
+	public final void setChannel(MessageChannel channel) {
 		this.channel = channel;
 	}
 
@@ -82,8 +80,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.errorMessageStrategy;
 	}
 
-	@Nullable
-	public MessageChannel getChannel() {
+	public @Nullable MessageChannel getChannel() {
 		populateChannel();
 		return this.channel;
 	}

@@ -24,7 +24,6 @@ import java.util.Optional;
 
 import com.mongodb.BasicDBObject;
 import org.bson.conversions.Bson;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -108,6 +107,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		StepVerifier.create((Flux<BasicDBObject>) messageSource.receive().getPayload())
@@ -128,6 +128,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		messageSource.setEntityClass(Person.class);
 
@@ -150,7 +151,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 				})
 				.expectNextMatches(person -> {
 					names.remove(person.getName());
-					return names.size() == 0;
+					return names.isEmpty();
 				})
 				.verifyComplete();
 	}
@@ -209,6 +210,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 				queryExpression);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		BasicDBObject result = waitFor((Mono<BasicDBObject>) messageSource.receive().getPayload());
 		Object id = result.get("_id");
@@ -263,7 +265,6 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApp
 					.get();
 		}
 
-		@NotNull
 		private PollerSpec pollOnceAfter100ms() {
 			return Pollers.fixedDelay(Duration.ofMinutes(5), Duration.ofMillis(100));
 		}

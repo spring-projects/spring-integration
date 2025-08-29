@@ -57,7 +57,9 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, false);
 	}
 
-	public MethodInvokingMessageProcessor(Object targetObject, @Nullable String methodName, boolean canProcessMessageList) {
+	public MethodInvokingMessageProcessor(Object targetObject, @Nullable String methodName,
+			boolean canProcessMessageList) {
+
 		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, canProcessMessageList);
 	}
 
@@ -108,9 +110,8 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	}
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public T processMessage(Message<?> message) {
+	public @Nullable T processMessage(Message<?> message) {
 		try {
 			return (T) this.delegate.process(message);
 		}

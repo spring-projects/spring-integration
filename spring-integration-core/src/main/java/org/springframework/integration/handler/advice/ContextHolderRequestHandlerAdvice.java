@@ -46,7 +46,7 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 	 * Construct an instance based on the provided hooks.
 	 * @param valueProvider The key provider function.
 	 * @param contextSetHook The context set hook consumer.
-	 * @param contextClearHook The context clear hook consumer.
+	 * @param contextClearHook The clear context hook consumer.
 	 */
 	public ContextHolderRequestHandlerAdvice(Function<Message<?>, Object> valueProvider,
 			Consumer<Object> contextSetHook, Runnable contextClearHook) {

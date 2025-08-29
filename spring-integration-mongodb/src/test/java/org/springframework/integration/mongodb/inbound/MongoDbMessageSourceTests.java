@@ -91,6 +91,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<BasicDBObject> results = ((List<BasicDBObject>) messageSource.receive().getPayload());
@@ -111,6 +112,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
@@ -132,6 +134,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		messageSource.setEntityClass(Object.class);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		Person person = (Person) messageSource.receive().getPayload();
 
@@ -150,6 +153,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
@@ -189,6 +193,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		return (List<Person>) messageSource.receive().getPayload();
@@ -207,6 +212,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'NJ'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		assertThat(messageSource.receive()).isNull();
 	}
@@ -226,6 +232,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		messageSource.setMongoConverter(converter);
@@ -279,6 +286,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplication
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setExpectSingleResult(true);
 		messageSource.setApplicationContext(TEST_INTEGRATION_CONTEXT);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		BasicDBObject result = (BasicDBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");

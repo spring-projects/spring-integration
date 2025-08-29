@@ -129,7 +129,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 				actualThrowable instanceof MessagingException
 						? ((MessagingException) actualThrowable).getFailedMessage()
 						: null;
-		if (getDefaultErrorChannel() == null && channelResolver != null) {
+		if (getDefaultErrorChannel() == null) {
 			setChannel(channelResolver.resolveDestination(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
 		}
 
@@ -141,7 +141,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 			Assert.isInstanceOf(String.class, errorChannelHeader, () ->
 					"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
 							errorChannelHeader.getClass() + "]");
-			if (channelResolver != null && StringUtils.hasText((String) errorChannelHeader)) {
+			if (StringUtils.hasText((String) errorChannelHeader)) {
 				return channelResolver.resolveDestination((String) errorChannelHeader);
 			}
 		}

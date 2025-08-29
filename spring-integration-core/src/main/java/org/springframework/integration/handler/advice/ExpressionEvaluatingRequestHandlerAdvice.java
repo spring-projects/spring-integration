@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
+import java.io.Serial;
+
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -235,7 +237,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	@SuppressWarnings("NullAway") // dataflow analysis limitation, onSuccessExpression won't be null
+	@SuppressWarnings("NullAway") // dataflow analysis limitation; onSuccessExpression won't be null
 	private void evaluateSuccessExpression(Message<?> message) {
 		Object evalResult;
 		try {
@@ -257,7 +259,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	@SuppressWarnings("NullAway") // dataflow analysis limitation, onFailureExpression won't be null
+	@SuppressWarnings("NullAway") // dataflow analysis limitation; onFailureExpression won't be null
 	private @Nullable Object evaluateFailureExpression(Message<?> message, Exception exception) {
 		Object evalResult;
 		try {
@@ -286,7 +288,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	/**
-	 * If we don't need variables (i.e., exception is null)
+	 * If we don't need variables (i.e., exception is {@code null})
 	 * we can use a singleton context; otherwise we need a new one each time.
 	 * @param exception the {@link Exception} to use in the context.
 	 * @return The context.
@@ -308,6 +310,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	public static class MessageHandlingExpressionEvaluatingAdviceException extends MessagingException {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		private final transient Object evaluationResult;

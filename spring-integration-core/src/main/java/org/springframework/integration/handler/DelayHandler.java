@@ -33,7 +33,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.aopalliance.aop.Advice;
 import org.jspecify.annotations.Nullable;
 
@@ -246,7 +245,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @param messageStore The message store.
 	 */
 	public void setMessageStore(MessageGroupStore messageStore) {
-		Assert.state(messageStore != null, "MessageStore must not be null");
 		this.messageStore = messageStore;
 	}
 
@@ -258,7 +256,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @see #createReleaseMessageTask
 	 */
 	public void setDelayedAdviceChain(List<Advice> delayedAdviceChain) {
-		Assert.notNull(delayedAdviceChain, "delayedAdviceChain must not be null");
 		this.delayedAdviceChain = delayedAdviceChain;
 	}
 
@@ -293,7 +290,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Set the maximum number of release attempts for when message release fails. Default
+	 * Set the maximum number of release attempts for when the message release fails. Default
 	 * {@value #DEFAULT_MAX_ATTEMPTS}.
 	 * @param maxAttempts the max attempts.
 	 * @since 5.0.8
@@ -452,12 +449,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 	}
 
-	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
+	private void releaseMessageAfterDelay(Message<?> message, long delay) {
 		Message<?> delayedMessage = message;
 
 		DelayedMessageWrapper messageWrapper;
-		if (message.getPayload() instanceof DelayedMessageWrapper) {
-			messageWrapper = (DelayedMessageWrapper) message.getPayload();
+		if (message.getPayload() instanceof DelayedMessageWrapper delayedMessageWrapper) {
+			messageWrapper = delayedMessageWrapper;
 		}
 		else {
 			messageWrapper = new DelayedMessageWrapper(message, Instant.now().toEpochMilli());
@@ -626,7 +623,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Used for reading persisted Messages in the 'messageStore' to reschedule them e.g.
 	 * upon application restart. The logic is based on iteration over
-	 * {@code messageGroup.getMessages()} and schedules task for 'delay' logic. This
+	 * {@code messageGroup.getMessages()} and schedules a task for 'delay' logic. This
 	 * behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	@Override
@@ -638,7 +635,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				TaskScheduler taskScheduler = getTaskScheduler();
 				messageStream.forEach((message) -> // NOSONAR
 						taskScheduler.schedule(() -> {
-							// This is fine to keep the reference to the message,
+							// This is fine to keep the reference to the message
 							// because the scheduled task is performed immediately.
 							long delay = determineDelayForMessage(message);
 							if (delay > 0) {
@@ -667,8 +664,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (event.getApplicationContext().equals(getApplicationContext())
-				&& !this.initialized.getAndSet(true)) {
+		if (event.getApplicationContext().equals(getApplicationContext()) && !this.initialized.getAndSet(true)) {
 			reschedulePersistedMessages();
 		}
 	}
@@ -702,10 +698,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		@SuppressWarnings("serial")
 		private final Message<?> original;
 
-		@JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-		DelayedMessageWrapper(@JsonProperty("original") Message<?> original,
-				@JsonProperty("requestDate") long requestDate) {
-
+		@JsonCreator
+		DelayedMessageWrapper(Message<?> original, long requestDate) {
 			this.original = original;
 			this.requestDate = requestDate;
 		}
