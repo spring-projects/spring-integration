@@ -57,27 +57,24 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Collection,
 				"This Argument Resolver support only messages with payload as Collection<Message<?>>");
 		Collection<Message<?>> messages = (Collection<Message<?>>) payload;
 
-		if (!this.expressionCache.containsKey(parameter)) {
+		Expression expression = this.expressionCache.computeIfAbsent(parameter, key -> {
 			Payloads payloads = parameter.getParameterAnnotation(Payloads.class);
-			Assert.state(payloads != null, "'Payload' annotation must not be null");
-			String expression = payloads.value();
-			if (StringUtils.hasText(expression)) {
-				this.expressionCache.put(parameter, EXPRESSION_PARSER.parseExpression("![payload." + expression + "]"));
+			String expressionString = payloads.value(); // never null - supportsParameter()
+			if (StringUtils.hasText(expressionString)) {
+				return EXPRESSION_PARSER.parseExpression("![payload." + expressionString + "]");
 			}
 			else {
-				this.expressionCache.put(parameter, null);
+				return null;
 			}
+		});
 
-		}
-
-		Expression expression = this.expressionCache.get(parameter);
 		if (expression != null) {
 			return evaluateExpression(expression, messages, parameter.getParameterType());
 		}

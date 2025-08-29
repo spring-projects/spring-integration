@@ -61,8 +61,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	private final Method method;
 
-	@Nullable
-	private final Class<?> expectedType;
+	private final @Nullable Class<?> expectedType;
 
 	private final Class<?>[] parameterTypes;
 

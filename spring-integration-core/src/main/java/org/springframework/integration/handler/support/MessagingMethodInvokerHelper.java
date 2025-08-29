@@ -1088,15 +1088,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			this.invocableHandlerMethod = newInvocableHandlerMethod;
 		}
 
-		@Nullable
-		public Object invoke(ParametersWrapper parameters) {
+		@SuppressWarnings("NullAway") // critical execution path, invocableHandlerMethod and message won't be null
+		public @Nullable Object invoke(ParametersWrapper parameters) {
 			Message<?> message = parameters.getMessage();
 			if (this.canProcessMessageList) {
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
 			try {
-				Assert.state(message != null, "'message' must not be null");
-				Assert.state(this.invocableHandlerMethod != null, "'invocableHandlerMethod' must not be null");
 				Object result = this.invocableHandlerMethod.invoke(message);
 				if (result != null
 						&& org.springframework.integration.util.ClassUtils.isKotlinUnit(result.getClass())) {
@@ -1401,11 +1399,11 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			return this.message;
 		}
 
+		@SuppressWarnings("NullAway") // dataflow analysis limitation, messages won't be null
 		public Class<?> getFirstParameterType() {
 			if (this.payload != null) {
 				return this.payload.getClass();
 			}
-			Assert.state(this.messages != null, "'messages' must not be null");
 			return this.messages.getClass();
 		}
 

@@ -29,10 +29,14 @@ import org.springframework.messaging.Message;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
 public class MessageProcessorMessageSource extends AbstractMessageSource<Object> {
+
+	// provide a fake message since the contract of processMessage requires a NonNull Message.
+	static final Message<Object> FAKE_MESSAGE = MutableMessageBuilder.withPayload(new Object(), false).build();
 
 	private final MessageProcessor<?> messageProcessor;
 
@@ -47,9 +51,7 @@ public class MessageProcessorMessageSource extends AbstractMessageSource<Object>
 
 	@Override
 	protected @Nullable Object doReceive() {
-		Message<Object> fakeMessage = MutableMessageBuilder.withPayload(new Object(), false).build();
-		// provide a fake message here since the contract of processMessage requires a NonNull Message.
-		return this.messageProcessor.processMessage(fakeMessage);
+		return this.messageProcessor.processMessage(FAKE_MESSAGE);
 	}
 
 }

@@ -235,7 +235,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	@SuppressWarnings("NullAway") // dataflow analysis limitation
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, onSuccessExpression won't be null
 	private void evaluateSuccessExpression(Message<?> message) {
 		Object evalResult;
 		try {
@@ -257,7 +257,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	@SuppressWarnings("NullAway") // dataflow analysis limitation
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, onFailureExpression won't be null
 	private @Nullable Object evaluateFailureExpression(Message<?> message, Exception exception) {
 		Object evalResult;
 		try {

@@ -551,13 +551,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return true;
 	}
 
-	protected void sendErrorMessage(Message<?> requestMessage, @Nullable Throwable ex) {
+	protected void sendErrorMessage(Message<?> requestMessage, Throwable ex) {
 		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
 		Throwable result = ex;
 		if (!(result instanceof MessagingException)) {
-			result = ex == null
-					? new MessageHandlingException(requestMessage)
-					: new MessageHandlingException(requestMessage, ex);
+			result = new MessageHandlingException(requestMessage, ex);
 		}
 		if (errorChannel == null) {
 			logger.error(result,
@@ -633,7 +631,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				}
 				catch (Exception ex) {
 					Exception exceptionToLogAndSend = ex;
-					if (!(ex instanceof MessagingException)) { // NOSONAR
+					if (!(ex instanceof MessagingException)) {
 						exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, ex);
 						if (replyMessage != null) {
 							exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
@@ -644,11 +642,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				}
 			}
 			else if (exception != null) {
-				onFailure(exception instanceof CompletionException ? exception.getCause() : exception);
+				onFailure(exception instanceof CompletionException && exception.getCause() != null
+						? exception.getCause() : exception);
 			}
 		}
 
-		private void onFailure(@Nullable Throwable ex) {
+		private void onFailure(Throwable ex) {
 			sendErrorMessage(this.requestMessage, ex);
 		}
 

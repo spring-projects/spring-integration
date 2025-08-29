@@ -27,7 +27,6 @@ import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -52,15 +51,13 @@ public class PayloadExpressionArgumentResolver extends AbstractExpressionEvaluat
 		return ann != null && StringUtils.hasText(ann.expression());
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, Payload never null
 	@Override
 	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		Expression expression = this.expressionCache.get(parameter);
-		if (expression == null) {
+		Expression expression = this.expressionCache.computeIfAbsent(parameter, key -> {
 			Payload ann = parameter.getParameterAnnotation(Payload.class);
-			Assert.state(ann != null, "'Payload' annotation must not be null");
-			expression = EXPRESSION_PARSER.parseExpression(ann.expression());
-			this.expressionCache.put(parameter, expression);
-		}
+			return EXPRESSION_PARSER.parseExpression(ann.expression()); // never null - supportsParameter()
+		});
 		return evaluateExpression(expression, message.getPayload(), parameter.getParameterType());
 	}
 

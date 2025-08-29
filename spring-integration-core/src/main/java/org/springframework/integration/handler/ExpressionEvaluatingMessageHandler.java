@@ -35,8 +35,7 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
 	private final ExpressionEvaluatingMessageProcessor<Void> processor;
 
-	@SuppressWarnings("NullAway.Init")
-	private String componentType;
+	private String componentType = "expression-evaluating-handler";
 
 	@SuppressWarnings("this-escape")
 	public ExpressionEvaluatingMessageHandler(Expression expression) {

@@ -27,7 +27,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageHandler} advice classes. Subclasses should provide an
@@ -113,9 +112,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	 */
 	protected Throwable unwrapThrowableIfNecessary(Exception e) {
 		Throwable actualThrowable = e;
-		if (e instanceof ThrowableHolderException) {
-			actualThrowable = e.getCause();
-			Assert.state(actualThrowable != null, "'actualThrowable' must not be null");
+		if (e instanceof ThrowableHolderException throwableHolderException) {
+			actualThrowable = throwableHolderException.getCause();
 		}
 		return actualThrowable;
 	}
@@ -201,6 +199,12 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 		ThrowableHolderException(Throwable cause) {
 			super(cause);
+		}
+
+		@Override
+		public synchronized Throwable getCause() {
+			Throwable cause = super.getCause();
+			return cause != null ? cause : this;
 		}
 
 	}

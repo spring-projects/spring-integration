@@ -64,6 +64,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 		this.retryTemplate = retryTemplate;
 	}
 
+	@SuppressWarnings("NullAway") // need rework on retry
 	public void setRecoveryCallback(RecoveryCallback<Object> recoveryCallback) {
 		this.recoveryCallback = (context) ->
 				recoveryCallback.recover(context, context.getLastThrowable());

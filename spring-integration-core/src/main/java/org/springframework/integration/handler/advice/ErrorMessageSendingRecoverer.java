@@ -59,8 +59,9 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * The {@link DefaultErrorMessageStrategy} is used for building an error message to publish.
 	 * @param channel the message channel to publish error messages on recovery action.
 	 */
+	@SuppressWarnings("this-escape")
 	public ErrorMessageSendingRecoverer(@Nullable MessageChannel channel) {
-		this(channel, null);
+		setChannel(channel);
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * @since 4.3.10
 	 */
 	@SuppressWarnings("this-escape")
-	public ErrorMessageSendingRecoverer(@Nullable MessageChannel channel, @Nullable ErrorMessageStrategy errorMessageStrategy) {
+	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
 		setChannel(channel);
 		setErrorMessageStrategy(
 				errorMessageStrategy == null
@@ -83,7 +84,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	}
 
 	@Override
-	public @Nullable Object recover(AttributeAccessor context, @Nullable Throwable cause) {
+	public @Nullable Object recover(AttributeAccessor context, Throwable cause) {
 		publish(cause, context);
 		return null;
 	}

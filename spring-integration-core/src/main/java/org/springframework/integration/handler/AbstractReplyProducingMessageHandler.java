@@ -161,8 +161,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	@SuppressWarnings("NullAway") // dataflow analysis limitation
-	@Nullable
-	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
+	protected @Nullable Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		return this.advisedRequestHandler.handleRequestMessage(message);
 	}
 

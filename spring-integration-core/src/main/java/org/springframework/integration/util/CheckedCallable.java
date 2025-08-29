@@ -34,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 @FunctionalInterface
 public interface CheckedCallable<T extends @Nullable Object, E extends Throwable> {
 
-	@Nullable
 	T call() throws E;
 
 	/**
