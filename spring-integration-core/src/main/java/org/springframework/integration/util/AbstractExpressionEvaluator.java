@@ -174,7 +174,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	@Nullable
-	protected Object evaluateExpression(Expression expression, Object input) {
+	protected Object evaluateExpression(Expression expression, @Nullable Object input) {
 		return evaluateExpression(expression, input, null);
 	}
 
@@ -189,7 +189,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	@Nullable
-	protected <T> T evaluateExpression(Expression expression, Object input, @Nullable Class<T> expectedType) {
+	protected <T> T evaluateExpression(Expression expression, @Nullable Object input, @Nullable Class<T> expectedType) {
 		return expression.getValue(getEvaluationContext(), input, expectedType);
 	}
 

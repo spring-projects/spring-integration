@@ -169,43 +169,45 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private final Object targetObject;
 
-	private final JsonObjectMapper<?, ?> jsonObjectMapper;
+	private final @Nullable JsonObjectMapper<?, ?> jsonObjectMapper;
 
-	private final Map<Class<?>, HandlerMethod> handlerMethods;
+	private final @Nullable Map<Class<?>, HandlerMethod> handlerMethods;
 
-	private final Map<Class<?>, HandlerMethod> handlerMessageMethods;
+	private final @Nullable Map<Class<?>, HandlerMethod> handlerMessageMethods;
 
 	private final List<Map<Class<?>, HandlerMethod>> handlerMethodsList = new LinkedList<>();
 
-	private final TypeDescriptor expectedType;
+	private final @Nullable TypeDescriptor expectedType;
 
 	private final boolean canProcessMessageList;
 
-	private final String methodName;
+	private final @Nullable String methodName;
 
-	private final Method method;
+	private final @Nullable Method method;
 
-	private final Class<? extends Annotation> annotationType;
+	private final @Nullable Class<? extends Annotation> annotationType;
 
-	private final HandlerMethod handlerMethod;
+	private final @Nullable HandlerMethod handlerMethod;
 
 	private final String displayString;
 
 	private final boolean requiresReply;
 
-	private HandlerMethod defaultHandlerMethod;
+	private @Nullable HandlerMethod defaultHandlerMethod;
 
 	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanExpressionContext expressionContext;
 
 	private boolean useSpelInvoker;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile MessageHandlerMethodFactory messageHandlerMethodFactory;
 
 	private volatile boolean initialized;
 
-	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
+	public MessagingMethodInvokerHelper(Object targetObject, Method method, @Nullable Class<?> expectedType,
 			boolean canProcessMessageList) {
 
 		this(targetObject, null, method, expectedType, canProcessMessageList);
@@ -215,13 +217,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		this(targetObject, method, null, canProcessMessageList);
 	}
 
-	public MessagingMethodInvokerHelper(Object targetObject, String methodName, Class<?> expectedType,
+	public MessagingMethodInvokerHelper(Object targetObject, @Nullable String methodName, @Nullable Class<?> expectedType,
 			boolean canProcessMessageList) {
 
 		this(targetObject, null, methodName, expectedType, canProcessMessageList);
 	}
 
-	public MessagingMethodInvokerHelper(Object targetObject, String methodName, boolean canProcessMessageList) {
+	public MessagingMethodInvokerHelper(Object targetObject, @Nullable String methodName, boolean canProcessMessageList) {
 		this(targetObject, methodName, null, canProcessMessageList);
 	}
 
@@ -232,13 +234,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	public MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
-			Class<?> expectedType, boolean canProcessMessageList) {
+			@Nullable Class<?> expectedType, boolean canProcessMessageList) {
 
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
 	}
 
-	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
-			Method method, Class<?> expectedType, boolean canProcessMessageList) {
+	private MessagingMethodInvokerHelper(Object targetObject, @Nullable Class<? extends Annotation> annotationType,
+			Method method, @Nullable Class<?> expectedType, boolean canProcessMessageList) {
 
 		this.annotationType = annotationType;
 		this.canProcessMessageList = canProcessMessageList;
@@ -266,8 +268,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		this.jsonObjectMapper = configureJsonObjectMapperIfAny();
 	}
 
-	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
-			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
+	private MessagingMethodInvokerHelper(Object targetObject, @Nullable Class<? extends Annotation> annotationType,
+			@Nullable String methodName, @Nullable Class<?> expectedType, boolean canProcessMessageList) {
 
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.annotationType = annotationType;
@@ -300,6 +302,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget = findHandlerMethodsForTarget();
 		Map<Class<?>, HandlerMethod> methods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
 		Map<Class<?>, HandlerMethod> messageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
+		Assert.state(methods != null, "candidate methods must not be null");
+		Assert.state(messageMethods != null, "candidate messageMethods must not be null");
 		if ((methods.size() == 1 && messageMethods.isEmpty()) ||
 				(messageMethods.size() == 1 && methods.isEmpty())) {
 			if (methods.size() == 1) {
@@ -323,7 +327,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		this.jsonObjectMapper = configureJsonObjectMapperIfAny();
 	}
 
-	private JsonObjectMapper<?, ?> configureJsonObjectMapperIfAny() {
+	private @Nullable JsonObjectMapper<?, ?> configureJsonObjectMapperIfAny() {
 		try {
 			return JsonObjectMapperProvider.newInstance();
 		}
@@ -362,7 +366,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	@Nullable
-	public Object process(Collection<Message<?>> messages, Map<String, Object> headers) {
+	public Object process(Collection<Message<?>> messages, @Nullable Map<String, Object> headers) {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
 	}
@@ -406,12 +410,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return this.messageHandlerMethodFactory.createInvocableHandlerMethod(this.targetObject, method);
 	}
 
-	private String buildDisplayString(Object targetObject, Object targetMethod) {
+	private String buildDisplayString(Object targetObject, @Nullable Object targetMethod) {
 		StringBuilder sb =
 				new StringBuilder(targetObject.getClass().getName())
 						.append('.');
-		if (targetMethod instanceof Method) {
-			sb.append(((Method) targetMethod).getName());
+		if (targetMethod instanceof Method target) {
+			sb.append(target.getName());
 		}
 		else if (targetMethod instanceof String) {
 			sb.append(targetMethod);
@@ -555,11 +559,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			parser = EXPRESSION_PARSER_DEFAULT;
 		}
 		else {
-			String compilerMode = resolveExpression(candidate.useSpelInvoker.compilerMode()).toUpperCase();
+			String compilerMode = resolveExpression(candidate.useSpelInvoker.compilerMode());
 			parser = !StringUtils.hasText(compilerMode)
 					? EXPRESSION_PARSER_DEFAULT
-					: SPEL_COMPILERS.get(SpelCompilerMode.valueOf(compilerMode));
+					: SPEL_COMPILERS.get(SpelCompilerMode.valueOf(compilerMode.toUpperCase()));
 		}
+		Assert.state(parser != null, "'parser' must not be null");
 		candidate.expression = parser.parseExpression(candidate.expressionString);
 		if (!this.useSpelInvoker && !candidate.spelOnly) {
 			candidate.setInvocableHandlerMethod(createInvocableHandlerMethod(candidate.method));
@@ -583,7 +588,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	private Object processInvokeExceptionAndFallbackToExpressionIfAny(HandlerMethod handlerMethod,
+	private @Nullable Object processInvokeExceptionAndFallbackToExpressionIfAny(HandlerMethod handlerMethod,
 			ParametersWrapper parameters, RuntimeException ex) {
 
 		if (ex instanceof MessageConversionException) {
@@ -592,10 +597,11 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				throw ex;
 			}
 		}
-		else if (ex instanceof IllegalStateException && // NOSONAR complex boolean expression
+		else if (ex instanceof IllegalStateException &&
 				(!(ex.getCause() instanceof IllegalArgumentException) ||
 						!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
 						(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
+								ex.getCause().getMessage() != null &&
 								// JVM generates GeneratedMethodAccessor### after several calls with less error
 								// checking
 								!ex.getCause().getMessage().startsWith("java.lang.ClassCastException@")))) {
@@ -605,7 +611,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return fallbackToInvokeExpression(handlerMethod, parameters);
 	}
 
-	private Object fallbackToInvokeExpression(HandlerMethod handlerMethod, ParametersWrapper parameters) {
+	private @Nullable Object fallbackToInvokeExpression(HandlerMethod handlerMethod, ParametersWrapper parameters) {
 		Expression expression = handlerMethod.expression;
 
 		if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
@@ -619,7 +625,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return invokeExpression(expression, parameters);
 	}
 
-	private Object invokeExpression(Expression expression, ParametersWrapper parameters) {
+	private @Nullable Object invokeExpression(Expression expression, ParametersWrapper parameters) {
 		try {
 
 			convertJsonPayloadIfNecessary(parameters);
@@ -663,6 +669,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	private void doConvertJsonPayload(ParametersWrapper parameters) {
 		try {
 			Object targetPayload =
@@ -695,8 +702,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		Map<Class<?>, HandlerMethod> candidateMessageMethods = new HashMap<>();
 		Map<Class<?>, HandlerMethod> fallbackMethods = new HashMap<>();
 		Map<Class<?>, HandlerMethod> fallbackMessageMethods = new HashMap<>();
-		AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<>();
-		AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<>();
+		AtomicReference<@Nullable Class<?>> ambiguousFallbackType = new AtomicReference<>();
+		AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<>();
 		Class<?> targetClass = getTargetClass(this.targetObject);
 
 		processMethodsFromTarget(candidateMethods, candidateMessageMethods, fallbackMethods, fallbackMessageMethods,
@@ -735,8 +742,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void validateFallbackMethods(Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<Class<?>> ambiguousFallbackType,
-			AtomicReference<Class<?>> ambiguousFallbackMessageGenericType) {
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType) {
 		Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
 				() -> "Target object of type [" + this.targetObject.getClass() +
 						"] has no eligible methods for handling Messages.");
@@ -753,8 +760,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private void processMethodsFromTarget(Map<Class<?>, HandlerMethod> candidateMethods,
 			Map<Class<?>, HandlerMethod> candidateMessageMethods, Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<Class<?>> ambiguousFallbackType,
-			AtomicReference<Class<?>> ambiguousFallbackMessageGenericType, Class<?> targetClass) {
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType, Class<?> targetClass) {
 
 		ReflectionUtils.doWithMethods(targetClass, method1 -> {
 			boolean matchesAnnotation = false;
@@ -828,8 +835,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private void populateHandlerMethod(Map<Class<?>, HandlerMethod> candidateMethods,
 			Map<Class<?>, HandlerMethod> candidateMessageMethods, Map<Class<?>, HandlerMethod> fallbackMethods,
-			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<Class<?>> ambiguousFallbackType,
-			AtomicReference<Class<?>> ambiguousFallbackMessageGenericType, boolean matchesAnnotation,
+			Map<Class<?>, HandlerMethod> fallbackMessageMethods, AtomicReference<@Nullable Class<?>> ambiguousFallbackType,
+			AtomicReference<@Nullable Class<?>> ambiguousFallbackMessageGenericType, boolean matchesAnnotation,
 			HandlerMethod handlerMethod1) {
 
 		Class<?> targetParameterType = handlerMethod1.getTargetParameterType();
@@ -898,7 +905,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private void findSingleSpecificMethodOnInterfacesIfProxy(Map<Class<?>, HandlerMethod> candidateMessageMethods,
 			Map<Class<?>, HandlerMethod> candidateMethods) {
 		if (AopUtils.isAopProxy(this.targetObject)) {
-			final AtomicReference<Method> targetMethod = new AtomicReference<>();
+			final AtomicReference<@Nullable Method> targetMethod = new AtomicReference<>();
 			Class<?>[] interfaces = ((Advised) this.targetObject).getProxiedInterfaces();
 			for (Class<?> clazz : interfaces) {
 				ReflectionUtils.doWithMethods(clazz, method1 -> {
@@ -953,10 +960,10 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	private String resolveExpression(String value) {
+	private @Nullable String resolveExpression(String value) {
 		String resolvedValue = resolve(value);
 
-		if (!(resolvedValue.startsWith("#{") && value.endsWith("}"))) {
+		if (!(resolvedValue != null && resolvedValue.startsWith("#{") && value.endsWith("}"))) {
 			return resolvedValue;
 		}
 
@@ -965,10 +972,10 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return (String) evaluated;
 	}
 
-	private String resolve(String value) {
+	private @Nullable String resolve(String value) {
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory instanceof ConfigurableBeanFactory) {
-			return ((ConfigurableBeanFactory) beanFactory).resolveEmbeddedValue(value);
+		if (beanFactory instanceof ConfigurableBeanFactory configurableBeanFactory) {
+			return configurableBeanFactory.resolveEmbeddedValue(value);
 		}
 		return value;
 	}
@@ -991,7 +998,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		return targetClass;
 	}
 
-	private HandlerMethod findHandlerMethodForParameters(ParametersWrapper parameters) {
+	private @Nullable HandlerMethod findHandlerMethodForParameters(ParametersWrapper parameters) {
 		if (this.handlerMethod != null) {
 			return this.handlerMethod;
 		}
@@ -1004,6 +1011,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		}
 
+		Assert.state(this.handlerMethods != null, "'handlerMethods' must not be null");
 		if (Iterable.class.isAssignableFrom(payloadType) && this.handlerMethods.containsKey(Iterator.class)) {
 			return this.handlerMethods.get(Iterator.class);
 		}
@@ -1012,7 +1020,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	private HandlerMethod findClosestMatch(Class<?> payloadType) {
+	private @Nullable HandlerMethod findClosestMatch(Class<?> payloadType) {
 		for (Map<Class<?>, HandlerMethod> methods : this.handlerMethodsList) {
 			Set<Class<?>> candidates = methods.keySet();
 			Class<?> match = null;
@@ -1046,19 +1054,20 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		private final Method method;
 
-		private InvocableHandlerMethod invocableHandlerMethod;
+		private @Nullable InvocableHandlerMethod invocableHandlerMethod;
 
+		@SuppressWarnings("NullAway.Init")
 		private Expression expression;
 
-		private TypeDescriptor targetParameterTypeDescriptor;
+		private @Nullable TypeDescriptor targetParameterTypeDescriptor;
 
 		private Class<?> targetParameterType = Void.class;
 
-		private MethodParameter exclusiveMethodParameter;
+		private @Nullable MethodParameter exclusiveMethodParameter;
 
 		private boolean messageMethod;
 
-		private UseSpelInvoker useSpelInvoker;
+		private @Nullable UseSpelInvoker useSpelInvoker;
 
 		private volatile boolean spelOnly;
 
@@ -1086,6 +1095,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
 			try {
+				Assert.state(message != null, "'message' must not be null");
+				Assert.state(this.invocableHandlerMethod != null, "'invocableHandlerMethod' must not be null");
 				Object result = this.invocableHandlerMethod.invoke(message);
 				if (result != null
 						&& org.springframework.integration.util.ClassUtils.isKotlinUnit(result.getClass())) {
@@ -1146,7 +1157,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		private boolean processMethodParameterForExpression(StringBuilder sb, boolean hasUnqualifiedMapParameter,
 				MethodParameter methodParameter, TypeDescriptor parameterTypeDescriptor, Class<?> parameterType,
-				Type genericParameterType, Annotation mappingAnnotation) {
+				Type genericParameterType, @Nullable Annotation mappingAnnotation) {
 
 			if (mappingAnnotation != null) {
 				processMappingAnnotationForExpression(sb, methodParameter, parameterTypeDescriptor, parameterType,
@@ -1337,13 +1348,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	public static class ParametersWrapper {
 
-		private final Collection<Message<?>> messages;
+		private final @Nullable Collection<Message<?>> messages;
 
-		private final Map<String, Object> headers;
+		private final @Nullable Map<String, Object> headers;
 
-		private Message<?> message;
+		private @Nullable Message<?> message;
 
-		private Object payload;
+		private @Nullable Object payload;
 
 		ParametersWrapper(Message<?> message) {
 			this.message = message;
@@ -1352,7 +1363,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			this.messages = null;
 		}
 
-		ParametersWrapper(Collection<Message<?>> messages, Map<String, Object> headers) {
+		ParametersWrapper(Collection<Message<?>> messages, @Nullable Map<String, Object> headers) {
 			this.messages = messages;
 			this.headers = headers;
 		}
@@ -1382,11 +1393,11 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			return this.messages;
 		}
 
-		public Map<String, Object> getHeaders() {
+		public @Nullable Map<String, Object> getHeaders() {
 			return this.headers;
 		}
 
-		public Message<?> getMessage() {
+		public @Nullable Message<?> getMessage() {
 			return this.message;
 		}
 
@@ -1394,6 +1405,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			if (this.payload != null) {
 				return this.payload.getClass();
 			}
+			Assert.state(this.messages != null, "'messages' must not be null");
 			return this.messages.getClass();
 		}
 

@@ -19,6 +19,7 @@ package org.springframework.integration.handler.advice;
 import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
@@ -35,11 +36,12 @@ import org.springframework.messaging.MessageHandler;
  */
 public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSupport implements HandleMessageAdvice {
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, invocationThis and message won't be null.
 	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
+	public final @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
 		Object invocationThis = invocation.getThis();
-		Object[] arguments = invocation.getArguments();
+		@Nullable Object[] arguments = invocation.getArguments();
 		boolean isMessageHandler = invocationThis instanceof MessageHandler;
 		boolean isMessageMethod = method.getName().equals("handleMessage")
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
@@ -59,6 +61,6 @@ public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSuppo
 		return doInvoke(invocation, message);
 	}
 
-	protected abstract Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable; // NOSONAR
+	protected abstract @Nullable Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable;
 
 }

@@ -18,6 +18,8 @@ package org.springframework.integration.handler.support;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.CoroutinesUtils;
 import org.springframework.core.KotlinDetector;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
@@ -36,7 +38,7 @@ public class IntegrationInvocableHandlerMethod extends InvocableHandlerMethod {
 	}
 
 	@Override
-	protected Object doInvoke(Object... args) throws Exception {
+	protected @Nullable Object doInvoke(@Nullable Object... args) throws Exception {
 		Method method = getBridgedMethod();
 		if (KotlinDetector.isSuspendingFunction(method)) {
 			return CoroutinesUtils.invokeSuspendingFunction(method, getBean(), args);

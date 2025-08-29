@@ -76,6 +76,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private List<MessageHandler> handlers;
 
 	private volatile boolean initialized;
@@ -137,14 +138,14 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 
 				// If this 'handler' is a nested non-last &lt;chain&gt;, it is  necessary
 				// to 'force' re-init it for check its configuration in conjunction with current MessageHandlerChain.
-				if (handler instanceof MessageHandlerChain) {
-					((MessageHandlerChain) handler).initialized = false;
-					((MessageHandlerChain) handler).afterPropertiesSet();
+				if (handler instanceof MessageHandlerChain messageHandlerChain) {
+					messageHandlerChain.initialized = false;
+					messageHandlerChain.afterPropertiesSet();
 				}
 			}
-			else if (handler instanceof MessageProducer) {
+			else if (handler instanceof MessageProducer messageProducer) {
 				MessageChannel replyChannel = new ReplyForwardingMessageChannel();
-				((MessageProducer) handler).setOutputChannel(replyChannel);
+				messageProducer.setOutputChannel(replyChannel);
 			}
 			else {
 				Assert.isNull(getOutputChannel(),
@@ -221,16 +222,16 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 
 	private void doStop() {
 		for (MessageHandler handler : this.handlers) {
-			if (handler instanceof Lifecycle) {
-				((Lifecycle) handler).stop();
+			if (handler instanceof Lifecycle lifecycle) {
+				lifecycle.stop();
 			}
 		}
 	}
 
 	private void doStart() {
 		for (MessageHandler handler : this.handlers) {
-			if (handler instanceof Lifecycle) {
-				((Lifecycle) handler).start();
+			if (handler instanceof Lifecycle lifecycle) {
+				lifecycle.start();
 			}
 		}
 	}

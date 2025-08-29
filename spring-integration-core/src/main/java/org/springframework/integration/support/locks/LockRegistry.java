@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.util.CheckedCallable;
 import org.springframework.integration.util.CheckedRunnable;
 
@@ -75,7 +77,7 @@ public interface LockRegistry<L extends Lock> {
 	 * @throws InterruptedException from a lock operation
 	 * @since 6.2
 	 */
-	default <T, E extends Throwable> T executeLocked(Object lockKey,
+	default <T, E extends Throwable> @Nullable T executeLocked(Object lockKey,
 			CheckedCallable<T, E> callable)
 			throws E, InterruptedException {
 
@@ -126,7 +128,7 @@ public interface LockRegistry<L extends Lock> {
 	 * @throws TimeoutException when {@link Lock#tryLock(long, TimeUnit)} has elapsed
 	 * @since 6.2
 	 */
-	default <T, E extends Throwable> T executeLocked(Object lockKey, Duration waitLockDuration,
+	default <T, E extends Throwable> @Nullable T executeLocked(Object lockKey, Duration waitLockDuration,
 			CheckedCallable<T, E> callable) throws E, InterruptedException, TimeoutException {
 
 		Lock lock = obtain(lockKey);

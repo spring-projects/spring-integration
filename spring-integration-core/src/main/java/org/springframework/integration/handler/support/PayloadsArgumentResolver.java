@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.Expression;
@@ -47,7 +49,7 @@ import org.springframework.util.StringUtils;
 public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 		implements HandlerMethodArgumentResolver {
 
-	private final Map<MethodParameter, Expression> expressionCache = new HashMap<>();
+	private final Map<MethodParameter, @Nullable Expression> expressionCache = new HashMap<>();
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -56,7 +58,7 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Collection,
 				"This Argument Resolver support only messages with payload as Collection<Message<?>>");
@@ -64,7 +66,8 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 
 		if (!this.expressionCache.containsKey(parameter)) {
 			Payloads payloads = parameter.getParameterAnnotation(Payloads.class);
-			String expression = payloads.value(); // NOSONAR never null - supportsParameter()
+			Assert.state(payloads != null, "'Payload' annotation must not be null");
+			String expression = payloads.value();
 			if (StringUtils.hasText(expression)) {
 				this.expressionCache.put(parameter, EXPRESSION_PARSER.parseExpression("![payload." + expression + "]"));
 			}

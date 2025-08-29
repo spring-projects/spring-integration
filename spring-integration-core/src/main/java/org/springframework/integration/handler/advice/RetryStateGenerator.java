@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.retry.RetryState;
 
@@ -29,6 +31,7 @@ import org.springframework.retry.RetryState;
 @FunctionalInterface
 public interface RetryStateGenerator {
 
+	@Nullable
 	RetryState determineRetryState(Message<?> message);
 
 }

@@ -57,17 +57,17 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private Expression onSuccessExpression;
+	private @Nullable Expression onSuccessExpression;
 
-	private MessageChannel successChannel;
+	private @Nullable MessageChannel successChannel;
 
-	private String successChannelName;
+	private @Nullable String successChannelName;
 
-	private Expression onFailureExpression;
+	private @Nullable Expression onFailureExpression;
 
-	private MessageChannel failureChannel;
+	private @Nullable MessageChannel failureChannel;
 
-	private String failureChannelName;
+	private @Nullable String failureChannelName;
 
 	private boolean trapException = false;
 
@@ -75,7 +75,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private boolean propagateOnSuccessEvaluationFailures;
 
-	private EvaluationContext evaluationContext;
+	private @Nullable EvaluationContext evaluationContext;
 
 	/**
 	 * Set the expression to evaluate against the message after a successful handler invocation.
@@ -191,9 +191,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	protected void onInit() {
 		super.onInit();
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
+		this.messagingTemplate.setBeanFactory(beanFactory);
 
 		if (this.onSuccessExpression == null
 				&& (this.successChannel != null || StringUtils.hasText(this.successChannelName))) {
@@ -209,7 +207,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		try {
 			Object result = callback.execute();
 			if (this.onSuccessExpression != null) {
@@ -237,6 +235,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	private void evaluateSuccessExpression(Message<?> message) {
 		Object evalResult;
 		try {
@@ -246,7 +245,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			evalResult = e;
 		}
 		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
-		if (this.successChannel == null && this.successChannelName != null && channelResolver != null) {
+		if (this.successChannel == null && this.successChannelName != null) {
 			this.successChannel = channelResolver.resolveDestination(this.successChannelName);
 		}
 		if (evalResult != null && this.successChannel != null) {
@@ -258,7 +257,8 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	private Object evaluateFailureExpression(Message<?> message, Exception exception) {
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
+	private @Nullable Object evaluateFailureExpression(Message<?> message, Exception exception) {
 		Object evalResult;
 		try {
 			evalResult = this.onFailureExpression.getValue(prepareEvaluationContextToUse(exception), message);
@@ -268,7 +268,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			logger.error("Failure expression evaluation failed for " + message + ": " + e.getMessage());
 		}
 		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
-		if (this.failureChannel == null && this.failureChannelName != null && channelResolver != null) {
+		if (this.failureChannel == null && this.failureChannelName != null) {
 			this.failureChannel = channelResolver.resolveDestination(this.failureChannelName);
 		}
 		if (evalResult != null && this.failureChannel != null) {
@@ -291,7 +291,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 * @param exception the {@link Exception} to use in the context.
 	 * @return The context.
 	 */
-	private EvaluationContext prepareEvaluationContextToUse(Exception exception) {
+	private EvaluationContext prepareEvaluationContextToUse(@Nullable Exception exception) {
 		EvaluationContext evaluationContextToUse;
 		if (exception != null) {
 			evaluationContextToUse = createEvaluationContext();

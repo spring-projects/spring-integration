@@ -245,7 +245,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
-		return executeLocked(groupId, () -> doRemoveMessageFromGroupById(groupId, messageId));
+		Boolean removed = executeLocked(groupId, () -> doRemoveMessageFromGroupById(groupId, messageId));
+		return removed != null && removed;
 	}
 
 	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
@@ -280,7 +281,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	protected abstract @Nullable Message<?> doPollMessageFromGroup(Object groupId);
 
-	protected <T, E extends RuntimeException> T executeLocked(Object groupId, CheckedCallable<T, E> runnable) {
+	protected <T, E extends RuntimeException> @Nullable T executeLocked(Object groupId, CheckedCallable<T, E> runnable) {
 		try {
 			return this.lockRegistry.executeLocked(groupId, runnable);
 		}

@@ -36,6 +36,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 
 	private final MethodInvokingMessageProcessor<Object> processor;
 
+	@SuppressWarnings("NullAway.Init")
 	private String componentType;
 
 	public MethodInvokingMessageHandler(Object object, Method method) {

@@ -18,6 +18,8 @@ package org.springframework.integration.handler;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.IntegrationPattern;
@@ -41,6 +43,7 @@ import org.springframework.util.CollectionUtils;
 public class ControlBusMessageProcessor extends AbstractMessageProcessor<Object>
 		implements IntegrationPattern {
 
+	@SuppressWarnings("NullAway.Init")
 	private ControlBusCommandRegistry controlBusCommandRegistry;
 
 	public ControlBusMessageProcessor() {
@@ -69,7 +72,7 @@ public class ControlBusMessageProcessor extends AbstractMessageProcessor<Object>
 	}
 
 	@Override
-	public Object processMessage(Message<?> message) {
+	public @Nullable Object processMessage(Message<?> message) {
 		String command = message.getPayload().toString();
 		@SuppressWarnings("unchecked")
 		List<Object> arguments =

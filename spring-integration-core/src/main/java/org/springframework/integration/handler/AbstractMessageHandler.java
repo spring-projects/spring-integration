@@ -55,7 +55,7 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		this.observationConvention = observationConvention;
 	}
 
-	@Override // NOSONAR
+	@Override
 	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		if (isLoggingEnabled()) {

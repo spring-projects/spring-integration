@@ -35,6 +35,6 @@ public interface RecoveryCallback<T extends @Nullable Object> {
 	 * @param cause the cause of the failure
 	 * @return an Object that can be used to replace the callback result that failed
 	 */
-	T recover(AttributeAccessor context, Throwable cause);
+	T recover(AttributeAccessor context, @Nullable Throwable cause);
 
 }

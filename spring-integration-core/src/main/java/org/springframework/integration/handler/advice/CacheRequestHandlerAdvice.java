@@ -35,6 +35,7 @@ import org.springframework.cache.interceptor.CacheOperationInvoker;
 import org.springframework.cache.interceptor.CachePutOperation;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.CacheableOperation;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -64,6 +65,7 @@ import org.springframework.util.ReflectionUtils;
 public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 		implements SmartInitializingSingleton {
 
+	@SuppressWarnings("NullAway.Init")
 	private static final Method HANDLE_REQUEST_METHOD;
 
 	static {
@@ -77,19 +79,16 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 			throw new IllegalStateException(ex);
 		}
 		finally {
-			if (requestHandlerClass != null) {
-				HANDLE_REQUEST_METHOD =
-						ReflectionUtils.findMethod(requestHandlerClass, "handleRequestMessage", Message.class);
-			}
-			else {
-				HANDLE_REQUEST_METHOD = null;
-			}
+			Assert.state(requestHandlerClass != null, "'requestHandlerClass' must not be null");
+			Method handleRequestMethod = ReflectionUtils.findMethod(requestHandlerClass, "handleRequestMessage", Message.class);
+			Assert.state(handleRequestMethod != null, "'handleRequestMessage' method must not be null");
+			HANDLE_REQUEST_METHOD = handleRequestMethod;
 		}
 	}
 
 	private final IntegrationCacheAspect delegate = new IntegrationCacheAspect();
 
-	private final String[] cacheNames;
+	private final String @Nullable [] cacheNames;
 
 	private final List<CacheOperation> cacheOperations = new ArrayList<>();
 
@@ -102,7 +101,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 	 * @param cacheNamesArg the name of caches to use in the advice.
 	 * @see #setCacheOperations
 	 */
-	public CacheRequestHandlerAdvice(String... cacheNamesArg) {
+	public CacheRequestHandlerAdvice(String @Nullable ... cacheNamesArg) {
 		this.cacheNames = cacheNamesArg != null ? Arrays.copyOf(cacheNamesArg, cacheNamesArg.length) : null;
 	}
 
@@ -244,8 +243,12 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 		BeanFactory beanFactory = getBeanFactory();
 		this.delegate.setBeanFactory(beanFactory);
 		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
-		this.delegate.setKeyGenerator((target, method, params) ->
-				this.keyExpression.getValue(evaluationContext, params[0])); // NOSONAR
+		KeyGenerator keyGenerator = (target, method, params) -> {
+			Object key = this.keyExpression.getValue(evaluationContext, params[0]);
+			Assert.state(key != null, "the cache key evaluated from the KeyExpression must not be null");
+			return key;
+		};
+		this.delegate.setKeyGenerator(keyGenerator);
 		this.delegate.setCacheOperationSources((method, targetClass) -> cacheOperationsToUse);
 		this.delegate.afterPropertiesSet();
 
@@ -276,7 +279,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 		@Nullable
 		Object invoke(CacheOperationInvoker invoker, Object target, Message<?> message) {
-			return super.execute(invoker, target, HANDLE_REQUEST_METHOD, new Object[] {message}); // NOSONAR
+			return super.execute(invoker, target, HANDLE_REQUEST_METHOD, new Object[] {message});
 		}
 
 	}

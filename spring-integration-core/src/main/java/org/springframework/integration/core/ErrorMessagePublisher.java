@@ -70,7 +70,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
-	public final void setChannel(MessageChannel channel) {
+	public final void setChannel(@Nullable MessageChannel channel) {
 		this.channel = channel;
 	}
 

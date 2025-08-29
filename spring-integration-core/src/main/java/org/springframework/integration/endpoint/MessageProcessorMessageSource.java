@@ -19,6 +19,8 @@ package org.springframework.integration.endpoint;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * The {@link org.springframework.integration.core.MessageSource} strategy implementation
@@ -45,7 +47,9 @@ public class MessageProcessorMessageSource extends AbstractMessageSource<Object>
 
 	@Override
 	protected @Nullable Object doReceive() {
-		return this.messageProcessor.processMessage(null);
+		Message<Object> fakeMessage = MutableMessageBuilder.withPayload(new Object(), false).build();
+		// provide a fake message here since the contract of processMessage requires a NonNull Message.
+		return this.messageProcessor.processMessage(fakeMessage);
 	}
 
 }

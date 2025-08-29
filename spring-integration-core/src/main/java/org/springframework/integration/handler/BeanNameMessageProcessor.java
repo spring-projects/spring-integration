@@ -37,13 +37,15 @@ public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFac
 
 	private final String beanName;
 
-	private final String methodName;
+	private final @Nullable String methodName;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageProcessor<T> delegate;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	public BeanNameMessageProcessor(String object, String methodName) {
+	public BeanNameMessageProcessor(String object, @Nullable String methodName) {
 		this.beanName = object;
 		this.methodName = methodName;
 	}

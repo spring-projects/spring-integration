@@ -19,12 +19,15 @@ package org.springframework.integration.handler.support;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,11 +53,12 @@ public class PayloadExpressionArgumentResolver extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Expression expression = this.expressionCache.get(parameter);
 		if (expression == null) {
 			Payload ann = parameter.getParameterAnnotation(Payload.class);
-			expression = EXPRESSION_PARSER.parseExpression(ann.expression()); // NOSONAR never null - supportsParameter()
+			Assert.state(ann != null, "'Payload' annotation must not be null");
+			expression = EXPRESSION_PARSER.parseExpression(ann.expression());
 			this.expressionCache.put(parameter, expression);
 		}
 		return evaluateExpression(expression, message.getPayload(), parameter.getParameterType());

@@ -76,7 +76,7 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
 
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private boolean async;
 
@@ -88,7 +88,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Nullable
 	private MessageChannel outputChannel;
 
-	private String[] notPropagatedHeaders;
+	private String @Nullable [] notPropagatedHeaders;
 
 	private boolean selectiveHeaderPropagation;
 
@@ -113,7 +113,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
-		this.outputChannelName = outputChannelName; //NOSONAR (inconsistent sync)
+		this.outputChannelName = outputChannelName;
 	}
 
 	/**
@@ -213,12 +213,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(!(this.outputChannelName != null && this.outputChannel != null), //NOSONAR (inconsistent sync)
+		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
+		this.messagingTemplate.setBeanFactory(beanFactory);
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 		setAsyncIfCan();
 		if (!this.sendTimeoutSet) {
@@ -244,9 +242,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return this.outputChannel;
 	}
 
-	protected void sendOutputs(Object result, Message<?> requestMessage) {
-		if (result instanceof Iterable<?> && shouldSplitOutput((Iterable<?>) result)) {
-			for (Object o : (Iterable<?>) result) {
+	protected void sendOutputs(@Nullable Object result, Message<?> requestMessage) {
+		if (result instanceof Iterable<?> iterableResult && shouldSplitOutput(iterableResult)) {
+			for (Object o : iterableResult) {
 				produceOutput(o, requestMessage);
 			}
 		}
@@ -294,13 +292,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	private Map<?, ?> obtainRoutingSlipHeader(MessageHeaders requestHeaders, Object reply) {
 		Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 		if (routingSlipHeader == null) {
-			if (reply instanceof Message) {
-				routingSlipHeader = ((Message<?>) reply).getHeaders()
+			if (reply instanceof Message<?> replyMessage) {
+				routingSlipHeader = replyMessage.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 			}
-			else if (reply instanceof AbstractIntegrationMessageBuilder<?>) {
-				routingSlipHeader = ((AbstractIntegrationMessageBuilder<?>) reply)
-						.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+			else if (reply instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
+				routingSlipHeader = messageBuilder.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 			}
 		}
 		return routingSlipHeader;
@@ -310,12 +307,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	private Object obtainReplyChannel(MessageHeaders requestHeaders, Object reply) {
 		Object replyChannel = requestHeaders.getReplyChannel();
 		if (replyChannel == null) {
-			if (reply instanceof Message) {
-				replyChannel = ((Message<?>) reply).getHeaders().getReplyChannel();
+			if (reply instanceof Message<?> replyMessage) {
+				replyChannel = replyMessage.getHeaders().getReplyChannel();
 			}
-			else if (reply instanceof AbstractIntegrationMessageBuilder<?>) {
-				replyChannel = ((AbstractIntegrationMessageBuilder<?>) reply)
-						.getHeader(MessageHeaders.REPLY_CHANNEL, Object.class);
+			else if (reply instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
+				replyChannel = messageBuilder.getHeader(MessageHeaders.REPLY_CHANNEL, Object.class);
 			}
 		}
 		return replyChannel;
@@ -438,7 +434,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
-	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
+	private @Nullable Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
 			AtomicInteger routingSlipIndex) {
 
 		if (routingSlipIndex.get() >= routingSlip.size()) {
@@ -446,7 +442,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		Object path = routingSlip.get(routingSlipIndex.get());
-		Object routingSlipPathValue = null;
+		Object routingSlipPathValue;
 
 		if (path instanceof String string) {
 			routingSlipPathValue = getBeanFactory().getBean(string);
@@ -555,11 +551,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return true;
 	}
 
-	protected void sendErrorMessage(Message<?> requestMessage, Throwable ex) {
+	protected void sendErrorMessage(Message<?> requestMessage, @Nullable Throwable ex) {
 		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
 		Throwable result = ex;
-		if (!(ex instanceof MessagingException)) {
-			result = new MessageHandlingException(requestMessage, ex);
+		if (!(result instanceof MessagingException)) {
+			result = ex == null
+					? new MessageHandlingException(requestMessage)
+					: new MessageHandlingException(requestMessage, ex);
 		}
 		if (errorChannel == null) {
 			logger.error(result,
@@ -578,7 +576,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
-	protected Object resolveErrorChannel(final MessageHeaders requestHeaders) {
+	protected @Nullable Object resolveErrorChannel(final MessageHeaders requestHeaders) {
 		Object errorChannel = requestHeaders.getErrorChannel();
 		if (errorChannel == null) {
 			try {
@@ -594,12 +592,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	protected void setupMessageProcessor(MessageProcessor<?> processor) {
 		if (processor instanceof AbstractMessageProcessor<?> abstractMessageProcessor) {
 			ConversionService conversionService = getConversionService();
-			if (conversionService != null) {
-				abstractMessageProcessor.setConversionService(conversionService);
-			}
+			abstractMessageProcessor.setConversionService(conversionService);
 		}
 		BeanFactory beanFactory = getBeanFactory();
-		if (processor instanceof BeanFactoryAware beanFactoryAware && beanFactory != null) {
+		if (processor instanceof BeanFactoryAware beanFactoryAware) {
 			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 		if (processor instanceof InitializingBean initializingBean) {
@@ -628,7 +624,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		@Override
-		public void accept(Object result, Throwable exception) {
+		public void accept(@Nullable Object result, @Nullable Throwable exception) {
 			if (result != null) {
 				Message<?> replyMessage = null;
 				try {
@@ -652,7 +648,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 
-		private void onFailure(Throwable ex) {
+		private void onFailure(@Nullable Throwable ex) {
 			sendErrorMessage(this.requestMessage, ex);
 		}
 

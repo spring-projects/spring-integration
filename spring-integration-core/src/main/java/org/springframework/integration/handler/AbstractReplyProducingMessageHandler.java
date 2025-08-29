@@ -31,7 +31,6 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -53,11 +52,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	@SuppressWarnings("NullAway.Init")
+	private ClassLoader beanClassLoader;
 
 	private boolean requiresReply = false;
 
-	private volatile RequestHandler advisedRequestHandler;
+	private volatile @Nullable RequestHandler advisedRequestHandler;
 
 	/**
 	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
@@ -160,6 +160,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	@Nullable
 	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		return this.advisedRequestHandler.handleRequestMessage(message);

@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -66,7 +68,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object value = message.getPayload();
 
 		if (this.canProcessMessageList) {
@@ -86,8 +88,8 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 		}
 
 		if (Iterator.class.isAssignableFrom(parameter.getParameterType())) {
-			if (value instanceof Iterable) {
-				return ((Iterable<?>) value).iterator();
+			if (value instanceof Iterable<?> iterablePayload) {
+				return iterablePayload.iterator();
 			}
 			else {
 				return Collections.singleton(value).iterator();

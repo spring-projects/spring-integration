@@ -39,7 +39,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 
 	private final Expression expression;
 
-	private final Class<T> expectedType;
+	private final @Nullable Class<T> expectedType;
 
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression.

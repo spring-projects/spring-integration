@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.MethodFilter;
 import org.springframework.util.StringUtils;
@@ -39,13 +41,14 @@ import org.springframework.util.StringUtils;
  */
 public class AnnotatedMethodFilter implements MethodFilter {
 
-	private final Class<? extends Annotation> annotationType;
+	private final @Nullable Class<? extends Annotation> annotationType;
 
-	private final String methodName;
+	private final @Nullable String methodName;
 
 	private final boolean requiresReply;
 
-	public AnnotatedMethodFilter(Class<? extends Annotation> annotationType, String methodName, boolean requiresReply) {
+	public AnnotatedMethodFilter(@Nullable Class<? extends Annotation> annotationType, @Nullable String methodName,
+			boolean requiresReply) {
 		this.annotationType = annotationType;
 		this.methodName = methodName;
 		this.requiresReply = requiresReply;

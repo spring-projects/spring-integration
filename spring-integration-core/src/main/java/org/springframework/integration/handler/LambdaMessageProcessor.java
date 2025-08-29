@@ -66,6 +66,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	private final Class<?>[] parameterTypes;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageConverter messageConverter;
 
 	/**
@@ -114,8 +115,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 	}
 
 	@Override
-	public Object processMessage(Message<?> message) {
-		Object[] args = buildArgs(message);
+	public @Nullable Object processMessage(Message<?> message) {
+		@Nullable Object[] args = buildArgs(message);
 
 		try {
 			Object result = invokeMethod(args);
@@ -149,8 +150,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		}
 	}
 
-	private Object[] buildArgs(Message<?> message) {
-		Object[] args = new Object[this.parameterTypes.length];
+	private @Nullable Object[] buildArgs(Message<?> message) {
+		@Nullable Object[] args = new Object[this.parameterTypes.length];
 		for (int i = 0; i < this.parameterTypes.length; i++) {
 			Class<?> parameterType = this.parameterTypes[i];
 			if (Message.class.isAssignableFrom(parameterType)) {
@@ -189,8 +190,9 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		return args;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private Object invokeMethod(Object[] args) throws InvocationTargetException, IllegalAccessException {
+	@SuppressWarnings({"unchecked", "rawtypes", "NullAway"})
+	// allow null items passing into the underlying functional method
+	private @Nullable Object invokeMethod(@Nullable Object[] args) throws InvocationTargetException, IllegalAccessException {
 		if (this.target instanceof Consumer consumer) {
 			consumer.accept(args[0]);
 			return null;

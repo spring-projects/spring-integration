@@ -20,12 +20,14 @@ import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageHandler} advice classes. Subclasses should provide an
@@ -42,11 +44,12 @@ import org.springframework.messaging.MessagingException;
 public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport
 		implements MethodInterceptor {
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, invocationThis and message won't be null.
 	@Override
-	public final Object invoke(final MethodInvocation invocation) throws Throwable {
+	public final @Nullable Object invoke(final MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
-		Object[] arguments = invocation.getArguments();
+		@Nullable Object[] arguments = invocation.getArguments();
 		boolean isMessageMethod = (method.getName().equals("handleRequestMessage") || method.getName().equals("handleMessage"))
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 
@@ -62,15 +65,14 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 			}
 			return invocation.proceed();
 		}
-		else {
-			Message<?> message = (Message<?>) arguments[0];
-			try {
-				return doInvoke(new CallbackImpl(invocation), invocationThis, message);
-			}
-			catch (Exception e) {
-				throw this.unwrapThrowableIfNecessary(e);
-			}
+		Message<?> message = (Message<?>) arguments[0];
+		try {
+			return doInvoke(new CallbackImpl(invocation), invocationThis, message);
 		}
+		catch (Exception e) {
+			throw this.unwrapThrowableIfNecessary(e);
+		}
+
 	}
 
 	@Override
@@ -88,7 +90,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	 * @param message  The message that will be sent to the handler.
 	 * @return the result after invoking the {@link MessageHandler}.
 	 */
-	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message);
+	protected abstract @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message);
 
 	/**
 	 * Unwrap the cause of a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}.
@@ -113,6 +115,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		Throwable actualThrowable = e;
 		if (e instanceof ThrowableHolderException) {
 			actualThrowable = e.getCause();
+			Assert.state(actualThrowable != null, "'actualThrowable' must not be null");
 		}
 		return actualThrowable;
 	}
@@ -130,6 +133,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 *
 		 * @return The result of the execution.
 		 */
+		@Nullable
 		Object execute();
 
 		/**
@@ -139,6 +143,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 *
 		 * @return The result of the execution.
 		 */
+		@Nullable
 		Object cloneAndExecute();
 
 	}
@@ -152,17 +157,17 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		}
 
 		@Override
-		public Object execute() {
+		public @Nullable Object execute() {
 			try {
 				return this.invocation.proceed();
 			}
-			catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
+			catch (Throwable e) { // ok to catch; unwrapped and rethrown below
 				throw new ThrowableHolderException(e);
 			}
 		}
 
 		@Override
-		public Object cloneAndExecute() {
+		public @Nullable Object cloneAndExecute() {
 			try {
 				/*
 				 * If we don't copy the invocation carefully it won't keep a reference to the other
@@ -177,10 +182,14 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 									" so please raise an issue if you see this exception");
 				}
 			}
-			catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
-				throw new MessagingException((Message<?>) this.invocation.getArguments()[0], "Failed to handle", e);
+			catch (Exception e) { // catch necessary so we can wrap Errors
+				Message<?> argument = (Message<?>) this.invocation.getArguments()[0];
+				// just in case, although argument should not be null.
+				throw argument == null
+						? new MessagingException("Failed to handle", e)
+						: new MessagingException(argument, "Failed to handle", e);
 			}
-			catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
+			catch (Throwable e) { // ok to catch; unwrapped and rethrown below
 				throw new ThrowableHolderException(e);
 			}
 		}

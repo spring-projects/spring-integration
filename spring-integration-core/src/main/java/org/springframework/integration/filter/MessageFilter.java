@@ -176,7 +176,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
-	public Object postProcess(Message<?> message, Object result) {
+	public @Nullable Object postProcess(Message<?> message, @Nullable Object result) {
 		if (result == null) {
 			MessageChannel channelToDiscard = getDiscardChannel();
 			if (channelToDiscard != null) {

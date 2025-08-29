@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.IntegrationPattern;
@@ -62,17 +63,17 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	private boolean loggingEnabled = true;
 
-	private MetricsCaptor metricsCaptor;
+	private @Nullable MetricsCaptor metricsCaptor;
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
-	private String managedName;
+	private @Nullable String managedName;
 
-	private String managedType;
+	private @Nullable String managedType;
 
-	private TimerFacade successTimer;
+	private @Nullable TimerFacade successTimer;
 
 	@Override
 	public boolean isLoggingEnabled() {
@@ -90,7 +91,7 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.metricsCaptor = metricsCaptorToRegister;
 	}
 
-	protected MetricsCaptor getMetricsCaptor() {
+	protected @Nullable MetricsCaptor getMetricsCaptor() {
 		return this.metricsCaptor;
 	}
 
@@ -150,10 +151,11 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		return this.successTimer;
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	protected TimerFacade buildSendTimer(boolean success, String exception) {
 		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "handler")
-				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("name", getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
@@ -166,7 +168,7 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.managedName = managedName;
 	}
 
-	public String getManagedName() {
+	public @Nullable String getManagedName() {
 		return this.managedName;
 	}
 
@@ -174,7 +176,7 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		this.managedType = managedType;
 	}
 
-	public String getManagedType() {
+	public @Nullable String getManagedType() {
 		return this.managedType;
 	}
 

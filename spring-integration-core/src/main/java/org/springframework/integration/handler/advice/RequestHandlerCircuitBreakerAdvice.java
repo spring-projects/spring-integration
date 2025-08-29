@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
@@ -62,7 +64,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		AdvisedMetadata metadata = this.metadataMap.get(target);
 		if (metadata == null) {
 			this.metadataMap.putIfAbsent(target, new AdvisedMetadata());
@@ -83,8 +85,8 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		catch (Exception e) {
 			metadata.getFailures().incrementAndGet();
 			metadata.setLastFailure(System.currentTimeMillis());
-			if (e instanceof ThrowableHolderException) { // NOSONAR
-				throw (ThrowableHolderException) e;
+			if (e instanceof ThrowableHolderException ex) {
+				throw ex;
 			}
 			else {
 				throw new ThrowableHolderException(e);

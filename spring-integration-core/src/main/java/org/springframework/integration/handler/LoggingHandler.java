@@ -23,8 +23,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -189,19 +187,18 @@ public class LoggingHandler extends AbstractMessageHandler {
 		}
 	}
 
-	@Nullable
 	private String createLogMessage(Message<?> message) {
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
-		return logMessage instanceof Throwable
-				? createLogMessage((Throwable) logMessage)
+		return logMessage instanceof Throwable throwableMessage
+				? createLogMessage(throwableMessage)
 				: Objects.toString(logMessage);
 	}
 
 	private static String createLogMessage(Throwable throwable) {
 		StringWriter stringWriter = new StringWriter();
-		if (throwable instanceof AggregateMessageDeliveryException) {
+		if (throwable instanceof AggregateMessageDeliveryException aggregateMessageDeliveryException) {
 			stringWriter.append(throwable.getMessage());
-			for (Exception exception : ((AggregateMessageDeliveryException) throwable).getAggregatedExceptions()) {
+			for (Exception exception : aggregateMessageDeliveryException.getAggregatedExceptions()) {
 				printStackTrace(exception, stringWriter);
 			}
 		}

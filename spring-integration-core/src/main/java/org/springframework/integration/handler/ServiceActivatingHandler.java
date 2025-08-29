@@ -59,8 +59,8 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
-		return (this.processor instanceof IntegrationPattern)
-				? ((IntegrationPattern) this.processor).getIntegrationPatternType()
+		return (this.processor instanceof IntegrationPattern integrationPattern)
+				? integrationPattern.getIntegrationPatternType()
 				: IntegrationPatternType.service_activator;
 	}
 
@@ -71,21 +71,21 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 	@Override
 	public void start() {
-		if (this.processor instanceof Lifecycle) {
-			((Lifecycle) this.processor).start();
+		if (this.processor instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.processor instanceof Lifecycle) {
-			((Lifecycle) this.processor).stop();
+		if (this.processor instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.processor instanceof Lifecycle) || ((Lifecycle) this.processor).isRunning();
+		return !(this.processor instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	public String toString() {
 		return "ServiceActivator for [" + this.processor + "]"
-				+ (getComponentName() == null ? "" : " (" + getComponentName() + ")");
+				+ " (" + getComponentName() + ")";
 	}
 
 }
