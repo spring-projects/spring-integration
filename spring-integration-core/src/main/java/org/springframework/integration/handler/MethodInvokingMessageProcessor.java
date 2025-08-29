@@ -53,11 +53,11 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		this.delegate = new MessagingMethodInvokerHelper(targetObject, method, false);
 	}
 
-	public MethodInvokingMessageProcessor(Object targetObject, String methodName) {
+	public MethodInvokingMessageProcessor(Object targetObject, @Nullable String methodName) {
 		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, false);
 	}
 
-	public MethodInvokingMessageProcessor(Object targetObject, String methodName, boolean canProcessMessageList) {
+	public MethodInvokingMessageProcessor(Object targetObject, @Nullable String methodName, boolean canProcessMessageList) {
 		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, canProcessMessageList);
 	}
 

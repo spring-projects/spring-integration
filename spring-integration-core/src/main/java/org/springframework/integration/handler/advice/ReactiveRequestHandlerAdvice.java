@@ -23,6 +23,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -58,13 +59,14 @@ public class ReactiveRequestHandlerAdvice implements MethodInterceptor {
 		this.replyCustomizer = replyCustomizer;
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, replyMono won't be null.
 	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
+	public final @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		Object result = invocation.proceed();
 
 		Method method = invocation.getMethod();
 		Object invocationThis = invocation.getThis();
-		Object[] arguments = invocation.getArguments();
+		@Nullable Object[] arguments = invocation.getArguments();
 		boolean isReactiveMethod =
 				method.getName().equals("handleRequestMessage") &&
 						(arguments.length == 1 && arguments[0] instanceof Message) &&

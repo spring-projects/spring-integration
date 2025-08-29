@@ -46,8 +46,10 @@ public class IntegrationMessageHandlerMethodFactory extends DefaultMessageHandle
 
 	private final boolean listCapable;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageConverter messageConverter;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public IntegrationMessageHandlerMethodFactory() {
@@ -104,12 +106,12 @@ public class IntegrationMessageHandlerMethodFactory extends DefaultMessageHandle
 		}
 
 		for (HandlerMethodArgumentResolver resolver : resolvers) {
-			if (resolver instanceof BeanFactoryAware) {
-				((BeanFactoryAware) resolver).setBeanFactory(this.beanFactory);
+			if (resolver instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(this.beanFactory);
 			}
-			if (resolver instanceof InitializingBean) {
+			if (resolver instanceof InitializingBean initializingBean) {
 				try {
-					((InitializingBean) resolver).afterPropertiesSet();
+					initializingBean.afterPropertiesSet();
 				}
 				catch (Exception ex) {
 					throw new BeanInitializationException("Cannot initialize 'HandlerMethodArgumentResolver'", ex);

@@ -19,6 +19,8 @@ package org.springframework.integration.handler.support;
 import java.util.Map;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -58,7 +60,7 @@ public class MapArgumentResolver extends AbstractExpressionEvaluator
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object payload = message.getPayload();
 		if (Properties.class.isAssignableFrom(parameter.getParameterType())) {
 			Map<String, Object> map = message.getHeaders();

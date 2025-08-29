@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -36,6 +38,6 @@ public interface PostProcessingMessageHandler {
 	 * @param message The message.
 	 * @return The post-processed result.
 	 */
-	Object postProcess(Message<?> message, Object result);
+	@Nullable Object postProcess(Message<?> message, @Nullable Object result);
 
 }

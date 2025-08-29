@@ -18,6 +18,7 @@ package org.springframework.integration.handler.advice;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -43,7 +44,7 @@ public class HandleMessageAdviceAdapter implements HandleMessageAdvice {
 	}
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		return this.delegate.invoke(invocation);
 	}
 

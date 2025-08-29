@@ -18,6 +18,8 @@ package org.springframework.integration.handler.advice;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.core.RecoveryCallback;
@@ -40,7 +42,7 @@ import org.springframework.messaging.MessagingException;
  * @since 2.2
  *
  */
-public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<Object> {
+public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<@Nullable Object> {
 
 	/**
 	 * Construct instance with the default {@code errorChannel}
@@ -57,8 +59,9 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * The {@link DefaultErrorMessageStrategy} is used for building an error message to publish.
 	 * @param channel the message channel to publish error messages on recovery action.
 	 */
-	public ErrorMessageSendingRecoverer(MessageChannel channel) {
-		this(channel, null);
+	@SuppressWarnings("this-escape")
+	public ErrorMessageSendingRecoverer(@Nullable MessageChannel channel) {
+		setChannel(channel);
 	}
 
 	/**
@@ -81,7 +84,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	}
 
 	@Override
-	public Object recover(AttributeAccessor context, Throwable cause) {
+	public @Nullable Object recover(AttributeAccessor context, Throwable cause) {
 		publish(cause, context);
 		return null;
 	}

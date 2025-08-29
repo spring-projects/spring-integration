@@ -59,6 +59,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	@Nullable
 	private Expression waitLockDurationExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	/**
@@ -151,8 +152,9 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
+	@SuppressWarnings("NullAway") // CheckedCallable.call() is nullable
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		Object lockKey = this.lockKeyExpression.getValue(this.evaluationContext, message);
 		if (lockKey != null) {
 			Duration waitLockDuration = getWaitLockDuration(message);

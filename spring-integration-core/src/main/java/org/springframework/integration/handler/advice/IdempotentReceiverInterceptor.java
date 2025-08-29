@@ -17,6 +17,7 @@
 package org.springframework.integration.handler.advice;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
@@ -58,9 +59,9 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 
 	private final MessageSelector messageSelector;
 
-	private MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	private String discardChannelName;
+	private @Nullable String discardChannelName;
 
 	private boolean throwExceptionOnRejection;
 
@@ -141,7 +142,7 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 	}
 
 	@Override
-	protected Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable {
+	protected @Nullable Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable {
 		boolean accept = this.messageSelector.accept(message);
 		if (!accept) {
 			boolean discarded = false;
@@ -169,7 +170,7 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 		return invocation.proceed();
 	}
 
-	private MessageChannel obtainDiscardChannel() {
+	private @Nullable MessageChannel obtainDiscardChannel() {
 		if (this.discardChannel == null && this.discardChannelName != null) {
 			this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
 		}

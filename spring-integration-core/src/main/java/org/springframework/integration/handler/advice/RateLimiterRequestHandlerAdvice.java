@@ -22,6 +22,7 @@ import java.time.Duration;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -126,7 +127,7 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		try {
 			return RateLimiter.decorateSupplier(this.rateLimiter, callback::execute).get();
 		}

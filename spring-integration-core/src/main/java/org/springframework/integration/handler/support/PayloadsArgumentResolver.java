@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.Expression;
@@ -47,7 +49,7 @@ import org.springframework.util.StringUtils;
 public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 		implements HandlerMethodArgumentResolver {
 
-	private final Map<MethodParameter, Expression> expressionCache = new HashMap<>();
+	private final Map<MethodParameter, @Nullable Expression> expressionCache = new HashMap<>();
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -55,26 +57,24 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+	@SuppressWarnings({"unchecked", "NullAway"})
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Collection,
 				"This Argument Resolver support only messages with payload as Collection<Message<?>>");
 		Collection<Message<?>> messages = (Collection<Message<?>>) payload;
 
-		if (!this.expressionCache.containsKey(parameter)) {
+		Expression expression = this.expressionCache.computeIfAbsent(parameter, key -> {
 			Payloads payloads = parameter.getParameterAnnotation(Payloads.class);
-			String expression = payloads.value(); // NOSONAR never null - supportsParameter()
-			if (StringUtils.hasText(expression)) {
-				this.expressionCache.put(parameter, EXPRESSION_PARSER.parseExpression("![payload." + expression + "]"));
+			String expressionString = payloads.value(); // never null - supportsParameter()
+			if (StringUtils.hasText(expressionString)) {
+				return EXPRESSION_PARSER.parseExpression("![payload." + expressionString + "]");
 			}
 			else {
-				this.expressionCache.put(parameter, null);
+				return null;
 			}
+		});
 
-		}
-
-		Expression expression = this.expressionCache.get(parameter);
 		if (expression != null) {
 			return evaluateExpression(expression, messages, parameter.getParameterType());
 		}

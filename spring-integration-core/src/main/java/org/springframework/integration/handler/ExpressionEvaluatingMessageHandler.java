@@ -35,7 +35,7 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
 	private final ExpressionEvaluatingMessageProcessor<Void> processor;
 
-	private String componentType;
+	private String componentType = "expression-evaluating-handler";
 
 	@SuppressWarnings("this-escape")
 	public ExpressionEvaluatingMessageHandler(Expression expression) {

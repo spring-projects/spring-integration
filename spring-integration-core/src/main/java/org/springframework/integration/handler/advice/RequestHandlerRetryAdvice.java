@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.ErrorMessageUtils;
@@ -47,7 +49,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 
 	private RetryTemplate retryTemplate = new RetryTemplate();
 
-	private org.springframework.retry.RecoveryCallback<Object> recoveryCallback;
+	private org.springframework.retry.@Nullable RecoveryCallback<Object> recoveryCallback;
 
 	// Stateless unless a state generator is provided
 	private RetryStateGenerator retryStateGenerator = message -> null;
@@ -62,6 +64,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 		this.retryTemplate = retryTemplate;
 	}
 
+	@SuppressWarnings("NullAway") // need rework on retry
 	public void setRecoveryCallback(RecoveryCallback<Object> recoveryCallback) {
 		this.recoveryCallback = (context) ->
 				recoveryCallback.recover(context, context.getLastThrowable());
@@ -119,7 +122,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 			implements RetryCallback<Object, Exception> {
 
 		@Override
-		public Object doWithRetry(RetryContext context) {
+		public @Nullable Object doWithRetry(RetryContext context) {
 			return this.callback.cloneAndExecute();
 		}
 

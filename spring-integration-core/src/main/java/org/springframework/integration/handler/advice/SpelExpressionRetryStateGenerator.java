@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -41,15 +43,15 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 
 	private final Expression keyExpression;
 
-	private final Expression forceRefreshExpression;
+	private final @Nullable Expression forceRefreshExpression;
 
-	private volatile Classifier<? super Throwable, Boolean> classifier;
+	private volatile @Nullable Classifier<? super Throwable, Boolean> classifier;
 
 	public SpelExpressionRetryStateGenerator(String keyExpression) {
 		this(keyExpression, null);
 	}
 
-	public SpelExpressionRetryStateGenerator(String keyExpression, String forceRefreshExpression) {
+	public SpelExpressionRetryStateGenerator(String keyExpression, @Nullable String forceRefreshExpression) {
 		Assert.notNull(keyExpression, "keyExpression must not be null");
 		this.keyExpression = new SpelExpressionParser().parseExpression(keyExpression);
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
@@ -76,7 +78,7 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 				? Boolean.FALSE
 				: this.forceRefreshExpression.getValue(this.evaluationContext, message, Boolean.class);
 		return new DefaultRetryState(this.keyExpression.getValue(this.evaluationContext, message),
-				forceRefresh == null ? false : forceRefresh,
+				forceRefresh != null && forceRefresh,
 				this.classifier);
 	}
 

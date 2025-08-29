@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
@@ -49,35 +51,35 @@ public class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingM
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
-		return (this.target instanceof IntegrationPattern)
-				? ((IntegrationPattern) this.target).getIntegrationPatternType()
+		return (this.target instanceof IntegrationPattern integrationPattern)
+				? integrationPattern.getIntegrationPatternType()
 				: IntegrationPatternType.service_activator;
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		this.target.handleMessage(requestMessage);
 		return null;
 	}
 
 	@Override
 	public void start() {
-		if (this.target instanceof Lifecycle) {
-			((Lifecycle) this.target).start();
+		if (this.target instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 
 	}
 
 	@Override
 	public void stop() {
-		if (this.target instanceof Lifecycle) {
-			((Lifecycle) this.target).stop();
+		if (this.target instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.target instanceof Lifecycle) || ((Lifecycle) this.target).isRunning();
+		return !(this.target instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 }

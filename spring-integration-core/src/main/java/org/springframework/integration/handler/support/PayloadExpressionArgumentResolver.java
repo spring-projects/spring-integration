@@ -19,6 +19,8 @@ package org.springframework.integration.handler.support;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -49,14 +51,13 @@ public class PayloadExpressionArgumentResolver extends AbstractExpressionEvaluat
 		return ann != null && StringUtils.hasText(ann.expression());
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation, Payload never null
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		Expression expression = this.expressionCache.get(parameter);
-		if (expression == null) {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) {
+		Expression expression = this.expressionCache.computeIfAbsent(parameter, key -> {
 			Payload ann = parameter.getParameterAnnotation(Payload.class);
-			expression = EXPRESSION_PARSER.parseExpression(ann.expression()); // NOSONAR never null - supportsParameter()
-			this.expressionCache.put(parameter, expression);
-		}
+			return EXPRESSION_PARSER.parseExpression(ann.expression()); // never null - supportsParameter()
+		});
 		return evaluateExpression(expression, message.getPayload(), parameter.getParameterType());
 	}
 

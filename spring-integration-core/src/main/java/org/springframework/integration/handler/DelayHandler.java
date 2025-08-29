@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.ApplicationListener;
@@ -116,27 +118,30 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private final ConcurrentMap<String, AtomicInteger> deliveries = new ConcurrentHashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private String messageGroupId;
 
 	private long defaultDelay;
 
-	private Expression delayExpression;
+	private @Nullable Expression delayExpression;
 
 	private boolean ignoreExpressionFailures = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageGroupStore messageStore;
 
-	private List<Advice> delayedAdviceChain;
+	private @Nullable List<Advice> delayedAdviceChain;
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	private MessageHandler releaseHandler = new ReleaseMessageHandler();
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private MessageChannel delayedMessageErrorChannel;
+	private @Nullable MessageChannel delayedMessageErrorChannel;
 
-	private String delayedMessageErrorChannelName;
+	private @Nullable String delayedMessageErrorChannelName;
 
 	private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
 
@@ -309,12 +314,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		this.retryDelay = retryDelay;
 	}
 
-	private MessageChannel getErrorChannel() {
+	private @Nullable MessageChannel getErrorChannel() {
 		if (this.delayedMessageErrorChannel != null) {
 			return this.delayedMessageErrorChannel;
 		}
 		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
-		if (this.delayedMessageErrorChannelName != null && channelResolver != null) {
+		if (this.delayedMessageErrorChannelName != null) {
 			this.delayedMessageErrorChannel = channelResolver.resolveDestination(this.delayedMessageErrorChannelName);
 		}
 		return this.delayedMessageErrorChannel;
@@ -362,7 +367,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Check if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
-	 * and {@link DelayHandler.DelayedMessageWrapper}). Than determine 'delay' for
+	 * and {@link DelayHandler.DelayedMessageWrapper}). Then determine 'delay' for
 	 * 'requestMessage' ({@link #determineDelayForMessage}) and if {@code delay > 0}
 	 * schedules 'releaseMessage' task after 'delay'.
 	 * @param requestMessage - the Message which may be delayed.
@@ -371,7 +376,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @see #releaseMessage
 	 */
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		boolean delayed = requestMessage.getPayload() instanceof DelayedMessageWrapper;
 
 		if (!delayed) {
@@ -397,11 +402,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 	}
 
+	@SuppressWarnings("NullAway") // dataflow analysis limitation
 	private long determineDelayFromExpression(Message<?> message) {
 		long delay = this.defaultDelay;
 		DelayedMessageWrapper delayedMessageWrapper = null;
-		if (message.getPayload() instanceof DelayedMessageWrapper) {
-			delayedMessageWrapper = (DelayedMessageWrapper) message.getPayload();
+		if (message.getPayload() instanceof DelayedMessageWrapper payload) {
+			delayedMessageWrapper = payload;
 		}
 		Exception delayValueException = null;
 		Object delayValue = null;
@@ -414,12 +420,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		catch (EvaluationException e) {
 			delayValueException = e;
 		}
-		if (delayValue instanceof Date) {
+		if (delayValue instanceof Date dealyValueDate) {
 			long current =
 					delayedMessageWrapper != null
 							? delayedMessageWrapper.getRequestDate()
 							: System.currentTimeMillis();
-			delay = ((Date) delayValue).getTime() - current;
+			delay = dealyValueDate.getTime() - current;
 		}
 		else if (delayValue != null) {
 			try {
@@ -496,6 +502,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			UUID messageId = delayedMessage.getHeaders().getId();
+			Assert.state(messageId != null, "'messageId' must not be null");
 			return () -> {
 				Message<?> messageToRelease = getMessageById(messageId);
 				if (messageToRelease != null) {
@@ -505,7 +512,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 	}
 
-	private Message<?> getMessageById(UUID messageId) {
+	private @Nullable Message<?> getMessageById(UUID messageId) {
 		this.lock.lock();
 		try {
 			Message<?> theMessage = this.messageStore.getMessageFromGroup(this.messageGroupId, messageId);
@@ -561,7 +568,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private boolean rescheduleForRetry(Message<?> message, String identity) {
-		if (this.deliveries.get(identity).incrementAndGet() >= this.maxAttempts) {
+		AtomicInteger deliveryAttempts = this.deliveries.get(identity);
+		if (Objects.requireNonNull(deliveryAttempts).incrementAndGet() >= this.maxAttempts) {
 			this.logger.error(() -> "Discarding; maximum release attempts reached for: " + message);
 			this.deliveries.remove(identity);
 			return false;
@@ -584,6 +592,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		getTaskScheduler().schedule(releaseTask, startTime.toInstant());
 	}
 
+	@SuppressWarnings("NullAway") // critical path
 	private void doReleaseMessage(Message<?> message) {
 		boolean removed;
 		this.lock.lock();

@@ -36,7 +36,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 
 	private final MethodInvokingMessageProcessor<Object> processor;
 
-	private String componentType;
+	private String componentType = "method-invoking-handler";
 
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		Assert.isTrue(method.getReturnType().equals(void.class),

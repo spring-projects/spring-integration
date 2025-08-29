@@ -19,6 +19,8 @@ package org.springframework.integration.handler.advice;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -58,7 +60,7 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+	protected @Nullable Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		Object value = this.valueProvider.apply(message);
 		logger.trace(() -> "Setting context value to: " + value + " from message: " + message);
 		try {
