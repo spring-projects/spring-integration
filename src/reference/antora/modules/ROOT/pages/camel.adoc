@@ -38,9 +38,9 @@ Therefore, developers may choose one framework over another for many reasons or 
 Spring Integration and Apache Camel applications can interact with each other through many external protocols for which they implement channel adapters.
 For example, a Spring Integration flow may publish a record to an Apache Kafka topic which is consumed by an Apache Camel endpoint on the consumer side.
 Or, an Apache Camel route may write data into an SFTP file the directory, which is polled by a SFTP Inbound Channel Adapter from Spring Integration.
-Or, within the same Spring application context they can communicate via an `ApplicationEvent` https://camel.apache.org/components/3.18.x/spring-event-component.html[abstraction].
+Or, within the same Spring application context they can communicate via an `ApplicationEvent` https://camel.apache.org/components/4.10.x/spring-event-component.html[abstraction].
 
-To make the development process easier and to avoid unnecessary network hops, Apache Camel provides a https://camel.apache.org/components/3.18.x/spring-integration-component.html[module] to communicate with Spring Integration via message channels.
+To make the development process easier and to avoid unnecessary network hops, Apache Camel provides a https://camel.apache.org/components/4.10.x/index.html[module] to communicate with Spring Integration via message channels.
 All that is needed is a reference to a `MessageChannel` from the application context, to send or consume messages.
 This works well when Apache Camel routes are initiators of the message flow and Spring Integration plays only a supporting role as a part of the solution.
 
