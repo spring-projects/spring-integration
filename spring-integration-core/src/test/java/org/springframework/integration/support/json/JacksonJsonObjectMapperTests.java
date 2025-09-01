@@ -45,7 +45,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.module.kotlin.KotlinModule;
 
@@ -69,7 +68,7 @@ class JacksonJsonObjectMapperTests {
 	@Test
 	void compareAutoDiscoveryVsManualModules() {
 		KotlinModule kotlinModule = new KotlinModule.Builder().build();
-		ObjectMapper manualMapper = JsonMapper.builder()
+		JsonMapper manualMapper = JsonMapper.builder()
 				.addModules(kotlinModule)
 				.build();
 

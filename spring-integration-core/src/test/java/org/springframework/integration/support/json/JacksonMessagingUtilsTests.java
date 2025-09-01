@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.module.kotlin.KotlinModule;
 
 import org.springframework.integration.message.AdviceMessage;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class JacksonMessagingUtilsTests {
 
-	private ObjectMapper mapper;
+	private JsonMapper mapper;
 
 	@BeforeEach
 	void setUp() {

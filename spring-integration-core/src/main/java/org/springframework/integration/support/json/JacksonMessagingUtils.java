@@ -29,7 +29,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DatabindContext;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.JavaType;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.MapperConfig;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -45,7 +44,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
- * Utility for creating Jackson {@link ObjectMapper} instance for Spring messaging.
+ * Utility for creating Jackson {@link JsonMapper} instance for Spring messaging.
  *
  * <p>Provides custom serializers/deserializers for Spring messaging types
  * and validates deserialization against trusted package patterns.
@@ -75,15 +74,15 @@ public final class JacksonMessagingUtils {
 	}
 
 	/**
-	 * Return an {@link ObjectMapper} if available,
+	 * Return an {@link JsonMapper} if available,
 	 * supplied with Message specific serializers and deserializers.
 	 * Also configured to store typo info in the {@code @class} property.
 	 * @param trustedPackages the trusted Java packages for deserialization.
-	 * @return the mapper.
+	 * @return the JSON mapper.
 	 * @throws IllegalStateException if an implementation is not available.
 	 * @since 7.0
 	 */
-	public static ObjectMapper messagingAwareMapper(String @Nullable ... trustedPackages) {
+	public static JsonMapper messagingAwareMapper(String @Nullable ... trustedPackages) {
 		if (JacksonPresent.isJackson3Present()) {
 			GenericMessageJsonDeserializer genericMessageDeserializer = new GenericMessageJsonDeserializer();
 			ErrorMessageJsonDeserializer errorMessageDeserializer = new ErrorMessageJsonDeserializer();
@@ -98,7 +97,7 @@ public final class JacksonMessagingUtils {
 					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
 					.addDeserializer(MutableMessage.class, mutableMessageDeserializer);
 
-			ObjectMapper mapper = JsonMapper.builder()
+			JsonMapper mapper = JsonMapper.builder()
 					.findAndAddModules(JacksonMessagingUtils.class.getClassLoader())
 					.setDefaultTyping(new AllowListTypeResolverBuilder(trustedPackages))
 					.addModules(simpleModule)

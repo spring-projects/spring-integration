@@ -22,7 +22,6 @@ import java.util.Iterator;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.NullNode;
@@ -55,13 +54,13 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 					JsonNode.class
 			};
 
-	private ObjectMapper objectMapper = JsonMapper.builder()
+	private JsonMapper jsonMapper = JsonMapper.builder()
 			.findAndAddModules(JacksonPropertyAccessor.class.getClassLoader())
 			.build();
 
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
-		this.objectMapper = objectMapper;
+	public void setObjectMapper(JsonMapper jsonMapper) {
+		Assert.notNull(jsonMapper, "'jsonMapper' cannot be null");
+		this.jsonMapper = jsonMapper;
 	}
 
 	@Override
@@ -94,7 +93,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		}
 		else if (target instanceof String content) {
 			try {
-				return this.objectMapper.readTree(content);
+				return this.jsonMapper.readTree(content);
 			}
 			catch (JacksonException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);

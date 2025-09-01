@@ -32,7 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -391,7 +391,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testJsonSerialization() {
-		ObjectMapper mapper = JacksonMessagingUtils.messagingAwareMapper();
+		JsonMapper mapper = JacksonMessagingUtils.messagingAwareMapper();
 
 		GenericJackson3JsonRedisSerializer serializer = new GenericJackson3JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);

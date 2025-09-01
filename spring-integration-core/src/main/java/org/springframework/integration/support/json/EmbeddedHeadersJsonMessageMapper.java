@@ -29,7 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
@@ -40,13 +40,13 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
- * For outbound messages, uses a message-aware Jackson object mapper to render the message
+ * For outbound messages, uses a message-aware Jackson JSON mapper to render the message
  * as JSON. For messages with {@code byte[]} payloads, if rendered as JSON, Jackson
  * performs Base64 conversion on the bytes. If payload is {@code byte[]} and
  * the {@link #setRawBytes(boolean) rawBytes} property is true (default), the result has the form
  * {@code [headersLen][headers][payloadLen][payload]}; with the headers
  * rendered in JSON and the payload unchanged.
- * Otherwise, message is fully serialized and deserialized with Jackson object mapper.
+ * Otherwise, message is fully serialized and deserialized with Jackson JSON mapper.
  * <p>
  * By default, all headers are included; you can provide simple patterns to specify a
  * subset of headers.
@@ -56,7 +56,7 @@ import org.springframework.messaging.support.GenericMessage;
  * <p>
  * <b>IMPORTANT</b>
  * <p>
- * The default object mapper will only deserialize classes in certain packages.
+ * The default JSON mapper will only deserialize classes in certain packages.
  *
  * <pre class=code>
  *	"java.util",
@@ -69,10 +69,10 @@ import org.springframework.messaging.support.GenericMessage;
  * 	"org.springframework.integration.handler"
  * </pre>
  * <p>
- * To add more packages, create an object mapper using
+ * To add more packages, create an JSON mapper using
  * {@link JacksonMessagingUtils#messagingAwareMapper(String...)}.
  * <p>
- * A constructor is provided allowing the provision of such a configured object mapper.
+ * A constructor is provided allowing the provision of such a configured JSON mapper.
  *
  * @author Jooyoung Pyoung
  *
@@ -82,7 +82,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
 	private final String[] headerPatterns;
 
@@ -113,20 +113,20 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 	/**
 	 * Construct an instance that embeds all headers, using the
 	 * supplied JSON object mapper.
-	 * @param objectMapper the object mapper.
+	 * @param jsonMapper the JSON mapper.
 	 */
-	public EmbeddedHeadersJsonMessageMapper(ObjectMapper objectMapper) {
-		this(objectMapper, "*");
+	public EmbeddedHeadersJsonMessageMapper(JsonMapper jsonMapper) {
+		this(jsonMapper, "*");
 	}
 
 	/**
 	 * Construct an instance that embeds headers matching the supplied patterns using the
 	 * supplied JSON object mapper.
-	 * @param objectMapper the object mapper.
+	 * @param jsonMapper the JSON mapper.
 	 * @param headerPatterns the patterns.
 	 */
-	public EmbeddedHeadersJsonMessageMapper(ObjectMapper objectMapper, String... headerPatterns) {
-		this.objectMapper = objectMapper;
+	public EmbeddedHeadersJsonMessageMapper(JsonMapper jsonMapper, String... headerPatterns) {
+		this.jsonMapper = jsonMapper;
 		this.headerPatterns = Arrays.copyOf(headerPatterns, headerPatterns.length);
 		this.allHeaders = this.headerPatterns.length == 1 && this.headerPatterns[0].equals("*");
 	}
@@ -181,7 +181,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 			}
 
 			try {
-				return this.objectMapper.writeValueAsBytes(messageToEncode);
+				return this.jsonMapper.writeValueAsBytes(messageToEncode);
 			}
 			catch (JacksonException ex) {
 				throw new UncheckedIOException(new IOException(ex));
@@ -205,7 +205,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 
 	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) {
 		try {
-			byte[] headers = this.objectMapper.writeValueAsBytes(headersToEncode);
+			byte[] headers = this.jsonMapper.writeValueAsBytes(headersToEncode);
 			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
 			buffer.putInt(headers.length);
 			buffer.put(headers);
@@ -229,7 +229,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 		}
 		if (message == null) {
 			try {
-				message = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
+				message = (Message<?>) this.jsonMapper.readValue(bytes, Object.class);
 			}
 			catch (Exception ex) {
 				this.logger.debug("Failed to decode JSON", ex);
@@ -244,7 +244,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 	}
 
 	@Nullable
-	private Message<?> decodeNativeFormat(byte[] bytes, @Nullable Map<String, Object> headersToAdd) throws IOException {
+	private Message<?> decodeNativeFormat(byte[] bytes, @Nullable Map<String, Object> headersToAdd) {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
 		if (buffer.remaining() > 4) {
 			int headersLen = buffer.getInt();
@@ -257,7 +257,7 @@ public class EmbeddedHeadersJsonMessageMapper implements BytesMessageMapper {
 				else {
 					((Buffer) buffer).position(4);
 					@SuppressWarnings("unchecked")
-					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
+					Map<String, Object> headers = this.jsonMapper.readValue(bytes, buffer.position(), headersLen,
 							Map.class);
 
 					((Buffer) buffer).position(buffer.position() + headersLen);

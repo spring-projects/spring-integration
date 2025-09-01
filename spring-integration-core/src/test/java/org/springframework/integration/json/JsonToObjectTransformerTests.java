@@ -21,7 +21,6 @@ import java.util.List;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.json.JsonReadFeature;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -84,7 +83,7 @@ public class JsonToObjectTransformerTests {
 
 	@Test
 	public void objectPayloadWithCustomMapper() {
-		ObjectMapper customMapper = JsonMapper.builder()
+		JsonMapper customMapper = JsonMapper.builder()
 				.configure(JsonReadFeature.ALLOW_UNQUOTED_PROPERTY_NAMES, true)
 				.configure(JsonReadFeature.ALLOW_SINGLE_QUOTES, true)
 				.build();

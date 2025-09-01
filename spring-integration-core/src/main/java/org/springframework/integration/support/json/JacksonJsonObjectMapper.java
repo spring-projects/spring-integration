@@ -31,7 +31,6 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -41,7 +40,7 @@ import org.springframework.util.Assert;
  * Jackson 3 JSON-processor (@link https://github.com/FasterXML)
  * {@linkplain JsonObjectMapper} implementation.
  * Delegates {@link #toJson} and {@link #fromJson}
- * to the {@linkplain ObjectMapper}
+ * to the {@linkplain JsonMapper}
  * <p>
  * It customizes Jackson's default properties with the following ones:
  * <ul>
@@ -57,28 +56,28 @@ import org.springframework.util.Assert;
  */
 public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
 	public JacksonJsonObjectMapper() {
-		this.objectMapper = JsonMapper.builder()
+		this.jsonMapper = JsonMapper.builder()
 				.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
 				.disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
 				.build();
 	}
 
-	public JacksonJsonObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		this.objectMapper = objectMapper;
+	public JacksonJsonObjectMapper(JsonMapper jsonMapper) {
+		Assert.notNull(jsonMapper, "jsonMapper must not be null");
+		this.jsonMapper = jsonMapper;
 	}
 
-	public ObjectMapper getObjectMapper() {
-		return this.objectMapper;
+	public JsonMapper getObjectMapper() {
+		return this.jsonMapper;
 	}
 
 	@Override
 	public String toJson(Object value) throws IOException {
 		try {
-			return this.objectMapper.writeValueAsString(value);
+			return this.jsonMapper.writeValueAsString(value);
 		}
 		catch (JacksonException e) {
 			throw new IOException(e);
@@ -88,7 +87,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	@Override
 	public void toJson(Object value, Writer writer) throws IOException {
 		try {
-			this.objectMapper.writeValue(writer, value);
+			this.jsonMapper.writeValue(writer, value);
 		}
 		catch (JacksonException e) {
 			throw new IOException(e);
@@ -99,33 +98,33 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	public JsonNode toJsonNode(Object json) throws IOException {
 		try {
 			if (json instanceof String) {
-				return this.objectMapper.readTree((String) json);
+				return this.jsonMapper.readTree((String) json);
 			}
 			else if (json instanceof byte[]) {
-				return this.objectMapper.readTree((byte[]) json);
+				return this.jsonMapper.readTree((byte[]) json);
 			}
 			else if (json instanceof File) {
-				return this.objectMapper.readTree((File) json);
+				return this.jsonMapper.readTree((File) json);
 			}
 			else if (json instanceof URL) {
-				return this.objectMapper.readTree((URL) json);
+				return this.jsonMapper.readTree((URL) json);
 			}
 			else if (json instanceof InputStream) {
-				return this.objectMapper.readTree((InputStream) json);
+				return this.jsonMapper.readTree((InputStream) json);
 			}
 			else if (json instanceof Reader) {
-				return this.objectMapper.readTree((Reader) json);
+				return this.jsonMapper.readTree((Reader) json);
 			}
 		}
 		catch (JacksonException e) {
 			if (!(json instanceof String) && !(json instanceof byte[])) {
 				throw new IOException(e);
 			}
-			// Otherwise the input might not be valid JSON, fallback to TextNode with ObjectMapper.valueToTree()
+			// Otherwise the input might not be valid JSON, fallback to TextNode with JsonMapper.valueToTree()
 		}
 
 		try {
-			return this.objectMapper.valueToTree(json);
+			return this.jsonMapper.valueToTree(json);
 		}
 		catch (JacksonException e) {
 			throw new IOException(e);
@@ -136,22 +135,22 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	protected <T> T fromJson(Object json, JavaType type) throws IOException {
 		try {
 			if (json instanceof String) {
-				return this.objectMapper.readValue((String) json, type);
+				return this.jsonMapper.readValue((String) json, type);
 			}
 			else if (json instanceof byte[]) {
-				return this.objectMapper.readValue((byte[]) json, type);
+				return this.jsonMapper.readValue((byte[]) json, type);
 			}
 			else if (json instanceof File) {
-				return this.objectMapper.readValue((File) json, type);
+				return this.jsonMapper.readValue((File) json, type);
 			}
 			else if (json instanceof URL) {
-				return this.objectMapper.readValue((URL) json, type);
+				return this.jsonMapper.readValue((URL) json, type);
 			}
 			else if (json instanceof InputStream) {
-				return this.objectMapper.readValue((InputStream) json, type);
+				return this.jsonMapper.readValue((InputStream) json, type);
 			}
 			else if (json instanceof Reader) {
-				return this.objectMapper.readValue((Reader) json, type);
+				return this.jsonMapper.readValue((Reader) json, type);
 			}
 			else {
 				throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
@@ -166,7 +165,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	@Override
 	public <T> T fromJson(JsonParser parser, Type valueType) throws IOException {
 		try {
-			return this.objectMapper.readValue(parser, constructType(valueType));
+			return this.jsonMapper.readValue(parser, constructType(valueType));
 		}
 		catch (JacksonException e) {
 			throw new IOException(e);
@@ -183,19 +182,19 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 
 		JavaType contentClassType = this.createJavaType(javaTypes, JsonHeaders.CONTENT_TYPE_ID);
 		if (classType.getKeyType() == null) {
-			return this.objectMapper.getTypeFactory()
+			return this.jsonMapper.getTypeFactory()
 					.constructCollectionType((Class<? extends Collection<?>>) classType.getRawClass(),
 							contentClassType);
 		}
 
 		JavaType keyClassType = createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
-		return this.objectMapper.getTypeFactory()
+		return this.jsonMapper.getTypeFactory()
 				.constructMapType((Class<? extends Map<?, ?>>) classType.getRawClass(), keyClassType, contentClassType);
 	}
 
 	@Override
 	protected JavaType constructType(Type type) {
-		return this.objectMapper.constructType(type);
+		return this.jsonMapper.constructType(type);
 	}
 
 }
