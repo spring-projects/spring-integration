@@ -18,6 +18,8 @@ package org.springframework.integration.graph;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.CompositeMessageHandler;
 
 /**
@@ -31,17 +33,17 @@ import org.springframework.integration.handler.CompositeMessageHandler;
  */
 public class ErrorCapableCompositeMessageHandlerNode extends CompositeMessageHandlerNode implements ErrorCapableNode {
 
-	private final String errors;
+	private final @Nullable String errors;
 
-	public ErrorCapableCompositeMessageHandlerNode(int nodeId, String name, CompositeMessageHandler handler, String input,
-			String output, String errors, List<InnerHandler> handlers) {
+	public ErrorCapableCompositeMessageHandlerNode(int nodeId, String name, CompositeMessageHandler handler,
+			@Nullable String input, @Nullable String output, @Nullable String errors, List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output, handlers);
 		this.errors = errors;
 	}
 
 	@Override
-	public String getErrors() {
+	public @Nullable String getErrors() {
 		return this.errors;
 	}
 

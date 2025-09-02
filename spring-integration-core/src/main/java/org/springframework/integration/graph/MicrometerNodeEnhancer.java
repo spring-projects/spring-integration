@@ -22,6 +22,7 @@ import io.micrometer.common.docs.KeyName;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationConvention;
 import org.jspecify.annotations.Nullable;
@@ -33,6 +34,7 @@ import org.springframework.integration.support.management.observation.DefaultMes
 import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.util.Assert;
 
 /**
  * Add micrometer metrics to the node.
@@ -55,7 +57,7 @@ public class MicrometerNodeEnhancer {
 
 	private static final TimerStats ZERO_TIMER_STATS = new TimerStats(0L, 0.0, 0.0);
 
-	private final MeterRegistry registry;
+	private final @Nullable MeterRegistry registry;
 
 	MicrometerNodeEnhancer(ApplicationContext applicationContext) {
 		ObjectProvider<MeterRegistry> meterRegistryProvider = applicationContext.getBeanProvider(MeterRegistry.class);
@@ -100,14 +102,13 @@ public class MicrometerNodeEnhancer {
 		return new SendTimers(buildTimerStats(successTimer), buildTimerStats(failureTimer));
 	}
 
-	@Nullable
-	private <T extends IntegrationNode> Timer obtainTimer(T node, String type, boolean success) {
+	private <T extends IntegrationNode> @Nullable Timer obtainTimer(T node, String type, boolean success) {
 		try {
 			if (node.isObserved()) {
 				return observationTimer(node, type, success);
 			}
 			else {
-				return this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
+				return getRegistry(IntegrationManagement.SEND_TIMER_NAME)
 						.tag(TAG_TYPE, type)
 						.tag(TAG_NAME, node.getName())
 						.tag(TAG_RESULT, success ? "success" : "failure")
@@ -119,8 +120,12 @@ public class MicrometerNodeEnhancer {
 		}
 	}
 
-	@Nullable
-	private <T extends IntegrationNode> Timer observationTimer(T node, String type, boolean success) {
+	private RequiredSearch getRegistry(String name) {
+		Assert.state(this.registry != null, "registry must not be null");
+		return this.registry.get(name);
+	}
+
+	private <T extends IntegrationNode>  @Nullable Timer observationTimer(T node, String type, boolean success) {
 		Search timerSearch =
 				switch (type) {
 					case "channel" -> buildTimerSearch(DefaultMessageSenderObservationConvention.INSTANCE,
@@ -143,7 +148,9 @@ public class MicrometerNodeEnhancer {
 	}
 
 	private Search buildTimerSearch(ObservationConvention<?> observationConvention, KeyName tagKey, String tagValue) {
-		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue); // NOSONAR
+		Assert.state(observationConvention.getName() != null, "observationConvention.getName() must have a name");
+		Assert.state(this.registry != null, "registry must not be null");
+		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue);
 	}
 
 	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {
@@ -154,7 +161,7 @@ public class MicrometerNodeEnhancer {
 		Counter successes = null;
 		String name = node.getName();
 		try {
-			successes = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
+			successes = getRegistry(IntegrationManagement.RECEIVE_COUNTER_NAME)
 					.tag(TAG_TYPE, type)
 					.tag(TAG_NAME, name)
 					.tag(TAG_RESULT, "success")
@@ -165,7 +172,7 @@ public class MicrometerNodeEnhancer {
 		}
 		Counter failures = null;
 		try {
-			failures = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
+			failures = getRegistry(IntegrationManagement.RECEIVE_COUNTER_NAME)
 					.tag(TAG_TYPE, type)
 					.tag(TAG_NAME, name)
 					.tag(TAG_RESULT, "failure")

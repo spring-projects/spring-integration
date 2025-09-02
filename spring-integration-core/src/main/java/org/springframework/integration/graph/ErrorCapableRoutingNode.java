@@ -18,6 +18,8 @@ package org.springframework.integration.graph;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -31,17 +33,17 @@ import org.springframework.messaging.MessageHandler;
  */
 public class ErrorCapableRoutingNode extends RoutingMessageHandlerNode implements ErrorCapableNode {
 
-	private final String errors;
+	private final @Nullable String errors;
 
-	public ErrorCapableRoutingNode(int nodeId, String name, MessageHandler handler, String input, String output,
-			String errors, Collection<String> routes) {
+	public ErrorCapableRoutingNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output,
+			@Nullable String errors, Collection<String> routes) {
 
 		super(nodeId, name, handler, input, output, routes);
 		this.errors = errors;
 	}
 
 	@Override
-	public String getErrors() {
+	public @Nullable String getErrors() {
 		return this.errors;
 	}
 

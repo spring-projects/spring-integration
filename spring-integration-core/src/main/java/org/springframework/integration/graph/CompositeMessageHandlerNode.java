@@ -19,6 +19,8 @@ package org.springframework.integration.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -33,7 +35,7 @@ public class CompositeMessageHandlerNode extends MessageHandlerNode {
 
 	private final List<InnerHandler> handlers = new ArrayList<>();
 
-	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output,
+	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output,
 			List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output);

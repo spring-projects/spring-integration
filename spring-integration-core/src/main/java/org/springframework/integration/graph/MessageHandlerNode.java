@@ -33,16 +33,16 @@ import org.springframework.messaging.MessageHandler;
  */
 public class MessageHandlerNode extends EndpointNode implements SendTimersAware {
 
-	private final String input;
+	private final @Nullable String input;
 
-	private Supplier<SendTimers> sendTimers;
+	private @Nullable Supplier<SendTimers> sendTimers;
 
-	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
+	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output) {
 		super(nodeId, name, handler, output);
 		this.input = input;
 	}
 
-	public String getInput() {
+	public @Nullable String getInput() {
 		return this.input;
 	}
 
@@ -57,4 +57,3 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 	}
 
 }
-

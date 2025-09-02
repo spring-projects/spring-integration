@@ -58,6 +58,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.util.Assert;
 
 /**
  * Builds the runtime object model graph.
@@ -78,22 +79,22 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private final NodeFactory nodeFactory = new NodeFactory(this::enhance);
 
-	private MicrometerNodeEnhancer micrometerEnhancer;
+	private @Nullable MicrometerNodeEnhancer micrometerEnhancer;
 
-	private ApplicationContext applicationContext;
+	private @Nullable ApplicationContext applicationContext;
 
-	private volatile Graph graph;
+	private volatile @Nullable Graph graph;
 
-	private String applicationName;
+	private @Nullable String applicationName;
 
-	private Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback;
+	private @Nullable Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext; // NOSONAR (sync)
 	}
 
-	protected ApplicationContext getApplicationContext() {
+	protected @Nullable ApplicationContext getApplicationContext() {
 		return this.applicationContext;  // NOSONAR (sync)
 	}
 
@@ -132,6 +133,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @return the graph.
 	 * @see #rebuild()
 	 */
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public Graph getGraph() {
 		if (this.graph == null) {
 			this.lock.lock();
@@ -173,6 +175,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @since 5.1
 	 */
 	protected <T> Map<String, T> getBeansOfType(Class<T> type) {
+		if (this.applicationContext == null) {
+			throw new IllegalStateException("ApplicationContext is not set");
+		}
 		return this.applicationContext.getBeansOfType(type, true, false);
 	}
 
@@ -185,7 +190,11 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private Graph buildGraph() {
+		if (this.applicationContext == null) {
+			throw new IllegalStateException("ApplicationContext is not set");
+		}
 		if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
 			this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
@@ -348,11 +357,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			EndpointNode endpointNode) {
 
 		MessageChannelNode channelNode;
-		if (endpointNode.getOutput() != null) {
-			channelNode = channelNodes.get(endpointNode.getOutput());
-			if (channelNode != null) {
-				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.output));
-			}
+		channelNode = channelNodes.get(endpointNode.getOutput());
+		if (channelNode != null) {
+			links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.output));
 		}
 		if (endpointNode instanceof ErrorCapableNode) {
 			channelNode = channelNodes.get(((ErrorCapableNode) endpointNode).getErrors());
@@ -409,8 +416,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway, requestChannel, errorChannel);
 		}
 
-		@Nullable
-		private String channelToBeanName(MessageChannel messageChannel) {
+		private @Nullable String channelToBeanName(@Nullable MessageChannel messageChannel) {
 			return messageChannel instanceof NamedComponent namedComponent
 					? namedComponent.getBeanName()
 					: Objects.toString(messageChannel, null);
@@ -500,7 +506,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		MessageHandlerNode compositeHandler(String name, IntegrationConsumer consumer,
-				CompositeMessageHandler handler, String output, String errors, boolean polled) {
+				CompositeMessageHandler handler, @Nullable String output, @Nullable String errors, boolean polled) {
 
 			List<CompositeMessageHandlerNode.InnerHandler> innerHandlers =
 					handler.getHandlers()
@@ -522,7 +528,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
-				DiscardingMessageHandler handler, String output, String errors, boolean polled) {
+				DiscardingMessageHandler handler, @Nullable String output, @Nullable String errors, boolean polled) {
 
 			String discards = channelToBeanName(handler.getDiscardChannel());
 			String inputChannel = channelToBeanName(consumer.getInputChannel());
@@ -534,7 +540,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
-				MappingMessageRouterManagement router, String output, String errors, boolean polled) {
+				MappingMessageRouterManagement router, @Nullable String output, @Nullable String errors, boolean polled) {
 
 			Collection<String> routes =
 					Stream.concat(router.getChannelMappings().values().stream(),
@@ -550,13 +556,17 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
-				MessageHandler handler, RecipientListRouterManagement router, String output, String errors,
+				MessageHandler handler, RecipientListRouterManagement router, @Nullable String output, @Nullable String errors,
 				boolean polled) {
 
 			List<String> routes =
 					router.getRecipients()
 							.stream()
-							.map(recipient -> channelToBeanName(((Recipient) recipient).getChannel()))
+							.map(recipient -> {
+								var messageChannel = channelToBeanName(((Recipient) recipient).getChannel());
+								Assert.state(messageChannel != null, "messageChannel must not be null for " + recipient);
+								return messageChannel;
+							})
 							.collect(Collectors.toList());
 
 			String inputChannel = channelToBeanName(consumer.getInputChannel());

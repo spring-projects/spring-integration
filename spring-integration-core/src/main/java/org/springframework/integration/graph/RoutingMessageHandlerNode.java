@@ -18,6 +18,8 @@ package org.springframework.integration.graph;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -32,7 +34,7 @@ public class RoutingMessageHandlerNode extends MessageHandlerNode {
 
 	private final Collection<String> routes;
 
-	public RoutingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output,
+	public RoutingMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output,
 			Collection<String> routes) {
 
 		super(nodeId, name, handler, input, output);

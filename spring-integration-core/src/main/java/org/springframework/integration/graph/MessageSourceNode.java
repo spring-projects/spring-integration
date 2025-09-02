@@ -33,9 +33,9 @@ import org.springframework.integration.core.MessageSource;
  */
 public class MessageSourceNode extends ErrorCapableEndpointNode implements ReceiveCountersAware {
 
-	private Supplier<ReceiveCounters> receiveCounters;
+	private @Nullable Supplier<ReceiveCounters> receiveCounters;
 
-	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
+	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, @Nullable String output, @Nullable String errors) {
 		super(nodeId, name, messageSource, output, errors);
 	}
 
@@ -50,4 +50,3 @@ public class MessageSourceNode extends ErrorCapableEndpointNode implements Recei
 	}
 
 }
-

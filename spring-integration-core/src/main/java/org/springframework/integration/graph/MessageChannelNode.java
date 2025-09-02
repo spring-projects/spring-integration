@@ -33,7 +33,7 @@ import org.springframework.messaging.MessageChannel;
  */
 public class MessageChannelNode extends IntegrationNode implements SendTimersAware {
 
-	private Supplier<SendTimers> sendTimers;
+	private @Nullable Supplier<SendTimers> sendTimers;
 
 	public MessageChannelNode(int nodeId, String name, MessageChannel channel) {
 		super(nodeId, name, channel);

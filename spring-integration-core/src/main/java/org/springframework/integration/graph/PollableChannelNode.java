@@ -33,7 +33,7 @@ import org.springframework.messaging.MessageChannel;
  */
 public class PollableChannelNode extends MessageChannelNode implements ReceiveCountersAware {
 
-	private Supplier<ReceiveCounters> receiveCounters;
+	private @Nullable Supplier<ReceiveCounters> receiveCounters;
 
 	public PollableChannelNode(int nodeId, String name, MessageChannel channel) {
 		super(nodeId, name, channel);
