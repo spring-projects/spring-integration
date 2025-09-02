@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 
@@ -68,18 +69,19 @@ public final class SimpleJsonSerializer {
 				}
 				catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
 					Throwable exception = e;
-					if (e instanceof InvocationTargetException) { // NOSONAR
+					if (e instanceof InvocationTargetException) {
 						exception = e.getCause();
+						if (exception == null) {
+							exception = e;
+						}
 					}
 
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Failed to serialize property " + propertyName, exception);
 					}
 
-					result =
-							exception.getMessage() != null
-									? exception.getMessage()
-									: exception.toString();
+					String exceptionMessage = exception.getMessage();
+					result = exceptionMessage != null ? exceptionMessage : exception.toString();
 				}
 				stringBuilder.append(toElement(result)).append(",");
 			}
@@ -94,7 +96,7 @@ public final class SimpleJsonSerializer {
 		}
 	}
 
-	private static String toElement(Object result) {
+	private static String toElement(@Nullable Object result) {
 		if (result instanceof Number || result instanceof Boolean) {
 			return result.toString();
 		}

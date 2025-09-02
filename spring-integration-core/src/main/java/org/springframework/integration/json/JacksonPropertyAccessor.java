@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * <p>Uses Jackson {@link JsonNode} API for nested properties access.
  *
  * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
  * @since 7.0
  * @see JacksonIndexAccessor
@@ -70,7 +71,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 	}
 
 	@Override
-	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
+	public boolean canRead(EvaluationContext context, @Nullable Object target, String name) throws AccessException {
 		JsonNode node;
 		try {
 			node = asJson(target);
@@ -85,7 +86,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		return true;
 	}
 
-	private JsonNode asJson(Object target) throws AccessException {
+	private JsonNode asJson(@Nullable Object target) throws AccessException {
 		if (target instanceof JsonNode jsonNode) {
 			return jsonNode;
 		}
@@ -108,7 +109,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * Return an integer if the String property name can be parsed as an int, or null otherwise.
 	 */
-	private static Integer maybeIndex(String name) {
+	private static @Nullable Integer maybeIndex(String name) {
 		if (!isNumeric(name)) {
 			return null;
 		}
@@ -133,12 +134,12 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 	}
 
 	@Override
-	public boolean canWrite(EvaluationContext context, Object target, String name) {
+	public boolean canWrite(EvaluationContext context, @Nullable Object target, String name) {
 		return false;
 	}
 
 	@Override
-	public void write(EvaluationContext context, Object target, String name, Object newValue) {
+	public void write(EvaluationContext context, @Nullable Object target, String name, @Nullable Object newValue) {
 		throw new UnsupportedOperationException("Write is not supported");
 	}
 
@@ -158,7 +159,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		return true;
 	}
 
-	static TypedValue typedValue(JsonNode json) throws AccessException {
+	static TypedValue typedValue(@Nullable JsonNode json) throws AccessException {
 		if (json == null || json instanceof NullNode) {
 			return TypedValue.NULL;
 		}
@@ -168,7 +169,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		return new TypedValue(wrap(json));
 	}
 
-	private static Object getValue(JsonNode json) throws AccessException {
+	private static @Nullable Object getValue(JsonNode json) throws AccessException {
 		if (json.isString()) {
 			return json.asString();
 		}
@@ -193,7 +194,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		throw new IllegalArgumentException("Json is not ValueNode.");
 	}
 
-	public static Object wrap(JsonNode json) throws AccessException {
+	public static @Nullable Object wrap(@Nullable JsonNode json) throws AccessException {
 		if (json == null) {
 			return null;
 		}
@@ -262,8 +263,8 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 		}
 
 		@Override
-		public Object get(int index) {
-			// negative index - get from the end of list
+		public @Nullable Object get(int index) {
+			// negative index - get from the end of a list
 			int i = index < 0 ? this.delegate.size() + index : index;
 			try {
 				return wrap(this.delegate.get(i));
@@ -291,7 +292,7 @@ public class JacksonPropertyAccessor implements PropertyAccessor {
 				}
 
 				@Override
-				public Object next() {
+				public @Nullable Object next() {
 					try {
 						return wrap(this.it.next());
 					}

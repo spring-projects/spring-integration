@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
@@ -26,7 +28,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.messaging.Message;
 
 /**
- * @param <T> ther paylaod type.
+ * @param <T> the paylaod type.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -48,7 +50,7 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * @param expression the {@link Expression} to evaluate.
 	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
-	public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, Class<T> expectedType) {
+	public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, @Nullable Class<T> expectedType) {
 		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
 	}
 
@@ -59,7 +61,7 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * @param expressionString the {@link java.lang.String} expression presentation to evaluate.
 	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
-	public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
+	public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, @Nullable Class<T> expectedType) {
 		Expression expression = EXPRESSION_PARSER.parseExpression(expressionString);
 		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
 	}
@@ -68,7 +70,7 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 		this.targetProcessor.setBeanFactory(beanFactory);
 	}
 
-	public T processMessage(Message<?> message) {
+	public @Nullable T processMessage(Message<?> message) {
 		return this.targetProcessor.processMessage(message);
 	}
 

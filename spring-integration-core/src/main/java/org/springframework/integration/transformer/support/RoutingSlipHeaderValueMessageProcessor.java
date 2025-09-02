@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -55,8 +57,9 @@ public class RoutingSlipHeaderValueMessageProcessor
 
 	private final List<Object> routingSlipPath;
 
-	private volatile Map<List<Object>, Integer> routingSlip;
+	private volatile @Nullable Map<List<Object>, Integer> routingSlip;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public RoutingSlipHeaderValueMessageProcessor(Object... routingSlipPath) {
@@ -83,17 +86,16 @@ public class RoutingSlipHeaderValueMessageProcessor
 	@Override
 	public Map<List<Object>, Integer> processMessage(Message<?> message) {
 		// use a local variable to avoid the second access to volatile field on the happy path
-		Map<List<Object>, Integer> slip = this.routingSlip;
-		if (slip == null) {
+		Map<List<Object>, Integer> newRoutingSlip = this.routingSlip;
+		if (newRoutingSlip == null) {
 			this.lock.lock();
 			try {
-				slip = this.routingSlip;
-				if (slip == null) {
+				newRoutingSlip = this.routingSlip;
+				if (newRoutingSlip == null) {
 					List<Object> slipPath = this.routingSlipPath;
-					List<Object> routingSlipValues = new ArrayList<Object>(slipPath.size());
+					List<Object> routingSlipValues = new ArrayList<>(slipPath.size());
 					for (Object path : slipPath) {
-						if (path instanceof String) {
-							String entry = (String) path;
+						if (path instanceof String entry) {
 							if (this.beanFactory.containsBean(entry)) {
 								Object bean = this.beanFactory.getBean(entry);
 								if (!(bean instanceof MessageChannel
@@ -121,15 +123,15 @@ public class RoutingSlipHeaderValueMessageProcessor
 						}
 
 					}
-					slip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
-					this.routingSlip = slip;
+					newRoutingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
+					this.routingSlip = newRoutingSlip;
 				}
 			}
 			finally {
 				this.lock.unlock();
 			}
 		}
-		return slip;
+		return newRoutingSlip;
 	}
 
 }

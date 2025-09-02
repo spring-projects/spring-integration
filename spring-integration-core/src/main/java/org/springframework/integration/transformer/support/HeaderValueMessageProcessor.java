@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.MessageProcessor;
 
 /**
@@ -28,6 +30,12 @@ import org.springframework.integration.handler.MessageProcessor;
  */
 public interface HeaderValueMessageProcessor<T> extends MessageProcessor<T> {
 
+	/**
+	 * Return the overwrite flag.
+	 * If null, the default overwrite flag is used from the enricher.
+	 * @return the overwrite flag
+	 */
+	@Nullable
 	Boolean isOverwrite();
 
 }

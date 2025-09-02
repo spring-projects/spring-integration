@@ -64,12 +64,15 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader classLoader;
 
+	@SuppressWarnings("NullAway") // Does not see Nullability on generics
 	private Expression valueTypeExpression =
 			new FunctionExpression<Message<?>>((message) ->
 					obtainResolvableTypeFromHeadersIfAny(message.getHeaders(), this.classLoader));
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public JsonToObjectTransformer() {
@@ -112,19 +115,19 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
-		if (this.jsonObjectMapper instanceof BeanClassLoaderAware) {
-			((BeanClassLoaderAware) this.jsonObjectMapper).setBeanClassLoader(classLoader);
+		if (this.jsonObjectMapper instanceof BeanClassLoaderAware beanClassLoaderAware) {
+			beanClassLoaderAware.setBeanClassLoader(classLoader);
 		}
 	}
 
 	/**
 	 * Configure a SpEL expression to evaluate a {@link ResolvableType}
 	 * to instantiate the payload from the incoming JSON.
-	 * By default this transformer consults {@link JsonHeaders} in the request message.
+	 * By default, this transformer consults {@link JsonHeaders} in the request message.
 	 * If this expression returns {@code null} or {@link ResolvableType} building throws a
 	 * {@link ClassNotFoundException}, this transformer falls back to the provided {@link #targetType}.
 	 * This logic is present as an expression because {@link JsonHeaders} may not have real class values,
-	 * but rather some type ids which have to be mapped to target classes according some external registry.
+	 * but rather some type ids that have to be mapped to target classes according some external registry.
 	 * @param valueTypeExpressionString the SpEL expression to use.
 	 * @since 5.2.6
 	 */
@@ -135,11 +138,11 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	/**
 	 * Configure a SpEL {@link Expression} to evaluate a {@link ResolvableType}
 	 * to instantiate the payload from the incoming JSON.
-	 * By default this transformer consults {@link JsonHeaders} in the request message.
+	 * By default, this transformer consults {@link JsonHeaders} in the request message.
 	 * If this expression returns {@code null} or {@link ResolvableType} building throws a
 	 * {@link ClassNotFoundException}, this transformer falls back to the provided {@link #targetType}.
 	 * This logic is present as an expression because {@link JsonHeaders} may not have real class values,
-	 * but rather some type ids which have to be mapped to target classes according some external registry.
+	 * but rather some type ids that have to be mapped to target classes according some external registry.
 	 * @param valueTypeExpression the SpEL {@link Expression} to use.
 	 * @since 5.2.6
 	 */
@@ -190,8 +193,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 	}
 
-	@Nullable
-	private ResolvableType obtainResolvableType(Message<?> message) {
+	private @Nullable ResolvableType obtainResolvableType(Message<?> message) {
 		try {
 			return this.valueTypeExpression.getValue(this.evaluationContext, message, ResolvableType.class);
 		}
@@ -207,8 +209,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 	}
 
-	@Nullable
-	private static ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers,
+	private static @Nullable ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers,
 			ClassLoader classLoader) {
 
 		Object valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE);
@@ -218,8 +219,8 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 					JsonHeaders.buildResolvableType(classLoader, typeIdHeader,
 							headers.get(JsonHeaders.CONTENT_TYPE_ID), headers.get(JsonHeaders.KEY_TYPE_ID));
 		}
-		return valueType instanceof ResolvableType
-				? (ResolvableType) valueType
+		return valueType instanceof ResolvableType resolvableType
+				? resolvableType
 				: null;
 	}
 

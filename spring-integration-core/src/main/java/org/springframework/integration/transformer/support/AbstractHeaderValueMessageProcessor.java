@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer.support;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * @param <T> inbound payload type.
  *
@@ -26,15 +28,14 @@ package org.springframework.integration.transformer.support;
  */
 public abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
 
-	// null indicates no explicit setting
-	private Boolean overwrite = null;
+	private @Nullable Boolean overwrite = null;
 
-	public void setOverwrite(Boolean overwrite) {
+	public void setOverwrite(@Nullable Boolean overwrite) {
 		this.overwrite = overwrite;
 	}
 
 	@Override
-	public Boolean isOverwrite() {
+	public @Nullable Boolean isOverwrite() {
 		return this.overwrite;
 	}
 

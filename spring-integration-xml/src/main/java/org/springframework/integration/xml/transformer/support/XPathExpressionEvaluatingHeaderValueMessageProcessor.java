@@ -98,12 +98,10 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 	}
 
 	public void setHeaderType(Class<?> headerType) {
-		if (headerType != null) {
-			this.headerTypeDescriptor = TypeDescriptor.valueOf(headerType);
-		}
+		this.headerTypeDescriptor = TypeDescriptor.valueOf(headerType);
 	}
 
-	public void setOverwrite(Boolean overwrite) {
+	public void setOverwrite(@Nullable Boolean overwrite) {
 		this.overwrite = overwrite;
 	}
 

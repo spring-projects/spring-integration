@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -26,6 +28,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class MessageProcessingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object>
@@ -41,18 +44,18 @@ public class MessageProcessingHeaderValueMessageProcessor extends AbstractHeader
 		this(targetObject, null);
 	}
 
-	public MessageProcessingHeaderValueMessageProcessor(Object targetObject, String method) {
-		this.targetProcessor = new MethodInvokingMessageProcessor<Object>(targetObject, method);
+	public MessageProcessingHeaderValueMessageProcessor(Object targetObject, @Nullable String method) {
+		this.targetProcessor = new MethodInvokingMessageProcessor<>(targetObject, method);
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (this.targetProcessor instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.targetProcessor).setBeanFactory(beanFactory);
+		if (this.targetProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 	}
 
-	public Object processMessage(Message<?> message) {
+	public @Nullable Object processMessage(Message<?> message) {
 		return this.targetProcessor.processMessage(message);
 	}
 
