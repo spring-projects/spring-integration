@@ -35,9 +35,9 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 
 	private final String input;
 
-	private Supplier<SendTimers> sendTimers;
+	private @Nullable Supplier<SendTimers> sendTimers;
 
-	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
+	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output) {
 		super(nodeId, name, handler, output);
 		this.input = input;
 	}
@@ -46,8 +46,7 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 		return this.input;
 	}
 
-	@Nullable
-	public SendTimers getSendTimers() {
+	public @Nullable SendTimers getSendTimers() {
 		return this.sendTimers != null ? this.sendTimers.get() : null;
 	}
 
@@ -57,4 +56,3 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 	}
 
 }
-

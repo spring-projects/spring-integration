@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -27,17 +29,17 @@ import org.springframework.messaging.MessageHandler;
  */
 public class ErrorCapableMessageHandlerNode extends MessageHandlerNode implements ErrorCapableNode {
 
-	private final String errors;
+	private final @Nullable String errors;
 
 	public ErrorCapableMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
-			String output, String errors) {
+			@Nullable String output, @Nullable String errors) {
 
 		super(nodeId, name, handler, input, output);
 		this.errors = errors;
 	}
 
 	@Override
-	public String getErrors() {
+	public @Nullable String getErrors() {
 		return this.errors;
 	}
 

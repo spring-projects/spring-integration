@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -28,16 +30,16 @@ import org.springframework.messaging.MessageHandler;
  */
 public class DiscardingMessageHandlerNode extends MessageHandlerNode {
 
-	private final String discards;
+	private final @Nullable String discards;
 
-	public DiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output,
-			String discards) {
+	public DiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			@Nullable String output, @Nullable String discards) {
 
 		super(nodeId, name, handler, input, output);
 		this.discards = discards;
 	}
 
-	public String getDiscards() {
+	public @Nullable String getDiscards() {
 		return this.discards;
 	}
 

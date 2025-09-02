@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Nodes implementing this interface are capable of emitting errors.
  *
@@ -26,6 +28,7 @@ package org.springframework.integration.graph;
  */
 public interface ErrorCapableNode {
 
+	@Nullable
 	String getErrors();
 
 }

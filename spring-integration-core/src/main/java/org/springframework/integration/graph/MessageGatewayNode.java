@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 
 /**
@@ -28,7 +30,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
  */
 public class MessageGatewayNode extends ErrorCapableEndpointNode {
 
-	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, String output, String errors) {
+	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, @Nullable String output, @Nullable String errors) {
 		super(nodeId, name, gateway, output, errors);
 	}
 

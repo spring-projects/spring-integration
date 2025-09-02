@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Represents nodes that can natively handle errors.
  *
@@ -26,15 +28,15 @@ package org.springframework.integration.graph;
  */
 public class ErrorCapableEndpointNode extends EndpointNode implements ErrorCapableNode {
 
-	private final String errors;
+	private final @Nullable String errors;
 
-	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, String output, String errors) {
+	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, @Nullable String output, @Nullable String errors) {
 		super(nodeId, name, nodeObject, output);
 		this.errors = errors;
 	}
 
 	@Override
-	public String getErrors() {
+	public @Nullable String getErrors() {
 		return this.errors;
 	}
 
