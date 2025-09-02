@@ -24,8 +24,8 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.deser.std.StdNodeBasedDeserializer;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.TypeDeserializer;
 import tools.jackson.databind.type.TypeFactory;
 
@@ -46,13 +46,13 @@ public abstract class MessageJsonDeserializer<T extends Message<?>> extends StdN
 
 	private JavaType payloadType = TypeFactory.createDefaultInstance().constructType(Object.class);
 
-	private ObjectMapper mapper = new ObjectMapper();
+	private JsonMapper mapper = new JsonMapper();
 
 	protected MessageJsonDeserializer(Class<T> targetType) {
 		super(targetType);
 	}
 
-	public void setMapper(ObjectMapper mapper) {
+	public void setMapper(JsonMapper mapper) {
 		Assert.notNull(mapper, "'mapper' must not be null");
 		this.mapper = mapper;
 	}
@@ -62,7 +62,7 @@ public abstract class MessageJsonDeserializer<T extends Message<?>> extends StdN
 		this.payloadType = payloadType;
 	}
 
-	protected ObjectMapper getMapper() {
+	protected JsonMapper getMapper() {
 		return this.mapper;
 	}
 

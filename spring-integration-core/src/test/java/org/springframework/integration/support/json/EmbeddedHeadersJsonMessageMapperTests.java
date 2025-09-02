@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -53,9 +53,9 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 		assertThat(decoded.getPayload()).isEqualTo(message.getPayload());
 		assertThat(decoded.getHeaders().getTimestamp()).isNotEqualTo(message.getHeaders().getTimestamp());
 
-		ObjectMapper objectMapper = new ObjectMapper();
+		JsonMapper jsonMapper = new JsonMapper();
 		Map<String, Object> encodedMessageToCheck =
-				objectMapper.readValue(encodedMessage, new TypeReference<>() {
+				jsonMapper.readValue(encodedMessage, new TypeReference<>() {
 
 				});
 
@@ -136,9 +136,9 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 		GenericMessage<String> message = new GenericMessage<>("foo", Collections.singletonMap("bar", "baz"));
 		byte[] encodedMessage = mapper.fromMessage(message);
 
-		ObjectMapper objectMapper = new ObjectMapper();
+		JsonMapper jsonMapper = new JsonMapper();
 		Map<String, Object> encodedMessageToCheck =
-				objectMapper.readValue(encodedMessage, new TypeReference<>() {
+				jsonMapper.readValue(encodedMessage, new TypeReference<>() {
 
 				});
 

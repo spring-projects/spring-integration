@@ -27,7 +27,7 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
@@ -184,7 +184,7 @@ public class ObjectToMapTransformerTests {
 	public void testCustomMapperSupport_DisableTimestampFlag_SerializesDateAsString() {
 		Employee employee = buildEmployee();
 
-		ObjectMapper customMapper = new ObjectMapper();
+		JsonMapper customMapper = new JsonMapper();
 		Map<String, Object> transformedMap =
 				new ObjectToMapTransformer(new JacksonJsonObjectMapper(customMapper))
 						.transformPayload(employee);

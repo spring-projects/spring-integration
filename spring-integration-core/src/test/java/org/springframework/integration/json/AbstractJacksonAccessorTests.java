@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.StringNode;
@@ -56,7 +56,7 @@ public abstract class AbstractJacksonAccessorTests {
 
 	protected final SpelExpressionParser parser = new SpelExpressionParser();
 
-	protected final ObjectMapper mapper = new ObjectMapper();
+	protected final JsonMapper mapper = new JsonMapper();
 
 	protected final StandardEvaluationContext context = new StandardEvaluationContext();
 

@@ -27,7 +27,7 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -294,7 +294,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		TestBean testBean = new TestBean();
 		testBean.setName("T. Bean");
 		testBean.setAge(42);
-		request.setContent(new ObjectMapper().writeValueAsBytes(new TestBean[] {testBean}));
+		request.setContent(new JsonMapper().writeValueAsBytes(new TestBean[] {testBean}));
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		byte[] bytes = response.getContentAsByteArray();

@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.json.JsonWriteFeature;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.StringNode;
@@ -149,7 +148,7 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void objectPayloadWithCustomObjectMapper() {
-		ObjectMapper customMapper = JsonMapper.builder()
+		JsonMapper customMapper = JsonMapper.builder()
 				.configure(JsonWriteFeature.QUOTE_PROPERTY_NAMES, false)
 				.build();
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new JacksonJsonObjectMapper(customMapper));
