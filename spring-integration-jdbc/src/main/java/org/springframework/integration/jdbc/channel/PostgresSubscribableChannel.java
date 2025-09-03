@@ -18,6 +18,7 @@ package org.springframework.integration.jdbc.channel;
 
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -47,6 +48,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Rafael Winterhalter
  * @author Artem Bilan
  * @author Igor Lovich
+ * @author Norbert Schneider
  *
  * @since 6.0
  */
@@ -64,6 +66,8 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	private final PostgresChannelMessageTableSubscriber messageTableSubscriber;
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
+
+	private final ReentrantReadWriteLock hasHandlersLock = new ReentrantReadWriteLock();
 
 	private TransactionTemplate transactionTemplate;
 
@@ -156,12 +160,18 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	@Override
 	public boolean unsubscribe(MessageHandler handle) {
-		boolean unsubscribed = super.unsubscribe(handle);
-		if (this.dispatcher.getHandlerCount() == 0) {
-			this.messageTableSubscriber.unsubscribe(this);
-			this.hasHandlers = false;
+		this.hasHandlersLock.writeLock().lock();
+		try {
+			boolean unsubscribed = super.unsubscribe(handle);
+			if (this.dispatcher.getHandlerCount() == 0) {
+				this.messageTableSubscriber.unsubscribe(this);
+				this.hasHandlers = false;
+			}
+			return unsubscribed;
 		}
-		return unsubscribed;
+		finally {
+			this.hasHandlersLock.writeLock().unlock();
+		}
 	}
 
 	@Override
@@ -201,24 +211,23 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	}
 
 	private Optional<?> doPollAndDispatchMessage() {
-		if (this.hasHandlers) {
-			if (this.transactionTemplate != null) {
-				return this.retryTemplate.execute(context ->
-						this.transactionTemplate.execute(status ->
-								pollMessage()
-										.filter(message -> {
-											if (!this.hasHandlers) {
-												status.setRollbackOnly();
-												return false;
-											}
-											return true;
-										})
-										.map(this::dispatch)));
+		this.hasHandlersLock.readLock().lock();
+		try {
+			if (this.hasHandlers) {
+				TransactionTemplate transactionTemplateToUse = this.transactionTemplate;
+				if (transactionTemplateToUse != null) {
+					return this.retryTemplate.execute(context ->
+							transactionTemplateToUse.execute(status ->
+									pollMessage().map(this::dispatch)));
+				}
+				else {
+					return pollMessage()
+							.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
+				}
 			}
-			else {
-				return pollMessage()
-						.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
-			}
+		}
+		finally {
+			this.hasHandlersLock.readLock().unlock();
 		}
 		return Optional.empty();
 	}
