@@ -93,11 +93,11 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext; // NOSONAR (sync)
+		this.applicationContext = applicationContext;
 	}
 
-	protected @Nullable ApplicationContext getApplicationContext() {
-		return this.applicationContext;  // NOSONAR (sync)
+	protected ApplicationContext getApplicationContext() {
+		return this.applicationContext;
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @param applicationName the application name.
 	 */
 	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName; //NOSONAR (sync)
+		this.applicationName = applicationName;
 	}
 
 	/**
@@ -136,19 +136,20 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @see #rebuild()
 	 */
 	public Graph getGraph() {
-		if (this.graph == null) {
+		var localGraph = this.graph;
+		if (localGraph == null) {
 			this.lock.lock();
 			try {
-				if (this.graph == null) {
-					this.graph = buildGraph();
+				localGraph = this.graph;
+				if (localGraph == null) {
+					localGraph = buildGraph();
 				}
 			}
 			finally {
 				this.lock.unlock();
 			}
 		}
-		var graph = this.graph;
-		return graph;
+		return localGraph;
 	}
 
 	/**
@@ -216,9 +217,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		gateways(nodes, links, channelNodes);
 		producers(nodes, links, channelNodes);
 		consumers(nodes, links, channelNodes);
-		var graph = new Graph(descriptor, nodes, links);
-		this.graph = graph;
-		return graph;
+		var localGraph = new Graph(descriptor, nodes, links);
+		this.graph = localGraph;
+		return localGraph;
 	}
 
 	private Map<String, MessageChannelNode> channels(Collection<IntegrationNode> nodes) {
@@ -228,8 +229,8 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				.map(e -> {
 					MessageChannel messageChannel = e.getValue();
 					MessageChannelNode messageChannelNode = this.nodeFactory.channelNode(e.getKey(), messageChannel);
-					if (messageChannel instanceof NamedComponent) {
-						messageChannelNode.addProperties(getAdditionalPropertiesIfAny((NamedComponent) messageChannel));
+					if (messageChannel instanceof NamedComponent namedComponent) {
+						messageChannelNode.addProperties(getAdditionalPropertiesIfAny(namedComponent));
 					}
 					return messageChannelNode;
 				})
@@ -323,8 +324,8 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				.map(e -> {
 					IntegrationConsumer consumer = e.getValue();
 					MessageHandlerNode handlerNode =
-							consumer instanceof PollingConsumer
-									? this.nodeFactory.polledHandlerNode(e.getKey(), (PollingConsumer) consumer)
+							consumer instanceof PollingConsumer pollingConsumer
+									? this.nodeFactory.polledHandlerNode(e.getKey(), pollingConsumer)
 									: this.nodeFactory.handlerNode(e.getKey(), consumer);
 					handlerNode.addProperties(getAdditionalPropertiesIfAny(consumer));
 					return handlerNode;
@@ -357,20 +358,20 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		if (channelNode != null) {
 			links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.output));
 		}
-		if (endpointNode instanceof ErrorCapableNode) {
-			channelNode = channelNodes.get(((ErrorCapableNode) endpointNode).getErrors());
+		if (endpointNode instanceof ErrorCapableNode errorCapableNode) {
+			channelNode = channelNodes.get(errorCapableNode.getErrors());
 			if (channelNode != null) {
 				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.error));
 			}
 		}
-		if (endpointNode instanceof DiscardingMessageHandlerNode) {
-			channelNode = channelNodes.get(((DiscardingMessageHandlerNode) endpointNode).getDiscards());
+		if (endpointNode instanceof DiscardingMessageHandlerNode discardingMessageHandlerNode) {
+			channelNode = channelNodes.get(discardingMessageHandlerNode.getDiscards());
 			if (channelNode != null) {
 				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.discard));
 			}
 		}
-		if (endpointNode instanceof RoutingMessageHandlerNode) {
-			Collection<String> routes = ((RoutingMessageHandlerNode) endpointNode).getRoutes();
+		if (endpointNode instanceof RoutingMessageHandlerNode routingMessageHandlerNode) {
+			Collection<String> routes = routingMessageHandlerNode.getRoutes();
 			for (String route : routes) {
 				channelNode = channelNodes.get(route);
 				if (channelNode != null) {
@@ -410,13 +411,6 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			String errorChannel = channelToBeanName(gateway.getErrorChannel());
 			String requestChannel = channelToBeanName(gateway.getRequestChannel());
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway, requestChannel, errorChannel);
-		}
-
-		@Contract("null -> null; !null -> !null")
-		private @Nullable String channelToBeanName(@Nullable MessageChannel messageChannel) {
-			return messageChannel instanceof NamedComponent namedComponent
-					? namedComponent.getBeanName()
-					: Objects.toString(messageChannel, null);
 		}
 
 		MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
@@ -554,18 +548,19 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
-				MessageHandler handler, RecipientListRouterManagement router, @Nullable String output, @Nullable String errors,
-				boolean polled) {
+				MessageHandler handler, RecipientListRouterManagement router, @Nullable String output,
+				@Nullable String errors, boolean polled) {
 
 			List<String> routes =
 					router.getRecipients()
 							.stream()
 							.map(recipient -> {
 								var messageChannel = channelToBeanName(((Recipient) recipient).getChannel());
-								Assert.state(messageChannel != null, "messageChannel must not be null for " + recipient);
+								Assert.state(messageChannel != null,
+										"messageChannel must not be null for " + recipient);
 								return messageChannel;
 							})
-							.collect(Collectors.toList());
+							.toList();
 
 			String inputChannel = channelToBeanName(consumer.getInputChannel());
 			return polled
@@ -577,6 +572,13 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		void reset() {
 			this.nodeId.set(0);
+		}
+
+		@Contract("null -> null; !null -> !null")
+		private static @Nullable String channelToBeanName(@Nullable MessageChannel messageChannel) {
+			return messageChannel instanceof NamedComponent namedComponent
+					? namedComponent.getBeanName()
+					: Objects.toString(messageChannel, null);
 		}
 
 	}
