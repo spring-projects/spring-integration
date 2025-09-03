@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -36,6 +37,7 @@ import org.testcontainers.utility.DockerImageName;
  * @since 6.0.8
  */
 @Testcontainers(disabledWithoutDocker = true)
+@DisabledIfSystemProperty(named = "os.arch", matches = ".*aarch64.*")
 public interface OracleContainerTest {
 
 	OracleContainer ORACLE_CONTAINER =

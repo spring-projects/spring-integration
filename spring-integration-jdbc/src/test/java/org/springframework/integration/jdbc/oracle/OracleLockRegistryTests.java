@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@DisabledIfSystemProperty(named = "os.arch", matches = ".*aarch64.*")
 public class OracleLockRegistryTests implements OracleContainerTest {
 
 	@Autowired

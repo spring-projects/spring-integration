@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -60,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@DisabledIfSystemProperty(named = "os.arch", matches = ".*aarch64.*")
 public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 
 	private static final Log LOG = LogFactory.getLog(OracleJdbcMessageStoreTests.class);
