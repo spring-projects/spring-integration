@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -31,7 +31,7 @@ import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
@@ -49,9 +49,7 @@ import org.springframework.util.Assert;
  * from an 'inbound' adapter).
  * <p>
  * The base class supports configuration of whether the remote file system and
- * local file system's directories should be created on start (what 'creating a
- * directory' means to the specific adapter is of course implementation
- * specific).
+ * local file system's directories should be created on start.
  * <p>
  * This class is to be used as a pair with an implementation of
  * {@link AbstractInboundFileSynchronizer}. The synchronizer must
@@ -193,9 +191,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			this.fileSource.setDirectory(this.localDirectory);
 			initFiltersAndScanner();
 			BeanFactory beanFactory = getBeanFactory();
-			if (beanFactory != null) {
-				this.fileSource.setBeanFactory(beanFactory);
-			}
+			this.fileSource.setBeanFactory(beanFactory);
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
 		}
@@ -281,9 +277,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	}
 
 	private FileListFilter<File> buildFilter() {
-		Pattern completePattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
-		return new CompositeFileListFilter<>(
-				Arrays.asList(this.localFileListFilter, new RegexPatternFileListFilter(completePattern)));
+		var ignoreTemporaryFilesPattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
+		return new ChainFileListFilter<>(
+				List.of(new RegexPatternFileListFilter(ignoreTemporaryFilesPattern), this.localFileListFilter));
 	}
 
 	/**

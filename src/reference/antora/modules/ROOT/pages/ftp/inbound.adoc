@@ -87,7 +87,7 @@ metadata store on every update (if the store implements `Flushable`).
 
 IMPORTANT: Further, if you use a distributed `MetadataStore` (such as xref:redis.adoc#redis-metadata-store[Redis]), you can have multiple instances of the same adapter or application and be sure that each file is processed only once.
 
-The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
+The actual local filter is a `ChainFileListFilter` that contains a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`) and the supplied filter.
 Files are downloaded with this suffix (the default is `.writing`), and the file is renamed to its final name when the transfer is complete, making it 'visible' to the filter.
 
 The `remote-file-separator` attribute lets you configure a file separator character to use if the default '/' is not applicable for your particular environment.

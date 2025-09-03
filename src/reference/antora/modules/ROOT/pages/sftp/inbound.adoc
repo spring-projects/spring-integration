@@ -69,8 +69,8 @@ You can handle any other use-cases by using `CompositeFileListFilter` (or `Chain
 
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
-By default, this is an`AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
-Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restart.
+By default, this is an `AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
+Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restarts.
 
 Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
 
@@ -86,7 +86,7 @@ metadata store on every update (if the store implements `Flushable`).
 
 IMPORTANT: Further, if you use a distributed `MetadataStore` (such as xref:redis.adoc#redis-metadata-store[Redis Metadata Store]), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
 
-The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
+The actual local filter is a `ChainFileListFilter` that contains a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`) and the supplied filter.
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
 
 See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
