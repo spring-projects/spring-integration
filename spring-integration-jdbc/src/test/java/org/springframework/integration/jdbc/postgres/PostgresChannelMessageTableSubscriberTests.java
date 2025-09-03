@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import javax.sql.DataSource;
 
@@ -70,6 +71,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Igor Lovich
  * @author Adama Sorho
  * @author Johannes Edmeier
+ * @author Norbert Schneider
  *
  * @since 6.0
  */
@@ -297,6 +299,49 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(payloads).containsExactlyInAnyOrder("1", "2");
+	}
+
+	@Test
+	public void testUnsubscribeHandlerDuringDispatch() throws InterruptedException {
+		int numberOfMessages = 200;
+		CountDownLatch messagesUntilUnsubscribe = new CountDownLatch(10);
+		AtomicInteger receivedMessages = new AtomicInteger();
+		AtomicReference<Throwable> receivedException = new AtomicReference<>();
+
+		postgresChannelMessageTableSubscriber.start();
+		postgresSubscribableChannel.setErrorHandler(receivedException::set);
+
+		MessageHandler messageHandlerOne = message -> {
+			receivedMessages.getAndIncrement();
+			messagesUntilUnsubscribe.countDown();
+		};
+		postgresSubscribableChannel.subscribe(messageHandlerOne);
+
+		MessageHandler messageHandlerTwo = message -> {
+			receivedMessages.getAndIncrement();
+			messagesUntilUnsubscribe.countDown();
+		};
+		postgresSubscribableChannel.subscribe(messageHandlerTwo);
+
+		IntStream.range(0, numberOfMessages).forEach(i -> {
+			taskExecutor.execute(() ->
+				messageStore.addMessageToGroup(groupId, new GenericMessage<>(i)));
+		});
+
+		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+
+		assertThat(messagesUntilUnsubscribe.await(10, TimeUnit.SECONDS)).isTrue();
+		postgresSubscribableChannel.unsubscribe(messageHandlerOne);
+		postgresSubscribableChannel.unsubscribe(messageHandlerTwo);
+
+		int undeliveredMessages = messageStore.messageGroupSize(groupId);
+		int processedMessages = undeliveredMessages + receivedMessages.get();
+		assertThat(processedMessages).isEqualTo(numberOfMessages);
+		assertThat(receivedException).hasNullValue();
 	}
 
 	@Configuration
