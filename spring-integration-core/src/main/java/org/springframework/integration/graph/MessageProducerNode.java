@@ -30,7 +30,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
  */
 public class MessageProducerNode extends ErrorCapableEndpointNode {
 
-	public MessageProducerNode(int nodeId, String name, MessageProducerSupport producer, @Nullable String output, @Nullable String errors) {
+	public MessageProducerNode(int nodeId, String name, MessageProducerSupport producer, String output, @Nullable String errors) {
 		super(nodeId, name, producer, output, errors);
 	}
 

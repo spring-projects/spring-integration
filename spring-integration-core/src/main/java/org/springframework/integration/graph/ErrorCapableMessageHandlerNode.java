@@ -31,7 +31,7 @@ public class ErrorCapableMessageHandlerNode extends MessageHandlerNode implement
 
 	private final @Nullable String errors;
 
-	public ErrorCapableMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input,
+	public ErrorCapableMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
 			@Nullable String output, @Nullable String errors) {
 
 		super(nodeId, name, handler, input, output);

@@ -55,6 +55,7 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorConfiguration;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Contract;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -81,7 +82,8 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private @Nullable MicrometerNodeEnhancer micrometerEnhancer;
 
-	private @Nullable ApplicationContext applicationContext;
+	@SuppressWarnings("NullAway.Init")
+	private ApplicationContext applicationContext;
 
 	private volatile @Nullable Graph graph;
 
@@ -133,20 +135,20 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @return the graph.
 	 * @see #rebuild()
 	 */
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public Graph getGraph() {
 		if (this.graph == null) {
 			this.lock.lock();
 			try {
 				if (this.graph == null) {
-					buildGraph();
+					this.graph = buildGraph();
 				}
 			}
 			finally {
 				this.lock.unlock();
 			}
 		}
-		return this.graph;
+		var graph = this.graph;
+		return graph;
 	}
 
 	/**
@@ -175,9 +177,6 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @since 5.1
 	 */
 	protected <T> Map<String, T> getBeansOfType(Class<T> type) {
-		if (this.applicationContext == null) {
-			throw new IllegalStateException("ApplicationContext is not set");
-		}
 		return this.applicationContext.getBeansOfType(type, true, false);
 	}
 
@@ -190,11 +189,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 	}
 
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private Graph buildGraph() {
-		if (this.applicationContext == null) {
-			throw new IllegalStateException("ApplicationContext is not set");
-		}
 		if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
 			this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
@@ -221,8 +216,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		gateways(nodes, links, channelNodes);
 		producers(nodes, links, channelNodes);
 		consumers(nodes, links, channelNodes);
-		this.graph = new Graph(descriptor, nodes, links);
-		return this.graph;
+		var graph = new Graph(descriptor, nodes, links);
+		this.graph = graph;
+		return graph;
 	}
 
 	private Map<String, MessageChannelNode> channels(Collection<IntegrationNode> nodes) {
@@ -416,6 +412,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway, requestChannel, errorChannel);
 		}
 
+		@Contract("null -> null; !null -> !null")
 		private @Nullable String channelToBeanName(@Nullable MessageChannel messageChannel) {
 			return messageChannel instanceof NamedComponent namedComponent
 					? namedComponent.getBeanName()
@@ -425,6 +422,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
 			String errorChannel = channelToBeanName(producer.getErrorChannel());
 			String outputChannel = channelToBeanName(producer.getOutputChannel());
+			Assert.state(outputChannel != null, "'outputChannel' must not be null");
 			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannel, errorChannel);
 		}
 

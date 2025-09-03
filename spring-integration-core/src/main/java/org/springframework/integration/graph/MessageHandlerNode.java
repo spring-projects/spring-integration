@@ -33,21 +33,20 @@ import org.springframework.messaging.MessageHandler;
  */
 public class MessageHandlerNode extends EndpointNode implements SendTimersAware {
 
-	private final @Nullable String input;
+	private final String input;
 
 	private @Nullable Supplier<SendTimers> sendTimers;
 
-	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output) {
+	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output) {
 		super(nodeId, name, handler, output);
 		this.input = input;
 	}
 
-	public @Nullable String getInput() {
+	public String getInput() {
 		return this.input;
 	}
 
-	@Nullable
-	public SendTimers getSendTimers() {
+	public @Nullable SendTimers getSendTimers() {
 		return this.sendTimers != null ? this.sendTimers.get() : null;
 	}
 

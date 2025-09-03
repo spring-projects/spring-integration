@@ -33,7 +33,7 @@ public class ErrorCapableDiscardingMessageHandlerNode extends DiscardingMessageH
 
 	private final @Nullable String errors;
 
-	public ErrorCapableDiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input,
+	public ErrorCapableDiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
 			@Nullable String output, @Nullable String discards, @Nullable String errors) {
 
 		super(nodeId, name, handler, input, output, discards);

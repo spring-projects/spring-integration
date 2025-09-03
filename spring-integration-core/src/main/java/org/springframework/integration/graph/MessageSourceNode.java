@@ -35,7 +35,7 @@ public class MessageSourceNode extends ErrorCapableEndpointNode implements Recei
 
 	private @Nullable Supplier<ReceiveCounters> receiveCounters;
 
-	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, @Nullable String output, @Nullable String errors) {
+	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, @Nullable String errors) {
 		super(nodeId, name, messageSource, output, errors);
 	}
 

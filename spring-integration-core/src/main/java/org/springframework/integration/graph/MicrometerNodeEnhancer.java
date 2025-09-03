@@ -57,11 +57,14 @@ public class MicrometerNodeEnhancer {
 
 	private static final TimerStats ZERO_TIMER_STATS = new TimerStats(0L, 0.0, 0.0);
 
-	private final @Nullable MeterRegistry registry;
+	@SuppressWarnings("NullAway.Init")
+	private final MeterRegistry registry;
 
 	MicrometerNodeEnhancer(ApplicationContext applicationContext) {
 		ObjectProvider<MeterRegistry> meterRegistryProvider = applicationContext.getBeanProvider(MeterRegistry.class);
-		this.registry = meterRegistryProvider.getIfUnique();
+		var registry = meterRegistryProvider.getIfUnique();
+		Assert.state(registry != null, "MeterRegistry must not be null");
+		this.registry = registry;
 	}
 
 	/**

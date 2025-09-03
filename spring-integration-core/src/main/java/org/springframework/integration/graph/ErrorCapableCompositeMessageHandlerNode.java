@@ -36,7 +36,7 @@ public class ErrorCapableCompositeMessageHandlerNode extends CompositeMessageHan
 	private final @Nullable String errors;
 
 	public ErrorCapableCompositeMessageHandlerNode(int nodeId, String name, CompositeMessageHandler handler,
-			@Nullable String input, @Nullable String output, @Nullable String errors, List<InnerHandler> handlers) {
+			String input, @Nullable String output, @Nullable String errors, List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output, handlers);
 		this.errors = errors;

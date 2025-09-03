@@ -32,7 +32,7 @@ public class DiscardingMessageHandlerNode extends MessageHandlerNode {
 
 	private final @Nullable String discards;
 
-	public DiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input,
+	public DiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
 			@Nullable String output, @Nullable String discards) {
 
 		super(nodeId, name, handler, input, output);

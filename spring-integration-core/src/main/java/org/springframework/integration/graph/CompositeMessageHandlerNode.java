@@ -35,7 +35,7 @@ public class CompositeMessageHandlerNode extends MessageHandlerNode {
 
 	private final List<InnerHandler> handlers = new ArrayList<>();
 
-	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output,
+	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output,
 			List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output);

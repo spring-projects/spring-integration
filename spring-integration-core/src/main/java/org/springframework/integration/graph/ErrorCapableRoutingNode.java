@@ -35,7 +35,7 @@ public class ErrorCapableRoutingNode extends RoutingMessageHandlerNode implement
 
 	private final @Nullable String errors;
 
-	public ErrorCapableRoutingNode(int nodeId, String name, MessageHandler handler, @Nullable String input, @Nullable String output,
+	public ErrorCapableRoutingNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output,
 			@Nullable String errors, Collection<String> routes) {
 
 		super(nodeId, name, handler, input, output, routes);
