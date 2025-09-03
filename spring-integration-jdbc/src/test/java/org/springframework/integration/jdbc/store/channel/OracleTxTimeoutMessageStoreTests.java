@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.store.channel;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 import org.springframework.integration.jdbc.oracle.OracleContainerTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,6 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  */
 @ContextConfiguration
+@DisabledIfSystemProperty(named = "os.arch", matches = ".*aarch64.*")
 public class OracleTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests implements OracleContainerTest {
 
 	@AfterEach
