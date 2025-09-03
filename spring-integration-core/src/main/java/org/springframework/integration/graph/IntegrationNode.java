@@ -49,8 +49,7 @@ public abstract class IntegrationNode {
 
 	private final String componentType;
 
-	@Nullable
-	private final IntegrationPatternType integrationPatternType;
+	private final @Nullable IntegrationPatternType integrationPatternType;
 
 	private final IntegrationPatternType.@Nullable IntegrationPatternCategory integrationPatternCategory;
 
@@ -115,8 +114,7 @@ public abstract class IntegrationNode {
 		return this.componentType;
 	}
 
-	@Nullable
-	public IntegrationPatternType getIntegrationPatternType() {
+	public @Nullable IntegrationPatternType getIntegrationPatternType() {
 		return this.integrationPatternType;
 	}
 

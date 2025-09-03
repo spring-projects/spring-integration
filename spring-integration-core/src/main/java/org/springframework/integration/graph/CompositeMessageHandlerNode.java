@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageHandler;
  * Represents a composite message handler.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.3
  *
@@ -35,8 +36,8 @@ public class CompositeMessageHandlerNode extends MessageHandlerNode {
 
 	private final List<InnerHandler> handlers = new ArrayList<>();
 
-	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output,
-			List<InnerHandler> handlers) {
+	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			@Nullable String output, List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output);
 		this.handlers.addAll(handlers);
@@ -46,24 +47,7 @@ public class CompositeMessageHandlerNode extends MessageHandlerNode {
 		return this.handlers;
 	}
 
-	public static class InnerHandler {
-
-		private final String name;
-
-		private final String type;
-
-		public InnerHandler(String name, String type) {
-			this.name = name;
-			this.type = type;
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public String getType() {
-			return this.type;
-		}
+	public record InnerHandler(String name, String type) {
 
 	}
 

@@ -30,7 +30,9 @@ public class ErrorCapableEndpointNode extends EndpointNode implements ErrorCapab
 
 	private final @Nullable String errors;
 
-	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, @Nullable String output, @Nullable String errors) {
+	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, @Nullable String output,
+			@Nullable String errors) {
+
 		super(nodeId, name, nodeObject, output);
 		this.errors = errors;
 	}

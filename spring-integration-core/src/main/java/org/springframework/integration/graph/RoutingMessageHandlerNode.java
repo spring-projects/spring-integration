@@ -34,8 +34,8 @@ public class RoutingMessageHandlerNode extends MessageHandlerNode {
 
 	private final Collection<String> routes;
 
-	public RoutingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, @Nullable String output,
-			Collection<String> routes) {
+	public RoutingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			@Nullable String output, Collection<String> routes) {
 
 		super(nodeId, name, handler, input, output);
 		this.routes = routes;

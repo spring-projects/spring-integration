@@ -24,6 +24,7 @@ import org.springframework.messaging.MessageHandler;
  * Represents a message handler that can produce errors (pollable).
  *
  * @author Gary Russell
+ *
  * @since 4.3
  *
  */

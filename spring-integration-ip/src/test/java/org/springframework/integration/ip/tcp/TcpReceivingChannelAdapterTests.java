@@ -77,6 +77,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		noopPublisher(scf);
 		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
@@ -132,6 +133,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(Integer.MAX_VALUE);
 		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		noopPublisher(ccf);
 		ccf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(ccf);
@@ -168,6 +170,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setSoTimeout(5000);
+		noopPublisher(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
@@ -198,6 +201,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		noopPublisher(scf);
 		scf.afterPropertiesSet();
 
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -268,6 +272,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setDeserializer(serializer);
 		scf.setSingleUse(true);
 		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		noopPublisher(scf);
 		scf.afterPropertiesSet();
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
@@ -283,7 +288,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Message<?> message = channel.receive(10000);
 		assertThat(message).isNotNull();
 		// with single use, results may come back in a different order
-		Set<String> results = new HashSet<String>();
+		Set<String> results = new HashSet<>();
 		results.add(new String((byte[]) message.getPayload()));
 		message = channel.receive(10000);
 		assertThat(message).isNotNull();
@@ -338,6 +343,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.setDeserializer(serializer);
 		scf.setSingleUse(true);
 		scf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		noopPublisher(scf);
 		scf.afterPropertiesSet();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);

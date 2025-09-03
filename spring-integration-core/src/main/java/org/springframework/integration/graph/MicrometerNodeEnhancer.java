@@ -22,7 +22,6 @@ import io.micrometer.common.docs.KeyName;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationConvention;
 import org.jspecify.annotations.Nullable;
@@ -45,7 +44,7 @@ import org.springframework.util.Assert;
  * @since 5.2
  *
  */
-public class MicrometerNodeEnhancer {
+class MicrometerNodeEnhancer {
 
 	private static final String UNUSED = "unused";
 
@@ -57,14 +56,11 @@ public class MicrometerNodeEnhancer {
 
 	private static final TimerStats ZERO_TIMER_STATS = new TimerStats(0L, 0.0, 0.0);
 
-	@SuppressWarnings("NullAway.Init")
-	private final MeterRegistry registry;
+	private final @Nullable MeterRegistry registry;
 
 	MicrometerNodeEnhancer(ApplicationContext applicationContext) {
 		ObjectProvider<MeterRegistry> meterRegistryProvider = applicationContext.getBeanProvider(MeterRegistry.class);
-		var registry = meterRegistryProvider.getIfUnique();
-		Assert.state(registry != null, "MeterRegistry must not be null");
-		this.registry = registry;
+		this.registry = meterRegistryProvider.getIfUnique();
 	}
 
 	/**
@@ -74,28 +70,35 @@ public class MicrometerNodeEnhancer {
 	 * @return the enhanced node.
 	 */
 	<T extends IntegrationNode> T enhance(T node) {
-		if (this.registry != null) {
-			if (node instanceof MessageChannelNode) {
-				enhanceWithTimers(node, "channel");
-			}
-			else if (node instanceof MessageHandlerNode || node instanceof MessageProducerNode) {
-				enhanceWithTimers(node, "handler");
-			}
-			if (node instanceof PollableChannelNode) {
-				enhanceWithCounts(node, "channel");
-			}
-			else if (node instanceof MessageSourceNode) {
-				enhanceWithCounts(node, "source");
-			}
-			else if (node instanceof MessageGatewayNode) {
-				enhanceWithTimers(node, "gateway");
-			}
+		if (this.registry == null) {
+			return node;
 		}
+
+		if (node instanceof MessageChannelNode messageChannelNode) {
+			enhanceWithTimers(messageChannelNode, "channel");
+		}
+		else if (node instanceof MessageHandlerNode messageHandlerNode) {
+			enhanceWithTimers(messageHandlerNode, "handler");
+		}
+		else if (node instanceof MessageProducerNode messageProducerNode) {
+			enhanceWithTimers(messageProducerNode, "handler");
+		}
+
+		if (node instanceof PollableChannelNode pollableChannelNode) {
+			enhanceWithCounts(pollableChannelNode, "channel");
+		}
+		else if (node instanceof MessageSourceNode messageSourceNode) {
+			enhanceWithCounts(messageSourceNode, "source");
+		}
+		else if (node instanceof MessageGatewayNode messageGatewayNode) {
+			enhanceWithTimers(messageGatewayNode, "gateway");
+		}
+
 		return node;
 	}
 
-	private <T extends IntegrationNode> void enhanceWithTimers(T node, String type) {
-		((SendTimersAware) node).sendTimers(() -> retrieveTimers(node, type));
+	private <T extends IntegrationNode & SendTimersAware> void enhanceWithTimers(T node, String type) {
+		node.sendTimers(() -> retrieveTimers(node, type));
 	}
 
 	private <T extends IntegrationNode> SendTimers retrieveTimers(T node, String type) {
@@ -105,13 +108,14 @@ public class MicrometerNodeEnhancer {
 		return new SendTimers(buildTimerStats(successTimer), buildTimerStats(failureTimer));
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private <T extends IntegrationNode> @Nullable Timer obtainTimer(T node, String type, boolean success) {
 		try {
 			if (node.isObserved()) {
 				return observationTimer(node, type, success);
 			}
 			else {
-				return getRegistry(IntegrationManagement.SEND_TIMER_NAME)
+				return this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
 						.tag(TAG_TYPE, type)
 						.tag(TAG_NAME, node.getName())
 						.tag(TAG_RESULT, success ? "success" : "failure")
@@ -123,12 +127,7 @@ public class MicrometerNodeEnhancer {
 		}
 	}
 
-	private RequiredSearch getRegistry(String name) {
-		Assert.state(this.registry != null, "registry must not be null");
-		return this.registry.get(name);
-	}
-
-	private <T extends IntegrationNode>  @Nullable Timer observationTimer(T node, String type, boolean success) {
+	private <T extends IntegrationNode> @Nullable Timer observationTimer(T node, String type, boolean success) {
 		Search timerSearch =
 				switch (type) {
 					case "channel" -> buildTimerSearch(DefaultMessageSenderObservationConvention.INSTANCE,
@@ -150,21 +149,22 @@ public class MicrometerNodeEnhancer {
 		return null;
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private Search buildTimerSearch(ObservationConvention<?> observationConvention, KeyName tagKey, String tagValue) {
 		Assert.state(observationConvention.getName() != null, "observationConvention.getName() must have a name");
-		Assert.state(this.registry != null, "registry must not be null");
 		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue);
 	}
 
-	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {
-		((ReceiveCountersAware) node).receiveCounters(() -> retrieveCounters(node, type));
+	private <T extends IntegrationNode & ReceiveCountersAware> void enhanceWithCounts(T node, String type) {
+		node.receiveCounters(() -> retrieveCounters(node, type));
 	}
 
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private <T extends IntegrationNode> ReceiveCounters retrieveCounters(T node, String type) {
 		Counter successes = null;
 		String name = node.getName();
 		try {
-			successes = getRegistry(IntegrationManagement.RECEIVE_COUNTER_NAME)
+			successes = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
 					.tag(TAG_TYPE, type)
 					.tag(TAG_NAME, name)
 					.tag(TAG_RESULT, "success")
@@ -175,7 +175,7 @@ public class MicrometerNodeEnhancer {
 		}
 		Counter failures = null;
 		try {
-			failures = getRegistry(IntegrationManagement.RECEIVE_COUNTER_NAME)
+			failures = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
 					.tag(TAG_TYPE, type)
 					.tag(TAG_NAME, name)
 					.tag(TAG_RESULT, "failure")

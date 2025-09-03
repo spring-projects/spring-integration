@@ -19,27 +19,15 @@ package org.springframework.integration.graph;
 /**
  * Success and failure timer stats.
  *
+ * @param successes the success stats
+ * @param failures the failed stats
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
-public class SendTimers {
-
-	private final TimerStats successes;
-
-	private final TimerStats failures;
-
-	public SendTimers(TimerStats successes, TimerStats failures) {
-		this.successes = successes;
-		this.failures = failures;
-	}
-
-	public TimerStats getSuccesses() {
-		return this.successes;
-	}
-
-	public TimerStats getFailures() {
-		return this.failures;
-	}
+public record SendTimers(TimerStats successes, TimerStats failures) {
 
 }

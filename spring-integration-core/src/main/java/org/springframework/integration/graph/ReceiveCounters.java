@@ -19,27 +19,15 @@ package org.springframework.integration.graph;
 /**
  * Counters for components that maintain receive counters.
  *
+ * @param successes the number of successful {@code receives}.
+ * @param  failures the number of failed {@code receives}.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
-public class ReceiveCounters {
-
-	private final long successes;
-
-	private final long failures;
-
-	public ReceiveCounters(long successes, long failures) {
-		this.successes = successes;
-		this.failures = failures;
-	}
-
-	public long getSuccesses() {
-		return this.successes;
-	}
-
-	public long getFailures() {
-		return this.failures;
-	}
+public record ReceiveCounters(long successes, long failures) {
 
 }

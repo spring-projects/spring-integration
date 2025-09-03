@@ -19,34 +19,16 @@ package org.springframework.integration.graph;
 /**
  * Statistics captured from a timer meter.
  *
+ * @param count the number of times the timer was invoked
+ * @param mean the mean of the timer
+ * @param max the maximum of the timer
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
-public class TimerStats {
-
-	private final long count;
-
-	private final double mean;
-
-	private final double max;
-
-	public TimerStats(long count, double mean, double max) {
-		this.count = count;
-		this.mean = mean;
-		this.max = max;
-	}
-
-	public long getCount() {
-		return this.count;
-	}
-
-	public double getMean() {
-		return this.mean;
-	}
-
-	public double getMax() {
-		return this.max;
-	}
+public record TimerStats(long count, double mean, double max) {
 
 }

@@ -19,35 +19,17 @@ package org.springframework.integration.graph;
 /**
  * Represents a link between nodes.
  *
+ * @param from the source node index
+ * @param to the target node index
+ * @param type the {@link Type} of this link
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
-public class LinkNode {
-
-	private final int from;
-
-	private final int to;
-
-	private final Type type;
-
-	public LinkNode(int from, int to, Type type) {
-		this.from = from;
-		this.to = to;
-		this.type = type;
-	}
-
-	public int getFrom() {
-		return this.from;
-	}
-
-	public int getTo() {
-		return this.to;
-	}
-
-	public Type getType() {
-		return this.type;
-	}
+public record LinkNode(int from, int to, Type type) {
 
 	public enum Type {
 		input, output, error, discard, route

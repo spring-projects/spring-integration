@@ -248,15 +248,15 @@ public class IntegrationGraphServerTests {
 	@Test
 	void testIncludesDynamic() {
 		Graph graph = this.server.getGraph();
-		assertThat(graph.getNodes().size()).isEqualTo(35);
+		assertThat(graph.nodes().size()).isEqualTo(35);
 		IntegrationFlow flow = f -> f.handle(m -> {
 		});
 		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(37);
+		assertThat(graph.nodes().size()).isEqualTo(37);
 		this.flowContext.remove(reg.getId());
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(35);
+		assertThat(graph.nodes().size()).isEqualTo(35);
 	}
 
 	@Autowired
@@ -271,7 +271,7 @@ public class IntegrationGraphServerTests {
 
 		Graph graph = this.server.getGraph();
 		IntegrationNode myFilter =
-				graph.getNodes()
+				graph.nodes()
 						.stream()
 						.filter(node -> node.getName().equals("myFilter"))
 						.findFirst()
@@ -282,12 +282,12 @@ public class IntegrationGraphServerTests {
 				.extracting(MessageHandlerNode::getSendTimers)
 				.isNotNull()
 				.satisfies(sendTimers -> {
-					assertThat(sendTimers.getFailures().getCount()).isEqualTo(0);
-					assertThat(sendTimers.getFailures().getMax()).isEqualTo(0);
-					assertThat(sendTimers.getFailures().getMean()).isEqualTo(0);
-					assertThat(sendTimers.getSuccesses().getCount()).isEqualTo(1);
-					assertThat(sendTimers.getSuccesses().getMax()).isGreaterThan(0);
-					assertThat(sendTimers.getSuccesses().getMean()).isGreaterThan(0);
+					assertThat(sendTimers.failures().count()).isEqualTo(0);
+					assertThat(sendTimers.failures().max()).isEqualTo(0);
+					assertThat(sendTimers.failures().mean()).isEqualTo(0);
+					assertThat(sendTimers.successes().count()).isEqualTo(1);
+					assertThat(sendTimers.successes().max()).isGreaterThan(0);
+					assertThat(sendTimers.successes().mean()).isGreaterThan(0);
 				});
 	}
 
