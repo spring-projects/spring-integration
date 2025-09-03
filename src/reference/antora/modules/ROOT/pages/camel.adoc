@@ -31,21 +31,17 @@ Spring Integration fully relies on a dependency injection container from Spring 
 It uses many other Spring projects (Spring Data, Spring AMQP, Spring for Apache Kafka etc.) for its channel adapter implementations.
 It also uses the `MessageChannel` abstraction as a first-class citizen of which developers need to be aware of, when composing their integration flows.
 Apache Camel, on the other hand, does not provide a first-class citizen abstraction of a message channel and proposes to compose its routes via internal exchanges, hidden from the API.
-In addition, it requires some extra https://camel.apache.org/components/4.10.x/spring-summary.html[dependencies and configurations] for it to be used in a Spring application.
+In addition, it requires some extra https://camel.apache.org/manual/spring.html[dependencies and configurations] for it to be used in a Spring application.
 
 Even if it doesn't matter for the final enterprise integration solution, how its parts are implemented, a developer experience and high productivity are taken into account.
 Therefore, developers may choose one framework over another for many reasons or both if there is a gap in some target systems support.
 Spring Integration and Apache Camel applications can interact with each other through many external protocols for which they implement channel adapters.
 For example, a Spring Integration flow may publish a record to an Apache Kafka topic which is consumed by an Apache Camel endpoint on the consumer side.
-Or, an Apache Camel route may write data into an SFTP file the directory, which is polled by a SFTP Inbound Channel Adapter from Spring Integration.
-Or, within the same Spring application context they can communicate via an `ApplicationEvent` https://camel.apache.org/components/3.18.x/spring-event-component.html[abstraction].
+Or, an Apache Camel route may write data into an SFTP file into the directory, which is polled by a SFTP Inbound Channel Adapter from Spring Integration.
+Or, within the same Spring application context they can communicate via an `ApplicationEvent`.
 
-To make the development process easier and to avoid unnecessary network hops, Apache Camel provides a https://camel.apache.org/components/3.18.x/spring-integration-component.html[module] to communicate with Spring Integration via message channels.
-All that is needed is a reference to a `MessageChannel` from the application context, to send or consume messages.
-This works well when Apache Camel routes are initiators of the message flow and Spring Integration plays only a supporting role as a part of the solution.
-
-For a similar developer experience, Spring Integration now provides a channel adapter to call an Apache Camel endpoint and, optionally, wait for a reply.
-There is no inbound channel adapter because subscribing to a `MessageChannel` for consuming Apache Camel messages is enough from the Spring Integration API and abstractions perspective.
+To make the development process easier and to avoid unnecessary network hops, Spring Integration now provides a channel adapter to call an Apache Camel endpoint and, optionally, wait for a reply.
+There is no inbound channel adapter because using the Apache Camel https://camel.apache.org/manual/bean-binding.html[Bean Binding] is enough to call any bean in the Spring application context, including xref:gateway.adoc[].
 
 [[camel-channel-adapter]]
 == Outbound Channel Adapter for Apache Camel
