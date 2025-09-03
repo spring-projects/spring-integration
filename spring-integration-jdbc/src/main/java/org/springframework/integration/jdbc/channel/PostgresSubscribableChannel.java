@@ -73,7 +73,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private final ReentrantReadWriteLock hasHandlersLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock hasHandlersLock = new ReentrantReadWriteLock(true);
 
 	private @Nullable TransactionTemplate transactionTemplate;
 

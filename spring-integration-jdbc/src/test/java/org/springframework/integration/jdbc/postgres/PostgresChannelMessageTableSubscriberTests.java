@@ -32,6 +32,8 @@ import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.postgresql.jdbc.PgConnection;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +55,6 @@ import org.springframework.integration.jdbc.channel.PostgresChannelMessageTableS
 import org.springframework.integration.jdbc.channel.PostgresSubscribableChannel;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
-import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -79,7 +81,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class PostgresChannelMessageTableSubscriberTests implements PostgresContainerTest, TestApplicationContextAware {
+public class PostgresChannelMessageTableSubscriberTests implements PostgresContainerTest {
+
+	private static final Log LOGGER = LogFactory.getLog(PostgresChannelMessageTableSubscriberTests.class);
 
 	private static final String INTEGRATION_DB_SCRIPTS = """
 			CREATE FUNCTION INT_CHANNEL_MESSAGE_NOTIFY_FCT()
@@ -98,6 +102,9 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 				EXECUTE PROCEDURE INT_CHANNEL_MESSAGE_NOTIFY_FCT();
 			^^^ END OF SCRIPT ^^^
 			""";
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Autowired
 	private JdbcChannelMessageStore messageStore;
@@ -124,17 +131,16 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
 		this.taskExecutor.setCorePoolSize(10);
-		this.taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
-		this.taskExecutor.setAwaitTerminationSeconds(10);
 		this.taskExecutor.afterPropertiesSet();
 
 		this.groupId = testInfo.getDisplayName();
+		messageStore.removeMessageGroup(this.groupId);
 
 		this.postgresSubscribableChannel =
 				new PostgresSubscribableChannel(messageStore, groupId, postgresChannelMessageTableSubscriber);
 		this.postgresSubscribableChannel.setBeanName("testPostgresChannel");
 		this.postgresSubscribableChannel.setDispatcherExecutor(this.taskExecutor);
-		this.postgresSubscribableChannel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		this.postgresSubscribableChannel.setBeanFactory(this.beanFactory);
 		this.postgresSubscribableChannel.afterPropertiesSet();
 	}
 
@@ -314,7 +320,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	@Test
 	public void testUnsubscribeHandlerDuringDispatch() throws InterruptedException {
-		int numberOfMessages = 200;
+		int numberOfMessages = 2000;
 		CountDownLatch messagesUntilUnsubscribe = new CountDownLatch(10);
 		AtomicInteger receivedMessages = new AtomicInteger();
 		AtomicReference<Throwable> receivedException = new AtomicReference<>();
@@ -322,37 +328,25 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		postgresChannelMessageTableSubscriber.start();
 		postgresSubscribableChannel.setErrorHandler(receivedException::set);
 
-		MessageHandler messageHandlerOne = message -> {
+		MessageHandler messageHandler = message -> {
 			receivedMessages.getAndIncrement();
 			messagesUntilUnsubscribe.countDown();
 		};
-		postgresSubscribableChannel.subscribe(messageHandlerOne);
+		postgresSubscribableChannel.subscribe(messageHandler);
 
-		MessageHandler messageHandlerTwo = message -> {
-			receivedMessages.getAndIncrement();
-			messagesUntilUnsubscribe.countDown();
-		};
-		postgresSubscribableChannel.subscribe(messageHandlerTwo);
-
-		IntStream.range(0, numberOfMessages).forEach(i -> {
-			taskExecutor.execute(() ->
-				messageStore.addMessageToGroup(groupId, new GenericMessage<>(i)));
-		});
-
-		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
-		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
-		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
-		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
-		taskExecutor.execute(postgresSubscribableChannel::notifyUpdate);
+		IntStream.range(0, numberOfMessages)
+				.forEach(i -> messageStore.addMessageToGroup(groupId, new GenericMessage<>(i)));
 
 		assertThat(messagesUntilUnsubscribe.await(10, TimeUnit.SECONDS)).isTrue();
-		postgresSubscribableChannel.unsubscribe(messageHandlerOne);
-		postgresSubscribableChannel.unsubscribe(messageHandlerTwo);
+		postgresSubscribableChannel.unsubscribe(messageHandler);
 
-		int undeliveredMessages = messageStore.messageGroupSize(groupId);
-		int processedMessages = undeliveredMessages + receivedMessages.get();
-		assertThat(processedMessages).isEqualTo(numberOfMessages);
 		assertThat(receivedException).hasNullValue();
+
+		int inStoreCount = messageStore.messageGroupSize(groupId);
+		LOGGER.warn("inStoreCount: " + inStoreCount);
+		int receivedCount = receivedMessages.get();
+		LOGGER.warn("receivedCount: " + receivedCount);
+		assertThat(inStoreCount + receivedCount).isEqualTo(numberOfMessages);
 	}
 
 	@Configuration

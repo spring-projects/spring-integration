@@ -168,9 +168,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 			this.latch = new CountDownLatch(1);
 
 			CountDownLatch startingLatch = new CountDownLatch(1);
-			this.future = this.taskExecutor.submit(() -> {
-				doStart(startingLatch);
-			});
+			this.future = this.taskExecutor.submit(() -> doStart(startingLatch));
 
 			try {
 				if (!startingLatch.await(5, TimeUnit.SECONDS)) {
@@ -242,7 +240,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 				}
 				catch (Exception e) {
 					// The getNotifications method does not throw a meaningful message on interruption.
-					// Therefore, we do not log an error, unless it occurred while active.
+					// Therefore, we do not log an error unless it occurred while active.
 					if (isActive()) {
 						LOGGER.error(e, "Failed to poll notifications from Postgres database");
 					}
@@ -252,7 +250,6 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		finally {
 			this.latch.countDown();
 		}
-
 	}
 
 	private boolean isActive() {
@@ -285,6 +282,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 				}
 			}
 			catch (InterruptedException ignored) {
+				Thread.currentThread().interrupt();
 			}
 		}
 		finally {
@@ -311,8 +309,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		/**
 		 * Indicate that a message was added to the represented region and
 		 * group id. Note that this method might also be invoked if there are
-		 * no new messages to read, for example if another subscription already
-		 * read those messages or if a new messages might have arrived during
+		 * no new messages to read, for example, if another subscription already
+		 * read those messages or if a new message might have arrived during
 		 * a temporary connection loss.
 		 */
 		void notifyUpdate();
