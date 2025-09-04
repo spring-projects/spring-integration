@@ -16,6 +16,8 @@
 
 package org.springframework.integration.metadata;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -27,6 +29,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
  * @since 2.0
  */
 @ManagedResource
@@ -47,7 +50,7 @@ public interface MetadataStore {
 	 * @return The value.
 	 */
 	@ManagedAttribute
-	String get(String key);
+	@Nullable String get(String key);
 
 	/**
 	 * Remove a value for the given key from this MetadataStore.
@@ -56,6 +59,6 @@ public interface MetadataStore {
 	 *         null if there was no mapping for key.
 	 */
 	@ManagedAttribute
-	String remove(String key);
+	@Nullable String remove(String key);
 
 }

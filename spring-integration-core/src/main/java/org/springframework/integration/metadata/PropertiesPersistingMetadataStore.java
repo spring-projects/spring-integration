@@ -31,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,13 +52,12 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean,
 		Closeable, Flushable {
-
-	private static final String KEY_CANNOT_BE_NULL = "'key' cannot be null";
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -71,6 +71,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	private String fileName = "metadata-store.properties";
 
+	@SuppressWarnings("NullAway.Init")
 	private File file;
 
 	private volatile boolean dirty;
@@ -115,8 +116,6 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, KEY_CANNOT_BE_NULL);
-		Assert.notNull(value, "'value' cannot be null");
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -129,8 +128,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public String get(String key) {
-		Assert.notNull(key, KEY_CANNOT_BE_NULL);
+	public @Nullable String get(String key) {
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -142,8 +140,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public String remove(String key) {
-		Assert.notNull(key, KEY_CANNOT_BE_NULL);
+	public @Nullable String remove(String key) {
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -156,9 +153,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, KEY_CANNOT_BE_NULL);
-		Assert.notNull(value, "'value' cannot be null");
+	public @Nullable String putIfAbsent(String key, String value) {
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -179,9 +174,6 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, KEY_CANNOT_BE_NULL);
-		Assert.notNull(oldValue, "'oldValue' cannot be null");
-		Assert.notNull(newValue, "'newValue' cannot be null");
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -216,7 +208,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	private void saveMetadata() {
-		if (this.file == null || !this.dirty) {
+		if (!this.dirty) {
 			return;
 		}
 		this.dirty = false;

@@ -19,6 +19,8 @@ package org.springframework.integration.metadata;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  * @since 2.0
  */
 public class SimpleMetadataStore implements ConcurrentMetadataStore {
@@ -59,17 +62,17 @@ public class SimpleMetadataStore implements ConcurrentMetadataStore {
 	}
 
 	@Override
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		return this.metadata.get(key);
 	}
 
 	@Override
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		return this.metadata.remove(key);
 	}
 
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public @Nullable String putIfAbsent(String key, String value) {
 		return this.metadata.putIfAbsent(key, value);
 	}
 
