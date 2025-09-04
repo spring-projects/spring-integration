@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Florian Schmaus
  * @author Stephane Nicoll
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -61,8 +62,8 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 	}
 
 	@Override
-	protected Map<String, Object> extractStandardHeaders(MessageBuilder source) {
-		Map<String, Object> headers = new HashMap<>();
+	protected Map<String, @Nullable Object> extractStandardHeaders(MessageBuilder source) {
+		Map<String, @Nullable Object> headers = new HashMap<>();
 		Jid from = source.getFrom();
 		if (from != null) {
 			headers.put(XmppHeaders.FROM, from.toString());

@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.lang.Contract;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -67,18 +69,17 @@ public final class JsonHeaders {
 	 * @return the {@link ResolvableType} based on provided class components
 	 * @since 5.2.4
 	 */
-	public static ResolvableType buildResolvableType(ClassLoader classLoader, Object targetClassValue,
+	public static ResolvableType buildResolvableType(@Nullable ClassLoader classLoader, Object targetClassValue,
 			@Nullable Object contentClassValue, @Nullable Object keyClassValue) {
 
 		Class<?> targetClass = getClassForValue(classLoader, targetClassValue);
 		Class<?> keyClass = getClassForValue(classLoader, keyClassValue);
 		Class<?> contentClass = getClassForValue(classLoader, contentClassValue);
-
 		return buildResolvableType(targetClass, contentClass, keyClass);
 	}
 
-	@Nullable
-	private static Class<?> getClassForValue(ClassLoader classLoader, @Nullable Object classValue) {
+	@Contract("_, null -> null; _, !null -> !null")
+	private static @Nullable Class<?> getClassForValue(@Nullable ClassLoader classLoader, @Nullable Object classValue) {
 		if (classValue instanceof Class<?>) {
 			return (Class<?>) classValue;
 		}
@@ -105,7 +106,6 @@ public final class JsonHeaders {
 	 */
 	public static ResolvableType buildResolvableType(Class<?> targetClass, @Nullable Class<?> contentClass,
 			@Nullable Class<?> keyClass) {
-
 		if (keyClass != null) {
 			return TypeDescriptor
 					.map(targetClass,

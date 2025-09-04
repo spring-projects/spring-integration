@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Stephane Nicoll
  * @author Steve Singer
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -107,8 +108,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract "standard" headers from an AMQP MessageProperties instance.
 	 */
 	@Override
-	protected Map<String, Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
-		Map<String, Object> headers = new HashMap<>();
+	protected Map<String, @Nullable Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
+		Map<String, @Nullable Object> headers = new HashMap<>();
 		try {
 			JavaUtils.INSTANCE
 					.acceptIfNotNull(AmqpHeaders.APP_ID, amqpMessageProperties.getAppId(), headers::put)
@@ -326,13 +327,13 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	@Override
-	public Map<String, Object> toHeadersFromRequest(MessageProperties source) {
-		Map<String, Object> headersFromRequest = super.toHeadersFromRequest(source);
+	public Map<String, @Nullable Object> toHeadersFromRequest(MessageProperties source) {
+		Map<String, @Nullable Object> headersFromRequest = super.toHeadersFromRequest(source);
 		addConsumerMetadata(source, headersFromRequest);
 		return headersFromRequest;
 	}
 
-	private void addConsumerMetadata(MessageProperties messageProperties, Map<String, Object> headers) {
+	private void addConsumerMetadata(MessageProperties messageProperties, Map<String, @Nullable Object> headers) {
 		String consumerTag = messageProperties.getConsumerTag();
 		if (consumerTag != null) {
 			headers.put(AmqpHeaders.CONSUMER_TAG, consumerTag);

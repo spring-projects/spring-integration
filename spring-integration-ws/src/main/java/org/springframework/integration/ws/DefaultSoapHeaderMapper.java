@@ -56,6 +56,7 @@ import org.springframework.xml.transform.TransformerHelper;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Jooyoung Pyoung
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -74,10 +75,10 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	}
 
 	@Override
-	protected Map<String, Object> extractStandardHeaders(SoapMessage source) {
+	protected Map<String, @Nullable Object> extractStandardHeaders(SoapMessage source) {
 		final String soapAction = source.getSoapAction();
 		if (StringUtils.hasText(soapAction)) {
-			Map<String, Object> headers = new HashMap<>(1);
+			Map<String, @Nullable Object> headers = new HashMap<>(1);
 			headers.put(WebServiceHeaders.SOAP_ACTION, soapAction);
 			return headers;
 		}
