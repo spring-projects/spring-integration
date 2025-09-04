@@ -310,9 +310,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			@Nullable Object keyId) {
 
 		try {
-			var classLoader = getClassLoader();
-			Assert.state(classLoader != null, "No ClassLoader available");
-			return JsonHeaders.buildResolvableType(classLoader, typeId, contentId, keyId);
+			return JsonHeaders.buildResolvableType(getClassLoader(), typeId, contentId, keyId);
 		}
 		catch (Exception e) {
 			this.logger.debug("Cannot build a ResolvableType from 'json__TypeId__' header", e);
