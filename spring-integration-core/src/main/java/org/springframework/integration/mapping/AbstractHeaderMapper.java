@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  * @author Stephane Nicoll
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -87,7 +88,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	private HeaderMatcher replyHeaderMatcher;
 
-	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	/**
 	 * Create a new instance.
@@ -113,7 +114,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		this.classLoader = classLoader;
 	}
 
-	protected ClassLoader getClassLoader() {
+	protected @Nullable ClassLoader getClassLoader() {
 		return this.classLoader;
 	}
 
@@ -204,12 +205,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	}
 
 	@Override
-	public Map<String, Object> toHeadersFromRequest(T source) {
+	public Map<String, @Nullable Object> toHeadersFromRequest(T source) {
 		return toHeaders(source, this.requestHeaderMatcher);
 	}
 
 	@Override
-	public Map<String, Object> toHeadersFromReply(T source) {
+	public Map<String, @Nullable Object> toHeadersFromReply(T source) {
 		return toHeaders(source, this.replyHeaderMatcher);
 	}
 
@@ -264,18 +265,19 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * Map headers from a source instance to the {@link MessageHeaders} of
 	 * a {@link org.springframework.messaging.Message}.
 	 */
-	private Map<String, Object> toHeaders(T source, HeaderMatcher headerMatcher) {
-		Map<String, Object> headers = new HashMap<>();
-		Map<String, Object> standardHeaders = extractStandardHeaders(source);
+	private Map<String, @Nullable Object> toHeaders(T source, HeaderMatcher headerMatcher) {
+		Map<String, @Nullable Object> headers = new HashMap<>();
+		Map<String, @Nullable Object> standardHeaders = extractStandardHeaders(source);
 		copyHeaders(standardHeaders, headers, headerMatcher);
-		Map<String, Object> userDefinedHeaders = extractUserDefinedHeaders(source);
+		Map<String, @Nullable Object> userDefinedHeaders = extractUserDefinedHeaders(source);
 		copyHeaders(userDefinedHeaders, headers, headerMatcher);
 		return headers;
 	}
 
-	private void copyHeaders(Map<String, Object> source, Map<String, Object> target, HeaderMatcher headerMatcher) {
+	private void copyHeaders(Map<String, @Nullable Object> source, Map<String, @Nullable Object> target,
+			HeaderMatcher headerMatcher) {
 		if (!CollectionUtils.isEmpty(source)) {
-			for (Map.Entry<String, Object> entry : source.entrySet()) {
+			for (Map.Entry<String, @Nullable Object> entry : source.entrySet()) {
 				try {
 					String headerName = createTargetPropertyName(entry.getKey(), false);
 					if (shouldMapHeader(headerName, headerMatcher)) {
@@ -308,7 +310,9 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			@Nullable Object keyId) {
 
 		try {
-			return JsonHeaders.buildResolvableType(getClassLoader(), typeId, contentId, keyId);
+			var classLoader = getClassLoader();
+			Assert.state(classLoader != null, "No ClassLoader available");
+			return JsonHeaders.buildResolvableType(classLoader, typeId, contentId, keyId);
 		}
 		catch (Exception e) {
 			this.logger.debug("Cannot build a ResolvableType from 'json__TypeId__' header", e);
@@ -365,7 +369,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @param source the source object to extract standard headers.
 	 * @return the map of headers to be mapped.
 	 */
-	protected abstract Map<String, Object> extractStandardHeaders(T source);
+	protected abstract Map<String, @Nullable Object> extractStandardHeaders(T source);
 
 	/**
 	 * Extract the user-defined headers from the specified source.

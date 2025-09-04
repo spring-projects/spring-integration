@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -103,9 +105,9 @@ public final class JsonHeaders {
 	 * @return the {@link ResolvableType} based on provided class components
 	 * @since 5.2.4
 	 */
-	public static ResolvableType buildResolvableType(Class<?> targetClass, @Nullable Class<?> contentClass,
+	public static ResolvableType buildResolvableType(@Nullable Class<?> targetClass, @Nullable Class<?> contentClass,
 			@Nullable Class<?> keyClass) {
-
+		Assert.state(targetClass != null, "The targetClass must not be null");
 		if (keyClass != null) {
 			return TypeDescriptor
 					.map(targetClass,
