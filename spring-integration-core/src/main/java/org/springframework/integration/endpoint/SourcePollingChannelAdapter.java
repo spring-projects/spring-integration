@@ -257,13 +257,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	 */
 	@Override
 	protected void messageReceived(@Nullable IntegrationResourceHolder holder, Message<?> message) {
-		Observation observation =
-				IntegrationObservation.HANDLER.observation(this.observationConvention,
-						DefaultMessageReceiverObservationConvention.INSTANCE,
-						() -> new MessageReceiverContext(message, getComponentName(), "message-source"),
-						this.observationRegistry);
+		if (isObserved()) {
+			Observation observation =
+					IntegrationObservation.HANDLER.observation(this.observationConvention,
+							DefaultMessageReceiverObservationConvention.INSTANCE,
+							() -> new MessageReceiverContext(message, getComponentName(), "message-source"),
+							this.observationRegistry);
 
-		observation.start().openScope();
+			observation.start().openScope();
+		}
 		super.messageReceived(holder, message);
 	}
 

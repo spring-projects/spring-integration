@@ -253,18 +253,27 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		}
 
 		try {
-			IntegrationObservation.HANDLER.observation(
-							this.observationConvention,
-							DefaultMessageReceiverObservationConvention.INSTANCE,
-							() -> new MessageReceiverContext(message, getComponentName(), "message-producer"),
-							this.observationRegistry)
-					.observe(() -> this.messagingTemplate.send(getRequiredOutputChannel(), trackMessageIfAny(message)));
+			if (isObserved()) {
+				IntegrationObservation.HANDLER.observation(
+								this.observationConvention,
+								DefaultMessageReceiverObservationConvention.INSTANCE,
+								() -> new MessageReceiverContext(message, getComponentName(), "message-producer"),
+								this.observationRegistry)
+						.observe(() -> sendMessageWithTracking(message));
+			}
+			else {
+				sendMessageWithTracking(message);
+			}
 		}
 		catch (RuntimeException ex) {
 			if (!sendErrorMessageIfNecessary(message, ex)) {
 				throw ex;
 			}
 		}
+	}
+
+	private void sendMessageWithTracking(Message<?> message) {
+		this.messagingTemplate.send(getRequiredOutputChannel(), trackMessageIfAny(message));
 	}
 
 	protected void subscribeToPublisher(Publisher<? extends Message<?>> publisher) {
