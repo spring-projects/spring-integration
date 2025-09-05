@@ -293,7 +293,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
-			super(null, null); // NOSONAR - out of use
+			super(null, null);
 		}
 
 		@Override
@@ -327,7 +327,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				sendAndReceive(record, message, acknowledgment, consumer);
 			}
 			else {
-				KafkaInboundGateway.this.logger.debug(() -> "Converter returned a null message for: " + record);
+				KafkaInboundGateway.this.logger.warn(() -> "Converter returned a null message for: " + record);
 			}
 		}
 
@@ -353,7 +353,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 					KafkaInboundGateway.this.kafkaTemplate.send(reply);
 				}
 				else {
-					this.logger.debug(() -> "No reply received for " + message);
+					this.logger.warn(() -> "No reply received for " + message);
 				}
 			}
 			finally {

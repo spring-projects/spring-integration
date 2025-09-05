@@ -41,19 +41,19 @@ import org.springframework.kafka.support.Acknowledgment;
 public interface KafkaInboundEndpoint {
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for an acknowledgment
+	 * The {@link RetryContext} attribute key for an acknowledgment
 	 * if the listener is capable of acknowledging.
 	 */
 	String CONTEXT_ACKNOWLEDGMENT = "acknowledgment";
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for the consumer if
+	 * The {@link RetryContext} attribute key for the consumer if
 	 * the listener is consumer-aware.
 	 */
 	String CONTEXT_CONSUMER = "consumer";
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for the record.
+	 * The {@link RetryContext} attribute key for the record.
 	 */
 	String CONTEXT_RECORD = "record";
 

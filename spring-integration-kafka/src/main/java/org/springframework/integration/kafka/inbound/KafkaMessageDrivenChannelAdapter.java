@@ -365,27 +365,24 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	/**
-	 * If there's a retry template, it will set the attributes holder via the listener. If
-	 * there's no retry template, but there's an error channel, we create a new attributes
-	 * holder here. If an attributes holder exists (by either method), we set the
+	 * If there's a retry template, it will set the attribute holder via the listener. If
+	 * there's no retry template, but there's an error channel, we create a new attribute
+	 * holder here. If an attribute holder exists (by either method), we set the
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
 	 * @param conversionError a conversion error occurred.
 	 */
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
-		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
-				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
-		boolean needAttributes = needHolder || this.retryTemplate != null;
+		boolean needHolder = getErrorChannel() != null || this.retryTemplate != null || conversionError;
 		if (needHolder) {
-			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
-		}
-		if (needAttributes) {
 			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
-			if (attributes != null) {
-				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-				attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
+			if (attributes == null) {
+				attributes = ErrorMessageUtils.getAttributeAccessor(null, null);
+				ATTRIBUTES_HOLDER.set(attributes);
 			}
+			attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+			attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
 		}
 	}
 
@@ -400,20 +397,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 	}
 
-	private void sendMessageIfAny(Message<?> message, Object kafkaConsumedObject) {
-		if (message != null) {
-			try {
-				sendMessage(message);
-			}
-			finally {
-				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
-					ATTRIBUTES_HOLDER.remove();
-				}
-			}
+	private void doSendMessage(Message<?> message) {
+		try {
+			sendMessage(message);
 		}
-		else {
-			KafkaMessageDrivenChannelAdapter.this.logger.debug(() -> "Converter returned a null message for: "
-					+ kafkaConsumedObject);
+		finally {
+			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
+				ATTRIBUTES_HOLDER.remove();
+			}
 		}
 	}
 
@@ -437,7 +428,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
-			super(null, null); // NOSONAR - out of use
+			super(null, null);
 		}
 
 		@Override
@@ -473,12 +464,12 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, record, acknowledgment,
 						consumer, () -> {
 							if (!KafkaMessageDrivenChannelAdapter.this.filterInRetry || passesFilter(record)) {
-								sendMessageIfAny(enhanceHeadersAndSaveAttributes(message, record), record);
+								doSendMessage(enhanceHeadersAndSaveAttributes(message, record));
 							}
 						});
 			}
 			else {
-				sendMessageIfAny(enhanceHeadersAndSaveAttributes(message, record), record);
+				doSendMessage(enhanceHeadersAndSaveAttributes(message, record));
 			}
 		}
 
@@ -527,7 +518,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationBatchMessageListener() {
-			super(null, null); // NOSONAR - out of use
+			super(null, null);
 		}
 
 		@Override
@@ -546,13 +537,16 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				message = toMessage(records, acknowledgment, consumer);
 			}
 			if (message != null) {
-				sendMessageIfAny(message, records);
+				doSendMessage(message);
+			}
+			else {
+				KafkaMessageDrivenChannelAdapter.this.logger.warn(() -> "Converter returned a null message for: "
+						+ records);
 			}
 		}
 
-		@Nullable
-		private Message<?> toMessage(List<ConsumerRecord<K, V>> records, @Nullable Acknowledgment acknowledgment,
-				@Nullable Consumer<?, ?> consumer) {
+		private @Nullable Message<?> toMessage(List<ConsumerRecord<K, V>> records,
+				@Nullable Acknowledgment acknowledgment, @Nullable Consumer<?, ?> consumer) {
 
 			Message<?> message = null;
 			try {
