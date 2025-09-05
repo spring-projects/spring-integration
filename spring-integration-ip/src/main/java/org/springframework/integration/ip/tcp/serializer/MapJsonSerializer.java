@@ -91,7 +91,9 @@ public class MapJsonSerializer implements Serializer<Map<?, ?>>, Deserializer<Ma
 	public Map<?, ?> deserialize(InputStream inputStream) throws IOException {
 		byte[] bytes = this.packetDeserializer.deserialize(inputStream);
 		try {
-			return this.jsonObjectMapper.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Map.class);
+			Map<?, ?> result = this.jsonObjectMapper.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Map.class);
+			Assert.state(result != null, "The deserialized Map must not be null");
+			return result;
 		}
 		catch (Exception e) {
 			throw new IOException(e);

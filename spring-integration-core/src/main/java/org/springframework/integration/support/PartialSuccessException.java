@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -97,7 +98,9 @@ public class PartialSuccessException extends MessagingException {
 
 	@Override
 	public String toString() {
-		return "PartialSuccessException [" + getMessage() + ":" + getCause().getMessage()
+		Throwable cause = getCause();
+		String causeMessage = (cause != null) ? cause.getMessage() : "";
+		return "PartialSuccessException [" + getMessage() + ":" + causeMessage
 				+ ", partialResults=" + this.partialResults + ", derivedInput=" + this.derivedInput
 				+ ", failedMessage=" + getFailedMessage() + "]";
 	}

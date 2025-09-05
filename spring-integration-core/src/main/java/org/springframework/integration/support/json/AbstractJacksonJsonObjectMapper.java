@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
@@ -38,6 +40,7 @@ import org.springframework.util.ClassUtils;
  * @param <J> - The expected type of Java Type representation.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -46,19 +49,19 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonOb
 	protected static final Collection<Class<?>> SUPPORTED_JSON_TYPES =
 			Arrays.asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
 
-	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private volatile @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 
-	protected ClassLoader getClassLoader() {
+	protected @Nullable ClassLoader getClassLoader() {
 		return this.classLoader;
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Class<T> valueType) throws IOException {
+	public <T> T fromJson(@Nullable Object json, Class<T> valueType) throws IOException {
 		return fromJson(json, constructType(valueType));
 	}
 
@@ -96,7 +99,7 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonOb
 		}
 	}
 
-	protected abstract <T> T fromJson(Object json, J type) throws IOException;
+	protected abstract <T> T fromJson(@Nullable Object json, J type) throws IOException;
 
 	protected abstract J extractJavaType(Map<String, Object> javaTypes);
 

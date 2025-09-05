@@ -322,9 +322,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 					reply = sendAndReceiveMessage(message);
 				}
 				catch (MessageTimeoutException e) {
+					var errorMessage = e.getMessage();
+					Assert.state(errorMessage != null, "MessageTimeoutException must have a message");
 					reply =
 							getMessageBuilderFactory()
-									.withPayload(e.getMessage())
+									.withPayload(errorMessage)
 									.setHeader(HttpHeaders.STATUS_CODE, evaluateHttpStatus(httpEntity))
 									.build();
 				}

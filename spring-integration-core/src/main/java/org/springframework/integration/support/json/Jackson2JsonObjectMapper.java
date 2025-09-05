@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
@@ -140,7 +141,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	protected <T> T fromJson(Object json, JavaType type) throws IOException {
+	protected <T> T fromJson(@Nullable Object json, JavaType type) throws IOException {
 		if (json instanceof String) {
 			return this.objectMapper.readValue((String) json, type);
 		}
@@ -161,7 +162,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		}
 		else {
 			throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
-					+ " , but gotten: " + json.getClass());
+					+ " , but gotten: " + ((json != null) ? json.getClass() : "null"));
 		}
 	}
 

@@ -22,6 +22,8 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -114,7 +116,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	@Override
 	protected Object doTransform(Message<?> message) {
 		Object payload = buildJsonPayload(message.getPayload());
-
+		Assert.state(payload != null, "Payload result must not be null");
 		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
 		headers.putAll(message.getHeaders());
 
@@ -136,7 +138,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 				.build();
 	}
 
-	private Object buildJsonPayload(Object payload) {
+	private @Nullable Object buildJsonPayload(Object payload) {
 		try {
 			switch (this.resultType) {
 

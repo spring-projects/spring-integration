@@ -20,6 +20,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
@@ -76,8 +78,8 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 		return this.mapToPayload;
 	}
 
-	protected abstract Object readPayload(P parser, String jsonMessage);
+	protected abstract @Nullable Object readPayload(P parser, String jsonMessage);
 
-	protected abstract Map<String, Object> readHeaders(P parser, String jsonMessage);
+	protected abstract @Nullable Map<String, Object> readHeaders(P parser, String jsonMessage);
 
 }

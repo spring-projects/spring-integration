@@ -49,6 +49,7 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void doInvoke(MessageContext messageContext) {
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");

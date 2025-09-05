@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationFeature;
@@ -128,7 +129,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	}
 
 	@Override
-	protected <T> T fromJson(Object json, JavaType type) throws IOException {
+	protected <T> T fromJson(@Nullable Object json, JavaType type) throws IOException {
 		try {
 			if (json instanceof String stringValue) {
 				return this.jsonMapper.readValue(stringValue, type);
@@ -147,7 +148,7 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 			}
 			else {
 				throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
-						+ " , but gotten: " + json.getClass());
+						+ " , but gotten: " + ((json != null) ? json.getClass() : "null"));
 			}
 		}
 		catch (JacksonException ex) {

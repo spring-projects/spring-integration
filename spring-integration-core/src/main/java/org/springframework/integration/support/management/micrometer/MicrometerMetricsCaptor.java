@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.integration.support.management.metrics.CounterFacade;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0.4
  *
@@ -47,9 +49,9 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	public static final String MICROMETER_CAPTOR_NAME = "integrationMicrometerMetricsCaptor";
 
-	private MeterRegistry meterRegistry;
+	private @Nullable MeterRegistry meterRegistry;
 
-	private ObjectProvider<MeterRegistry> meterRegistryProvider;
+	private @Nullable ObjectProvider<MeterRegistry> meterRegistryProvider;
 
 	public MicrometerMetricsCaptor(MeterRegistry meterRegistry) {
 		Assert.notNull(meterRegistry, "meterRegistry cannot be null");
@@ -62,8 +64,11 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	public MeterRegistry getMeterRegistry() {
 		if (this.meterRegistry == null) {
-			this.meterRegistry = this.meterRegistryProvider.getIfUnique();
+			if (this.meterRegistryProvider != null) {
+				this.meterRegistry = this.meterRegistryProvider.getIfUnique();
+			}
 		}
+		Assert.state(this.meterRegistry != null, "No MeterRegistry available");
 		return this.meterRegistry;
 	}
 
@@ -78,7 +83,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	}
 
 	@Override
-	public GaugeBuilder gaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
+	public GaugeBuilder gaugeBuilder(String name, @Nullable Object obj, ToDoubleFunction<Object> f) {
 		return new MicroGaugeBuilder(getMeterRegistry(), name, obj, f);
 	}
 
@@ -88,7 +93,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	}
 
 	@Override
-	public MeterFacade removeMeter(MeterFacade facade) {
+	public @Nullable MeterFacade removeMeter(MeterFacade facade) {
 		return facade.remove();
 	}
 
@@ -148,7 +153,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T extends MeterFacade> T remove() {
+		public <T extends MeterFacade> @Nullable T remove() {
 			if (this.meterRegistry.remove(getMeter()) != null) {
 				return (T) this;
 			}
@@ -263,7 +268,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		private final Gauge.Builder<Object> builder;
 
-		protected MicroGaugeBuilder(MeterRegistry meterRegistry, String name, Object obj, ToDoubleFunction<Object> f) {
+		protected MicroGaugeBuilder(MeterRegistry meterRegistry, String name, @Nullable Object obj, ToDoubleFunction<Object> f) {
 			this.meterRegistry = meterRegistry;
 			this.builder = Gauge.builder(name, obj, f);
 		}

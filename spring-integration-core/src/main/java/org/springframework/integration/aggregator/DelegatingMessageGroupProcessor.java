@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  *
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.2
  */
@@ -84,6 +85,7 @@ public class DelegatingMessageGroupProcessor implements MessageGroupProcessor, B
 	@Override
 	public Object processMessageGroup(MessageGroup group) {
 		Object result = this.delegate.processMessageGroup(group);
+		Assert.state(result != null, "The delegate must return a non-null for the group");
 		if (!(result instanceof Message<?>) && !(result instanceof AbstractIntegrationMessageBuilder)) {
 			result = getMessageBuilderFactory()
 					.withPayload(result)

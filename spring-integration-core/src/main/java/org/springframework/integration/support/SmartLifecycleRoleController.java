@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -56,6 +57,7 @@ import org.springframework.util.MultiValueMap;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -73,6 +75,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 
 	private final MultiValueMap<String, String> lazyLifecycles = new LinkedMultiValueMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	/**
@@ -169,7 +172,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * Start all registered {@link SmartLifecycle}s in the role.
 	 * @param role the role.
 	 */
-	public void startLifecyclesInRole(String role) {
+	public void startLifecyclesInRole(@Nullable String role) {
 		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
@@ -201,7 +204,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * Stop all registered {@link SmartLifecycle}s in the role.
 	 * @param role the role.
 	 */
-	public void stopLifecyclesInRole(String role) {
+	public void stopLifecyclesInRole(@Nullable String role) {
 		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}

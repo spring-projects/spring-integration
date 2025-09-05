@@ -17,6 +17,7 @@
 package org.springframework.integration.support.management.micrometer;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -29,6 +30,7 @@ import org.springframework.util.ClassUtils;
  * A {@link Configuration} to add a {@link MicrometerMetricsCaptor}.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.2.9
  */
@@ -45,7 +47,7 @@ public class MicrometerMetricsCaptorConfiguration {
 
 	@Bean(name = MicrometerMetricsCaptor.MICROMETER_CAPTOR_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public MicrometerMetricsCaptor micrometerMetricsCaptor(ObjectProvider<MeterRegistry> meterRegistries) {
+	public @Nullable MicrometerMetricsCaptor micrometerMetricsCaptor(ObjectProvider<MeterRegistry> meterRegistries) {
 		if (meterRegistries.stream().findAny().isPresent()) {
 			return new MicrometerMetricsCaptor(meterRegistries);
 		}

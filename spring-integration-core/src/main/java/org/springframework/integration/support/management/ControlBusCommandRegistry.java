@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * A global component to serve Control Bus command and respective SpEL expression relationships.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.4
  *
@@ -74,6 +75,7 @@ public class ControlBusCommandRegistry
 
 	private boolean eagerInitialization;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	private boolean initialized;

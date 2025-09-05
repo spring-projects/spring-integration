@@ -110,6 +110,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+		Assert.state(result != null, "The payload must not be null");
 		if (this.shouldFlattenKeys) {
 			result = flattenMap(result);
 		}

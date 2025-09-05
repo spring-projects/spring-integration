@@ -87,7 +87,7 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 				}
 			}
 			Assert.notNull(headers, error);
-
+			Assert.state(payload != null, () -> "Payload must not be null");
 			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers)

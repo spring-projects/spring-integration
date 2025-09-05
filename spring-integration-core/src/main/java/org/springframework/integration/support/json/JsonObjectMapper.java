@@ -22,6 +22,8 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.mapping.support.JsonHeaders;
 
@@ -32,12 +34,14 @@ import org.springframework.integration.mapping.support.JsonHeaders;
  * @param <P> - The expected type of JSON Parser.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
  */
 public interface JsonObjectMapper<N, P> {
 
+	@Nullable
 	default String toJson(Object value) throws IOException {
 		return null;
 	}
@@ -46,11 +50,13 @@ public interface JsonObjectMapper<N, P> {
 
 	}
 
+	@Nullable
 	default N toJsonNode(Object value) throws IOException {
 		return null;
 	}
 
-	default <T> T fromJson(Object json, Class<T> valueType) throws IOException {
+	@Nullable
+	default <T> T fromJson(@Nullable Object json, Class<T> valueType) throws IOException {
 		return null;
 	}
 
@@ -63,14 +69,17 @@ public interface JsonObjectMapper<N, P> {
 	 * @throws IOException a JSON parsing exception
 	 * @since 5.2
 	 */
+	@Nullable
 	default <T> T fromJson(Object json, ResolvableType valueType) throws IOException {
 		return null;
 	}
 
+	@Nullable
 	default <T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException {
 		return null;
 	}
 
+	@Nullable
 	default <T> T fromJson(P parser, Type valueType) throws IOException {
 		return null;
 	}

@@ -346,9 +346,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 		if (httpResponse.hasBody() && this.extractResponseBody) {
 			Object responseBody = httpResponse.getBody();
-			replyBuilder = (responseBody instanceof Message<?>)
-					? messageBuilderFactory.fromMessage((Message<?>) responseBody)
-					: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
+			Assert.state(responseBody != null, "The response body must not be null");
+			replyBuilder = (responseBody instanceof Message<?> messageResponseBody)
+					? messageBuilderFactory.fromMessage(messageResponseBody)
+					: messageBuilderFactory.withPayload(responseBody);
 		}
 		else {
 			replyBuilder = messageBuilderFactory.withPayload(httpResponse);

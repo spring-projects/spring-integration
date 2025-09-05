@@ -132,6 +132,7 @@ public final class JacksonJsonUtils {
 
 		private final String[] trustedPackages;
 
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		AllowListTypeResolverBuilder(String... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL,
 					//we do explicit validation in the TypeIdResolver

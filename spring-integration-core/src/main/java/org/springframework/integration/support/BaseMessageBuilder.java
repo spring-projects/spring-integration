@@ -48,6 +48,7 @@ import org.springframework.util.ObjectUtils;
  * @param <B> the target builder class type.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.4
  *
@@ -68,6 +69,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 
 	private volatile boolean modified;
 
+	@SuppressWarnings("NullAway.Init")
 	private String[] readOnlyHeaders;
 
 	protected BaseMessageBuilder(T payload, @Nullable Message<T> originalMessage) {
@@ -285,6 +287,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	 * @return the current {@link BaseMessageBuilder}
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public B readOnlyHeaders(@Nullable String... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 		if (readOnlyHeaders != null) {
@@ -319,7 +322,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	private boolean containsReadOnly(MessageHeaders headers) {
 		if (!ObjectUtils.isEmpty(this.readOnlyHeaders)) {
 			for (String readOnly : this.readOnlyHeaders) {
-				if (headers.containsKey(readOnly)) {
+				if (readOnly != null && headers.containsKey(readOnly)) {
 					return true;
 				}
 			}
