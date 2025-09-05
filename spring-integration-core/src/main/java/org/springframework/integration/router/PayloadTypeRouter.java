@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.CollectionUtils;
 
@@ -31,6 +33,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 
@@ -46,7 +49,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	 *    preferring direct interface over indirect subclass
 	 */
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
 		if (CollectionUtils.isEmpty(getChannelMappings())) {
 			return null;
 		}
@@ -59,7 +62,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 		return (closestMatch != null) ? Collections.singletonList(closestMatch) : null;
 	}
 
-	private String findClosestMatch(Class<?> type, boolean isArray) { // NOSONAR
+	private @Nullable String findClosestMatch(Class<?> type, boolean isArray) { // NOSONAR
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new LinkedList<>();
 		for (String candidate : getChannelMappings().keySet()) {

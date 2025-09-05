@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
@@ -50,6 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Trung Pham
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -72,9 +75,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 					});
 
-	private String prefix;
+	private @Nullable String prefix;
 
-	private String suffix;
+	private @Nullable String suffix;
 
 	private boolean resolutionRequired = true;
 
@@ -104,7 +107,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Specify a prefix to be added to each channel name prior to resolution.
 	 * @param prefix The prefix.
 	 */
-	public void setPrefix(String prefix) {
+	public void setPrefix(@Nullable String prefix) {
 		this.prefix = prefix;
 	}
 
@@ -112,7 +115,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Specify a suffix to be added to each channel name prior to resolution.
 	 * @param suffix The suffix.
 	 */
-	public void setSuffix(String suffix) {
+	public void setSuffix(@Nullable String suffix) {
 		this.suffix = suffix;
 	}
 
@@ -274,7 +277,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * @param message The message.
 	 * @return The channel keys.
 	 */
-	protected abstract List<Object> getChannelKeys(Message<?> message);
+	protected abstract @Nullable List<Object> getChannelKeys(Message<?> message);
 
 	/**
 	 * Convenience method allowing conversion of a list
@@ -289,7 +292,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void replaceChannelMappings(Properties channelMappings) {
-		Assert.notNull(channelMappings, "'channelMappings' must not be null");
 		Map<String, String> newChannelMappings = new LinkedHashMap<>();
 		Set<String> keys = channelMappings.stringPropertyNames();
 		for (String key : keys) {
@@ -304,7 +306,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		logger.debug(LogMessage.format("Channel mappings: %s replaced with: %s", oldChannelMappings, newChannelMappings));
 	}
 
-	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+	private @Nullable MessageChannel resolveChannelForName(String channelName, Message<?> message) {
 		MessageChannel channel = null;
 		try {
 			channel = getChannelResolver().resolveDestination(channelName);
@@ -360,7 +362,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		}
 	}
 
-	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelKeys, Message<?> message) {
+	private void addToCollection(Collection<MessageChannel> channels, @Nullable Collection<?> channelKeys, Message<?> message) {
 		if (channelKeys == null) {
 			return;
 		}

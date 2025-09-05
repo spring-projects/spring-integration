@@ -37,6 +37,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -169,6 +170,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 				}
 				Properties properties = (Properties) getConversionService().convert(mappings.toString(),
 						TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Properties.class));
+				Assert.state(properties != null, "The properties for channel mappings must not be null.");
 				methodInvokingRouter.replaceChannelMappings(properties);
 			}
 

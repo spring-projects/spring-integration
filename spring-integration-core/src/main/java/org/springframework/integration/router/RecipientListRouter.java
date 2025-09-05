@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Liujiong
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class RecipientListRouter extends AbstractMessageRouter implements RecipientListRouterManagement {
 
@@ -151,11 +152,11 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		addRecipient(channelName, (MessageSelector) null);
 	}
 
-	public void addRecipient(String channelName, MessageSelector selector) {
+	public void addRecipient(String channelName, @Nullable MessageSelector selector) {
 		addRecipient(channelName, selector, this.recipients);
 	}
 
-	private void addRecipient(String channelName, MessageSelector selector, Queue<Recipient> recipientsToAdd) {
+	private void addRecipient(String channelName, @Nullable MessageSelector selector, Queue<Recipient> recipientsToAdd) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
 		Recipient recipient = new Recipient(channelName, selector);
 		setupRecipient(recipient);
@@ -166,7 +167,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		addRecipient(channel, null);
 	}
 
-	public void addRecipient(MessageChannel channel, MessageSelector selector) {
+	public void addRecipient(MessageChannel channel, @Nullable MessageSelector selector) {
 		Recipient recipient = new Recipient(channel, selector);
 		setupRecipient(recipient);
 		this.recipients.add(recipient);
@@ -273,19 +274,19 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 
 	public static class Recipient {
 
-		private final MessageSelector selector;
+		private final @Nullable MessageSelector selector;
 
-		private MessageChannel channel;
+		private @Nullable MessageChannel channel;
 
-		private String channelName;
+		private @Nullable String channelName;
 
-		private DestinationResolver<MessageChannel> channelResolver;
+		private @Nullable DestinationResolver<MessageChannel> channelResolver;
 
 		public Recipient(MessageChannel channel) {
 			this(channel, null);
 		}
 
-		public Recipient(MessageChannel channel, MessageSelector selector) {
+		public Recipient(MessageChannel channel, @Nullable MessageSelector selector) {
 			this.channel = channel;
 			this.selector = selector;
 		}
@@ -294,7 +295,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			this(channelName, null);
 		}
 
-		public Recipient(String channelName, MessageSelector selector) {
+		public Recipient(String channelName, @Nullable MessageSelector selector) {
 			this.channelName = channelName;
 			this.selector = selector;
 		}
@@ -303,7 +304,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			this.channelResolver = channelResolver;
 		}
 
-		private MessageSelector getSelector() {
+		private @Nullable MessageSelector getSelector() {
 			return this.selector;
 		}
 
