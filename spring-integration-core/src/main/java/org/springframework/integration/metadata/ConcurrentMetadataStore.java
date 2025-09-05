@@ -16,10 +16,13 @@
 
 package org.springframework.integration.metadata;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Supports atomic updates to values in the store.
  *
  * @author Gary Russell
+ * @author Glenn Renfro
  * @since 4.0
  *
  */
@@ -32,6 +35,7 @@ public interface ConcurrentMetadataStore extends MetadataStore {
 	 * @param value The value.
 	 * @return null if successful, the old value otherwise.
 	 */
+	@Nullable
 	String putIfAbsent(String key, String value);
 
 	/**

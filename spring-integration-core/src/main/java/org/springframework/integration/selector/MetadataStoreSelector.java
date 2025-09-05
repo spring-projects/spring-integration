@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -114,10 +115,13 @@ public class MetadataStoreSelector implements MessageSelector {
 	@Override
 	public boolean accept(Message<?> message) {
 		String key = this.keyStrategy.processMessage(message);
+		Assert.state(key != null, () -> "The keyStrategy.processMessage must not return null.");
+
 		Long timestamp = message.getHeaders().getTimestamp();
 		String value = (this.valueStrategy != null)
 				? this.valueStrategy.processMessage(message)
 				: (timestamp == null ? "0" : Long.toString(timestamp));
+		Assert.state(value != null, () -> "The valueStrategy.processMessage must not return null.");
 
 		BiPredicate<String, String> predicate = this.compareValues;
 		if (predicate == null) {
