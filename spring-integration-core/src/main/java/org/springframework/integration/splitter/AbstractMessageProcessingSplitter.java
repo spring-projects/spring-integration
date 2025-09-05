@@ -18,6 +18,8 @@ package org.springframework.integration.splitter;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -48,7 +50,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 	}
 
 	@Override
-	protected final Object splitMessage(Message<?> message) {
+	protected final @Nullable Object splitMessage(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
 

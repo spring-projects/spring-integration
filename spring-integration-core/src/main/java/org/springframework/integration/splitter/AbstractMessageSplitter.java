@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.TreeNode;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -54,15 +55,16 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @author Ngoc Nhan
  * @author Jooyoung Pyoung
+ * @author Glenn Renfro
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler
 		implements DiscardingMessageHandler {
 
 	private boolean applySequence = true;
 
-	private MessageChannel discardChannel;
+	private @Nullable MessageChannel discardChannel;
 
-	private String discardChannelName;
+	private @Nullable String discardChannelName;
 
 	/**
 	 * Set the applySequence flag to the specified value. Defaults to true.
@@ -99,7 +101,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	public MessageChannel getDiscardChannel() {
+	public @Nullable MessageChannel getDiscardChannel() {
 		if (this.discardChannel == null) {
 			String channelName = this.discardChannelName;
 			if (channelName != null) {
@@ -122,7 +124,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	protected final Object handleRequestMessage(Message<?> message) {
+	protected final @Nullable Object handleRequestMessage(Message<?> message) {
 		Object result = splitMessage(message);
 		// return null if 'null'
 		if (result == null) {
@@ -181,7 +183,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@SuppressWarnings("unchecked")
-	private Iterator<?> prepareIteratorResult(Message<?> message, Object result) {
+	private @Nullable Iterator<?> prepareIteratorResult(Message<?> message, Object result) {
 		int sequenceSize = 1;
 		Iterator<?> iterator = Collections.singleton(result).iterator();
 
@@ -272,7 +274,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,
-			Object correlationId, int sequenceNumber, int sequenceSize) {
+			@Nullable Object correlationId, int sequenceNumber, int sequenceSize) {
 
 		AbstractIntegrationMessageBuilder<?> builder = messageBuilderForReply(item);
 		builder.setHeader(MessageHistory.HEADER_NAME, headers.get(MessageHistory.HEADER_NAME))
@@ -348,7 +350,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * @param message The message.
 	 * @return The result of splitting the message.
 	 */
-	protected abstract Object splitMessage(Message<?> message);
+	protected abstract @Nullable Object splitMessage(Message<?> message);
 
 	@Deprecated(since = "7.0", forRemoval = true)
 	private static final class JacksonNodeHelper {
