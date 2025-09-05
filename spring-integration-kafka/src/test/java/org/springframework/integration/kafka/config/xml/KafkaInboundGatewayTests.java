@@ -66,9 +66,8 @@ public class KafkaInboundGatewayTests {
 				.isSameAs(this.context.getBean("ems"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "retryTemplate"))
 				.isSameAs(this.context.getBean("retryTemplate"));
-		//		 TODO https://github.com/spring-projects/spring-integration/issues/10345
-//		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
-//				.isSameAs(this.context.getBean("recoveryCallback"));
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
+				.isSameAs(this.context.getBean("recoveryCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);

@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.retry.RetryPolicy
+import org.springframework.core.retry.RetryTemplate
 import org.springframework.integration.IntegrationMessageHeaderAccessor
 import org.springframework.integration.MessageRejectedException
 import org.springframework.integration.channel.PublishSubscribeChannel
@@ -56,7 +58,6 @@ import org.springframework.messaging.PollableChannel
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.support.ErrorMessage
 import org.springframework.messaging.support.GenericMessage
-import org.springframework.retry.support.RetryTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.time.Duration
@@ -235,7 +236,7 @@ class KafkaDslKotlinTests {
 
 					}
 					.errorChannel(errorChannel())
-					.retryTemplate(RetryTemplate())
+					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
 					.filterInRetry(true)) {
 				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
 					throwExceptionOnRejection(
@@ -258,7 +259,7 @@ class KafkaDslKotlinTests {
 							.groupId("kotlin_topic2_group")
 					}
 					.errorChannel(errorChannel())
-					.retryTemplate(RetryTemplate())
+					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
 					.filterInRetry(true)) {
 				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
 					throwExceptionOnRejection(

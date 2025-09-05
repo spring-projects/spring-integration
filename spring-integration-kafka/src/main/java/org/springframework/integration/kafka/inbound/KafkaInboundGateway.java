@@ -18,7 +18,6 @@ package org.springframework.integration.kafka.inbound;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
@@ -29,6 +28,7 @@ import org.apache.kafka.common.header.Header;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.Pausable;
@@ -56,8 +56,6 @@ import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -86,7 +84,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 
 	private @Nullable RetryTemplate retryTemplate;
 
-	private org.springframework.retry.@Nullable RecoveryCallback<?> recoveryCallback;
+	private @Nullable RecoveryCallback<?> recoveryCallback;
 
 	private @Nullable BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
@@ -174,8 +172,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	 * @param recoveryCallback the recovery callback.
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
-		this.recoveryCallback = (context) ->
-				recoveryCallback.recover(context, Objects.requireNonNull(context.getLastThrowable()));
+		this.recoveryCallback = recoveryCallback;
 	}
 
 	/**
@@ -209,12 +206,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		if (this.retryTemplate != null) {
 			MessageChannel errorChannel = getErrorChannel();
 			if (this.recoveryCallback != null && errorChannel != null) {
-				// TODO https://github.com/spring-projects/spring-integration/issues/10345
-				ErrorMessageSendingRecoverer errorMessageSendingRecoverer =
-						new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
-				this.recoveryCallback =
-						context ->
-								errorMessageSendingRecoverer.recover(context, context.getLastThrowable());
+				this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
 			}
 		}
 		ContainerProperties containerProperties = this.messageListenerContainer.getContainerProperties();
@@ -266,27 +258,24 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	}
 
 	/**
-	 * If there's a retry template, it will set the attributes holder via the listener. If
-	 * there's no retry template, but there's an error channel, we create a new attributes
-	 * holder here. If an attributes holder exists (by either method), we set the
+	 * If there's a retry template, it will set the attribute holder via the listener. If
+	 * there's no retry template, but there's an error channel, we create a new attribute
+	 * holder here. If an attribute holder exists (by either method), we set the
 	 * attributes for use by the {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param record the record.
 	 * @param message the message.
 	 * @param conversionError a conversion error occurred.
 	 */
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
-		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
-				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
-		boolean needAttributes = needHolder || this.retryTemplate != null;
+		boolean needHolder = getErrorChannel() != null || this.retryTemplate != null || conversionError;
 		if (needHolder) {
-			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
-		}
-		if (needAttributes) {
 			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
-			if (attributes != null) {
-				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-				attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
+			if (attributes == null) {
+				attributes = ErrorMessageUtils.getAttributeAccessor(null, null);
+				ATTRIBUTES_HOLDER.set(attributes);
 			}
+			attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+			attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
 		}
 	}
 
@@ -368,19 +357,18 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				}
 			}
 			finally {
-				if (KafkaInboundGateway.this.retryTemplate == null) {
-					ATTRIBUTES_HOLDER.remove();
-				}
+				ATTRIBUTES_HOLDER.remove();
 			}
 		}
 
 		private Message<?> enhanceHeadersAndSaveAttributes(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
+			AttributeAccessor retryContext = ATTRIBUTES_HOLDER.get();
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
 				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
-				if (KafkaInboundGateway.this.retryTemplate != null) {
+				if (KafkaInboundGateway.this.retryTemplate != null && retryContext != null) {
 					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
+							new AtomicInteger(((RetryContext) retryContext).getRetryCount() + 1);
 					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 				}
 				else if (KafkaInboundGateway.this.containerDeliveryAttemptPresent) {
@@ -394,9 +382,9 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			}
 			else {
 				MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-				if (KafkaInboundGateway.this.retryTemplate != null) {
+				if (KafkaInboundGateway.this.retryTemplate != null && retryContext != null) {
 					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
+							new AtomicInteger(((RetryContext) retryContext).getRetryCount() + 1);
 					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 				}
 				else if (KafkaInboundGateway.this.containerDeliveryAttemptPresent) {

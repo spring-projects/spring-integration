@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
@@ -33,7 +34,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**

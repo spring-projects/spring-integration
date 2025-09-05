@@ -53,7 +53,7 @@
 
 	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy"/>
 
-	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate"/>
+	<bean id="retryTemplate" class="org.springframework.core.retry.RetryTemplate"/>
 
 	<bean id="recoveryCallback"
 		  class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer"/>
