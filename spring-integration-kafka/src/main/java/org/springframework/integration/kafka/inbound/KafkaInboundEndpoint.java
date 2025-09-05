@@ -21,39 +21,43 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.core.AttributeAccessorSupport;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.support.RetryTemplate;
 
 /**
  * Implementations of this interface will generally support a retry template for retrying
- * incoming deliveries and this supports adding common attributes to the retry context.
+ * incoming deliveries, and this supports adding common attributes to the retry context.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 6.0
  *
  */
 public interface KafkaInboundEndpoint {
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for an acknowledgment
+	 * The {@link RetryContext} attribute key for an acknowledgment
 	 * if the listener is capable of acknowledging.
 	 */
 	String CONTEXT_ACKNOWLEDGMENT = "acknowledgment";
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for the consumer if
+	 * The {@link RetryContext} attribute key for the consumer if
 	 * the listener is consumer-aware.
 	 */
 	String CONTEXT_CONSUMER = "consumer";
 
 	/**
-	 * {@link org.springframework.retry.RetryContext} attribute key for the record.
+	 * The {@link RetryContext} attribute key for the record.
 	 */
 	String CONTEXT_RECORD = "record";
 
-	ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+	ThreadLocal<@Nullable AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	/**
 	 * Execute the runnable with the retry template and recovery callback.
@@ -67,24 +71,46 @@ public interface KafkaInboundEndpoint {
 	default void doWithRetry(RetryTemplate template, @Nullable RecoveryCallback<?> callback, ConsumerRecord<?, ?> record,
 			@Nullable Acknowledgment acknowledgment, @Nullable Consumer<?, ?> consumer, Runnable runnable) {
 
+		RetryContext context = new RetryContext();
+		context.setAttribute(CONTEXT_RECORD, record);
+		context.setAttribute(CONTEXT_ACKNOWLEDGMENT, acknowledgment);
+		context.setAttribute(CONTEXT_CONSUMER, consumer);
+		ATTRIBUTES_HOLDER.set(context);
+
 		try {
-			template.execute(context -> {
-				if (context.getRetryCount() == 0) {
-					context.setAttribute(CONTEXT_RECORD, record);
-					context.setAttribute(CONTEXT_ACKNOWLEDGMENT, acknowledgment);
-					context.setAttribute(CONTEXT_CONSUMER, consumer);
-					ATTRIBUTES_HOLDER.set(context);
+			template.execute(() -> {
+				try {
+					runnable.run();
 				}
-				runnable.run();
+				catch (Throwable ex) {
+					context.retryCount++;
+					throw ex;
+				}
 				return null;
-			}, callback);
+			});
 		}
-		catch (Exception ex) {
-			throw new KafkaException("Failed to execute runnable", ex);
+		catch (RetryException ex) {
+			if (callback != null) {
+				callback.recover(context, ex);
+			}
+			else {
+				throw new KafkaException("Failed to execute runnable", ex);
+			}
 		}
 		finally {
 			ATTRIBUTES_HOLDER.remove();
 		}
+	}
+
+	@SuppressWarnings("serial")
+	final class RetryContext extends AttributeAccessorSupport {
+
+		private int retryCount;
+
+		public int getRetryCount() {
+			return this.retryCount;
+		}
+
 	}
 
 }

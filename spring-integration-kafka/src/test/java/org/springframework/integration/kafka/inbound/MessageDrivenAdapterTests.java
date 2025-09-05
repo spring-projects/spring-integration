@@ -40,6 +40,10 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.retry.RetryListener;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.core.retry.Retryable;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
@@ -83,11 +87,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -245,14 +244,10 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 		};
 		adapter.setOutputChannel(out);
-		RetryTemplate retryTemplate = new RetryTemplate();
-		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-		retryPolicy.setMaxAttempts(2);
-		retryTemplate.setRetryPolicy(retryPolicy);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
-		adapter.setRetryTemplate(retryTemplate);
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -280,7 +275,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic4);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(2);
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(3);
 
 		assertThat(receivedMessageHistory.get()).isNotNull();
 		assertThat(receivedMessageHistory.get().toString()).isEqualTo("myNullChannel");
@@ -312,19 +307,15 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 		};
 		adapter.setOutputChannel(out);
-		RetryTemplate retryTemplate = new RetryTemplate();
-		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-		retryPolicy.setMaxAttempts(2);
-		retryTemplate.setRetryPolicy(retryPolicy);
-		final CountDownLatch retryCountLatch = new CountDownLatch(retryPolicy.getMaxAttempts());
-		retryTemplate.registerListener(new RetryListener() {
+		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build());
+		final CountDownLatch retryCountLatch = new CountDownLatch(3);
+		retryTemplate.setRetryListener(new RetryListener() {
 
 			@Override
-			public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-					Throwable throwable) {
-
+			public void onRetryFailure(RetryPolicy retryPolicy, Retryable<?> retryable, Throwable throwable) {
 				retryCountLatch.countDown();
 			}
+
 		});
 		adapter.setRetryTemplate(retryTemplate);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);

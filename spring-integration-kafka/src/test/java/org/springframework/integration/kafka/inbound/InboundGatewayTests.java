@@ -17,6 +17,7 @@
 package org.springframework.integration.kafka.inbound;
 
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.retry.RetryListener;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.core.retry.Retryable;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -54,12 +59,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
-import org.springframework.retry.backoff.NoBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -320,12 +319,7 @@ class InboundGatewayTests {
 
 		});
 		gateway.setReplyTimeout(30_000);
-		RetryTemplate retryTemplate = new RetryTemplate();
-		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-		retryPolicy.setMaxAttempts(2);
-		retryTemplate.setRetryPolicy(retryPolicy);
-		retryTemplate.setBackOffPolicy(new NoBackOffPolicy());
-		gateway.setRetryTemplate(retryTemplate);
+		gateway.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		gateway.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errors, new RawRecordHeaderErrorMessageStrategy()));
 		gateway.afterPropertiesSet();
@@ -386,18 +380,12 @@ class InboundGatewayTests {
 		gateway.setRequestChannel(out);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setReplyTimeout(30_000);
-		RetryTemplate retryTemplate = new RetryTemplate();
-		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-		retryPolicy.setMaxAttempts(5);
-		retryTemplate.setRetryPolicy(retryPolicy);
-		retryTemplate.setBackOffPolicy(new NoBackOffPolicy());
-		final CountDownLatch retryCountLatch = new CountDownLatch(retryPolicy.getMaxAttempts());
-		retryTemplate.registerListener(new RetryListener() {
+		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxAttempts(4).delay(Duration.ZERO).build());
+		final CountDownLatch retryCountLatch = new CountDownLatch(4);
+		retryTemplate.setRetryListener(new RetryListener() {
 
 			@Override
-			public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-					Throwable throwable) {
-
+			public void onRetryFailure(RetryPolicy retryPolicy, Retryable<?> retryable, Throwable throwable) {
 				retryCountLatch.countDown();
 			}
 		});

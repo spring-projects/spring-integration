@@ -37,6 +37,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
@@ -80,7 +82,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.backoff.FixedBackOff;
@@ -302,7 +303,8 @@ public class KafkaDslTests {
 											.idleEventInterval(100L)
 											.id("topic1ListenerContainer"))
 							.errorChannel(errorChannel())
-							.retryTemplate(new RetryTemplate())
+							.retryTemplate(
+									new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
 							.onPartitionsAssignedSeekCallback((map, callback) ->
 									ContextConfiguration.this.onPartitionsAssignedCalledLatch.countDown()))
 					.filter(Message.class, m ->

@@ -16,12 +16,15 @@
 
 package org.springframework.integration.kafka.config.xml;
 
+import java.time.Duration;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -36,7 +39,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -95,8 +97,7 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "retryTemplate")).isSameAs(this.retryTemplate);
-		//		 TODO https://github.com/spring-projects/spring-integration/issues/10345
-//		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "bindSourceRecord", Boolean.class)).isTrue();
@@ -146,7 +147,7 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(null);
-		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
 		container.getContainerProperties().setMessageListener(null);
 		adapter.afterPropertiesSet();
 
