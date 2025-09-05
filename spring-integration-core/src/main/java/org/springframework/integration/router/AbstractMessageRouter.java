@@ -21,6 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -47,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Stefan Ferstl
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  */
 @ManagedResource
 @IntegrationManagedResource
@@ -56,9 +59,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile MessageChannel defaultOutputChannel;
+	private volatile @Nullable MessageChannel defaultOutputChannel;
 
-	private volatile String defaultOutputChannelName;
+	private volatile @Nullable String defaultOutputChannelName;
 
 	private volatile boolean ignoreSendFailures;
 
@@ -85,7 +88,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	 * @since 4.3
 	 */
 	@Override
-	public MessageChannel getDefaultOutputChannel() {
+	public @Nullable MessageChannel getDefaultOutputChannel() {
 		if (this.defaultOutputChannelName != null) {
 			this.lock.lock();
 			try {
