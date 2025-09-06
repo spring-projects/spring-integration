@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
+import org.apache.kafka.clients.consumer.CloseOptions;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -335,7 +336,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).resume(partitions.getAllValues().get(1));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 		inOrder.verifyNoMoreInteractions();
 		if (!sync) {
 			assertThat(callbackCount.get()).isEqualTo(4);
@@ -456,7 +457,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(6L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -527,7 +528,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)),
 				Duration.ofSeconds(30));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -615,7 +616,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -768,7 +769,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -945,7 +946,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).close(any());
+		inOrder.verify(consumer).close(any(CloseOptions.class));
 	}
 
 }

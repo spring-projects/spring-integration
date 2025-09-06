@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.consumer.CloseOptions;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -683,7 +684,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		try {
 			if (this.consumer != null) {
 				this.consumer.wakeup();
-				this.consumer.close(this.closeTimeout);
+				this.consumer.close(CloseOptions.timeout(this.closeTimeout));
 				this.consumer = null;
 				this.assignedPartitions.clear();
 			}
