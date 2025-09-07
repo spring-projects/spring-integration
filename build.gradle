@@ -81,7 +81,7 @@ ext {
     junitJupiterVersion = '5.13.4'
     kotlinCoroutinesVersion = '1.10.2'
     kryoVersion = '5.6.2'
-    lettuceVersion = '6.8.0.RELEASE'
+    lettuceVersion = '6.8.1.RELEASE'
     log4jVersion = '2.25.1'
     mailVersion = '2.0.4'
     micrometerTracingVersion = '1.6.0-M2'
