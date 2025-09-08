@@ -24,7 +24,6 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -41,7 +40,7 @@ import org.springframework.util.Assert;
  * @deprecated Since 7.0 in favor of {@link JacksonJsonMessageParser} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
-@SuppressWarnings("removal")
+@SuppressWarnings({"removal", "NullAway"})
 public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
 	public Jackson2JsonMessageParser() {
@@ -64,7 +63,7 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 
 	@Override
 	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage,
-			@Nullable Map<String, Object> headersToAdd) {
+			Map<String, Object> headersToAdd) {
 
 		try {
 			String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
@@ -87,7 +86,6 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 				}
 			}
 			Assert.notNull(headers, error);
-			Assert.state(payload != null, () -> "Payload must not be null");
 			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers)

@@ -105,7 +105,9 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	protected Map<String, @Nullable Object> transformPayload(Object payload) {
 		Map<String, @Nullable Object> result;
 		try {
-			result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
+			var payloadValue = this.jsonObjectMapper.toJson(payload);
+			Assert.state(payloadValue != null, "'payload' must not be null");
+			result = this.jsonObjectMapper.fromJson(payloadValue, Map.class);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

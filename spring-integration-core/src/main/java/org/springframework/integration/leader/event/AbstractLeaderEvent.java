@@ -40,15 +40,6 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 * Create a new ApplicationEvent.
 	 *
 	 * @param source the component that published the event (never {@code null})
-	 */
-	public AbstractLeaderEvent(Object source) {
-		this(source, null, null);
-	}
-
-	/**
-	 * Create a new ApplicationEvent.
-	 *
-	 * @param source the component that published the event (never {@code null})
 	 * @param context the context associated with this event
 	 * @param role the role of the leader
 	 */

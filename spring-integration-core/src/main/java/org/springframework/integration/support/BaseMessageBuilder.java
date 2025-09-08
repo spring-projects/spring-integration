@@ -70,7 +70,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	private volatile boolean modified;
 
 	@SuppressWarnings("NullAway.Init")
-	private String[] readOnlyHeaders;
+	private String @Nullable [] readOnlyHeaders;
 
 	protected BaseMessageBuilder(T payload, @Nullable Message<T> originalMessage) {
 		Assert.notNull(payload, "payload must not be null");
@@ -287,8 +287,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	 * @return the current {@link BaseMessageBuilder}
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
-	public B readOnlyHeaders(@Nullable String... readOnlyHeaders) {
+	public B readOnlyHeaders(String... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 		if (readOnlyHeaders != null) {
 			this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);

@@ -335,6 +335,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	protected abstract Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables);
 
+	@SuppressWarnings("NullAway")
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		HttpHeaders httpHeaders = httpResponse.getHeaders();
 		Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -346,7 +347,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 		if (httpResponse.hasBody() && this.extractResponseBody) {
 			Object responseBody = httpResponse.getBody();
-			Assert.state(responseBody != null, "The response body must not be null");
 			replyBuilder = (responseBody instanceof Message<?> messageResponseBody)
 					? messageBuilderFactory.fromMessage(messageResponseBody)
 					: messageBuilderFactory.withPayload(responseBody);

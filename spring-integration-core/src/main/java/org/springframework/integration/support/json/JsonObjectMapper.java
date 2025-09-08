@@ -56,7 +56,7 @@ public interface JsonObjectMapper<N, P> {
 	}
 
 	@Nullable
-	default <T> T fromJson(@Nullable Object json, Class<T> valueType) throws IOException {
+	default <T> T fromJson(Object json, Class<T> valueType) throws IOException {
 		return null;
 	}
 

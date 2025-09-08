@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
@@ -64,6 +63,7 @@ import org.springframework.util.ClassUtils;
  * @deprecated Since 7.0 in favor of {@link JacksonJsonObjectMapper} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("NullAway")
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
 	private static final boolean JDK8_MODULE_PRESENT =
@@ -141,7 +141,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	protected <T> T fromJson(@Nullable Object json, JavaType type) throws IOException {
+	protected <T> T fromJson(Object json, JavaType type) throws IOException {
 		if (json instanceof String) {
 			return this.objectMapper.readValue((String) json, type);
 		}

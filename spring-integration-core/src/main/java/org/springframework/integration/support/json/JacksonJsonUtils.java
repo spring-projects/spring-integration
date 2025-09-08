@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
@@ -130,10 +131,9 @@ public final class JacksonJsonUtils {
 		@Serial
 		private static final long serialVersionUID = 1L;
 
-		private final String[] trustedPackages;
+		private final String @Nullable [] trustedPackages;
 
-		@SuppressWarnings("NullAway") // Dataflow analysis limitation
-		AllowListTypeResolverBuilder(String... trustedPackages) {
+		AllowListTypeResolverBuilder(String @Nullable ... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL,
 					//we do explicit validation in the TypeIdResolver
 					BasicPolymorphicTypeValidator.builder()
@@ -173,7 +173,7 @@ public final class JacksonJsonUtils {
 
 		private final Set<String> trustedPackages = new LinkedHashSet<>(DEFAULT_TRUSTED_PACKAGES);
 
-		AllowListTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
+		AllowListTypeIdResolver(TypeIdResolver delegate, String @Nullable ... trustedPackages) {
 			this.delegate = delegate;
 			if (trustedPackages != null) {
 				for (String trustedPackage : trustedPackages) {

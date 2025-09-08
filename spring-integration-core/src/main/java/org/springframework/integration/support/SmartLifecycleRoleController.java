@@ -172,7 +172,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * Start all registered {@link SmartLifecycle}s in the role.
 	 * @param role the role.
 	 */
-	public void startLifecyclesInRole(@Nullable String role) {
+	public void startLifecyclesInRole(String role) {
 		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
@@ -318,6 +318,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	@Override
 	public void onApplicationEvent(AbstractLeaderEvent event) {
 		if (event instanceof OnGrantedEvent) {
+			Assert.state(event.getRole() != null, "A role is required");
 			startLifecyclesInRole(event.getRole());
 		}
 		else if (event instanceof OnRevokedEvent) {

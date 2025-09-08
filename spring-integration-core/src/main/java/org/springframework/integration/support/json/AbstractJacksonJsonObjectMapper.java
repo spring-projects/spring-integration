@@ -61,7 +61,7 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonOb
 	}
 
 	@Override
-	public <T> T fromJson(@Nullable Object json, Class<T> valueType) throws IOException {
+	public <T> T fromJson(Object json, Class<T> valueType) throws IOException {
 		return fromJson(json, constructType(valueType));
 	}
 
@@ -99,7 +99,7 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonOb
 		}
 	}
 
-	protected abstract <T> T fromJson(@Nullable Object json, J type) throws IOException;
+	protected abstract <T> T fromJson(Object json, J type) throws IOException;
 
 	protected abstract J extractJavaType(Map<String, Object> javaTypes);
 

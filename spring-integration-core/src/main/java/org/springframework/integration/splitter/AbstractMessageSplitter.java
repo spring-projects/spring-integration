@@ -234,7 +234,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		Map<String, Object> headers = messageHeaders;
 		Object correlationId = message.getHeaders().getId();
 		AtomicInteger sequenceNumber = new AtomicInteger(1);
-		Assert.state(correlationId != null, "Correlation ID must not be null.");
 		return object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
 	}
 
