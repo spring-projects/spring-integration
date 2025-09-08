@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.ResourceHolder;
 
@@ -29,6 +31,7 @@ import org.springframework.transaction.support.ResourceHolder;
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -39,7 +42,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 
 	public static final String INPUT_CHANNEL = "inputChannel";
 
-	private volatile Message<?> message;
+	private volatile @Nullable Message<?> message;
 
 	private final Map<String, Object> attributes = new HashMap<>();
 
@@ -47,7 +50,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 		this.message = message;
 	}
 
-	public Message<?> getMessage() {
+	public @Nullable Message<?> getMessage() {
 		return this.message;
 	}
 
