@@ -48,6 +48,7 @@ import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.retry.RetryException;
 import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -73,6 +74,7 @@ import org.springframework.messaging.support.GenericMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -359,9 +361,10 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
 				.andProperties(new MessageProperties()).build(), null);
 		Message<?> errorMessage = errors.receive(0);
-		assertThat(errorMessage).isNotNull();
-		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(errorMessage).extracting(Message::getPayload).isInstanceOf(MessagingException.class);
 		MessagingException payload = (MessagingException) errorMessage.getPayload();
+		assertThat(payload.getCause()).isInstanceOf(RetryException.class);
+		payload = (MessagingException) payload.getCause().getCause();
 		assertThat(payload.getMessage()).contains("Dispatcher has no");
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
@@ -398,6 +401,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(recoveredError.get())
+				.isInstanceOf(RetryException.class)
+				.cause()
 				.isInstanceOf(MessagingException.class)
 				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
 				.contains("Dispatcher has no");
@@ -422,11 +427,17 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
 				.andProperties(new MessageProperties()).build(), null);
 		Message<?> errorMessage = errors.receive(0);
-		assertThat(errorMessage).isNotNull();
-		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
-		MessagingException payload = (MessagingException) errorMessage.getPayload();
-		assertThat(payload.getMessage()).contains("Dispatcher has no");
-		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
+		assertThat(errorMessage)
+				.extracting(Message::getPayload)
+				.isInstanceOf(MessagingException.class)
+				.extracting("cause.cause.message")
+				.asString()
+				.contains("Dispatcher has no");
+		assertThat(errorMessage)
+				.extracting("payload.cause.cause.failedMessage")
+				.asInstanceOf(type(Message.class))
+				.extracting((message) -> StaticMessageHeaderAccessor.getDeliveryAttempt(message).get())
+				.isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
 				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
 						org.springframework.amqp.core.Message.class);
@@ -461,6 +472,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(recoveredError.get())
+				.isInstanceOf(RetryException.class)
+				.cause()
 				.isInstanceOf(MessagingException.class)
 				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
 				.contains("Dispatcher has no");
@@ -742,9 +755,10 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		messages.add(new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties));
 		listener.onMessageBatch(messages, null);
 		Message<?> errorMessage = errors.receive(0);
-		assertThat(errorMessage).isNotNull();
-		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(errorMessage).extracting(Message::getPayload).isInstanceOf(MessagingException.class);
 		MessagingException payload = (MessagingException) errorMessage.getPayload();
+		assertThat(payload.getCause()).isInstanceOf(RetryException.class);
+		payload = (MessagingException) payload.getCause().getCause();
 		assertThat(payload.getMessage()).contains("Dispatcher has no");
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		@SuppressWarnings("unchecked")
@@ -796,6 +810,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(recoveredLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(recoveredError.get())
+				.isInstanceOf(RetryException.class)
+				.cause()
 				.isInstanceOf(MessagingException.class)
 				.extracting(Throwable::getMessage, InstanceOfAssertFactories.STRING)
 				.contains("Dispatcher has no");

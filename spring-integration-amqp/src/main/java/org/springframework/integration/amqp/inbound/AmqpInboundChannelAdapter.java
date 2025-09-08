@@ -395,7 +395,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 					}
 					catch (RetryException ex) {
 						if (this.recoverer != null) {
-							this.recoverer.recover(getErrorMessageAttributes(toSend), ex.getCause());
+							this.recoverer.recover(getErrorMessageAttributes(toSend), ex);
 						}
 						else {
 							throw new ListenerExecutionFailedException(
@@ -534,7 +534,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 						}
 						catch (RetryException ex) {
 							if (this.recoverer != null) {
-								this.recoverer.recover(getErrorMessageAttributes(null), ex.getCause());
+								this.recoverer.recover(getErrorMessageAttributes(null), ex);
 							}
 							else {
 								throw new ListenerExecutionFailedException(

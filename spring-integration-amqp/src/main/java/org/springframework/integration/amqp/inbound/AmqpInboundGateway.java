@@ -378,7 +378,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 						catch (RetryException ex) {
 							if (AmqpInboundGateway.this.recoveryCallback != null) {
 								AmqpInboundGateway.this.recoveryCallback.recover(getErrorMessageAttributes(converted),
-										ex.getCause());
+										ex);
 							}
 							else {
 								throw new ListenerExecutionFailedException(

@@ -633,7 +633,7 @@ public class ChannelPublishingJmsMessageListener
 					}
 					catch (RetryException ex) {
 						if (this.recoveryCallback != null) {
-							this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage), ex.getCause());
+							this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage), ex);
 						}
 						else {
 							throw new ListenerExecutionFailedException(
@@ -666,8 +666,7 @@ public class ChannelPublishingJmsMessageListener
 					}
 					catch (RetryException ex) {
 						if (this.recoveryCallback != null) {
-							return this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage),
-									ex.getCause());
+							return this.recoveryCallback.recover(getErrorMessageAttributes(requestMessage), ex);
 						}
 						else {
 							throw new ListenerExecutionFailedException(
