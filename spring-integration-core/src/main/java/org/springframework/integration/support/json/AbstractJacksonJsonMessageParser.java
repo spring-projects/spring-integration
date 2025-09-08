@@ -28,6 +28,7 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Base {@link JsonInboundMessageMapper.JsonMessageParser} implementation for Jackson processors.
@@ -44,10 +45,12 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 	private final JsonObjectMapper<?, P> objectMapper;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile JsonInboundMessageMapper messageMapper;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private volatile boolean messageBuilderFactorySet;
@@ -82,6 +85,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 		if (messageMapperToUse.isMapToPayload()) {
 			Object payload = readPayload(parser, jsonMessage);
+			Assert.state(payload != null, "No payload found in JSON message");
 			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers)
@@ -92,7 +96,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		}
 	}
 
-	protected Object readPayload(P parser, String jsonMessage) {
+	protected @Nullable Object readPayload(P parser, String jsonMessage) {
 		try {
 			return this.objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
 		}
@@ -102,7 +106,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		}
 	}
 
-	protected Object readHeader(P parser, String headerName, String jsonMessage) {
+	protected @Nullable Object readHeader(P parser, String headerName, String jsonMessage) {
 		Class<?> headerType = this.messageMapper.getHeaderTypes().getOrDefault(headerName, Object.class);
 		try {
 			return this.objectMapper.fromJson(parser, (Type) headerType);

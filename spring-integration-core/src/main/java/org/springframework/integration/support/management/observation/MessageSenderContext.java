@@ -34,6 +34,7 @@ public class MessageSenderContext extends SenderContext<MutableMessage<?>> {
 
 	private final String producerName;
 
+	@SuppressWarnings("NullAway") // Performance
 	public MessageSenderContext(MutableMessage<?> message, String producerName) {
 		super((carrier, key, value) -> carrier.getHeaders().put(key, value));
 		this.message = message;

@@ -67,13 +67,13 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 	}
 
 	@Override
-	protected Map<String, Object> readHeaders(JsonMessageParser<?> parser, String jsonMessage) {
+	protected @Nullable Map<String, Object> readHeaders(JsonMessageParser<?> parser, String jsonMessage) {
 		//No-op
 		return null;
 	}
 
 	@Override
-	protected Object readPayload(JsonMessageParser<?> parser, String jsonMessage) {
+	protected @Nullable Object readPayload(JsonMessageParser<?> parser, String jsonMessage) {
 		//No-op
 		return null;
 	}

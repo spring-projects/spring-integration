@@ -32,7 +32,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * The {@link AbstractIntegrationMessageBuilder} extension for the default logic to build message.
@@ -48,6 +47,7 @@ import org.springframework.util.ObjectUtils;
  * @param <B> the target builder class type.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.4
  *
@@ -63,12 +63,11 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 
 	private final IntegrationMessageHeaderAccessor headerAccessor;
 
-	@Nullable
-	private final Message<T> originalMessage;
+	private final @Nullable Message<T> originalMessage;
 
 	private volatile boolean modified;
 
-	private String[] readOnlyHeaders;
+	private String @Nullable [] readOnlyHeaders;
 
 	protected BaseMessageBuilder(T payload, @Nullable Message<T> originalMessage) {
 		Assert.notNull(payload, "payload must not be null");
@@ -285,7 +284,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	 * @return the current {@link BaseMessageBuilder}
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
-	public B readOnlyHeaders(@Nullable String... readOnlyHeaders) {
+	public B readOnlyHeaders(String @Nullable ... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 		if (readOnlyHeaders != null) {
 			this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
@@ -317,7 +316,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	}
 
 	private boolean containsReadOnly(MessageHeaders headers) {
-		if (!ObjectUtils.isEmpty(this.readOnlyHeaders)) {
+		if (this.readOnlyHeaders != null) {
 			for (String readOnly : this.readOnlyHeaders) {
 				if (headers.containsKey(readOnly)) {
 					return true;

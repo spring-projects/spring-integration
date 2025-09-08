@@ -63,6 +63,7 @@ import org.springframework.util.ClassUtils;
  * @deprecated Since 7.0 in favor of {@link JacksonJsonObjectMapper} for Jackson 3.
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("NullAway")
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
 	private static final boolean JDK8_MODULE_PRESENT =
@@ -161,7 +162,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		}
 		else {
 			throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
-					+ " , but gotten: " + json.getClass());
+					+ " , but gotten: " + ((json != null) ? json.getClass() : "null"));
 		}
 	}
 

@@ -103,6 +103,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
 		Object requestObject = MarshallingUtils.unmarshal(this.unmarshaller, request);
+		Assert.state(requestObject != null, "Invalid message context: Request object was null");
 		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(requestObject);
 
 		this.fromSoapHeaders(messageContext, builder);

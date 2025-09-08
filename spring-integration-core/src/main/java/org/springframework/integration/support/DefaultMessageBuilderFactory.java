@@ -25,13 +25,14 @@ import org.springframework.messaging.Message;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
  */
 public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 
-	private String[] readOnlyHeaders;
+	private String @Nullable [] readOnlyHeaders;
 
 	/**
 	 * Specify a list of headers which should be considered as a read only
@@ -41,7 +42,7 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * and {@link org.springframework.messaging.MessageHeaders#TIMESTAMP}.
 	 * @since 4.3.2
 	 */
-	public void setReadOnlyHeaders(@Nullable String... readOnlyHeaders) {
+	public void setReadOnlyHeaders(String @Nullable ... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 	}
 
@@ -57,7 +58,7 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 		}
 		else {
 			headers = Arrays.copyOf(headers, headers.length + readOnlyHeaders.length);
-			System.arraycopy(readOnlyHeaders, 0, headers, this.readOnlyHeaders.length, readOnlyHeaders.length);
+			System.arraycopy(readOnlyHeaders, 0, headers, (this.readOnlyHeaders != null) ? this.readOnlyHeaders.length : 0, readOnlyHeaders.length);
 		}
 		this.readOnlyHeaders = headers;
 	}

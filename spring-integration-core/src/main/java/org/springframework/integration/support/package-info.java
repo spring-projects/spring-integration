@@ -1,5 +1,5 @@
 /**
  * Base core support package.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.support;

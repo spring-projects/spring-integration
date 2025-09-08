@@ -19,6 +19,8 @@ package org.springframework.integration.support.json;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -56,7 +58,7 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 	}
 
 	@Override
-	public String fromMessage(Message<?> message) {
+	public @Nullable String fromMessage(Message<?> message) {
 		try {
 			return this.jsonObjectMapper.toJson(this.shouldExtractPayload ? message.getPayload() : message);
 		}

@@ -56,6 +56,7 @@ import org.springframework.util.MultiValueMap;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -73,6 +74,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 
 	private final MultiValueMap<String, String> lazyLifecycles = new LinkedMultiValueMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
 	/**

@@ -79,7 +79,7 @@ public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<J
 			}
 		}
 		Assert.notNull(headers, error);
-
+		Assert.notNull(payload, "Payload must not be null");
 		return getMessageBuilderFactory()
 				.withPayload(payload)
 				.copyHeaders(headers)

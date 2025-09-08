@@ -180,7 +180,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-
+		Assert.state(result != null, "Payload result must not be null");
 		if (removeHeaders) {
 			return getMessageBuilderFactory()
 					.withPayload(result)

@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -80,9 +81,8 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
 	@Override
-	public <V> V getHeader(String key, Class<V> type) {
+	public 	@Nullable <V> V getHeader(String key, Class<V> type) {
 		Object value = this.headers.get(key);
 		if (value == null) {
 			return null;
@@ -218,22 +218,22 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected List<List<Object>> getSequenceDetails() {
+	protected @Nullable List<List<Object>> getSequenceDetails() {
 		return (List<List<Object>>) this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
 	}
 
 	@Override
-	protected Object getCorrelationId() {
+	protected @Nullable Object getCorrelationId() {
 		return this.headers.get(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 	}
 
 	@Override
-	protected Object getSequenceNumber() {
+	protected @Nullable Object getSequenceNumber() {
 		return this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER);
 	}
 
 	@Override
-	protected Object getSequenceSize() {
+	protected @Nullable Object getSequenceSize() {
 		return this.headers.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE);
 	}
 

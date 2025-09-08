@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
 import org.springframework.validation.Validator;
@@ -40,7 +42,8 @@ public class NullAwarePayloadArgumentResolver extends PayloadMethodArgumentResol
 	}
 
 	@Override
-	protected boolean isEmptyPayload(Object payload) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	protected boolean isEmptyPayload(@Nullable Object payload) {
 		return super.isEmptyPayload(payload) || "KafkaNull".equals(payload.getClass().getSimpleName());
 	}
 
