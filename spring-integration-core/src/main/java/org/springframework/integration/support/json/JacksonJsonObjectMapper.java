@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
@@ -97,28 +96,25 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 	@Override
 	public JsonNode toJsonNode(Object json) throws IOException {
 		try {
-			if (json instanceof String) {
-				return this.jsonMapper.readTree((String) json);
+			if (json instanceof String stringValue) {
+				return this.jsonMapper.readTree(stringValue);
 			}
-			else if (json instanceof byte[]) {
-				return this.jsonMapper.readTree((byte[]) json);
+			else if (json instanceof byte[] bytesValue) {
+				return this.jsonMapper.readTree(bytesValue);
 			}
-			else if (json instanceof File) {
-				return this.jsonMapper.readTree((File) json);
+			else if (json instanceof File fileValue) {
+				return this.jsonMapper.readTree(fileValue);
 			}
-			else if (json instanceof URL) {
-				return this.jsonMapper.readTree((URL) json);
+			else if (json instanceof InputStream inputStreamValue) {
+				return this.jsonMapper.readTree(inputStreamValue);
 			}
-			else if (json instanceof InputStream) {
-				return this.jsonMapper.readTree((InputStream) json);
-			}
-			else if (json instanceof Reader) {
-				return this.jsonMapper.readTree((Reader) json);
+			else if (json instanceof Reader readerValue) {
+				return this.jsonMapper.readTree(readerValue);
 			}
 		}
-		catch (JacksonException e) {
+		catch (JacksonException ex) {
 			if (!(json instanceof String) && !(json instanceof byte[])) {
-				throw new IOException(e);
+				throw new IOException(ex);
 			}
 			// Otherwise the input might not be valid JSON, fallback to TextNode with JsonMapper.valueToTree()
 		}
@@ -126,39 +122,36 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 		try {
 			return this.jsonMapper.valueToTree(json);
 		}
-		catch (JacksonException e) {
-			throw new IOException(e);
+		catch (JacksonException ex) {
+			throw new IOException(ex);
 		}
 	}
 
 	@Override
 	protected <T> T fromJson(Object json, JavaType type) throws IOException {
 		try {
-			if (json instanceof String) {
-				return this.jsonMapper.readValue((String) json, type);
+			if (json instanceof String stringValue) {
+				return this.jsonMapper.readValue(stringValue, type);
 			}
-			else if (json instanceof byte[]) {
-				return this.jsonMapper.readValue((byte[]) json, type);
+			else if (json instanceof byte[] bytesValue) {
+				return this.jsonMapper.readValue(bytesValue, type);
 			}
-			else if (json instanceof File) {
-				return this.jsonMapper.readValue((File) json, type);
+			else if (json instanceof File fileValue) {
+				return this.jsonMapper.readValue(fileValue, type);
 			}
-			else if (json instanceof URL) {
-				return this.jsonMapper.readValue((URL) json, type);
+			else if (json instanceof InputStream inputStreamValue) {
+				return this.jsonMapper.readValue(inputStreamValue, type);
 			}
-			else if (json instanceof InputStream) {
-				return this.jsonMapper.readValue((InputStream) json, type);
-			}
-			else if (json instanceof Reader) {
-				return this.jsonMapper.readValue((Reader) json, type);
+			else if (json instanceof Reader readerValue) {
+				return this.jsonMapper.readValue(readerValue, type);
 			}
 			else {
 				throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
 						+ " , but gotten: " + json.getClass());
 			}
 		}
-		catch (JacksonException e) {
-			throw new IOException(e);
+		catch (JacksonException ex) {
+			throw new IOException(ex);
 		}
 	}
 
@@ -167,8 +160,8 @@ public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<Jso
 		try {
 			return this.jsonMapper.readValue(parser, constructType(valueType));
 		}
-		catch (JacksonException e) {
-			throw new IOException(e);
+		catch (JacksonException ex) {
+			throw new IOException(ex);
 		}
 	}
 

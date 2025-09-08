@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,13 +30,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -111,10 +111,6 @@ class JacksonJsonObjectMapperTests {
 			JsonNode nodeFromFile = mapper.toJsonNode(file);
 			assertThat(nodeFromFile.get("message").asString()).isEqualTo("hello from file");
 			assertThat(nodeFromFile.get("number").asInt()).isEqualTo(42);
-
-			URL fileUrl = file.toURI().toURL();
-			JsonNode nodeFromUrl = mapper.toJsonNode(fileUrl);
-			assertThat(nodeFromUrl).isEqualTo(nodeFromFile);
 		}
 		finally {
 			Files.deleteIfExists(tempFile);
@@ -210,16 +206,18 @@ class JacksonJsonObjectMapperTests {
 		assertThat(deserialized.zoneDate().toInstant()).isEqualTo(data.zoneDate().toInstant());
 	}
 
-	private Set<String> getModuleNames(Collection<JacksonModule> modules) {
-		return modules.stream()
+	private Set<String> getModuleNames(Stream<JacksonModule> modules) {
+		return modules
 				.map(JacksonModule::getModuleName)
 				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private record TestData(String name, Optional<String> email, Optional<Integer> age) {
+
 	}
 
 	private record TimeData(LocalDateTime localDate, ZonedDateTime zoneDate) {
+
 	}
 
 }

@@ -16,9 +16,9 @@
 
 package org.springframework.integration.support.json;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -125,8 +126,8 @@ class JacksonMessagingUtilsTests {
 		assertThat(json).contains("application/json");
 	}
 
-	private static Set<String> getModuleNames(Collection<JacksonModule> modules) {
-		return modules.stream()
+	private static Set<String> getModuleNames(Stream<JacksonModule> modules) {
+		return modules
 				.map(JacksonModule::getModuleName)
 				.collect(Collectors.toUnmodifiableSet());
 	}
