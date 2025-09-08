@@ -32,7 +32,6 @@ import org.springframework.messaging.Message;
  */
 public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 
-	@SuppressWarnings("NullAway.Init")
 	private String @Nullable [] readOnlyHeaders;
 
 	/**
@@ -66,24 +65,14 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 
 	@Override
 	public <T> MessageBuilder<T> fromMessage(Message<T> message) {
-		if (this.readOnlyHeaders != null) {
-			return MessageBuilder.fromMessage(message)
-					.readOnlyHeaders(this.readOnlyHeaders);
-		}
-		else {
-			return MessageBuilder.fromMessage(message);
-		}
+		return MessageBuilder.fromMessage(message)
+				.readOnlyHeaders(this.readOnlyHeaders);
 	}
 
 	@Override
 	public <T> MessageBuilder<T> withPayload(T payload) {
-		if (this.readOnlyHeaders != null) {
-			return MessageBuilder.withPayload(payload)
-					.readOnlyHeaders(this.readOnlyHeaders);
-		}
-		else {
-			return MessageBuilder.withPayload(payload);
-		}
+		return MessageBuilder.withPayload(payload)
+				.readOnlyHeaders(this.readOnlyHeaders);
 	}
 
 }

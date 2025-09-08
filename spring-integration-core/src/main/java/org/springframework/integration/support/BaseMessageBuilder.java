@@ -32,7 +32,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * The {@link AbstractIntegrationMessageBuilder} extension for the default logic to build message.
@@ -64,12 +63,10 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 
 	private final IntegrationMessageHeaderAccessor headerAccessor;
 
-	@Nullable
-	private final Message<T> originalMessage;
+	private final @Nullable Message<T> originalMessage;
 
 	private volatile boolean modified;
 
-	@SuppressWarnings("NullAway.Init")
 	private String @Nullable [] readOnlyHeaders;
 
 	protected BaseMessageBuilder(T payload, @Nullable Message<T> originalMessage) {
@@ -287,7 +284,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	 * @return the current {@link BaseMessageBuilder}
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
-	public B readOnlyHeaders(String... readOnlyHeaders) {
+	public B readOnlyHeaders(String @Nullable ... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 		if (readOnlyHeaders != null) {
 			this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
@@ -319,9 +316,9 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 	}
 
 	private boolean containsReadOnly(MessageHeaders headers) {
-		if (!ObjectUtils.isEmpty(this.readOnlyHeaders)) {
+		if (this.readOnlyHeaders != null) {
 			for (String readOnly : this.readOnlyHeaders) {
-				if (readOnly != null && headers.containsKey(readOnly)) {
+				if (headers.containsKey(readOnly)) {
 					return true;
 				}
 			}
