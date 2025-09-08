@@ -43,7 +43,7 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * and {@link org.springframework.messaging.MessageHeaders#TIMESTAMP}.
 	 * @since 4.3.2
 	 */
-	public void setReadOnlyHeaders(@Nullable String... readOnlyHeaders) {
+	public void setReadOnlyHeaders(String @Nullable ... readOnlyHeaders) {
 		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 	}
 

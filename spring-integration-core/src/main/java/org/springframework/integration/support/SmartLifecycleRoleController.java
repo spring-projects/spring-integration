@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -204,7 +203,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * Stop all registered {@link SmartLifecycle}s in the role.
 	 * @param role the role.
 	 */
-	public void stopLifecyclesInRole(@Nullable String role) {
+	public void stopLifecyclesInRole(String role) {
 		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
@@ -318,7 +317,6 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	@Override
 	public void onApplicationEvent(AbstractLeaderEvent event) {
 		if (event instanceof OnGrantedEvent) {
-			Assert.state(event.getRole() != null, "A role is required");
 			startLifecyclesInRole(event.getRole());
 		}
 		else if (event instanceof OnRevokedEvent) {
