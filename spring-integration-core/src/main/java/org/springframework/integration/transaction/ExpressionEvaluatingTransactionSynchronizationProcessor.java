@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -60,19 +61,20 @@ import org.springframework.util.Assert;
 public class ExpressionEvaluatingTransactionSynchronizationProcessor extends IntegrationObjectSupport
 		implements TransactionSynchronizationProcessor {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile EvaluationContext evaluationContext;
 
-	private volatile Expression beforeCommitExpression;
+	private volatile @Nullable Expression beforeCommitExpression;
 
-	private volatile Expression afterCommitExpression;
+	private volatile @Nullable Expression afterCommitExpression;
 
-	private volatile Expression afterRollbackExpression;
+	private volatile @Nullable Expression afterRollbackExpression;
 
-	private volatile MessageChannel beforeCommitChannel;
+	private volatile @Nullable MessageChannel beforeCommitChannel;
 
-	private volatile MessageChannel afterCommitChannel;
+	private volatile @Nullable MessageChannel afterCommitChannel;
 
-	private volatile MessageChannel afterRollbackChannel;
+	private volatile @Nullable MessageChannel afterRollbackChannel;
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
@@ -136,7 +138,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		return "processor";
 	}
 
-	private void doProcess(IntegrationResourceHolder holder, Expression expression,
+	private void doProcess(IntegrationResourceHolder holder, @Nullable Expression expression,
 			@Nullable MessageChannel messageChannel, String expressionType) {
 
 		Message<?> message = holder.getMessage();
@@ -216,7 +218,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 			return evaluationContextWithVariables;
 		}
 		else {
-			return this.evaluationContext;
+			return this.evaluationContext != null ? this.evaluationContext : createEvaluationContext();
 		}
 	}
 

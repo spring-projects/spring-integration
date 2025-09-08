@@ -18,6 +18,8 @@ package org.springframework.integration.transaction;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -38,6 +40,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -51,27 +54,28 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	private final AtomicInteger counter = new AtomicInteger();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
-	private volatile String beforeCommitExpression;
+	private volatile @Nullable String beforeCommitExpression;
 
-	private volatile String afterCommitExpression;
+	private volatile @Nullable String afterCommitExpression;
 
-	private volatile String afterRollbackExpression;
+	private volatile @Nullable String afterRollbackExpression;
 
-	private volatile MessageChannel beforeCommitChannel;
+	private volatile @Nullable MessageChannel beforeCommitChannel;
 
-	private volatile String beforeCommitChannelName;
+	private volatile @Nullable String beforeCommitChannelName;
 
-	private volatile MessageChannel afterCommitChannel;
+	private volatile @Nullable MessageChannel afterCommitChannel;
 
-	private volatile String afterCommitChannelName;
+	private volatile @Nullable String afterCommitChannelName;
 
-	private volatile MessageChannel afterRollbackChannel;
+	private volatile @Nullable MessageChannel afterRollbackChannel;
 
-	private volatile String afterRollbackChannelName;
+	private volatile @Nullable String afterRollbackChannelName;
 
-	private volatile DestinationResolver<MessageChannel> channelResolver;
+	private volatile @Nullable DestinationResolver<MessageChannel> channelResolver;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -108,7 +112,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		return beforeCommit(this.beforeCommitExpression, messageChannel);
 	}
 
-	public TransactionSynchronizationFactoryBean beforeCommit(String expression, MessageChannel messageChannel) {
+	public TransactionSynchronizationFactoryBean beforeCommit(@Nullable String expression, @Nullable MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
 				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.beforeCommitExpression = expression;
@@ -134,7 +138,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		return afterCommit(this.afterCommitExpression, messageChannel);
 	}
 
-	public TransactionSynchronizationFactoryBean afterCommit(String expression, MessageChannel messageChannel) {
+	public TransactionSynchronizationFactoryBean afterCommit(@Nullable String expression, @Nullable MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
 				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterCommitExpression = expression;
@@ -160,7 +164,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		return afterRollback(this.afterRollbackExpression, messageChannel);
 	}
 
-	public TransactionSynchronizationFactoryBean afterRollback(String expression, MessageChannel messageChannel) {
+	public TransactionSynchronizationFactoryBean afterRollback(@Nullable String expression, @Nullable MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
 				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterRollbackExpression = expression;
