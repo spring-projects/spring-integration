@@ -218,7 +218,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 			return evaluationContextWithVariables;
 		}
 		else {
-			return this.evaluationContext != null ? this.evaluationContext : createEvaluationContext();
+			return this.evaluationContext;
 		}
 	}
 
