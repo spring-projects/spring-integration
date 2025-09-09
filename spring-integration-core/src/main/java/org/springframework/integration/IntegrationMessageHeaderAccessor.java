@@ -114,13 +114,11 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		}
 	}
 
-	@Nullable
-	public Long getExpirationDate() {
+	public @Nullable Long getExpirationDate() {
 		return getHeader(EXPIRATION_DATE, Long.class);
 	}
 
-	@Nullable
-	public Object getCorrelationId() {
+	public @Nullable Object getCorrelationId() {
 		return getHeader(CORRELATION_ID);
 	}
 
@@ -134,8 +132,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		return (sequenceSize != null ? sequenceSize.intValue() : 0);
 	}
 
-	@Nullable
-	public Integer getPriority() {
+	public @Nullable Integer getPriority() {
 		Number priority = getHeader(PRIORITY, Number.class);
 		return (priority != null ? priority.intValue() : null);
 	}
@@ -149,8 +146,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the {@link Closeable}.
 	 * @since 4.3
 	 */
-	@Nullable
-	public Closeable getCloseableResource() {
+	public @Nullable Closeable getCloseableResource() {
 		return getHeader(CLOSEABLE_RESOURCE, Closeable.class);
 	}
 
@@ -159,8 +155,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the callback.
 	 * @since 5.0.1
 	 */
-	@Nullable
-	public AcknowledgmentCallback getAcknowledgmentCallback() {
+	public @Nullable AcknowledgmentCallback getAcknowledgmentCallback() {
 		return getHeader(ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 	}
 
@@ -170,8 +165,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the delivery attempt.
 	 * @since 5.0.1
 	 */
-	@Nullable
-	public AtomicInteger getDeliveryAttempt() {
+	public @Nullable AtomicInteger getDeliveryAttempt() {
 		return getHeader(DELIVERY_ATTEMPT, AtomicInteger.class);
 	}
 
@@ -182,8 +176,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @since 5.1.6
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
-	public <T> T getSourceData() {
+	public @Nullable <T> T getSourceData() {
 		return (T) getHeader(SOURCE_DATA);
 	}
 
@@ -192,14 +185,12 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the {@link ContextView} header if present.
 	 * @since 6.0.5
 	 */
-	@Nullable
-	public ContextView getReactorContext() {
+	public @Nullable ContextView getReactorContext() {
 		return getHeader(REACTOR_CONTEXT, ContextView.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	public <T> T getHeader(String key, Class<T> type) {
+	public @Nullable <T> T getHeader(String key, Class<T> type) {
 		Object value = getHeader(key);
 		if (value == null) {
 			return null;
@@ -212,7 +203,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	}
 
 	@Override
-	protected void verifyType(String headerName, Object headerValue) {
+	protected void verifyType(@Nullable String headerName, @Nullable Object headerValue) {
 		if (headerName != null && headerValue != null) {
 			super.verifyType(headerName, headerValue);
 			if (IntegrationMessageHeaderAccessor.EXPIRATION_DATE.equals(headerName)) {
