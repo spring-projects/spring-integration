@@ -176,7 +176,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @since 5.1.6
 	 */
 	@SuppressWarnings("unchecked")
-	public @Nullable <T> T getSourceData() {
+	public <T>  @Nullable T getSourceData() {
 		return (T) getHeader(SOURCE_DATA);
 	}
 
@@ -190,7 +190,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	}
 
 	@SuppressWarnings("unchecked")
-	public @Nullable <T> T getHeader(String key, Class<T> type) {
+	public <T> @Nullable T getHeader(String key, Class<T> type) {
 		Object value = getHeader(key);
 		if (value == null) {
 			return null;
