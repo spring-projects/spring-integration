@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -238,7 +239,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
 				.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
 				.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
-				.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
+				.acceptIfNotNull(this.lockRegistry, (Consumer<LockRegistry<?>>) aggregator::setLockRegistry)
 				.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
 				.acceptIfNotNull(obtainCorrelationStrategy(), aggregator::setCorrelationStrategy)
 				.acceptIfNotNull(obtainReleaseStrategy(), aggregator::setReleaseStrategy)
