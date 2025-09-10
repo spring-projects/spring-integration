@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -254,6 +255,7 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 		}
 
 		@Override
+		@SuppressWarnings("NullAway") // Performance
 		protected void onInit() {
 			super.onInit();
 			ConversionService conversionService = getConversionService();
@@ -273,7 +275,6 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 					throw new MessagingException("Unsupported channel mapping type for router ["
 							+ key.getClass() + "]");
 				}
-
 				this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
 			}
 		}

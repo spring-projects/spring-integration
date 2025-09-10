@@ -300,6 +300,7 @@ public class ControlBusCommandRegistry
 
 		private final Class<?>[] parameterTypes;
 
+		@SuppressWarnings("NullAway.Init")
 		private String description;
 
 		private CommandMethod(String beanName, String methodName, Class<?>[] parameterTypes) {
