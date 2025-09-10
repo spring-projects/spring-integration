@@ -133,7 +133,7 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 
 	}
 
-	public record ControlBusCommand(String command, @Nullable String description, List<Class<?>> parameterTypes) {
+	public record ControlBusCommand(String command, String description, List<Class<?>> parameterTypes) {
 
 	}
 

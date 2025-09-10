@@ -29,8 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
@@ -302,7 +300,8 @@ public class ControlBusCommandRegistry
 
 		private final Class<?>[] parameterTypes;
 
-		private @Nullable String description;
+		@SuppressWarnings("NullAway.Init")
+		private String description;
 
 		private CommandMethod(String beanName, String methodName, Class<?>[] parameterTypes) {
 			this.beanName = beanName;
@@ -322,7 +321,7 @@ public class ControlBusCommandRegistry
 			return this.parameterTypes;
 		}
 
-		public @Nullable String getDescription() {
+		public String getDescription() {
 			return this.description;
 		}
 
