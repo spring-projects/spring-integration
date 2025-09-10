@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -273,7 +274,7 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 					throw new MessagingException("Unsupported channel mapping type for router ["
 							+ key.getClass() + "]");
 				}
-
+				Assert.notNull(channelKey, "'channelKey' must not be null");
 				this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
 			}
 		}

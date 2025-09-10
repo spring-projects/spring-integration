@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
  * The REST Controller to provide the management API for Control Bus pattern.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.4
  */
@@ -132,7 +133,7 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 
 	}
 
-	public record ControlBusCommand(String command, String description, List<Class<?>> parameterTypes) {
+	public record ControlBusCommand(String command, @Nullable String description, List<Class<?>> parameterTypes) {
 
 	}
 
