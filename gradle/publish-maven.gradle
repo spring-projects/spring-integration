@@ -33,6 +33,11 @@ publishing {
 						roles = ['project lead']
 					}
 					developer {
+						id = 'cppwfs'
+						name = 'Glenn Renfro'
+						email = 'glenn.renfro@broadcom.com'
+					}
+					developer {
 						id = 'garyrussell'
 						name = 'Gary Russell'
 						email = 'github@gprussell.net'

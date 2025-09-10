@@ -51,20 +51,6 @@ We greatly appreciate any effort toward improving the samples, including the sha
 GitHub is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
 If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GitHub issue] that provides some details regarding your sample.
 
-[IMPORTANT]
-.Sign the contributor license agreement
-=====
-
-Very important: Before we can accept your Spring Integration sample, we need you to sign the SpringSource contributor license agreement (CLA).
-Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do.
-In order to read and sign the CLA, go to:
-
-https://support.springsource.com/spring_committer_signup
-
-From the *Project* drop down, select *Spring Integration*.
-The Project Lead is Artem Bilan.
-=====
-
 [[code-contribution-process]]
 === Code Contribution Process
 
