@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.RestController;
  * The REST Controller to provide the management API for Control Bus pattern.
  *
  * @author Artem Bilan
- * @author Glenn Renfro
  *
  * @since 6.4
  */
