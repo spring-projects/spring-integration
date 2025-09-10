@@ -255,6 +255,7 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 		}
 
 		@Override
+		@SuppressWarnings("NullAway") // Performance
 		protected void onInit() {
 			super.onInit();
 			ConversionService conversionService = getConversionService();
@@ -274,7 +275,6 @@ public class RouterSpec<K extends @Nullable Object, R extends AbstractMappingMes
 					throw new MessagingException("Unsupported channel mapping type for router ["
 							+ key.getClass() + "]");
 				}
-				Assert.notNull(channelKey, "'channelKey' must not be null");
 				this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
 			}
 		}
