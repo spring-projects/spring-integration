@@ -63,3 +63,8 @@ See xref:mqtt.adoc[] for more information.
 The `AbstractInboundFileSynchronizer` now caches a filtered result of the `Session.list(remoteDirectory)` after slicing by the `maxFetchSize`.
 So, later synchronizations deal with the cache only by the `maxFetchSize` until the cache is exhausted.
 See xref:sftp/max-fetch.adoc[] for more information.
+
+[[x7.0-null-safety]]
+=== Null Safety
+Updated the codebase to use JSpecify and NullAway, adding a comprehensive null safety implementation that uses `@NullMarked` annotations to default all types to non-null at the package level and `@Nullable` annotations to explicitly mark types that can be null.
+See xref:null-safety.adoc[] for more information.

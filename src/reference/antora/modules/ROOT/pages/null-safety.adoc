@@ -1,0 +1,7 @@
+[[null-safety]]
+= Null Safety
+
+The codebase is annotated with JSpecify annotations to declare the nullability of its APIs, fields, and related type usages, following Spring Framework's efforts to add null safety to the platform.
+Reading Spring Framework's https://docs.spring.io/spring-framework/reference/core/null-safety.html#null-safety-guidelines-nullaway[Null-safety reference documentation] is highly recommended to get familiar with these annotations and their semantics.
+
+The primary goal of this null-safety arrangement is to prevent `NullPointerException` from being thrown at runtime through build-time checks and to use explicit nullability as a way to express the possible absence of a value.

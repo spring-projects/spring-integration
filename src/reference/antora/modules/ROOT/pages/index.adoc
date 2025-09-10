@@ -75,3 +75,4 @@ xref:testing.adoc[Testing support] :: Test utilities, Integration mocks and test
 xref:samples.adoc#samples-impl[Spring Integration Samples] :: The samples dedicated project
 xref:resources.adoc[Additional Resources] :: Other resources related to project
 xref:history.adoc[Change History] :: The changes made in the project over time
+xref:null-safety.adoc[Null Safety] :: Null safety build-time enforcement
