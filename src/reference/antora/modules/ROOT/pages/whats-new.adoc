@@ -65,7 +65,6 @@ So, later synchronizations deal with the cache only by the `maxFetchSize` until 
 See xref:sftp/max-fetch.adoc[] for more information.
 
 [[x7.0-null-safety]]
-=== Null Safety in  Spring Integration
-The Spring Integration team and community contributors have updated the codebase to use JSpecify and NullAway, implementing a comprehensive null safety implementation that uses `@NullMarked` annotations to default all types to non-null at the package level and `@Nullable` annotations to explicitly mark types that can be null.
-NullAway provides build-time verification that breaks the build if null safety violations are detected, aligning with a https://spring.io/blog/2025/03/10/null-safety-in-spring-apps-with-jspecify-and-null-away[goal] set by the Spring Framework team for the 7.x release.
-The implementation provides automatic IDE warnings and enforces explicit null handling at compile time, with the goal of significantly reducing or eliminating NullPointerExceptions in production by making nullness explicit in APIs across Spring Integration.
+=== Null Safety
+Updated the codebase to use JSpecify and NullAway, adding a comprehensive null safety implementation that uses `@NullMarked` annotations to default all types to non-null at the package level and `@Nullable` annotations to explicitly mark types that can be null.
+See xref:null-safety.adoc[] for more information.
