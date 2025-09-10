@@ -112,18 +112,13 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 			componentName =
 					(StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
 			StringBuilder buffer = new StringBuilder();
+			buffer.append(add ? "Adding " : "Removing ");
 			buffer.append("{")
 					.append(componentType)
 					.append(componentName)
 					.append("} as a subscriber to the '")
 					.append(namedChannel.getComponentName())
 					.append("' channel");
-			if (add) {
-				buffer.insert(0, "Adding ");
-			}
-			else {
-				buffer.insert(0, "Removing ");
-			}
 			logger.info(buffer.toString());
 		}
 	}
