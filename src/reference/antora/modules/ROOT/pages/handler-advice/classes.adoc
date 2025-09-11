@@ -17,8 +17,8 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 [[retry-advice]]
 == Retry Advice
 
-The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://github.com/spring-projects/spring-retry[Spring Retry] project.
-The core component of `spring-retry` is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` and `BackoffPolicy` strategies (with a number of implementations) as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
+The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://docs.spring.io/spring-framework/reference/core/resilience.html#resilience-programmatic-retry[Retry Support] in Spring Framework.
+The core component of this advice is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
 
 Stateless Retry::
 Stateless retry is the case where the retry activity is handled entirely within the advice.
@@ -28,8 +28,12 @@ Stateful Retry::
 Stateful retry is the case where the retry state is managed within the advice but where an exception is thrown and the caller resubmits the request.
 An example for stateful retry is when we want the message originator, (for example, JMS) to be responsible for resubmitting, rather than performing it on the current thread.
 Stateful retry needs some mechanism to detect a retried submission.
-
-For more information on `spring-retry`, see https://docs.spring.io/spring-integration/api/[the project's Javadoc] and the reference documentation for https://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
+For this purpose, the `RequestHandlerRetryAdvice` expose the `stateKeyFunction`, `newMessagePredicate` and `stateCacheSize` properties.
+Where later two of them make sense only if the first is provided.
+Essentially, the `stateKeyFunction` is an indicator to switch `RequestHandlerRetryAdvice` logic from stateless to stateful.
+The meaning of the `newMessagePredicate` is two refresh an existing retry state for the key based on the message to handle.
+The `stateCacheSize` is `100` by default, where elder entries are removed from the cache when more new retry states are coming.
+Perhaps those old messages are not redelivered anymore from the upstream flow, e.g., the message broker dead-lettered those messages according to its redelivery policy.
 
 WARNING: The default back off behavior is to not back off.
 Retries are attempted immediately.
@@ -39,12 +43,13 @@ In high-volume environments, back off policies should be used with caution.
 [[retry-config]]
 === Configuring the Retry Advice
 
-The examples in this section use the following `<service-activator>` that always throws an exception:
+The examples in this section use the following `@ServiceActivator` that always throws an exception:
 
 [source,java]
 ----
 public class FailingService {
 
+	@ServiceActivator(inputChannel = "input", adviceChain = "retryAdvice")
     public void service(String message) {
         throw new RuntimeException("error");
     }
@@ -52,112 +57,58 @@ public class FailingService {
 ----
 
 Simple Stateless Retry::
-The default `RetryTemplate` has a `SimpleRetryPolicy` which tries three times.
-There is no `BackOffPolicy`, so the three attempts are made back-to-back-to-back with no delay between attempts.
+The default `RetryPolicy` is to try three times, plus original call for the target `MessageHandler`.
+There is no backoff by default, so the three attempts are made back-to-back-to-back with no delay between attempts.
 There is no `RecoveryCallback`, so the result is to throw the exception to the caller after the final failed retry occurs.
 In a Spring Integration environment, this final exception might be handled by using an `error-channel` on the inbound endpoint.
-The following example uses `RetryTemplate` and shows its `DEBUG` output:
+The following example uses default configuration for the `RequestHandlerRetryAdvice`:
 +
-[source,xml]
+[source,java]
 ----
-<int:service-activator input-channel="input" ref="failer" method="service">
-    <int:request-handler-advice-chain>
-        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice"/>
-    </int:request-handler-advice-chain>
-</int:service-activator>
-
-DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
-DEBUG [task-scheduler-2]Retry: count=0
-DEBUG [task-scheduler-2]Checking for rethrow: count=1
-DEBUG [task-scheduler-2]Retry: count=1
-DEBUG [task-scheduler-2]Checking for rethrow: count=2
-DEBUG [task-scheduler-2]Retry: count=2
-DEBUG [task-scheduler-2]Checking for rethrow: count=3
-DEBUG [task-scheduler-2]Retry failed last attempt: count=3
+@Bean
+RequestHandlerRetryAdvice retryAdvice() {
+    return new RequestHandlerRetryAdvice();
+}
 ----
 
 Simple Stateless Retry with Recovery::
 The following example adds a `RecoveryCallback` to the preceding example and uses an `ErrorMessageSendingRecoverer` to send an `ErrorMessage` to a channel:
 +
-[source,xml]
+[source,java]
 ----
-<int:service-activator input-channel="input" ref="failer" method="service">
-    <int:request-handler-advice-chain>
-        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
-            <property name="recoveryCallback">
-                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
-                    <constructor-arg ref="myErrorChannel" />
-                </bean>
-            </property>
-        </bean>
-    </int:request-handler-advice-chain>
-</int:service-activator>
-
-DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
-DEBUG [task-scheduler-2]Retry: count=0
-DEBUG [task-scheduler-2]Checking for rethrow: count=1
-DEBUG [task-scheduler-2]Retry: count=1
-DEBUG [task-scheduler-2]Checking for rethrow: count=2
-DEBUG [task-scheduler-2]Retry: count=2
-DEBUG [task-scheduler-2]Checking for rethrow: count=3
-DEBUG [task-scheduler-2]Retry failed last attempt: count=3
-DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]
+@Bean
+RequestHandlerRetryAdvice retryAdvice(MessageChannel recoveryChannel) {
+    RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
+    requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel));
+    return requestHandlerRetryAdvice;
+}
 ----
 
 Stateless Retry with Customized Policies, and Recovery::
-For more sophistication, we can provide the advice with a customized `RetryTemplate`.
-This example continues to use the `SimpleRetryPolicy` but increases the attempts to four.
-It also adds an `ExponentialBackoffPolicy` where the first retry waits one second, the second waits five seconds, and the third waits 25 (for four attempts in all).
-The following listing shows the example and its `DEBUG` output:
+For more sophistication, a customized `RetryPolicy` can be provided for the `RequestHandlerRetryAdvice`.
+This example continues to use the simple `RetryPolicy` but increases the attempts to four.
+It also adds an `ExponentialBackoff` where the first retry waits one second, the second waits five seconds, and the third waits 25 (for four attempts in all).
+The following listing shows the example of such a configuration:
 +
-[source,xml]
+[source,java]
 ----
-<int:service-activator input-channel="input" ref="failer" method="service">
-    <int:request-handler-advice-chain>
-        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
-            <property name="recoveryCallback">
-                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
-                    <constructor-arg ref="myErrorChannel" />
-                </bean>
-            </property>
-            <property name="retryTemplate" ref="retryTemplate" />
-        </bean>
-    </int:request-handler-advice-chain>
-</int:service-activator>
-
-<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
-    <property name="retryPolicy">
-        <bean class="org.springframework.retry.policy.SimpleRetryPolicy">
-            <property name="maxAttempts" value="4" />
-        </bean>
-    </property>
-    <property name="backOffPolicy">
-        <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
-            <property name="initialInterval" value="1000" />
-            <property name="multiplier" value="5.0" />
-            <property name="maxInterval" value="60000" />
-        </bean>
-    </property>
-</bean>
-
-27.058 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=...]
-27.071 DEBUG [task-scheduler-1]Retry: count=0
-27.080 DEBUG [task-scheduler-1]Sleeping for 1000
-28.081 DEBUG [task-scheduler-1]Checking for rethrow: count=1
-28.081 DEBUG [task-scheduler-1]Retry: count=1
-28.081 DEBUG [task-scheduler-1]Sleeping for 5000
-33.082 DEBUG [task-scheduler-1]Checking for rethrow: count=2
-33.082 DEBUG [task-scheduler-1]Retry: count=2
-33.083 DEBUG [task-scheduler-1]Sleeping for 25000
-58.083 DEBUG [task-scheduler-1]Checking for rethrow: count=3
-58.083 DEBUG [task-scheduler-1]Retry: count=3
-58.084 DEBUG [task-scheduler-1]Checking for rethrow: count=4
-58.084 DEBUG [task-scheduler-1]Retry failed last attempt: count=4
-58.086 DEBUG [task-scheduler-1]Sending ErrorMessage :failedMessage:[Payload=...]
+@Bean
+RequestHandlerRetryAdvice retryAdvice() {
+    RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
+    requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel()));
+    RetryPolicy retryPolicy = RetryPolicy.builder()
+            .maxAttempts(4)
+            .delay(Duration.ofSeconds(1))
+            .multiplier(5.0)
+            .maxDelay(Duration.ofMinutes(1))
+            .build();
+    requestHandlerRetryAdvice.setRetryPolicy(retryPolicy);
+    return requestHandlerRetryAdvice;
+}
 ----
 
 Namespace Support for Stateless Retry::
-Starting with version 4.0, the preceding configuration can be greatly simplified, thanks to the namespace support for the retry advice, as the following example shows:
+The following examples demonstrate how the `RequestHandlerRetryAdvice` can be configured using Spring Integration XML namespace with its custom tags:
 +
 [source,xml]
 ----
@@ -194,84 +145,15 @@ The namespace can only be used with stateless retry.
 For more complex environments (custom policies etc.), use normal `<bean>` definitions.
 
 Simple Stateful Retry with Recovery::
-To make retry stateful, we need to provide the advice with a `RetryStateGenerator` implementation.
-This class is used to identify a message as being a resubmission so that the `RetryTemplate` can determine the current state of retry for this message.
-The framework provides a `SpelExpressionRetryStateGenerator`, which determines the message identifier by using a SpEL expression.
-This example again uses the default policies (three attempts with no back off).
-As with stateless retry, these policies can be customized.
-The following listing shows the example and its `DEBUG` output:
-+
-[source,xml]
-----
-<int:service-activator input-channel="input" ref="failer" method="service">
-    <int:request-handler-advice-chain>
-        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
-            <property name="retryStateGenerator">
-                <bean class="o.s.i.handler.advice.SpelExpressionRetryStateGenerator">
-                    <constructor-arg value="headers['jms_messageId']" />
-                </bean>
-            </property>
-            <property name="recoveryCallback">
-                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
-                    <constructor-arg ref="myErrorChannel" />
-                </bean>
-            </property>
-        </bean>
-    </int:request-handler-advice-chain>
-</int:service-activator>
-
-24.351 DEBUG [Container#0-1]preSend on channel 'input', message: [Payload=...]
-24.368 DEBUG [Container#0-1]Retry: count=0
-24.387 DEBUG [Container#0-1]Checking for rethrow: count=1
-24.387 DEBUG [Container#0-1]Rethrow in retry for policy: count=1
-24.387 WARN  [Container#0-1]failure occurred in gateway sendAndReceive
-org.springframework.integration.MessagingException: Failed to invoke handler
-...
-Caused by: java.lang.RuntimeException: foo
-...
-24.391 DEBUG [Container#0-1]Initiating transaction rollback on application exception
-...
-25.412 DEBUG [Container#0-1]preSend on channel 'input', message: [Payload=...]
-25.412 DEBUG [Container#0-1]Retry: count=1
-25.413 DEBUG [Container#0-1]Checking for rethrow: count=2
-25.413 DEBUG [Container#0-1]Rethrow in retry for policy: count=2
-25.413 WARN  [Container#0-1]failure occurred in gateway sendAndReceive
-org.springframework.integration.MessagingException: Failed to invoke handler
-...
-Caused by: java.lang.RuntimeException: foo
-...
-25.414 DEBUG [Container#0-1]Initiating transaction rollback on application exception
-...
-26.418 DEBUG [Container#0-1]preSend on channel 'input', message: [Payload=...]
-26.418 DEBUG [Container#0-1]Retry: count=2
-26.419 DEBUG [Container#0-1]Checking for rethrow: count=3
-26.419 DEBUG [Container#0-1]Rethrow in retry for policy: count=3
-26.419 WARN  [Container#0-1]failure occurred in gateway sendAndReceive
-org.springframework.integration.MessagingException: Failed to invoke handler
-...
-Caused by: java.lang.RuntimeException: foo
-...
-26.420 DEBUG [Container#0-1]Initiating transaction rollback on application exception
-...
-27.425 DEBUG [Container#0-1]preSend on channel 'input', message: [Payload=...]
-27.426 DEBUG [Container#0-1]Retry failed last attempt: count=3
-27.426 DEBUG [Container#0-1]Sending ErrorMessage :failedMessage:[Payload=...]
-----
-+
-If you compare the preceding example with the stateless examples, you can see that, with stateful retry, the exception is thrown to the caller on each failure.
-
-Exception Classification for Retry::
-Spring Retry has a great deal of flexibility for determining which exceptions can invoke retry.
-The default configuration retries for all exceptions, and the exception classifier looks at the top-level exception.
-If you configure it to, say, retry only on `MyException` and your application throws a `SomeOtherException` where the cause is a `MyException`, retry does not occur.
-+
-Since Spring Retry 1.0.3, the `BinaryExceptionClassifier` has a property called `traverseCauses` (the default is `false`).
-When `true`, it traverses exception causes until it finds a match or runs out of causes traversing.
-+
-To use this classifier for retry, use a `SimpleRetryPolicy` created with the constructor that takes the max attempts, the `Map` of `Exception` objects, and the `traverseCauses` boolean.
-Then you can inject this policy into the `RetryTemplate`.
-
-IMPORTANT: `traverseCauses` is required in this case because user exceptions may be wrapped in a `MessagingException`.
+To make retry stateful, a `Function<Message<?>, Object> stateKeyFunction` must be provided for the `RequestHandlerRetryAdvice` instance.
+This function is used to identify a message as being a resubmission so that the `RequestHandlerRetryAdvice` can determine the current state of retry for this message.
+The idea behind stateful retry is to not block the current thread, but rather cache the retry state for this message and re-throw `MessageHandler` back to the caller.
+Usually this works well with message originators which are able to resubmit (or redeliver) events, for example, message brokers like RabbitMQ or Apache Kafka with its seek functionality; or JMS after rollback on the consumption.
+If there is no cached state yet (or the `Predicate<Message<?>> newMessagePredicate` returns `true` for the message), the `MessageHandler` call is treated as the first one, and on its failure an internal `RetryState` based on a `BackOffExecution`, is cached under the mentioned key.
+On the next message arrival, the cached state provides a backoff interval for `Thread.sleep()` before an attempt to call the `MessageHandler`.
+If this backoff interval is equal to `BackOffExecution.STOP` (e.g., `maxAttempts` have been reached), that mean no more retries for this message: the whole retry cycle is treated as exhausted, and respective `RetryException` is thrown back to the caller or for `RecoveryCallback` if provided.
+In general, the exception handling logic and backoff execution are similar to the stateless behavior, with only difference, that thread is not blocked for all the `maxAttempts`.
+It is up to the message originator to redeliver a message for the next retry call.
 
 [[circuit-breaker-advice]]
 == Circuit Breaker Advice

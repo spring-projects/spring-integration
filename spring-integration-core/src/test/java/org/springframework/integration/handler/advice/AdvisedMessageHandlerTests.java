@@ -17,9 +17,9 @@
 package org.springframework.integration.handler.advice;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -29,12 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -42,6 +40,8 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryPolicy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.filter.MessageFilter;
@@ -58,11 +58,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.DefaultRetryState;
-import org.springframework.retry.support.MetricsRetryListener;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -464,7 +459,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
+		advice.setStateKeyFunction(message -> message.getHeaders().getId());
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
@@ -489,44 +484,22 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	public void defaultStatefulRetryRecoverAfterThirdTry() {
-		final AtomicInteger counter = new AtomicInteger(3);
+		final AtomicInteger counter = new AtomicInteger(4);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				if (counter.getAndDecrement() > 0) {
-					throw new RuntimeException("foo");
+					throw new RuntimeException("intentional");
 				}
-				return "bar";
+				return "some data";
 			}
 		};
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
-
-		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
-	}
-
-	@Test
-	public void defaultStatefulRetryRecoverAfterThirdTrySpelState() {
-		final AtomicInteger counter = new AtomicInteger(3);
-		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
-
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				if (counter.getAndDecrement() > 0) {
-					throw new RuntimeException("foo");
-				}
-				return "bar";
-			}
-		};
-		QueueChannel replies = new QueueChannel();
-		handler.setOutputChannel(replies);
-		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
-
-		advice.setRetryStateGenerator(new SpelExpressionRetryStateGenerator("headers['id']"));
+		advice.setStateKeyFunction(message -> message.getHeaders().getId());
 
 		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
 	}
@@ -534,7 +507,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
 			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 
-		advice.setRecoveryCallback((context, cause) -> "baz");
+		advice.setRecoveryCallback((context, cause) -> "recovered");
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
@@ -550,10 +523,10 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 			catch (Exception e) {
 			}
 		}
-		assertThat(counter.get() == 0).isTrue();
+		assertThat(counter.get()).isEqualTo(0);
 		Message<?> reply = replies.receive(10000);
 		assertThat(reply).isNotNull();
-		assertThat(reply.getPayload()).isEqualTo("baz");
+		assertThat(reply.getPayload()).isEqualTo("recovered");
 	}
 
 	@Test
@@ -562,7 +535,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				throw new RuntimeException("fooException");
+				throw new RuntimeException("myException");
 			}
 		};
 		QueueChannel errors = new QueueChannel();
@@ -573,6 +546,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
+		handler.setBeanName("myHandler");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
@@ -580,7 +554,16 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
 		assertThat(error).isNotNull();
-		assertThat(((Exception) error.getPayload()).getCause().getMessage()).isEqualTo("fooException");
+		assertThat(error.getPayload())
+				.asInstanceOf(InstanceOfAssertFactories.THROWABLE)
+				.isInstanceOf(MessagingException.class)
+				.hasMessage("Retry policy for operation 'myHandler' exhausted; aborting execution")
+				.cause()
+				.isInstanceOf(RetryException.class)
+				.cause()
+				.isInstanceOf(MessagingException.class)
+				.cause()
+				.hasMessage("myException");
 	}
 
 	@Test
@@ -596,17 +579,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(errors);
 		advice.setRecoveryCallback(recoverer);
-		RetryTemplate retryTemplate = new RetryTemplate();
-		retryTemplate.setRetryPolicy(new SimpleRetryPolicy() {
-
-			static final long serialVersionUID = -1;
-
-			@Override
-			public boolean canRetry(RetryContext context) {
-				return false;
-			}
-		});
-		advice.setRetryTemplate(retryTemplate);
+		advice.setRetryPolicy(RetryPolicy.builder().predicate(throwable -> false).build());
 		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.afterPropertiesSet();
 
@@ -622,20 +595,20 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		assertThat(error)
 				.isNotNull()
 				.extracting("payload").
-				isInstanceOf(ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException.class)
+				isInstanceOf(MessagingException.class)
 				.extracting("failedMessage")
 				.isSameAs(message);
 	}
 
 	@Test
 	public void testINT2858RetryAdviceAsFirstInAdviceChain() {
-		final AtomicInteger counter = new AtomicInteger(3);
+		final AtomicInteger counter = new AtomicInteger(4);
 
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return "foo";
+				return "some data";
 			}
 		};
 
@@ -656,7 +629,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 				.withCauseInstanceOf(RuntimeException.class)
 				.withStackTraceContaining("intentional");
 
-		assertThat(counter.get() == 0).isTrue();
+		assertThat(counter.get()).isEqualTo(0);
 	}
 
 	@Test
@@ -703,7 +676,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		handler.handleMessage(new GenericMessage<>("test"));
 		Message<?> receive = replies.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("intentional: 3");
+		assertThat(receive.getPayload()).isEqualTo("intentional: 4");
 		assertThat(outerCounter.get()).isEqualTo(1);
 	}
 
@@ -740,9 +713,9 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 
 		assertThatException()
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")))
-				.withStackTraceContaining("intentional: 3");
+				.withStackTraceContaining("intentional: 4");
 
-		for (int i = 1; i <= 3; i++) {
+		for (int i = 1; i <= 4; i++) {
 			Message<?> receive = errors.receive(10000);
 			assertThat(receive).isNotNull();
 			assertThat(((MessageHandlingExpressionEvaluatingAdviceException) receive.getPayload())
@@ -796,7 +769,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 	}
 
 	/**
-	 * Verify that Errors such as OOM are properly propagated and we suppress the
+	 * Verify that Errors such as OOM are properly propagated, and we suppress the
 	 * ThrowableHolderException from the output message.
 	 */
 	@Test
@@ -809,10 +782,10 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		expressionAdvice.setFailureChannel(errors);
 
 		Throwable theThrowable = new Throwable("foo");
-		ProxyFactory proxyFactory = new ProxyFactory(new Foo(theThrowable));
+		ProxyFactory proxyFactory = new ProxyFactory(new MyRecord(theThrowable));
 		proxyFactory.addAdvice(expressionAdvice);
 
-		Bar fooHandler = (Bar) proxyFactory.getProxy();
+		MyInterface fooHandler = (MyInterface) proxyFactory.getProxy();
 
 		assertThatExceptionOfType(Throwable.class)
 				.isThrownBy(() -> fooHandler.handleRequestMessage(new GenericMessage<>("foo")))
@@ -959,15 +932,14 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
-
-		RetryTemplate retryTemplate = new RetryTemplate();
-
-		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
-		retryableExceptions.put(MyException.class, retryForMyException);
-
-		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions, true));
-
-		advice.setRetryTemplate(retryTemplate);
+		RetryPolicy.Builder retryPolicyBuilder = RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO);
+		if (retryForMyException) {
+			retryPolicyBuilder.includes(MessagingException.class);
+		}
+		else {
+			retryPolicyBuilder.excludes(MessagingException.class);
+		}
+		advice.setRetryPolicy(retryPolicyBuilder.build());
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
@@ -998,59 +970,13 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		assertThat(((ErrorMessage) error).getOriginalMessage().getPayload()).isEqualTo("foo");
 	}
 
-	@Test
-	public void retryAdviceWithMetricsListener() {
-		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
-
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				throw new RuntimeException("intentional");
-			}
-		};
-
-		MeterRegistry meterRegistry = new SimpleMeterRegistry();
-
-		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
-		RetryTemplate retryTemplate = new RetryTemplate();
-		retryTemplate.registerListener(new MetricsRetryListener(meterRegistry));
-		advice.setRetryTemplate(retryTemplate);
-		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		advice.afterPropertiesSet();
-
-		List<Advice> adviceChain = new ArrayList<>();
-		adviceChain.add(advice);
-		handler.setAdviceChain(adviceChain);
-		handler.setBeanName("testEndpoint");
-		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		handler.afterPropertiesSet();
-
-		Message<String> message = new GenericMessage<>("Hello, world!");
-		assertThatExceptionOfType(MessagingException.class)
-				.isThrownBy(() -> handler.handleMessage(message))
-				.withRootCauseInstanceOf(RuntimeException.class)
-				.withStackTraceContaining("intentional");
-
-		Timer retryTimer = meterRegistry.find(MetricsRetryListener.TIMER_NAME)
-				.tag("name", "testEndpoint")
-				.tag("retry.count", "3")
-				.timer();
-
-		assertThat(retryTimer.count()).isEqualTo(1);
-	}
-
-	private interface Bar {
+	private interface MyInterface {
 
 		Object handleRequestMessage(Message<?> message) throws Throwable;
 
 	}
 
-	private class Foo implements Bar {
-
-		public final Throwable throwable;
-
-		Foo(Throwable throwable) {
-			this.throwable = throwable;
-		}
+	private record MyRecord(Throwable throwable) implements MyInterface {
 
 		@Override
 		public Object handleRequestMessage(Message<?> message) throws Throwable {

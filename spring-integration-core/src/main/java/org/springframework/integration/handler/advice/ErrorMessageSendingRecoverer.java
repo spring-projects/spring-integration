@@ -16,8 +16,6 @@
 
 package org.springframework.integration.handler.advice;
 
-import java.io.Serial;
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
@@ -25,10 +23,7 @@ import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.core.RecoveryCallback;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
-import org.springframework.integration.support.ErrorMessageUtils;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
 
 /**
  * A {@link RecoveryCallback} that sends the final throwable as an
@@ -83,33 +78,6 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	public @Nullable Object recover(AttributeAccessor context, Throwable cause) {
 		publish(cause, context);
 		return null;
-	}
-
-	@Override
-	protected Throwable payloadWhenNull(AttributeAccessor context) {
-		Message<?> message = (Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY);
-		String description = "No retry exception available; " +
-				"this can occur, for example, if the RetryPolicy allowed zero attempts " +
-				"to execute the handler; " +
-				"RetryContext: " + context;
-		return message == null
-				? new RetryExceptionNotAvailableException(description)
-				: new RetryExceptionNotAvailableException(message, description);
-	}
-
-	public static class RetryExceptionNotAvailableException extends MessagingException {
-
-		@Serial
-		private static final long serialVersionUID = 1L;
-
-		RetryExceptionNotAvailableException(String description) {
-			super(description);
-		}
-
-		public RetryExceptionNotAvailableException(Message<?> message, String description) {
-			super(message, description);
-		}
-
 	}
 
 }

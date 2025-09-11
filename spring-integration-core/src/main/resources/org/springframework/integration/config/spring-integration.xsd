@@ -5004,7 +5004,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							Defines a fixed back off policy.
 						]]></xsd:documentation>
 					</xsd:annotation>
-					<xsd:attribute name="interval" type="xsd:string">
+					<xsd:attribute name="interval" type="xsd:string" default="1000">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								The interval in milliseconds between attempts.
@@ -5021,7 +5021,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							Defines an exponential back off policy.
 						]]></xsd:documentation>
 					</xsd:annotation>
-					<xsd:attribute name="initial" type="xsd:string">
+					<xsd:attribute name="initial" type="xsd:string" default="100">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								The interval in milliseconds between the first and second attempts.
@@ -5029,7 +5029,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="multiplier" type="xsd:string">
+					<xsd:attribute name="multiplier" type="xsd:string" default="2.0">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								The previous interval is multiplied by this to determine the next interval,
@@ -5037,7 +5037,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="maximum" type="xsd:string">
+					<xsd:attribute name="maximum" type="xsd:string" default="30000">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								The maximum interval in milliseconds between attempts; caps an interval
@@ -5045,10 +5045,21 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="jitter" type="xsd:string" default="0">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								The jitter value to apply for each interval,
+								leading to random milliseconds to be subtracted or added
+								and resulting in a value between 'interval - jitter' and 'interval + jitter'
+								but never below initialInterval or above maxInterval.
+								If a 'multiplier' is specified, it is applied to the jitter value as well.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:choice>
-		<xsd:attribute name="max-attempts" type="xsd:string">
+		<xsd:attribute name="max-attempts" type="xsd:string" default="3">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					The maximum number of attempts to invoke the handler.
