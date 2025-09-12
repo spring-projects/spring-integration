@@ -147,12 +147,12 @@ For more complex environments (custom policies etc.), use normal `<bean>` defini
 Simple Stateful Retry with Recovery::
 To make retry stateful, a `Function<Message<?>, Object> stateKeyFunction` must be provided for the `RequestHandlerRetryAdvice` instance.
 This function is used to identify a message as being a resubmission so that the `RequestHandlerRetryAdvice` can determine the current state of retry for this message.
-The idea behind stateful retry is to not block the current thread, but rather cache the retry state for this message and re-throw `MessageHandler` back to the caller.
-Usually this works well with message originators which are able to resubmit (or redeliver) events, for example, message brokers like RabbitMQ or Apache Kafka with its seek functionality; or JMS after rollback on the consumption.
+The idea behind stateful retry is to not block the current thread, but rather cache the retry state for this message and re-throw `MessageHandler` failure back to the caller.
+Usually this works well with message originators which are able to resubmit (or redeliver) events, for example, message brokers like RabbitMQ with `nack`, or Apache Kafka with seek functionality; or JMS after rollback on the consumption.
 If there is no cached state yet (or the `Predicate<Message<?>> newMessagePredicate` returns `true` for the message), the `MessageHandler` call is treated as the first one, and on its failure an internal `RetryState` based on a `BackOffExecution`, is cached under the mentioned key.
 On the next message arrival, the cached state provides a backoff interval for `Thread.sleep()` before an attempt to call the `MessageHandler`.
-If this backoff interval is equal to `BackOffExecution.STOP` (e.g., `maxAttempts` have been reached), that mean no more retries for this message: the whole retry cycle is treated as exhausted, and respective `RetryException` is thrown back to the caller or for `RecoveryCallback` if provided.
-In general, the exception handling logic and backoff execution are similar to the stateless behavior, with only difference, that thread is not blocked for all the `maxAttempts`.
+If this backoff interval is equal to `BackOffExecution.STOP` (e.g., `maxAttempts` have been reached), that mean no more retries for this message: the whole retry cycle is treated as exhausted, and respective `RetryException` is thrown back to the caller or used for `RecoveryCallback` invocation if provided.
+In general, the exception handling logic and backoff execution are similar to the stateless behavior, with only difference that thread is not blocked for all the `maxAttempts`.
 It is up to the message originator to redeliver a message for the next retry call.
 
 [[circuit-breaker-advice]]

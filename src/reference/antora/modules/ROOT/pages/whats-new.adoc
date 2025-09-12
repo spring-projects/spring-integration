@@ -53,7 +53,7 @@ Therefore, the following project classes have suffered breaking changes:
 The `RequestHandlerRetryAdvice` was rebuilt to avoid external API as much as possible.
 For the stateless retry logic, there is just enough to provide a `org.springframework.core.retry.RetryPolicy`.
 The stateful retry logic is activated by the `Function<Message<?>, Object> stateKeyFunction`.
-The used before `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
+The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
 
 See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more information.
 

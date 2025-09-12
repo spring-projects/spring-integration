@@ -48,7 +48,7 @@ import org.springframework.util.backoff.BackOffExecution;
  * By default, this advice performs 3 attempts (plus initial execution) with no delay in between.
  * <p>
  * If {@link #setStateKeyFunction(Function)} is provided, the retry logic is turned into a stateful algorithm.
- * In this case, a {@link BackOffExecution} is cached by the mentioned retry state key if exception is retryable.
+ * In this case, a {@link BackOffExecution} is cached by the mentioned retry state key if an exception is retryable.
  * Then this exception is thrown back to the caller, e.g.,
  * for transaction rollback or re-queueing the message onto message broker.
  * The next time when a message with the same key arrives again (redelivered),
@@ -135,7 +135,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	/**
 	 * The size of the stateful retry state cache.
 	 * Defaults to 100.
-	 * Makes sense only when {@link #setStateKeyFunction(Function)} is provided.
+	 * This option is used only when {@link #setStateKeyFunction(Function)} is provided.
 	 * @param stateCacheSize the size of the cache.
 	 */
 	public void setStateCacheSize(int stateCacheSize) {
@@ -145,7 +145,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	/**
 	 * Set a {@link Predicate} to determine if a fresh stateful retry state should be started for this request message.
 	 * {@code false} by default to not refresh existing stateful retry states.
-	 * Makes sense only when {@link #setStateKeyFunction(Function)} is provided.
+	 * This option is used only when {@link #setStateKeyFunction(Function)} is provided.
 	 * @param newMessagePredicate the predicate to use.
 	 */
 	public void setNewMessagePredicate(Predicate<Message<?>> newMessagePredicate) {
@@ -221,7 +221,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 			try {
 				this.retryListener.beforeRetry(this.retryPolicy, retryCallback);
 				Object result = retryCallback.execute();
-				this.retryStateCache.remove(retryState);
+				this.retryStateCache.remove(retryStateKey);
 				this.retryListener.onRetrySuccess(this.retryPolicy, retryCallback, result);
 				return result;
 			}
