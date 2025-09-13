@@ -30,7 +30,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * <p>
  * This strategy can be used for the
  * {@link org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer}
- * for {@link org.springframework.retry.RetryContext} access.
+ * for {@link AttributeAccessor} access.
  *
  * @author Artem Bilan
  * @author Gary Russell

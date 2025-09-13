@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.flows;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -48,6 +49,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -915,6 +917,13 @@ public class IntegrationFlowTests {
 		public RequestHandlerRetryAdvice retryAdvice() {
 			RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
 			requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel()));
+			RetryPolicy retryPolicy = RetryPolicy.builder()
+					.maxAttempts(4)
+					.delay(Duration.ofSeconds(1))
+					.multiplier(5.0)
+					.maxDelay(Duration.ofMinutes(1))
+					.build();
+			requestHandlerRetryAdvice.setRetryPolicy(retryPolicy);
 			return requestHandlerRetryAdvice;
 		}
 

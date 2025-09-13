@@ -21,6 +21,42 @@ Junit 4-Based Support Components are deprecated.
 
 The project now leverages https://jspecify.dev/docs/start-here/[JSpecify] annotations to expose null-safe APIs and to check the consistency of those nullability declarations with https://github.com/uber/NullAway[NullAway] as part of its build.
 
+The `spring-retry` dependency, together with all its API usage have been replaced by retry API in Spring Framework Core module.
+This breaking change is the natural evolution of the whole Spring portfolio.
+In general, the following references have been migrated:
+
+- `org.springframework.retry.support.RetryTemplate` -> `org.springframework.core.retry.RetryTemplate`;
+- `org.springframework.retry.RetryPolicy` -> `org.springframework.core.retry.RetryPolicy`;
+- `org.springframework.retry.RecoveryCallback` -> `org.springframework.integration.core.RecoveryCallback`.
+There is no `RecoveryCallback` abstraction in the Spring Framework, since regular `try..catch` on the `RetryException` is enough.
+For Spring Integration, the `RecoveryCallback` makes sense as a dead-letter publisher to an error channel;
+- `org.springframework.retry.backoff.BackOffPolicy` -> `org.springframework.util.backoff.BackOff`.
+However, it is not exposed directly as a `RetryTemplate` options: rather as an internal API backed by the configuration via `RetryPolicy.Builder`;
+- The `RetryContext` in AMPQ, JMS and Apache Kafka channel adapters is replaced with an internal `AttributeAccessor` implementation.
+
+Therefore, the following project classes have suffered breaking changes:
+
+- `AmqpBaseInboundChannelAdapterSpec`
+- `AmqpBaseInboundGatewaySpec`
+- `AmqpInboundChannelAdapter`
+- `AmqpInboundGateway`
+- `PostgresSubscribableChannel`
+- `ChannelPublishingJmsMessageListener`
+- `JmsInboundGatewaySpec`
+- `JmsMessageDrivenChannelAdapterSpec`
+- `KafkaInboundGatewaySpec`
+- `KafkaMessageDrivenChannelAdapterSpec`
+- `KafkaInboundEndpoint`
+- `KafkaInboundGateway`
+- `KafkaMessageDrivenChannelAdapter`
+
+The `RequestHandlerRetryAdvice` was rebuilt to avoid external API as much as possible.
+For the stateless retry logic, there is just enough to provide a `org.springframework.core.retry.RetryPolicy`.
+The stateful retry logic is activated by the `Function<Message<?>, Object> stateKeyFunction`.
+The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
+
+See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more information.
+
 [[x7.0-new-components]]
 == New Components
 

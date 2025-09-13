@@ -22,7 +22,7 @@
 	</int:handler-retry-advice>
 
 	<int:handler-retry-advice id="a6" max-attempts="8">
-		<int:exponential-back-off initial="1000" multiplier="3.0" maximum="10000" />
+		<int:exponential-back-off initial="1000" multiplier="3.0" maximum="10000" jitter="6"/>
 	</int:handler-retry-advice>
 
 	<int:handler-retry-advice id="a7" recovery-channel="foo" send-timeout="4567" />
