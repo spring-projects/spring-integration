@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * Is the payload of a {@link Message} equal to a given value or is matching
  * a given matcher?
  * <p>
- * A Junit example using {@link org.junit.Assert#assertThat(Object, Matcher)} could look
+ * A Junit example using {@link org.hamcrest.MatcherAssert#assertThat(Object, Matcher)} could look
  * like this to test a payload value:
  *
  * <pre class="code">
@@ -39,7 +39,7 @@ import org.springframework.messaging.Message;
  * </pre>
  *
  * <p>
- * An example using {@link org.junit.Assert#assertThat(Object, Matcher)} delegating to
+ * An example using {@link org.hamcrest.MatcherAssert#assertThat(Object, Matcher)} delegating to
  * another {@link Matcher}.
  *
  * <pre class="code">
@@ -49,6 +49,20 @@ import org.springframework.messaging.Message;
  * assertThat(message, PayloadMatcher.hasPayload(is(BigDecimal.class)));
  * assertThat(message, PayloadMatcher.hasPayload(notNullValue()));
  * assertThat(message, not((PayloadMatcher.hasPayload(is(String.class))))); *
+ * }
+ * </pre>
+ *
+ * <p>
+ * When using AssertJ, the {@link org.assertj.core.api.HamcrestCondition} can be used to combine the AssertJ API
+ * with Hamcrest matchers:
+ *
+ * <pre class="code">
+ * {@code
+ * ANY_PAYLOAD = new BigDecimal("1.123");
+ * Message<BigDecimal> message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
+ * assertThat(message).is(matching(hasPayload(ANY_PAYLOAD)));
+ * assertThat(message).has(matching(hasPayload(notNullValue())));
+ * assertThat(message).isNot(matching(hasPayload(is(String.class))));
  * }
  * </pre>
  *
