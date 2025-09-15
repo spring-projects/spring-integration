@@ -24,9 +24,9 @@ See xref:functions-support.adoc[`java.util.function` Interfaces Support].
 [[x5.1-LongRunningTest]]
 === `@LongRunningTest`
 
-A JUnit 5 `@LongRunningTest` conditional annotation is provided to check the environment or system properties for the `RUN_LONG_INTEGRATION_TESTS` entry with the value of `true` to determine if test should be run or skipped.
+A JUnit Jupiter `@LongRunningTest` conditional annotation is provided to check the environment or system properties for the `RUN_LONG_INTEGRATION_TESTS` entry with the value of `true` to determine if test should be run or skipped.
 
-See xref:testing.adoc#test-junit-rules[JUnit Rules and Conditions].
+See xref:testing.adoc#test-junit-conditions[JUnit Conditions].
 
 [[x5.1-general]]
 == General Changes
