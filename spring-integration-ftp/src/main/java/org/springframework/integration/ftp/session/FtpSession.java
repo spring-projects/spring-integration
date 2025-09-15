@@ -19,6 +19,8 @@ package org.springframework.integration.ftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -31,6 +33,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -71,7 +74,17 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public FTPFile[] list(@Nullable String path) throws IOException {
-		return this.client.listFiles(path);
+		FTPFile[] ftpFiles = this.client.listFiles(path);
+		if (StringUtils.hasText(path)) {
+			List<EnhancedFTPFile> enhancedFtpFiles = new LinkedList<>();
+			for (FTPFile ftpFile : ftpFiles) {
+				EnhancedFTPFile enhancedFTPFile = new EnhancedFTPFile(ftpFile);
+				enhancedFTPFile.setLongFileName(path + '/' + ftpFile.getName());
+				enhancedFtpFiles.add(enhancedFTPFile);
+			}
+			return enhancedFtpFiles.toArray(new FTPFile[0]);
+		}
+		return ftpFiles;
 	}
 
 	@Override

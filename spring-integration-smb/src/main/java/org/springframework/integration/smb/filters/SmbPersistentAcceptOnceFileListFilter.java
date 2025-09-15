@@ -25,6 +25,7 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
  * Implementation of {@link AbstractPersistentAcceptOnceFileListFilter} for SMB.
  *
  * @author Prafull Kumar Soni
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -41,7 +42,7 @@ public class SmbPersistentAcceptOnceFileListFilter extends AbstractPersistentAcc
 
 	@Override
 	protected String fileName(SmbFile file) {
-		return file.getName();
+		return file.getUncPath();
 	}
 
 }

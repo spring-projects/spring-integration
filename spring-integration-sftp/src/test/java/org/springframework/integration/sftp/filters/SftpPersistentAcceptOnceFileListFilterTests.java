@@ -44,21 +44,22 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 				new SimpleMetadataStore(), "rollback:");
 		SftpClient.Attributes attrs = new SftpClient.Attributes();
 		attrs.setModifyTime(FileTime.from(Instant.now()));
-		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("foo", "foo", attrs);
-		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("bar", "bar", attrs);
-		SftpClient.DirEntry sftpFile3 = new SftpClient.DirEntry("baz", "baz", attrs);
+		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("file1", null, attrs);
+		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("file2", null, attrs);
+		SftpClient.DirEntry sftpFile3 = new SftpClient.DirEntry("file3", null, attrs);
 		SftpClient.DirEntry[] files = new SftpClient.DirEntry[] {sftpFile1, sftpFile2, sftpFile3};
 		List<SftpClient.DirEntry> passed = filter.filterFiles(files);
-		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
+		assertThat(passed.toArray()).isEqualTo(files);
 		List<SftpClient.DirEntry> now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(0);
+		assertThat(now).isEmpty();
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(2);
-		assertThat(now.get(0).getFilename()).isEqualTo("bar");
-		assertThat(now.get(1).getFilename()).isEqualTo("baz");
+		assertThat(now)
+				.hasSize(2)
+				.extracting(SftpClient.DirEntry::getFilename)
+				.contains("file2", "file3");
 		now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(0);
+		assertThat(now).isEmpty();
 		filter.close();
 	}
 
@@ -68,13 +69,14 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 				new SimpleMetadataStore(), "rollback:");
 		SftpClient.Attributes attrs = new SftpClient.Attributes();
 		attrs.setModifyTime(FileTime.from(Instant.now()));
-		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("foo", "same", attrs);
-		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("bar", "same", attrs);
+		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("same", "dir1/same", attrs);
+		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("same", "dir2/same", attrs);
 		SftpClient.DirEntry[] files = new SftpClient.DirEntry[] {sftpFile1, sftpFile2};
 		List<SftpClient.DirEntry> now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(2);
-		assertThat(now.get(0).getFilename()).isEqualTo("foo");
-		assertThat(now.get(1).getFilename()).isEqualTo("bar");
+		assertThat(now)
+				.hasSize(2)
+				.extracting(SftpClient.DirEntry::getFilename)
+				.contains("same", "same");
 		filter.close();
 	}
 

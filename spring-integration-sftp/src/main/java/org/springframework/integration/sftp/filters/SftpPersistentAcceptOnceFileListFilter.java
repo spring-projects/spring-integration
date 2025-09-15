@@ -20,6 +20,7 @@ import org.apache.sshd.sftp.client.SftpClient;
 
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.util.StringUtils;
 
 /**
  * Persistent file list filter using the server's file timestamp to detect if we've already
@@ -46,7 +47,8 @@ public class SftpPersistentAcceptOnceFileListFilter
 
 	@Override
 	protected String fileName(SftpClient.DirEntry file) {
-		return file.getFilename();
+		String longFilename = file.getLongFilename();
+		return StringUtils.hasText(longFilename) ? longFilename : file.getFilename();
 	}
 
 	@Override
