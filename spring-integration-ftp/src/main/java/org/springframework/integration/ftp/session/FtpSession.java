@@ -31,6 +31,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -71,7 +72,17 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public FTPFile[] list(@Nullable String path) throws IOException {
-		return this.client.listFiles(path);
+		FTPFile[] ftpFiles = this.client.listFiles(path);
+		String remoteDir = StringUtils.hasText(path) ? path : ".";
+		EnhancedFTPFile[] enhancedFtpFiles = new EnhancedFTPFile[ftpFiles.length];
+		for (int i = 0; i < ftpFiles.length; i++) {
+			FTPFile ftpFile = ftpFiles[i];
+			EnhancedFTPFile enhancedFTPFile = new EnhancedFTPFile(ftpFile);
+			enhancedFTPFile.setLongFileName(remoteDir + '/' + ftpFile.getName());
+			enhancedFtpFiles[i] = enhancedFTPFile;
+		}
+
+		return enhancedFtpFiles;
 	}
 
 	@Override

@@ -1,10 +1,16 @@
 [[remote-persistent-flf]]
 = Remote Persistent File List Filters
 
-Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
+Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentAcceptOnceFileListFilter` by default, configured with an in-memory `MetadataStore`.
 To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store] for more information).
 These filters are used to prevent fetching the same file multiple times (unless its modified time changes).
 Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
+
+Starting with version 7.0, all the `AbstractPersistentAcceptOnceFileListFilter` implementations uses a "long file name" (fetching directory plus simple file name) for the metadata entry key.
+Previously, just a file name may cause the metadata overriding problem when the same filter is used for different directories with same file names.
+For example, the `RotatingServerAdvice` may switch to directories based on the timestamp, but files are placed there with the same name according to business logic.
+If `directory1` and `directory2` contain a `someFile`, the metadata for them is stored with a `directory1/someFile` and `directory2/someFile`, respectively.
+That is if filter's `prefix` option is provided as an empty string, otherwise such a prefix is added to the final key.
 
 IMPORTANT: In the event of a catastrophic failure (such as power loss), it is possible that the file currently being fetched will remain in the filter and won't be re-fetched when restarting the application.
 In this case you would need to manually remove this file from the `MetadataStore`.

@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -69,7 +70,7 @@ import static org.mockito.Mockito.when;
  */
 public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicationContextAware {
 
-	private static FTPClient ftpClient = mock(FTPClient.class);
+	private static final FTPClient ftpClient = mock(FTPClient.class);
 
 	@BeforeEach
 	@AfterEach
@@ -85,7 +86,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		TestFtpSessionFactory ftpSessionFactory = new TestFtpSessionFactory();
 		ftpSessionFactory.setUsername("kermit");
 		ftpSessionFactory.setPassword("frog");
-		ftpSessionFactory.setHost("foo.com");
+		ftpSessionFactory.setHost("some-host.com");
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setPreserveTimestamp(true);
@@ -97,7 +98,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		store.setBaseDirectory("test");
 		store.afterPropertiesSet();
 		FtpPersistentAcceptOnceFileListFilter persistFilter =
-				new FtpPersistentAcceptOnceFileListFilter(store, "foo");
+				new FtpPersistentAcceptOnceFileListFilter(store, "someKey/");
 		List<FileListFilter<FTPFile>> filters = new ArrayList<>();
 		filters.add(persistFilter);
 		filters.add(patternFilter);
@@ -166,6 +167,10 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 
 		Map<?, ?> metadata = TestUtils.getPropertyValue(remoteFileMetadataStore, "metadata", Map.class);
 		assertThat(metadata).isEmpty();
+
+		Properties metadataProperties = TestUtils.getPropertyValue(store, "metadata", Properties.class);
+		metadataProperties.stringPropertyNames()
+				.forEach(name -> assertThat(name).startsWith("someKey/remote-test-dir/"));
 	}
 
 	@Test

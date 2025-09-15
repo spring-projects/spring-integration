@@ -68,6 +68,7 @@ import org.springframework.integration.ftp.server.PathMovedEvent;
 import org.springframework.integration.ftp.server.PathRemovedEvent;
 import org.springframework.integration.ftp.server.SessionClosedEvent;
 import org.springframework.integration.ftp.server.SessionOpenedEvent;
+import org.springframework.integration.ftp.session.EnhancedFTPFile;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
@@ -516,7 +517,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
 			// add an extra file where the get will fail
 			files = Arrays.copyOf(files, files.length + 1);
-			FTPFile bogusFile = new FTPFile();
+			FTPFile bogusFile = new EnhancedFTPFile(new FTPFile());
 			bogusFile.setName("bogus.txt");
 			files[files.length - 1] = bogusFile;
 			return files;
@@ -542,7 +543,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
 			// add an extra file where the get will fail
 			files = Arrays.copyOf(files, files.length + 1);
-			FTPFile bogusFile = new FTPFile();
+			FTPFile bogusFile = new EnhancedFTPFile(new FTPFile());
 			bogusFile.setName("bogus.txt");
 			bogusFile.setTimestamp(Calendar.getInstance());
 			files[files.length - 1] = bogusFile;
