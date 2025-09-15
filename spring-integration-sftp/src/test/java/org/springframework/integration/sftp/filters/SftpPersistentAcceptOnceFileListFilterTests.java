@@ -18,7 +18,6 @@ package org.springframework.integration.sftp.filters;
 
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.sshd.sftp.client.SftpClient;
