@@ -27,7 +27,7 @@ import org.springframework.messaging.Message;
  * Is the payload of a {@link Message} equal to a given value or is matching
  * a given matcher?
  * <p>
- * A Junit example using {@link org.junit.Assert#assertThat(Object, Matcher)} could look
+ * A Junit example using {@link org.hamcrest.MatcherAssert#assertThat(Object, Matcher)} could look
  * like this to test a payload value:
  *
  * <pre class="code">
@@ -39,7 +39,7 @@ import org.springframework.messaging.Message;
  * </pre>
  *
  * <p>
- * An example using {@link org.junit.Assert#assertThat(Object, Matcher)} delegating to
+ * An example using {@link org.hamcrest.MatcherAssert#assertThat(Object, Matcher)} delegating to
  * another {@link Matcher}.
  *
  * <pre class="code">

@@ -31,7 +31,7 @@ import org.springframework.messaging.MessageHeaders;
  * Are the {@link MessageHeaders} of a {@link Message} containing any entry
  * or multiple that match?
  * <p>
- * For example using {@link org.junit.Assert#assertThat(Object, Matcher)} for a single
+ * For example using {@link org.hamcrest.MatcherAssert#assertThat(Object, Matcher)} for a single
  * entry:
  *
  * <pre class="code">
