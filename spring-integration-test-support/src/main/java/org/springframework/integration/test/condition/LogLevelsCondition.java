@@ -67,6 +67,7 @@ public class LogLevelsCondition
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public void beforeEach(ExtensionContext context) {
 		Store store = context.getStore(Namespace.create(getClass(), context));
 		LogLevels logLevels = store.get(STORE_ANNOTATION_KEY, LogLevels.class);
@@ -82,6 +83,7 @@ public class LogLevelsCondition
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public void afterEach(ExtensionContext context) {
 		Store store = context.getStore(Namespace.create(getClass(), context));
 		LevelsContainer container = store.get(STORE_CONTAINER_KEY, LevelsContainer.class);
