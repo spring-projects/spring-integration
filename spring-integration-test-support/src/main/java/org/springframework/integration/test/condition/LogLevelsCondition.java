@@ -39,6 +39,8 @@ import org.springframework.integration.test.util.TestUtils.LevelsContainer;
  * JUnit condition that adjusts and reverts log levels before/after each test.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -67,7 +69,6 @@ public class LogLevelsCondition
 	}
 
 	@Override
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public void beforeEach(ExtensionContext context) {
 		Store store = context.getStore(Namespace.create(getClass(), context));
 		LogLevels logLevels = store.get(STORE_ANNOTATION_KEY, LogLevels.class);
@@ -76,14 +77,15 @@ public class LogLevelsCondition
 			store = parent.getStore(Namespace.create(getClass(), parent));
 			logLevels = store.get(STORE_ANNOTATION_KEY, LogLevels.class);
 		}
-		store.put(STORE_CONTAINER_KEY, TestUtils.adjustLogLevels(context.getDisplayName(),
-				Arrays.asList((logLevels.classes())),
-				Arrays.asList(logLevels.categories()),
-				Level.toLevel(logLevels.level())));
+		if (logLevels != null) {
+			store.put(STORE_CONTAINER_KEY, TestUtils.adjustLogLevels(context.getDisplayName(),
+					Arrays.asList((logLevels.classes())),
+					Arrays.asList(logLevels.categories()),
+					Level.toLevel(logLevels.level())));
+		}
 	}
 
 	@Override
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public void afterEach(ExtensionContext context) {
 		Store store = context.getStore(Namespace.create(getClass(), context));
 		LevelsContainer container = store.get(STORE_CONTAINER_KEY, LevelsContainer.class);
@@ -94,7 +96,9 @@ public class LogLevelsCondition
 			container = store.get(STORE_CONTAINER_KEY, LevelsContainer.class);
 			parentStore = true;
 		}
-		TestUtils.revertLogLevels(context.getDisplayName(), container);
+		if (container != null) {
+			TestUtils.revertLogLevels(context.getDisplayName(), container);
+		}
 		store.remove(STORE_CONTAINER_KEY);
 		if (!parentStore) {
 			store.remove(STORE_ANNOTATION_KEY);
