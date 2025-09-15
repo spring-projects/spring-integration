@@ -7,7 +7,7 @@ These filters are used to prevent fetching the same file multiple times (unless 
 Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
 
 Starting with version 7.0, all the `AbstractPersistentAcceptOnceFileListFilter` implementations uses a "long file name" (fetching directory plus simple file name) for the metadata entry key.
-Perviously, just a file name may cause the metadata overriding problem when the same filter is used for different directories with same file names.
+Previously, just a file name may cause the metadata overriding problem when the same filter is used for different directories with same file names.
 For example, the `RotatingServerAdvice` may switch to directories based on the timestamp, but files are placed there with the same name according to business logic.
 If `directory1` and `directory2` contain a `someFile`, the metadata for them is stored with a `directory1/someFile` and `directory2/someFile`, respectively.
 That is if filter's `prefix` option is provided as an empty string, otherwise such a prefix is added to the final key.

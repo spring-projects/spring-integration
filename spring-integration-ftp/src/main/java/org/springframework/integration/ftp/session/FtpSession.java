@@ -19,8 +19,6 @@ package org.springframework.integration.ftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -75,16 +73,16 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public FTPFile[] list(@Nullable String path) throws IOException {
 		FTPFile[] ftpFiles = this.client.listFiles(path);
-		if (StringUtils.hasText(path)) {
-			List<EnhancedFTPFile> enhancedFtpFiles = new LinkedList<>();
-			for (FTPFile ftpFile : ftpFiles) {
-				EnhancedFTPFile enhancedFTPFile = new EnhancedFTPFile(ftpFile);
-				enhancedFTPFile.setLongFileName(path + '/' + ftpFile.getName());
-				enhancedFtpFiles.add(enhancedFTPFile);
-			}
-			return enhancedFtpFiles.toArray(new FTPFile[0]);
+		String remoteDir = StringUtils.hasText(path) ? path : ".";
+		EnhancedFTPFile[] enhancedFtpFiles = new EnhancedFTPFile[ftpFiles.length];
+		for (int i = 0; i < ftpFiles.length; i++) {
+			FTPFile ftpFile = ftpFiles[i];
+			EnhancedFTPFile enhancedFTPFile = new EnhancedFTPFile(ftpFile);
+			enhancedFTPFile.setLongFileName(remoteDir + '/' + ftpFile.getName());
+			enhancedFtpFiles[i] = enhancedFTPFile;
 		}
-		return ftpFiles;
+
+		return enhancedFtpFiles;
 	}
 
 	@Override
