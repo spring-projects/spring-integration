@@ -18,7 +18,7 @@ plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.jetbrains.dokka' version '1.9.20'
+    id 'org.jetbrains.dokka' version '2.0.0'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
@@ -177,7 +177,7 @@ allprojects {
 
     }
 
-    // TODO until https://github.com/Kotlin/dokka/issues/3472
+    // TODO Remove when Dokka 2.1.0 is released
     configurations.matching { it.name.startsWith('dokka') }.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group.startsWith('com.fasterxml.jackson')) {
@@ -524,6 +524,7 @@ project('spring-integration-core') {
             main {
                 sourceRoots.setFrom(file('src/main/kotlin'))
                 classpath.from(sourceSets['main'].runtimeClasspath)
+                noJdkLink.set(false)
                 externalDocumentationLink {
                     url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
                     packageListUrl.set(file('build/docs/javadoc/element-list').toURI().toURL())
