@@ -177,7 +177,7 @@ allprojects {
 
     }
 
-    // TODO until https://github.com/Kotlin/dokka/issues/3472
+    // TODO Remove when Dokka 2.1.0 is released
     configurations.matching { it.name.startsWith('dokka') }.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group.startsWith('com.fasterxml.jackson')) {
