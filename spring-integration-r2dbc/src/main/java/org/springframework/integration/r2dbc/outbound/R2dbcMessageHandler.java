@@ -187,8 +187,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		if (this.tableNameExpression != null) {
 			String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
 			Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
-			Map<String, Object> values = evaluateValuesExpression(message);
-			Map<SqlIdentifier, Object> updateMap = transformIntoSqlIdentifierMap(values);
+			Map<String, @Nullable Object> values = evaluateValuesExpression(message);
+			Map<SqlIdentifier, @Nullable Object> updateMap = transformIntoSqlIdentifierMap(values);
 			Criteria criteria = evaluateCriteriaExpression(message);
 
 			StatementMapper.UpdateSpec updateSpec =
@@ -205,8 +205,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		}
 	}
 
-	private Map<SqlIdentifier, Object> transformIntoSqlIdentifierMap(Map<String, Object> values) {
-		Map<SqlIdentifier, Object> sqlIdentifierObjectMap = new HashMap<>();
+	private Map<SqlIdentifier, @Nullable Object> transformIntoSqlIdentifierMap(Map<String, @Nullable Object> values) {
+		Map<SqlIdentifier, @Nullable Object> sqlIdentifierObjectMap = new HashMap<>();
 		values.forEach((k, v) -> sqlIdentifierObjectMap.put(SqlIdentifier.unquoted(k), v));
 		return sqlIdentifierObjectMap;
 	}
@@ -216,11 +216,11 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		if (this.tableNameExpression != null) {
 			String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
 			Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
-			Map<String, Object> values = evaluateValuesExpression(message);
+			Map<String, @Nullable Object> values = evaluateValuesExpression(message);
 
 			StatementMapper.InsertSpec insertSpec = this.statementMapper.createInsert(tableName);
 
-			for (Map.Entry<String, Object> entry : values.entrySet()) {
+			for (Map.Entry<String, @Nullable Object> entry : values.entrySet()) {
 				insertSpec = insertSpec.withColumn(entry.getKey(),
 						Parameter.fromOrEmpty(entry.getValue(), Object.class));
 			}
@@ -237,11 +237,11 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Map<String, Object> evaluateValuesExpression(Message<?> message) {
+	private Map<String, @Nullable Object> evaluateValuesExpression(Message<?> message) {
 		Assert.notNull(this.valuesExpression,
 				"'this.valuesExpression' must not be null when 'tableNameExpression' mode is used");
-		Map<String, Object> fieldValues =
-				(Map<String, Object>) this.valuesExpression.getValue(this.evaluationContext, message, Map.class);
+		Map<String, @Nullable Object> fieldValues =
+				(Map<String, @Nullable Object>) this.valuesExpression.getValue(this.evaluationContext, message, Map.class);
 		Assert.notNull(fieldValues, "'valuesExpression' must not evaluate to null");
 		return fieldValues;
 	}
