@@ -20,6 +20,8 @@ If you need to persist metadata between application context restarts, the framew
 * xref:redis.adoc#redis-metadata-store[Redis Metadata Store]
 * xref:zookeeper.adoc#zk-metadata-store[Zookeeper Metadata Store]
 
+The https://awspring.io[Spring Cloud AWS] also provides a `DynamoDbMetadataStore`.
+
 The `PropertiesPersistingMetadataStore` is backed by a properties file and a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html[`PropertiesPersister`].
 
 By default, it persists only in the state when the application context is closed normally.

@@ -33,7 +33,7 @@ Spring Integration provides these `LockRegistry` implementations for distributed
 * xref:redis.adoc#redis-lock-registry[Redis]
 * xref:zookeeper.adoc#zk-lock-registry[Zookeeper]
 
-https://github.com/spring-projects/spring-integration-aws[Spring Integration AWS] extension also implements a `DynamoDbLockRegistry`.
+The https://awspring.io[Spring Cloud AWS] also provides a `DynamoDbLockRegistry`.
 
 Starting with version 7.0, the `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
 Both `JdbcLock` and `RedisLock` implement `DistributedLock` interface to support the feature of customized time-to-live.
