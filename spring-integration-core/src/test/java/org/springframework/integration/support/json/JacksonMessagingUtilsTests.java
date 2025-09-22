@@ -53,7 +53,7 @@ class JacksonMessagingUtilsTests {
 	@Test
 	void shouldIncludeKotlinModule() {
 		KotlinModule kotlinModule = new KotlinModule.Builder().build();
-		Set<String> registeredModuleNames = getModuleNames(mapper.getRegisteredModules());
+		Set<String> registeredModuleNames = getModuleNames(mapper.registeredModules().stream());
 		assertThat(registeredModuleNames).contains(kotlinModule.getModuleName());
 	}
 

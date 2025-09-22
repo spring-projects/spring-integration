@@ -119,7 +119,7 @@ public final class IntegrationReactiveUtils {
 	 * When {@link MessageSource#receive()} returns {@code null}, the source {@link Mono}
 	 * goes to the {@link Mono#repeatWhenEmpty} state and performs a {@code delay}
 	 * based on the {@link #DELAY_WHEN_EMPTY_KEY} {@link Duration} entry in the subscriber context
-	 * or falls back to 1 second duration.
+	 * or falls back to 1-second duration.
 	 * If a produced message has an
 	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#ACKNOWLEDGMENT_CALLBACK} header
 	 * it is ack'ed in the {@link Mono#doOnSuccess} and nack'ed in the {@link Mono#doOnError}.
@@ -127,14 +127,13 @@ public final class IntegrationReactiveUtils {
 	 * @param <T> the expected payload type.
 	 * @return a {@link Flux} which pulls messages from the {@link MessageSource} on demand.
 	 */
+	@SuppressWarnings("NullAway")
 	public static <T> Flux<Message<T>> messageSourceToFlux(MessageSource<T> messageSource) {
 		return Mono.
 				<Message<T>>create(monoSink ->
 				monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
 				.doOnSuccess((message) -> {
-					if (message != null) {
-						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
-					}
+					AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
 				})
 				.doOnError(MessagingException.class,
 						(ex) -> {
@@ -189,12 +188,12 @@ public final class IntegrationReactiveUtils {
 			Sinks.Many<Message<T>> sink = Sinks.many().unicast().onBackpressureError();
 			MessageHandler messageHandler = (message) -> {
 				Message<?> messageToEmit = message;
-					ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
-					if (!contextView.isEmpty()) {
-						messageToEmit = MutableMessageBuilder.fromMessage(message)
-								.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
-								.build();
-					}
+				ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
+				if (!contextView.isEmpty()) {
+					messageToEmit = MutableMessageBuilder.fromMessage(message)
+							.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
+							.build();
+				}
 				while (true) {
 					switch (sink.tryEmitNext((Message<T>) messageToEmit)) {
 						case FAIL_NON_SERIALIZED:

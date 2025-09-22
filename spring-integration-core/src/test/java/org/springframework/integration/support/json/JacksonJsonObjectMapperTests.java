@@ -72,8 +72,8 @@ class JacksonJsonObjectMapperTests {
 				.addModules(kotlinModule)
 				.build();
 
-		Set<String> autoModuleNames = getModuleNames(mapper.getObjectMapper().getRegisteredModules());
-		Set<String> manualModuleNames = getModuleNames(manualMapper.getRegisteredModules());
+		Set<String> autoModuleNames = getModuleNames(mapper.getObjectMapper().registeredModules().stream());
+		Set<String> manualModuleNames = getModuleNames(manualMapper.registeredModules().stream());
 
 		assertThat(autoModuleNames).isEqualTo(manualModuleNames);
 	}

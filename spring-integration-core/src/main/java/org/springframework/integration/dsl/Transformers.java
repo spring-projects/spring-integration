@@ -311,7 +311,7 @@ public abstract class Transformers {
 		return new StreamTransformer(charset);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	static <I, O> Flux<Message<O>> transformWithFunction(Publisher<Message<I>> publisher,
 			Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
 
