@@ -133,7 +133,9 @@ public final class IntegrationReactiveUtils {
 				<Message<T>>create(monoSink ->
 				monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
 				.doOnSuccess((message) -> {
-					AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
+					if (message != null) {
+						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
+					}
 				})
 				.doOnError(MessagingException.class,
 						(ex) -> {
