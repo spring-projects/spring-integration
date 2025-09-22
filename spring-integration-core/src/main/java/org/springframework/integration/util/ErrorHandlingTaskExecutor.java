@@ -18,6 +18,9 @@ package org.springframework.integration.util;
 
 import java.util.concurrent.Executor;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
@@ -27,12 +30,17 @@ import org.springframework.util.ErrorHandler;
  * A {@link TaskExecutor} implementation that wraps an existing Executor
  * instance in order to catch any exceptions. If an exception is thrown, it
  * will be handled by the provided {@link ErrorHandler}.
+ * <p>
+ * After invoking {@link ErrorHandler}, the current observation scope will be closed.
  *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ErrorHandlingTaskExecutor implements TaskExecutor {
+
+	private static final ObservationRegistry FOR_SCOPES = ObservationRegistry.create();
 
 	private final Executor executor;
 
@@ -55,8 +63,19 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 			try {
 				task.run();
 			}
-			catch (Throwable t) { //NOSONAR
-				ErrorHandlingTaskExecutor.this.errorHandler.handleError(t);
+			catch (Throwable throwable) {
+				try {
+					ErrorHandlingTaskExecutor.this.errorHandler.handleError(throwable);
+				}
+				finally {
+					var currentObservationScope = FOR_SCOPES.getCurrentObservationScope();
+					if (currentObservationScope != null) {
+						currentObservationScope.close();
+						Observation currentObservation = currentObservationScope.getCurrentObservation();
+						currentObservation.error(throwable);
+						currentObservation.stop();
+					}
+				}
 			}
 		});
 	}

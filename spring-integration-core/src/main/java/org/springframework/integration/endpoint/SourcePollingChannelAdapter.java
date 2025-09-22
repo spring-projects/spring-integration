@@ -258,31 +258,31 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void messageReceived(@Nullable IntegrationResourceHolder holder, Message<?> message) {
 		if (isObserved()) {
-			Observation observation =
-					IntegrationObservation.HANDLER.observation(this.observationConvention,
+			// Cannot use 'Observation.observe()' API
+			// since transaction needs to be aware of the message
+			// and error handling happens in the caller of 'doPoll()' - 'ErrorHandler'
+			IntegrationObservation.HANDLER.observation(this.observationConvention,
 							DefaultMessageReceiverObservationConvention.INSTANCE,
 							() -> new MessageReceiverContext(message, getComponentName(), "message-source"),
-							this.observationRegistry);
-
-			observation.start().openScope();
+							this.observationRegistry)
+					.start()
+					.openScope();
 		}
+
 		super.messageReceived(holder, message);
 	}
 
 	/**
 	 * Stop an observation (and close its scope) previously started
 	 * from the {@link #messageReceived(IntegrationResourceHolder, Message)}.
-	 * @param pollingTaskError an optional error as a result of the polling task.
+	 * @param message the received message. Can be {@code null}; ignored in this implementation.
 	 */
 	@Override
-	protected void donePollingTask(@Nullable Exception pollingTaskError) {
+	protected void donePollingTask(@Nullable Message<?> message) {
 		Observation.Scope currentObservationScope = this.observationRegistry.getCurrentObservationScope();
 		if (currentObservationScope != null) {
 			currentObservationScope.close();
 			Observation currentObservation = currentObservationScope.getCurrentObservation();
-			if (pollingTaskError != null) {
-				currentObservation.error(pollingTaskError);
-			}
 			currentObservation.stop();
 		}
 	}
