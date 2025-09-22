@@ -44,6 +44,7 @@ import org.springframework.integration.support.management.observation.Integratio
 import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -141,6 +142,12 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
 		this.observationRegistry = observationRegistry;
+		if (isObserved()) {
+			ErrorHandlingTaskExecutor taskExecutor = (ErrorHandlingTaskExecutor) getTaskExecutor();
+			if (taskExecutor.getObservationRegistry() == null) {
+				taskExecutor.setObservationRegistry(observationRegistry);
+			}
+		}
 	}
 
 	/**
@@ -263,31 +270,30 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void messageReceived(@Nullable IntegrationResourceHolder holder, Message<?> message) {
 		if (isObserved()) {
-			Observation observation =
-					IntegrationObservation.HANDLER.observation(this.observationConvention,
+			// Cannot use 'Observation.observe()' API
+			// since transaction needs to be aware of the message
+			// and error handling happens in the caller of 'doPoll()' - 'ErrorHandler'
+			IntegrationObservation.HANDLER.observation(this.observationConvention,
 							DefaultMessageReceiverObservationConvention.INSTANCE,
 							() -> new MessageReceiverContext(message, getComponentName(), "message-source"),
-							this.observationRegistry);
-
-			observation.start().openScope();
+							this.observationRegistry)
+					.start()
+					.openScope();
 		}
+
 		super.messageReceived(holder, message);
 	}
 
 	/**
 	 * Stop an observation (and close its scope) previously started
 	 * from the {@link #messageReceived(IntegrationResourceHolder, Message)}.
-	 * @param pollingTaskError an optional error as a result of the polling task.
 	 */
 	@Override
-	protected void donePollingTask(@Nullable Exception pollingTaskError) {
+	protected void donePollingTask(@Nullable Message<?> message) {
 		Observation.Scope currentObservationScope = this.observationRegistry.getCurrentObservationScope();
 		if (currentObservationScope != null) {
 			currentObservationScope.close();
 			Observation currentObservation = currentObservationScope.getCurrentObservation();
-			if (pollingTaskError != null) {
-				currentObservation.error(pollingTaskError);
-			}
 			currentObservation.stop();
 		}
 	}
@@ -302,8 +308,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		return IntegrationResourceHolder.MESSAGE_SOURCE;
 	}
 
-	@Nullable
-	private static Object extractProxyTarget(@Nullable Object target) {
+	private static @Nullable Object extractProxyTarget(@Nullable Object target) {
 		if (!(target instanceof Advised advised)) {
 			return target;
 		}

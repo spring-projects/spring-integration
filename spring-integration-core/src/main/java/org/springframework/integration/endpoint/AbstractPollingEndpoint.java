@@ -156,8 +156,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * A negative number means retrieve unlimited messages until the {@code MessageSource} returns {@code null}.
 	 * Zero means do not poll for any records -
 	 * it can be considered as pausing if 'maxMessagesPerPoll' is later changed to a non-zero value.
-	 * The polling cycle may exit earlier if the source returns null for the current receive call.
-	 * @param maxMessagesPerPoll the number of message to poll per schedule.
+	 * The polling cycle may exit earlier if the source returns null for the current {@code receive} call.
+	 * @param maxMessagesPerPoll the number of messages to poll per schedule.
 	 */
 	@ManagedAttribute
 	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
@@ -184,14 +184,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	/**
-	 * Return the default error channel if the error handler is explicitly provided and
-	 * it is a {@link MessagePublishingErrorHandler}.
+	 * Return the default error channel if the error handler is explicitly provided,
+	 * and it is a {@link MessagePublishingErrorHandler}.
 	 * @return the channel or null.
 	 * @since 4.3
 	 */
 	public @Nullable MessageChannel getDefaultErrorChannel() {
-		if (!this.errorHandlerIsDefault && this.errorHandler
-				instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
+		if (!this.errorHandlerIsDefault &&
+				this.errorHandler instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
 
 			return messagePublishingErrorHandler.getDefaultErrorChannel();
 		}
@@ -333,11 +333,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		List<Advice> advices = this.adviceChain;
 		if (!CollectionUtils.isEmpty(advices)) {
 			ProxyFactory proxyFactory = new ProxyFactory(task);
-			if (!CollectionUtils.isEmpty(advices)) {
-				advices.stream()
-						.filter(advice -> !isReceiveOnlyAdvice(advice))
-						.forEach(proxyFactory::addAdvice);
-			}
+			advices.stream()
+					.filter(advice -> !isReceiveOnlyAdvice(advice))
+					.forEach(proxyFactory::addAdvice);
 			task = (Callable<@Nullable Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
 		}
 		if (!CollectionUtils.isEmpty(receiveOnlyAdviceChain)) {
@@ -419,12 +417,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	private @Nullable Message<?> pollForMessage() {
-		Exception pollingTaskError = null;
 		try {
-			return this.pollingTask.call();
+			Message<?> message = this.pollingTask.call();
+			donePollingTask(message);
+			return message;
 		}
 		catch (Exception ex) {
-			pollingTaskError = ex;
 			if (ex instanceof MessagingException messagingException) {
 				throw messagingException;
 			}
@@ -451,7 +449,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					TransactionSynchronizationManager.unbindResource(resource);
 				}
 			}
-			donePollingTask(pollingTaskError);
 		}
 	}
 
@@ -501,7 +498,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
-	protected void donePollingTask(@Nullable Exception pollingTaskError) {
+	/**
+	 * The callback of a received message (if any) after the polling task is done.
+	 * If a transaction is enabled, it is committed at this point.
+	 * @param message the message result from the polling task.
+	 */
+	protected void donePollingTask(@Nullable Message<?> message) {
 
 	}
 
