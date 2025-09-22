@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -89,8 +90,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	private boolean receiveRaw;
 
-	@Nullable
-	private String connectUrl;
+	private @Nullable String connectUrl;
 
 	@SuppressWarnings("NullAway.Init")
 	private volatile Mono<ZMQ.Socket> socketMono;
@@ -120,7 +120,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Provide an {@link InboundMessageMapper} to convert a consumed data into a message to produce.
+	 * Provide an {@link InboundMessageMapper} to convert consumed data into a message to produce.
 	 * Ignored when {@link #setReceiveRaw(boolean)} is {@code true}.
 	 * @param messageMapper the {@link InboundMessageMapper} to use.
 	 */
@@ -131,7 +131,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	/**
 	 * Provide a {@link MessageConverter} (as an alternative to {@link #messageMapper})
-	 * for converting a consumed data into a message to produce.
+	 * for converting consumed data into a message to produce.
 	 * Ignored when {@link #setReceiveRaw(boolean)} is {@code true}.
 	 * @param messageConverter the {@link MessageConverter} to use.
 	 */
@@ -140,7 +140,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Whether raw {@link ZMsg} is present as a payload of message to produce or
+	 * Whether raw {@link ZMsg} is present as a payload of a message to produce or
 	 * it is fully converted to a {@link Message} including {@link ZeroMqHeaders#TOPIC} header (if any).
 	 * @param receiveRaw to convert from {@link ZMsg} or not; defaults to convert.
 	 */
@@ -169,7 +169,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Configure an URL for {@link org.zeromq.ZMQ.Socket#connect(String)}.
+	 * Configure a URL for {@link org.zeromq.ZMQ.Socket#connect(String)}.
 	 * Mutually exclusive with the {@link #setBindPort(int)}.
 	 * @param connectUrl the URL to connect ZeroMq socket to.
 	 */
@@ -306,7 +306,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 				ZFrame topicFrame = this.unwrapTopic ? msg.unwrap() : msg.pop();
 				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, topicFrame.getString(ZMQ.CHARSET));
 			}
-			return this.messageMapper.toMessage(msg.getLast().getData(), headers); // NOSONAR
+			return Objects.requireNonNull(this.messageMapper.toMessage(msg.getLast().getData(), headers));
 		});
 	}
 

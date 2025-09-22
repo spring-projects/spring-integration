@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
@@ -53,7 +52,6 @@ public class ConvertingBytesMessageMapper implements BytesMessageMapper {
 	}
 
 	@Override
-	@NonNull
 	public Message<?> toMessage(byte[] bytes, @Nullable Map<String, Object> headers) {
 		MessageHeaders messageHeaders = null;
 		if (headers != null) {
@@ -66,7 +64,6 @@ public class ConvertingBytesMessageMapper implements BytesMessageMapper {
 	}
 
 	@Override
-	@NonNull
 	public byte[] fromMessage(Message<?> message) {
 		Object result = this.messageConverter.fromMessage(message, byte[].class);
 		Assert.state(result != null, () -> "the '" + this.messageConverter + "' produced null for message: " + message);
