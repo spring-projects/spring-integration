@@ -38,6 +38,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.retry.RetryListener;
@@ -396,6 +397,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 12);
+
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
 		containerProps.setIdleEventInterval(100L);
@@ -411,7 +414,6 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.setOnPartitionsAssignedSeekCallback((map, consumer) -> onPartitionsAssignedCalledLatch.countDown());
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
-		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setBatchMessageConverter(new BatchMessagingMessageConverter() {
 
 			@Override
@@ -436,9 +438,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
 		Object payload = received.getPayload();
-		assertThat(payload).isInstanceOf(List.class);
-		List<?> list = (List<?>) payload;
-		assertThat(list.size()).isGreaterThan(0);
+		assertThat(payload).asInstanceOf(InstanceOfAssertFactories.LIST).hasSize(2);
 
 		MessageHeaders headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(Arrays.asList(1, 1));
@@ -632,52 +632,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.stop();
 	}
 
-	static class Foo {
-
-		private String bar;
-
-		Foo() {
-		}
-
-		Foo(String bar) {
-			this.bar = bar;
-		}
-
-		protected String getBar() {
-			return this.bar;
-		}
-
-		protected void setBar(String bar) {
-			this.bar = bar;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((this.bar == null) ? 0 : this.bar.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			Foo other = (Foo) obj;
-			if (this.bar == null) {
-				return other.bar == null;
-			}
-			else {
-				return this.bar.equals(other.bar);
-			}
-		}
+	record Foo(String bar) {
 
 	}
 

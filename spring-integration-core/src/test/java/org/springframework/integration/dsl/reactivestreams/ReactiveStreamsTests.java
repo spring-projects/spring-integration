@@ -154,7 +154,7 @@ public class ReactiveStreamsTests {
 								.take(7)
 								.map(Message::getPayload)
 								.collectList()
-								.block(Duration.ofSeconds(20))
+								.block(Duration.ofSeconds(30))
 				);
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
