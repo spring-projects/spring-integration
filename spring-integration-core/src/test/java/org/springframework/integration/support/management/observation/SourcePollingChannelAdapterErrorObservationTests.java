@@ -16,6 +16,9 @@
 
 package org.springframework.integration.support.management.observation;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.test.SampleTestRunner;
@@ -34,6 +37,9 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -59,6 +65,8 @@ public class SourcePollingChannelAdapterErrorObservationTests extends SampleTest
 				applicationContext.registerBean(ObservationRegistry.class, () -> observationRegistry);
 				applicationContext.register(ObservationIntegrationTestConfiguration.class);
 				applicationContext.refresh();
+				var testConfiguration = applicationContext.getBean(ObservationIntegrationTestConfiguration.class);
+				assertThat(testConfiguration.errorHandledLatch.await(10, TimeUnit.SECONDS)).isTrue();
 			}
 
 			await().untilAsserted(() -> assertThat(bb.getFinishedSpans()).hasSize(5));
@@ -93,6 +101,8 @@ public class SourcePollingChannelAdapterErrorObservationTests extends SampleTest
 	@EnableIntegrationManagement(observationPatterns = "*")
 	static class ObservationIntegrationTestConfiguration {
 
+		CountDownLatch errorHandledLatch = new CountDownLatch(1);
+
 		@Bean
 		PollerMetadata pollerMetadata() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
@@ -115,7 +125,17 @@ public class SourcePollingChannelAdapterErrorObservationTests extends SampleTest
 		@Bean
 		@BridgeTo("nullChannel")
 		DirectChannel errorChannel() {
-			return new DirectChannel();
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.addInterceptor(new ChannelInterceptor() {
+
+				@Override
+				public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+					// Ensure that the error is handled before the application context is closed in the test above.
+					ObservationIntegrationTestConfiguration.this.errorHandledLatch.countDown();
+				}
+
+			});
+			return directChannel;
 		}
 
 	}
