@@ -44,7 +44,6 @@ import org.springframework.integration.support.management.observation.Integratio
 import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -142,12 +141,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
 		this.observationRegistry = observationRegistry;
-		if (isObserved()) {
-			ErrorHandlingTaskExecutor taskExecutor = (ErrorHandlingTaskExecutor) getTaskExecutor();
-			if (taskExecutor.getObservationRegistry() == null) {
-				taskExecutor.setObservationRegistry(observationRegistry);
-			}
-		}
 	}
 
 	/**
@@ -287,6 +280,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	/**
 	 * Stop an observation (and close its scope) previously started
 	 * from the {@link #messageReceived(IntegrationResourceHolder, Message)}.
+	 * @param message the received message. Can be {@code null}; ignored in this implementation.
 	 */
 	@Override
 	protected void donePollingTask(@Nullable Message<?> message) {

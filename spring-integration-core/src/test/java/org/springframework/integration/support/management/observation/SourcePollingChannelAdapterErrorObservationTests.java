@@ -65,25 +65,26 @@ public class SourcePollingChannelAdapterErrorObservationTests extends SampleTest
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
 					.haveSameTraceId()
-					.hasASpanWithName("dataMessageSource receive", spanAssert -> spanAssert
-							.hasTag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "message-source")
-							.hasKindEqualTo(Span.Kind.CONSUMER))
-					.hasASpanWithName("inputChannel send", spanAssert -> spanAssert
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "inputChannel")
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
-							.hasKindEqualTo(Span.Kind.PRODUCER))
-					.hasASpanWithName("dataHandler receive", spanAssert -> spanAssert
-							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), "dataHandler")
-							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler")
-							.hasKindEqualTo(Span.Kind.CONSUMER))
-					.hasASpanWithName("errorChannel send", spanAssert -> spanAssert
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "errorChannel")
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
-							.hasKindEqualTo(Span.Kind.PRODUCER))
-					.hasASpanWithName("errorChannel.bridgeTo receive", spanAssert -> spanAssert
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "errorChannel.bridgeTo")
-							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "handler")
-							.hasKindEqualTo(Span.Kind.CONSUMER));
+					.hasASpanWithName("dataMessageSource receive",
+							spanAssert -> spanAssert
+									.hasTag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "message-source")
+									.hasKindEqualTo(Span.Kind.CONSUMER))
+					.hasASpanWithName("inputChannel send",
+							spanAssert -> spanAssert
+									.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
+									.hasKindEqualTo(Span.Kind.PRODUCER))
+					.hasASpanWithName("dataHandler receive",
+							spanAssert -> spanAssert
+									.hasTag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler")
+									.hasKindEqualTo(Span.Kind.CONSUMER))
+					.hasASpanWithName("errorChannel send",
+							spanAssert -> spanAssert
+									.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
+									.hasKindEqualTo(Span.Kind.PRODUCER))
+					.hasASpanWithName("errorChannel.bridgeTo receive",
+							spanAssert -> spanAssert
+									.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "handler")
+									.hasKindEqualTo(Span.Kind.CONSUMER));
 		};
 	}
 
