@@ -51,6 +51,8 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(MessageHeaders.ID);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		byte[] encodedMessage = mapper.fromMessage(message);
+		// Give some delay for a new timestamp to be generated
+		Thread.sleep(2);
 		Message<?> decoded = mapper.toMessage(encodedMessage);
 		assertThat(decoded.getPayload()).isEqualTo(message.getPayload());
 		assertThat(decoded.getHeaders().getTimestamp()).isNotEqualTo(message.getHeaders().getTimestamp());
