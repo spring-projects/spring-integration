@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jooyoung Pyoung
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -45,10 +46,12 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 	}
 
 	@Test
-	public void testEmbedSome() {
+	public void testEmbedSome() throws InterruptedException {
 		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper(MessageHeaders.ID);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		byte[] encodedMessage = mapper.fromMessage(message);
+		// some delay for a fresh timestamp on a decoded message
+		Thread.sleep(2);
 		Message<?> decoded = mapper.toMessage(encodedMessage);
 		assertThat(decoded.getPayload()).isEqualTo(message.getPayload());
 		assertThat(decoded.getHeaders().getTimestamp()).isNotEqualTo(message.getHeaders().getTimestamp());
