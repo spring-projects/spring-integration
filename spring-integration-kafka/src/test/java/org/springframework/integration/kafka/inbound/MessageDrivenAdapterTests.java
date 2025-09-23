@@ -398,6 +398,8 @@ class MessageDrivenAdapterTests {
 	void testInboundBatch() throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test2", "true");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 12);
+
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
 		containerProps.setIdleEventInterval(100L);
