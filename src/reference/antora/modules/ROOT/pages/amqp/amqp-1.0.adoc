@@ -1,0 +1,55 @@
+[[amqp-1.0]]
+= AMQP 1.0 Support
+
+Starting with version 7.0, Spring Integration provides channel adapters for RabbitMQ AMQP 1.0 support.
+These channel adapters are based on the `org.springframework.amqp:spring-rabbitmq-client` library.
+
+The Spring AMQP documentation talks about https://docs.spring.io/spring-amqp/reference/4.0/rabbitmq-amqp-client.html[RabbitMQ AMQP 1.0 support] in more detail.
+
+[[amqp-1.0-outbound]]
+== AMQP 1.0 Outbound Channel Adapters
+
+The `AmqpClientMessageHandler` is an `AbstractReplyProducingMessageHandler` implementation and can act as a one-way channel adapter or as an outbound gateway depending on the `setRequiresReply()` configuration.
+The instance of this channel adapter requires an `AsyncAmqpTemplate` implementation for AMQP 1.0 protocol, e.g. `RabbitAmqpTemplate` from the mentioned above `spring-rabbitmq-client` library.
+This message handler is asynchronous by default; therefore, publication errors should be handled via `errorChannel` header in the request message or global default `errorChannel` in the application context.
+
+The `exchange` to publish message (together with optional `routingKey`) is mutually exclusive with a `queue` to publish.
+If neith is provided, then `AsyncAmqpTemplate` implementation must ensure some defaults for those destination parts; otherwise the message is going to be rejected as not delivered.
+
+A default `MessageConverter` is a `org.springframework.amqp.support.converter.SimpleMessageConverter` that can work with `String`, `Serializable` instances, or byte arrays.
+Also, a default `AmqpHeaderMapper` is a xref:amqp/message-headers.adoc[`DefaultAmqpHeaderMapper.outboundMapper()`].
+This header mapper is also used for mapping AMQP message properties to headers back on the reply.
+
+In a gateway mode, the `replyPayloadType` could be supplied to convert a reply message body.
+However, the `MessageConverter` has to be an implementation of the `SmartMessageConverter` like a `JacksonJsonMessageConverter`.
+Also, a mutually exclusive to the `replyPayloadType`, a `returnMessage` flag could be set to `true` to return the whole instance of `org.springframework.amqp.core.Message` as a reply message payload.
+
+The following example demonstrates how to configure `AmqpClientMessageHandler` as a simple `@ServiceActivator`:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "amqpClientSendChannel")
+AmqpClientMessageHandler amqpClientMessageHandler(RabbitAmqpTemplate rabbitTemplate) {
+    AmqpClientMessageHandler messageHandler = new AmqpClientMessageHandler(rabbitTemplate);
+    messageHandler.setExchangeExpressionString("headers[exchange]");
+    messageHandler.setRoutingKeyExpressionString("headers[routingKey]");
+    return messageHandler;
+}
+----
+
+The gateway variant for the `AmqpClientMessageHandler` could be like:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "amqpClientSendAndReceiveChannel")
+AmqpClientMessageHandler amqpClientGateway(RabbitAmqpTemplate rabbitTemplate) {
+    AmqpClientMessageHandler messageHandler = new AmqpClientMessageHandler(rabbitTemplate);
+    messageHandler.setRequiresReply(true);
+    messageHandler.setReplyPayloadType(String.class);
+    messageHandler.setMessageConverter(new JacksonJsonMessageConverter());
+    messageHandler.setQueue("q1");
+    return messageHandler;
+}
+----

@@ -35,6 +35,7 @@ The following adapters are available:
 * xref:amqp/async-outbound-gateway.adoc[Async Outbound Gateway]
 * xref:amqp/rmq-streams.adoc#rmq-stream-inbound-channel-adapter[RabbitMQ Stream Queue Inbound Channel Adapter]
 * xref:amqp/rmq-streams.adoc#rmq-stream-outbound-channel-adapter[RabbitMQ Stream Queue Outbound Channel Adapter]
+* xref:amqp/amqp-1.0.adoc[AMQP 1.0 Channel Adapters]
 
 Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
 
