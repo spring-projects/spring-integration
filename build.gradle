@@ -52,6 +52,7 @@ ext {
     avroVersion = '1.12.1'
     awaitilityVersion = '4.3.0'
     camelVersion = '4.16.0'
+    cloudEventsVersion = '4.0.1'
     commonsDbcp2Version = '2.13.0'
     commonsIoVersion = '2.21.0'
     commonsNetVersion = '3.12.0'
@@ -174,6 +175,7 @@ allprojects {
 		dependencyManagement(platform("org.springframework.ws:spring-ws-bom:$springWsVersion"))
 		dependencyManagement(platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion"))
 		dependencyManagement(platform("io.grpc:grpc-bom:$grpcVersion"))
+		dependencyManagement(platform("io.cloudevents:cloudevents-bom:$cloudEventsVersion"))
 	}
 }
 
@@ -474,6 +476,18 @@ project('spring-integration-cassandra') {
 
         testImplementation 'org.testcontainers:testcontainers-cassandra'
         testRuntimeOnly "commons-io:commons-io:$commonsIoVersion"
+    }
+}
+
+project('spring-integration-cloudevents') {
+    description = 'Spring Integration CloudEvents Support'
+
+    dependencies {
+        api 'io.cloudevents:cloudevents-core'
+
+        testImplementation 'io.cloudevents:cloudevents-json-jackson'
+		// Is not a part of the 'cloudevents-bom'
+		testImplementation "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
     }
 }
 

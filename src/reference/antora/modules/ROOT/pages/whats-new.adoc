@@ -19,3 +19,9 @@ Java 17 is still the baseline, but Java 25 is supported.
 
 The Web Services Outbound Gateway now can rely on the provided `WebServiceTemplate.defaultUri`.
 See xref:ws.adoc[] for more information.
+
+[[x7.1-cloudevents]]
+=== CloudEvents
+
+The new `spring-integration-cloudevents` module has been introduced to support CloudEvents specification.
+See xref:cloudevents.adoc[] for more information.
