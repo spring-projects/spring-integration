@@ -72,7 +72,7 @@ public class AmqpClientMessageHandlerTests implements RabbitTestContainer {
 	AmqpClientMessageHandler amqpClientGateway;
 
 	@Test
-	void noExchangeOrQueue() {
+	void neitherExchangeAndQueue() {
 		Message<String> message = new GenericMessage<>("test data");
 
 		assertThatExceptionOfType(MessageHandlingException.class)

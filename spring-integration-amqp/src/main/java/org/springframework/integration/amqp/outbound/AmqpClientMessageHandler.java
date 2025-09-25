@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  * <p>
  * The {@link #exchangeExpression}, {@link #routingKeyExpression} and {@link #queueExpression}
  * are optional.
- * Then they have to be supplied by the {@link AsyncAmqpTemplate}.
+ * In this case they have to be supplied by the {@link AsyncAmqpTemplate}.
  *
  * @author Artem Bilan
  *

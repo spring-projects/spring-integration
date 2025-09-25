@@ -67,6 +67,9 @@ The Jackson 2 support has been deprecated for removal.
 Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
 See their Javadocs for more information and deprecated classes for a migration path.
 
+The `spring-integration-amqp` module now implements channel adapters for RabbitMQ AMQP 1.0 support.
+The dedicated xref:amqp/amqp-1.0.adoc[AMQP 1.0 Support] chapter provides more information.
+
 [[x7.0-jdbc-changes]]
 === JDBC Changes
 
