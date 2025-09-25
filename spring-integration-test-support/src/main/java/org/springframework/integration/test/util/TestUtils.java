@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
@@ -38,13 +40,14 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -131,6 +134,7 @@ public abstract class TestUtils {
 					LOGGER.error(message);
 					return true;
 				}, context);
+		registerBean("nullChannel", new QueueChannel(), context);
 		StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
 		integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
 		registerBean("integrationEvaluationContext", integrationEvaluationContext, context);
@@ -152,7 +156,7 @@ public abstract class TestUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {
+	public static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {
 		Assert.notNull(beanName, "bean name must not be null");
 		Assert.isInstanceOf(GenericApplicationContext.class, beanFactory,
 				"beanFactory must be an instance of GenericApplicationContext");
@@ -384,6 +388,39 @@ public abstract class TestUtils {
 	}
 
 	public record LevelsContainer(Map<Class<?>, Level> classLevels, Map<String, Level> categoryLevels) {
+
+	}
+
+	private static final class QueueChannel implements PollableChannel {
+
+		private final LinkedBlockingQueue<Message<?>> queue = new LinkedBlockingQueue<>();
+
+		@Override
+		public @Nullable Message<?> receive() {
+			return this.queue.poll();
+		}
+
+		@Override
+		public @Nullable Message<?> receive(long timeout) {
+			try {
+				return this.queue.poll(timeout, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(ex);
+			}
+		}
+
+		@Override
+		public boolean send(Message<?> message, long timeout) {
+			try {
+				return this.queue.offer(message, timeout, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(ex);
+			}
+		}
 
 	}
 

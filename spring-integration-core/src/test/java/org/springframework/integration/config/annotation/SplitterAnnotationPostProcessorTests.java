@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
@@ -28,7 +29,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
  */
 public class SplitterAnnotationPostProcessorTests {
 
-	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final GenericApplicationContext context = new GenericApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -50,8 +50,8 @@ public class SplitterAnnotationPostProcessorTests {
 	@BeforeEach
 	public void init() {
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
-		this.context.registerChannel("input", this.inputChannel);
-		this.context.registerChannel("output", this.outputChannel);
+		TestUtils.registerBean("input", this.inputChannel, this.context);
+		TestUtils.registerBean("output", this.outputChannel, this.context);
 	}
 
 	@AfterEach
@@ -62,7 +62,7 @@ public class SplitterAnnotationPostProcessorTests {
 	@Test
 	public void testSplitterAnnotation() {
 		TestSplitter splitter = new TestSplitter();
-		context.registerEndpoint("testSplitter", splitter);
+		TestUtils.registerBean("testSplitter", splitter, this.context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);
@@ -79,7 +79,7 @@ public class SplitterAnnotationPostProcessorTests {
 		assertThat(message4.getPayload()).isEqualTo("test");
 		assertThat(outputChannel.receive(0)).isNull();
 
-		AbstractEndpoint endpoint = context.getBean(AbstractEndpoint.class);
+		AbstractEndpoint endpoint = context.getBean("testSplitter.split.splitter", AbstractEndpoint.class);
 
 		assertThat(splitter.isRunning()).isTrue();
 		endpoint.stop();

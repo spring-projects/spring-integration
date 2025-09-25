@@ -17,6 +17,7 @@
 package org.springframework.integration.test.support;
 
 import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,6 +52,7 @@ public interface TestApplicationContextAware {
 	TestUtils.TestApplicationContext TEST_INTEGRATION_CONTEXT = TestUtils.createTestApplicationContext();
 
 	@BeforeAll
+	@SuppressWarnings("NullAway")
 	static void beforeAll() {
 		try {
 			TEST_INTEGRATION_CONTEXT.refresh();
@@ -60,6 +62,8 @@ public interface TestApplicationContextAware {
 				throw ex;
 			}
 		}
+		Object nullChannel = TEST_INTEGRATION_CONTEXT.getBean("nullChannel");
+		TestUtils.getPropertyValue(nullChannel, "queue", LinkedBlockingQueue.class).clear();
 	}
 
 	@AfterAll

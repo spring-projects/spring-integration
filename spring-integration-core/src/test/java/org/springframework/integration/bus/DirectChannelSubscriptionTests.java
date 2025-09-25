@@ -20,17 +20,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationRegistrar;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.mock;
  */
 public class DirectChannelSubscriptionTests {
 
-	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final GenericApplicationContext context = new GenericApplicationContext();
 
 	private final DirectChannel sourceChannel = new DirectChannel();
 
@@ -55,8 +54,8 @@ public class DirectChannelSubscriptionTests {
 	@BeforeEach
 	public void setupChannels() {
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
-		this.context.registerChannel("sourceChannel", this.sourceChannel);
-		this.context.registerChannel("targetChannel", this.targetChannel);
+		TestUtils.registerBean("sourceChannel", this.sourceChannel, this.context);
+		TestUtils.registerBean("targetChannel", this.targetChannel, this.context);
 	}
 
 	@AfterEach
@@ -68,9 +67,9 @@ public class DirectChannelSubscriptionTests {
 	public void sendAndReceiveForRegisteredEndpoint() {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(this.targetChannel);
-		context.registerBean("testServiceActivator", serviceActivator);
+		TestUtils.registerBean("testServiceActivator", serviceActivator, this.context);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(this.sourceChannel, serviceActivator);
-		context.registerEndpoint("testEndpoint", endpoint);
+		TestUtils.registerBean("testEndpoint", endpoint, this.context);
 		context.refresh();
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
@@ -79,7 +78,7 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void sendAndReceiveForAnnotatedEndpoint() {
-		this.context.registerEndpoint("testEndpoint", new TestEndpoint());
+		TestUtils.registerBean("testEndpoint", new TestEndpoint(), this.context);
 		this.context.refresh();
 
 		this.sourceChannel.send(new GenericMessage<>("foo"));
@@ -98,7 +97,7 @@ public class DirectChannelSubscriptionTests {
 		};
 		handler.setOutputChannel(targetChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, handler);
-		this.context.registerEndpoint("testEndpoint", endpoint);
+		TestUtils.registerBean("testEndpoint", endpoint, this.context);
 		this.context.refresh();
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> this.sourceChannel.send(new GenericMessage<>("foo")));
@@ -106,9 +105,7 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void exceptionThrownFromAnnotatedEndpoint() {
-		QueueChannel errorChannel = new QueueChannel();
-		this.context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
-		this.context.registerEndpoint("testEndpoint", new FailingTestEndpoint());
+		TestUtils.registerBean("testEndpoint", new FailingTestEndpoint(), this.context);
 		this.context.refresh();
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> this.sourceChannel.send(new GenericMessage<>("foo")));

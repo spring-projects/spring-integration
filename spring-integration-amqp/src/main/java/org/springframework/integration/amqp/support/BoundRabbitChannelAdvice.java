@@ -83,7 +83,7 @@ public class BoundRabbitChannelAdvice implements HandleMessageAdvice {
 	@Override
 	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		try {
-			return this.operations.invoke(operations -> {
+			return this.operations.<@Nullable Object>invoke(operations -> {
 				try {
 					Object result = invocation.proceed();
 					if (this.waitForConfirmsTimeout != null) {

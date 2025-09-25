@@ -198,7 +198,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		});
 		RabbitTemplate rabbitTemplateToUse = this.rabbitTemplate;
 		Assert.notNull(rabbitTemplateToUse, "The 'RabbitTemplate' must be provided for multi-send.");
-		rabbitTemplateToUse.invoke(template -> {
+		rabbitTemplateToUse.<@Nullable Object>invoke(template -> {
 			((Iterable<Message<?>>) requestMessage.getPayload())
 					.forEach(message -> doRabbitSend(exchangeName, routingKey, message, null, rabbitTemplateToUse));
 			if (this.waitForConfirm) {

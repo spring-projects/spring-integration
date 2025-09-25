@@ -22,11 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
@@ -34,12 +35,11 @@ import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatException;
 
 /**
  * @author Dave Syer
@@ -52,8 +52,8 @@ import static org.assertj.core.api.Assertions.fail;
  */
 public class UriVariableExpressionTests implements TestApplicationContextAware {
 
-	@BeforeEach
-	void setUp() {
+	@BeforeAll
+	static void setUp() {
 		TEST_INTEGRATION_CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
 				.forReadOnlyDataBinding()
 				.build());
@@ -73,13 +73,11 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
-		try {
-			handler.handleMessage(message);
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 	}
 
@@ -102,13 +100,11 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 				});
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		try {
-			handler.handleMessage(new GenericMessage<Object>("bar"));
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<Object>("bar")))
+				.withStackTraceContaining("intentional");
+
 		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 	}
 
@@ -123,7 +119,7 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 					throw new RuntimeException("intentional");
 				});
 
-		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
+		AbstractApplicationContext context = new GenericApplicationContext();
 		IntegrationRegistrar registrar = new IntegrationRegistrar();
 		registrar.registerBeanDefinitions(null, (BeanDefinitionRegistry) context.getBeanFactory());
 		context.refresh();
@@ -136,55 +132,41 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 
 		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();
 
-		try {
-			handler.handleMessage(MessageBuilder.withPayload("test")
-					.setHeader("uriVariables", expressionsMap)
-					.build());
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload("test")
+						.setHeader("uriVariables", expressionsMap)
+						.build()))
+				.withStackTraceContaining("intentional");
 
 		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 
 		expressions.put("foo", new SpelExpressionParser().parseExpression("'bar'.toUpperCase()"));
-		try {
-			handler.handleMessage(MessageBuilder.withPayload("test")
-					.setHeader("uriVariables", expressions)
-					.build());
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload("test")
+						.setHeader("uriVariables", expressions)
+						.build()))
+				.withStackTraceContaining("intentional");
 
 		assertThat(uriHolder.get().toString()).isEqualTo("http://test/BAR");
 
 		expressions.put("foo", new SpelExpressionParser().parseExpression("T(Integer).valueOf('42')"));
-		try {
-			handler.handleMessage(MessageBuilder.withPayload("test")
-					.setHeader("uriVariables", expressions)
-					.build());
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).contains("Type cannot be found");
-		}
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload("test")
+						.setHeader("uriVariables", expressions)
+						.build()))
+				.withStackTraceContaining("Type cannot be found");
 
 		handler.setTrustedSpel(true);
-		try {
-			handler.handleMessage(MessageBuilder.withPayload("test")
-					.setHeader("uriVariables", expressions)
-					.build());
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
-		assertThat(uriHolder.get().toString()).isEqualTo("http://test/42");
 
-		context.close();
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload("test")
+						.setHeader("uriVariables", expressions)
+						.build()))
+				.withStackTraceContaining("intentional");
+
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/42");
 	}
 
 }

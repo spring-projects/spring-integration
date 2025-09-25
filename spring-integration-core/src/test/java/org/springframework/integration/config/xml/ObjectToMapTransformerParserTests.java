@@ -26,10 +26,10 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -71,7 +71,7 @@ public class ObjectToMapTransformerParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testObjectToSpelMapTransformer() {
-		Employee employee = this.buildEmployee();
+		Employee employee = buildEmployee();
 		StandardEvaluationContext context = new StandardEvaluationContext(employee);
 		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
@@ -93,7 +93,7 @@ public class ObjectToMapTransformerParserTests {
 	@Disabled("StackOverflowError")
 	@Test
 	public void testObjectToSpelMapTransformerWithCycle() {
-		Employee employee = this.buildEmployee();
+		Employee employee = buildEmployee();
 		Child child = new Child();
 		Person parent = employee.getPerson();
 		parent.setChild(child);
@@ -106,7 +106,7 @@ public class ObjectToMapTransformerParserTests {
 
 	@Test
 	public void testObjectToNotFlattenedMapTransformer() {
-		Employee employee = this.buildEmployee();
+		Employee employee = buildEmployee();
 
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		nestedInput.send(message);
@@ -122,7 +122,7 @@ public class ObjectToMapTransformerParserTests {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public Employee buildEmployee() {
+	public static Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");

@@ -28,9 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
 import org.springframework.integration.kafka.channel.PublishSubscribeKafkaChannel;
@@ -117,7 +116,8 @@ public class ChannelTests {
 		assertThat(message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo("channel.3");
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
+	@EnableIntegration
 	public static class Config {
 
 		@Value("${spring.global.embedded.kafka.brokers}")
@@ -177,12 +177,6 @@ public class ChannelTests {
 			return new PollableKafkaChannel(template, source);
 		}
 
-		@Bean
-		StandardEvaluationContext integrationEvaluationContext() {
-			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
-			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
-			return integrationEvaluationContext;
-		}
 	}
 
 }

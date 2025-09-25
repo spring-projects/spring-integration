@@ -158,7 +158,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 		AttributeAccessor retryContext = ErrorMessageUtils.getAttributeAccessor(message, message);
 		try {
 			if (this.stateKeyFunction == null) {
-				return this.retryTemplate.execute(retryCallback);
+				return this.retryTemplate.<@Nullable Object>execute(retryCallback);
 			}
 
 			return statefulRetry(retryCallback, this.stateKeyFunction);
@@ -253,7 +253,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	}
 
 	private record IntegrationRetryCallback(Message<?> messageToTry, ExecutionCallback callback, Object target)
-			implements Retryable<Object> {
+			implements Retryable<@Nullable Object> {
 
 		@Override
 		public @Nullable Object execute() {

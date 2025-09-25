@@ -78,7 +78,7 @@ public interface KafkaInboundEndpoint {
 		ATTRIBUTES_HOLDER.set(context);
 
 		try {
-			template.execute(() -> {
+			template.<@Nullable Object>execute(() -> {
 				try {
 					runnable.run();
 				}

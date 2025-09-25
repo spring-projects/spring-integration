@@ -57,7 +57,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.converter.Converter;
@@ -65,6 +64,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.IndexAccessor;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Aggregator;
@@ -791,7 +791,7 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 	public void testIntegrationEvaluationContextCustomization() {
 		StandardEvaluationContext evaluationContext = this.context.getBean(StandardEvaluationContext.class);
 		List<?> propertyAccessors = evaluationContext.getPropertyAccessors();
-		assertThat(propertyAccessors.size()).isEqualTo(4);
+		assertThat(propertyAccessors).hasSize(4);
 		assertThat(propertyAccessors.get(0)).isInstanceOf(JacksonPropertyAccessor.class);
 		assertThat(propertyAccessors.get(1)).isInstanceOf(EnvironmentAccessor.class);
 		assertThat(propertyAccessors.get(2)).isInstanceOf(MapAccessor.class);

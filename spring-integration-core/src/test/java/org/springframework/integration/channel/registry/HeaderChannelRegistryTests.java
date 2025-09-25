@@ -19,13 +19,8 @@ package org.springframework.integration.channel.registry;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -36,7 +31,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -51,10 +45,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -216,28 +206,22 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 	@Test
 	public void testBFCRWithRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
-		BeanFactory beanFactory = createTestEvaluationContext();
-		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-				HeaderChannelRegistry.class))
-				.thenReturn(mock(HeaderChannelRegistry.class));
-		doAnswer(invocation -> {
-			throw new NoSuchBeanDefinitionException("bar");
-		}).when(beanFactory).getBean("foo", MessageChannel.class);
-		resolver.setBeanFactory(beanFactory);
+		TestUtils.registerBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+				new DefaultHeaderChannelRegistry(), TEST_INTEGRATION_CONTEXT);
+		resolver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(DestinationResolutionException.class)
 				.isThrownBy(() -> resolver.resolveDestination("foo"))
 				.withMessageContaining("failed to look up MessageChannel with name 'foo' in the BeanFactory.");
+
+		TEST_INTEGRATION_CONTEXT.removeBeanDefinition(
+				IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 	}
 
 	@Test
 	public void testBFCRNoRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
-		BeanFactory beanFactory = createTestEvaluationContext();
-		doAnswer(invocation -> {
-			throw new NoSuchBeanDefinitionException("bar");
-		}).when(beanFactory).getBean("foo", MessageChannel.class);
-		resolver.setBeanFactory(beanFactory);
+		resolver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatExceptionOfType(DestinationResolutionException.class)
 				.isThrownBy(() -> resolver.resolveDestination("foo"))
@@ -252,12 +236,12 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
 		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);
-		assertThat(map.size()).isEqualTo(1);
+		assertThat(map).hasSize(1);
 		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
-		assertThat(map.size()).isEqualTo(1);
+		assertThat(map).hasSize(1);
 		registry.setRemoveOnGet(true);
 		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
-		assertThat(map.size()).isEqualTo(0);
+		assertThat(map).hasSize(0);
 	}
 
 	public static class Foo extends AbstractReplyProducingMessageHandler {
@@ -280,19 +264,6 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 					.build();
 		}
 
-	}
-
-	private static BeanFactory createTestEvaluationContext() {
-		final String integrationEvaluationContextBeanName = "integrationEvaluationContext";
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(eq(integrationEvaluationContextBeanName)))
-				.thenReturn(true);
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName),
-				Mockito.<Class<StandardEvaluationContext>>any()))
-				.thenReturn(evaluationContext);
-		return beanFactory;
 	}
 
 	public interface Gateway {

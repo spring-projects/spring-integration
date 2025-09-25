@@ -43,18 +43,15 @@ import org.mockito.ArgumentMatchers;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
@@ -601,7 +598,8 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		verify(client).disconnectForcibly(anyLong(), anyLong());
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
+	@EnableIntegration
 	public static class Config {
 
 		@Bean
@@ -636,14 +634,6 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 			handler.setDefaultRetained(true);
 			handler.setRetainedExpressionString("null");
 			return handler;
-		}
-
-		@Bean
-		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
-			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
-			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
-			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
-			return integrationEvaluationContext;
 		}
 
 	}

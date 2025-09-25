@@ -47,13 +47,13 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
@@ -1014,7 +1014,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("buz", String.class), false);
-		ConfigurableListableBeanFactory bf = mock(ConfigurableListableBeanFactory.class);
+		ConfigurableListableBeanFactory bf = mock();
 		willAnswer(returnsFirstArg()).given(bf).resolveEmbeddedValue(anyString());
 		when(bf.containsBean(eq(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)))
 				.thenReturn(true);

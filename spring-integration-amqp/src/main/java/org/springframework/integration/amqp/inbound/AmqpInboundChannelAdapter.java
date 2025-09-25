@@ -382,7 +382,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 					final org.springframework.messaging.Message<Object> toSend =
 							createMessageFromAmqp(message, channel);
 					try {
-						this.retryOps.execute(
+						this.retryOps.<@Nullable Object>execute(
 								() -> {
 									AtomicInteger deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(toSend);
 									if (deliveryAttempt != null) {
@@ -508,7 +508,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 					}
 					else {
 						try {
-							this.retryOps.execute(
+							this.retryOps.<@Nullable Object>execute(
 									() -> {
 										AtomicInteger deliveryAttempt =
 												StaticMessageHeaderAccessor.getDeliveryAttempt(message);

@@ -27,15 +27,12 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.dialect.H2Dialect;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.r2dbc.config.R2dbcDatabaseConfiguration;
 import org.springframework.integration.r2dbc.entity.Person;
@@ -281,8 +278,9 @@ public class R2dbcMessageSourceTests {
 				.verify(Duration.ofSeconds(10));
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@Import(R2dbcDatabaseConfiguration.class)
+	@EnableIntegration
 	static class R2dbcMessageSourceConfiguration {
 
 		@Autowired
@@ -316,14 +314,6 @@ public class R2dbcMessageSourceTests {
 					new ValueExpression<>(new Object()));
 			r2dbcMessageSource.setPayloadType(Person.class);
 			return r2dbcMessageSource;
-		}
-
-		@Bean
-		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
-			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
-			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
-			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
-			return integrationEvaluationContext;
 		}
 
 	}

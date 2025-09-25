@@ -621,7 +621,7 @@ public class ChannelPublishingJmsMessageListener
 				}
 				else {
 					try {
-						this.retryTemplate.execute(
+						this.retryTemplate.<@Nullable Object>execute(
 								() -> {
 									var deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage);
 									Assert.notNull(deliveryAttempt, "deliveryAttempt must not be null");

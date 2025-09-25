@@ -218,6 +218,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private Optional<?> doPollAndDispatchMessage() {
 		this.hasHandlersLock.readLock().lock();
 		try {
@@ -225,8 +226,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 				TransactionTemplate transactionTemplateToUse = this.transactionTemplate;
 				if (transactionTemplateToUse != null) {
 					return executeWithRetry(() ->
-							transactionTemplateToUse.execute(status ->
-									pollMessage().map(this::dispatch)));
+							transactionTemplateToUse.execute(status -> pollMessage().map(this::dispatch)));
 				}
 				else {
 					return pollMessage()
@@ -240,7 +240,6 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		return Optional.empty();
 	}
 
-	@SuppressWarnings("NullAway") // Never null, according to the logic in the 'doPollAndDispatchMessage()'.
 	private <T> T executeWithRetry(Retryable<T> retryable) {
 		try {
 			return this.retryTemplate.execute(retryable);

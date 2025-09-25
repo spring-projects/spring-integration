@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
@@ -32,7 +33,6 @@ import org.springframework.integration.config.MessagingAnnotationBeanPostProcess
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.mock;
  */
 public class FilterAnnotationPostProcessorTests {
 
-	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final GenericApplicationContext context = new GenericApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -58,8 +58,8 @@ public class FilterAnnotationPostProcessorTests {
 	@BeforeEach
 	public void init() {
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
-		this.context.registerChannel("input", this.inputChannel);
-		this.context.registerChannel("output", this.outputChannel);
+		TestUtils.registerBean("input", inputChannel, this.context);
+		TestUtils.registerBean("output", this.outputChannel, this.context);
 	}
 
 	@AfterEach
@@ -75,7 +75,7 @@ public class FilterAnnotationPostProcessorTests {
 	@Test
 	public void filterAnnotationWithAdviceDiscardWithin() {
 		TestAdvice advice = new TestAdvice();
-		context.registerBean("adviceChain", advice);
+		TestUtils.registerBean("adviceChain", advice, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
@@ -83,24 +83,24 @@ public class FilterAnnotationPostProcessorTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceDiscardWithinTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
-		context.registerBean("adviceChain1", advice1);
-		context.registerBean("adviceChain2", advice2);
+		TestUtils.registerBean("adviceChain1", advice1, this.context);
+		TestUtils.registerBean("adviceChain2", advice2, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertThat(adviceList.size()).isEqualTo(2);
-		assertThat(adviceList.get(0)).isSameAs(advice1);
-		assertThat(adviceList.get(1)).isSameAs(advice2);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		assertThat(adviceList).hasSize(2)
+				.containsExactly(advice1, advice2);
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
 	public void filterAnnotationWithAdviceDiscardWithout() {
 		TestAdvice advice = new TestAdvice();
-		context.registerBean("adviceChain", advice);
+		TestUtils.registerBean("adviceChain", advice, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithout());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
@@ -110,7 +110,7 @@ public class FilterAnnotationPostProcessorTests {
 	@Test
 	public void filterAnnotationWithAdviceArray() {
 		TestAdvice advice = new TestAdvice();
-		context.registerBean("adviceChain", new TestAdvice[] {advice});
+		TestUtils.registerBean("adviceChain", new TestAdvice[] {advice}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
@@ -118,28 +118,26 @@ public class FilterAnnotationPostProcessorTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceArrayTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
-		context.registerBean("adviceChain1", new TestAdvice[] {advice1, advice2});
+		TestUtils.registerBean("adviceChain1", new TestAdvice[] {advice1, advice2}, this.context);
 		TestAdvice advice3 = new TestAdvice();
 		TestAdvice advice4 = new TestAdvice();
-		context.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4});
+		TestUtils.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertThat(adviceList.size()).isEqualTo(4);
-		assertThat(adviceList.get(0)).isSameAs(advice1);
-		assertThat(adviceList.get(1)).isSameAs(advice2);
-		assertThat(adviceList.get(2)).isSameAs(advice3);
-		assertThat(adviceList.get(3)).isSameAs(advice4);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		assertThat(adviceList).hasSize(4)
+				.containsExactly(advice1, advice2, advice3, advice4);
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
 	public void filterAnnotationWithAdviceCollection() {
 		TestAdvice advice = new TestAdvice();
-		context.registerBean("adviceChain", Collections.singletonList(advice));
+		TestUtils.registerBean("adviceChain", Collections.singletonList(advice), this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
@@ -147,21 +145,19 @@ public class FilterAnnotationPostProcessorTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceCollectionTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
-		context.registerBean("adviceChain1", new TestAdvice[] {advice1, advice2});
+		TestUtils.registerBean("adviceChain1", new TestAdvice[] {advice1, advice2}, this.context);
 		TestAdvice advice3 = new TestAdvice();
 		TestAdvice advice4 = new TestAdvice();
-		context.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4});
+		TestUtils.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertThat(adviceList.size()).isEqualTo(4);
-		assertThat(adviceList.get(0)).isSameAs(advice1);
-		assertThat(adviceList.get(1)).isSameAs(advice2);
-		assertThat(adviceList.get(2)).isSameAs(advice3);
-		assertThat(adviceList.get(3)).isSameAs(advice4);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		assertThat(adviceList).hasSize(4)
+				.containsExactly(advice1, advice2, advice3, advice4);
 		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
@@ -190,7 +186,7 @@ public class FilterAnnotationPostProcessorTests {
 	}
 
 	private void testValidFilter(Object filter) {
-		context.registerEndpoint("testFilter", filter);
+		TestUtils.registerBean("testFilter", filter, this.context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("good"));
 		Message<?> passed = outputChannel.receive(0);

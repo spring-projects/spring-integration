@@ -29,10 +29,10 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
@@ -56,7 +56,7 @@ public class ObjectToMapTransformerTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testObjectToSpelMapTransformer() {
-		Employee employee = this.buildEmployee();
+		Employee employee = buildEmployee();
 		StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
@@ -153,7 +153,7 @@ public class ObjectToMapTransformerTests {
 	@Disabled("StackOverflowError")
 	@Test
 	public void testObjectToSpelMapTransformerWithCycle() {
-		Employee employee = this.buildEmployee();
+		Employee employee = buildEmployee();
 		Child child = new Child();
 		Person parent = employee.getPerson();
 		parent.setChild(child);
@@ -199,7 +199,7 @@ public class ObjectToMapTransformerTests {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public Employee buildEmployee() {
+	public static Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");

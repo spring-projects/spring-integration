@@ -21,10 +21,10 @@ import java.util.Collection;
 import java.util.Map.Entry;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
+import org.springframework.expression.spel.support.MapAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 

@@ -23,13 +23,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
  */
 public class RouterAnnotationPostProcessorTests {
 
-	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final GenericApplicationContext context = new GenericApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -57,11 +57,11 @@ public class RouterAnnotationPostProcessorTests {
 	@BeforeEach
 	public void init() {
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
-		context.registerChannel("input", inputChannel);
-		context.registerChannel("output", outputChannel);
-		context.registerChannel("routingChannel", routingChannel);
-		context.registerChannel("integerChannel", integerChannel);
-		context.registerChannel("stringChannel", stringChannel);
+		TestUtils.registerBean("input", inputChannel, this.context);
+		TestUtils.registerBean("output", outputChannel, this.context);
+		TestUtils.registerBean("routingChannel", routingChannel, this.context);
+		TestUtils.registerBean("integerChannel", integerChannel, this.context);
+		TestUtils.registerBean("stringChannel", stringChannel, this.context);
 	}
 
 	@AfterEach
@@ -71,7 +71,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Test
 	public void testRouter() {
-		context.registerEndpoint("test", new TestRouter());
+		TestUtils.registerBean("test", new TestRouter(), this.context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
@@ -81,7 +81,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Test
 	public void testRouterWithListParam() {
-		context.registerEndpoint("test", new TestRouter());
+		TestUtils.registerBean("test", new TestRouter(), this.context);
 		context.refresh();
 
 		routingChannel.send(new GenericMessage<>(Collections.singletonList("foo")));

@@ -32,11 +32,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
@@ -55,6 +53,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -70,11 +69,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher
@@ -92,7 +88,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
@@ -139,7 +135,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		service.oneWay("test");
@@ -151,34 +147,20 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	@Test
 	public void testOneWayIgnoreReply() {
 		DirectChannel requestChannel = new DirectChannel();
-		BeanFactory beanFactory = mock();
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), Mockito.<Class<TaskScheduler>>any()))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		when(beanFactory.containsBean(eq("integrationEvaluationContext")))
-				.thenReturn(true);
-		when(beanFactory.getBean(eq("integrationEvaluationContext"), Mockito.<Class<StandardEvaluationContext>>any()))
-				.thenReturn(evaluationContext);
-
-		QueueChannel nullChannel = new QueueChannel();
-		willReturn(nullChannel)
-				.given(beanFactory)
-				.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME, MessageChannel.class);
 		BridgeHandler handler = new BridgeHandler();
-		handler.setBeanFactory(beanFactory);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		requestChannel.subscribe(handler);
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(beanFactory);
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		service.oneWay("test");
-		Message<?> message = nullChannel.receive(1000);
+		PollableChannel nullChannel =
+				TEST_INTEGRATION_CONTEXT.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME, PollableChannel.class);
+		Message<?> message = nullChannel.receive(10000);
 		assertThat(message)
 				.isNotNull()
 				.extracting(Message::getPayload)
@@ -193,7 +175,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setDefaultReplyChannel(replyChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		String result = service.solicitResponse();
@@ -208,7 +190,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultReplyChannel(replyChannel);
 
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		Message<String> message = service.getMessage();
@@ -230,7 +212,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setDefaultReplyChannel(replyChannel);
 
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 
@@ -249,7 +231,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
@@ -320,7 +302,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		String result = service.requestReplyWithMessageParameter(new GenericMessage<>("foo"));
@@ -334,7 +316,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		String result = service.requestReplyWithPayloadAnnotation();
@@ -358,7 +340,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestService service = proxyFactory.getObject();
 		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
@@ -376,7 +358,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		GatewayProxyFactoryBean<TestService> proxyFactory = new GatewayProxyFactoryBean<>(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		Object proxy = proxyFactory.getObject();
 		String expected = "gateway proxy for";
@@ -400,7 +382,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		proxyFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		proxyFactory.afterPropertiesSet();
 		TestExceptionThrowingInterface proxy = proxyFactory.getObject();
 		assertThatExceptionOfType(TestException.class)
@@ -418,7 +400,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	@Test
 	public void testProgrammaticWiring() {
 		GatewayProxyFactoryBean<TestEchoService> gpfb = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		gpfb.setBeanFactory(getBeanFactory());
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		QueueChannel drc = new QueueChannel();
 		gpfb.setDefaultRequestChannel(drc);
 		gpfb.setDefaultReplyTimeout(0L);
@@ -432,12 +414,6 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 		String bar = (String) message.getHeaders().get("foo");
 		assertThat(bar).isNotNull();
 		assertThat(bar).isEqualTo("bar");
-	}
-
-	private BeanFactory getBeanFactory() {
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		TEST_INTEGRATION_CONTEXT.registerBean("taskScheduler", taskScheduler);
-		return TEST_INTEGRATION_CONTEXT;
 	}
 
 	@Test
@@ -521,7 +497,7 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	@Test
 	public void testOverriddenMethod() {
 		GatewayProxyFactoryBean<InheritChild> gpfb = new GatewayProxyFactoryBean<>(InheritChild.class);
-		gpfb.setBeanFactory(getBeanFactory());
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gpfb.afterPropertiesSet();
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
 		assertThat(gateways.size()).isEqualTo(2);
@@ -530,17 +506,13 @@ public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware
 	@Test
 	public void testAliasForSupport() throws NoSuchMethodException {
 		MessageChannel requestChannel = new DirectChannel();
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.registerSingleton("requestChannel", requestChannel);
-		GatewayProxyFactoryBean<CompositedGatewayService> gpfb = new GatewayProxyFactoryBean<>(
-				CompositedGatewayService.class);
-		beanFactory.registerSingleton("taskScheduler", mock(TaskScheduler.class));
-		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
-		gpfb.setBeanFactory(beanFactory);
+		var gpfb = new GatewayProxyFactoryBean<>(CompositedGatewayService.class);
+		TestUtils.registerBean("requestChannel", requestChannel, TEST_INTEGRATION_CONTEXT);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gpfb.afterPropertiesSet();
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
 		Method sendMethod = CompositedGatewayService.class.getMethod("gatewayMethod");
-		assertThat(gateways.get(sendMethod).getRequestChannel()).isEqualTo(beanFactory.getBean("requestChannel"));
+		assertThat(gateways.get(sendMethod).getRequestChannel()).isEqualTo(TEST_INTEGRATION_CONTEXT.getBean("requestChannel"));
 	}
 
 	public static void throwTestException() throws Exception {

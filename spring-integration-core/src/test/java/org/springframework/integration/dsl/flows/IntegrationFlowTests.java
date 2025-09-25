@@ -917,12 +917,11 @@ public class IntegrationFlowTests {
 		public RequestHandlerRetryAdvice retryAdvice() {
 			RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
 			requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel()));
-			RetryPolicy retryPolicy = RetryPolicy.builder()
-					.maxAttempts(4)
-					.delay(Duration.ofSeconds(1))
-					.multiplier(5.0)
-					.maxDelay(Duration.ofMinutes(1))
-					.build();
+			RetryPolicy retryPolicy =
+					RetryPolicy.builder()
+							.maxAttempts(2)
+							.delay(Duration.ZERO)
+							.build();
 			requestHandlerRetryAdvice.setRetryPolicy(retryPolicy);
 			return requestHandlerRetryAdvice;
 		}

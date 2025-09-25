@@ -34,7 +34,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
  *
  *  @since 5.4
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableR2dbcRepositories(basePackages = "org.springframework.integration.r2dbc.repository")
 public class R2dbcDatabaseConfiguration extends AbstractR2dbcConfiguration {
 

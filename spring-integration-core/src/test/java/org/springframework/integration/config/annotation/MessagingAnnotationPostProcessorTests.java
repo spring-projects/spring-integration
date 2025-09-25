@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
@@ -41,7 +42,6 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -60,9 +60,9 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void serviceActivatorAnnotation() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
-		context.registerChannel("inputChannel", inputChannel);
+		TestUtils.registerBean("inputChannel", inputChannel, context);
 		context.refresh();
 
 		MessagingAnnotationBeanPostProcessor postProcessor = context.getBean(MessagingAnnotationBeanPostProcessor.class);
@@ -134,11 +134,11 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void outboundOnlyServiceActivator() throws InterruptedException {
-		TestApplicationContext context = createTestApplicationContext();
-		context.registerChannel("testChannel", new DirectChannel());
+		GenericApplicationContext context = createTestApplicationContext();
+		TestUtils.registerBean("testChannel", new DirectChannel(), context);
 		CountDownLatch latch = new CountDownLatch(1);
 		OutboundOnlyTestBean testBean = new OutboundOnlyTestBean(latch);
-		context.registerEndpoint("testBean", testBean);
+		TestUtils.registerBean("testBean", testBean, context);
 		context.refresh();
 		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryChannelResolver(context);
 		MessageChannel testChannel = channelResolver.resolveDestination("testChannel");
@@ -150,15 +150,15 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testChannelResolution() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		DirectChannel eventBus = new DirectChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
-		context.registerChannel("eventBus", eventBus);
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
+		TestUtils.registerBean("eventBus", eventBus, context);
 		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
-		context.registerEndpoint("testBean", bean);
+		TestUtils.registerBean("testBean", bean, context);
 		context.refresh();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannelName("outputChannel").build();
@@ -174,14 +174,14 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testProxiedMessageEndpointAnnotation() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
 		ProxyFactory proxyFactory = new ProxyFactory(new AnnotatedTestService());
 		Object proxy = proxyFactory.getProxy();
-		context.registerEndpoint("proxy", proxy);
+		TestUtils.registerBean("proxy", proxy, context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -191,12 +191,12 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInherited() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
-		context.registerEndpoint("subclass", new SimpleAnnotatedEndpointSubclass());
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
+		TestUtils.registerBean("subclass", new SimpleAnnotatedEndpointSubclass(), context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -206,14 +206,14 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedWithProxy() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
 		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointSubclass());
 		Object proxy = proxyFactory.getProxy();
-		context.registerEndpoint("proxy", proxy);
+		TestUtils.registerBean("proxy", proxy, context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -223,12 +223,12 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
-		context.registerEndpoint("impl", new SimpleAnnotatedEndpointImplementation());
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
+		TestUtils.registerBean("impl", new SimpleAnnotatedEndpointImplementation(), context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -238,12 +238,12 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithAutoCreatedChannels() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
-		context.registerEndpoint("impl", new SimpleAnnotatedEndpointImplementation());
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
+		TestUtils.registerBean("impl", new SimpleAnnotatedEndpointImplementation(), context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -253,13 +253,13 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("inputChannel", inputChannel);
-		context.registerChannel("outputChannel", outputChannel);
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
 		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointImplementation());
-		context.registerEndpoint("proxy", proxyFactory.getProxy());
+		TestUtils.registerBean("proxy", proxyFactory.getProxy(), context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -269,12 +269,12 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testTransformer() {
-		TestApplicationContext context = createTestApplicationContext();
+		GenericApplicationContext context = createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
-		context.registerChannel("inputChannel", inputChannel);
 		QueueChannel outputChannel = new QueueChannel();
-		context.registerChannel("outputChannel", outputChannel);
-		context.registerEndpoint("testBean", new TransformerAnnotationTestBean());
+		TestUtils.registerBean("inputChannel", inputChannel, context);
+		TestUtils.registerBean("outputChannel", outputChannel, context);
+		TestUtils.registerBean("testBean", new TransformerAnnotationTestBean(), context);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> reply = outputChannel.receive(0);
@@ -288,8 +288,8 @@ public class MessagingAnnotationPostProcessorTests {
 		context.close();
 	}
 
-	private static TestApplicationContext createTestApplicationContext() {
-		TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private static GenericApplicationContext createTestApplicationContext() {
+		GenericApplicationContext context = new GenericApplicationContext();
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
 		return context;
 	}

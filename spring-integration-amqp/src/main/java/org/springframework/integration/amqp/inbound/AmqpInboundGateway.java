@@ -366,7 +366,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					org.springframework.messaging.Message<Object> converted = convert(message, channel);
 					if (converted != null) {
 						try {
-							AmqpInboundGateway.this.retryTemplate.execute(() -> {
+							AmqpInboundGateway.this.retryTemplate.<@Nullable Object>execute(() -> {
 								AtomicInteger deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(converted);
 								if (deliveryAttempt != null) {
 									deliveryAttempt.incrementAndGet();

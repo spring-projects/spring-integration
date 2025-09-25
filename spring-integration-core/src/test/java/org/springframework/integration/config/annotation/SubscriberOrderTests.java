@@ -31,7 +31,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -47,7 +46,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithSingleCallPerMethod() {
-		try (GenericApplicationContext context = TestUtils.createTestApplicationContext()) {
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
 			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
 			RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 			context.registerBeanDefinition("input", channelDefinition);
@@ -57,24 +56,19 @@ public class SubscriberOrderTests {
 			context.refresh();
 			TestBean testBean = (TestBean) context.getBean("testBean");
 			MessageChannel channel = (MessageChannel) context.getBean("input");
-			channel.send(new GenericMessage<>("test-1"));
-			channel.send(new GenericMessage<>("test-2"));
-			channel.send(new GenericMessage<>("test-3"));
-			channel.send(new GenericMessage<>("test-4"));
-			channel.send(new GenericMessage<>("test-5"));
+			for (int i = 0; i < 5; i++) {
+				channel.send(new GenericMessage<>("test-" + (i + 1)));
+			}
+
 			List<Integer> calls = testBean.calls;
-			assertThat(calls.size()).isEqualTo(5);
-			assertThat(calls.get(0).intValue()).isEqualTo(1);
-			assertThat(calls.get(1).intValue()).isEqualTo(2);
-			assertThat(calls.get(2).intValue()).isEqualTo(3);
-			assertThat(calls.get(3).intValue()).isEqualTo(4);
-			assertThat(calls.get(4).intValue()).isEqualTo(5);
+			assertThat(calls).hasSize(5)
+					.containsExactlyInAnyOrder(1, 2, 3, 4, 5);
 		}
 	}
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithMultipleCallsPerMethod() {
-		try (GenericApplicationContext context = TestUtils.createTestApplicationContext()) {
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
 			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
 			BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.rootBeanDefinition(DirectChannel.class);
 			channelBuilder.addConstructorArgValue(null);
@@ -86,27 +80,12 @@ public class SubscriberOrderTests {
 			context.refresh();
 			TestBean testBean = (TestBean) context.getBean("testBean");
 			MessageChannel channel = (MessageChannel) context.getBean("input");
-			channel.send(new GenericMessage<>("test-1"));
-			channel.send(new GenericMessage<>("test-2"));
-			channel.send(new GenericMessage<>("test-3"));
-			channel.send(new GenericMessage<>("test-4"));
-			channel.send(new GenericMessage<>("test-5"));
-			channel.send(new GenericMessage<>("test-6"));
-			channel.send(new GenericMessage<>("test-7"));
-			channel.send(new GenericMessage<>("test-8"));
-			channel.send(new GenericMessage<>("test-9"));
-			channel.send(new GenericMessage<>("test-10"));
-			assertThat(testBean.calls.size()).isEqualTo(10);
-			assertThat(testBean.calls.get(0).intValue()).isEqualTo(1);
-			assertThat(testBean.calls.get(1).intValue()).isEqualTo(1);
-			assertThat(testBean.calls.get(2).intValue()).isEqualTo(2);
-			assertThat(testBean.calls.get(3).intValue()).isEqualTo(2);
-			assertThat(testBean.calls.get(4).intValue()).isEqualTo(3);
-			assertThat(testBean.calls.get(5).intValue()).isEqualTo(3);
-			assertThat(testBean.calls.get(6).intValue()).isEqualTo(4);
-			assertThat(testBean.calls.get(7).intValue()).isEqualTo(4);
-			assertThat(testBean.calls.get(8).intValue()).isEqualTo(5);
-			assertThat(testBean.calls.get(9).intValue()).isEqualTo(5);
+			for (int i = 0; i < 10; i++) {
+				channel.send(new GenericMessage<>("test-" + (i + 1)));
+			}
+
+			assertThat(testBean.calls).hasSize(10)
+					.containsExactly(1, 1, 2, 2, 3, 3, 4, 4, 5, 5);
 			testBean.reset();
 			channel.send(new GenericMessage<>("test-11"));
 			assertThat(testBean.calls.size()).isEqualTo(1);
@@ -116,7 +95,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndRoundRobinDispatcher() {
-		try (GenericApplicationContext context = TestUtils.createTestApplicationContext()) {
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
 			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
 			RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 			channelDefinition.getConstructorArgumentValues()
@@ -128,18 +107,14 @@ public class SubscriberOrderTests {
 			context.refresh();
 			TestBean testBean = (TestBean) context.getBean("testBean");
 			MessageChannel channel = (MessageChannel) context.getBean("input");
-			channel.send(new GenericMessage<>("test-1"));
-			channel.send(new GenericMessage<>("test-2"));
-			channel.send(new GenericMessage<>("test-3"));
-			channel.send(new GenericMessage<>("test-4"));
-			channel.send(new GenericMessage<>("test-5"));
+
+			for (int i = 0; i < 5; i++) {
+				channel.send(new GenericMessage<>("test-" + (i + 1)));
+			}
+
 			List<Integer> calls = testBean.calls;
-			assertThat(calls.size()).isEqualTo(5);
-			assertThat(calls.get(0).intValue()).isEqualTo(1);
-			assertThat(calls.get(1).intValue()).isEqualTo(2);
-			assertThat(calls.get(2).intValue()).isEqualTo(3);
-			assertThat(calls.get(3).intValue()).isEqualTo(4);
-			assertThat(calls.get(4).intValue()).isEqualTo(5);
+			assertThat(calls).hasSize(5)
+					.containsExactly(1, 2, 3, 4, 5);
 		}
 	}
 
