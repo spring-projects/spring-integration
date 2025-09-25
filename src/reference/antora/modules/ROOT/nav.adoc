@@ -62,6 +62,7 @@
 ** xref:logging-adapter.adoc[]
 ** xref:functions-support.adoc[]
 ** xref:kotlin-functions.adoc[]
+* xref:cloudevents/cloudevents-transform.adoc[]
 * xref:dsl.adoc[]
 ** xref:dsl/java-basics.adoc[]
 ** xref:dsl/java-channels.adoc[]
