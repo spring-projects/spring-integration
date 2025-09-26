@@ -17,37 +17,23 @@
 package org.springframework.integration.amqp.inbound;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
-import com.rabbitmq.client.amqp.Consumer;
 import com.rabbitmq.client.amqp.Resource;
 import org.aopalliance.aop.Advice;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.amqp.core.AmqpAcknowledgment;
 import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
-import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
-import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.amqp.support.postprocessor.MessagePostProcessorUtils;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.StaticMessageHeaderAccessor;
-import org.springframework.integration.acks.AcknowledgmentCallback;
-import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -151,7 +137,10 @@ public class AmqpClientMessageProducer extends MessageProducerSupport implements
 	protected void onInit() {
 		super.onInit();
 		this.listenerContainer.setBeanName(getComponentName() + ".listenerContainer");
-		this.listenerContainer.setupMessageListener(new IntegrationRabbitAmqpMessageListener());
+		IntegrationRabbitAmqpMessageListener messageListener =
+				new IntegrationRabbitAmqpMessageListener(this, this::processRequest, this.headerMapper,
+						this.messageConverter, this.afterReceivePostProcessors);
+		this.listenerContainer.setupMessageListener(messageListener);
 		this.listenerContainer.afterPropertiesSet();
 	}
 
@@ -190,97 +179,15 @@ public class AmqpClientMessageProducer extends MessageProducerSupport implements
 		return this.paused;
 	}
 
-	private final class IntegrationRabbitAmqpMessageListener implements RabbitAmqpMessageListener {
-
-		@Override
-		public void onAmqpMessage(com.rabbitmq.client.amqp.Message amqpMessage, Consumer.@Nullable Context context) {
-			org.springframework.amqp.core.Message message = RabbitAmqpUtils.fromAmqpMessage(amqpMessage, context);
-			Message<?> messageToSend = toSpringMessage(message);
-
-			try {
-				sendMessage(messageToSend);
-			}
-			catch (Exception ex) {
-				throw new ListenerExecutionFailedException(getComponentName() + ".onAmqpMessage() failed", ex, message);
-			}
-		}
-
-		@Override
-		public void onMessageBatch(List<org.springframework.amqp.core.Message> messages) {
-			SimpleAcknowledgment acknowledgmentCallback = null;
-			List<Message<?>> springMessages = new ArrayList<>(messages.size());
-			for (org.springframework.amqp.core.Message message : messages) {
-				Message<?> springMessage = toSpringMessage(message);
-				if (acknowledgmentCallback == null) {
-					acknowledgmentCallback = StaticMessageHeaderAccessor.getAcknowledgment(springMessage);
-				}
-				springMessages.add(springMessage);
-			}
-
-			Message<List<Message<?>>> messageToSend =
-					MutableMessageBuilder.withPayload(springMessages)
-							.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
-							.build();
-
-			try {
-				sendMessage(messageToSend);
-			}
-			catch (Exception ex) {
-				throw new ListenerExecutionFailedException(getComponentName() + ".onMessageBatch() failed", ex,
-						messages.toArray(org.springframework.amqp.core.Message[]::new));
-			}
-		}
-
-		private Message<?> toSpringMessage(org.springframework.amqp.core.Message message) {
-			if (AmqpClientMessageProducer.this.afterReceivePostProcessors != null) {
-				for (MessagePostProcessor processor : AmqpClientMessageProducer.this.afterReceivePostProcessors) {
-					message = processor.postProcessMessage(message);
-				}
-			}
-			MessageProperties messageProperties = message.getMessageProperties();
-			AmqpAcknowledgment amqpAcknowledgment = messageProperties.getAmqpAcknowledgment();
-			AmqpAcknowledgmentCallback acknowledgmentCallback = null;
-			if (amqpAcknowledgment != null) {
-				acknowledgmentCallback = new AmqpAcknowledgmentCallback(amqpAcknowledgment);
-			}
-
-			Object payload = message;
-			Map<String, @Nullable Object> headers = null;
-			if (AmqpClientMessageProducer.this.messageConverter != null) {
-				payload = AmqpClientMessageProducer.this.messageConverter.fromMessage(message);
-				headers = AmqpClientMessageProducer.this.headerMapper.toHeadersFromRequest(messageProperties);
-			}
-
-			return getMessageBuilderFactory()
-					.withPayload(payload)
-					.copyHeaders(headers)
-					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
-					.build();
-		}
-
-		@Override
-		public void onMessage(org.springframework.amqp.core.Message message) {
-			throw new UnsupportedOperationException("The 'RabbitAmqpMessageListener' does not implement 'onMessage()'");
-		}
-
-	}
-
 	/**
-	 * The {@link AcknowledgmentCallback} adapter for an {@link AmqpAcknowledgment}.
-	 * @param delegate the {@link AmqpAcknowledgment} to delegate to.
+	 * Use as {@link java.util.function.BiConsumer} for the {@link IntegrationRabbitAmqpMessageListener}.
+	 * @param messageToSend the message to produce from this endpoint.
+	 * @param requestMessage the request AMQP message.
 	 */
-	private record AmqpAcknowledgmentCallback(AmqpAcknowledgment delegate) implements AcknowledgmentCallback {
+	private void processRequest(Message<?> messageToSend,
+			org.springframework.amqp.core.@Nullable Message requestMessage) {
 
-		@Override
-		public void acknowledge(Status status) {
-			this.delegate.acknowledge(AmqpAcknowledgment.Status.valueOf(status.name()));
-		}
-
-		@Override
-		public boolean isAutoAck() {
-			return false;
-		}
-
+		sendMessage(messageToSend);
 	}
 
 }
