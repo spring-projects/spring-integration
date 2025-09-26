@@ -99,8 +99,8 @@ In addition, to produce AMQP 1.0 replies, the `AmqpClientInboundGateway` uses in
 
 For automatic replies correlation with their requests, a `replyTo` property of the request message must be supplied.
 For example, the `RabbitAmqpTemplate.sendAndReceive()` relies on the `RpcClient` from RabbitMQ AMQP 1.0 library which generates an exclusive and auto-deleted queue.
-Alternatively, the reply address could be set as a `replyExchange` and `replyRoutingKey` (optional) or `replyQueue` on the `AmqpClientInboundGateway` which are delegated to the `RabbitAmqpTemplate` default options.
-The `messageId` or `correllationId` request message properties can be used for associating with replies.
+Alternatively, the reply address could be set as a `replyExchange`(and optional `replyRoutingKey`) or `replyQueue` (but not both) on the `AmqpClientInboundGateway` which are delegated to the `RabbitAmqpTemplate` default options.
+The `messageId` or `correlationId` request message properties can be used for associating with replies.
 The `RpcClient` in the `RabbitAmqpTemplate.sendAndReceive()` generates one if missed.
 The `AmqpClientInboundGateway` is able to map back such a correlation key into a reply message.
 
