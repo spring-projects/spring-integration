@@ -31,6 +31,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.amqp.core.AmqpAcknowledgment;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
@@ -189,14 +190,19 @@ public class AmqpClientMessageProducer extends MessageProducerSupport implements
 		return this.paused;
 	}
 
-	private class IntegrationRabbitAmqpMessageListener implements RabbitAmqpMessageListener {
+	private final class IntegrationRabbitAmqpMessageListener implements RabbitAmqpMessageListener {
 
 		@Override
 		public void onAmqpMessage(com.rabbitmq.client.amqp.Message amqpMessage, Consumer.@Nullable Context context) {
 			org.springframework.amqp.core.Message message = RabbitAmqpUtils.fromAmqpMessage(amqpMessage, context);
 			Message<?> messageToSend = toSpringMessage(message);
 
-			sendMessage(messageToSend);
+			try {
+				sendMessage(messageToSend);
+			}
+			catch (Exception ex) {
+				throw new ListenerExecutionFailedException(getComponentName() + ".onAmqpMessage() failed", ex, message);
+			}
 		}
 
 		@Override
@@ -216,7 +222,13 @@ public class AmqpClientMessageProducer extends MessageProducerSupport implements
 							.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
 							.build();
 
-			sendMessage(messageToSend);
+			try {
+				sendMessage(messageToSend);
+			}
+			catch (Exception ex) {
+				throw new ListenerExecutionFailedException(getComponentName() + ".onMessageBatch() failed", ex,
+						messages.toArray(org.springframework.amqp.core.Message[]::new));
+			}
 		}
 
 		private Message<?> toSpringMessage(org.springframework.amqp.core.Message message) {

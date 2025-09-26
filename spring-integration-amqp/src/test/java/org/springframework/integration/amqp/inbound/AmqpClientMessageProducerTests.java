@@ -16,27 +16,40 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import com.rabbitmq.client.amqp.Environment;
 import com.rabbitmq.client.amqp.impl.AmqpEnvironmentBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Declarables;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpAdmin;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate;
 import org.springframework.amqp.rabbitmq.client.SingleAmqpConnectionFactory;
+import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.amqp.support.RabbitTestContainer;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -94,8 +107,58 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 				.extracting(Message::getPayload)
 				.asInstanceOf(InstanceOfAssertFactories.list(Message.class))
 				.hasSize(2)
-				.extracting(Message::getPayload)
+				.extracting(Message<String>::getPayload)
 				.contains("test data #3", "test data #4");
+	}
+
+	@Test
+	void receiveBatchAndAck() {
+		this.rabbitTemplate.convertAndSend("q4", "test data #5");
+		this.rabbitTemplate.convertAndSend("q4", "test data #6");
+		this.rabbitTemplate.convertAndSend("q4", "test data #7");
+
+		Message<?> receive = this.inputChannel.receive(10_000);
+
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.list(Message.class))
+				.hasSize(3)
+				.extracting(Message<String>::getPayload)
+				.contains("test data #5", "test data #6", "test data #7");
+
+		SimpleAcknowledgment acknowledgment = StaticMessageHeaderAccessor.getAcknowledgment(receive);
+		assertThat(acknowledgment).isNotNull();
+		acknowledgment.acknowledge();
+	}
+
+	@Autowired
+	AmqpClientMessageProducer failureAmqpClientMessageProducer;
+
+	@Test
+	void failureAfterReceiving() {
+		RabbitAmqpListenerContainer listenerContainer =
+				TestUtils.getPropertyValue(this.failureAmqpClientMessageProducer, "listenerContainer",
+						RabbitAmqpListenerContainer.class);
+
+		AtomicReference<Throwable> listenerError = new AtomicReference<>();
+
+		listenerContainer.setErrorHandler(new ConditionalRejectingErrorHandler() {
+
+			@Override
+			protected void log(Throwable t) {
+				listenerError.set(t);
+			}
+
+		});
+
+		this.rabbitTemplate.convertAndSend("queueForError", "discard");
+
+		assertThat(this.rabbitTemplate.receive("dlq1")).succeedsWithin(20, TimeUnit.SECONDS);
+
+		assertThat(listenerError.get())
+				.asInstanceOf(InstanceOfAssertFactories.throwable(ListenerExecutionFailedException.class))
+				.hasCauseInstanceOf(MessageConversionException.class)
+				.hasStackTraceContaining("Intentional conversion failure");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -122,18 +185,28 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 		}
 
 		@Bean
-		Queue q1() {
-			return new Queue("q1");
+		Declarables declarables() {
+			return new Declarables(Stream.of("q1", "q2", "q3", "q4").map(Queue::new).toArray(Queue[]::new));
 		}
 
 		@Bean
-		Queue q2() {
-			return new Queue("q2");
+		Queue queueForError() {
+			return QueueBuilder.durable("queueForError").deadLetterExchange("dlx1").build();
 		}
 
 		@Bean
-		Queue q3() {
-			return new Queue("q3");
+		TopicExchange dlx1() {
+			return new TopicExchange("dlx1");
+		}
+
+		@Bean
+		Queue dlq1() {
+			return new Queue("dlq1");
+		}
+
+		@Bean
+		Binding dlq1Binding(Queue dlq1, TopicExchange dlx1) {
+			return BindingBuilder.bind(dlq1).to(dlx1).with("#");
 		}
 
 		@Bean
@@ -173,6 +246,33 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 			amqpClientMessageProducer.setOutputChannel(inputChannel);
 			amqpClientMessageProducer.setBatchSize(2);
 			return amqpClientMessageProducer;
+		}
+
+		@Bean
+		AmqpClientMessageProducer batchManualAckAmqpClientMessageProducer(AmqpConnectionFactory connectionFactory,
+				QueueChannel inputChannel) {
+
+			AmqpClientMessageProducer amqpClientMessageProducer = new AmqpClientMessageProducer(connectionFactory, "q4");
+			amqpClientMessageProducer.setOutputChannel(inputChannel);
+			amqpClientMessageProducer.setBatchSize(3);
+			amqpClientMessageProducer.setAutoSettle(false);
+			return amqpClientMessageProducer;
+		}
+
+		@Bean
+		AmqpClientMessageProducer failureAmqpClientMessageProducer(AmqpConnectionFactory connectionFactory,
+				FixedSubscriberChannel conversionChannel) {
+
+			var amqpClientMessageProducer = new AmqpClientMessageProducer(connectionFactory, "queueForError");
+			amqpClientMessageProducer.setOutputChannel(conversionChannel);
+			return amqpClientMessageProducer;
+		}
+
+		@Bean
+		FixedSubscriberChannel conversionChannel() {
+			return new FixedSubscriberChannel(message -> {
+				throw new MessageConversionException(message, "Intentional conversion failure");
+			});
 		}
 
 	}

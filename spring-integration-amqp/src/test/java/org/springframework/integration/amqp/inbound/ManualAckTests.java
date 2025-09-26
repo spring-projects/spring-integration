@@ -30,7 +30,6 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -93,7 +92,6 @@ public class ManualAckTests implements RabbitTestContainer {
 
 	@Configuration
 	@EnableIntegration
-	@ComponentScan
 	@MessageEndpoint
 	public static class ManualAckConfig {
 
