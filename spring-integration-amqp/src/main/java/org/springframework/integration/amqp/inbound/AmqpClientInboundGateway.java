@@ -19,29 +19,21 @@ package org.springframework.integration.amqp.inbound;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
-import com.rabbitmq.client.amqp.Consumer;
 import com.rabbitmq.client.amqp.Resource;
 import org.aopalliance.aop.Advice;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.Address;
-import org.springframework.amqp.core.AmqpAcknowledgment;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.listener.adapter.ReplyPostProcessor;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate;
-import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
-import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.amqp.support.postprocessor.MessagePostProcessorUtils;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.core.Pausable;
@@ -185,7 +177,10 @@ public class AmqpClientInboundGateway extends MessagingGatewaySupport implements
 	protected void onInit() {
 		super.onInit();
 		this.listenerContainer.setBeanName(getComponentName() + ".listenerContainer");
-		this.listenerContainer.setupMessageListener(new IntegrationRabbitAmqpMessageListener());
+		IntegrationRabbitAmqpMessageListener messageListener =
+				new IntegrationRabbitAmqpMessageListener(this, this::processRequest, this.headerMapper,
+						this.messageConverter, this.afterReceivePostProcessors);
+		this.listenerContainer.setupMessageListener(messageListener);
 		this.listenerContainer.afterPropertiesSet();
 	}
 
@@ -225,146 +220,89 @@ public class AmqpClientInboundGateway extends MessagingGatewaySupport implements
 		return this.paused;
 	}
 
-	private final class IntegrationRabbitAmqpMessageListener implements RabbitAmqpMessageListener {
+	/**
+	 * Use as {@link java.util.function.BiConsumer} for the {@link IntegrationRabbitAmqpMessageListener}.
+	 * @param messageToSend the message to produce from this endpoint.
+	 * @param requestMessage the request AMQP message.
+	 */
+	private void processRequest(Message<?> messageToSend, org.springframework.amqp.core.Message requestMessage) {
+		Message<?> receivedMessage = sendAndReceiveMessage(messageToSend);
+		if (receivedMessage != null) {
+			org.springframework.amqp.core.Message replyMessage = fromSpringMessage(receivedMessage, requestMessage);
+			publishReply(requestMessage, replyMessage);
+		}
+		else {
+			this.logger.warn(() -> "No reply received for message: " + requestMessage);
+		}
+	}
 
-		@Override
-		public void onAmqpMessage(com.rabbitmq.client.amqp.Message amqpMessage, Consumer.@Nullable Context context) {
-			org.springframework.amqp.core.Message message = RabbitAmqpUtils.fromAmqpMessage(amqpMessage, context);
-			Message<?> messageToSend = toSpringMessage(message);
-			try {
-				Message<?> receivedMessage = sendAndReceiveMessage(messageToSend);
-				if (receivedMessage != null) {
-					org.springframework.amqp.core.Message replyMessage = fromSpringMessage(receivedMessage, message);
-					publishReply(message, replyMessage);
-				}
-				else {
-					logger.warn(() -> "No reply received for message: " + amqpMessage);
-				}
-			}
-			catch (Exception ex) {
-				throw new ListenerExecutionFailedException(getComponentName() + ".onAmqpMessage() failed", ex, message);
-			}
+	private org.springframework.amqp.core.Message fromSpringMessage(Message<?> receivedMessage,
+			org.springframework.amqp.core.Message requestMessage) {
+
+		org.springframework.amqp.core.Message replyMessage;
+		MessageProperties messageProperties = new MessageProperties();
+		Object payload = receivedMessage.getPayload();
+		if (payload instanceof org.springframework.amqp.core.Message amqpMessage) {
+			replyMessage = amqpMessage;
+		}
+		else {
+			Assert.state(this.messageConverter != null,
+					"If reply payload is not an 'org.springframework.amqp.core.Message', " +
+							"the 'messageConverter' must be provided.");
+
+			replyMessage = this.messageConverter.toMessage(payload, messageProperties);
+			this.headerMapper.fromHeadersToReply(receivedMessage.getHeaders(),
+					messageProperties);
 		}
 
-		private Message<?> toSpringMessage(org.springframework.amqp.core.Message message) {
-			if (AmqpClientInboundGateway.this.afterReceivePostProcessors != null) {
-				for (MessagePostProcessor processor : AmqpClientInboundGateway.this.afterReceivePostProcessors) {
-					message = processor.postProcessMessage(message);
-				}
-			}
-			MessageProperties messageProperties = message.getMessageProperties();
-			AmqpAcknowledgment amqpAcknowledgment = messageProperties.getAmqpAcknowledgment();
-			AmqpAcknowledgmentCallback acknowledgmentCallback = null;
-			if (amqpAcknowledgment != null) {
-				acknowledgmentCallback = new AmqpAcknowledgmentCallback(amqpAcknowledgment);
-			}
-
-			Object payload = message;
-			Map<String, @Nullable Object> headers = null;
-			if (AmqpClientInboundGateway.this.messageConverter != null) {
-				payload = AmqpClientInboundGateway.this.messageConverter.fromMessage(message);
-				headers = AmqpClientInboundGateway.this.headerMapper.toHeadersFromRequest(messageProperties);
-			}
-
-			return getMessageBuilderFactory()
-					.withPayload(payload)
-					.copyHeaders(headers)
-					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
-					.build();
+		postProcessResponse(requestMessage, replyMessage);
+		if (this.replyPostProcessor != null) {
+			replyMessage = this.replyPostProcessor.apply(requestMessage, replyMessage);
 		}
 
-		private org.springframework.amqp.core.Message fromSpringMessage(Message<?> receivedMessage,
-				org.springframework.amqp.core.Message requestMessage) {
+		return replyMessage;
+	}
 
-			org.springframework.amqp.core.Message replyMessage;
-			MessageProperties messageProperties = new MessageProperties();
-			Object payload = receivedMessage.getPayload();
-			if (payload instanceof org.springframework.amqp.core.Message amqpMessage) {
-				replyMessage = amqpMessage;
+	private void publishReply(org.springframework.amqp.core.Message requestMessage,
+			org.springframework.amqp.core.Message replyMessage) {
+
+		Address replyTo = requestMessage.getMessageProperties().getReplyToAddress();
+		if (replyTo != null) {
+			String exchangeName = replyTo.getExchangeName();
+			String routingKey = replyTo.getRoutingKey();
+			if (StringUtils.hasText(exchangeName)) {
+				this.replyTemplate.send(exchangeName, routingKey, replyMessage).join();
 			}
 			else {
-				Assert.state(AmqpClientInboundGateway.this.messageConverter != null,
-						"If reply payload is not an 'org.springframework.amqp.core.Message', " +
-								"the 'messageConverter' must be provided.");
-
-				replyMessage = AmqpClientInboundGateway.this.messageConverter.toMessage(payload, messageProperties);
-				AmqpClientInboundGateway.this.headerMapper.fromHeadersToReply(receivedMessage.getHeaders(),
-						messageProperties);
-			}
-
-			postProcessResponse(requestMessage, replyMessage);
-			if (AmqpClientInboundGateway.this.replyPostProcessor != null) {
-				replyMessage = AmqpClientInboundGateway.this.replyPostProcessor.apply(requestMessage, replyMessage);
-			}
-
-			return replyMessage;
-		}
-
-		private void publishReply(org.springframework.amqp.core.Message requestMessage,
-				org.springframework.amqp.core.Message replyMessage) {
-
-			Address replyTo = requestMessage.getMessageProperties().getReplyToAddress();
-			if (replyTo != null) {
-				String exchangeName = replyTo.getExchangeName();
-				String routingKey = replyTo.getRoutingKey();
-				if (StringUtils.hasText(exchangeName)) {
-					AmqpClientInboundGateway.this.replyTemplate.send(exchangeName, routingKey, replyMessage).join();
-				}
-				else {
-					Assert.hasText(routingKey, "A 'replyTo' property must be provided in the requestMessage.");
-					String queue = routingKey.replaceFirst("queues/", "");
-					AmqpClientInboundGateway.this.replyTemplate.send(queue, replyMessage).join();
-				}
-			}
-			else {
-				AmqpClientInboundGateway.this.replyTemplate.send(replyMessage).join();
+				Assert.hasText(routingKey, "A 'replyTo' property must be provided in the requestMessage.");
+				String queue = routingKey.replaceFirst("queues/", "");
+				this.replyTemplate.send(queue, replyMessage).join();
 			}
 		}
-
-		@Override
-		public void onMessage(org.springframework.amqp.core.Message message) {
-			throw new UnsupportedOperationException("The 'RabbitAmqpMessageListener' does not implement 'onMessage()'");
+		else {
+			this.replyTemplate.send(replyMessage).join();
 		}
-
-		/**
-		 * Post-process the given response message before it will be sent.
-		 * The default implementation sets the response's correlation id to the request message's correlation id, if any;
-		 * otherwise to the request message id.
-		 * @param request the original incoming Rabbit message
-		 * @param response the outgoing Rabbit message about to be sent
-		 */
-		private static void postProcessResponse(org.springframework.amqp.core.Message request,
-				org.springframework.amqp.core.Message response) {
-
-			String correlation = request.getMessageProperties().getCorrelationId();
-
-			if (correlation == null) {
-				String messageId = request.getMessageProperties().getMessageId();
-				if (messageId != null) {
-					correlation = messageId;
-				}
-			}
-			response.getMessageProperties().setCorrelationId(correlation);
-		}
-
 	}
 
 	/**
-	 * The {@link AcknowledgmentCallback} adapter for an {@link AmqpAcknowledgment}.
-	 * @param delegate the {@link AmqpAcknowledgment} to delegate to.
+	 * Post-process the given response message before it will be sent.
+	 * The default implementation sets the response's correlation id to the request message's correlation id, if any;
+	 * otherwise to the request message id.
+	 * @param request the original incoming Rabbit message
+	 * @param response the outgoing Rabbit message about to be sent
 	 */
-	private record AmqpAcknowledgmentCallback(AmqpAcknowledgment delegate) implements AcknowledgmentCallback {
+	private static void postProcessResponse(org.springframework.amqp.core.Message request,
+			org.springframework.amqp.core.Message response) {
 
-		@Override
-		public void acknowledge(Status status) {
-			this.delegate.acknowledge(AmqpAcknowledgment.Status.valueOf(status.name()));
+		String correlation = request.getMessageProperties().getCorrelationId();
+
+		if (correlation == null) {
+			String messageId = request.getMessageProperties().getMessageId();
+			if (messageId != null) {
+				correlation = messageId;
+			}
 		}
-
-		@Override
-		public boolean isAutoAck() {
-			return false;
-		}
-
+		response.getMessageProperties().setCorrelationId(correlation);
 	}
 
 }
