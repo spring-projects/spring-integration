@@ -82,7 +82,7 @@ ext {
     kryoVersion = '5.6.2'
     lettuceVersion = '6.4.2.RELEASE'
     log4jVersion = '2.24.3'
-    mailVersion = '2.0.4'
+    mailVersion = '2.0.5'
     micrometerTracingVersion = '1.4.10'
     micrometerVersion = '1.14.11'
     mockitoVersion = '5.14.2'
