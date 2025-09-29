@@ -35,7 +35,7 @@ It is asynchronous by default (`setAsync(false)` to reset) and performs reactive
 The type of operation can be configured via the `CassandraMessageHandler.Type` option.
 The `ingestQuery` sets the mode into an `INSERT`; the `query` or `statementExpression`, or `statementProcessor` sets the mode into a `STATEMENT`.
 
-The following code snippets demonstrate various configuration for this channel adapter or gateway:
+The following code snippets demonstrate various configurations for this channel adapter or gateway:
 
 [tabs]
 ======
