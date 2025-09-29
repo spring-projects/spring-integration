@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+package org.springframework.integration.cloudevents.transformer;
 
 import io.cloudevents.CloudEvent;
-import io.cloudevents.avro.compact.AvroCompactFormat;
 import io.cloudevents.core.builder.CloudEventBuilder;
-import io.cloudevents.jackson.JsonFormat;
-import io.cloudevents.xml.XMLFormat;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.cloudevents.v1.CloudEventMessageConverter;
-import org.springframework.integration.cloudevents.v1.transformer.utils.HeaderPatternMatcher;
+import org.springframework.integration.cloudevents.CloudEventMessageConverter;
+import org.springframework.integration.cloudevents.CloudEventsHeaders;
+import org.springframework.integration.cloudevents.transformer.strategies.CloudEventMessageFormatStrategy;
+import org.springframework.integration.cloudevents.transformer.strategies.FormatStrategy;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
 
 /**
  * A Spring Integration transformer that converts messages to CloudEvent format.
@@ -62,24 +54,11 @@ import org.springframework.util.Assert;
  */
 public class ToCloudEventTransformer extends AbstractTransformer {
 
-	/**
-	 * Enumeration of supported CloudEvent conversion types.
-	 * <p>
-	 * Defines the different output formats supported by the transformer:
-	 * <ul>
-	 *   <li>DEFAULT - No format conversion, uses standard CloudEvent message structure</li>
-	 *   <li>XML - Serializes CloudEvent as XML in the message payload</li>
-	 *   <li>JSON - Serializes CloudEvent as JSON in the message payload</li>
-	 *   <li>AVRO - Serializes CloudEvent as compact Avro binary in the message payload</li>
-	 * </ul>
-	 */
-	public enum ConversionType { DEFAULT, XML, JSON, AVRO }
-
 	private final MessageConverter messageConverter;
 
 	private final @Nullable String cloudEventExtensionPatterns;
 
-	private final ConversionType conversionType;
+	private final FormatStrategy formatStrategy;
 
 	private final CloudEventProperties cloudEventProperties;
 
@@ -90,19 +69,20 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * supports wildcards and negation with '!' prefix   If a header matches one of the '!' it is excluded from
 	 * cloud event headers and the message headers.   If a header does not match for a prefix or a exclusion, the header
 	 * is left in the message headers.   . Null to disable extension mapping.
-	 * @param conversionType the output format for the CloudEvent (DEFAULT, XML, JSON, or AVRO)
+	 * @param formatStrategy The strategy that determines how the CloudEvent will be rendered
 	 * @param cloudEventProperties configuration properties for CloudEvent metadata (id, source, type, etc.)
 	 */
 	public ToCloudEventTransformer(@Nullable String cloudEventExtensionPatterns,
-			ConversionType conversionType, CloudEventProperties cloudEventProperties) {
+			FormatStrategy formatStrategy, CloudEventProperties cloudEventProperties) {
 		this.messageConverter = new CloudEventMessageConverter(cloudEventProperties.getCePrefix());
 		this.cloudEventExtensionPatterns = cloudEventExtensionPatterns;
-		this.conversionType = conversionType;
+		this.formatStrategy = formatStrategy;
 		this.cloudEventProperties = cloudEventProperties;
 	}
 
 	public ToCloudEventTransformer() {
-		this(null, ConversionType.DEFAULT, new CloudEventProperties());
+		this(null, new CloudEventMessageFormatStrategy(CloudEventsHeaders.CE_PREFIX),
+				new CloudEventProperties());
 	}
 
 	/**
@@ -135,75 +115,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 				.withData(getPayloadAsBytes(message.getPayload()))
 				.withExtension(extensions)
 				.build();
-
-		switch (this.conversionType) {
-			case XML:
-				return convertToXmlMessage(cloudEvent, message.getHeaders());
-			case JSON:
-				return convertToJsonMessage(cloudEvent, message.getHeaders());
-			case AVRO:
-				return convertToAvroMessage(cloudEvent, message.getHeaders());
-			default:
-				var result = this.messageConverter.toMessage(cloudEvent, filterHeaders(message.getHeaders()));
-				Assert.state(result != null, "Payload result must not be null");
-				return result;
-		}
-	}
-
-	private Message<String> convertToXmlMessage(CloudEvent cloudEvent, MessageHeaders originalHeaders) {
-		XMLFormat xmlFormat = new XMLFormat();
-		String xmlContent = new String(xmlFormat.serialize(cloudEvent));
-		return buildStringMessage(xmlContent, originalHeaders, "application/xml");
-	}
-
-	private Message<String> convertToJsonMessage(CloudEvent cloudEvent, MessageHeaders originalHeaders) {
-		JsonFormat jsonFormat = new JsonFormat();
-		String jsonContent = new String(jsonFormat.serialize(cloudEvent));
-		return buildStringMessage(jsonContent, originalHeaders, "application/json");
-	}
-
-	private Message<String> buildStringMessage(String serializedCloudEvent,
-			MessageHeaders originalHeaders, String contentType) {
-		try {
-			return MessageBuilder.withPayload(serializedCloudEvent)
-					.copyHeaders(filterHeaders(originalHeaders))
-					.setHeader("content-type", contentType)
-					.build();
-		}
-		catch (Exception e) {
-			throw new MessageConversionException("Failed to convert CloudEvent to " + contentType, e);
-		}
-	}
-
-	private Message<byte[]> convertToAvroMessage(CloudEvent cloudEvent, MessageHeaders originalHeaders) {
-		try {
-			AvroCompactFormat avroFormat = new AvroCompactFormat();
-			byte[] avroBytes = avroFormat.serialize(cloudEvent);
-			return MessageBuilder.withPayload(avroBytes)
-					.copyHeaders(filterHeaders(originalHeaders))
-					.setHeader("content-type", "application/avro")
-					.build();
-		}
-		catch (Exception e) {
-			throw new RuntimeException("Failed to convert CloudEvent to application/avro", e);
-		}
-	}
-
-	/**
-	 * This method creates a {@link MessageHeaders} that were not placed in the CloudEvent and were not excluded via the
-	 * categorization mechanism.
-	 * @param headers The {@link MessageHeaders} to be filtered.
-	 * @return {@link MessageHeaders} that have been filtered.
-	 */
-	private MessageHeaders filterHeaders(MessageHeaders headers) {
-
-		Map<String, Object> filteredHeaders = new HashMap<>();
-		headers.keySet().forEach(key -> {
-			if (HeaderPatternMatcher.categorizeHeader(key, this.cloudEventExtensionPatterns) == null) {
-				filteredHeaders.put(key, Objects.requireNonNull(headers.get(key)));
-			}
-		});
-		return new MessageHeaders(filteredHeaders);
+				return this.formatStrategy.convert(cloudEvent, new MessageHeaders(extensions.getFilteredHeaders()));
 	}
 
 	private byte[] getPayloadAsBytes(Object payload) {
@@ -220,7 +132,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	@Override
 	public String getComponentType() {
-		return "to-cloud-transformer";
+		return "ce:to-cloudevents-transformer";
 	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1;
+package org.springframework.integration.cloudevents;
 
 import java.nio.charset.StandardCharsets;
 
@@ -25,6 +25,7 @@ import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.message.MessageReader;
 import io.cloudevents.core.message.impl.GenericStructuredMessageReader;
 import io.cloudevents.core.message.impl.MessageUtils;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -42,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public class CloudEventMessageConverter implements MessageConverter {
 
-	private String cePrefix;
+	private final String cePrefix;
 
 	public CloudEventMessageConverter(String cePrefix) {
 		this.cePrefix = cePrefix;
@@ -52,28 +53,35 @@ public class CloudEventMessageConverter implements MessageConverter {
 		this(CloudEventsHeaders.CE_PREFIX);
 	}
 
+	/**
+	 Convert the payload of a Message from a CloudEvent to a typed Object of the specified target class.
+	 If the converter does not support the specified media type or cannot perform the conversion, it should return null.
+	 * @param message the input message
+	 * @param targetClass This method does not check the class since it is expected to be a {@link CloudEvent}
+	 * @return the result of the conversion, or null if the converter cannot perform the conversion
+	 */
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		Assert.state(CloudEvent.class.isAssignableFrom(targetClass), "Target class must be a CloudEvent");
 		return createMessageReader(message).toEvent();
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		Assert.state(payload instanceof CloudEvent, "Payload must be a CloudEvent");
+		Assert.state(headers != null, "Headers must not be null");
 		return CloudEventUtils.toReader((CloudEvent) payload).read(new MessageBuilderMessageWriter(headers, this.cePrefix));
 	}
 
 	private MessageReader createMessageReader(Message<?> message) {
-		return MessageUtils.parseStructuredOrBinaryMessage(//
-				() -> contentType(message.getHeaders()), //
-				format -> structuredMessageReader(message, format), //
-				() -> version(message.getHeaders()), //
-				version -> binaryMessageReader(message, version) //
+		return MessageUtils.parseStructuredOrBinaryMessage(
+				() -> contentType(message.getHeaders()),
+				format -> structuredMessageReader(message, format),
+				() -> version(message.getHeaders()),
+				version -> binaryMessageReader(message, version)
 		);
 	}
 
-	private String version(MessageHeaders message) {
+	private @Nullable String version(MessageHeaders message) {
 		if (message.containsKey(CloudEventsHeaders.SPEC_VERSION)) {
 			return message.get(CloudEventsHeaders.SPEC_VERSION).toString();
 		}
@@ -88,7 +96,7 @@ public class CloudEventMessageConverter implements MessageConverter {
 		return new GenericStructuredMessageReader(format, getBinaryData(message));
 	}
 
-	private String contentType(MessageHeaders message) {
+	private @Nullable String contentType(MessageHeaders message) {
 		if (message.containsKey(MessageHeaders.CONTENT_TYPE)) {
 			return message.get(MessageHeaders.CONTENT_TYPE).toString();
 		}
