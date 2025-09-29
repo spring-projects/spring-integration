@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1;
+package org.springframework.integration.cloudevents;
 
 /**
  * Constants for Cloud Events header names.

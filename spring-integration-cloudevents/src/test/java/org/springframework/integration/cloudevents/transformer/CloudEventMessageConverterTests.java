@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
+package org.springframework.integration.cloudevents.transformer;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -26,17 +26,18 @@ import io.cloudevents.core.builder.CloudEventBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.cloudevents.v1.CloudEventMessageConverter;
-import org.springframework.integration.cloudevents.v1.CloudEventsHeaders;
+import org.springframework.integration.cloudevents.CloudEventMessageConverter;
+import org.springframework.integration.cloudevents.CloudEventsHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchIllegalStateException;
 
-public class CloudEventMessageConverterTest {
+public class CloudEventMessageConverterTests {
 
 	private CloudEventMessageConverter converter;
 
@@ -235,8 +236,7 @@ public class CloudEventMessageConverterTest {
 	@Test
 	void invalidPayloadFromMessage() {
 		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(1234)).build();
-		assertThatIllegalStateException()
-				.isThrownBy(() -> this.converter.fromMessage(message, Integer.class))
-				.withMessage("Target class must be a CloudEvent");
+		assertThatThrownBy(() -> this.converter.fromMessage(message, Integer.class))
+				.hasMessage("Could not parse. Unknown encoding. Invalid content type or spec version");
 	}
 }
