@@ -474,20 +474,10 @@ project('spring-integration-cassandra') {
 }
 
 project('spring-integration-cloudevents') {
-    description = 'Spring Integration Cloud Events Support'
+    description = 'Spring Integration CloudEvents Support'
 
     dependencies {
         api "io.cloudevents:cloudevents-core:$cloudEventsVersion"
-        optionalApi "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
-
-        optionalApi("io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion") {
-            exclude group: 'org.apache.avro', module: 'avro'
-        }
-        optionalApi "org.apache.avro:avro:$avroVersion"
-        optionalApi "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
-        optionalApi 'org.jspecify:jspecify'
-
-        testImplementation 'org.springframework.amqp:spring-rabbit-test'
     }
 }
 

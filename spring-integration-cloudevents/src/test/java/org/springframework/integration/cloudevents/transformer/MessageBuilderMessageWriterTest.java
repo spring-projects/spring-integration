@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
+package org.springframework.integration.cloudevents.transformer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +22,11 @@ import java.util.Map;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.format.EventFormat;
-import io.cloudevents.jackson.JsonFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.cloudevents.v1.CloudEventsHeaders;
-import org.springframework.integration.cloudevents.v1.MessageBuilderMessageWriter;
+import org.springframework.integration.cloudevents.CloudEventsHeaders;
+import org.springframework.integration.cloudevents.MessageBuilderMessageWriter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -213,22 +212,6 @@ class MessageBuilderMessageWriterTest {
 		assertThat(message.getPayload()).isEqualTo(eventData);
 		assertThat(message.getHeaders().get(CloudEventsHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
 		assertThat(message.getHeaders().get("existing-header")).isEqualTo("existing-value");
-	}
-
-	@Test
-	void testSetEventWithJsonPayload() {
-		byte[] jsonData = "{\"key\":\"value\"}".getBytes();
-
-		this.writer.create(SpecVersion.V1)
-				.withContextAttribute("id", "json-id")
-				.withContextAttribute("source", "https://json.example.com")
-				.withContextAttribute("type", "com.example.json");
-
-		Message<byte[]> message = this.writer.setEvent(new JsonFormat(), jsonData);
-
-		assertThat(message).isNotNull();
-		assertThat(message.getPayload()).isEqualTo(jsonData);
-		assertThat(message.getHeaders().get(CloudEventsHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
 	}
 
 	@Test
