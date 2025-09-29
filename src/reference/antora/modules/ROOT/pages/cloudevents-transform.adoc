@@ -46,70 +46,17 @@ public ToCloudEventTransformer cloudEventTransformer() {
 
     return new ToCloudEventTransformer(
         extensionPatterns,
-        ToCloudEventTransformer.ConversionType.JSON,
+        new CloudEventMessageFormatStrategy(),
         properties
     );
 }
 ----
 
 [[cloudevent-transformer-conversion-types]]
-=== Conversion Types
+=== Format Strategy
 
-The transformer supports four conversion types for the CloudEvent through the `ToCloudEventTransformer.ConversionType` enumeration:
-
-* DEFAULT - No format conversion, uses standard CloudEvent message structure
-* XML - Serializes CloudEvent as XML in the message payload
-* JSON - Serializes CloudEvent as JSON in the message payload
-* AVRO - Serializes CloudEvent as compact Avro binary in the message payload
-
-[[cloudevent-transformer-conversion-default]]
-==== DEFAULT
-The default format produces standard CloudEvent messages using Spring's CloudEvent support.
-This maintains the CloudEvent structure within the `MessageHeaders`.
-
-[source,java]
-----
-ToCloudEventTransformer.ConversionType.DEFAULT
-----
-
-[[cloudevent-transformer-conversion-json]]
-==== JSON
-Serializes the CloudEvent as JSON content in the message payload.
-
-[source,java]
-----
-ToCloudEventTransformer.ConversionType.JSON
-----
-
-Output message characteristics:
-- Content-Type: `application/json`
-- Payload: JSON-serialized CloudEvent
-
-[[cloudevent-transformer-conversion-xml]]
-==== XML
-Serializes the CloudEvent as XML content in the message payload.
-
-[source,java]
-----
-ToCloudEventTransformer.ConversionType.XML
-----
-
-Output message characteristics:
-- Content-Type: `application/xml`
-- Payload: XML-serialized CloudEvent
-
-[[cloudevent-transformer-conversion-avro]]
-==== AVRO
-Serializes the CloudEvent as compact Avro binary content in the message payload.
-
-[source,java]
-----
-ToCloudEventTransformer.ConversionType.AVRO
-----
-
-Output message characteristics:
-- Content-Type: `application/avro`
-- Payload: Binary Avro-serialized CloudEvent
+The ToCloudEventTransformer accepts classes that implement the `FormatStrategy` that will serialize the
+CloudEvents's data to other formats other than the default `CloudEventMessageFormatStrategy`.
 
 [[cloudevent-properties]]
 === CloudEvent Properties
