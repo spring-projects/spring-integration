@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
+package org.springframework.integration.cloudevents.transformer;
 
 import java.net.URI;
 import java.time.OffsetDateTime;

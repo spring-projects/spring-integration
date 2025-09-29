@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
+package org.springframework.integration.cloudevents.transformer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +25,9 @@ import io.cloudevents.CloudEventExtension;
 import io.cloudevents.CloudEventExtensions;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.cloudevents.v1.transformer.utils.HeaderPatternMatcher;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.StringUtils;
 
 /**
  * CloudEvent extension implementation that extracts extensions from Spring Integration message headers.
@@ -48,29 +49,38 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @since 7.0
  */
-public class ToCloudEventTransformerExtensions implements CloudEventExtension {
+class ToCloudEventTransformerExtensions implements CloudEventExtension {
 
 	/**
-	 * Internal map storing the CloudEvent extensions extracted from message headers.
+	 * Map storing the CloudEvent extensions extracted from message headers.
 	 */
 	private final Map<String, String> cloudEventExtensions;
 
 	/**
+	 * Map storing the headers that need to remain in the {@link MessageHeaders} unchanged.
+	 */
+	private final Map<String, Object> filteredHeaders;
+
+	/**
 	 * Constructs CloudEvent extensions by filtering message headers against patterns.
 	 * <p>
-	 * Headers are evaluated against the provided patterns using {@link HeaderPatternMatcher}.
+	 * Headers are evaluated against the provided patterns.
 	 * Only headers that match the patterns (and are not excluded by negation patterns)
 	 * will be included as CloudEvent extensions.
 	 *
 	 * @param headers the Spring Integration message headers to process
 	 * @param patterns comma-delimited patterns for header matching, may be null to include no extensions
 	 */
-	public ToCloudEventTransformerExtensions(MessageHeaders headers, @Nullable String patterns) {
+	ToCloudEventTransformerExtensions(MessageHeaders headers, @Nullable String patterns) {
 		this.cloudEventExtensions = new HashMap<>();
+		this.filteredHeaders = new HashMap<>();
 		headers.keySet().forEach(key -> {
-			Boolean result = HeaderPatternMatcher.categorizeHeader(key, patterns);
+			Boolean result = categorizeHeader(key, patterns);
 			if (result != null && result) {
 				this.cloudEventExtensions.put(key, (String) Objects.requireNonNull(headers.get(key)));
+			}
+			else {
+				this.filteredHeaders.put(key, Objects.requireNonNull(headers.get(key)));
 			}
 		});
 	}
@@ -91,6 +101,41 @@ public class ToCloudEventTransformerExtensions implements CloudEventExtension {
 	@Override
 	public Set<String> getKeys() {
 		return this.cloudEventExtensions.keySet();
+	}
+
+	/**
+	 * Categorizes a header value by matching it against a comma-delimited pattern string.
+	 * <p>
+	 * This method takes a header value and matches it against one or more patterns
+	 * specified in a comma-delimited string. It uses Spring's smart pattern matching
+	 * which supports wildcards and other pattern matching features.
+	 *
+	 * @param value the header value to match against the patterns
+	 * @param pattern a comma-delimited string of patterns to match against, or null.  If pattern is null then null is returned.
+	 * @return {@code Boolean.TRUE} if the value starts with a pattern token,
+	 *         {@code Boolean.FALSE} if the value starts with the pattern token that is prefixed with a `!`,
+	 *         or {@code null} if the header starts with a value that is not enumerated in the pattern
+	 */
+	public static @Nullable Boolean categorizeHeader(String value, @Nullable String pattern) {
+		if (pattern == null) {
+			return null;
+		}
+		Set<String> patterns = StringUtils.commaDelimitedListToSet(pattern);
+		Boolean result = null;
+		for (String patternItem : patterns) {
+			result = PatternMatchUtils.smartMatch(value, patternItem);
+			if (result != null && result) {
+				break;
+			}
+			else if (result != null) {
+				break;
+			}
+		}
+		return result;
+	}
+
+	public Map<String, Object> getFilteredHeaders() {
+		return this.filteredHeaders;
 	}
 
 }

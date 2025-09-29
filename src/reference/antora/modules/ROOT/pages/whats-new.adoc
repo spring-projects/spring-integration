@@ -16,6 +16,7 @@ Java 17 is still the baseline, but Java 25 is supported.
 
 [[x7.1-cloudevents]]
 === CloudEvents
+
 The CloudEvent transformer converts Spring Integration messages into CloudEvent compliant messages.
 This transformer provides  support for the CloudEvents specification v1.0 with configurable output formats, header pattern matching, and extension management.
-See xref:cloudevents/cloudevents-transform.adoc[] for more information.
+See xref:cloudevents-transform.adoc[] for more information.

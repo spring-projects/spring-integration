@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1;
+package org.springframework.integration.cloudevents;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +26,7 @@ import io.cloudevents.core.message.MessageWriter;
 import io.cloudevents.rw.CloudEventContextWriter;
 import io.cloudevents.rw.CloudEventRWException;
 import io.cloudevents.rw.CloudEventWriter;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -62,7 +63,7 @@ public class MessageBuilderMessageWriter
 	}
 
 	@Override
-	public Message<byte[]> end(CloudEventData value) throws CloudEventRWException {
+	public Message<byte[]> end(@Nullable CloudEventData value) throws CloudEventRWException {
 		return MessageBuilder.withPayload(value == null ? new byte[0] : value.toBytes()).copyHeaders(this.headers).build();
 	}
 
