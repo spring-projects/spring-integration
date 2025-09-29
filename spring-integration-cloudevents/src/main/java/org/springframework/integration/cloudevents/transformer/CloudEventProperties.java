@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1.transformer;
+package org.springframework.integration.cloudevents.transformer;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.cloudevents.v1.CloudEventsHeaders;
+import org.springframework.integration.cloudevents.CloudEventsHeaders;
 
 /**
  * Configuration properties for CloudEvent metadata and formatting.

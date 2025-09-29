@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.v1;
+package org.springframework.integration.cloudevents;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -23,6 +23,7 @@ import io.cloudevents.SpecVersion;
 import io.cloudevents.core.data.BytesCloudEventData;
 import io.cloudevents.core.impl.StringUtils;
 import io.cloudevents.core.message.impl.BaseGenericBinaryMessageReaderImpl;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility for converting maps (message headers) to `CloudEvent` contexts.
@@ -34,11 +35,12 @@ import io.cloudevents.core.message.impl.BaseGenericBinaryMessageReaderImpl;
  *
  */
 public class MessageBinaryMessageReader extends BaseGenericBinaryMessageReaderImpl<String, Object> {
+
 	private final String cePrefix;
 
 	private final Map<String, Object> headers;
 
-	public MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, byte[] payload, String cePrefix) {
+	public MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, byte @Nullable [] payload, String cePrefix) {
 		super(version, payload == null ? null : BytesCloudEventData.wrap(payload));
 		this.headers = headers;
 		this.cePrefix = cePrefix;
@@ -55,7 +57,7 @@ public class MessageBinaryMessageReader extends BaseGenericBinaryMessageReaderIm
 
 	@Override
 	protected boolean isCloudEventsHeader(String key) {
-		return key != null && key.length() > this.cePrefix.length() && StringUtils.startsWithIgnoreCase(key, this.cePrefix);
+		return key.length() > this.cePrefix.length() && StringUtils.startsWithIgnoreCase(key, this.cePrefix);
 	}
 
 	@Override
