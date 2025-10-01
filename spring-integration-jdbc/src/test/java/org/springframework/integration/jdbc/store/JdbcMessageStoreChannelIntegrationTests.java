@@ -109,41 +109,42 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		// After a rollback in the poller the message is still waiting to be delivered
 		// but unless we use a transaction here there is a chance that the queue will
 		// appear empty....
-		new TransactionTemplate(transactionManager).execute(status -> {
+		new TransactionTemplate(transactionManager)
+				.executeWithoutResult(status -> {
 
-			synchronized (storeLock) {
+					synchronized (storeLock) {
 
-				assertThat(input.getQueueSize()).isEqualTo(1);
-				assertThat(input.receive(100L)).isNotNull();
+						assertThat(input.getQueueSize()).isEqualTo(1);
+						assertThat(input.receive(100L)).isNotNull();
 
-			}
-			return null;
+					}
 
-		});
+				});
 	}
 
 	@Test
 	public void testTransactionalSendAndReceive() throws Exception {
 
-		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
+		boolean result = new TransactionTemplate(transactionManager)
+				.execute(status -> {
 
-			synchronized (storeLock) {
+					synchronized (storeLock) {
 
-				boolean result1 = input.send(new GenericMessage<>("foo"), 100L);
-				// This will time out because the transaction has not committed yet
-				try {
-					Service.await(100);
-					fail("Expected timeout");
-				}
-				catch (Exception e) {
-					// expected
-				}
+						boolean result1 = input.send(new GenericMessage<>("foo"), 100L);
+						// This will time out because the transaction has not committed yet
+						try {
+							Service.await(100);
+							fail("Expected timeout");
+						}
+						catch (Exception e) {
+							// expected
+						}
 
-				return result1;
+						return result1;
 
-			}
+					}
 
-		});
+				});
 
 		assertThat(result).as("Could not send message").isTrue();
 

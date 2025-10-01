@@ -73,10 +73,7 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 
 		new TransactionTemplate(new PseudoTransactionManager())
-				.execute(status -> {
-					inputA.send(new GenericMessage<>("Hello"));
-					return null;
-				});
+				.executeWithoutResult(status -> inputA.send(new GenericMessage<>("Hello")));
 
 		assertThat(outputA.receive(10000)).isNotNull();
 		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(25));

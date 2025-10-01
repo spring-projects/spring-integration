@@ -20,7 +20,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -399,45 +398,42 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean delete(String lock) {
-		Integer result = this.defaultTransactionTemplate.execute(
-				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id));
-		return Objects.requireNonNull(result) == 1;
+		return this.defaultTransactionTemplate.<Boolean>execute(
+				transactionStatus ->
+						this.template.update(this.deleteQuery, this.region, lock, this.id) == 1);
 	}
 
 	@Override
 	@Deprecated(since = "7.0")
 	public boolean acquire(String lock) {
-		return this.acquire(lock, this.ttl);
+		return acquire(lock, this.ttl);
 	}
 
 	@Override
 	public boolean acquire(String lock, Duration ttlDuration) {
-		Boolean result =
-				this.readCommittedTransactionTemplate.execute(
-						transactionStatus -> {
-							if (this.template.update(this.updateQuery, this.id, ttlEpochMillis(ttlDuration),
-									this.region, lock, this.id, epochMillis()) > 0) {
-								return true;
-							}
-							try {
-								return this.template.update(this.insertQuery, this.region, lock, this.id,
-										epochMillis(), ttlEpochMillis(ttlDuration)) > 0;
-							}
-							catch (DataIntegrityViolationException ex) {
-								return false;
-							}
-						});
-		return Boolean.TRUE.equals(result);
+		return this.readCommittedTransactionTemplate.<Boolean>execute(
+				transactionStatus -> {
+					if (this.template.update(this.updateQuery, this.id, ttlEpochMillis(ttlDuration),
+							this.region, lock, this.id, epochMillis()) > 0) {
+						return true;
+					}
+					try {
+						return this.template.update(this.insertQuery, this.region, lock, this.id,
+								epochMillis(), ttlEpochMillis(ttlDuration)) > 0;
+					}
+					catch (DataIntegrityViolationException ex) {
+						return false;
+					}
+				});
 	}
 
 	@Override
 	public boolean isAcquired(String lock) {
-		final Boolean result = this.readOnlyTransactionTemplate.execute(
+		return this.readOnlyTransactionTemplate.<Boolean>execute(
 				transactionStatus ->
 						Integer.valueOf(1).equals(
 								this.template.queryForObject(this.countQuery,
 										Integer.class, this.region, lock, this.id, epochMillis())));
-		return Boolean.TRUE.equals(result);
 	}
 
 	@Override
@@ -455,10 +451,9 @@ public class DefaultLockRepository
 
 	@Override
 	public boolean renew(String lock, Duration ttlDuration) {
-		final Boolean result = this.defaultTransactionTemplate.execute(
+		return this.defaultTransactionTemplate.<Boolean>execute(
 				transactionStatus ->
 						this.template.update(this.renewQuery, ttlEpochMillis(ttlDuration), this.region, lock, this.id) == 1);
-		return Boolean.TRUE.equals(result);
 	}
 
 	private Timestamp ttlEpochMillis(Duration ttl) {

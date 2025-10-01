@@ -136,13 +136,12 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 		 * With the storeLock: It doesn't deadlock as long as the lock is injected into the poller as well.
 		 */
 		new TransactionTemplate(this.transactionManager)
-				.execute(status -> {
+				.executeWithoutResult(status -> {
 					synchronized (this.storeLock) {
 
 						try {
 							stopWatch.start();
 							this.durable.receive(100L);
-							return null;
 						}
 						finally {
 							stopWatch.stop();

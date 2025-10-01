@@ -200,7 +200,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 	public void testCommitWithManager() {
 		final PollableChannel queueChannel = new QueueChannel();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
-		transactionTemplate.execute(status -> {
+		transactionTemplate.executeWithoutResult(status -> {
 			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 					new ExpressionEvaluatingTransactionSynchronizationProcessor();
@@ -231,7 +231,6 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 			});
 
 			doPoll(adapter);
-			return null;
 		});
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
 		assertThat(beforeCommitMessage).isNotNull();
@@ -246,7 +245,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 		final PollableChannel queueChannel = new QueueChannel();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
 		try {
-			transactionTemplate.execute(status -> {
+			transactionTemplate.executeWithoutResult(status -> {
 
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
@@ -289,7 +288,7 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 	public void testRollbackWithManagerUsingStatus() {
 		final PollableChannel queueChannel = new QueueChannel();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
-		transactionTemplate.execute(status -> {
+		transactionTemplate.executeWithoutResult(status -> {
 
 			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
@@ -318,7 +317,6 @@ public class PseudoTransactionalMessageSourceTests implements TestApplicationCon
 
 			doPoll(adapter);
 			status.setRollbackOnly();
-			return null;
 		});
 		Message<?> rollbackMessage = queueChannel.receive(1000);
 		assertThat(rollbackMessage).isNotNull();

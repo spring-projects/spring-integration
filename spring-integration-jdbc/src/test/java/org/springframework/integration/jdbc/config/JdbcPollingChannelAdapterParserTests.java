@@ -151,12 +151,11 @@ public class JdbcPollingChannelAdapterParserTests {
 	@Test
 	public void testMaxRowsInboundChannelAdapter() {
 		setUp("pollingWithMaxRowsJdbcInboundChannelAdapterTest.xml", getClass());
-		new TransactionTemplate(transactionManager).execute(status -> {
+		new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
 			jdbcTemplate.update("insert into item values(1,'',2)");
 			jdbcTemplate.update("insert into item values(2,'',2)");
 			jdbcTemplate.update("insert into item values(3,'',2)");
 			jdbcTemplate.update("insert into item values(4,'',2)");
-			return null;
 		});
 		int count = 0;
 		while (count < 4) {

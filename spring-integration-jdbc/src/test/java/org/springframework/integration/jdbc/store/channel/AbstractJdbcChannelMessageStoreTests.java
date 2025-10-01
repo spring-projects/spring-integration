@@ -33,9 +33,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,13 +90,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
 		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message);
-			}
-		});
+		transactionTemplate.executeWithoutResult((status) ->
+				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message));
 
 		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 
@@ -116,13 +109,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
 		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message);
-			}
-		});
+		transactionTemplate.executeWithoutResult((status) ->
+				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message));
 		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 		assertThat(messageFromDb).isNotNull();
 		assertThat(messageFromDb.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
@@ -131,7 +119,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	private ChannelMessageStorePreparedStatementSetter getMessageGroupPreparedStatementSetter() {
 		return new ChannelMessageStorePreparedStatementSetter() {
 
-			private SerializingConverter serializer = new SerializingConverter();
+			private final SerializingConverter serializer = new SerializingConverter();
 
 			@Override
 			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,

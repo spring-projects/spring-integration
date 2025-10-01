@@ -35,8 +35,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -89,14 +87,8 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				jpaOutboundChannelAdapter.handleMessage(message);
-			}
-
-		});
+		transactionTemplate.executeWithoutResult((status) ->
+				jpaOutboundChannelAdapter.handleMessage(message));
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results2).hasSize(4);
@@ -121,14 +113,8 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				jpaOutboundChannelAdapter.handleMessage(message);
-			}
-
-		});
+		transactionTemplate.executeWithoutResult((status) ->
+				jpaOutboundChannelAdapter.handleMessage(message));
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results2).hasSize(4);
@@ -161,14 +147,8 @@ public class JpaOutboundChannelAdapterTests implements TestApplicationContextAwa
 		jpaOutboundChannelAdapter.afterPropertiesSet();
 
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				jpaOutboundChannelAdapter.handleMessage(message);
-			}
-
-		});
+		transactionTemplate.executeWithoutResult((status) ->
+				jpaOutboundChannelAdapter.handleMessage(message));
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results2).isNotNull();

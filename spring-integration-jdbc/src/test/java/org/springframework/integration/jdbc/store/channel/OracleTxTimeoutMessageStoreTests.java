@@ -37,12 +37,12 @@ public class OracleTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageSt
 	@AfterEach
 	public void cleanTable() {
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
-		new TransactionTemplate(this.transactionManager).execute(status -> {
-			final int deletedChannelMessageRows = jdbcTemplate.update("delete from INT_CHANNEL_MESSAGE");
-			log.info(String.format("Cleaning Database - Deleted Channel Messages: %s ",
-					deletedChannelMessageRows));
-			return null;
-		});
+		new TransactionTemplate(this.transactionManager)
+				.executeWithoutResult(status -> {
+					final int deletedChannelMessageRows = jdbcTemplate.update("delete from INT_CHANNEL_MESSAGE");
+					log.info(String.format("Cleaning Database - Deleted Channel Messages: %s ",
+							deletedChannelMessageRows));
+				});
 	}
 
 }

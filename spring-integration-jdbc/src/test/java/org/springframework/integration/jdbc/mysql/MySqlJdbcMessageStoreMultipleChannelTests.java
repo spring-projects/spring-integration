@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * This test was created to reproduce INT-2980.
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 @SpringJUnitConfig
@@ -62,7 +63,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests implements MySqlContainer
 
 	private static final CountDownLatch countDownLatch2 = new CountDownLatch(1);
 
-	private static AtomicBoolean success = new AtomicBoolean(true);
+	private static final AtomicBoolean success = new AtomicBoolean(true);
 
 	@Autowired
 	@Qualifier("requestChannel")
@@ -87,21 +88,19 @@ public class MySqlJdbcMessageStoreMultipleChannelTests implements MySqlContainer
 
 	@AfterEach
 	public void afterTest() {
-		new TransactionTemplate(this.transactionManager).execute(status -> {
-			this.jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
-			this.jdbcTemplate.update("delete from INT_MESSAGE");
-			this.jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
-			return null;
-		});
+		new TransactionTemplate(this.transactionManager)
+				.executeWithoutResult(status -> {
+					this.jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+					this.jdbcTemplate.update("delete from INT_MESSAGE");
+					this.jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
+				});
 	}
 
 	@Test
 	public void testSendAndActivateTransactionalSend() throws Exception {
-
-		new TransactionTemplate(this.transactionManager).execute(status -> {
-			requestChannel.send(MessageBuilder.withPayload("Hello ").build());
-			return null;
-		});
+		new TransactionTemplate(this.transactionManager)
+				.executeWithoutResult(status ->
+						requestChannel.send(MessageBuilder.withPayload("Hello ").build()));
 
 		assertThat(countDownLatch1.await(10000, TimeUnit.MILLISECONDS))
 				.as("countDownLatch1 was " + countDownLatch1.getCount()).isTrue();
@@ -119,7 +118,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests implements MySqlContainer
 		}
 
 		public List<Object> duplicate(Message<?> message) {
-			ArrayList<Object> res = new ArrayList<Object>();
+			ArrayList<Object> res = new ArrayList<>();
 			res.add(message);
 			res.add(message);
 			return res;

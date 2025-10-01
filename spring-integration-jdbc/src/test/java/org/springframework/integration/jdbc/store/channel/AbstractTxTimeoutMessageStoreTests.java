@@ -48,9 +48,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,13 +109,8 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 			final String message = "TEST MESSAGE " + i;
 			log.info("Sending message: " + message);
 
-			transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus status) {
-					inputChannel.send(MessageBuilder.withPayload(message).build());
-				}
-			});
+			transactionTemplate.executeWithoutResult((status) ->
+					inputChannel.send(MessageBuilder.withPayload(message).build()));
 
 			log.info(String.format("Done sending message %s of %s: %s", i, maxMessages, message));
 		}
