@@ -237,7 +237,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.sftp.gateway.SftpOutboundGateway used to issue SFTP commands.
+				'org.springframework.integration.sftp.outbound.SftpOutboundGateway' used to issue SFTP commands.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
