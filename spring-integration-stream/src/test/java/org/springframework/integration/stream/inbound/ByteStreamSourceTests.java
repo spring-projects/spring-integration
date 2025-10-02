@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.stream;
+package org.springframework.integration.stream.inbound;
 
 import java.io.ByteArrayInputStream;
 
@@ -40,10 +40,7 @@ public class ByteStreamSourceTests {
 		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
 		byte[] payload = (byte[]) message1.getPayload();
-		assertThat(payload.length).isEqualTo(3);
-		assertThat(payload[0]).isEqualTo((byte) 1);
-		assertThat(payload[1]).isEqualTo((byte) 2);
-		assertThat(payload[2]).isEqualTo((byte) 3);
+		assertThat(payload).hasSize(3).containsExactly(1, 2, 3);
 		Message<?> message2 = source.receive();
 		assertThat(message2).isNull();
 	}
@@ -56,9 +53,9 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(4);
 		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertThat(((byte[]) message1.getPayload()).length).isEqualTo(4);
+		assertThat(((byte[]) message1.getPayload())).hasSize(4);
 		Message<?> message2 = source.receive();
-		assertThat(((byte[]) message2.getPayload()).length).isEqualTo(2);
+		assertThat(((byte[]) message2.getPayload())).hasSize(2);
 		Message<?> message3 = source.receive();
 		assertThat(message3).isNull();
 	}
@@ -72,13 +69,11 @@ public class ByteStreamSourceTests {
 		source.setShouldTruncate(false);
 		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertThat(((byte[]) message1.getPayload()).length).isEqualTo(4);
+		assertThat(((byte[]) message1.getPayload())).hasSize(4);
 		Message<?> message2 = source.receive();
-		assertThat(((byte[]) message2.getPayload()).length).isEqualTo(4);
-		assertThat(((byte[]) message2.getPayload())[0]).isEqualTo((byte) 4);
-		assertThat(((byte[]) message2.getPayload())[1]).isEqualTo((byte) 5);
-		assertThat(((byte[]) message2.getPayload())[2]).isEqualTo((byte) 0);
-		assertThat(((byte[]) message2.getPayload())[3]).isEqualTo((byte) 0);
+		assertThat(((byte[]) message2.getPayload()))
+				.hasSize(4)
+				.containsExactly(4, 5, 0, 0);
 		Message<?> message3 = source.receive();
 		assertThat(message3).isNull();
 	}

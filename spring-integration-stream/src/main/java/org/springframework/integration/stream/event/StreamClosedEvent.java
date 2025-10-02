@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.stream;
+package org.springframework.integration.stream.event;
+
+import org.springframework.integration.events.IntegrationEvent;
 
 /**
  * Application event published when EOF is detected on a stream.
  *
  * @author Gary Russell
  *
- * @since 5.0
+ * @since 7.0
  *
- * @deprecated since 7.0 in favor of {@link org.springframework.integration.stream.event.StreamClosedEvent}
  */
 @SuppressWarnings("serial")
-@Deprecated(forRemoval = true, since = "7.0")
-public class StreamClosedEvent extends org.springframework.integration.stream.event.StreamClosedEvent {
+public class StreamClosedEvent extends IntegrationEvent {
 
 	public StreamClosedEvent(Object source) {
 		super(source);
