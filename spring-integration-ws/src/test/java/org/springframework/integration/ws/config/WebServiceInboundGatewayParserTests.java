@@ -29,9 +29,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
+import org.springframework.integration.ws.inbound.MarshallingWebServiceInboundGateway;
+import org.springframework.integration.ws.inbound.SimpleWebServiceInboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -103,9 +103,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void extractPayloadSet() {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				payloadExtractingGateway);
-		assertThat((Boolean) accessor.getPropertyValue("extractPayload")).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.payloadExtractingGateway, "extractPayload", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -133,7 +131,7 @@ public class WebServiceInboundGatewayParserTests {
 	@Test
 	public void testMessageHistoryWithMarshallingGateway() throws Exception {
 		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
-		Unmarshaller unmarshaller = mock(Unmarshaller.class);
+		Unmarshaller unmarshaller = mock();
 		when(unmarshaller.unmarshal(Mockito.any())).thenReturn("hello");
 		marshallingGateway.setUnmarshaller(unmarshaller);
 		marshallingGateway.invoke(context);
@@ -165,9 +163,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void testHeaderMapperReference() {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
-		Object headerMapper = accessor.getPropertyValue("headerMapper");
-		assertThat(headerMapper).isEqualTo(testHeaderMapper);
+		assertThat(TestUtils.getPropertyValue(this.headerMappingGateway, "headerMapper")).isSameAs(testHeaderMapper);
 	}
 
 	@Autowired

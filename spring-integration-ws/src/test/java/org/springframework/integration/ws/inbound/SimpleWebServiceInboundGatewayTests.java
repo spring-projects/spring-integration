@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.ws.inbound;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -72,18 +71,19 @@ public class SimpleWebServiceInboundGatewayTests {
 
 	@BeforeEach
 	public void setup() {
-		this.context = mock(MessageContext.class);
-		this.request = mock(WebServiceMessage.class);
-		this.requestChannel = mock(MessageChannel.class);
+		this.context = mock();
+		this.request = mock();
+		this.requestChannel = mock();
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(mock());
 		gateway.start();
 
-		WebServiceMessage response = mock(WebServiceMessage.class);
+		WebServiceMessage response = mock();
 		when(context.getResponse()).thenReturn(response);
 		when(response.getPayloadResult()).thenReturn(payloadResult);
 		when(context.getRequest()).thenReturn(request);
+		when(context.getPropertyNames()).thenReturn(new String[0]);
 	}
 
 	@Test

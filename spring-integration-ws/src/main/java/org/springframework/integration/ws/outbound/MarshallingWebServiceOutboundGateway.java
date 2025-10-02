@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.ws.outbound;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.util.Assert;
+import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 
@@ -33,19 +37,19 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
  * @author Gary Russell
  * @author Artem Bilan
  *
+ * @since 7.0
+ *
  * @see Marshaller
  * @see Unmarshaller
- *
- * @deprecated since 7.0 in favor of {@link org.springframework.integration.ws.outbound.MarshallingWebServiceOutboundGateway}
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class MarshallingWebServiceOutboundGateway
-		extends org.springframework.integration.ws.outbound.MarshallingWebServiceOutboundGateway {
+public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
 			@Nullable Unmarshaller unmarshaller, @Nullable WebServiceMessageFactory messageFactory) {
 
-		super(destinationProvider, marshaller, unmarshaller, messageFactory);
+		super(destinationProvider, messageFactory);
+		configureMarshallers(marshaller, unmarshaller);
 	}
 
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
@@ -64,10 +68,12 @@ public class MarshallingWebServiceOutboundGateway
 		this(destinationProvider, marshaller, (WebServiceMessageFactory) null);
 	}
 
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(@Nullable String uri, Marshaller marshaller,
 			@Nullable Unmarshaller unmarshaller, @Nullable WebServiceMessageFactory messageFactory) {
 
-		super(uri, marshaller, unmarshaller, messageFactory);
+		super(uri, messageFactory);
+		configureMarshallers(marshaller, unmarshaller);
 	}
 
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
@@ -89,8 +95,10 @@ public class MarshallingWebServiceOutboundGateway
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(@Nullable String uri, WebServiceTemplate webServiceTemplate) {
-		super(uri, webServiceTemplate);
+		super(uri, null);
+		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
 	/**
@@ -99,10 +107,63 @@ public class MarshallingWebServiceOutboundGateway
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			WebServiceTemplate webServiceTemplate) {
+		super(destinationProvider, null);
+		doSetWebServiceTemplate(webServiceTemplate);
+	}
 
-		super(destinationProvider, webServiceTemplate);
+	/**
+	 * Sets the provided Marshaller and Unmarshaller on this gateway's WebServiceTemplate.
+	 * Neither may be null.
+	 * @param marshaller The marshaller.
+	 * @param unmarshallerArg The unmarshaller.
+	 */
+	@SuppressWarnings("this-escape")
+	private void configureMarshallers(Marshaller marshaller, @Nullable Unmarshaller unmarshallerArg) {
+		Unmarshaller unmarshaller = unmarshallerArg;
+		Assert.notNull(marshaller, "marshaller must not be null");
+		if (unmarshaller == null) {
+			Assert.isInstanceOf(Unmarshaller.class, marshaller,
+					"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
+							"Please set an Unmarshaller explicitly by using one of the constructors that accepts " +
+							"both Marshaller and Unmarshaller arguments.");
+			unmarshaller = (Unmarshaller) marshaller;
+		}
+
+		Assert.notNull(unmarshaller, "unmarshaller must not be null");
+
+		getWebServiceTemplate().setMarshaller(marshaller);
+		getWebServiceTemplate().setUnmarshaller(unmarshaller);
+	}
+
+	@Override
+	public String getComponentType() {
+		return "ws:outbound-gateway(marshalling)";
+	}
+
+	@Override
+	protected @Nullable Object doHandle(String uri, Message<?> requestMessage,
+			@Nullable WebServiceMessageCallback requestCallback) {
+
+		return getWebServiceTemplate()
+				.marshalSendAndReceive(uri, requestMessage.getPayload(),
+						new PassThroughRequestMessageCallback(requestCallback, requestMessage));
+	}
+
+	private final class PassThroughRequestMessageCallback extends RequestMessageCallback {
+
+		PassThroughRequestMessageCallback(@Nullable WebServiceMessageCallback requestCallback,
+				Message<?> requestMessage) {
+
+			super(requestCallback, requestMessage);
+		}
+
+		@Override
+		public void doWithMessageInternal(WebServiceMessage message, Object payload) {
+		}
+
 	}
 
 }

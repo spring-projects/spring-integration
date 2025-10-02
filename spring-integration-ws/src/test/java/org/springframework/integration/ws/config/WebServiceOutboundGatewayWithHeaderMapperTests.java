@@ -17,7 +17,6 @@
 package org.springframework.integration.ws.config;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -38,10 +37,10 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.integration.ws.WebServiceHeaders;
+import org.springframework.integration.ws.outbound.AbstractWebServiceOutboundGateway;
+import org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.oxm.Unmarshaller;
@@ -62,6 +61,8 @@ import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.StringResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky
@@ -122,7 +123,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	public void withHeaderMapperString() throws Exception {
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
 		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
@@ -144,8 +145,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	public void withHeaderMapperStringPOX() throws Exception {
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertThat(replyMessage.getPayload() instanceof String).isTrue();
-		assertThat(((String) replyMessage.getPayload()).contains("<person><name>oleg</name></person>")).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
+		assertThat(replyMessage.getPayload()).asString().contains("<person><name>oleg</name></person>");
 	}
 
 	@Test
@@ -214,15 +215,14 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 			template.setMessageFactory(new DomPoxMessageFactory());
 		}
 
-		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
-		WebServiceConnection wsConnection = Mockito.mock(WebServiceConnection.class);
-		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
-		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
+		WebServiceMessageSender messageSender = mock();
+		WebServiceConnection wsConnection = mock();
+		Mockito.when(messageSender.createConnection(any(URI.class))).thenReturn(wsConnection);
+		Mockito.when(messageSender.supports(any(URI.class))).thenReturn(true);
 
 		Mockito.doAnswer(invocation -> {
 
-					Object[] args = invocation.getArguments();
-					WebServiceMessage wsMessage = (WebServiceMessage) args[0];
+					WebServiceMessage wsMessage = invocation.getArgument(0);
 //				try { // uncomment if you want to see a pretty-print of SOAP message
 //					Transformer transformer = TransformerFactory.newInstance().newTransformer();
 //					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -241,15 +241,16 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 					return null;
 
 				}).when(wsConnection)
-				.send(Mockito.any(WebServiceMessage.class));
+				.send(any(WebServiceMessage.class));
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
-			String responseMessage = factory instanceof SoapMessageFactory ? responseSoapMessage
-					: responseNonSoapMessage;
-			WebServiceMessage wsMessage = factory
-					.createWebServiceMessage(new ByteArrayInputStream(responseMessage.getBytes()));
+			WebServiceMessageFactory factory = invocation.getArgument(0);
+			String responseMessage =
+					factory instanceof SoapMessageFactory
+							? responseSoapMessage
+							: responseNonSoapMessage;
+			WebServiceMessage wsMessage =
+					factory.createWebServiceMessage(new ByteArrayInputStream(responseMessage.getBytes()));
 			if (soap) {
 
 				((SoapMessage) wsMessage).getSoapHeader().addAttribute(QNameUtils.parseQNameString("bar"), "bar");
@@ -265,7 +266,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //					// ignore
 //				}
 			return wsMessage;
-		}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
+		}).when(wsConnection).receive(any(WebServiceMessageFactory.class));
 
 		gateway.setMessageSenders(messageSender);
 
@@ -287,11 +288,11 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		StringResult result = new StringResult();
 		Object payload = replyMessage.getPayload();
-		if (payload instanceof DOMSource) {
-			transformer.transform(((DOMSource) replyMessage.getPayload()), result);
+		if (payload instanceof DOMSource domSource) {
+			transformer.transform(domSource, result);
 		}
-		else if (payload instanceof Document) {
-			transformer.transform(new DOMSource((Document) replyMessage.getPayload()), result);
+		else if (payload instanceof Document document) {
+			transformer.transform(new DOMSource(document), result);
 		}
 		else {
 			throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
@@ -321,7 +322,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		}
 
 		@Override
-		public Object unmarshal(Source source) throws IOException, XmlMappingException {
+		public Object unmarshal(Source source) throws XmlMappingException {
 			Element documentElement = (Element) ((DOMSource) source).getNode();
 
 			String name = DomUtils.getChildElementValueByTagName(documentElement, "name");

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.ws.inbound;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -92,6 +92,7 @@ public class MarshallingWebServiceIntegrationTests {
 	public void sendString() throws Exception {
 		when(context.getResponse()).thenReturn(response);
 		when(context.getRequest()).thenReturn(request);
+		when(context.getPropertyNames()).thenReturn(new String[0]);
 		when(request.getPayloadSource()).thenReturn(stringSource);
 		when(response.getPayloadResult()).thenReturn(stringResult);
 		gateway.invoke(context);

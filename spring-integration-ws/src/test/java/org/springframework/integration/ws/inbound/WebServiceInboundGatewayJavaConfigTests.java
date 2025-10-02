@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.ws.inbound;
 
 import java.io.StringWriter;
 import java.util.Locale;
@@ -58,6 +58,7 @@ import org.springframework.ws.transport.WebServiceMessageReceiver;
 import org.springframework.xml.transform.StringSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,6 +67,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.3
  */
 @SpringJUnitConfig
@@ -83,10 +85,10 @@ public class WebServiceInboundGatewayJavaConfigTests {
 
 	@Test
 	public void testWebServiceInboundGatewayJavaConfig() throws Exception {
-		MessageContext context = mock(MessageContext.class);
-		SoapMessage request = mock(SoapMessage.class);
-		SoapMessage response = mock(SoapMessage.class);
-		SoapBody soapBody = mock(SoapBody.class);
+		MessageContext context = mock();
+		SoapMessage request = mock();
+		SoapMessage response = mock();
+		SoapBody soapBody = mock();
 
 		String input = "<hello/>";
 		Source payloadSource = new StringSource(input);
@@ -98,6 +100,7 @@ public class WebServiceInboundGatewayJavaConfigTests {
 		when(response.getSoapBody()).thenReturn(soapBody);
 		when(context.getRequest()).thenReturn(request);
 		when(request.getPayloadSource()).thenReturn(payloadSource);
+		when(context.getPropertyNames()).thenReturn(new String[0]);
 
 		this.messageReceiver.receive(context);
 
@@ -107,10 +110,10 @@ public class WebServiceInboundGatewayJavaConfigTests {
 
 		this.messageReceiver.receive(context);
 
-		assertThat(output.toString().endsWith(input)).isTrue();
+		assertThat(output.toString()).endsWith(input);
 
-		context = mock(MessageContext.class);
-		request = mock(SoapMessage.class);
+		context = mock();
+		request = mock();
 
 		payloadSource = new StringSource("<order/>");
 
@@ -120,10 +123,11 @@ public class WebServiceInboundGatewayJavaConfigTests {
 		this.messageReceiver.receive(context);
 
 		Message<?> receive = this.webserviceRequestsQueue.receive(10000);
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isInstanceOf(Element.class);
-		Element order = (Element) receive.getPayload();
-		assertThat(order.getLocalName()).isEqualTo("order");
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.asInstanceOf(type(Element.class))
+				.extracting(Element::getLocalName)
+				.isEqualTo("order");
 	}
 
 	@Configuration
