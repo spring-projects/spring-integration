@@ -41,12 +41,12 @@ The following example creates an input stream that creates messages that each co
 
 [source,xml]
 ----
-<bean class="org.springframework.integration.stream.ByteStreamReadingMessageSource">
+<bean class="org.springframework.integration.stream.inbound.ByteStreamReadingMessageSource">
   <constructor-arg ref="someInputStream"/>
   <property name="bytesPerMessage" value="2048"/>
 </bean>
 
-<bean class="org.springframework.integration.stream.CharacterStreamReadingMessageSource">
+<bean class="org.springframework.integration.stream.inbound.CharacterStreamReadingMessageSource">
   <constructor-arg ref="someReader"/>
 </bean>
 ----
@@ -105,12 +105,12 @@ Since both of these ultimately implement the `MessageHandler` interface, you can
 
 [source,xml]
 ----
-<bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
+<bean class="org.springframework.integration.stream.outbound.ByteStreamWritingMessageHandler">
   <constructor-arg ref="someOutputStream"/>
   <constructor-arg value="1024"/>
 </bean>
 
-<bean class="org.springframework.integration.stream.CharacterStreamWritingMessageHandler">
+<bean class="org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler">
   <constructor-arg ref="someWriter"/>
 </bean>
 ----
