@@ -25,7 +25,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.dsl.RemoteFileOutboundGatewaySpec;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
-import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.outbound.FtpOutboundGateway;
 import org.springframework.messaging.Message;
 
 /**

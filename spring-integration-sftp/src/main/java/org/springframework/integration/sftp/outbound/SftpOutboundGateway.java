@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.gateway;
+package org.springframework.integration.sftp.outbound;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.sshd.sftp.client.SftpClient;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.session.SftpFileInfo;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
@@ -30,11 +42,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
  * @author Artem Bilan
  *
  * @since 2.1
- *
- * @deprecated since 7.0 in favor of {@link org.springframework.integration.sftp.outbound.SftpOutboundGateway}
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class SftpOutboundGateway extends org.springframework.integration.sftp.outbound.SftpOutboundGateway {
+public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<SftpClient.DirEntry> {
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -42,10 +51,12 @@ public class SftpOutboundGateway extends org.springframework.integration.sftp.ou
 	 * @param sessionFactory the session factory.
 	 * @param messageSessionCallback the callback.
 	 */
+	@SuppressWarnings("this-escape")
 	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			MessageSessionCallback<SftpClient.DirEntry, ?> messageSessionCallback) {
 
-		super(sessionFactory, messageSessionCallback);
+		this(new SftpRemoteFileTemplate(sessionFactory), messageSessionCallback);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -67,10 +78,12 @@ public class SftpOutboundGateway extends org.springframework.integration.sftp.ou
 	 * @param command the command.
 	 * @param expression the remote path expression.
 	 */
+	@SuppressWarnings("this-escape")
 	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory, String command,
 			@Nullable String expression) {
 
-		super(sessionFactory, command, expression);
+		this(new SftpRemoteFileTemplate(sessionFactory), command, expression);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -84,6 +97,69 @@ public class SftpOutboundGateway extends org.springframework.integration.sftp.ou
 			@Nullable String expression) {
 
 		super(remoteFileTemplate, command, expression);
+	}
+
+	@Override
+	protected boolean isDirectory(SftpClient.DirEntry file) {
+		return file.getAttributes().isDirectory();
+	}
+
+	@Override
+	protected boolean isLink(SftpClient.DirEntry file) {
+		return file.getAttributes().isSymbolicLink();
+	}
+
+	@Override
+	protected String getFilename(SftpClient.DirEntry file) {
+		return file.getFilename();
+	}
+
+	@Override
+	protected String getFilename(AbstractFileInfo<SftpClient.DirEntry> file) {
+		return file.getFilename();
+	}
+
+	@Override
+	protected List<AbstractFileInfo<SftpClient.DirEntry>> asFileInfoList(Collection<SftpClient.DirEntry> files) {
+		return files.stream()
+				.map(SftpFileInfo::new)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	protected long getModified(SftpClient.DirEntry file) {
+		return file.getAttributes().getModifyTime().toMillis();
+	}
+
+	@Override
+	protected SftpClient.DirEntry enhanceNameWithSubDirectory(SftpClient.DirEntry file, String directory) {
+		return new SftpClient.DirEntry(directory + file.getFilename(), directory + file.getFilename(),
+				file.getAttributes());
+	}
+
+	@Override
+	public String getComponentType() {
+		return "sftp:outbound-gateway";
+	}
+
+	@Override
+	public boolean isChmodCapable() {
+		return true;
+	}
+
+	@Override
+	protected void doChmod(RemoteFileOperations<SftpClient.DirEntry> remoteFileOperations, String path, int chmod) {
+		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<SftpClient>) client -> {
+			try {
+				SftpClient.Attributes attributes = client.stat(path);
+				attributes.setPermissions(chmod);
+				client.setStat(path, attributes);
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException(
+						"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", ex);
+			}
+		});
 	}
 
 }
