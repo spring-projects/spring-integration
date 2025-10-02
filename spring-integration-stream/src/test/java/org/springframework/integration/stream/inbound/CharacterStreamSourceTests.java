@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.stream;
+package org.springframework.integration.stream.inbound;
 
 import java.io.StringReader;
 import java.time.Duration;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.stream.event.StreamClosedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -47,7 +48,8 @@ public class CharacterStreamSourceTests {
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(mock());
+		source.setApplicationEventPublisher(mock());
 		Message<?> message1 = source.receive();
 		assertThat(message1.getPayload()).isEqualTo("test");
 		Message<?> message2 = source.receive();
@@ -58,9 +60,9 @@ public class CharacterStreamSourceTests {
 	public void testEOF() {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
-		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+		ApplicationEventPublisher publisher = mock();
 		source.setApplicationEventPublisher(publisher);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(mock());
 		Message<?> message1 = source.receive();
 		assertThat(message1.getPayload()).isEqualTo("test");
 		Message<?> message2 = source.receive();
@@ -72,7 +74,7 @@ public class CharacterStreamSourceTests {
 	public void testEOFIntegrationTest() throws Exception {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(mock());
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		CountDownLatch latch = new CountDownLatch(2);
 		source.setApplicationEventPublisher(e -> {

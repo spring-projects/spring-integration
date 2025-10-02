@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.stream;
+package org.springframework.integration.stream.outbound;
 
 import java.io.StringWriter;
-import java.time.Instant;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +45,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private PollingConsumer endpoint;
 
-	private final TestTrigger trigger = new TestTrigger();
+	private final OnlyOnceTrigger trigger = new OnlyOnceTrigger();
 
 	private ThreadPoolTaskScheduler scheduler;
 
@@ -67,7 +61,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		scheduler.afterPropertiesSet();
 		trigger.reset();
 		endpoint.setTrigger(trigger);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(mock());
 	}
 
 	@AfterEach
@@ -77,25 +71,25 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleString() {
-		handler.handleMessage(new GenericMessage<>("foo"));
-		assertThat(writer.toString()).isEqualTo("foo");
+		handler.handleMessage(new GenericMessage<>("test"));
+		assertThat(writer.toString()).isEqualTo("test");
 	}
 
 	@Test
 	public void twoStringsAndNoNewLinesByDefault() {
 		endpoint.setMaxMessagesPerPoll(1);
 		endpoint.setTrigger(trigger);
-		channel.send(new GenericMessage<>("foo"), 0);
-		channel.send(new GenericMessage<>("bar"), 0);
+		channel.send(new GenericMessage<>("test1"), 0);
+		channel.send(new GenericMessage<>("test2"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foo");
+		assertThat(writer.toString()).isEqualTo("test1");
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foobar");
+		assertThat(writer.toString()).isEqualTo("test1test2");
 	}
 
 	@Test
@@ -103,30 +97,30 @@ public class CharacterStreamWritingMessageHandlerTests {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
-		channel.send(new GenericMessage<>("foo"), 0);
-		channel.send(new GenericMessage<>("bar"), 0);
+		channel.send(new GenericMessage<>("test1"), 0);
+		channel.send(new GenericMessage<>("test2"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		String newLine = System.getProperty("line.separator");
-		assertThat(writer.toString()).isEqualTo("foo" + newLine);
+		String newLine = System.lineSeparator();
+		assertThat(writer.toString()).isEqualTo("test1" + newLine);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
+		assertThat(writer.toString()).isEqualTo("test1" + newLine + "test2" + newLine);
 	}
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new GenericMessage<>("foo"), 0);
-		channel.send(new GenericMessage<>("bar"), 0);
+		channel.send(new GenericMessage<>("test1"), 0);
+		channel.send(new GenericMessage<>("test2"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foobar");
+		assertThat(writer.toString()).isEqualTo("test1test2");
 	}
 
 	@Test
@@ -135,25 +129,25 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
-		channel.send(new GenericMessage<>("foo"), 0);
-		channel.send(new GenericMessage<>("bar"), 0);
+		channel.send(new GenericMessage<>("test1"), 0);
+		channel.send(new GenericMessage<>("test2"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		String newLine = System.getProperty("line.separator");
-		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
+		String newLine = System.lineSeparator();
+		assertThat(writer.toString()).isEqualTo("test1" + newLine + "test2" + newLine);
 	}
 
 	@Test
 	public void singleNonStringObject() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
-		TestObject testObject = new TestObject("foo");
+		TestObject testObject = new TestObject("test");
 		channel.send(new GenericMessage<>(testObject));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foo");
+		assertThat(writer.toString()).isEqualTo("test");
 	}
 
 	@Test
@@ -161,14 +155,14 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		TestObject testObject1 = new TestObject("foo");
-		TestObject testObject2 = new TestObject("bar");
+		TestObject testObject1 = new TestObject("test1");
+		TestObject testObject2 = new TestObject("test2");
 		channel.send(new GenericMessage<>(testObject1), 0);
 		channel.send(new GenericMessage<>(testObject2), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertThat(writer.toString()).isEqualTo("foobar");
+		assertThat(writer.toString()).isEqualTo("test1test2");
 	}
 
 	@Test
@@ -177,15 +171,15 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setTrigger(trigger);
-		TestObject testObject1 = new TestObject("foo");
-		TestObject testObject2 = new TestObject("bar");
+		TestObject testObject1 = new TestObject("test1");
+		TestObject testObject2 = new TestObject("test2");
 		channel.send(new GenericMessage<>(testObject1), 0);
 		channel.send(new GenericMessage<>(testObject2), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		String newLine = System.getProperty("line.separator");
-		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
+		String newLine = System.lineSeparator();
+		assertThat(writer.toString()).isEqualTo("test1" + newLine + "test2" + newLine);
 	}
 
 	private record TestObject(String text) {
@@ -193,44 +187,6 @@ public class CharacterStreamWritingMessageHandlerTests {
 		@Override
 		public String toString() {
 			return this.text;
-		}
-
-	}
-
-	private static class TestTrigger implements Trigger {
-
-		private final AtomicBoolean hasRun = new AtomicBoolean();
-
-		private volatile CountDownLatch latch = new CountDownLatch(1);
-
-		TestTrigger() {
-			super();
-		}
-
-		@Override
-		public Instant nextExecution(TriggerContext triggerContext) {
-			if (!hasRun.getAndSet(true)) {
-				return Instant.now();
-			}
-			this.latch.countDown();
-			return null;
-		}
-
-		public void reset() {
-			this.latch = new CountDownLatch(1);
-			this.hasRun.set(false);
-		}
-
-		public void await() {
-			try {
-				this.latch.await(10000, TimeUnit.MILLISECONDS);
-				if (latch.getCount() != 0) {
-					throw new RuntimeException("test timeout");
-				}
-			}
-			catch (InterruptedException e) {
-				throw new RuntimeException("test latch.await() interrupted");
-			}
 		}
 
 	}

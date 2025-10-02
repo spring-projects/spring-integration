@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.stream;
+package org.springframework.integration.stream.outbound;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -66,40 +66,37 @@ public class ByteStreamWritingMessageHandlerTests {
 	}
 
 	@AfterEach
-	public void stop() throws Exception {
+	public void stop() {
 		scheduler.destroy();
 	}
 
 	@Test
 	public void singleByteArray() {
-		handler.handleMessage(new GenericMessage<byte[]>(new byte[] {1, 2, 3}));
+		handler.handleMessage(new GenericMessage<>(new byte[] {1, 2, 3}));
 		byte[] result = stream.toByteArray();
-		assertThat(result.length).isEqualTo(3);
-		assertThat(result[0]).isEqualTo((byte) 1);
-		assertThat(result[1]).isEqualTo((byte) 2);
-		assertThat(result[2]).isEqualTo((byte) 3);
+		assertThat(result).hasSize(3).containsExactly(1, 2, 3);
 	}
 
 	@Test
 	public void singleString() {
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("test"));
 		byte[] result = stream.toByteArray();
-		assertThat(result.length).isEqualTo(3);
-		assertThat(new String(result)).isEqualTo("foo");
+		assertThat(result).hasSize(4);
+		assertThat(new String(result)).isEqualTo("test");
 	}
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(3);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertThat(result.length).isEqualTo(9);
+		assertThat(result).hasSize(9);
 		assertThat(result[0]).isEqualTo((byte) 1);
 		assertThat(result[8]).isEqualTo((byte) 9);
 	}
@@ -108,14 +105,14 @@ public class ByteStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskLessThanMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertThat(result.length).isEqualTo(6);
+		assertThat(result).hasSize(6);
 		assertThat(result[0]).isEqualTo((byte) 1);
 	}
 
@@ -124,14 +121,14 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertThat(result.length).isEqualTo(9);
+		assertThat(result).hasSize(9);
 		assertThat(result[0]).isEqualTo((byte) 1);
 	}
 
@@ -140,21 +137,21 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertThat(result1.length).isEqualTo(6);
+		assertThat(result1).hasSize(6);
 		assertThat(result1[0]).isEqualTo((byte) 1);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertThat(result2.length).isEqualTo(9);
+		assertThat(result2).hasSize(9);
 		assertThat(result2[0]).isEqualTo((byte) 1);
 		assertThat(result2[6]).isEqualTo((byte) 7);
 	}
@@ -164,21 +161,21 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertThat(result1.length).isEqualTo(9);
+		assertThat(result1).hasSize(9);
 		assertThat(result1[0]).isEqualTo((byte) 1);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertThat(result2.length).isEqualTo(9);
+		assertThat(result2).hasSize(9);
 		assertThat(result2[0]).isEqualTo((byte) 1);
 	}
 
@@ -187,21 +184,21 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setTrigger(trigger);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertThat(result1.length).isEqualTo(6);
+		assertThat(result1).hasSize(6);
 		stream.reset();
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertThat(result2.length).isEqualTo(3);
+		assertThat(result2).hasSize(3);
 		assertThat(result2[0]).isEqualTo((byte) 7);
 	}
 
@@ -210,14 +207,14 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertThat(result1.length).isEqualTo(6);
+		assertThat(result1).hasSize(6);
 		stream.write(new byte[] {123});
 		stream.flush();
 		trigger.reset();
@@ -225,7 +222,7 @@ public class ByteStreamWritingMessageHandlerTests {
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertThat(result2.length).isEqualTo(10);
+		assertThat(result2).hasSize(10);
 		assertThat(result2[0]).isEqualTo((byte) 1);
 		assertThat(result2[6]).isEqualTo((byte) 123);
 		assertThat(result2[7]).isEqualTo((byte) 7);
