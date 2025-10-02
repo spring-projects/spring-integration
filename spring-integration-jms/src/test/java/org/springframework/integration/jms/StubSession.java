@@ -125,8 +125,8 @@ public class StubSession implements Session {
 	}
 
 	@Override
-	public Queue createQueue(String queueName) throws JMSException {
-		return null;
+	public Queue createQueue(String queueName) {
+		return new StubQueue(queueName);
 	}
 
 	@Override
