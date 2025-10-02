@@ -21,7 +21,7 @@ import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.JavaUtils;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
+import org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGateway;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;

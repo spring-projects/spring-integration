@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.ws.outbound;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -36,6 +36,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.ws.WebServiceHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;

@@ -19,10 +19,10 @@
 							 message-senders="mockMessageSender"/>
 	</si:chain>
 
-	<bean id="mockMessageSender" class="org.springframework.integration.ws.SimpleWebServiceOutboundGatewayTests"
+	<bean id="mockMessageSender" class="org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGatewayTests"
 		  factory-method="createMockMessageSender">
 		<constructor-arg
-				value="#{T(org.springframework.integration.ws.SimpleWebServiceOutboundGatewayTests).responseSoapMessage}"/>
+				value="#{T(org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGatewayTests).responseSoapMessage}"/>
 	</bean>
 
 </beans>

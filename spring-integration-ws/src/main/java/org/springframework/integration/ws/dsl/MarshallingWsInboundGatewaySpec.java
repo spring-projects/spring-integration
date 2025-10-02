@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws.dsl;
 
-import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
+import org.springframework.integration.ws.inbound.MarshallingWebServiceInboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 

@@ -13,12 +13,12 @@
 
 	<si:annotation-config />
 
-	<bean class="org.springframework.integration.ws.MarshallingWebServiceInboundGateway"
+	<bean class="org.springframework.integration.ws.inbound.MarshallingWebServiceInboundGateway"
 		p:requestChannel-ref="requests" p:marshaller-ref="marshaller"
 		p:unmarshaller-ref="marshaller" />
 
 	<bean id="marshaller"
-		class="org.springframework.integration.ws.MarshallingWebServiceIntegrationTests$StubMarshaller" />
+		class="org.springframework.integration.ws.inbound.MarshallingWebServiceIntegrationTests$StubMarshaller" />
 
 	<si:channel id="requests" />
 
@@ -26,6 +26,6 @@
 		ref="endpointStub" />
 
 	<bean id="endpointStub"
-		class="org.springframework.integration.ws.MarshallingWebServiceIntegrationTests$StubEndpoint" />
+		class="org.springframework.integration.ws.inbound.MarshallingWebServiceIntegrationTests$StubEndpoint" />
 
 </beans>
