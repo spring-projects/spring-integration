@@ -16,39 +16,23 @@
 
 package org.springframework.integration.jmx;
 
-import java.util.Arrays;
-
-import javax.management.ObjectName;
-
-import org.springframework.util.Assert;
-
 /**
  * @author Stuart Williams
  * @author Artem Bilan
  *
  * @since 3.0
  *
+ * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.NotNamedFieldsMBeanAttributeFilter}
  */
-public class NotNamedFieldsMBeanAttributeFilter implements MBeanAttributeFilter {
-
-	private final String[] namedFields;
+@Deprecated(forRemoval = true, since = "7.0")
+public class NotNamedFieldsMBeanAttributeFilter
+		extends org.springframework.integration.jmx.inbound.NotNamedFieldsMBeanAttributeFilter {
 
 	/**
 	 * @param namedFields The named fields that should be filtered.
 	 */
 	public NotNamedFieldsMBeanAttributeFilter(String... namedFields) {
-		Assert.notNull(namedFields, "'namedFields' must not be null");
-		this.namedFields = Arrays.copyOf(namedFields, namedFields.length);
-	}
-
-	@Override
-	public boolean accept(ObjectName objectName, String attributeName) {
-		for (String namedField : this.namedFields) {
-			if (namedField.equals(attributeName)) {
-				return false;
-			}
-		}
-		return true;
+		super(namedFields);
 	}
 
 }

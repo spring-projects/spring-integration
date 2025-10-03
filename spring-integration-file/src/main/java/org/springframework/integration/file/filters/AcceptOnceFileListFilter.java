@@ -26,10 +26,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
+
 /**
  * {@link FileListFilter} that passes files only one time. This can
  * conveniently be used to prevent duplication of files, as is done in
- * {@link org.springframework.integration.file.FileReadingMessageSource}.
+ * {@link FileReadingMessageSource}.
  * <p>
  * This implementation is thread safe.
  *

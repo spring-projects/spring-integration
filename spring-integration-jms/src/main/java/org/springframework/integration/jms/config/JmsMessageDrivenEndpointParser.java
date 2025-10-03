@@ -27,8 +27,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
-import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.jms.inbound.ChannelPublishingJmsMessageListener;
+import org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.StringUtils;
 

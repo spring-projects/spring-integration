@@ -27,7 +27,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.outbound.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**

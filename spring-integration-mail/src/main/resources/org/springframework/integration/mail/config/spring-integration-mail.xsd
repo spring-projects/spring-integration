@@ -22,7 +22,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a Consumer Endpoint for the
-					'org.springframework.integration.mail.MailSendingMessageHandler' that
+					'org.springframework.integration.mail.outbound.MailSendingMessageHandler' that
 					sends mails according te provided options.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -69,7 +69,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.mail.MailReceivingMessageSource'
+				'org.springframework.integration.mail.inbound.MailReceivingMessageSource'
 				that polls a mailbox for mail messages.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -92,12 +92,12 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="org.springframework.integration.mail.SearchTermStrategy"/>
+											type="org.springframework.integration.mail.inbound.SearchTermStrategy"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
 								Reference to a custom implementation of
-								org.springframework.integration.mail.SearchTermStrategy
+								org.springframework.integration.mail.inbound.SearchTermStrategy
 								to use when retrieving email. Only permitted with 'imap' protocol or an 'imap' uri.
 								By default, the ImapMailReceiver will search for Messages based on the default
 								SearchTerm
@@ -117,8 +117,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.mail.ImapIdleChannelAdapter' that listens to the changes in the mail
-				box via IMAP protocol.
+				'org.springframework.integration.mail.inbound.ImapIdleChannelAdapter'
+				that listens to the changes in the mailbox via IMAP protocol.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -148,12 +148,12 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="org.springframework.integration.mail.SearchTermStrategy"/>
+											type="org.springframework.integration.mail.inbound.SearchTermStrategy"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
 								Reference to a custom implementation of
-								org.springframework.integration.mail.SearchTermStrategy
+								org.springframework.integration.mail.inbound.SearchTermStrategy
 								to use when retrieving email.
 								By default, the ImapMailReceiver will search for Messages based on the default
 								SearchTerm
@@ -313,7 +313,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a 'org.springframework.integration.transformer.HeaderEnricher' for adding statically
+					Defines an 'org.springframework.integration.transformer.HeaderEnricher' for adding statically
 					configured Mail Headers.
 				</xsd:documentation>
 			</xsd:annotation>

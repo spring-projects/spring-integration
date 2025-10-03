@@ -27,8 +27,8 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
-import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
+import org.springframework.integration.ws.outbound.MarshallingWebServiceOutboundGateway;
+import org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGateway;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -46,8 +46,10 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 
 	@Override
 	protected String getGatewayClassName(Element element) {
-		return ((StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				MarshallingWebServiceOutboundGateway.class : SimpleWebServiceOutboundGateway.class).getName();
+		return (StringUtils.hasText(element.getAttribute("marshaller"))
+				? MarshallingWebServiceOutboundGateway.class
+				: SimpleWebServiceOutboundGateway.class)
+				.getName();
 	}
 
 	@Override

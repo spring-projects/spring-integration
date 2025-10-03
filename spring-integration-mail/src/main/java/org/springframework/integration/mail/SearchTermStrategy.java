@@ -16,10 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import jakarta.mail.Flags;
-import jakarta.mail.Folder;
 import jakarta.mail.search.SearchTerm;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Strategy to be used to generate a {@link SearchTerm}.
@@ -28,17 +25,11 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 2.2
  *
- * @see ImapMailReceiver
+ * @see org.springframework.integration.mail.inbound.ImapMailReceiver
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.mail.inbound.SearchTermStrategy}
  */
-@FunctionalInterface
-public interface SearchTermStrategy {
-
-	/**
-	 * Will generate an instance of the {@link SearchTerm}.
-	 * @param supportedFlags The supported flags.
-	 * @param folder The folder.
-	 * @return The search term.
-	 */
-	@Nullable SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
+@Deprecated(forRemoval = true, since = "7.0")
+public interface SearchTermStrategy extends org.springframework.integration.mail.inbound.SearchTermStrategy {
 
 }

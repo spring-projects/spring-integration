@@ -29,7 +29,7 @@ import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.jms.JmsHeaderMapper;
-import org.springframework.integration.jms.JmsSendingMessageHandler;
+import org.springframework.integration.jms.outbound.JmsSendingMessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;

@@ -25,13 +25,15 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jmx.DefaultMBeanObjectConverter;
-import org.springframework.integration.jmx.MBeanTreePollingMessageSource;
+import org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter;
+import org.springframework.integration.jmx.inbound.MBeanTreePollingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Stuart Williams
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -44,12 +46,13 @@ public class MBeanTreePollingChannelAdapterParser extends AbstractPollingInbound
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
-				MBeanTreePollingMessageSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(MBeanTreePollingMessageSource.class);
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server", "server");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-name-ref", "queryNameReference");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-expression-ref", "queryExpressionReference");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-name-ref",
+				"queryNameReference");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-expression-ref",
+				"queryExpressionReference");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-name", "queryName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-expression", "queryExpression");
 
@@ -59,21 +62,26 @@ public class MBeanTreePollingChannelAdapterParser extends AbstractPollingInbound
 		}
 		if (StringUtils.hasText(element.getAttribute("query-expression"))
 				&& StringUtils.hasText(element.getAttribute("query-expression-ref"))) {
-			parserContext.getReaderContext().error("Cannot have both `query-expression' and 'query-expression-ref'", element);
+			parserContext.getReaderContext()
+					.error("Cannot have both `query-expression' and 'query-expression-ref'", element);
 		}
-		BeanComponentDefinition innerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		BeanComponentDefinition innerBeanDef =
+				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String beanName = element.getAttribute("converter");
 
 		if (innerBeanDef != null) {
 			if (StringUtils.hasText(beanName)) {
 				parserContext.getReaderContext().error("Cannot have both a 'converter' and an inner bean", element);
 			}
-			beanName = BeanDefinitionReaderUtils.generateBeanName(innerBeanDef.getBeanDefinition(), parserContext.getRegistry(), true);
+			beanName = BeanDefinitionReaderUtils.generateBeanName(innerBeanDef.getBeanDefinition(),
+					parserContext.getRegistry(), true);
 			parserContext.getRegistry().registerBeanDefinition(beanName, innerBeanDef.getBeanDefinition());
 		}
 		else if (!StringUtils.hasText(beanName)) {
-			BeanDefinitionBuilder childBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultMBeanObjectConverter.class);
-			beanName = BeanDefinitionReaderUtils.generateBeanName(childBuilder.getBeanDefinition(), parserContext.getRegistry(), true);
+			BeanDefinitionBuilder childBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultMBeanObjectConverter.class);
+			beanName = BeanDefinitionReaderUtils.generateBeanName(childBuilder.getBeanDefinition(),
+					parserContext.getRegistry(), true);
 			parserContext.getRegistry().registerBeanDefinition(beanName, childBuilder.getBeanDefinition());
 		}
 

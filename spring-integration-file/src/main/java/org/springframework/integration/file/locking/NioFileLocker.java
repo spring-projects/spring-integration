@@ -22,12 +22,13 @@ import java.nio.channels.FileLock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.messaging.MessagingException;
 
 /**
  * File locking strategy that uses java.nio. The locks taken by FileChannel are shared with all the threads in a single
  * JVM, so this locking strategy <b>does not</b> prevent files being picked up multiple times within the same JVM.
- * {@link org.springframework.integration.file.FileReadingMessageSource}s sharing a
+ * {@link FileReadingMessageSource}s sharing a
  * Locker will not pick up the same files.
  * <p>
  * This implementation will acquire or create a {@link FileLock} for the given file. Caching locks might be expensive,

@@ -128,7 +128,7 @@
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.jms.AbstractJmsChannel"/>
+					<tool:exports type="org.springframework.integration.jms.channel.AbstractJmsChannel"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>

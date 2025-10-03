@@ -19,7 +19,7 @@ package org.springframework.integration.jms.dsl;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
 
-import org.springframework.integration.jms.PollableJmsChannel;
+import org.springframework.integration.jms.channel.PollableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;

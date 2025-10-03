@@ -27,7 +27,7 @@ import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.jms.JmsHeaderMapper;
-import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.Message;

@@ -24,7 +24,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -66,9 +66,10 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithPubSubDomain.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		AbstractMessageListenerContainer container =
+				TestUtils.getPropertyValue(endpoint, "listenerContainer", AbstractMessageListenerContainer.class);
 		assertThat(container.isPubSubDomain()).isEqualTo(Boolean.TRUE);
-		assertThat(container.isSubscriptionDurable()).isFalse(); // INT-3680
+		assertThat(container.isSubscriptionDurable()).isFalse();
 		assertThat(container.getDurableSubscriptionName()).isNull();
 		endpoint.stop();
 		context.close();
@@ -79,7 +80,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithDurableSubscription.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
-		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		DefaultMessageListenerContainer container =
+				TestUtils.getPropertyValue(endpoint, "listenerContainer", DefaultMessageListenerContainer.class);
 		assertThat(container.isPubSubDomain()).isEqualTo(Boolean.TRUE);
 		assertThat(container.isSubscriptionDurable()).isEqualTo(Boolean.TRUE);
 		assertThat(container.getDurableSubscriptionName()).isEqualTo("testDurableSubscriptionName");
@@ -93,7 +95,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void adapterWithTaskExecutor() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithTaskExecutor.xml", this.getClass());
-		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter.adapter", JmsMessageDrivenEndpoint.class);
+		JmsMessageDrivenEndpoint endpoint =
+				context.getBean("messageDrivenAdapter.adapter", JmsMessageDrivenEndpoint.class);
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(endpoint, "listenerContainer",
 				DefaultMessageListenerContainer.class);
 		assertThat(TestUtils.getPropertyValue(container, "taskExecutor")).isSameAs(context.getBean("exec"));
@@ -105,11 +108,10 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void testAdapterWithReceiveTimeout() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithReceiveTimeout.adapter");
+		JmsMessageDrivenEndpoint adapter =
+				context.getBean("adapterWithReceiveTimeout.adapter", JmsMessageDrivenEndpoint.class);
 		adapter.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertThat(new DirectFieldAccessor(container).getPropertyValue("receiveTimeout")).isEqualTo(1111L);
+		assertThat(TestUtils.getPropertyValue(adapter, "listenerContainer.receiveTimeout")).isEqualTo(1111L);
 		adapter.stop();
 		context.close();
 	}
@@ -118,7 +120,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void testAdapterWithRecoveryInterval() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithRecoveryInterval.adapter");
+		JmsMessageDrivenEndpoint adapter =
+				context.getBean("adapterWithRecoveryInterval.adapter", JmsMessageDrivenEndpoint.class);
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
@@ -138,11 +141,10 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void testAdapterWithIdleTaskExecutionLimit() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleTaskExecutionLimit.adapter");
+		JmsMessageDrivenEndpoint adapter =
+				context.getBean("adapterWithIdleTaskExecutionLimit.adapter", JmsMessageDrivenEndpoint.class);
 		adapter.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit")).isEqualTo(7);
+		assertThat(TestUtils.getPropertyValue(adapter, "listenerContainer.idleTaskExecutionLimit")).isEqualTo(7);
 		adapter.stop();
 		context.close();
 	}
@@ -151,7 +153,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void testAdapterWithIdleConsumerLimit() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleConsumerLimit.adapter");
+		JmsMessageDrivenEndpoint adapter =
+				context.getBean("adapterWithIdleConsumerLimit.adapter", JmsMessageDrivenEndpoint.class);
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
@@ -165,7 +168,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void testAdapterWithContainerClass() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerClass.xml", this.getClass());
-		JmsMessageDrivenEndpoint adapter = context.getBean("adapterWithIdleConsumerLimit.adapter", JmsMessageDrivenEndpoint.class);
+		JmsMessageDrivenEndpoint adapter =
+				context.getBean("adapterWithIdleConsumerLimit.adapter", JmsMessageDrivenEndpoint.class);
 		MessageChannel channel = context.getBean("adapterWithIdleConsumerLimit", MessageChannel.class);
 		assertThat(TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel")).isSameAs(channel);
 		adapter.start();
@@ -187,12 +191,13 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);
 		adapter.stop();
 
-		adapter = context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0", JmsMessageDrivenEndpoint.class);
+		adapter = context.getBean("org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint#0",
+				JmsMessageDrivenEndpoint.class);
 		channel = context.getBean("in", MessageChannel.class);
 		assertThat(TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel")).isSameAs(channel);
 		adapter.start();
 		container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
-		assertThat(context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0.container"))
+		assertThat(context.getBean("org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint#0.container"))
 				.isSameAs(container);
 		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit")).isEqualTo(33);
 		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);

@@ -17,8 +17,8 @@
 package org.springframework.integration.ws.dsl;
 
 import org.springframework.integration.dsl.MessagingGatewaySpec;
-import org.springframework.integration.ws.AbstractWebServiceInboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
+import org.springframework.integration.ws.inbound.AbstractWebServiceInboundGateway;
 
 /**
  * Base {@link MessagingGatewaySpec} for web services.

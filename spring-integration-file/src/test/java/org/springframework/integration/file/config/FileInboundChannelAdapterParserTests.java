@@ -31,10 +31,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -110,7 +110,7 @@ public class FileInboundChannelAdapterParserTests {
 
 		FileReadingMessageSource.WatchEventType[] watchEvents =
 				(FileReadingMessageSource.WatchEventType[]) this.accessor.getPropertyValue("watchEvents");
-		assertThat(watchEvents.length).isEqualTo(2);
+		assertThat(watchEvents).hasSize(2);
 		for (FileReadingMessageSource.WatchEventType watchEvent : watchEvents) {
 			assertThat(watchEvent).isNotEqualTo(FileReadingMessageSource.WatchEventType.CREATE);
 			assertThat(watchEvent)

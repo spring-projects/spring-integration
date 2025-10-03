@@ -16,18 +16,15 @@
 
 package org.springframework.integration.jmx;
 
-import javax.management.ObjectName;
-
 /**
  * @author Stuart Williams
+ *
  * @since 3.0
  *
+ * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter}
  */
-public class DefaultMBeanAttributeFilter implements MBeanAttributeFilter {
-
-	@Override
-	public boolean accept(ObjectName objectName, String attributeName) {
-		return true;
-	}
+@Deprecated(forRemoval = true, since = "7.0")
+public class DefaultMBeanAttributeFilter
+		extends org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter {
 
 }

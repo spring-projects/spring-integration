@@ -22,7 +22,6 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.stream.CharacterStreamReadingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,13 +29,14 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				CharacterStreamReadingMessageSource.class);
+				org.springframework.integration.stream.inbound.CharacterStreamReadingMessageSource.class);
 		String pipe = element.getAttribute("detect-eof");
 		if (StringUtils.hasText(pipe)) {
 			builder.setFactoryMethod("stdinPipe");

@@ -61,9 +61,9 @@ import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.JmsDestinationPollingSource;
-import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
-import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.jms.channel.SubscribableJmsChannel;
+import org.springframework.integration.jms.inbound.JmsDestinationPollingSource;
+import org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
@@ -218,7 +218,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		assertThat(this.jmsMessageDrivenChannelCalled.get()).isTrue();
 
-		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    test    ")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
 				.build());
 
@@ -227,7 +227,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		assertThat(receive)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isEqualTo("foo");
+				.isEqualTo("test");
 
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(receive).get()).isEqualTo(3);
 
@@ -290,22 +290,22 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.setPubSubDomain(true);
 		template.setDefaultDestinationName("pubsub");
-		template.convertAndSend("foo");
+		template.convertAndSend("test");
 		Message<?> received = this.jmsPubSubBridgeChannel.receive(5000);
 		assertThat(received)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isEqualTo("foo");
+				.isEqualTo("test");
 		received = this.jmsPubSubBridgeChannel2.receive(5000);
 		assertThat(received)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isEqualTo("foo");
+				.isEqualTo("test");
 	}
 
 	@Test
 	public void testJmsRedeliveryFlow() throws InterruptedException {
-		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("foo")
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("test")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDrivenRedelivery")
 				.build());
 

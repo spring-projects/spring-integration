@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jmx.OperationInvokingMessageHandler;
+import org.springframework.integration.jmx.outbound.OperationInvokingMessageHandler;
 
 /**
  * @author Oleg Zhurakousky

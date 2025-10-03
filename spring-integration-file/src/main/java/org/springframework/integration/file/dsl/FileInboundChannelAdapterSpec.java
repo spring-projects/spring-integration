@@ -32,11 +32,11 @@ import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.config.FileListFilterFactoryBean;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.file.locking.NioFileLocker;
 import org.springframework.util.Assert;
 
@@ -224,7 +224,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec locker(FileLocker locker) {
 		Assert.isNull(this.locker,
-				"The 'locker' (" + this.locker + ") is already configured for the FileReadingMessageSource");
+				() -> "The 'locker' (" + this.locker + ") is already configured for the FileReadingMessageSource");
 		this.locker = locker;
 		this.target.setLocker(locker);
 		this.filtersSet = true;

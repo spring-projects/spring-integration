@@ -29,11 +29,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.expression.Expression;
-import org.springframework.integration.mail.AbstractMailReceiver;
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailReceiver;
-import org.springframework.integration.mail.Pop3MailReceiver;
-import org.springframework.integration.mail.SearchTermStrategy;
+import org.springframework.integration.mail.inbound.AbstractMailReceiver;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.MailReceiver;
+import org.springframework.integration.mail.inbound.Pop3MailReceiver;
+import org.springframework.integration.mail.inbound.SearchTermStrategy;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -152,7 +152,7 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 	@Override
 	protected MailReceiver createInstance() {
 		if (this.receiver == null) {
-			this.receiver = this.createReceiver();
+			this.receiver = createReceiver();
 		}
 		return this.receiver;
 	}

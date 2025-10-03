@@ -16,20 +16,12 @@
 
 package org.springframework.integration.stream;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import org.jspecify.annotations.Nullable;
-
-import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler}
@@ -41,34 +33,24 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ *
+ *  @deprecated since 7.0 in favor of {@link org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler}
  */
-public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler {
-
-	private final BufferedWriter writer;
-
-	private volatile boolean shouldAppendNewLine = false;
+@Deprecated(forRemoval = true, since = "7.0")
+public class CharacterStreamWritingMessageHandler extends
+		org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler {
 
 	public CharacterStreamWritingMessageHandler(Writer writer) {
 		this(writer, -1);
 	}
 
 	public CharacterStreamWritingMessageHandler(Writer writer, int bufferSize) {
-		Assert.notNull(writer, "writer must not be null");
-		if (writer instanceof BufferedWriter) {
-			this.writer = (BufferedWriter) writer;
-		}
-		else if (bufferSize > 0) {
-			this.writer = new BufferedWriter(writer, bufferSize);
-		}
-		else {
-			this.writer = new BufferedWriter(writer);
-		}
+		super(writer, bufferSize);
 	}
 
 	/**
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
-	 *
 	 * @return A stdout handler with the default charset.
 	 */
 	public static CharacterStreamWritingMessageHandler stdout() {
@@ -78,7 +60,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
-	 *
 	 * @param charsetName The charset name.
 	 * @return A stdout handler.
 	 */
@@ -89,7 +70,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
-	 *
 	 * @return A stderr handler with the default charset.
 	 */
 	public static CharacterStreamWritingMessageHandler stderr() {
@@ -99,7 +79,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
-	 *
 	 * @param charsetName The charset name.
 	 * @return A stderr handler.
 	 */
@@ -107,7 +86,9 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamWritingMessageHandler createTargetForStream(OutputStream stream, @Nullable String charsetName) {
+	private static CharacterStreamWritingMessageHandler createTargetForStream(OutputStream stream,
+			@Nullable String charsetName) {
+
 		if (charsetName == null) {
 			return new CharacterStreamWritingMessageHandler(new OutputStreamWriter(stream));
 		}
@@ -116,56 +97,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
-		}
-	}
-
-	public void setShouldAppendNewLine(boolean shouldAppendNewLine) {
-		this.shouldAppendNewLine = shouldAppendNewLine;
-	}
-
-	/**
-	 * Fluent api for {@link #setShouldAppendNewLine(boolean)}.
-	 * @param append true to append a newline.
-	 * @return this.
-	 * @since 5.4
-	 */
-	public CharacterStreamWritingMessageHandler appendNewLine(boolean append) {
-		setShouldAppendNewLine(append);
-		return this;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "stream:outbound-channel-adapter(character)";
-	}
-
-	@Override
-	protected void handleMessageInternal(Message<?> message) {
-		Object payload = message.getPayload();
-		try {
-			if (payload instanceof String) {
-				this.writer.write((String) payload);
-			}
-			else if (payload instanceof char[]) {
-				this.writer.write((char[]) payload);
-			}
-			else if (payload instanceof byte[]) {
-				this.writer.write(new String((byte[]) payload));
-			}
-			else if (payload instanceof Exception) {
-				PrintWriter printWriter = new PrintWriter(this.writer, true);
-				((Exception) payload).printStackTrace(printWriter);
-			}
-			else {
-				this.writer.write(payload.toString());
-			}
-			if (this.shouldAppendNewLine) {
-				this.writer.newLine();
-			}
-			this.writer.flush();
-		}
-		catch (IOException e) {
-			throw new MessagingException("IO failure occurred in target", e);
 		}
 	}
 

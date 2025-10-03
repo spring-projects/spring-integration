@@ -26,7 +26,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.integration.mail.outbound.MailSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.MailSender;
 import org.springframework.messaging.Message;

@@ -56,7 +56,7 @@ See the Spring Web Services https://docs.spring.io/spring-ws/docs/current/api/or
 
 Starting with version 5.0, you can supply the `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway` with an external `WebServiceTemplate` instance, which you can configure for any custom properties, including `checkConnectionForFault` (which allows your application to deal with non-conforming services).
 
-For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering https://docs.spring.io/spring-ws/docs/current/reference/#client[client access] and the chapter covering https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#oxm[Object/XML mapping].
+For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering https://docs.spring.io/spring-ws/docs/current/reference/#client[client access] and the chapter covering https://docs.spring.io/spring-framework/reference/data-access/oxm.html[Object/XML mapping].
 
 [[webservices-inbound]]
 == Inbound Web Service Gateways
@@ -80,7 +80,7 @@ The following example shows both options:
 Both gateways implement the Spring Web Services `MessageEndpoint` interface, so they can be configured with a `MessageDispatcherServlet` as per standard Spring Web Services configuration.
 
 For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering https://docs.spring.io/spring-ws/docs/current/reference/#server[creating a web service].
-The chapter covering https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#oxm[Object/XML mapping] is also applicable again.
+The chapter covering https://docs.spring.io/spring-framework/reference/data-access/oxm.html[Object/XML mapping] is also applicable again.
 
 To add the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS infrastructure, you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target `MessageEndpoint` implementations, as you would for a normal Spring WS application.
 For this purpose (from the Spring Integration perspective), Spring WS provides the following convenient `EndpointMapping` implementations:
@@ -151,7 +151,7 @@ When using such a `Marshaller`, only the `marshaller` attribute is necessary.
 Even when using a `Marshaller`, you may also provide a reference for the `request-callback` on the outbound gateways.
 
 For either outbound gateway type, you can specify a `destination-provider` attribute instead of the `uri` (exactly one of them is required).
-You can then reference any Spring Web Services `DestinationProvider` implementation (for example, to lookup the URI from a registry at runtime).
+You can then reference any Spring Web Services `DestinationProvider` implementation (for example, to look up the URI from a registry at runtime).
 
 For either outbound gateway type, the `message-factory` attribute can also be configured with a reference to any Spring Web Services `WebServiceMessageFactory` implementation.
 
@@ -289,7 +289,7 @@ If you wish to partially encode some of the URL, you can do so by using an `expr
 
 [source,xml]
 ----
-<ws:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encoding-mode="NONE">
+<ws:outbound-gateway url="https://somehost/%2f/someApps?someKey={param}" encoding-mode="NONE">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
                                              .encodeWithinQuery('Hello World!')"/>
@@ -319,8 +319,8 @@ NOTE: Rather than using the wildcard (`*`), we recommend using the following com
 Doing so avoids mapping `request` headers to the reply.
 
 Starting with version 4.3, you can negate patterns in the header mappings by preceding the pattern with `!`.
-Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`.
-It does map the standard headers, `thing4`, and `qux`.
+Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,thing5,!thing1` does not map `thing1`, `thing2`, or `thing3`.
+It does map the standard headers, `thing4`, and `thing5`.
 (Note that `thing1` is included in both non-negated and negated forms.
 Because negated values take precedence, `thing1` is not mapped.)
 
@@ -338,9 +338,9 @@ You can explore the contents by accessing the `Source`:
             <username>user</username>
             <password>pass</password>
         </auth>
-        <bar>BAR</bar>
-        <baz>BAZ</baz>
-        <qux>qux</qux>
+        <cat>CAT</cat>
+        <can>CAN</can>
+        <dog>DOG</dog>
     </soapenv:Header>
     <soapenv:Body>
         ...
@@ -348,7 +348,7 @@ You can explore the contents by accessing the `Source`:
 </soapenv:Envelope>
 ----
 
-If `mapped-request-headers` is `auth, ca*`, the `auth`, `cat`, and `can` headers are mapped, but `qux` is not mapped.
+If `mapped-request-headers` is `auth, ca*`, the `auth`, `cat`, and `can` headers are mapped, but `dog` is not mapped.
 
 The following example shows how to get a value named `user` from a header named `auth`:
 
@@ -411,7 +411,7 @@ The following example shows how to do so:
 WebServiceMessageFactory messageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance());
 MimeMessage webServiceMessage = (MimeMessage) messageFactory.createWebServiceMessage();
 
-String request = "<test>foo</test>";
+String request = "<test>test data</test>";
 
 TransformerFactory transformerFactory = TransformerFactory.newInstance();
 Transformer transformer = transformerFactory.newTransformer();

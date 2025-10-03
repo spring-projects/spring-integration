@@ -24,7 +24,7 @@ import org.springframework.integration.file.config.AbstractRemoteFileOutboundGat
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
-import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
+import org.springframework.integration.sftp.outbound.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**

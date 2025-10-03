@@ -16,17 +16,6 @@
 
 package org.springframework.integration.jmx;
 
-import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.jmx.support.ObjectNameManager;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
-
 /**
  * A {@link org.springframework.integration.core.MessageSource} implementation that
  * retrieves the current value of a JMX attribute each time {@link #receive()} is invoked.
@@ -36,72 +25,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.AttributePollingMessageSource}
  */
-public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
-
-	@SuppressWarnings("NullAway.Init")
-	private ObjectName objectName;
-
-	@SuppressWarnings("NullAway.Init")
-	private String attributeName;
-
-	@SuppressWarnings("NullAway.Init")
-	private MBeanServerConnection server;
-
-	/**
-	 * Provide the MBeanServer where the JMX MBean has been registered.
-	 * @param server The MBean server connection.
-	 */
-	public void setServer(MBeanServerConnection server) {
-		this.server = server;
-	}
-
-	/**
-	 * Specify the String value of the JMX MBean's {@link ObjectName}.
-	 * @param objectName The object name.
-	 */
-	public void setObjectName(String objectName) {
-		try {
-			this.objectName = ObjectNameManager.getInstance(objectName);
-		}
-		catch (MalformedObjectNameException ex) {
-			throw new IllegalArgumentException(ex);
-		}
-	}
-
-	/**
-	 * Specify the name of the attribute to be retrieved.
-	 * @param attributeName The attribute name.
-	 */
-	public void setAttributeName(String attributeName) {
-		this.attributeName = attributeName;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "jmx:attribute-polling-channel-adapter";
-	}
-
-	@Override
-	protected void onInit() {
-		super.onInit();
-		Assert.notNull(this.server, "MBeanServer is required");
-		Assert.notNull(this.objectName, "object name is required");
-		Assert.notNull(this.attributeName, "attribute name is required");
-	}
-
-	/**
-	 * Retrieves the JMX attribute value.
-	 */
-	@Override
-	protected @Nullable Object doReceive() {
-		try {
-			return this.server.getAttribute(this.objectName, this.attributeName);
-		}
-		catch (Exception e) {
-			throw new MessagingException("failed to retrieve JMX attribute '"
-					+ this.attributeName + "' on MBean [" + this.objectName + "]", e);
-		}
-	}
+@Deprecated(forRemoval = true, since = "7.0")
+public class AttributePollingMessageSource
+		extends org.springframework.integration.jmx.inbound.AttributePollingMessageSource {
 
 }

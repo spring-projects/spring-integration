@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.handler.MessageHandlerChain;
-import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
+import org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
