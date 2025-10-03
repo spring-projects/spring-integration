@@ -802,7 +802,7 @@ public final class RedisLockRegistry
 
 		private static final RedisScript<Boolean>
 				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
-		
+
 		private RedisSpinLock(String path) {
 			super(path);
 		}
