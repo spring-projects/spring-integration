@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import jakarta.mail.Message;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Jonas Partner
@@ -37,10 +37,10 @@ public class MailReceivingMessageSourceTests {
 	@Test
 	public void testPolling() {
 		StubMailReceiver mailReceiver = new StubMailReceiver();
-		MimeMessage message1 = Mockito.mock(MimeMessage.class);
-		MimeMessage message2 = Mockito.mock(MimeMessage.class);
-		MimeMessage message3 = Mockito.mock(MimeMessage.class);
-		MimeMessage message4 = Mockito.mock(MimeMessage.class);
+		MimeMessage message1 = mock();
+		MimeMessage message2 = mock();
+		MimeMessage message3 = mock();
+		MimeMessage message4 = mock();
 
 		mailReceiver.messages.add(new jakarta.mail.Message[] {message1});
 		mailReceiver.messages.add(new jakarta.mail.Message[] {message2, message3});

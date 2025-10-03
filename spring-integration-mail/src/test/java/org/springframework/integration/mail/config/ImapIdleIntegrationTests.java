@@ -26,8 +26,8 @@ import jakarta.mail.Message;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.mail.ImapIdleChannelAdapter;
-import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.ImapIdleChannelAdapter;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
 

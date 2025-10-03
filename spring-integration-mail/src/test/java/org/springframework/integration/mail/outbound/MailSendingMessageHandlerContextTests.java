@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.outbound;
 
 import java.io.DataInputStream;
 
@@ -27,6 +27,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.mail.MailTestsHelper;
+import org.springframework.integration.mail.StubJavaMailSender;
+import org.springframework.integration.mail.StubMailSender;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;

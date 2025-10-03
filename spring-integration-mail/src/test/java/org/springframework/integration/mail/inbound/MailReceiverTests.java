@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
 import java.util.Properties;
 
@@ -64,7 +64,7 @@ public class MailReceiverTests {
 		store = spy(store);
 		new DirectFieldAccessor(receiver).setPropertyValue("store", store);
 		when(store.isConnected()).thenReturn(false);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(false, true);
 		doReturn(folder).when(store).getDefaultFolder();

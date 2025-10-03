@@ -28,10 +28,10 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailReceiver;
-import org.springframework.integration.mail.MailReceivingMessageSource;
-import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.MailReceiver;
+import org.springframework.integration.mail.inbound.MailReceivingMessageSource;
+import org.springframework.integration.mail.inbound.Pop3MailReceiver;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;

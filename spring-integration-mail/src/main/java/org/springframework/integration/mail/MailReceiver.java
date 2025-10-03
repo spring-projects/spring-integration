@@ -16,17 +16,16 @@
 
 package org.springframework.integration.mail;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Strategy interface for receiving mail {@link jakarta.mail.Message Messages}.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.mail.inbound.MailReceiver}
  */
-public interface MailReceiver {
-
-	Object @Nullable [] receive() throws jakarta.mail.MessagingException;
+@Deprecated(forRemoval = true, since = "7.0")
+public interface MailReceiver extends org.springframework.integration.mail.inbound.MailReceiver {
 
 }

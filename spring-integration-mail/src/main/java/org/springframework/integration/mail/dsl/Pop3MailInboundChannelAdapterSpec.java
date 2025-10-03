@@ -16,13 +16,14 @@
 
 package org.springframework.integration.mail.dsl;
 
-import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.inbound.Pop3MailReceiver;
 
 /**
  * A {@link MailInboundChannelAdapterSpec} for POP3.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class Pop3MailInboundChannelAdapterSpec

@@ -18,9 +18,9 @@ package org.springframework.integration.mail.dsl;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailSendingMessageHandler;
-import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.Pop3MailReceiver;
+import org.springframework.integration.mail.outbound.MailSendingMessageHandler;
 import org.springframework.integration.mail.transformer.MailToStringTransformer;
 import org.springframework.mail.MailSender;
 

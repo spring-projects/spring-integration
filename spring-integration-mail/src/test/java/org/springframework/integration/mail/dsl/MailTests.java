@@ -45,8 +45,8 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
-import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.mail.inbound.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
@@ -149,7 +149,7 @@ public class MailTests {
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>,Bar2 <bar2@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n");
-		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isFalse();
+		assertThat(message.getHeaders()).doesNotContainKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 	}
 
 	@Test
@@ -168,7 +168,7 @@ public class MailTests {
 		assertThat(mm.getFrom()[0].toString()).isEqualTo("Bar <bar@baz>");
 		assertThat(mm.getSubject()).isEqualTo("Test Email");
 		assertThat(mm.getContent()).isEqualTo("foo\r\n");
-		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
+		assertThat(message.getHeaders()).containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
 	}
 
@@ -188,7 +188,7 @@ public class MailTests {
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n");
-		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
+		assertThat(message.getHeaders()).containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		this.imapIdleAdapter.stop();
 		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
 				.isFalse();

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.integration.mail.outbound.MailSendingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.Message;
