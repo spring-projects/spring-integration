@@ -14,22 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
 import jakarta.mail.search.SearchTerm;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Strategy to be used to generate a {@link SearchTerm}.
  *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
- * @since 2.2
+ * @since 7.0
  *
- * @see org.springframework.integration.mail.inbound.ImapMailReceiver
- *
- * @deprecated since 7.0 in favor of {@link org.springframework.integration.mail.inbound.SearchTermStrategy}
+ * @see ImapMailReceiver
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public interface SearchTermStrategy extends org.springframework.integration.mail.inbound.SearchTermStrategy {
+@FunctionalInterface
+public interface SearchTermStrategy {
+
+	/**
+	 * Generate an instance of the {@link SearchTerm}.
+	 * @param supportedFlags The supported flags.
+	 * @param folder The folder.
+	 * @return The search term.
+	 */
+	@Nullable
+	SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
 
 }

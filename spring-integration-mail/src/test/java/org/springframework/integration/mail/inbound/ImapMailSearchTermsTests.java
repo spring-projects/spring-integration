@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -60,8 +60,9 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(userFlag, receiver);
 	}
 
-	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
+	void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
 			throws NoSuchFieldException, IllegalAccessException, InvocationTargetException {
+
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
@@ -75,7 +76,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertThat(searchTerms instanceof NotTerm).isTrue();
+		assertThat(searchTerms).isInstanceOf(NotTerm.class);
 		NotTerm notTerm = (NotTerm) searchTerms;
 		Flags siFlags = new Flags();
 		siFlags.add(userFlag);
@@ -100,7 +101,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		Flags flags = new Flags();
 		flags.add(Flag.ANSWERED);
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertThat(searchTerms instanceof AndTerm).isTrue();
+		assertThat(searchTerms).isInstanceOf(AndTerm.class);
 		AndTerm andTerm = (AndTerm) searchTerms;
 		SearchTerm[] terms = andTerm.getTerms();
 		assertThat(terms.length).isEqualTo(2);
@@ -122,7 +123,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
@@ -130,7 +131,7 @@ public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertThat(searchTerms instanceof NotTerm).isTrue();
+		assertThat(searchTerms).isInstanceOf(NotTerm.class);
 	}
 
 }

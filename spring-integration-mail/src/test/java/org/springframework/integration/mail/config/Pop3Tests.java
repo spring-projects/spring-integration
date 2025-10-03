@@ -31,8 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.mail.MailReceivingMessageSource;
-import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.inbound.MailReceivingMessageSource;
+import org.springframework.integration.mail.inbound.Pop3MailReceiver;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;

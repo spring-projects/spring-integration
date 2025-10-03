@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -76,6 +76,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.support.TestApplicationContextAware;
@@ -300,6 +301,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 
 	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
 			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
+
 		return receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, true);
 	}
 

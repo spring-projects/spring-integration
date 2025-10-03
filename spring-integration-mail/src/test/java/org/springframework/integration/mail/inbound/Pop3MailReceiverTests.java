@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.mail.inbound;
 
 import java.lang.reflect.Field;
 
@@ -52,7 +52,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
@@ -88,7 +88,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
@@ -116,7 +116,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
@@ -144,7 +144,7 @@ public class Pop3MailReceiverTests implements TestApplicationContextAware {
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		Folder folder = mock();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 

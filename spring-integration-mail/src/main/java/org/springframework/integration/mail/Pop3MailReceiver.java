@@ -16,74 +16,33 @@
 
 package org.springframework.integration.mail;
 
-import jakarta.mail.Folder;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.URLName;
-import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-
 /**
- * A {@link MailReceiver} implementation that polls a mail server using the
+ * A {@link org.springframework.integration.mail.inbound.MailReceiver} implementation that polls a mail server using the
  * POP3 protocol.
  *
  * @author Arjen Poutsma
  * @author Mark Fisher
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.mail.inbound.Pop3MailReceiver}
  */
-public class Pop3MailReceiver extends AbstractMailReceiver {
+@Deprecated(forRemoval = true, since = "7.0")
+public class Pop3MailReceiver extends org.springframework.integration.mail.inbound.Pop3MailReceiver {
 
-	public static final String PROTOCOL = "pop3";
-
-	@SuppressWarnings("this-escape")
 	public Pop3MailReceiver() {
-		setProtocol(PROTOCOL);
 	}
 
-	@SuppressWarnings("this-escape")
 	public Pop3MailReceiver(@Nullable String url) {
 		super(url);
-		if (url != null) {
-			Assert.isTrue(url.startsWith(PROTOCOL), "url must start with 'pop3'");
-		}
-		else {
-			setProtocol(PROTOCOL);
-		}
 	}
 
 	public Pop3MailReceiver(String host, String username, String password) {
-		// -1 indicates default port
-		this(host, -1, username, password);
+		super(host, username, password);
 	}
 
 	public Pop3MailReceiver(String host, int port, String username, String password) {
-		super(new URLName(PROTOCOL, host, port, "INBOX", username, password));
-	}
-
-	@Override
-	protected Message[] searchForNewMessages() throws MessagingException {
-		Folder folderToUse = getFolder();
-		Assert.state(folderToUse != null, "'folderToUse' should not be null");
-		int messageCount = folderToUse.getMessageCount();
-		if (messageCount == 0) {
-			return new Message[0];
-		}
-		return folderToUse.getMessages();
-	}
-
-	/**
-	 * Deletes the given messages from this receiver's folder, and closes it to expunge deleted messages.
-	 * @param messages the messages to delete
-	 * @throws MessagingException in case of JavaMail errors
-	 */
-	@Override
-	protected void deleteMessages(Message[] messages) throws MessagingException {
-		super.deleteMessages(messages);
-		// expunge deleted mails, and make sure we've retrieved them before closing the folder
-		for (Message message : messages) {
-			new MimeMessage((MimeMessage) message);
-		}
+		super(host, port, username, password);
 	}
 
 }
