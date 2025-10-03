@@ -14,17 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.inbound;
+
+import javax.management.ObjectName;
 
 /**
  * @author Stuart Williams
+ * @author Artem Bilan
  *
- * @since 3.0
+ * @since 7.0
  *
- * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter}
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class DefaultMBeanAttributeFilter
-		extends org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter {
+public class NotNamedFieldsMBeanAttributeFilter extends NamedFieldsMBeanAttributeFilter {
+
+	/**
+	 * @param namedFields The named fields that should be filtered.
+	 */
+	public NotNamedFieldsMBeanAttributeFilter(String... namedFields) {
+		super(namedFields);
+	}
+
+	@Override
+	public boolean accept(ObjectName objectName, String attributeName) {
+		return !super.accept(objectName, attributeName);
+	}
 
 }

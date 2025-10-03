@@ -23,11 +23,13 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jmx.NotificationListeningMessageProducer;
+import org.springframework.integration.jmx.inbound.NotificationListeningMessageProducer;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class NotificationListeningChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -38,9 +40,9 @@ public class NotificationListeningChannelAdapterParser extends AbstractChannelAd
 	}
 
 	@Override
-	protected AbstractBeanDefinition doParse(Element element,
-			ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(NotificationListeningMessageProducer.class);
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(NotificationListeningMessageProducer.class);
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "notification-filter", "filter");

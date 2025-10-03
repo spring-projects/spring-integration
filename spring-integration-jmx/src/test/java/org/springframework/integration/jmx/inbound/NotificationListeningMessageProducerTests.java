@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.inbound;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,12 +27,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
@@ -92,18 +90,18 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setServer(this.server);
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(mock());
 		adapter.afterPropertiesSet();
 		adapter.start();
-		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
-		this.numberHolder.publish("foo");
+		adapter.onApplicationEvent(new ContextRefreshedEvent(mock()));
+		this.numberHolder.publish("test");
 		Message<?> message = outputChannel.receive(0);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload() instanceof Notification).isTrue();
+		assertThat(message.getPayload()).isInstanceOf(Notification.class);
 		Notification notification = (Notification) message.getPayload();
-		assertThat(notification.getMessage()).isEqualTo("foo");
+		assertThat(notification.getMessage()).isEqualTo("test");
 		assertThat(notification.getSource()).isEqualTo(objectName);
-		assertThat(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK)).isNull();
+		assertThat(message.getHeaders()).doesNotContainKey(JmxHeaders.NOTIFICATION_HANDBACK);
 	}
 
 	@Test
@@ -115,22 +113,21 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setOutputChannel(outputChannel);
 		Integer handback = 123;
 		adapter.setHandback(handback);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(mock());
 		adapter.afterPropertiesSet();
 		adapter.start();
-		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
-		this.numberHolder.publish("foo");
+		adapter.onApplicationEvent(new ContextRefreshedEvent(mock()));
+		this.numberHolder.publish("test");
 		Message<?> message = outputChannel.receive(0);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload() instanceof Notification).isTrue();
+		assertThat(message.getPayload()).isInstanceOf(Notification.class);
 		Notification notification = (Notification) message.getPayload();
-		assertThat(notification.getMessage()).isEqualTo("foo");
+		assertThat(notification.getMessage()).isEqualTo("test");
 		assertThat(notification.getSource()).isEqualTo(objectName);
-		assertThat(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK)).isEqualTo(handback);
+		assertThat(message.getHeaders()).containsEntry(JmxHeaders.NOTIFICATION_HANDBACK, handback);
 	}
 
 	@Test
-	@SuppressWarnings("serial")
 	public void notificationWithFilter() {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
@@ -138,17 +135,17 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
 		adapter.setFilter(notification -> !notification.getMessage().equals("bad"));
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(mock());
 		adapter.afterPropertiesSet();
 		adapter.start();
-		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
+		adapter.onApplicationEvent(new ContextRefreshedEvent(mock()));
 		this.numberHolder.publish("bad");
 		Message<?> message = outputChannel.receive(0);
 		assertThat(message).isNull();
 		this.numberHolder.publish("okay");
 		message = outputChannel.receive(0);
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload() instanceof Notification).isTrue();
+		assertThat(message.getPayload()).isInstanceOf(Notification.class);
 		Notification notification = (Notification) message.getPayload();
 		assertThat(notification.getMessage()).isEqualTo("okay");
 	}

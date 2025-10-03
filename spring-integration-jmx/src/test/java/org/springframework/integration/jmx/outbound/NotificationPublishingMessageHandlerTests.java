@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.outbound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,9 +81,9 @@ public class NotificationPublishingMessageHandlerTests {
 	@Test
 	public void simplePublish() {
 		MessageHandler handler = context.getBean("testPublisher", MessageHandler.class);
-		assertThat(this.listener.notifications.size()).isEqualTo(0);
-		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertThat(this.listener.notifications.size()).isEqualTo(1);
+		assertThat(this.listener.notifications).isEmpty();
+		handler.handleMessage(new GenericMessage<>("foo"));
+		assertThat(this.listener.notifications).hasSize(1);
 		Notification notification = this.listener.notifications.get(0);
 		assertThat(notification.getSource()).isEqualTo(this.publisherObjectName);
 		assertThat(notification.getMessage()).isEqualTo("foo");

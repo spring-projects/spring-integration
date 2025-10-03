@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.outbound;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,6 +23,7 @@ import javax.management.ObjectName;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;

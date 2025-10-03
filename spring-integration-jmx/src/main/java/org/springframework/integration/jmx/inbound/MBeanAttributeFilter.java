@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.inbound;
+
+import javax.management.ObjectName;
 
 /**
+ * The strategy to filter out MBean attributes before retrieval of their values.
+ *
  * @author Stuart Williams
+ * @author Artem Bilan
  *
- * @since 3.0
- *
- * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter}
+ * @since 7.0
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public class DefaultMBeanAttributeFilter
-		extends org.springframework.integration.jmx.inbound.DefaultMBeanAttributeFilter {
+@FunctionalInterface
+public interface MBeanAttributeFilter {
+
+	/**
+	 * @param objectName The object name.
+	 * @param attributeName The attribute name.
+	 * @return true if the attribute passes the filter.
+	 */
+	boolean accept(ObjectName objectName, String attributeName);
 
 }
