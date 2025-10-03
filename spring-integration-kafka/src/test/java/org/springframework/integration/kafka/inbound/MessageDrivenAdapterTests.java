@@ -151,8 +151,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.setRecordMessageConverter(new MessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> consumer, Type type) {
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Object acknowledgment, Object consumer, Type type) {
 				Message<?> message = super.toMessage(record, acknowledgment, consumer, type);
 				return MessageBuilder.fromMessage(message).setHeader("testHeader", "testValue").build();
 			}
@@ -189,20 +188,18 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		assertThat(received.getPayload()).isInstanceOf(KafkaNull.class);
 
 		headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(1L);
-		assertThat((Long) headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isGreaterThan(0L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
-
-		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic1)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 1L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsEntry("testHeader", "testValue");
 
 		adapter.setMessageConverter(new RecordMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> consumer, Type type) {
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Object acknowledgment, Object con, Type type) {
 				throw new RuntimeException("testError");
 			}
 
@@ -210,6 +207,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 			public ProducerRecord<?, ?> fromMessage(Message<?> message, String defaultTopic) {
 				return null;
 			}
+
 		});
 		PollableChannel errors = new QueueChannel();
 		adapter.setErrorChannel(errors);
@@ -272,10 +270,12 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		assertThat(originalMessage).isNotNull();
 		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA)).isNull();
 		headers = originalMessage.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic4);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic4)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L);
+
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(3);
 
 		assertThat(receivedMessageHistory.get()).isNotNull();
@@ -383,10 +383,11 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
 				.isSameAs(headers.get(KafkaHeaders.RAW_DATA));
 		headers = originalMessage.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic5)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L);
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(1);
 
 		adapter.stop();
@@ -397,7 +398,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 12);
+		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 24);
+		props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 2000);
 
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
@@ -513,14 +515,15 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic3);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic3)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L)
+				.containsEntry(KafkaHeaders.RECEIVED_TIMESTAMP, 1487694048607L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsEntry("foo", "bar");
 
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
-		assertThat(headers.get("foo")).isEqualTo("bar");
 		assertThat(received.getPayload()).isInstanceOf(Map.class);
 
 		adapter.stop();
@@ -579,8 +582,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testPauseResume() throws Exception {
-		ConsumerFactory<Integer, String> cf = mock(ConsumerFactory.class);
-		Consumer<Integer, String> consumer = mock(Consumer.class);
+		ConsumerFactory<Integer, String> cf = mock();
+		Consumer<Integer, String> consumer = mock();
 		given(cf.createConsumer(eq("testPauseResumeGroup"), eq("clientId"), isNull(), any())).willReturn(consumer);
 		final Map<TopicPartition, List<ConsumerRecord<Integer, String>>> records = new HashMap<>();
 		records.put(new TopicPartition("foo", 0), Arrays.asList(

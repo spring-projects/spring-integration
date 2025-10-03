@@ -47,7 +47,6 @@ import org.springframework.kafka.event.ConsumerPausedEvent;
 import org.springframework.kafka.event.ConsumerResumedEvent;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
@@ -140,9 +139,7 @@ class InboundGatewayTests {
 		gateway.setMessageConverter(new MessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> con, Type type) {
-
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Object acknowledgment, Object con, Type type) {
 				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
@@ -165,14 +162,15 @@ class InboundGatewayTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
-		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic2);
-		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic1)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L)
+				.containsEntry(KafkaHeaders.RECEIVED_TIMESTAMP, 1487694048607L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsEntry(KafkaHeaders.REPLY_TOPIC, topic2)
+				.containsEntry("testHeader", "testValue");
 
 		reply.send(MessageBuilder.withPayload("FOO").copyHeaders(headers).build());
 
@@ -226,8 +224,7 @@ class InboundGatewayTests {
 		gateway.setMessageConverter(new MessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> con, Type type) {
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Object acknowledgment, Object con, Type type) {
 				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
@@ -255,14 +252,15 @@ class InboundGatewayTests {
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());
 
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic3);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
-		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic4);
-		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic3)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L)
+				.containsEntry(KafkaHeaders.RECEIVED_TIMESTAMP, 1487694048607L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsEntry(KafkaHeaders.REPLY_TOPIC, topic4)
+				.containsEntry("testHeader", "testValue");
 
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic4);
 		assertThat(record).has(partition(1));
@@ -307,8 +305,7 @@ class InboundGatewayTests {
 		gateway.setMessageConverter(new MessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> con, Type type) {
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Object acknowledgment, Object con, Type type) {
 				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
@@ -336,14 +333,15 @@ class InboundGatewayTests {
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());
 
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
-		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic6);
-		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic5)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L)
+				.containsEntry(KafkaHeaders.RECEIVED_TIMESTAMP, 1487694048607L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsEntry(KafkaHeaders.REPLY_TOPIC, topic6)
+				.containsEntry("testHeader", "testValue");
 
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic6);
 		assertThat(record).has(partition(1));
