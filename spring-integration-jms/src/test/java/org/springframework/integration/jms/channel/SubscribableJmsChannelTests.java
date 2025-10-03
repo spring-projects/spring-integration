@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.channel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +34,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -44,6 +46,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -88,22 +91,22 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestination(this.queue);
-		factoryBean.setBeanFactory(mock(BeanFactory.class));
+		factoryBean.setBeanFactory(mock());
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<>("foo"));
-		channel.send(new GenericMessage<>("bar"));
+		channel.send(new GenericMessage<>("test1"));
+		channel.send(new GenericMessage<>("test2"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertThat(receivedList1.size()).isEqualTo(1);
 		assertThat(receivedList1.get(0)).isNotNull();
-		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
 		assertThat(receivedList2.size()).isEqualTo(1);
 		assertThat(receivedList2.get(0)).isNotNull();
-		assertThat(receivedList2.get(0).getPayload()).isEqualTo("bar");
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("test2");
 		channel.stop();
 	}
 
@@ -133,15 +136,15 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
 			fail("Listener failed to subscribe to topic");
 		}
-		channel.send(new GenericMessage<>("foo"));
-		channel.send(new GenericMessage<>("bar"));
+		channel.send(new GenericMessage<>("test1"));
+		channel.send(new GenericMessage<>("test2"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertThat(receivedList1.size()).isEqualTo(2);
-		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
-		assertThat(receivedList1.get(1).getPayload()).isEqualTo("bar");
-		assertThat(receivedList2.size()).isEqualTo(2);
-		assertThat(receivedList2.get(0).getPayload()).isEqualTo("foo");
-		assertThat(receivedList2.get(1).getPayload()).isEqualTo("bar");
+		assertThat(receivedList1).hasSize(2);
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
+		assertThat(receivedList1.get(1).getPayload()).isEqualTo("test2");
+		assertThat(receivedList2).hasSize(2);
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("test1");
+		assertThat(receivedList2.get(1).getPayload()).isEqualTo("test2");
 		channel.stop();
 	}
 
@@ -170,19 +173,19 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<>("foo"));
-		channel.send(new GenericMessage<>("bar"));
+		channel.send(new GenericMessage<>("test1"));
+		channel.send(new GenericMessage<>("test2"));
 
 		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS))
 				.as("Countdown latch should have counted down to 0 but was "
 						+ latch.getCount()).isTrue();
 
-		assertThat(receivedList1.size()).isEqualTo(1);
+		assertThat(receivedList1).hasSize(1);
 		assertThat(receivedList1.get(0)).isNotNull();
-		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
-		assertThat(receivedList2.size()).isEqualTo(1);
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
+		assertThat(receivedList2).hasSize(1);
 		assertThat(receivedList2.get(0)).isNotNull();
-		assertThat(receivedList2.get(0).getPayload()).isEqualTo("bar");
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("test2");
 		channel.stop();
 	}
 
@@ -214,15 +217,15 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		}
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<>("foo"));
-		channel.send(new GenericMessage<>("bar"));
+		channel.send(new GenericMessage<>("test1"));
+		channel.send(new GenericMessage<>("test2"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertThat(receivedList1.size()).isEqualTo(2);
-		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
-		assertThat(receivedList1.get(1).getPayload()).isEqualTo("bar");
-		assertThat(receivedList2.size()).isEqualTo(2);
-		assertThat(receivedList2.get(0).getPayload()).isEqualTo("foo");
-		assertThat(receivedList2.get(1).getPayload()).isEqualTo("bar");
+		assertThat(receivedList1).hasSize(2);
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
+		assertThat(receivedList1.get(1).getPayload()).isEqualTo("test2");
+		assertThat(receivedList2).hasSize(2);
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("test1");
+		assertThat(receivedList2.get(1).getPayload()).isEqualTo("test2");
 		channel.stop();
 	}
 
@@ -259,14 +262,10 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 				.getPropertyValue(channel, "container",
 						AbstractMessageListenerContainer.class);
 		MessageListener listener = (MessageListener) container.getMessageListener();
-		try {
-			listener.onMessage(new StubTextMessage("Hello, world!"));
-			fail("Exception expected");
-		}
-		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage())
-					.contains("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.");
-		}
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> listener.onMessage(new StubTextMessage("Hello, world!")))
+				.withMessageContaining("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.");
 	}
 
 	@Test
@@ -276,7 +275,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.setDestinationName("noSubscribersTopic");
 		factoryBean.setBeanName("noSubscribersChannel");
 		factoryBean.setPubSubDomain(true);
-		factoryBean.setBeanFactory(mock(BeanFactory.class));
+		factoryBean.setBeanFactory(mock());
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
@@ -290,8 +289,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		verifyLogReceived(logList);
 	}
 
-	private List<String> insertMockLoggerInListener(
-			SubscribableJmsChannel channel) {
+	private static List<String> insertMockLoggerInListener(SubscribableJmsChannel channel) {
 		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(
 				channel, "container", AbstractMessageListenerContainer.class);
 		Log logger = mock(Log.class);
@@ -310,10 +308,10 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		return logList;
 	}
 
-	private void verifyLogReceived(final List<String> logList) {
-		assertThat(logList.size() > 0).as("Failed to get expected exception").isTrue();
+	private static void verifyLogReceived(final List<String> logList) {
+		assertThat(logList).as("Failed to get expected exception").isNotEmpty();
 		boolean expectedExceptionFound = false;
-		while (logList.size() > 0) {
+		while (!logList.isEmpty()) {
 			String message = logList.remove(0);
 			assertThat(message).as("Failed to get expected exception").isNotNull();
 			if (message.startsWith("Dispatcher has no subscribers")) {

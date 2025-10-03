@@ -23,7 +23,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 

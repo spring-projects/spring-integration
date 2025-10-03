@@ -20,7 +20,8 @@ import java.util.concurrent.Executor;
 
 import jakarta.jms.ConnectionFactory;
 
-import org.springframework.integration.jms.AbstractJmsChannel;
+import org.springframework.integration.jms.channel.AbstractJmsChannel;
+import org.springframework.integration.jms.channel.SubscribableJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,7 +29,7 @@ import org.springframework.util.ErrorHandler;
 
 /**
  * A {@link JmsMessageChannelSpec} for subscribable
- * {@link org.springframework.integration.jms.AbstractJmsChannel}s.
+ * {@link AbstractJmsChannel}s.
  *
  * @param <S> the target {@link JmsMessageChannelSpec} implementation type.
  * @param <T> the target channel implementation type.
@@ -75,7 +76,7 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S, T>, T
 	/**
 	 * @param maxSubscribers the maxSubscribers.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see org.springframework.integration.jms.SubscribableJmsChannel#setMaxSubscribers(int)
+	 * @see SubscribableJmsChannel#setMaxSubscribers(int)
 	 */
 	public S maxSubscribers(int maxSubscribers) {
 		this.jmsChannelFactoryBean.setMaxSubscribers(maxSubscribers);

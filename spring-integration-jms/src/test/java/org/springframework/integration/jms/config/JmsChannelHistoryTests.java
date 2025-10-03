@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.jms.channel.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.messaging.Message;

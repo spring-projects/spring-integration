@@ -30,7 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway;
 import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -68,14 +68,14 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				final Message requestMessage = jmsTemplate.receive(requestDestination);
 				jmsTemplate.send(replyDestination, session -> {
 					TextMessage message = session.createTextMessage();
-					message.setText("bar");
+					message.setText("reply");
 					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
 					return message;
 				});
 			}).start();
 
 			assertThatExceptionOfType(MessageTimeoutException.class)
-					.isThrownBy(() -> gateway.exchange(new GenericMessage<>("foo")));
+					.isThrownBy(() -> gateway.exchange(new GenericMessage<>("test")));
 		}
 	}
 
@@ -95,14 +95,14 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				final Message requestMessage = jmsTemplate.receive(requestDestination);
 				jmsTemplate.send(replyDestination, session -> {
 					TextMessage message = session.createTextMessage();
-					message.setText("bar");
+					message.setText("test reply");
 					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
 					return message;
 				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway
-					.exchange(new GenericMessage<>("foo"));
-			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
+					.exchange(new GenericMessage<>("test"));
+			assertThat(siReplyMessage.getPayload()).isEqualTo("test reply");
 		}
 	}
 
@@ -123,14 +123,14 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				final Message requestMessage = jmsTemplate.receive(requestDestination);
 				jmsTemplate.send(replyDestination, session -> {
 					TextMessage message = session.createTextMessage();
-					message.setText("bar");
+					message.setText("test reply");
 					message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
 					return message;
 				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway
-					.exchange(new GenericMessage<>("foo"));
-			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
+					.exchange(new GenericMessage<>("test request"));
+			assertThat(siReplyMessage.getPayload()).isEqualTo("test reply");
 		}
 	}
 
@@ -151,13 +151,13 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				final Message requestMessage = jmsTemplate.receive(requestDestination);
 				jmsTemplate.send(replyDestination, session -> {
 					TextMessage message = session.createTextMessage();
-					message.setText("bar");
+					message.setText("reply");
 					message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
 					return message;
 				});
 			}).start();
 			assertThatExceptionOfType(MessageTimeoutException.class)
-					.isThrownBy(() -> gateway.exchange(new GenericMessage<>("foo")));
+					.isThrownBy(() -> gateway.exchange(new GenericMessage<>("request")));
 		}
 	}
 
@@ -177,7 +177,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 			for (int i = 0; i < 3; i++) {
 				try {
-					gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));
+					gateway.exchange(gateway.exchange(new GenericMessage<>("request")));
 				}
 				catch (Exception e) {
 					/*ignore*/
@@ -213,7 +213,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			TestUtils.getPropertyValue(context.getBean("fastGateway"), "handler", JmsOutboundGateway.class)
 					.setReceiveTimeout(10000);
 			Thread.sleep(1000);
-			assertThat(gateway.exchange(new GenericMessage<>("bar")).getPayload()).isEqualTo("bar");
+			assertThat(gateway.exchange(new GenericMessage<>("test")).getPayload()).isEqualTo("test");
 		}
 	}
 

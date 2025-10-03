@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.channel;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.jms.DynamicJmsTemplateProperties;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * A base {@link AbstractMessageChannel} implementation for JMS-backed message channels.
@@ -25,18 +29,34 @@ import org.springframework.jms.core.JmsTemplate;
  * @author Mark Fisher
  * @author Gary Russell
  *
- * @since 2.0
+ * @since 7.0
  *
- * @see org.springframework.integration.jms.channel.PollableJmsChannel
- * @see org.springframework.integration.jms.channel.SubscribableJmsChannel
- *
- * @deprecated since 7.0 in favor of {@link org.springframework.integration.jms.channel.AbstractJmsChannel}
+ * @see PollableJmsChannel
+ * @see SubscribableJmsChannel
  */
-@Deprecated(forRemoval = true, since = "7.0")
-public abstract class AbstractJmsChannel extends org.springframework.integration.jms.channel.AbstractJmsChannel {
+public abstract class AbstractJmsChannel extends AbstractMessageChannel {
+
+	private final JmsTemplate jmsTemplate;
 
 	public AbstractJmsChannel(JmsTemplate jmsTemplate) {
-		super(jmsTemplate);
+		Assert.notNull(jmsTemplate, "jmsTemplate must not be null");
+		this.jmsTemplate = jmsTemplate;
+	}
+
+	JmsTemplate getJmsTemplate() {
+		return this.jmsTemplate;
+	}
+
+	@Override
+	protected boolean doSend(Message<?> message, long timeout) {
+		try {
+			DynamicJmsTemplateProperties.setPriority(new IntegrationMessageHeaderAccessor(message).getPriority());
+			this.jmsTemplate.convertAndSend(message);
+		}
+		finally {
+			DynamicJmsTemplateProperties.clearPriority();
+		}
+		return true;
 	}
 
 }

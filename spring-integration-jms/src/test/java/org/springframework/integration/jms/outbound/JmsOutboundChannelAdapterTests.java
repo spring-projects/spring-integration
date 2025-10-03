@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.outbound;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
@@ -22,6 +22,8 @@ import jakarta.jms.TextMessage;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -62,7 +64,7 @@ public class JmsOutboundChannelAdapterTests extends ActiveMQMultiContextTests {
 
 		this.aborter.abort = true;
 		template.convertAndSend("outcatQ1", "Hello, world!");
-		template.setReceiveTimeout(1000);
+		template.setReceiveTimeout(10);
 		assertThat(template.receive("outcatQ2")).isNull();
 		endpoint.stop();
 	}

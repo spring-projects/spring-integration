@@ -25,7 +25,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.jms.JmsDestinationPollingSource;
+import org.springframework.integration.jms.inbound.JmsDestinationPollingSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;

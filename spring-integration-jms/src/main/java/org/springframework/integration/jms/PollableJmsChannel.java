@@ -16,20 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
-import org.springframework.integration.support.management.metrics.CounterFacade;
-import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
 /**
  * A JMS-backed channel from which messages can be received through polling.
@@ -41,172 +28,14 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Ngoc Nhan
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.jms.channel.PollableJmsChannel}
  */
-public class PollableJmsChannel extends AbstractJmsChannel
-		implements PollableChannel, ExecutorChannelInterceptorAware {
-
-	private @Nullable String messageSelector;
-
-	private @Nullable CounterFacade receiveCounter;
-
-	private volatile int executorInterceptorsSize;
+@Deprecated(forRemoval = true, since = "7.0")
+public class PollableJmsChannel extends org.springframework.integration.jms.channel.PollableJmsChannel {
 
 	public PollableJmsChannel(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
-	}
-
-	public void setMessageSelector(String messageSelector) {
-		this.messageSelector = messageSelector;
-	}
-
-	@Override
-	@Nullable
-	public Message<?> receive(long timeout) {
-		try {
-			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
-			return receive();
-		}
-		finally {
-			DynamicJmsTemplateProperties.clearReceiveTimeout();
-		}
-	}
-
-	@Override
-	@Nullable
-	public Message<?> receive() {
-		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
-		Deque<ChannelInterceptor> interceptorStack = null;
-		boolean counted = false;
-		try {
-			logger.trace(() -> "preReceive on channel '" + this + "'");
-			if (!interceptorList.getInterceptors().isEmpty()) {
-				interceptorStack = new ArrayDeque<>();
-
-				if (!interceptorList.preReceive(this, interceptorStack)) {
-					return null;
-				}
-			}
-
-			Message<?> message = receiveAndConvertToMessage();
-			if (message != null) {
-				incrementReceiveCounter();
-				counted = true;
-			}
-
-			if (interceptorStack != null && message != null) {
-				message = interceptorList.postReceive(message, this);
-			}
-			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
-			return message;
-		}
-		catch (RuntimeException ex) {
-			if (!counted) {
-				incrementReceiveErrorCounter(ex);
-			}
-			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
-			throw ex;
-		}
-	}
-
-	@Nullable
-	private Message<?> receiveAndConvertToMessage() {
-		Object object;
-		if (this.messageSelector == null) {
-			object = getJmsTemplate().receiveAndConvert();
-		}
-		else {
-			object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
-		}
-
-		if (object == null) {
-			logger.trace(() -> "postReceive on channel '" + this + "', message is null");
-			return null;
-		}
-		Message<?> message = object instanceof Message<?> msg
-				? msg
-				: getMessageBuilderFactory().withPayload(object).build();
-		logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
-
-		return message;
-	}
-
-	private void incrementReceiveCounter() {
-		MetricsCaptor metricsCaptor = getMetricsCaptor();
-		if (metricsCaptor != null) {
-			if (this.receiveCounter == null) {
-				this.receiveCounter = buildReceiveCounter(metricsCaptor, null);
-			}
-			this.receiveCounter.increment();
-		}
-	}
-
-	private void incrementReceiveErrorCounter(Exception ex) {
-		MetricsCaptor metricsCaptor = getMetricsCaptor();
-		if (metricsCaptor != null) {
-			buildReceiveCounter(metricsCaptor, ex).increment();
-		}
-	}
-
-	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {
-		CounterFacade counterFacade = metricsCaptor
-				.counterBuilder(RECEIVE_COUNTER_NAME)
-				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-				.tag("type", "channel")
-				.tag("result", ex == null ? "success" : "failure")
-				.tag("exception", ex == null ? "none" : ex.getClass().getSimpleName())
-				.description("Messages received")
-				.build();
-		this.meters.add(counterFacade);
-		return counterFacade;
-	}
-
-	@Override
-	public void setInterceptors(List<ChannelInterceptor> interceptors) {
-		super.setInterceptors(interceptors);
-		for (ChannelInterceptor interceptor : interceptors) {
-			if (interceptor instanceof ExecutorChannelInterceptor) {
-				this.executorInterceptorsSize++;
-			}
-		}
-	}
-
-	@Override
-	public void addInterceptor(ChannelInterceptor interceptor) {
-		super.addInterceptor(interceptor);
-		if (interceptor instanceof ExecutorChannelInterceptor) {
-			this.executorInterceptorsSize++;
-		}
-	}
-
-	@Override
-	public void addInterceptor(int index, ChannelInterceptor interceptor) {
-		super.addInterceptor(index, interceptor);
-		if (interceptor instanceof ExecutorChannelInterceptor) {
-			this.executorInterceptorsSize++;
-		}
-	}
-
-	@Override
-	public boolean removeInterceptor(ChannelInterceptor interceptor) {
-		boolean removed = super.removeInterceptor(interceptor);
-		if (removed && interceptor instanceof ExecutorChannelInterceptor) {
-			this.executorInterceptorsSize--;
-		}
-		return removed;
-	}
-
-	@Override
-	public ChannelInterceptor removeInterceptor(int index) {
-		ChannelInterceptor interceptor = super.removeInterceptor(index);
-		if (interceptor instanceof ExecutorChannelInterceptor) {
-			this.executorInterceptorsSize--;
-		}
-		return interceptor;
-	}
-
-	@Override
-	public boolean hasExecutorInterceptors() {
-		return this.executorInterceptorsSize > 0;
 	}
 
 }

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.outbound;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -63,7 +64,7 @@ public class JmsOutboundInsideChainTests extends ActiveMQMultiContextTests {
 		assertThat(this.repliesChannel.receive(2000)).isNotNull();
 
 		this.outboundGatewayChainChannel.send(MessageBuilder.withPayload("test").build());
-		assertThat(this.repliesChannel.receive(2000)).isNull();
+		assertThat(this.repliesChannel.receive(10)).isNull();
 	}
 
 }
