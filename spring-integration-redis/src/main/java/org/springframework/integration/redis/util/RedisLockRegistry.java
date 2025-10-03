@@ -47,8 +47,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -159,8 +157,6 @@ public final class RedisLockRegistry
 	 * thus should not be shutdown when {@link #destroy()} is called
 	 */
 	private boolean executorExplicitlySet;
-
-	private volatile boolean unlinkAvailable = true;
 
 	private volatile boolean isRunningRedisMessageListenerContainer = false;
 
@@ -585,34 +581,13 @@ public final class RedisLockRegistry
 		}
 
 		private void removeLockKey() {
-			if (RedisLockRegistry.this.unlinkAvailable) {
-				try {
-					boolean unlinkResult = removeLockKeyInnerUnlink();
-					if (unlinkResult) {
-						// Lock key successfully unlinked
-						stopRenew();
-					} else  {
-						throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
-								"The integrity of data protected by this lock may have been compromised.");
-					}
-				}
-				catch (InvalidDataAccessApiUsageException | RedisSystemException ex) {
-					// Redis 3 or earlier lacks of UNLINK support
-					// jedis throws InvalidDataAccessApiUsageException, lettuce RedisSystemException
-					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-							"falling back to the regular DELETE command", ex);
-					RedisLockRegistry.this.unlinkAvailable = false;
-					removeLockKey(); // retry with delete branch
-				}
-			} else {
-				boolean deleteResult = removeLockKeyInnerDelete();
-				if (deleteResult) {
-					// Lock key successfully deleted
-					stopRenew();
-				} else {
-					throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
-							"The integrity of data protected by this lock may have been compromised.");
-				}
+			boolean unlinkResult = removeLockKeyInnerUnlink();
+			if (unlinkResult) {
+				// Lock key successfully unlinked
+				stopRenew();
+			} else  {
+				throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
+						"The integrity of data protected by this lock may have been compromised.");
 			}
 		}
 
