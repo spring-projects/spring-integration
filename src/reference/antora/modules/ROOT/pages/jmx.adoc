@@ -208,7 +208,7 @@ The following example shows how to configure an operation-invoking outbound gate
    operation-name="testWithReturn"/>
 ----
 
-If you do not provide the `reply-channel` attribute, the reply message is sent to the channel identified by the `IntegrationMessageHeaderAccessor.REPLY_CHANNEL` header.
+If you do not provide the `reply-channel` attribute, the reply message is sent to the channel identified by the `MessageHeaders.REPLY_CHANNEL` header.
 That header is typically auto-created by the entry point into a message flow, such as any gateway component.
 However, if the message flow was started by manually creating a Spring Integration message and sending it directly to a channel, you must specify the message header explicitly or use the `reply-channel` attribute.
 
@@ -328,7 +328,7 @@ The `beanKey` argument is a `String` that contain the standard object name, begi
 The preceding example moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`my.domain:type=Integration,*`.
 Doing so also groups the beans under one tree entry under the domain in such tools as VisualVM.
 
-NOTE: The default naming strategy is a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[`MetadataNamingStrategy`].
+NOTE: The default naming strategy is a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[`MetadataNamingStrategy`].
 The exporter propagates the `default-domain` to that object to let it generate a fallback object name if parsing of the bean key fails.
 If your custom naming strategy is a `MetadataNamingStrategy` (or a subclass of it), the exporter does not propagate the `default-domain`.
 You must configure it on your strategy bean.
@@ -374,11 +374,4 @@ The MBeans are now registered during context initialization and unregistered whe
 
 The MBean exporter lets a JMX operation shut down the application in an orderly manner.
 It is intended for use before stopping the JVM.
-The following example shows how to use it:
-
-[source,java]
-----
-public void stopActiveComponents(long howLong)
-----
-
 Its use and operation are described in xref:shutdown.adoc[Orderly Shutdown].

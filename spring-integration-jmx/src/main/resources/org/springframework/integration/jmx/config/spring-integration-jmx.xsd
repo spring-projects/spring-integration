@@ -55,7 +55,7 @@
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
 											<tool:expected-type
-													type="org.springframework.integration.jmx.MBeanObjectConverter"/>
+													type="org.springframework.integration.jmx.inbound.MBeanObjectConverter"/>
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -301,7 +301,7 @@
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation>
-								<tool:expected-type type="org.springframework.integration.jmx.MBeanObjectConverter"/>
+								<tool:expected-type type="org.springframework.integration.jmx.inbound.MBeanObjectConverter"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>

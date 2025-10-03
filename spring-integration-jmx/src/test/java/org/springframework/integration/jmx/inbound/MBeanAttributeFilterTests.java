@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.inbound;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,19 +68,17 @@ public class MBeanAttributeFilterTests {
 
 		Message<?> result = channel.receive(testTimeout);
 		assertThat(result).isNotNull();
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result.getPayload()).isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> payload = (Map<String, Object>) result.getPayload();
-		assertThat(payload.size()).isEqualTo(4);
+		assertThat(payload).hasSize(4);
 
 		@SuppressWarnings("unchecked")
-		Map<String, Object> bean = (Map<String, Object>) payload
+		Map<String, Object> beans = (Map<String, Object>) payload
 				.get(this.domain + ":name=out,type=MessageChannel");
 
-		assertThat(bean.size()).isEqualTo(2);
-		assertThat(bean.containsKey("QueueSize")).isTrue();
-		assertThat(bean.containsKey("RemainingCapacity")).isTrue();
+		assertThat(beans).containsOnlyKeys("QueueSize", "RemainingCapacity");
 
 		adapter.stop();
 	}
@@ -94,11 +92,11 @@ public class MBeanAttributeFilterTests {
 
 		Message<?> result = channel.receive(testTimeout);
 		assertThat(result).isNotNull();
-		assertThat(result.getPayload().getClass()).isEqualTo(HashMap.class);
+		assertThat(result.getPayload()).isInstanceOf(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> payload = (Map<String, Object>) result.getPayload();
-		assertThat(payload.size()).isEqualTo(4);
+		assertThat(payload).hasSize(4);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> bean = (Map<String, Object>) payload

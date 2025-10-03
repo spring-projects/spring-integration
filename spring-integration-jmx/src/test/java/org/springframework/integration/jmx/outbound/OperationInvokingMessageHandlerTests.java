@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
+package org.springframework.integration.jmx.outbound;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,6 +40,7 @@ import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -91,16 +92,16 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(mock());
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<>();
-		params.put("p1", "foo");
-		params.put("p2", "bar");
+		params.put("p1", "p1Value");
+		params.put("p2", "p2Value");
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
-		assertThat(reply.getPayload()).isEqualTo("foobar");
+		assertThat(reply.getPayload()).isEqualTo("p1Valuep2Value");
 	}
 
 	@Test
@@ -110,10 +111,11 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("y");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(mock());
 		handler.afterPropertiesSet();
-		Message<?> message = MessageBuilder.withPayload("foo").build();
-		handler.handleMessage(message);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		assertThatNoException()
+				.isThrownBy(() -> handler.handleMessage(message));
 	}
 
 	@Test
@@ -126,7 +128,7 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<>();
-		params.put("p1", "foo");
+		params.put("p1", "p1Value");
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> handler.handleMessage(message));
@@ -141,12 +143,12 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		List<Object> params = Arrays.asList(new Object[] {"foo", 123});
+		List<Object> params = Arrays.asList(new Object[] {"test", 123});
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
-		assertThat(reply.getPayload()).isEqualTo("foo123");
+		assertThat(reply.getPayload()).isEqualTo("test123");
 	}
 
 	public interface TestOpsMBean {

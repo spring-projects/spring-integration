@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jmx;
-
-import java.util.HashMap;
-import java.util.Map;
+package org.springframework.integration.jmx.inbound;
 
 import javax.management.MBeanServer;
 
@@ -28,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
 
 /**
  * @author Stuart Williams
@@ -61,14 +59,11 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertThat(received.getClass()).isEqualTo(HashMap.class);
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> beans = (Map<String, Object>) received;
-
-		// test for a couple of MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(received)
+				.asInstanceOf(map(String.class, Object.class))
+				.containsKeys("java.lang:type=OperatingSystem",
+						"java.lang:type=Runtime",
+						"java.util.logging:type=Logging");
 	}
 
 	@Test
@@ -80,15 +75,10 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertThat(received.getClass()).isEqualTo(HashMap.class);
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> beans = (Map<String, Object>) received;
-
-		// test for a few MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
-		assertThat(beans.containsKey("java.util.logging:type=Logging")).isFalse();
+		assertThat(received)
+				.asInstanceOf(map(String.class, Object.class))
+				.containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime")
+				.doesNotContainKey("java.util.logging:type=Logging");
 	}
 
 	@Test
@@ -100,15 +90,10 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertThat(received.getClass()).isEqualTo(HashMap.class);
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> beans = (Map<String, Object>) received;
-
-		// test for a few MBeans
-		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isFalse();
-		assertThat(beans.containsKey("java.lang:type=Runtime")).isFalse();
-		assertThat(beans.containsKey("java.util.logging:type=Logging")).isTrue();
+		assertThat(received)
+				.asInstanceOf(map(String.class, Object.class))
+				.doesNotContainKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime")
+				.containsKeys("java.util.logging:type=Logging");
 	}
 
 }

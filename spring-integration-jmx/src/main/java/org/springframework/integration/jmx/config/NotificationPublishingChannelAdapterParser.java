@@ -23,11 +23,13 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jmx.NotificationPublishingMessageHandler;
+import org.springframework.integration.jmx.outbound.NotificationPublishingMessageHandler;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class NotificationPublishingChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -39,8 +41,8 @@ public class NotificationPublishingChannelAdapterParser extends AbstractOutbound
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.rootBeanDefinition(NotificationPublishingMessageHandler.class);
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.rootBeanDefinition(NotificationPublishingMessageHandler.class);
 		builder.addConstructorArgValue(element.getAttribute("object-name"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-notification-type");
 		return builder.getBeanDefinition();

@@ -24,9 +24,9 @@
 		query-expression="#{domain}:type=MessageChannel,name=*"
 		auto-startup="false">
 		<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
-		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter">
+		<bean class="org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter">
 			<constructor-arg>
-				<bean class="org.springframework.integration.jmx.NamedFieldsMBeanAttributeFilter">
+				<bean class="org.springframework.integration.jmx.inbound.NamedFieldsMBeanAttributeFilter">
 					<constructor-arg>
 						<array>
 							<value type="java.lang.String">QueueSize</value>
@@ -55,9 +55,9 @@
 		query-expression="#{domain}:type=MessageChannel,name=*"
 		auto-startup="false">
 		<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
-		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter">
+		<bean class="org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter">
 			<constructor-arg>
-				<bean class="org.springframework.integration.jmx.NotNamedFieldsMBeanAttributeFilter">
+				<bean class="org.springframework.integration.jmx.inbound.NotNamedFieldsMBeanAttributeFilter">
 					<constructor-arg>
 						<array>
 							<value type="java.lang.String">SendCount</value>
