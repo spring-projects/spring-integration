@@ -96,6 +96,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Roman Zabaluev
  * @author Alex Peelman
  * @author Youbin Wu
+ * @author Michal Domagala
  *
  * @since 4.0
  *
