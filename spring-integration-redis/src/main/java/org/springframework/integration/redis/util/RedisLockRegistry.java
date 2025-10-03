@@ -580,7 +580,8 @@ public final class RedisLockRegistry
 			if (unlinkResult) {
 				// Lock key successfully removed
 				stopRenew();
-			} else  {
+			}
+			else {
 				throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 						"The integrity of data protected by this lock may have been compromised.");
 			}
@@ -801,8 +802,7 @@ public final class RedisLockRegistry
 
 		private static final RedisScript<Boolean>
 				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
-
-
+		
 		private RedisSpinLock(String path) {
 			super(path);
 		}
