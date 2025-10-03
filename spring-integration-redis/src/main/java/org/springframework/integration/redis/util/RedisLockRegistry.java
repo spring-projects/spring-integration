@@ -47,6 +47,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -584,39 +586,33 @@ public final class RedisLockRegistry
 
 		private void removeLockKey() {
 			if (RedisLockRegistry.this.unlinkAvailable) {
-				Boolean unlinkResult = null;
 				try {
-					// Attempt to UNLINK the lock key; an exception indicates lack of UNLINK support
-					unlinkResult = removeLockKeyInnerUnlink();
+					boolean unlinkResult = removeLockKeyInnerUnlink();
+					if (unlinkResult) {
+						// Lock key successfully unlinked
+						stopRenew();
+					} else  {
+						throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
+								"The integrity of data protected by this lock may have been compromised.");
+					}
 				}
-				catch (Exception ex) {
+				catch (InvalidDataAccessApiUsageException | RedisSystemException ex) {
+					// Redis 3 or earlier lacks of UNLINK support
+					// jedis throws InvalidDataAccessApiUsageException, lettuce RedisSystemException
+					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+							"falling back to the regular DELETE command", ex);
 					RedisLockRegistry.this.unlinkAvailable = false;
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("The UNLINK command has failed (not supported on the Redis server?); " +
-								"falling back to the regular DELETE command", ex);
-					}
-					else {
-						LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-								"falling back to the regular DELETE command: " + ex.getMessage());
-					}
+					removeLockKey(); // retry with delete branch
 				}
-
-				if (Boolean.TRUE.equals(unlinkResult)) {
-					// Lock key successfully unlinked
+			} else {
+				boolean deleteResult = removeLockKeyInnerDelete();
+				if (deleteResult) {
+					// Lock key successfully deleted
 					stopRenew();
-					return;
-				}
-				else if (Boolean.FALSE.equals(unlinkResult)) {
+				} else {
 					throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 							"The integrity of data protected by this lock may have been compromised.");
 				}
-			}
-			if (!removeLockKeyInnerDelete()) {
-				throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
-						"The integrity of data protected by this lock may have been compromised.");
-			}
-			else {
-				stopRenew();
 			}
 		}
 
