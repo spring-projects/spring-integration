@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Michal Domagala
  *
  * @since 2.1
  */
@@ -47,8 +48,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	private final RedisTemplate<Object, Object> redisTemplate;
 
 	private boolean valueSerializerSet;
-
-	private volatile boolean unlinkAvailable = true;
 
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
@@ -133,48 +132,14 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
-			if (this.unlinkAvailable) {
-				try {
-					this.redisTemplate.unlink(id);
-				}
-				catch (Exception ex) {
-					unlinkUnavailable(ex);
-					this.redisTemplate.delete(id);
-				}
-			}
-			else {
-				this.redisTemplate.delete(id);
-			}
+			this.redisTemplate.unlink(id);
 		}
 		return removedObject;
 	}
 
-	private void unlinkUnavailable(Exception ex) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("The UNLINK command has failed (not supported on the Redis server?); " +
-					"falling back to the regular DELETE command", ex);
-		}
-		else {
-			logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
-					"falling back to the regular DELETE command: " + ex.getMessage());
-		}
-		this.unlinkAvailable = false;
-	}
-
 	@Override
 	protected void doRemoveAll(Collection<Object> ids) {
-		if (this.unlinkAvailable) {
-			try {
-				this.redisTemplate.unlink(ids);
-			}
-			catch (Exception ex) {
-				unlinkUnavailable(ex);
-				this.redisTemplate.delete(ids);
-			}
-		}
-		else {
-			this.redisTemplate.delete(ids);
-		}
+		this.redisTemplate.unlink(ids);
 	}
 
 	@Override
