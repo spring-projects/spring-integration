@@ -64,7 +64,7 @@
 
 	<bean id="predicate" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg
-				value="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate"
+				value="org.springframework.integration.file.outbound.FileWritingMessageHandler.MessageFlushPredicate"
 				type="java.lang.Class"/>
 	</bean>
 

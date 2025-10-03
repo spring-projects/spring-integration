@@ -22,7 +22,7 @@
 	</si:chain>
 
 	<bean id="placeholderProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-		<property name="properties" value="#{T(org.springframework.integration.file.FileOutboundChannelAdapterInsideChainTests).placeholderProperties}"/>
+		<property name="properties" value="#{T(org.springframework.integration.file.outbound.FileOutboundChannelAdapterInsideChainTests).placeholderProperties}"/>
 	</bean>
 
 	<context:property-placeholder properties-ref="placeholderProperties"/>

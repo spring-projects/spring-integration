@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 

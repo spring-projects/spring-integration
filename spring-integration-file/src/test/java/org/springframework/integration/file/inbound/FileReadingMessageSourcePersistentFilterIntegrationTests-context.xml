@@ -6,8 +6,8 @@
 			https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<!-- under test -->
-	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
-		  p:directory="#{T(org.springframework.integration.file.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir}"
+	<bean id="pollableFileSource" class="org.springframework.integration.file.inbound.FileReadingMessageSource"
+		  p:directory="#{T(org.springframework.integration.file.inbound.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir}"
 		  p:filter-ref="persistentFilter"/>
 
 	<bean id="integrationEvaluationContext" class="org.springframework.expression.spel.support.StandardEvaluationContext" />
@@ -20,7 +20,7 @@
 
 	<bean id="ppms" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
 		<property name="baseDirectory"
-			value="#{T(org.springframework.integration.file.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir.path}"/>
+			value="#{T(org.springframework.integration.file.inbound.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir.path}"/>
 	</bean>
 
 </beans>

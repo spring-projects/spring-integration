@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.outbound;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -42,10 +43,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.support.MessageBuilder;
@@ -63,7 +64,6 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -117,23 +117,24 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void permissions() {
 		if (FileUtils.IS_POSIX) {
 			FileWritingMessageHandler handler = new FileWritingMessageHandler(mock(Expression.class));
 			handler.setChmod(0421);
-			Set<?> permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size()).isEqualTo(3);
-			assertThat(permissions.contains(PosixFilePermission.OWNER_READ)).isTrue();
-			assertThat(permissions.contains(PosixFilePermission.GROUP_WRITE)).isTrue();
-			assertThat(permissions.contains(PosixFilePermission.OTHERS_EXECUTE)).isTrue();
+			Set<PosixFilePermission> permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+			assertThat(permissions).hasSize(3)
+					.contains(PosixFilePermission.OWNER_READ,
+							PosixFilePermission.GROUP_WRITE,
+							PosixFilePermission.OTHERS_EXECUTE);
 			handler.setChmod(0600);
 			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size()).isEqualTo(2);
-			assertThat(permissions.contains(PosixFilePermission.OWNER_READ)).isTrue();
-			assertThat(permissions.contains(PosixFilePermission.OWNER_WRITE)).isTrue();
+			assertThat(permissions).hasSize(2)
+					.contains(PosixFilePermission.OWNER_READ,
+							PosixFilePermission.OWNER_WRITE);
 			handler.setChmod(0777);
 			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size()).isEqualTo(9);
+			assertThat(permissions).hasSize(9);
 		}
 	}
 
@@ -145,11 +146,11 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.setOutputChannel(new NullChannel());
 		handler.handleMessage(new GenericMessage<>("test"));
 		File[] output = outputDirectory.listFiles();
-		assertThat(output.length).isEqualTo(1);
+		assertThat(output).hasSize(1);
 		assertThat(output[0]).isNotNull();
 		if (FileUtils.IS_POSIX) {
 			Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(output[0].toPath());
-			assertThat(permissions.size()).isEqualTo(9);
+			assertThat(permissions).hasSize(9);
 		}
 	}
 
@@ -243,7 +244,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.setAppendNewLine(true);
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
-		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
+		assertFileContentIs(result, SAMPLE_CONTENT + System.lineSeparator());
 	}
 
 	@Test
@@ -266,18 +267,18 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.setAppendNewLine(true);
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
-		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
+		assertFileContentIs(result, SAMPLE_CONTENT + System.lineSeparator());
 	}
 
 	@Test
 	@Disabled("INT-3289: doesn't fail on all OS")
 	public void testCreateDirFail() {
-		File dir = new File("/foo");
+		File dir = new File("/test");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(handler::afterPropertiesSet)
-				.withMessageContaining("[/foo] could not be created");
+				.withMessageContaining("[/test] could not be created");
 	}
 
 	@Test
@@ -288,7 +289,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isTrue();
+		assertThat(sourceFile).exists();
 	}
 
 	@Test
@@ -300,7 +301,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -317,7 +318,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		File resultFile = messageToFile(result);
 		Set<PosixFilePermission> posixFilePermissions = Files.getPosixFilePermissions(resultFile.toPath());
 		assertThat(posixFilePermissions).containsOnly(PosixFilePermission.OWNER_READ);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -333,7 +334,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -349,7 +350,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -362,11 +363,11 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 						SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING))
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
 				.build();
-		assertThat(sourceFile.exists()).isTrue();
+		assertThat(sourceFile).exists();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -379,11 +380,11 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 						SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING))
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
-		assertThat(sourceFile.exists()).isTrue();
+		assertThat(sourceFile).exists();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -398,11 +399,11 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		Message<?> message = MessageBuilder.withPayload(is)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
 				.build();
-		assertThat(sourceFile.exists()).isTrue();
+		assertThat(sourceFile).exists();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -417,11 +418,11 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		Message<?> message = MessageBuilder.withPayload(is)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
-		assertThat(sourceFile.exists()).isTrue();
+		assertThat(sourceFile).exists();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
@@ -464,8 +465,8 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		Message<?> result = output.receive(0);
 		File destFile = (File) result.getPayload();
 		assertThat(sourceFile).isNotSameAs(destFile);
-		assertThat(destFile.exists()).isFalse();
-		assertThat(outFile.exists()).isTrue();
+		assertThat(destFile).doesNotExist();
+		assertThat(outFile).exists();
 	}
 
 	@Test
@@ -474,7 +475,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		QueueChannel output = new QueueChannel();
 		File outFile =
 				new File(tempDir, "/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
-		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
+		FileCopyUtils.copy("test".getBytes(), new FileOutputStream(outFile));
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
 		handler.setFileExistsMode(FileExistsMode.IGNORE);
@@ -484,8 +485,8 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		File destFile = (File) result.getPayload();
 		assertThat(sourceFile).isNotSameAs(destFile);
 		assertFileContentIsMatching(result);
-		assertThat(outFile.exists()).isTrue();
-		assertFileContentIs(outFile, "foo");
+		assertThat(outFile).exists();
+		assertFileContentIs(outFile, "test");
 	}
 
 	@Test
@@ -493,7 +494,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		File tempFolder = new File(tempDir, UUID.randomUUID().toString());
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder);
 		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
-		handler.setFileNameGenerator(message -> "foo.txt");
+		handler.setFileNameGenerator(message -> "test.txt");
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
@@ -502,14 +503,14 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.setFlushInterval(30000);
 		handler.afterPropertiesSet();
 		handler.start();
-		File file = new File(tempFolder, "foo.txt");
+		File file = new File(tempFolder, "test.txt");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		handler.handleMessage(new GenericMessage<>("bar"));
 		handler.handleMessage(new GenericMessage<>("baz"));
 		handler.handleMessage(new GenericMessage<>("qux".getBytes())); // change of payload type forces flush
-		assertThat(file.length()).isGreaterThanOrEqualTo(9L);
+		assertThat(file).size().isGreaterThanOrEqualTo(9L);
 		handler.stop(); // forces flush
-		assertThat(file.length()).isEqualTo(12L);
+		assertThat(file).hasSize(12);
 		handler.setFlushInterval(100);
 		handler.start();
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("fiz".getBytes())));
@@ -517,10 +518,10 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		while (n++ < 100 && file.length() < 15) {
 			Thread.sleep(100);
 		}
-		assertThat(file.length()).isEqualTo(15L);
+		assertThat(file).hasSize(15);
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
 		handler.trigger(new GenericMessage<>(Matcher.quoteReplacement(file.getAbsolutePath())));
-		assertThat(file.length()).isEqualTo(18L);
+		assertThat(file).hasSize(18);
 		assertThat(TestUtils.getPropertyValue(handler, "fileStates", Map.class).size()).isEqualTo(0);
 
 		handler.setFlushInterval(30000);
@@ -531,7 +532,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		});
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
 		handler.trigger(new GenericMessage<>("foo"));
-		assertThat(file.length()).isEqualTo(21L);
+		assertThat(file).hasSize(21);
 		assertThat(called.get()).isTrue();
 
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
@@ -540,18 +541,20 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 			called.set(true);
 			return true;
 		});
-		assertThat(file.length()).isEqualTo(24L);
+		assertThat(file).hasSize(24);
 		assertThat(called.get()).isTrue();
 
 		handler.stop();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(handler, "logger", LogAccessor.class));
-		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		Log logger = spy(TestUtils.getPropertyValue(handler, "logger.log", Log.class));
+		new DirectFieldAccessor(handler).setPropertyValue("logger.log", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final AtomicInteger flushes = new AtomicInteger();
 		doAnswer(i -> {
-			flushes.incrementAndGet();
+			if (i.getArgument(0).toString().startsWith("Flushed:")) {
+				flushes.incrementAndGet();
+			}
 			return null;
-		}).when(logger).debug(startsWith("Flushed:"));
+		}).when(logger).debug(any());
 		handler.setFlushInterval(50);
 		handler.setFlushWhenIdle(false);
 		handler.start();

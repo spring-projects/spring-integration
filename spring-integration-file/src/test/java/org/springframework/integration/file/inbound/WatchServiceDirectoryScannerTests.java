@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +29,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.springframework.integration.file.DirectoryScanner;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.LastModifiedFileListFilter;
@@ -116,15 +118,14 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 
 		// Files are skipped by the LastModifiedFileListFilter
 		List<File> files = scanner.listFiles(this.rootDir);
-		assertThat(files).hasSize(0);
+		assertThat(files).isEmpty();
 		// Consider all the files as one day old
 		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
 		files = scanner.listFiles(this.rootDir);
-		assertThat(files).hasSize(3);
-		assertThat(files).contains(top1);
-		assertThat(files).contains(foo1);
-		assertThat(files).contains(bar1);
-		assertThat(files).doesNotContain(this.skippedFile);
+		assertThat(files)
+				.hasSize(3)
+				.contains(top1, foo1, bar1)
+				.doesNotContain(this.skippedFile);
 		fileReadingMessageSource.start();
 		File top2 = File.createTempFile("tmp", null, this.rootDir);
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);
@@ -140,11 +141,9 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
-		assertThat(accum).hasSize(4);
-		assertThat(accum).contains(top2);
-		assertThat(accum).contains(foo2);
-		assertThat(accum).contains(bar2);
-		assertThat(accum).contains(baz1);
+		assertThat(accum)
+				.hasSize(4)
+				.contains(top2, foo2, bar2, baz1);
 
 		/*See AbstractWatchKey#signalEvent source code:
 			if(var5 >= 512) {
@@ -186,14 +185,13 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 
 		n = 0;
 		files.clear();
-		while (n++ < 300 && files.size() < 1) {
+		while (n++ < 300 && files.isEmpty()) {
 			Thread.sleep(100);
 			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
 
-		assertThat(files).hasSize(1);
-		assertThat(files).contains(baz2);
+		assertThat(files).containsOnly(baz2);
 
 		baz2.delete();
 

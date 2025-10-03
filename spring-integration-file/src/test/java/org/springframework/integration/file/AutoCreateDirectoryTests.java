@@ -22,6 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,7 +69,7 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
-		assertThat(new File(INBOUND_PATH).exists()).isTrue();
+		assertThat(new File(INBOUND_PATH)).exists();
 		source.stop();
 	}
 
@@ -84,17 +86,15 @@ public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 
 	@Test
 	public void autoCreateForOutboundEnabledByDefault() {
-		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-				new File(OUTBOUND_PATH));
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(OUTBOUND_PATH));
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		assertThat(new File(OUTBOUND_PATH).exists()).isTrue();
+		assertThat(new File(OUTBOUND_PATH)).exists();
 	}
 
 	@Test
 	public void autoCreateForOutboundDisabled() {
-		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-				new File(OUTBOUND_PATH));
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(OUTBOUND_PATH));
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setAutoCreateDirectory(false);
 		assertThatIllegalArgumentException()

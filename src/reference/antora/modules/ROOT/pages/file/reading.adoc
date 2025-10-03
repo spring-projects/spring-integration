@@ -8,7 +8,7 @@ The following example shows how to configure a `FileReadingMessageSource`:
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:directory="${input.directory}"/>
 ----
 
@@ -57,7 +57,7 @@ The following example configures a `FileReadingMessageSource` with a filter:
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:inputDirectory="${input.directory}"
     p:filter-ref="customFilterBean"/>
 ----
@@ -71,7 +71,7 @@ The `CompositeFileListFilter` enables the composition, as the following example 
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:inputDirectory="${input.directory}"
     p:filter-ref="compositeFilter"/>
 

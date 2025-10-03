@@ -13,7 +13,7 @@
 
 	<int-file:inbound-channel-adapter id="pseudoTx"
 		channel="input" auto-startup="false"
-						directory="#{T (org.springframework.integration.file.FileInboundTransactionTests).tmpDir}/si-test1"
+						directory="#{T (org.springframework.integration.file.inbound.FileInboundTransactionTests).tmpDir}/si-test1"
 						use-watch-service="true"
 						watch-events="CREATE,DELETE">
 		<int:poller fixed-rate="500">
@@ -34,13 +34,13 @@
 	<int:channel id="txInput" />
 
 	<int-file:inbound-channel-adapter id="realTx" channel="txInput" auto-startup="false"
-							 directory="#{T (org.springframework.integration.file.FileInboundTransactionTests).tmpDir}/si-test2">
+							 directory="#{T (org.springframework.integration.file.inbound.FileInboundTransactionTests).tmpDir}/si-test2">
 		<int:poller fixed-rate="500">
 			<int:transactional transaction-manager="txManager" synchronization-factory="syncFactoryB"/>
 		</int:poller>
 	</int-file:inbound-channel-adapter>
 
-	<bean id="txManager" class="org.springframework.integration.file.FileInboundTransactionTests$DummyTxManager" />
+	<bean id="txManager" class="org.springframework.integration.file.inbound.FileInboundTransactionTests$DummyTxManager" />
 
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 

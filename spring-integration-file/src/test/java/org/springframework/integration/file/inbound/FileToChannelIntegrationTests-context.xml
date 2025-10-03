@@ -20,7 +20,7 @@
 			channel="fileMessages" filter="compositeFilter"/>
 
 	<bean id="inputDirectory" class="java.io.File">
-		<constructor-arg value="#{T(org.springframework.integration.file.FileToChannelIntegrationTests).tempDir.path}"/>
+		<constructor-arg value="#{T(org.springframework.integration.file.inbound.FileToChannelIntegrationTests).tempDir.path}"/>
 	</bean>
 
 	<si:channel id="fileMessages">

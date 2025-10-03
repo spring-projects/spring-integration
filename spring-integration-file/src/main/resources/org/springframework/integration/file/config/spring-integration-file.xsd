@@ -20,7 +20,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a 'SourcePollingChannelAdapter' Endpoint for the
-				'org.springframework.integration.file.FileReadingMessageSource' that
+				'org.springframework.integration.file.inbound.FileReadingMessageSource' that
 				polls a directory and sends Messages whose payloads are
 				instances of java.io.File.
 			</xsd:documentation>
@@ -210,7 +210,7 @@ Only files matching this regular expression will be picked up by this adapter.
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.file.FileWritingMessageHandler'
+				'org.springframework.integration.file.outbound.FileWritingMessageHandler'
 				with 'expectReply = false'
 				that writes Message payloads to a File.
 			</xsd:documentation>
@@ -378,7 +378,7 @@ Only files matching this regular expression will be picked up by this adapter.
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.file.FileWritingMessageHandler'
+				'org.springframework.integration.file.outbound.FileWritingMessageHandler'
 				that writes request Message payloads to a File and then generates a
 				reply Message containing the newly written File as its payload.
 			</xsd:documentation>
@@ -598,7 +598,7 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-								type="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate"/>
+								type="org.springframework.integration.file.outbound.FileWritingMessageHandler.MessageFlushPredicate"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

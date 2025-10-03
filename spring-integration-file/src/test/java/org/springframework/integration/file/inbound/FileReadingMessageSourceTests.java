@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -23,6 +23,8 @@ import java.util.Comparator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
