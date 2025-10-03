@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +46,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */

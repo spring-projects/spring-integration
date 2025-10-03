@@ -31,6 +31,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.metadata.MetadataStore;
@@ -181,7 +182,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param expression the SpEL expression for files filtering.
 	 * @return the spec.
-	 * @see org.springframework.integration.file.FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S filterExpression(String expression) {
@@ -193,7 +194,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param filterFunction the {@link Function} for files filtering.
 	 * @return the spec.
-	 * @see org.springframework.integration.file.FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S filterFunction(Function<F, Boolean> filterFunction) {

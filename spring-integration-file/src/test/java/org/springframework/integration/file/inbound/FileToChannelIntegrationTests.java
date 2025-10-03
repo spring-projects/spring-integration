@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 
@@ -60,7 +60,7 @@ public class FileToChannelIntegrationTests {
 		Message<?> result = this.resultChannel.receive(10000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
-		assertThat(!file.exists()).isTrue();
+		assertThat(file).doesNotExist();
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class FileToChannelIntegrationTests {
 		File.createTempFile("test", null, inputDirectory).setLastModified(System.currentTimeMillis() - 1000);
 		Message<?> received = this.fileMessages.receive(10000);
 		assertThat(received).isNotNull();
-		assertThat(fileMessages.receive(200)).isNull();
+		assertThat(fileMessages.receive(10)).isNull();
 	}
 
 }

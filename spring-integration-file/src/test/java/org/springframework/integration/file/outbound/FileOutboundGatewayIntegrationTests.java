@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.outbound;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -101,45 +102,44 @@ public class FileOutboundGatewayIntegrationTests {
 	public void copy() {
 		copyInputChannel.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size()).isEqualTo(1);
+		assertThat(result).hasSize(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
 		assertThat(payloadFile).isNotEqualTo(sourceFile);
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
-		assertThat(sourceFile.exists()).isTrue();
-		assertThat(payloadFile.exists()).isTrue();
+		assertThat(resultMessage.getHeaders()).containsEntry(FileHeaders.ORIGINAL_FILE, sourceFile);
+		assertThat(sourceFile).exists();
+		assertThat(payloadFile).exists();
 	}
 
 	@Test
 	public void move() {
 		moveInputChannel.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size()).isEqualTo(1);
+		assertThat(result).hasSize(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
 		assertThat(payloadFile).isNotEqualTo(sourceFile);
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
-		assertThat(sourceFile.exists()).isFalse();
-		assertThat(payloadFile.exists()).isTrue();
+		assertThat(resultMessage.getHeaders()).containsEntry(FileHeaders.ORIGINAL_FILE, sourceFile);
+		assertThat(sourceFile).doesNotExist();
+		assertThat(payloadFile).exists();
 	}
 
-	@Test //INT-1029
+	@Test
 	public void moveInsideTheChain() {
-		// INT-2755
 		Object bean = this.beanFactory
 				.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child" +
 						".file-outbound-gateway-within-chain.handler");
-		assertThat(bean instanceof FileWritingMessageHandler).isTrue();
+		assertThat(bean).isInstanceOf(FileWritingMessageHandler.class);
 
 		fileOutboundGatewayInsideChain.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size()).isEqualTo(1);
+		assertThat(result).hasSize(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
 		assertThat(payloadFile).isNotEqualTo(sourceFile);
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
-		assertThat(sourceFile.exists()).isFalse();
-		assertThat(payloadFile.exists()).isTrue();
+		assertThat(resultMessage.getHeaders()).containsEntry(FileHeaders.ORIGINAL_FILE, sourceFile);
+		assertThat(sourceFile).doesNotExist();
+		assertThat(payloadFile).exists();
 	}
 
 }

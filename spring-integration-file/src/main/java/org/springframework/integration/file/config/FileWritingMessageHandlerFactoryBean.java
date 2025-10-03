@@ -24,8 +24,8 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageHandler;
-import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 
 /**

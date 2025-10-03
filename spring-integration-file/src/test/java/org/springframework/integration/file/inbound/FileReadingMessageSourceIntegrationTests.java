@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.inbound;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -145,7 +146,7 @@ public class FileReadingMessageSourceIntegrationTests {
 	 * @return a latch that will be counted down once all threads have run their
 	 *		 runnable.
 	 */
-	private CountDownLatch doConcurrently(int numberOfThreads, Runnable runnable, CountDownLatch start) {
+	private static CountDownLatch doConcurrently(int numberOfThreads, Runnable runnable, CountDownLatch start) {
 		final CountDownLatch started = new CountDownLatch(numberOfThreads);
 		final CountDownLatch done = new CountDownLatch(numberOfThreads);
 		for (int i = 0; i < numberOfThreads; i++) {

@@ -29,7 +29,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
@@ -131,10 +131,9 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 * Test uses the Ignore Mode of the File OutboundGateway. When persisting
 	 * a payload using the File Outbound Gateway and the mode is set to IGNORE,
 	 * then the destination file will be created and written if it does not yet exist,
-	 * BUT if it exists it will not be overwritten. Instead the Message Payload will
+	 * BUT if it exists it will not be overwritten. Instead, the Message Payload will
 	 * be silently ignored. The reply message will contain the pre-existing destination
 	 * {@link File} as its payload.
-	 *
 	 */
 	@Test
 	public void gatewayWithIgnoreMode() throws Exception {
@@ -152,7 +151,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 
-		assertThat(replyMessage.getPayload() instanceof File).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(File.class);
 
 		File replyPayload = (File) replyMessage.getPayload();
 
@@ -166,7 +165,6 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 * then the destination {@link File} will be created and written if it does
 	 * not yet exist. BUT if the destination {@link File} already exists, a
 	 * {@link MessageHandlingException} will be thrown.
-	 *
 	 */
 	@Test
 	public void gatewayWithFailMode() throws Exception {
@@ -191,10 +189,8 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	/**
 	 * Test is exactly the same as {@link #gatewayWithFailMode()}. However, the
 	 * mode is provided in lower-case ensuring that the mode can be provided
-	 * in an case-insensitive fashion.
-	 *
-	 * Instead a {@link MessageHandlingException} will be thrown.
-	 *
+	 * in a case-insensitive fashion.
+	 * Instead, a {@link MessageHandlingException} will be thrown.
 	 */
 	@Test
 	public void gatewayWithFailModeLowercase() throws Exception {
@@ -221,10 +217,8 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 * a payload using the File Outbound Gateway and the mode is set to APPEND,
 	 * then the destination file will be created and written, if it does not yet
 	 * exist. BUT if it exists it will be appended to the existing file.
-	 *
 	 * The reply message will contain the concatenated destination
 	 * {@link File} as its payload.
-	 *
 	 */
 	@Test
 	public void gatewayWithAppendMode() throws Exception {
@@ -242,11 +236,10 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 
-		assertThat(m.getPayload() instanceof File).isTrue();
+		assertThat(m.getPayload()).isInstanceOf(File.class);
 
 		File replyPayload = (File) m.getPayload();
 		assertThat(new String(FileCopyUtils.copyToByteArray(replyPayload))).isEqualTo(expectedFileContent);
-
 	}
 
 	/**
@@ -254,10 +247,8 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 * a payload using the File Outbound Gateway and the mode is set to REPLACE,
 	 * then the destination file will be created and written if it does not yet exist.
 	 * If the destination file exists, it will be replaced.
-	 *
 	 * The reply message will contain the concatenated destination
 	 * {@link File} as its payload.
-	 *
 	 */
 	@Test
 	public void gatewayWithReplaceMode() throws Exception {
@@ -278,11 +269,10 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 
-		assertThat(m.getPayload() instanceof File).isTrue();
+		assertThat(m.getPayload()).isInstanceOf(File.class);
 
 		File replyPayload = (File) m.getPayload();
 		assertThat(new String(FileCopyUtils.copyToByteArray(replyPayload))).isEqualTo(expectedFileContent);
-
 	}
 
 	/**

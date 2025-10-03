@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.outbound;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -87,21 +87,21 @@ class FileOutboundChannelAdapterIntegrationTests {
 	@Test
 	void saveToBaseDir() {
 		this.inputChannelSaveToBaseDir.send(this.message);
-		assertThat(new File("target/base-directory/foo.txt").exists()).isTrue();
+		assertThat(new File("target/base-directory/foo.txt")).exists();
 	}
 
 	@Test
 	void saveToBaseDirDeleteSourceFile() {
 		assertThat(sourceFile.exists()).isTrue();
 		this.inputChannelSaveToBaseDirDeleteSource.send(this.message);
-		assertThat(new File("target/base-directory/foo.txt").exists()).isTrue();
-		assertThat(sourceFile.exists()).isFalse();
+		assertThat(new File("target/base-directory/foo.txt")).exists();
+		assertThat(sourceFile).doesNotExist();
 	}
 
 	@Test
 	void saveToSubDir() {
 		this.inputChannelSaveToSubDir.send(this.message);
-		assertThat(new File("target/base-directory/sub-directory/foo.txt").exists()).isTrue();
+		assertThat(new File("target/base-directory/sub-directory/foo.txt")).exists();
 	}
 
 	@Test
@@ -128,7 +128,7 @@ class FileOutboundChannelAdapterIntegrationTests {
 				.build();
 
 		this.inputChannelSaveToSubDirWithHeader.send(message2);
-		assertThat(new File("target/base-directory/headerdir/foo.txt").exists()).isTrue();
+		assertThat(new File("target/base-directory/headerdir/foo.txt")).exists();
 	}
 
 	@Test
@@ -146,7 +146,7 @@ class FileOutboundChannelAdapterIntegrationTests {
 				.setHeader("subDirectory", directory)
 				.build();
 		this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
-		assertThat(new File("target/base-directory/sub-directory/foo.txt").exists()).isTrue();
+		assertThat(new File("target/base-directory/sub-directory/foo.txt")).exists();
 	}
 
 	@Test

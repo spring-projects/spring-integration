@@ -6,16 +6,16 @@
 			https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<!-- under test -->
-	<bean id="fileSource1" class="org.springframework.integration.file.FileReadingMessageSource"
-		  p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
+	<bean id="fileSource1" class="org.springframework.integration.file.inbound.FileReadingMessageSource"
+		  p:directory="#{T(org.springframework.integration.file.locking.FileLockingWithMultipleSourcesIntegrationTests).workdir}"
 		  p:filter-ref="filter1" p:locker-ref="filter1"/>
 
-	<bean id="fileSource2" class="org.springframework.integration.file.FileReadingMessageSource"
-		  p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
+	<bean id="fileSource2" class="org.springframework.integration.file.inbound.FileReadingMessageSource"
+		  p:directory="#{T(org.springframework.integration.file.locking.FileLockingWithMultipleSourcesIntegrationTests).workdir}"
 		  p:filter-ref="filter2" p:locker-ref="filter2"/>
 
-	<bean id="fileSource3" class="org.springframework.integration.file.FileReadingMessageSource"
-		  p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
+	<bean id="fileSource3" class="org.springframework.integration.file.inbound.FileReadingMessageSource"
+		  p:directory="#{T(org.springframework.integration.file.locking.FileLockingWithMultipleSourcesIntegrationTests).workdir}"
 		  p:filter-ref="filter1" p:locker-ref="filter1"/>
 
 	<bean id="filter1" class="org.springframework.integration.file.locking.NioFileLocker"/>

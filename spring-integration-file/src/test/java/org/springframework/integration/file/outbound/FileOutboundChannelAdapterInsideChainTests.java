@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.outbound;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -65,9 +66,9 @@ public class FileOutboundChannelAdapterInsideChainTests {
 		Message<String> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		outboundChainChannel.send(message);
 		File testFile = new File(WORK_DIR, TEST_FILE_NAME);
-		assertThat(testFile.exists()).isTrue();
+		assertThat(testFile).exists();
 		byte[] testFileContent = FileCopyUtils.copyToByteArray(testFile);
-		assertThat(SAMPLE_CONTENT).isEqualTo(new String(testFileContent));
+		assertThat(testFileContent).isEqualTo(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8));
 	}
 
 }
