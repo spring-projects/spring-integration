@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.outbound;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +36,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -118,7 +117,7 @@ public class OutboundGatewayConnectionTests {
 		exec.execute(() -> {
 			latch3.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch4.countDown();
@@ -131,7 +130,7 @@ public class OutboundGatewayConnectionTests {
 		request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
 		final jakarta.jms.Message jmsReply2 = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply2);
+		template.send(request.getJMSReplyTo(), session -> jmsReply2);
 		assertThat(latch4.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();
 

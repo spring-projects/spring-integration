@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.inbound;
 
 import jakarta.jms.InvalidDestinationException;
 import jakarta.jms.JMSException;
@@ -25,6 +25,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.jms.StubSession;
+import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.converter.MessageConversionException;
@@ -95,7 +97,7 @@ public class ChannelPublishingJmsMessageListenerTests implements TestApplication
 		listener.stop();
 	}
 
-	private void startBackgroundReplier(final PollableChannel channel) {
+	private static void startBackgroundReplier(final PollableChannel channel) {
 		new SimpleAsyncTaskExecutor().execute(() -> {
 			Message<?> request = channel.receive(50000);
 			Message<?> reply = new GenericMessage<>(((String) request.getPayload()).toUpperCase());

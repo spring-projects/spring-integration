@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.outbound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway.ReplyContainerProperties;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -86,7 +87,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		JmsOutboundGateway gateway = new JmsOutboundGateway();
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		gateway.setConnectionFactory(connectionFactory);
-		gateway.setRequestDestinationName("foo");
+		gateway.setRequestDestinationName("testDestination");
 		gateway.setUseReplyContainer(true);
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
 		final List<Throwable> errors = new ArrayList<>();
@@ -99,28 +100,28 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		replyContainerProperties.setTaskExecutor(errorHandlingTaskExecutor);
 		replyContainerProperties.setRecoveryInterval(100L);
 		gateway.setReplyContainerProperties(replyContainerProperties);
-		final Connection connection = mock(Connection.class);
+		final Connection connection = mock();
 		final AtomicInteger connectionAttempts = new AtomicInteger();
 		doAnswer(invocation -> {
 			int theCount = connectionAttempts.incrementAndGet();
 			if (theCount > 1 && theCount < 4) {
-				throw new JmsException("bar") {
+				throw new JmsException("intentional") {
 
 				};
 			}
 			return connection;
 		}).when(connectionFactory).createConnection();
-		Session session = mock(Session.class);
+		Session session = mock();
 		when(connection.createSession(false, 1)).thenReturn(session);
-		MessageConsumer consumer = mock(MessageConsumer.class);
+		MessageConsumer consumer = mock();
 		when(session.createConsumer(any(Destination.class), isNull())).thenReturn(consumer);
 		when(session.createTemporaryQueue()).thenReturn(mock(TemporaryQueue.class));
-		final Message message = mock(Message.class);
+		final Message message = mock();
 		final AtomicInteger count = new AtomicInteger();
 		doAnswer(invocation -> {
 			int theCount = count.incrementAndGet();
 			if (theCount > 1 && theCount < 4) {
-				throw new JmsException("foo") {
+				throw new JmsException("intentional") {
 
 				};
 			}
@@ -130,7 +131,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 			}
 			return message;
 		}).when(consumer).receive(anyLong());
-		when(message.getJMSCorrelationID()).thenReturn("foo");
+		when(message.getJMSCorrelationID()).thenReturn("testCorrelation");
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
@@ -176,20 +177,20 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		try {
-			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
+			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("test request")));
 			final Message request = template.receive(requestQ);
 			assertThat(request).isNotNull();
 			connectionFactory1.resetConnection();
 			MessageCreator reply =
 					session -> {
-						TextMessage reply1 = session.createTextMessage("bar");
+						TextMessage reply1 = session.createTextMessage("test reply");
 						reply1.setJMSCorrelationID(request.getJMSMessageID());
 						return reply1;
 					};
 			template.send(replyQ, reply);
 			org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 			assertThat(received).isNotNull();
-			assertThat(received.getPayload()).isEqualTo("bar");
+			assertThat(received.getPayload()).isEqualTo("test reply");
 		}
 		finally {
 			gateway.stop();
@@ -223,12 +224,12 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		try {
-			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
+			exec.execute(() -> gateway.handleMessage(new GenericMessage<>("test request")));
 			Message request = template.receive(requestQ);
 			assertThat(request).isNotNull();
 			connectionFactory1.resetConnection();
 			MessageCreator reply = session -> {
-				TextMessage reply1 = session.createTextMessage("bar");
+				TextMessage reply1 = session.createTextMessage("test reply");
 				reply1.setJMSCorrelationID(request.getJMSCorrelationID());
 				return reply1;
 			};
@@ -237,7 +238,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 			logger.debug("Sent reply to: " + replyQ);
 			org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 			assertThat(received).isNotNull();
-			assertThat(received.getPayload()).isEqualTo("bar");
+			assertThat(received.getPayload()).isEqualTo("test reply");
 		}
 		finally {
 			gateway.stop();

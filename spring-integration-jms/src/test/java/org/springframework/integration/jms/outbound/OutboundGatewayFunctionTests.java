@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.jms.outbound;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
@@ -134,7 +135,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch2.countDown();
@@ -180,7 +181,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch2.countDown();
@@ -222,7 +223,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch2.countDown();
@@ -268,7 +269,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch2.countDown();
@@ -309,7 +310,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("test")));
 			}
 			finally {
 				latch2.countDown();
@@ -360,7 +361,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 			receiveAndSend(template);
 		});
 
-		assertThat(gateway.handleRequestMessage(new GenericMessage<>("foo"))).isNotNull();
+		assertThat(gateway.handleRequestMessage(new GenericMessage<>("test"))).isNotNull();
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
 		int n = 0;
@@ -368,7 +369,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 			Thread.sleep(100);
 		}
 		assertThat(container.isRunning()).isFalse();
-		assertThat(gateway.handleRequestMessage(new GenericMessage<>("foo"))).isNotNull();
+		assertThat(gateway.handleRequestMessage(new GenericMessage<>("test"))).isNotNull();
 		assertThat(container.isRunning()).isTrue();
 
 		gateway.stop();
@@ -377,7 +378,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		exec.shutdownNow();
 	}
 
-	private void receiveAndSend(JmsTemplate template) {
+	private static void receiveAndSend(JmsTemplate template) {
 		jakarta.jms.Message request = template.receive(requestQueue7);
 		final jakarta.jms.Message jmsReply = request;
 		try {
@@ -394,4 +395,5 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				.thenReturn(scheduler);
 		return beanFactory;
 	}
+
 }

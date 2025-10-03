@@ -26,6 +26,6 @@
 
 	<int:service-activator input-channel="toOut" order="2" ref="aborter"/>
 
-	<bean id="aborter" class="org.springframework.integration.jms.JmsOutboundChannelAdapterTests$Aborter"/>
+	<bean id="aborter" class="org.springframework.integration.jms.outbound.JmsOutboundChannelAdapterTests$Aborter"/>
 
 </beans>

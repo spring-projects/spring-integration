@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.JmsSendingMessageHandler;
+import org.springframework.integration.jms.outbound.JmsSendingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**

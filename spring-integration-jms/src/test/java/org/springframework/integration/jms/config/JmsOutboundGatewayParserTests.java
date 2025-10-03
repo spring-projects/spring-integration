@@ -30,8 +30,8 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.messaging.Message;
@@ -86,7 +86,7 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 			var endpoint = context.getBean("advised");
 			JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
 			assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isFalse();
-			gateway.handleMessage(new GenericMessage<>("foo"));
+			gateway.handleMessage(new GenericMessage<>("test"));
 			assertThat(adviceCalled).isEqualTo(1);
 			assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode")).isEqualTo(3);
 		}

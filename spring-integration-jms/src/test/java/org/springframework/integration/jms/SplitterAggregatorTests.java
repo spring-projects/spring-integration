@@ -35,6 +35,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.jms.inbound.JmsDestinationPollingSource;
+import org.springframework.integration.jms.outbound.JmsSendingMessageHandler;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;

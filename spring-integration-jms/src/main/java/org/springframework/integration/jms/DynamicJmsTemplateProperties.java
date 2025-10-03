@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 2.0.2
  */
-abstract class DynamicJmsTemplateProperties {
+public final class DynamicJmsTemplateProperties {
 
 	private static final ThreadLocal<@Nullable Integer> PRIORITY_HOLDER = new ThreadLocal<>();
 
