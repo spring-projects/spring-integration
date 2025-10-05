@@ -23,7 +23,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '8.14.2'
-    id 'io.spring.nullability' version '0.0.4' apply false
+    id 'io.spring.nullability' version '0.0.5' apply false
 }
 
 if (isCI) {
@@ -61,11 +61,11 @@ ext {
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.1'
     graalvmVersion = '24.2.2'
-    greenmailVersion = '2.1.5'
+    greenmailVersion = '2.1.6'
     groovyVersion = '5.0.1'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.5.0'
-    hibernateVersion = '7.1.1.Final'
+    hibernateVersion = '7.1.2.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
     jacksonVersion = '2.20.0'
