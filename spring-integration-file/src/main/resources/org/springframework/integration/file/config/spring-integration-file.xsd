@@ -621,7 +621,7 @@ Only files matching this regular expression will be picked up by this adapter.
 	<xsd:element name="file-to-string-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Creates a 'org.springframework.integration.file.transformer.FileToStringTransformer'
+				Creates an 'org.springframework.integration.file.transformer.FileToStringTransformer'
 				that converts a File payload to a String.
 			</xsd:documentation>
 		</xsd:annotation>

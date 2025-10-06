@@ -18,7 +18,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.file.remote.handler.FileTransferringMessageHandler'
+				'org.springframework.integration.ftp.outbound.FtpMessageHandler'
 				for the 'FtpRemoteFileTemplate' that writes files to a remote FTP endpoint.
 			</xsd:documentation>
 		</xsd:annotation>

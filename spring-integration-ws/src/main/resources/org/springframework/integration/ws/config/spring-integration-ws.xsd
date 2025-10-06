@@ -22,7 +22,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a Consumer Endpoint for the
-					'org.springframework.integration.ws.AbstractWebServiceOutboundGateway' implementation that
+					'org.springframework.integration.ws.outbound.AbstractWebServiceOutboundGateway' implementation that
 					sends SOAP requests and expects responses.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -331,7 +331,7 @@ this list can also be simple patterns to be matched against the header names (e.
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a Messaging Gateway Endpoint for the
-					'org.springframework.integration.ws.AbstractWebServiceInboundGateway' implementation that
+					'org.springframework.integration.ws.inbound.AbstractWebServiceInboundGateway' implementation that
 					receives SOAP requests and produce responses.
 				</xsd:documentation>
 			</xsd:annotation>
