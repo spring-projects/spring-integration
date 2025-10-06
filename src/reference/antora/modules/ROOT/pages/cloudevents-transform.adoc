@@ -1,9 +1,9 @@
-[[cloudevents-transform]]
+[[cloudevents-transformer]]
 
 = CloudEvent Transformer
 
-[[cloudevent-transformer]]
-== CloudEvent Transformer
+[[introduction]]
+== Introduction
 
 The CloudEvent transformer converts Spring Integration messages into CloudEvent compliant messages.
 This transformer provides  support for the CloudEvents specification v1.0 with configurable output formats, header pattern matching, and extension management.
@@ -12,70 +12,30 @@ This transformer provides  support for the CloudEvents specification v1.0 with c
 === Overview
 
 The CloudEvent transformer (`ToCloudEventTransformer`) extends Spring Integration's `AbstractTransformer` to convert messages to CloudEvent format.
-It supports multiple output formats including structured CloudEvents, JSON, XML, andAvro serialization.
-
-[[cloudevent-transformer-configuration]]
-=== Configuration
-
-The transformer can be configured with custom CloudEvent properties, conversion types, and extension management.
-
-==== Basic Configuration
-
-[source,java]
-----
-@Bean
-public ToCloudEventTransformer cloudEventTransformer() {
-    return new ToCloudEventTransformer();
-}
-----
-
-==== Advanced Configuration
-
-[source,java]
-----
-@Bean
-public ToCloudEventTransformer cloudEventTransformer() {
-    CloudEventProperties properties = new CloudEventProperties();
-    properties.setId("unique-event-id");
-    properties.setSource(URI.create("https://io.spring.org/source"));
-    properties.setType("io.spring.MessageProcessed");
-    properties.setDataContentType("application/json");
-    properties.setCePrefix("CE_");
-
-    String extensionPatterns = "key-*,external-*,!internal-*";
-
-    return new ToCloudEventTransformer(
-        extensionPatterns,
-        new CloudEventMessageFormatStrategy(),
-        properties
-    );
-}
-----
+To do this, it uses a `FormatStrategy` that allows users to transform the message to the desired "CloudEvent" format (CloudEvent, JSON, XML, AVRO, etc).  It defaults to `CloudEventFormatStrategy`.
 
 [[cloudevent-transformer-conversion-types]]
 === Format Strategy
 
-The ToCloudEventTransformer accepts classes that implement the `FormatStrategy` that will serialize the
-CloudEvents's data to other formats other than the default `CloudEventMessageFormatStrategy`.
+The `ToCloudEventTransformer` accepts classes that implement the `FormatStrategy`  to serialize CloudEvent data to formats other than the default `CloudEventMessageFormatStrategy`.
 
-[[cloudevent-properties]]
-=== CloudEvent Properties
+[[configure-transformer]]
+=== Configuring Transformer
 
-The `CloudEventProperties` class provides configuration for CloudEvent metadata and formatting options.
+The `ToCloudEventTransformer` class provides configurations for CloudEvent metadata and formatting options.
 
 ==== Properties Configuration
 
 [source,java]
 ----
-CloudEventProperties properties = new CloudEventProperties();
-properties.setId("event-123");                                    // The CloudEvent ID. Default is "".
-properties.setSource(URI.create("https://example.com/source"));   // The event source. Default is "".
-properties.setType("com.example.OrderCreated");                   // The event type. The Default is "".
-properties.setDataContentType("application/json");                // The data content type. Default is null.
-properties.setDataSchema(URI.create("https://example.com/schema")); // The eata schema. Default is null.
-properties.setSubject("order-processing");                        // The event subject. Default is null.
-properties.setTime(OffsetDateTime.now());                         // The event time. Default is null.
-properties.setCePrefix(CloudeEventsHeaders.CE_PREFIX);                                    // The CloudEvent header prefix. Default is CloudEventsHeaders.CE_PREFIX.
+ToCloudEventTransformer cloudEventTransformer = new ToCloudEventTransformer();
+cloudEventTransformer.setId("event-123");                                    // The CloudEvent ID. Default is "".
+cloudEventTransformer.setSource(URI.create("https://example.com/source"));   // The event source. Default is "".
+cloudEventTransformer.setType("com.example.OrderCreated");                   // The event type. The Default is "".
+cloudEventTransformer.setDataContentType("application/json");                // The data content type. Default is null.
+cloudEventTransformer.setDataSchema(URI.create("https://example.com/schema")); // The data schema. Default is null.
+cloudEventTransformer.setSubject("order-processing");                        // The event subject. Default is null.
+cloudEventTransformer.setTime(OffsetDateTime.now());                         // The event time. Default is null.
 ----
 
 [[cloudevent-properties-defaults]]
@@ -117,28 +77,22 @@ properties.setCePrefix(CloudeEventsHeaders.CE_PREFIX);                          
 | Default is CloudEventsHeaders.CE_PREFIX.
 |===
 
-[[cloudevent-extensions]]
-=== CloudEvent Extensions
-
-CloudEvent Extensions are managed through the `ToCloudEventTransformerExtensions` class, which implements the CloudEvent extension contract by filtering message headers based on configurable patterns.
-
 [[cloudevent-extensions-pattern-matching]]
-==== Pattern Matching
+==== Cloud Event Extension Pattern Matching
 
-The extension system uses pattern matching for sophisticated header filtering:
+The transformer allows the user to specify what `MessageHeaders` will be added as extensions to the CloudEvent.  The extension system uses pattern matching for extension identification:
 
 [source,java]
 ----
 // Include headers starting with "key-" or "external-"
 // Exclude headers starting with "internal-"
-// If the header key is neither of the above it is left in the `MessageHeader`.
-String pattern = "key-*,external-*,!internal-*";
+// If the header key is neither of the above it is not included in the extensions.
+String[] patterns = {"key-*", "external-*", "!internal-*"};
 
 // Extension patterns are processed during transformation
 ToCloudEventTransformer transformer = new ToCloudEventTransformer(
-    pattern,
-    ToCloudEventTransformer.ConversionType.DEFAULT,
-    properties
+    new CloudEventMessageFormatStrategy(),
+    patterns
 );
 ----
 
@@ -150,19 +104,8 @@ The pattern matching supports:
 * **Wildcard patterns**: Use `\*` for wildcard matching (e.g., `external-\*` matches `external-id`, `external-span`)
 * **Negation patterns**: Use `!` prefix for exclusion (e.g., `!internal-*` excludes internal headers)
 * If the header key is neither of the above it is left in the `MessageHeader`.
-* **Multiple patterns**: Use comma-delimited patterns (e.g., `user-\*,session-\*,!debug-*`)
+* **Multiple patterns**: Use comma-delimited patterns (e.g., `{"user-\*", "session-\*" , "!debug-*"}`)
 * **Null handling**: Null patterns disable extension processing, thus no `MessageHeaders` are moved to the CloudEvent extensions.
-
-[[cloudevent-extensions-behavior]]
-==== Extension Behavior
-
-Headers that match extension patterns are:
-
-1. Extracted from the original message headers
-2. Added as CloudEvent extensions
-3. Filtered out from the output message headers (to avoid duplication)
-
-The `ToCloudEventTransformerExtensions` class handles this automatically during transformation.
 
 [[cloudevent-transformer-integration]]
 === Integration with Spring Integration Flows
@@ -190,8 +133,7 @@ The transformer follows the process below:
 
 1. **Extension Extraction**: Extract CloudEvent extensions from message headers using configured patterns
 2. **CloudEvent Building**: Build a CloudEvent with configured properties and message payload
-3. **Format Conversion**: Apply the specified conversion type to format the output
-4. **Header Filtering**: Filter headers to exclude those mapped to CloudEvent extensions
+3. **Format Conversion**: Apply the specified `FormatStrategy` to format the output
 
 ==== Payload Handling
 
@@ -217,12 +159,6 @@ Message<Object> objectMessage = MessageBuilder.withPayload(customObject).build()
 
 [source,java]
 ----
-// Configure properties
-CloudEventProperties properties = new CloudEventProperties();
-properties.setId("event-123");
-properties.setSource(URI.create("https://example.com"));
-properties.setType("com.example.MessageProcessed");
-
 // Input message with headers
 Message<String> inputMessage = MessageBuilder
     .withPayload("Hello CloudEvents")
@@ -232,64 +168,13 @@ Message<String> inputMessage = MessageBuilder
 
 // Transformer with extension patterns
 ToCloudEventTransformer transformer = new ToCloudEventTransformer(
-    "external-*",
-    ToCloudEventTransformer.ConversionType.DEFAULT,
-    properties
-);
+    new CloudEventMessageFormatStrategy(), "trace-*");
+// Configure properties
+transformer.setId("event-123");
+transformer.setSource(URI.create("https://example.com"));
+transformer.setType("com.example.MessageProcessed");
 
 // Transform to CloudEvent
 Message<?> cloudEventMessage = transformer.transform(inputMessage);
 ----
 
-[[cloudevent-transformer-example-json]]
-==== JSON Serialization Example
-
-[source,java]
-----
-CloudEventProperties properties = new CloudEventProperties();
-properties.setId("order-123");
-properties.setSource(URI.create("https://shop.example.com"));
-properties.setType("com.example.OrderCreated");
-
-ToCloudEventTransformer transformer = new ToCloudEventTransformer(
-    "order-*,customer-*",
-    ToCloudEventTransformer.ConversionType.JSON,
-    properties
-);
-
-Message<String> result = (Message<String>) transformer.transform(inputMessage);
-String jsonCloudEvent = result.getPayload(); // JSON-serialized CloudEvent
-String contentType = (String) result.getHeaders().get("content-type"); // "application/json"
-----
-
-[[cloudevent-transformer-example-xml]]
-==== XML Serialization Example
-
-[source,java]
-----
-ToCloudEventTransformer transformer = new ToCloudEventTransformer(
-    null, // No extension patterns
-    ToCloudEventTransformer.ConversionType.XML,
-    properties
-);
-
-Message<String> result = (Message<String>) transformer.transform(inputMessage);
-String xmlCloudEvent = result.getPayload(); // XML-serialized CloudEvent
-String contentType = (String) result.getHeaders().get("content-type"); // "application/xml"
-----
-
-[[cloudevent-transformer-example-avro]]
-==== Avro Serialization Example
-
-[source,java]
-----
-ToCloudEventTransformer transformer = new ToCloudEventTransformer(
-    "app-*",
-    ToCloudEventTransformer.ConversionType.AVRO,
-    properties
-);
-
-Message<byte[]> result = (Message<byte[]>) transformer.transform(inputMessage);
-byte[] avroCloudEvent = result.getPayload(); // Avro-serialized CloudEvent
-String contentType = (String) result.getHeaders().get("content-type"); // "application/avro"
-----

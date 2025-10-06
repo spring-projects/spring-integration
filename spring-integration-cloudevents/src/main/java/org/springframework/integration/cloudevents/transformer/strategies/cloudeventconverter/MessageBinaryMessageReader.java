@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents;
+package org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.data.BytesCloudEventData;
-import io.cloudevents.core.impl.StringUtils;
 import io.cloudevents.core.message.impl.BaseGenericBinaryMessageReaderImpl;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.StringUtils;
 
 /**
  * Utility for converting maps (message headers) to `CloudEvent` contexts.
@@ -34,25 +36,25 @@ import org.jspecify.annotations.Nullable;
  * @since 7.0
  *
  */
-public class MessageBinaryMessageReader extends BaseGenericBinaryMessageReaderImpl<String, Object> {
+class MessageBinaryMessageReader extends BaseGenericBinaryMessageReaderImpl<String, Object> {
 
 	private final String cePrefix;
 
 	private final Map<String, Object> headers;
 
-	public MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, byte @Nullable [] payload, String cePrefix) {
+	MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, byte @Nullable [] payload, String cePrefix) {
 		super(version, payload == null ? null : BytesCloudEventData.wrap(payload));
 		this.headers = headers;
 		this.cePrefix = cePrefix;
 	}
 
-	public MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, String cePrefix) {
+	MessageBinaryMessageReader(SpecVersion version, Map<String, Object> headers, String cePrefix) {
 		this(version, headers, null, cePrefix);
 	}
 
 	@Override
 	protected boolean isContentTypeHeader(String key) {
-		return org.springframework.messaging.MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(key);
+		return MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(key);
 	}
 
 	@Override
