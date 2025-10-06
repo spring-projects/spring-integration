@@ -26,7 +26,57 @@ Also, a mutually exclusive to the `replyPayloadType`, a `returnMessage` flag cou
 
 The following example demonstrates how to configure an `AmqpClientMessageHandler` as a simple `@ServiceActivator`:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow sendFlow(RabbitAmqpTemplate rabbitTemplate) {
+    return f -> f
+            .handle(AmqpClient.outboundAdapter(rabbitTemplate)
+                    .exchange("e1")
+                    .routingKeyExpression("'k1'"));
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun sendFlow(rabbitTemplate: RabbitAmqpTemplate) =
+    integrationFlow {
+                handle(AmqpClient.outboundAdapter(rabbitTemplate)
+    		            .apply {
+    		                exchange("e1")
+                            routingKeyExpression("'k1'")
+    		            }
+    		    )
+    }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+sendFlow() {
+    integrationFlow {
+        handle(AmqpClient.outboundAdapter(rabbitTemplate)
+                .with {
+                     exchange 'e1'
+                     routingKeyExpression '''k1'''
+                }
+        )
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpClientSendChannel")
@@ -37,10 +87,56 @@ AmqpClientMessageHandler amqpClientMessageHandler(RabbitAmqpTemplate rabbitTempl
     return messageHandler;
 }
 ----
+======
 
 The gateway variant for the `AmqpClientMessageHandler` could be like:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow requestReplyOutboundFlow(RabbitAmqpTemplate rabbitTemplate) {
+    return f -> f
+            .handle(AmqpClient.outboundGateway(rabbitTemplate)
+                    .queueFunction(m -> "requestReply"));
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun sendFlow(rabbitTemplate: RabbitAmqpTemplate) =
+    integrationFlow {
+                handle(AmqpClient.outboundGateway(rabbitTemplate)
+    		            .queueFunction { "requestReply" }
+                )
+    }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+sendFlow() {
+    integrationFlow {
+        handle(AmqpClient.outboundGateway(rabbitTemplate)
+                .with {
+                     queueFunction { 'requestReply' }
+                }
+        )
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpClientSendAndReceiveChannel")
@@ -53,6 +149,7 @@ AmqpClientMessageHandler amqpClientGateway(RabbitAmqpTemplate rabbitTemplate) {
     return messageHandler;
 }
 ----
+======
 
 [[amqp-1.0-message-driver]]
 == AMQP 1.0 Message-Driver Channel Adapter
@@ -77,7 +174,46 @@ When `autoSettle` flag is set to `false`, the `AcknowledgmentCallback` instance 
 
 The following example demonstrates how to configure an `AmqpClientMessageProducer` as a simple inbound endpoint:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow receiveFlow(AmqpConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(AmqpClient.inboundChannelAdapter(connectionFactory, "q1"))
+            .channel(c -> c.queue("receiveChannel"))
+            .get();
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun receiveFlow(connectionFactory: AmqpConnectionFactory) =
+        integrationFlow(AmqpClient.inboundChannelAdapter(connectionFactory, "q1")) {
+            channel("inputChannel")
+        }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+receiveFlow(AmqpConnectionFactory connectionFactory) {
+    integrationFlow(AmqpClient.inboundChannelAdapter(connectionFactory, 'q1')) {
+        channel 'inputChannel'
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 AmqpClientMessageProducer batchAmqpClientMessageProducer(AmqpConnectionFactory connectionFactory,
@@ -89,6 +225,7 @@ AmqpClientMessageProducer batchAmqpClientMessageProducer(AmqpConnectionFactory c
     return amqpClientMessageProducer;
 }
 ----
+======
 
 [[amqp-1.0-inbound-gateway]]
 == AMQP 1.0 Inbound Gateway
@@ -106,12 +243,52 @@ The `AmqpClientInboundGateway` is able to map back such a correlation key into a
 
 The following example demonstrates how to configure an `AmqpClientInboundGateway` as a simple inbound gateway:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow amqpClientInboundGatewayFlow(AmqpConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(AmqpClient.inboundGateway(connectionFactory, "requestReply"))
+            .channel(c -> c.queue("inputChannel"))
+            .get();
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun receiveFlow(connectionFactory: AmqpConnectionFactory) =
+        integrationFlow(AmqpClient.inboundGateway(connectionFactory, "requestReply")) {
+            channel { queue("inputChannel") }
+        }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+receiveFlow(AmqpConnectionFactory connectionFactory) {
+    integrationFlow(AmqpClient.inboundGateway(connectionFactory, 'requestReply')) {
+        channel { queue 'inputChannel' }
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 AmqpClientInboundGateway amqpClientInboundGateway(AmqpConnectionFactory connectionFactory) {
-    AmqpClientInboundGateway amqpClientInboundGateway = new AmqpClientInboundGateway(connectionFactory, "q1");
+    AmqpClientInboundGateway amqpClientInboundGateway = new AmqpClientInboundGateway(connectionFactory, "requestReply");
     amqpClientInboundGateway.setRequestChannelName("inputChannel");
     return amqpClientInboundGateway;
 }
 ----
+======
