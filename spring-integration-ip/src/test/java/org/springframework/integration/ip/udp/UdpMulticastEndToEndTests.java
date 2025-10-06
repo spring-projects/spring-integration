@@ -30,6 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.udp.inbound.MulticastReceivingChannelAdapter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -91,7 +92,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		applicationContext.close();
 	}
 
-	private ClassPathXmlApplicationContext createContext(UdpMulticastEndToEndTests launcher, String location) {
+	private static ClassPathXmlApplicationContext createContext(UdpMulticastEndToEndTests launcher, String location) {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext();
 		applicationContext.setConfigLocation(location);
 		StandardEnvironment env = new StandardEnvironment();

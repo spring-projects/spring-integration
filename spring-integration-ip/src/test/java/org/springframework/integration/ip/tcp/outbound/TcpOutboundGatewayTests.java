@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.outbound;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -343,7 +343,6 @@ public class TcpOutboundGatewayTests {
 	 * Sends 2 concurrent messages on a shared connection. The GW single threads
 	 * these requests. The first will time out; the second should receive its
 	 * own response, not that for the first.
-	 * @throws Exception
 	 */
 	private void testGoodNetGWTimeoutGuts(AbstractClientConnectionFactory ccf,
 			final ServerSocket server) throws InterruptedException {

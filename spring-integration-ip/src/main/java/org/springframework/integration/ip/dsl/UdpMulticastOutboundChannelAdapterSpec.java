@@ -19,7 +19,7 @@ package org.springframework.integration.ip.dsl;
 import java.util.function.Function;
 
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
+import org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**

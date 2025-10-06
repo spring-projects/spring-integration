@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.inbound;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;

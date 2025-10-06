@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.inbound;
 
 import java.time.Duration;
 import java.util.Map;
@@ -36,6 +36,7 @@ import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;

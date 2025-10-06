@@ -21,7 +21,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter' for receiving incoming udp
+				'org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter' for receiving incoming udp
 				packets.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -67,7 +67,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.ip.udp.UnicastSendingMessageHandler' to send UDP packets.
+				'org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler' to send UDP packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -189,7 +189,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter' for receiving incoming tcp packets.
+				'org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter' for receiving incoming tcp packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -259,7 +259,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.ip.tcp.TcpSendingMessageHandler' for sending TCP packets.
+				'org.springframework.integration.ip.tcp.outbound.TcpSendingMessageHandler' for sending TCP packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -326,7 +326,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Messaging Gateway Endpoint for the
-				'org.springframework.integration.ip.tcp.TcpInboundGateway' for receiving incoming TCP packets
+				'org.springframework.integration.ip.tcp.inbound.TcpInboundGateway' for receiving incoming TCP packets
 				and producing replies for them.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -414,7 +414,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.ip.tcp.TcpOutboundGateway' for sending TCP packets
+				'org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway' for sending TCP packets
 				and waiting for replies.
 			</xsd:documentation>
 		</xsd:annotation>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip;
+package org.springframework.integration.ip.udp.inbound;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.ip.CommonSocketOptions;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
 

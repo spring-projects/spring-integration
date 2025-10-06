@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.udp;
+package org.springframework.integration.ip.udp.outbound;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -43,7 +43,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
+import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
+import org.springframework.integration.ip.udp.SocketCustomizer;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -190,8 +191,7 @@ public class UnicastSendingMessageHandler extends
 
 		super(host, port);
 		this.destinationExpression = null;
-		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
-				ackTimeout);
+		setReliabilityAttributes(false, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
 	/**
@@ -214,8 +214,7 @@ public class UnicastSendingMessageHandler extends
 
 		super(host, port);
 		this.destinationExpression = null;
-		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
-				ackTimeout);
+		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
 	/**
@@ -305,7 +304,7 @@ public class UnicastSendingMessageHandler extends
 								+ this.ackTimeout + " millis");
 					}
 				}
-				catch (@SuppressWarnings("unused") InterruptedException e) {
+				catch (@SuppressWarnings("unused") InterruptedException ex) {
 					Thread.currentThread().interrupt();
 				}
 			}
@@ -339,7 +338,7 @@ public class UnicastSendingMessageHandler extends
 					this.ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
 					try {
-						this.ackLatch.await(10000, TimeUnit.MILLISECONDS); // NOSONAR magic number
+						this.ackLatch.await(10000, TimeUnit.MILLISECONDS);
 					}
 					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();
@@ -401,7 +400,7 @@ public class UnicastSendingMessageHandler extends
 			if (this.socket == null) {
 				if (this.acknowledge) {
 					if (this.localAddress == null) {
-						this.socket = this.ackPort == 0 ? new DatagramSocket() : new DatagramSocket(this.ackPort);
+						this.socket = new DatagramSocket(this.ackPort);
 					}
 					else {
 						InetAddress whichNic = InetAddress.getByName(this.localAddress);
@@ -542,7 +541,7 @@ public class UnicastSendingMessageHandler extends
 		try {
 			this.ackThreadRunning = true;
 			this.ackLatch.countDown();
-			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100); // NOSONAR magic number
+			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
 			while (true) {
 				getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());
@@ -580,7 +579,7 @@ public class UnicastSendingMessageHandler extends
 			try {
 				this.socket.close();
 			}
-			catch (Exception e) {
+			catch (Exception ex) {
 			}
 			this.socket = null;
 		}

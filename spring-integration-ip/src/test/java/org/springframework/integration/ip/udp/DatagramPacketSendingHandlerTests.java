@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;

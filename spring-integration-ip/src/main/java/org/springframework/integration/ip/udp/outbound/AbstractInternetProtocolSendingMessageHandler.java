@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip;
+package org.springframework.integration.ip.udp.outbound;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.ip.CommonSocketOptions;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.util.Assert;
 
@@ -67,7 +68,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	}
 
 	/**
-	 * @param size The receive buffer size.
+	 * @param size The {@code receive} buffer size.
 	 * @see java.net.DatagramSocket#setReceiveBufferSize(int)
 	 */
 	@Override
@@ -123,7 +124,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 		this.lock.lock();
 		try {
 			if (!this.running) {
-				this.doStart();
+				doStart();
 				this.running = true;
 			}
 		}
@@ -139,7 +140,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 		this.lock.lock();
 		try {
 			if (this.running) {
-				this.doStop();
+				doStop();
 				this.running = false;
 			}
 		}

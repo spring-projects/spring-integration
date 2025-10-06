@@ -26,7 +26,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
 import org.springframework.integration.syslog.MessageConverter;
 import org.springframework.integration.syslog.inbound.SyslogReceivingChannelAdapterSupport;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;

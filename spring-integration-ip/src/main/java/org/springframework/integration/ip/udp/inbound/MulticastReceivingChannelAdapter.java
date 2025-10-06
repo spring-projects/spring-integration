@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.udp;
+package org.springframework.integration.ip.udp.inbound;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -41,7 +41,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	private final String group;
 
 	/**
-	 * Constructs a MulticastReceivingChannelAdapter that listens for packets on the
+	 * Construct a MulticastReceivingChannelAdapter that listens for packets on the
 	 * specified multichannel address (group) and port.
 	 * @param group The multichannel address.
 	 * @param port The port.
@@ -52,7 +52,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	}
 
 	/**
-	 * Constructs a MulticastReceivingChannelAdapter that listens for packets on the
+	 * Construct a MulticastReceivingChannelAdapter that listens for packets on the
 	 * specified multichannel address (group) and port. Enables setting the lengthCheck
 	 * option, which expects a length to precede the incoming packets.
 	 * @param group The multichannel address.
@@ -71,7 +71,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 			if (getTheSocket() == null) {
 				try {
 					int port = getPort();
-					MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);
+					MulticastSocket socket = new MulticastSocket(port);
 					String localAddress = getLocalAddress();
 					if (localAddress != null) {
 						socket.setNetworkInterface(
@@ -81,8 +81,8 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 					socket.joinGroup(new InetSocketAddress(this.group, 0), null);
 					setSocket(socket);
 				}
-				catch (IOException e) {
-					throw new MessagingException("failed to create DatagramSocket", e);
+				catch (IOException ex) {
+					throw new MessagingException("failed to create DatagramSocket", ex);
 				}
 			}
 			return super.getSocket();

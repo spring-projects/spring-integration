@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.outbound;
 
 import java.util.Map;
 
@@ -27,6 +27,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.inbound.TcpInboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -165,22 +166,22 @@ public class TcpConfigOutboundGatewayTests {
 		});
 		Map<String, ConsumerEndpointFactoryBean> consumers =
 				this.ctx.getBeansOfType(ConsumerEndpointFactoryBean.class);
-		consumers.values().forEach(g -> g.start());
+		consumers.values().forEach(ConsumerEndpointFactoryBean::start);
 		initializedFactories = true;
 	}
 
 	@Test
-	public void testOutboundCrLf() throws Exception {
+	public void testOutboundCrLf() {
 		testOutboundUsingConfig();
 	}
 
 	@Test
-	public void testOutboundCrLfNio() throws Exception {
+	public void testOutboundCrLfNio() {
 		testOutboundUsingConfigNio();
 	}
 
 	@Test
-	public void testOutboundStxEtx() throws Exception {
+	public void testOutboundStxEtx() {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		stxEtxClient.start();
 		gateway.setConnectionFactory(stxEtxClient);
@@ -191,7 +192,7 @@ public class TcpConfigOutboundGatewayTests {
 	}
 
 	@Test
-	public void testOutboundSerialized() throws Exception {
+	public void testOutboundSerialized() {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		javaSerialClient.start();
 		gateway.setConnectionFactory(javaSerialClient);
@@ -202,7 +203,7 @@ public class TcpConfigOutboundGatewayTests {
 	}
 
 	@Test
-	public void testOutboundLength() throws Exception {
+	public void testOutboundLength() {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		lengthHeaderClient.start();
 		gateway.setConnectionFactory(lengthHeaderClient);
@@ -213,7 +214,7 @@ public class TcpConfigOutboundGatewayTests {
 	}
 
 	@Test //INT-1029
-	public void testOutboundInsideChain() throws Exception {
+	public void testOutboundInsideChain() {
 //		this.ctx.getBean("tcp-outbound-gateway-within-chain.handler", TcpOutboundGateway.class);
 		tcpOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();

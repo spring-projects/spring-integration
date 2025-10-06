@@ -46,9 +46,6 @@ import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.ip.tcp.TcpOutboundGateway;
-import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
-import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
@@ -56,11 +53,14 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionServerListeningEvent;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
+import org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.outbound.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
-import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UdpServerListeningEvent;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
@@ -152,10 +152,10 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 		client.afterPropertiesSet();
 		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).getObject();
 		handler.start();
-		handler.handleMessage(new GenericMessage<>("foo"));
+		handler.handleMessage(new GenericMessage<>("test"));
 		Message<?> receivedMessage = received.receive(10000);
 		assertThat(receivedMessage).isNotNull();
-		assertThat(Transformers.objectToString().transform(receivedMessage).getPayload()).isEqualTo("foo");
+		assertThat(Transformers.objectToString().transform(receivedMessage).getPayload()).isEqualTo("test");
 		client.stop();
 		server.stop();
 	}
@@ -170,28 +170,28 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.clientTcpFlowInput);
 		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
-		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
+		assertThat(messagingTemplate.convertSendAndReceive("test", String.class)).isEqualTo("TEST");
 		assertThat(messagingTemplate.convertSendAndReceive("junk", String.class)).isEqualTo("error:non-convertible");
 		assertThat(this.adviceCalled.get()).isTrue();
 
-		GenericMessage<String> unsol = new GenericMessage<>("foo",
+		GenericMessage<String> unsol = new GenericMessage<>("test",
 				Collections.singletonMap(IpHeaders.CONNECTION_ID, this.config.connectionId));
 		this.unsolicitedServerSide.send(unsol);
-		assertThat(this.unsolicited.receive(10_000).getPayload()).isEqualTo("foo".getBytes());
+		assertThat(this.unsolicited.receive(10_000).getPayload()).isEqualTo("test".getBytes());
 	}
 
 	@Test
 	void testUdp() throws Exception {
 		assertThat(this.config.listeningLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.serverPort).isEqualTo(this.udpInbound.getPort());
-		Message<String> outMessage = MessageBuilder.withPayload("foo")
+		Message<String> outMessage = MessageBuilder.withPayload("test")
 				.setHeader("udp_dest", "udp://localhost:" + this.udpInbound.getPort())
 				.build();
 		this.udpOut.send(outMessage);
 		this.udpIn.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		Message<?> received = this.udpIn.receive(10000);
 		assertThat(received).isNotNull();
-		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("foo");
+		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -238,7 +238,7 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 				.id("streamCloseClient")
 				.register();
 		assertThat(clientRegistration.getMessagingTemplate()
-				.convertSendAndReceive("foo", String.class)).isEqualTo("reply:FOO");
+				.convertSendAndReceive("test", String.class)).isEqualTo("reply:TEST");
 	}
 
 	@Test

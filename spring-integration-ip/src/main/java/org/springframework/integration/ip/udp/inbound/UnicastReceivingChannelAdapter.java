@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.udp;
+package org.springframework.integration.ip.udp.inbound;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -33,8 +33,10 @@ import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
+import org.springframework.integration.ip.udp.SocketCustomizer;
+import org.springframework.integration.ip.udp.UdpServerListeningEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -69,7 +71,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	};
 
 	/**
-	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
+	 * Construct a UnicastReceivingChannelAdapter that listens on the specified port.
 	 * @param port The port.
 	 */
 	public UnicastReceivingChannelAdapter(int port) {
@@ -78,7 +80,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	/**
-	 * Constructs a UnicastReceivingChannelAdapter that listens for packets on
+	 * Construct a UnicastReceivingChannelAdapter that listens for packets on
 	 * the specified port. Enables setting the lengthCheck option, which expects
 	 * a length to precede the incoming packets.
 	 * @param port The port.
@@ -152,8 +154,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				stop();
 			}
 			catch (Exception ex) {
-				if (ex instanceof MessagingException) { // NOSONAR flow control via exceptions
-					throw (MessagingException) ex;
+				if (ex instanceof MessagingException messagingException) {
+					throw messagingException;
 				}
 				throw new MessagingException("failed to receive DatagramPacket", ex);
 			}
@@ -200,7 +202,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			try {
 				taskExecutor.execute(() -> doSend(packet));
 			}
-			catch (RejectedExecutionException e) {
+			catch (RejectedExecutionException ex) {
 				logger.debug("Adapter stopped, sending on main thread");
 				doSend(packet);
 			}
@@ -260,7 +262,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 					String localAddress = getLocalAddress();
 					int port = super.getPort();
 					if (localAddress == null) {
-						datagramSocket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
+						datagramSocket = new DatagramSocket(port);
 					}
 					else {
 						InetAddress whichNic = InetAddress.getByName(localAddress);
@@ -269,8 +271,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 					setSocketAttributes(datagramSocket);
 					this.socket = datagramSocket;
 				}
-				catch (IOException e) {
-					throw new MessagingException("failed to create DatagramSocket", e);
+				catch (IOException ex) {
+					throw new MessagingException("failed to create DatagramSocket", ex);
 				}
 			}
 			return this.socket;
@@ -281,8 +283,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	/**
-	 * Sets timeout and receive buffer size; calls the socket customizer.
-	 *
+	 * Set timeout and receive buffer size; calls the socket customizer.
 	 * @param socket The socket.
 	 * @throws SocketException Any socket exception.
 	 */
@@ -293,6 +294,20 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			socket.setReceiveBufferSize(soReceiveBufferSize);
 		}
 		this.socketCustomizer.configure(socket);
+	}
+
+	@Override
+	public void setSoSendBufferSize(int soSendBufferSize) {
+		this.soSendBufferSize = soSendBufferSize;
+	}
+
+	public void setLookupHost(boolean lookupHost) {
+		this.mapper.setLookupHost(lookupHost);
+	}
+
+	@Override
+	public String getComponentType() {
+		return "ip:udp-inbound-channel-adapter";
 	}
 
 	@Override
@@ -310,20 +325,6 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		catch (Exception e) {
 			// ignore
 		}
-	}
-
-	@Override
-	public void setSoSendBufferSize(int soSendBufferSize) {
-		this.soSendBufferSize = soSendBufferSize;
-	}
-
-	public void setLookupHost(boolean lookupHost) {
-		this.mapper.setLookupHost(lookupHost);
-	}
-
-	@Override
-	public String getComponentType() {
-		return "ip:udp-inbound-channel-adapter";
 	}
 
 }

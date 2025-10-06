@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/integration
 		https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<import resource="TcpConfigInboundGatewayTests-context.xml" />
+	<import resource="../TcpConfigInboundGatewayTests-context.xml" />
 
 	<ip:tcp-outbound-gateway id="tcpOutGateway"
 		connection-factory="crLfClient"

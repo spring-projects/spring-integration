@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.udp;
+package org.springframework.integration.ip.udp.outbound;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -31,7 +31,7 @@ import org.springframework.expression.Expression;
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a
  * Message into a UDP datagram packet and sends that to the specified multicast address
  * (224.0.0.0 to 239.255.255.255) and port.
- *
+ * <p>
  * The only difference between this and its super class is the ability to specify how many
  * acknowledgments are required to determine success.
  *
@@ -50,7 +50,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	private volatile @Nullable MulticastSocket multicastSocket;
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port.
 	 * @param address The multicast address.
 	 * @param port The port.
 	 */
@@ -59,7 +59,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the lengthCheck option (if set, a length is prepended to the packet and checked
 	 * at the destination).
 	 * @param address The multicast address.
@@ -71,7 +71,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
 	 * @param address The multicast address.
 	 * @param port The port.
@@ -87,7 +87,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
 	 * @param address The multicast address.
 	 * @param port The port.
@@ -128,6 +128,27 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		super(destinationExpression);
 	}
 
+	/**
+	 * If acknowledge = true; how many acks needed for success.
+	 * @param minAcksForSuccess The minimum number of acks that will represent success.
+	 */
+	public void setMinAcksForSuccess(int minAcksForSuccess) {
+		this.setAckCounter(minAcksForSuccess);
+	}
+
+	/**
+	 * Set the underlying {@link MulticastSocket} time to live property.
+	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
+	 */
+	public void setTimeToLive(int timeToLive) {
+		this.timeToLive = timeToLive;
+	}
+
+	@Override
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
+	}
+
 	@Override
 	protected DatagramSocket getSocket() throws IOException {
 		this.lock.lock();
@@ -148,7 +169,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			if (isAcknowledge()) {
 				int ackPort = getAckPort();
 				if (this.localAddress == null) {
-					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
+					socket = new MulticastSocket(ackPort);
 				}
 				else {
 					InetAddress whichNic = InetAddress.getByName(this.localAddress);
@@ -175,27 +196,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			}
 			this.multicastSocket = socket;
 		}
-	}
-
-	/**
-	 * If acknowledge = true; how many acks needed for success.
-	 * @param minAcksForSuccess The minimum number of acks that will represent success.
-	 */
-	public void setMinAcksForSuccess(int minAcksForSuccess) {
-		this.setAckCounter(minAcksForSuccess);
-	}
-
-	/**
-	 * Set the underlying {@link MulticastSocket} time to live property.
-	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
-	 */
-	public void setTimeToLive(int timeToLive) {
-		this.timeToLive = timeToLive;
-	}
-
-	@Override
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
 	}
 
 }
