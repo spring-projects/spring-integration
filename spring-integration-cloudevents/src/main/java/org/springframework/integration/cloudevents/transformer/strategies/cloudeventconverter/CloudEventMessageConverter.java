@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents;
+package org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter;
 
 import java.nio.charset.StandardCharsets;
 
@@ -43,6 +43,12 @@ import org.springframework.util.Assert;
  */
 public class CloudEventMessageConverter implements MessageConverter {
 
+	public static final String CE_PREFIX = "ce-";
+
+	public static final String SPEC_VERSION = CE_PREFIX + "specversion";
+
+	public static final String CONTENT_TYPE = CE_PREFIX + "datacontenttype";
+
 	private final String cePrefix;
 
 	public CloudEventMessageConverter(String cePrefix) {
@@ -50,7 +56,7 @@ public class CloudEventMessageConverter implements MessageConverter {
 	}
 
 	public CloudEventMessageConverter() {
-		this(CloudEventsHeaders.CE_PREFIX);
+		this(CE_PREFIX);
 	}
 
 	/**
@@ -62,7 +68,7 @@ public class CloudEventMessageConverter implements MessageConverter {
 	 */
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		return createMessageReader(message).toEvent();
+		return createMessageReader(message, this.cePrefix).toEvent();
 	}
 
 	@Override
@@ -72,41 +78,41 @@ public class CloudEventMessageConverter implements MessageConverter {
 		return CloudEventUtils.toReader((CloudEvent) payload).read(new MessageBuilderMessageWriter(headers, this.cePrefix));
 	}
 
-	private MessageReader createMessageReader(Message<?> message) {
+	private static MessageReader createMessageReader(Message<?> message, String cePrefix) {
 		return MessageUtils.parseStructuredOrBinaryMessage(
 				() -> contentType(message.getHeaders()),
 				format -> structuredMessageReader(message, format),
 				() -> version(message.getHeaders()),
-				version -> binaryMessageReader(message, version)
+				version -> binaryMessageReader(message, version, cePrefix)
 		);
 	}
 
-	private @Nullable String version(MessageHeaders message) {
-		if (message.containsKey(CloudEventsHeaders.SPEC_VERSION)) {
-			return message.get(CloudEventsHeaders.SPEC_VERSION).toString();
+	private static @Nullable String version(MessageHeaders message) {
+		if (message.containsKey(SPEC_VERSION)) {
+			return message.get(SPEC_VERSION).toString();
 		}
 		return null;
 	}
 
-	private MessageReader binaryMessageReader(Message<?> message, SpecVersion version) {
-		return new MessageBinaryMessageReader(version, message.getHeaders(), getBinaryData(message), this.cePrefix);
+	private static MessageReader binaryMessageReader(Message<?> message, SpecVersion version, String cePrefix) {
+		return new MessageBinaryMessageReader(version, message.getHeaders(), getBinaryData(message), cePrefix);
 	}
 
-	private MessageReader structuredMessageReader(Message<?> message, EventFormat format) {
+	private static MessageReader structuredMessageReader(Message<?> message, EventFormat format) {
 		return new GenericStructuredMessageReader(format, getBinaryData(message));
 	}
 
-	private @Nullable String contentType(MessageHeaders message) {
+	private static @Nullable String contentType(MessageHeaders message) {
 		if (message.containsKey(MessageHeaders.CONTENT_TYPE)) {
 			return message.get(MessageHeaders.CONTENT_TYPE).toString();
 		}
-		if (message.containsKey(CloudEventsHeaders.CONTENT_TYPE)) {
-			return message.get(CloudEventsHeaders.CONTENT_TYPE).toString();
+		if (message.containsKey(CONTENT_TYPE)) {
+			return message.get(CONTENT_TYPE).toString();
 		}
 		return null;
 	}
 
-	private byte[] getBinaryData(Message<?> message) {
+	private static byte[] getBinaryData(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload instanceof byte[] bytePayload) {
 			return bytePayload;

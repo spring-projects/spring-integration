@@ -40,5 +40,5 @@ public interface FormatStrategy {
 	 * @param messageHeaders the headers associated with the {@link Message}
 	 * @return the converted {@link Message}
 	 */
-	Message<?> convert(CloudEvent cloudEvent, MessageHeaders messageHeaders);
+	Message<?> toIntegrationMessage(CloudEvent cloudEvent, MessageHeaders messageHeaders);
 }

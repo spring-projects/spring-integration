@@ -18,7 +18,7 @@ package org.springframework.integration.cloudevents.transformer.strategies;
 
 import io.cloudevents.CloudEvent;
 
-import org.springframework.integration.cloudevents.CloudEventMessageConverter;
+import org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter.CloudEventMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -34,12 +34,12 @@ public class CloudEventMessageFormatStrategy implements FormatStrategy {
 
 	private final CloudEventMessageConverter messageConverter;
 
-	public CloudEventMessageFormatStrategy() {
-		this.messageConverter = new CloudEventMessageConverter("ce-");
-	}
-
 	public CloudEventMessageFormatStrategy(String cePrefix) {
 		this.messageConverter = new CloudEventMessageConverter(cePrefix);
+	}
+
+	public CloudEventMessageFormatStrategy() {
+		this.messageConverter = new CloudEventMessageConverter(CloudEventMessageConverter.CE_PREFIX);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class CloudEventMessageFormatStrategy implements FormatStrategy {
 	 * @return a Spring Integration Message containing the CloudEvent data and headers
 	 */
 	@Override
-	public Message<?> convert(CloudEvent cloudEvent, MessageHeaders messageHeaders) {
+	public Message<?> toIntegrationMessage(CloudEvent cloudEvent, MessageHeaders messageHeaders) {
 		return this.messageConverter.toMessage(cloudEvent, messageHeaders);
 	}
 

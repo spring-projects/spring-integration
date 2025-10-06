@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents;
+package org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,25 +40,21 @@ import org.springframework.messaging.support.MessageBuilder;
  *
  * @since 7.0
  */
-public class MessageBuilderMessageWriter
+class MessageBuilderMessageWriter
 		implements CloudEventWriter<Message<byte[]>>, MessageWriter<MessageBuilderMessageWriter, Message<byte[]>> {
 
 	private final String cePrefix;
 
 	private final Map<String, Object> headers = new HashMap<>();
 
-	public MessageBuilderMessageWriter(Map<String, Object> headers, String cePrefix) {
+	MessageBuilderMessageWriter(Map<String, Object> headers, String cePrefix) {
 		this.headers.putAll(headers);
 		this.cePrefix = cePrefix;
 	}
 
-	public MessageBuilderMessageWriter() {
-		this.cePrefix = CloudEventsHeaders.CE_PREFIX;
-	}
-
 	@Override
 	public Message<byte[]> setEvent(EventFormat format, byte[] value) throws CloudEventRWException {
-		this.headers.put(CloudEventsHeaders.CONTENT_TYPE, format.serializedContentType());
+		this.headers.put(CloudEventMessageConverter.CONTENT_TYPE, format.serializedContentType());
 		return MessageBuilder.withPayload(value).copyHeaders(this.headers).build();
 	}
 
@@ -69,7 +65,7 @@ public class MessageBuilderMessageWriter
 
 	@Override
 	public Message<byte[]> end() {
-		return MessageBuilder.withPayload(new byte[0]).copyHeaders(this.headers).build();
+		return end(null);
 	}
 
 	@Override

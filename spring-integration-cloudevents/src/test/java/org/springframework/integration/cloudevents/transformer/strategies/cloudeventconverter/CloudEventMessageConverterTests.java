@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.transformer;
+package org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -26,8 +26,6 @@ import io.cloudevents.core.builder.CloudEventBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.cloudevents.CloudEventMessageConverter;
-import org.springframework.integration.cloudevents.CloudEventsHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -45,7 +43,7 @@ public class CloudEventMessageConverterTests {
 
 	@BeforeEach
 	void setUp() {
-		this.converter = new CloudEventMessageConverter(CloudEventsHeaders.CE_PREFIX);
+		this.converter = new CloudEventMessageConverter(CloudEventMessageConverter.CE_PREFIX);
 		this.customPrefixConverter = new CloudEventMessageConverter("CUSTOM_");
 	}
 
@@ -69,10 +67,10 @@ public class CloudEventMessageConverterTests {
 
 		MessageHeaders resultHeaders = result.getHeaders();
 		assertThat(resultHeaders.get("existing-header")).isEqualTo("existing-value");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("test-id");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "source")).isEqualTo("https://example.com");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "type")).isEqualTo("com.example.test");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "specversion")).isEqualTo("1.0");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("test-id");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "source")).isEqualTo("https://example.com");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "type")).isEqualTo("com.example.test");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "specversion")).isEqualTo("1.0");
 	}
 
 	@Test
@@ -143,10 +141,10 @@ public class CloudEventMessageConverterTests {
 		assertThat(result).isNotNull();
 		MessageHeaders resultHeaders = result.getHeaders();
 
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "datacontenttype")).isEqualTo("application/json");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "dataschema")).isEqualTo("https://schema.example.com");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "subject")).isEqualTo("test-subject");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "time")).isNotNull();
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "datacontenttype")).isEqualTo("application/json");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "dataschema")).isEqualTo("https://schema.example.com");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "subject")).isEqualTo("test-subject");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "time")).isNotNull();
 	}
 
 	@Test
@@ -165,9 +163,9 @@ public class CloudEventMessageConverterTests {
 		assertThat(result.getPayload()).isEqualTo(new byte[0]);
 
 		MessageHeaders resultHeaders = result.getHeaders();
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("no-data-id");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "source")).isEqualTo("https://nodata.example.com");
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "type")).isEqualTo("com.example.nodata");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("no-data-id");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "source")).isEqualTo("https://nodata.example.com");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "type")).isEqualTo("com.example.nodata");
 	}
 
 	@Test
@@ -203,7 +201,7 @@ public class CloudEventMessageConverterTests {
 		assertThat(resultHeaders.get("message-timestamp")).isNotNull();
 		assertThat(resultHeaders.get("routing-key")).isEqualTo("test.route");
 
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("preserve-id");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("preserve-id");
 	}
 
 	@Test
@@ -221,7 +219,7 @@ public class CloudEventMessageConverterTests {
 		assertThat(result).isNotNull();
 		MessageHeaders resultHeaders = result.getHeaders();
 		assertThat(resultHeaders.size()).isEqualTo(6);
-		assertThat(resultHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("empty-headers-id");
+		assertThat(resultHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("empty-headers-id");
 	}
 
 	@Test

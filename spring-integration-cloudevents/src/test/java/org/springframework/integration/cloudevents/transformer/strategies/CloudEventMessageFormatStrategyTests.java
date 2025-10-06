@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CloudEventMessageFormatStrategyTests {
 
 	@Test
-	void convertCloudEventToMessage() {
+	void toIntegrationMessageCloudEventToMessage() {
 		CloudEventMessageFormatStrategy strategy = new CloudEventMessageFormatStrategy("ce_");
 
 		CloudEvent cloudEvent = CloudEventBuilder.v1()
@@ -44,7 +44,7 @@ public class CloudEventMessageFormatStrategyTests {
 
 		MessageHeaders headers = new MessageHeaders(null);
 
-		Object result = strategy.convert(cloudEvent, headers);
+		Object result = strategy.toIntegrationMessage(cloudEvent, headers);
 
 		assertThat(result).isInstanceOf(Message.class);
 		Message<?> message = (Message<?>) result;
@@ -54,7 +54,7 @@ public class CloudEventMessageFormatStrategyTests {
 	}
 
 	@Test
-	void convertWithAdditionalHeaders() {
+	void toIntegrationMessageWithAdditionalHeaders() {
 		CloudEventMessageFormatStrategy strategy = new CloudEventMessageFormatStrategy("ce_");
 
 		CloudEvent cloudEvent = CloudEventBuilder.v1()
@@ -68,7 +68,7 @@ public class CloudEventMessageFormatStrategyTests {
 		additionalHeaders.put("custom-header", "custom-value");
 		MessageHeaders headers = new MessageHeaders(additionalHeaders);
 
-		Object result = strategy.convert(cloudEvent, headers);
+		Object result = strategy.toIntegrationMessage(cloudEvent, headers);
 
 		assertThat(result).isInstanceOf(Message.class);
 		Message<?> message = (Message<?>) result;
@@ -77,7 +77,7 @@ public class CloudEventMessageFormatStrategyTests {
 	}
 
 	@Test
-	void convertWithDifferentPrefix() {
+	void toIntegrationMessageWithDifferentPrefix() {
 		CloudEventMessageFormatStrategy strategy = new CloudEventMessageFormatStrategy("cloudevent-");
 
 		CloudEvent cloudEvent = CloudEventBuilder.v1()
@@ -88,7 +88,7 @@ public class CloudEventMessageFormatStrategyTests {
 
 		MessageHeaders headers = new MessageHeaders(null);
 
-		Object result = strategy.convert(cloudEvent, headers);
+		Object result = strategy.toIntegrationMessage(cloudEvent, headers);
 
 		assertThat(result).isInstanceOf(Message.class);
 		Message<?> message = (Message<?>) result;
@@ -96,7 +96,7 @@ public class CloudEventMessageFormatStrategyTests {
 	}
 
 	@Test
-	void convertWithEmptyHeaders() {
+	void toIntegrationMessageWithEmptyHeaders() {
 		CloudEventMessageFormatStrategy strategy = new CloudEventMessageFormatStrategy("ce_");
 
 		CloudEvent cloudEvent = CloudEventBuilder.v1()
@@ -107,7 +107,7 @@ public class CloudEventMessageFormatStrategyTests {
 
 		MessageHeaders headers = new MessageHeaders(new HashMap<>());
 
-		Object result = strategy.convert(cloudEvent, headers);
+		Object result = strategy.toIntegrationMessage(cloudEvent, headers);
 
 		assertThat(result).isInstanceOf(Message.class);
 	}

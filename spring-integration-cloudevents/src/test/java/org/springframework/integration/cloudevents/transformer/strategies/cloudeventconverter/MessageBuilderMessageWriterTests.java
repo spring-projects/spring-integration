@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.cloudevents.transformer;
+package org.springframework.integration.cloudevents.transformer.strategies.cloudeventconverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +25,6 @@ import io.cloudevents.core.format.EventFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.cloudevents.CloudEventsHeaders;
-import org.springframework.integration.cloudevents.MessageBuilderMessageWriter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -34,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class MessageBuilderMessageWriterTest {
+class MessageBuilderMessageWriterTests {
 
 	private MessageBuilderMessageWriter writer;
 
@@ -46,7 +44,7 @@ class MessageBuilderMessageWriterTest {
 		headers.put("existing-header", "existing-value");
 		headers.put("correlation-id", "corr-123");
 
-		this.writer = new MessageBuilderMessageWriter(headers, CloudEventsHeaders.CE_PREFIX);
+		this.writer = new MessageBuilderMessageWriter(headers, CloudEventMessageConverter.CE_PREFIX);
 		this.customPrefixWriter = new MessageBuilderMessageWriter(headers, "CUSTOM_");
 	}
 
@@ -62,7 +60,7 @@ class MessageBuilderMessageWriterTest {
 
 		assertThat(messageHeaders.get("existing-header")).isEqualTo("existing-value");
 		assertThat(messageHeaders.get("correlation-id")).isEqualTo("corr-123");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "specversion")).isEqualTo("1.0");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "specversion")).isEqualTo("1.0");
 	}
 
 	@Test
@@ -89,10 +87,10 @@ class MessageBuilderMessageWriterTest {
 		Message<byte[]> message = this.writer.end();
 		MessageHeaders messageHeaders = message.getHeaders();
 
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("test-id");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "source")).isEqualTo("https://example.com");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "type")).isEqualTo("com.example.test");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "specversion")).isEqualTo("1.0");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("test-id");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "source")).isEqualTo("https://example.com");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "type")).isEqualTo("com.example.test");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "specversion")).isEqualTo("1.0");
 	}
 
 	@Test
@@ -123,8 +121,8 @@ class MessageBuilderMessageWriterTest {
 		Message<byte[]> message = this.writer.end();
 		MessageHeaders messageHeaders = message.getHeaders();
 
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "trace-id")).isEqualTo("trace-123");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "span-id")).isEqualTo("span-456");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "trace-id")).isEqualTo("trace-123");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "span-id")).isEqualTo("span-456");
 	}
 
 	@Test
@@ -141,10 +139,10 @@ class MessageBuilderMessageWriterTest {
 		Message<byte[]> message = this.writer.end();
 		MessageHeaders messageHeaders = message.getHeaders();
 
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "datacontenttype")).isEqualTo("application/json");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "dataschema")).isEqualTo("https://schema.example.com");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "subject")).isEqualTo("test-subject");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "time")).isEqualTo("2023-01-01T10:00:00Z");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "datacontenttype")).isEqualTo("application/json");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "dataschema")).isEqualTo("https://schema.example.com");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "subject")).isEqualTo("test-subject");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "time")).isEqualTo("2023-01-01T10:00:00Z");
 	}
 
 	@Test
@@ -159,7 +157,7 @@ class MessageBuilderMessageWriterTest {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(new byte[0]);
 		assertThat(message.getHeaders().get("existing-header")).isEqualTo("existing-value");
-		assertThat(message.getHeaders().get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("empty-id");
+		assertThat(message.getHeaders().get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("empty-id");
 	}
 
 	@Test
@@ -177,7 +175,7 @@ class MessageBuilderMessageWriterTest {
 
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(testData);
-		assertThat(message.getHeaders().get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("data-id");
+		assertThat(message.getHeaders().get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("data-id");
 	}
 
 	@Test
@@ -191,7 +189,7 @@ class MessageBuilderMessageWriterTest {
 
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(new byte[0]);
-		assertThat(message.getHeaders().get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("null-data-id");
+		assertThat(message.getHeaders().get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("null-data-id");
 	}
 
 	@Test
@@ -210,7 +208,7 @@ class MessageBuilderMessageWriterTest {
 
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo(eventData);
-		assertThat(message.getHeaders().get(CloudEventsHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
+		assertThat(message.getHeaders().get(CloudEventMessageConverter.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
 		assertThat(message.getHeaders().get("existing-header")).isEqualTo("existing-value");
 	}
 
@@ -225,8 +223,8 @@ class MessageBuilderMessageWriterTest {
 
 		assertThat(messageHeaders.get("existing-header")).isEqualTo("existing-value");
 		assertThat(messageHeaders.get("correlation-id")).isEqualTo("corr-123");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "id")).isEqualTo("preserve-id");
-		assertThat(messageHeaders.get(CloudEventsHeaders.CE_PREFIX + "source")).isEqualTo("https://preserve.example.com");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "id")).isEqualTo("preserve-id");
+		assertThat(messageHeaders.get(CloudEventMessageConverter.CE_PREFIX + "source")).isEqualTo("https://preserve.example.com");
 	}
 
 }
