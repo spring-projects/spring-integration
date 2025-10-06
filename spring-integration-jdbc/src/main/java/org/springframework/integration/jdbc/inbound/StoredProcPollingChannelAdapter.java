@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.inbound;
 
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -58,7 +59,7 @@ public class StoredProcPollingChannelAdapter extends AbstractMessageSource<Objec
 	 * only 1 element, will have that 1 element extracted and returned as payload.
 	 * If the resultMap contains more than 1 element and expectSingleResult is true,
 	 * then a {@link MessagingException} is thrown.
-	 * Otherwise the complete resultMap is returned as the
+	 * Otherwise, the complete resultMap is returned as the
 	 * {@link org.springframework.messaging.Message} payload.
 	 * Important Note: Several databases such as H2 are not fully supported.
 	 * The H2 database, for example, does not fully support the

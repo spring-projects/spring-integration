@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -52,7 +53,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	public static void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
 		builder.setType(EmbeddedDatabaseType.HSQL).addScript(
-				"classpath:org/springframework/integration/jdbc/messageHandlerIntegrationTest.sql");
+				"classpath:org/springframework/integration/jdbc/outbound/messageHandlerIntegrationTest.sql");
 		embeddedDatabase = builder.build();
 		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
 	}
@@ -70,15 +71,16 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 	@Test
 	public void testSimpleStaticInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
-				"insert into foos (id, status, name) values (1, 0, 'foo')");
+				"insert into foos (id, status, name) values (1, 0, 'test')");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertThat(map.get("ID")).as("Wrong id").isEqualTo("1");
-		assertThat(map.get("STATUS")).as("Wrong status").isEqualTo(0);
-		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(map)
+				.containsEntry("ID", "1")
+				.containsEntry("STATUS", 0)
+				.containsEntry("NAME", "test");
 	}
 
 	@Test
@@ -87,10 +89,10 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 				"insert into foos (id, status, name) values (1, 0, :payload)");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<>("foo");
+		Message<String> message = new GenericMessage<>("test");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(map).containsEntry("NAME", "test");
 	}
 
 	@Test
@@ -100,16 +102,16 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
-		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
+		Message<List<String>> message = new GenericMessage<>(Arrays.asList("test1", "test2", "test3"));
 		handler.handleMessage(message);
 
 		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
 
-		assertThat(foos.size()).isEqualTo(3);
+		assertThat(foos).hasSize(3);
 
-		assertThat(foos.get(0).get("NAME")).isEqualTo("foo1");
-		assertThat(foos.get(1).get("NAME")).isEqualTo("foo2");
-		assertThat(foos.get(2).get("NAME")).isEqualTo("foo3");
+		assertThat(foos.get(0)).containsEntry("NAME", "test1");
+		assertThat(foos.get(1)).containsEntry("NAME", "test2");
+		assertThat(foos.get(2)).containsEntry("NAME", "test3");
 	}
 
 	@Test
@@ -134,11 +136,11 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 
 		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY NAME");
 
-		assertThat(foos.size()).isEqualTo(3);
+		assertThat(foos).hasSize(3);
 
-		assertThat(foos.get(0).get("NAME")).isEqualTo("Item1");
-		assertThat(foos.get(1).get("NAME")).isEqualTo("Item2");
-		assertThat(foos.get(2).get("NAME")).isEqualTo("Item3");
+		assertThat(foos.get(0)).containsEntry("NAME", "Item1");
+		assertThat(foos.get(1)).containsEntry("NAME", "Item2");
+		assertThat(foos.get(2)).containsEntry("NAME", "Item3");
 
 		assertThat(foos.get(0).get("ID"))
 				.isNotEqualTo(foos.get(0).get("NAME"))
@@ -156,10 +158,10 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 		});
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<>("foo");
+		Message<String> message = new GenericMessage<>("test");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("test");
 		assertThat(setterInvoked.get()).isTrue();
 	}
 
@@ -174,16 +176,16 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
-		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
+		Message<List<String>> message = new GenericMessage<>(Arrays.asList("test1", "test2", "test3"));
 		handler.handleMessage(message);
 
 		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
 
-		assertThat(foos.size()).isEqualTo(3);
+		assertThat(foos).hasSize(3);
 
-		assertThat(foos.get(0).get("NAME")).isEqualTo("foo1");
-		assertThat(foos.get(1).get("NAME")).isEqualTo("foo2");
-		assertThat(foos.get(2).get("NAME")).isEqualTo("foo3");
+		assertThat(foos.get(0)).containsEntry("NAME", "test1");
+		assertThat(foos.get(1)).containsEntry("NAME", "test2");
+		assertThat(foos.get(2)).containsEntry("NAME", "test3");
 	}
 
 	@Test
@@ -192,7 +194,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 				"insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<>("foo");
+		Message<String> message = new GenericMessage<>("test");
 		String id = message.getHeaders().getId().toString();
 		message = MessageBuilder.fromMessage(message)
 				.setHeader("idAsString", message.getHeaders().getId().toString())
@@ -200,7 +202,7 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", id);
 		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
-		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("test");
 	}
 
 	@Test
@@ -209,12 +211,12 @@ public class JdbcMessageHandlerIntegrationTests implements TestApplicationContex
 				"insert into foos (id, status, name) values (:headers[business.id], 0, :payload)");
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
-		Message<String> message = MessageBuilder.withPayload("foo").setHeader("business.id", "FOO").build();
+		Message<String> message = MessageBuilder.withPayload("test").setHeader("business.id", "ID").build();
 		handler.handleMessage(message);
 		String id = message.getHeaders().get("business.id").toString();
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", id);
 		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
-		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("test");
 	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +36,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
  * @author Gunnar Hillert
@@ -64,14 +65,11 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 
 		Message<Collection<User>> message = received.get(0);
 		context.stop();
-		assertThat(message).isNotNull();
-		assertThat(message.getPayload()).isNotNull();
-		assertThat(message.getPayload() instanceof Collection<?>).isNotNull();
 
-		Collection<User> allUsers = message.getPayload();
-
-		assertThat(allUsers.size() == 1).isTrue();
-
+		assertThat(message)
+				.extracting(Message::getPayload)
+				.asInstanceOf(list(User.class))
+				.hasSize(1);
 	}
 
 	static class Counter {
@@ -83,7 +81,7 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 				//prevent message overload
 				return null;
 			}
-			return Integer.valueOf(count.incrementAndGet());
+			return count.incrementAndGet();
 		}
 
 	}

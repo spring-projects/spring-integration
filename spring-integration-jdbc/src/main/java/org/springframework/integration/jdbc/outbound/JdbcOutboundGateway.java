@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +25,10 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory;
+import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
+import org.springframework.integration.jdbc.SqlParameterSourceFactory;
+import org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -124,7 +128,6 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * This parameter is only applicable if a selectQuery was provided. Null values
 	 * are not permitted.
 	 * @param maxRows the number of rows to select. Must not be null.
-	 * @since 5.1
 	 * @see JdbcPollingChannelAdapter#setMaxRows(int)
 	 */
 	public void setMaxRows(Integer maxRows) {
@@ -196,7 +199,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 			this.handler.afterPropertiesSet();
 		}
 
-		if (!this.sqlParameterSourceFactorySet && beanFactory != null) {
+		if (!this.sqlParameterSourceFactorySet) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
 					.setBeanFactory(beanFactory);
 		}

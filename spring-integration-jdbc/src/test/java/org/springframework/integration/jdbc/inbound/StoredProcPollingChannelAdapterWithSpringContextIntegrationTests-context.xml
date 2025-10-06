@@ -56,7 +56,7 @@
 		<property name="ignoreColumnMetaData" value="true"/>
 	</bean>
 
-	<bean  id="source" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapter">
+	<bean  id="source" class="org.springframework.integration.jdbc.inbound.StoredProcPollingChannelAdapter">
 		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor"/>
 		<property name="expectSingleResult" value="true"/>
 	</bean>
@@ -74,7 +74,7 @@
 <!-- <int:channel id="errorChannel" /> -->
 
 	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" phase="-100"/>
-	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapterWithSpringContextIntegrationTests$Consumer"/>
+	<bean id="consumer" class="org.springframework.integration.jdbc.inbound.StoredProcPollingChannelAdapterWithSpringContextIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 

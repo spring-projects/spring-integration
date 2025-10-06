@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.inbound;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory;
+import org.springframework.integration.jdbc.SqlParameterSourceFactory;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -122,7 +124,6 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	/**
 	 * Set the select query.
 	 * @param selectQuery the query.
-	 * @since 5.2.1
 	 */
 	public final void setSelectQuery(String selectQuery) {
 		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
@@ -166,7 +167,6 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	/**
 	 * The maximum number of rows to query. Default is zero - select all records.
 	 * @param maxRows the max rows to set
-	 * @since 5.1
 	 */
 	public void setMaxRows(int maxRows) {
 		this.maxRows = maxRows;
@@ -175,7 +175,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	@Override
 	protected void onInit() {
 		BeanFactory beanFactory = getBeanFactory();
-		if (!this.sqlParameterSourceFactorySet && beanFactory != null) {
+		if (!this.sqlParameterSourceFactorySet) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
 					.setBeanFactory(beanFactory);
 		}
@@ -215,7 +215,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param sqlQueryParameterSource the {@link SqlParameterSource} to use. Optional.
 	 * @return the result of the query.
 	 */
-	protected List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
+	public List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
 		if (sqlQueryParameterSource != null) {
 			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
 		}

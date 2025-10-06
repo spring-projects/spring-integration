@@ -30,7 +30,7 @@
 
 	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
 
-	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapterWithNamespaceIntegrationTests$Consumer"/>
+	<bean id="consumer" class="org.springframework.integration.jdbc.inbound.StoredProcPollingChannelAdapterWithNamespaceIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 

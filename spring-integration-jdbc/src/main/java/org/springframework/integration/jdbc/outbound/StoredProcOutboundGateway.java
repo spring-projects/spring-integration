@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

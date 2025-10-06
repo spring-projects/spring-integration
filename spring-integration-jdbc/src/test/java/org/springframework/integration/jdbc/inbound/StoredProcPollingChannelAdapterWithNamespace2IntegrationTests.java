@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.inbound;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,6 +33,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
  * @author Gunnar Hillert
@@ -41,8 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
-@DirtiesContext
-public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
+@DirtiesContext // close at the end after class
+public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
 	@Autowired
 	private AbstractApplicationContext context;
@@ -50,24 +50,18 @@ public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
 	@Autowired
 	private Consumer consumer;
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
-		List<Message<?>> received = new ArrayList<>();
+		List<Message<List<Integer>>> received = new ArrayList<>();
 
 		received.add(consumer.poll(60000));
 
-		Message<?> message = received.get(0);
+		Message<List<Integer>> message = received.get(0);
 		context.stop();
 		assertThat(message).isNotNull();
-		assertThat(message.getPayload())
-				.isNotNull()
-				.isInstanceOf(Collection.class);
-
-		List<Integer> primeNumbers = (List<Integer>) message.getPayload();
-
-		assertThat(primeNumbers).containsExactly(2, 3, 5, 7);
-
+		assertThat(message.getPayload()).
+				asInstanceOf(list(Integer.class))
+				.hasSize(1);
 	}
 
 	static class Counter {
@@ -86,14 +80,14 @@ public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
 
 	static class Consumer {
 
-		private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
+		private final BlockingQueue<Message<List<Integer>>> messages = new LinkedBlockingQueue<Message<List<Integer>>>();
 
 		@ServiceActivator
-		public void receive(Message<?> message) {
+		public void receive(Message<List<Integer>> message) {
 			messages.add(message);
 		}
 
-		Message<?> poll(long timeoutInMillis) throws InterruptedException {
+		Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
 

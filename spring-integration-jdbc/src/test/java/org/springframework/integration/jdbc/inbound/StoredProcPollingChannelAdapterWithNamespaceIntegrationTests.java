@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.inbound;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,14 +33,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @author Artem Bilan
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
+public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
 
 	@Autowired
 	private AbstractApplicationContext context;
@@ -50,21 +51,18 @@ public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
 	private Consumer consumer;
 
 	@Test
-	public void test() throws Exception {
-		List<Message<Collection<Integer>>> received = new ArrayList<>();
+	public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
+		List<Message<?>> received = new ArrayList<>();
 
-		received.add(consumer.poll(2000));
+		received.add(consumer.poll(60000));
 
-		Message<Collection<Integer>> message = received.get(0);
+		Message<?> message = received.get(0);
 		context.stop();
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload())
 				.isNotNull()
-				.isInstanceOf(Collection.class);
-
-		Collection<Integer> primeNumbers = message.getPayload();
-
-		assertThat(primeNumbers.size() == 4).isTrue();
+				.asInstanceOf(list(Integer.class))
+				.containsExactly(2, 3, 5, 7);
 	}
 
 	static class Counter {
@@ -83,14 +81,14 @@ public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
 
 	static class Consumer {
 
-		private final BlockingQueue<Message<Collection<Integer>>> messages = new LinkedBlockingQueue<>();
+		private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
 		@ServiceActivator
-		public void receive(Message<Collection<Integer>> message) {
+		public void receive(Message<?> message) {
 			messages.add(message);
 		}
 
-		Message<Collection<Integer>> poll(long timeoutInMillis) throws InterruptedException {
+		Message<?> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
 

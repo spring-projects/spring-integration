@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
  * A message handler that executes Stored Procedures for update purposes.
- *
+ * <p>
  * Stored procedure parameter values are by default automatically extracted from
  * the Payload if the payload's bean properties match the parameters of the Stored
  * Procedure.
- *
+ * <p>
  * This may be sufficient for basic use cases. For more sophisticated options
  * consider passing in one or more
  * {@link org.springframework.integration.jdbc.storedproc.ProcedureParameter}.
- *
+ * <p>
  * If you need to handle the return parameters of the called stored procedure
  * explicitly, please consider using a {@link StoredProcOutboundGateway} instead.
- *
+ * <p>
  * Also, if you need to execute SQL Functions, please also use the
  * {@link StoredProcOutboundGateway}. As functions are typically used to look up
  * values, only, the Stored Procedure message handler purposefully does not support
- * SQL function calls. If you believe there are valid use-cases for that, please file a
- * feature request at https://jira.springsource.org.
+ * SQL function calls.
  *
  * @author Gunnar Hillert
  * @author Gary Russell

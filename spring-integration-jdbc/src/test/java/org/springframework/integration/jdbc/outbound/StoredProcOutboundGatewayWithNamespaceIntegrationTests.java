@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,6 +41,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
  * @author Gunnar Hillert
@@ -81,19 +82,16 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 		Message<Collection<User>> message = received.get(0);
 
-		assertThat(message).isNotNull();
-		assertThat(message.getPayload()).isNotNull();
-
-		Collection<User> allUsers = message.getPayload();
-
-		assertThat(allUsers.size() == 1).isTrue();
-
-		User userFromDb = allUsers.iterator().next();
-
-		assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
-		assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
-		assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("'myEmail'");
-
+		assertThat(message)
+				.extracting(Message::getPayload)
+				.asInstanceOf(list(User.class))
+				.hasSize(1)
+				.first()
+				.satisfies(userFromDb -> {
+					assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
+					assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
+					assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("'myEmail'");
+				});
 	}
 
 	@Test
@@ -109,19 +107,16 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		@SuppressWarnings("unchecked")
 		Message<Collection<User>> message = (Message<Collection<User>>) replyChannel.receive();
 
-		assertThat(message).isNotNull();
-		assertThat(message.getPayload()).isNotNull();
-
-		Collection<User> allUsers = message.getPayload();
-
-		assertThat(allUsers.size() == 1).isTrue();
-
-		User userFromDb = allUsers.iterator().next();
-
-		assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
-		assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
-		assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("myEmail");
-
+		assertThat(message)
+				.extracting(Message::getPayload)
+				.asInstanceOf(list(User.class))
+				.hasSize(1)
+				.first()
+				.satisfies(userFromDb -> {
+					assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
+					assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
+					assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("myEmail");
+				});
 	}
 
 	static class Counter {

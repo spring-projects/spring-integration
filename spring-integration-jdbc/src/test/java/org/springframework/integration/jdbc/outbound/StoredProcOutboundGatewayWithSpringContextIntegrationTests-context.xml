@@ -43,7 +43,7 @@
 		</property>
 	</bean>
 
-	<bean id="gateway" class="org.springframework.integration.jdbc.StoredProcOutboundGateway">
+	<bean id="gateway" class="org.springframework.integration.jdbc.outbound.StoredProcOutboundGateway">
 		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor"/>
 		<property name="expectSingleResult" value="true"/>
 		<property name="outputChannel" ref="outputChannel"/>
@@ -61,7 +61,7 @@
 
 	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer"/>
 	<bean id="consumer"
-		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithSpringContextIntegrationTests$Consumer"/>
+		  class="org.springframework.integration.jdbc.outbound.StoredProcOutboundGatewayWithSpringContextIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;

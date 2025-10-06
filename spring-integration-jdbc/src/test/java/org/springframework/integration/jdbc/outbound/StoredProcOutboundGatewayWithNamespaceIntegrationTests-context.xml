@@ -34,7 +34,7 @@
 
 	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer"/>
 	<bean id="consumer"
-		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$Consumer"/>
+		  class="org.springframework.integration.jdbc.outbound.StoredProcOutboundGatewayWithNamespaceIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 
@@ -51,6 +51,6 @@
 	</int:channel>
 
 	<bean id="testService"
-		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$TestService"/>
+		  class="org.springframework.integration.jdbc.outbound.StoredProcOutboundGatewayWithNamespaceIntegrationTests$TestService"/>
 
 </beans>

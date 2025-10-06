@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.inbound;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -37,6 +37,7 @@ import org.springframework.integration.config.ControlBusFactoryBean;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.test.support.TestApplicationContextAware;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.sql.CallableStatement;
 import java.util.Collection;
@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
  * @author Gunnar Hillert
@@ -105,15 +106,11 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		Message<Collection<User>> message = (Message<Collection<User>>) this.outputChannel.receive(10000);
 
 		context.stop();
-		assertThat(message).isNotNull();
 
-		assertThat(message.getPayload()).isNotNull();
-		assertThat(message.getPayload() instanceof Collection<?>).isNotNull();
-
-		Collection<User> allUsers = message.getPayload();
-
-		assertThat(allUsers.size() == 2).isTrue();
-
+		assertThat(message)
+				.extracting(Message::getPayload)
+				.asInstanceOf(list(User.class))
+				.hasSize(2);
 	}
 
 	@Test
@@ -186,7 +183,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	 */
 	static class Consumer {
 
-		private volatile BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<>();
+		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {

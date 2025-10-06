@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.outbound;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +34,10 @@ import javax.sql.DataSource;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.jdbc.BeanPropertySqlParameterSourceFactory;
+import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
+import org.springframework.integration.jdbc.SqlParameterSourceFactory;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -147,7 +151,6 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * as a source for parameters.
 	 * Makes sense only if {@link #setPreparedStatementSetter(MessagePreparedStatementSetter)} is not provided.
 	 * @param usePayloadAsParameterSource false for the entire {@link Message} as parameter source.
-	 * @since 6.5
 	 */
 	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
 		this.usePayloadAsParameterSource = usePayloadAsParameterSource;
@@ -158,7 +161,6 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * {@link PreparedStatement} with the {@link Message} context.
 	 * <p>This is a low-level alternative to the {@link SqlParameterSourceFactory}.
 	 * @param preparedStatementSetter the {@link MessagePreparedStatementSetter} to set.
-	 * @since 4.2
 	 */
 	public void setPreparedStatementSetter(@Nullable MessagePreparedStatementSetter preparedStatementSetter) {
 		this.preparedStatementSetter = preparedStatementSetter;
@@ -187,7 +189,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Executes the update, passing the message into the {@link SqlParameterSourceFactory}.
+	 * Execute the update, passing the message into the {@link SqlParameterSourceFactory}.
 	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
@@ -304,23 +306,11 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	}
 
 	private static Message<?> payloadToMessage(Object payload, MessageHeaders messageHeaders) {
-		if (payload instanceof Message) {
-			return (Message<?>) payload;
+		if (payload instanceof Message<?> message) {
+			return message;
 		}
 
-		return new Message<>() {
-
-			@Override
-			public Object getPayload() {
-				return payload;
-			}
-
-			@Override
-			public MessageHeaders getHeaders() {
-				return messageHeaders;
-			}
-
-		};
+		return new MutableMessage<>(payload, messageHeaders);
 	}
 
 }
