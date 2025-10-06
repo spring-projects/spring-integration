@@ -182,7 +182,7 @@ public class AmqpClientMessageProducer extends MessageProducerSupport implements
 	/**
 	 * Use as {@link java.util.function.BiConsumer} for the {@link IntegrationRabbitAmqpMessageListener}.
 	 * @param messageToSend the message to produce from this endpoint.
-	 * @param requestMessage the request AMQP message.
+	 * @param requestMessage the request AMQP message. Ignored in this implementation.
 	 */
 	private void processRequest(Message<?> messageToSend,
 			org.springframework.amqp.core.@Nullable Message requestMessage) {

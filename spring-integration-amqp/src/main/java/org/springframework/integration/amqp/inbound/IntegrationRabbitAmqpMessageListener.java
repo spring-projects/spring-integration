@@ -129,7 +129,8 @@ record IntegrationRabbitAmqpMessageListener(NamedComponent amqpInboundEndpoint,
 
 	@Override
 	public void onMessage(org.springframework.amqp.core.Message message) {
-		throw new UnsupportedOperationException("The 'RabbitAmqpMessageListener' does not implement 'onMessage()'");
+		throw new UnsupportedOperationException(
+				"The 'IntegrationRabbitAmqpMessageListener' does not implement 'onMessage()'");
 	}
 
 	/**
