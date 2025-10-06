@@ -26,15 +26,15 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ToCloudEventTransformerTest {
+class ToCloudEventTransformerTests {
 
 	private ToCloudEventTransformer transformer;
 
 	@BeforeEach
 	void setUp() {
 		String extensionPatterns = "customer-header";
-		this.transformer = new ToCloudEventTransformer(extensionPatterns, new CloudEventMessageFormatStrategy("ce-"),
-				new CloudEventProperties());
+		this.transformer = new ToCloudEventTransformer(new CloudEventMessageFormatStrategy("ce-"),
+				extensionPatterns);
 	}
 
 	@Test
@@ -145,9 +145,9 @@ class ToCloudEventTransformerTest {
 
 	@Test
 	void multipleExtensionMappings() {
-		String extensionPatterns = "trace-id,span-id,user-id";
+		String[] extensionPatterns = {"trace-id", "span-id", "user-id"};
 
-		ToCloudEventTransformer extendedTransformer = new ToCloudEventTransformer(extensionPatterns, new CloudEventMessageFormatStrategy("ce-"), new CloudEventProperties());
+		ToCloudEventTransformer extendedTransformer = new ToCloudEventTransformer(new CloudEventMessageFormatStrategy("ce-"), extensionPatterns);
 
 		String payload = "test message";
 		Message<String> message = MessageBuilder.withPayload(payload)
@@ -163,16 +163,10 @@ class ToCloudEventTransformerTest {
 		Message<?> resultMessage = (Message<?>) result;
 
 		// Extension-mapped headers should be converted to cloud event extensions
-		assertThat(resultMessage.getHeaders().containsKey("trace-id")).isFalse();
-		assertThat(resultMessage.getHeaders().containsKey("span-id")).isFalse();
-		assertThat(resultMessage.getHeaders().containsKey("user-id")).isFalse();
-
-		assertThat(resultMessage.getHeaders().containsKey("ce-trace-id")).isTrue();
-		assertThat(resultMessage.getHeaders().containsKey("ce-span-id")).isTrue();
-		assertThat(resultMessage.getHeaders().containsKey("ce-user-id")).isTrue();
+		assertThat(resultMessage.getHeaders()).containsKeys("trace-id", "span-id", "user-id", "correlation-id",
+				"ce-trace-id", "ce-span-id", "ce-user-id");
 
 		// Non-mapped header should be preserved
-		assertThat(resultMessage.getHeaders().containsKey("correlation-id")).isTrue();
 		assertThat(resultMessage.getHeaders().get("correlation-id")).isEqualTo("corr-999");
 	}
 
@@ -201,11 +195,9 @@ class ToCloudEventTransformerTest {
 
 	@Test
 	void testCustomCePrefixInHeaders() {
-		CloudEventProperties properties = new CloudEventProperties();
-		properties.setCePrefix("CUSTOM_");
 
-		ToCloudEventTransformer customPrefixTransformer = new ToCloudEventTransformer(null, new CloudEventMessageFormatStrategy(properties.getCePrefix()), properties);
-
+		ToCloudEventTransformer customPrefixTransformer = new ToCloudEventTransformer(
+				new CloudEventMessageFormatStrategy("CUSTOM_"), (String[]) null);
 		String payload = "test custom prefix";
 		Message<String> message = MessageBuilder.withPayload(payload)
 			.setHeader("test-header", "test-value")
@@ -217,26 +209,18 @@ class ToCloudEventTransformerTest {
 
 		MessageHeaders headers = resultMessage.getHeaders();
 
-		assertThat(headers.get("CUSTOM_id")).isNotNull();
-		assertThat(headers.get("CUSTOM_source")).isNotNull();
-		assertThat(headers.get("CUSTOM_type")).isNotNull();
+		assertThat(headers).containsKeys("CUSTOM_id", "CUSTOM_source", "CUSTOM_type", "CUSTOM_specversion");
 		assertThat(headers.get("CUSTOM_specversion")).isEqualTo("1.0");
-
-		assertThat(headers.containsKey("ce-id")).isFalse();
-		assertThat(headers.containsKey("ce-source")).isFalse();
-		assertThat(headers.containsKey("ce-type")).isFalse();
-		assertThat(headers.containsKey("ce-specversion")).isFalse();
-
+		assertThat(headers).doesNotContainKeys("ce-id", "ce-source", "ce-type", "ce-specversion");
 		assertThat(headers.get("test-header")).isEqualTo("test-value");
 	}
 
 	@Test
 	void testCustomPrefixWithExtensions() {
-		CloudEventProperties properties = new CloudEventProperties();
-		properties.setCePrefix("APP_CE_");
 
-		String extensionPatterns = "trace-id,span-id";
-		ToCloudEventTransformer customExtTransformer = new ToCloudEventTransformer(extensionPatterns, new CloudEventMessageFormatStrategy(properties.getCePrefix()), properties);
+		String[] extensionPatterns = {"trace-id", "span-id"};
+		ToCloudEventTransformer customExtTransformer = new ToCloudEventTransformer(
+				new CloudEventMessageFormatStrategy("APP_CE_"), extensionPatterns);
 
 		String payload = "test custom prefix with extensions";
 		Message<String> message = MessageBuilder.withPayload(payload)
@@ -250,6 +234,8 @@ class ToCloudEventTransformerTest {
 		Message<?> resultMessage = getTransformedMessage(result);
 
 		MessageHeaders headers = resultMessage.getHeaders();
+		assertThat(headers).containsKeys("APP_CE_id", "APP_CE_source", "APP_CE_type", "APP_CE_specversion",
+				"APP_CE_trace-id", "APP_CE_span-id");
 
 		assertThat(headers.get("APP_CE_id")).isNotNull();
 		assertThat(headers.get("APP_CE_source")).isNotNull();
@@ -257,19 +243,14 @@ class ToCloudEventTransformerTest {
 		assertThat(headers.get("APP_CE_specversion")).isEqualTo("1.0");
 		assertThat(headers.get("APP_CE_trace-id")).isEqualTo("trace-456");
 		assertThat(headers.get("APP_CE_span-id")).isEqualTo("span-789");
-
-		assertThat(headers.containsKey("trace-id")).isFalse();
-		assertThat(headers.containsKey("span-id")).isFalse();
+		assertThat(headers).containsKeys("trace-id", "span-id");
 		assertThat(headers.get("regular-header")).isEqualTo("regular-value");
 	}
 
 	@Test
 	void testEmptyStringCePrefixBehavior() {
-		CloudEventProperties properties = new CloudEventProperties();
-		properties.setCePrefix("");
-
-		ToCloudEventTransformer emptyPrefixTransformer = new ToCloudEventTransformer(null, new CloudEventMessageFormatStrategy(properties.getCePrefix()), properties);
-
+		ToCloudEventTransformer emptyPrefixTransformer = new ToCloudEventTransformer(
+				new CloudEventMessageFormatStrategy(""), (String[]) null);
 		String payload = "test empty prefix";
 		Message<String> message = MessageBuilder.withPayload(payload).build();
 
@@ -284,10 +265,7 @@ class ToCloudEventTransformerTest {
 		assertThat(headers.get("type")).isNotNull();
 		assertThat(headers.get("specversion")).isEqualTo("1.0");
 
-		assertThat(headers.containsKey("ce-id")).isFalse();
-		assertThat(headers.containsKey("ce-source")).isFalse();
-		assertThat(headers.containsKey("ce-type")).isFalse();
-		assertThat(headers.containsKey("ce-specversion")).isFalse();
+		assertThat(headers).doesNotContainKeys("ce-id",  "ce-source", "ce-type", "ce-specversion");
 	}
 
 	private Message<?> getTransformedMessage(Object object) {
