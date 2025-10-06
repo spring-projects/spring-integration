@@ -598,9 +598,11 @@ public final class RedisLockRegistry
 			return res;
 		}
 
+		/* This method can be called by more than 1 thread, thus we need to make sure that it is safe*/
 		protected final void stopRenew() {
-			if (this.renewFuture != null) {
-				this.renewFuture.cancel(true);
+			ScheduledFuture<?> renewFutureToCancel = this.renewFuture;
+			if (renewFutureToCancel != null) {
+				renewFutureToCancel.cancel(true);
 				this.renewFuture = null;
 			}
 		}
