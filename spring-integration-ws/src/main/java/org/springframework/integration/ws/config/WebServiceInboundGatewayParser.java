@@ -25,22 +25,26 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
+import org.springframework.integration.ws.inbound.MarshallingWebServiceInboundGateway;
+import org.springframework.integration.ws.inbound.SimpleWebServiceInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser {
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				"MarshallingWebServiceInboundGateway" : "SimpleWebServiceInboundGateway";
-		return "org.springframework.integration.ws." + simpleClassName;
+		return (StringUtils.hasText(element.getAttribute("marshaller"))
+				? MarshallingWebServiceInboundGateway.class
+				: SimpleWebServiceInboundGateway.class)
+				.getName();
 	}
 
 	@Override
@@ -70,7 +74,8 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)) {
 			String extractPayload = element.getAttribute("extract-payload");
 			if (StringUtils.hasText(extractPayload)) {
-				this.logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");
+				this.logger.warn("Setting 'extract-payload' attribute has no effect " +
+						"when used with a marshalling Web Service Inbound Gateway.");
 			}
 		}
 	}
@@ -78,7 +83,8 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext,
+				DefaultSoapHeaderMapper.class, null);
 	}
 
 }

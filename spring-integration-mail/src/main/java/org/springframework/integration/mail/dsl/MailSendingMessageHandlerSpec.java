@@ -23,7 +23,7 @@ import jakarta.activation.FileTypeMap;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.integration.mail.outbound.MailSendingMessageHandler;
 import org.springframework.integration.support.PropertiesBuilder;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
@@ -90,7 +90,7 @@ public class MailSendingMessageHandlerSpec
 
 	/**
 	 * Set the credentials.
-	 * @param username the user name.
+	 * @param username the username.
 	 * @param password the password.
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setUsername(String)

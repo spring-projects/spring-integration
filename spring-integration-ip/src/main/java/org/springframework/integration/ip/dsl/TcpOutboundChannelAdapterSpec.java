@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.outbound.TcpSendingMessageHandler;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -40,7 +40,7 @@ public class TcpOutboundChannelAdapterSpec
 		extends MessageHandlerSpec<TcpOutboundChannelAdapterSpec, TcpSendingMessageHandler>
 		implements ComponentsRegistration {
 
-	protected final @Nullable AbstractConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractConnectionFactory connectionFactory;
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.

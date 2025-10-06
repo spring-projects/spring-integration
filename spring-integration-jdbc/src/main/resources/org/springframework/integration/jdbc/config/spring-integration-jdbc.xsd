@@ -114,7 +114,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.jdbc.JdbcPollingChannelAdapter'
+				'org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter'
 				for polling a database.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -216,7 +216,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jdbc.JdbcMessageHandler' for updating a
+				'org.springframework.integration.jdbc.outbound.JdbcMessageHandler' for updating a
 				database.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -297,7 +297,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jdbc.JdbcOutboundGateway' for updating a
+				'org.springframework.integration.jdbc.outbound.JdbcOutboundGateway' for updating a
 				database in response to a message on the request channel, and/or
 				for retrieving data from the database using the input message as
 				a source of parameters for the specified SQL select query.
@@ -601,7 +601,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jdbc.StoredProcMessageHandler' for updating a
+				'org.springframework.integration.jdbc.outbound.StoredProcMessageHandler' for updating a
 				database using stored procedures.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -727,7 +727,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jdbc.StoredProcOutboundGateway' for updating a database using
+				'org.springframework.integration.jdbc.outbound.StoredProcOutboundGateway' for updating a database using
 				a stored procedure. The response of the stored procedure is used
 				to populate the Message for the reply channel.
 			</xsd:documentation>
@@ -985,7 +985,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.jdbc.StoredProcPollingChannelAdapter' for polling a
+				'org.springframework.integration.jdbc.inbound.StoredProcPollingChannelAdapter' for polling a
 				database using a stored procedure or function.
 			</xsd:documentation>
 		</xsd:annotation>

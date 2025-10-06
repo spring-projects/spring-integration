@@ -18,12 +18,14 @@ package org.springframework.integration.ip.udp;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * and sends 3 messages from each client to the associated server.
  * Ensures that all messages are correctly assembled and received ok.
  * Since udp is inherently unreliable, we have to single thread our requests
- * through a blocking queue, to get a reliable test case. Otherwise collisions
+ * through a blocking queue, to get a reliable test case. Otherwise, collisions
  * will cause messages to be lost.
  * Even with this restriction, we are still testing the receiving adapter's
  * ability to handle multiple requests from multiple clients.
@@ -43,12 +45,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  *
  */
-public class MultiClientTests {
+public class MultiClientTests implements TestApplicationContextAware {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Disabled
-	public void testNoAck() throws Exception {
+	public void testNoAck() {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 				new UnicastReceivingChannelAdapter(0);
@@ -56,6 +57,9 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
@@ -93,8 +97,7 @@ public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Disabled
-	public void testAck() throws Exception {
+	public void testAck() {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 				new UnicastReceivingChannelAdapter(0, false);
@@ -102,6 +105,9 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
@@ -141,8 +147,7 @@ public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Disabled
-	public void testAckWithLength() throws Exception {
+	public void testAckWithLength() {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 				new UnicastReceivingChannelAdapter(0, true);
@@ -150,6 +155,9 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);

@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import javax.net.SocketFactory;
 
@@ -48,8 +47,8 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
-import org.springframework.integration.ip.tcp.TcpOutboundGateway;
-import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -180,18 +179,18 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		clientFactory.start();
 		TcpConnectionSupport client = clientFactory.getConnection();
 		List<String> clients = clientFactory.getOpenConnectionIds();
-		assertThat(clients.size()).isEqualTo(1);
+		assertThat(clients).hasSize(1);
 		assertThat(clients.contains(client.getConnectionId())).isTrue();
 		assertThat(serverConnectionInitLatch.await(10, TimeUnit.SECONDS)).as("Server connection failed to register")
 				.isTrue();
 		List<String> servers = serverFactory.getOpenConnectionIds();
-		assertThat(servers.size()).isEqualTo(1);
+		assertThat(servers).hasSize(1);
 		assertThat(serverFactory.closeConnection(servers.get(0))).isTrue();
 		servers = serverFactory.getOpenConnectionIds();
-		assertThat(servers.size()).isEqualTo(0);
+		assertThat(servers).isEmpty();
 		await().atMost(Duration.ofSeconds(10)).until(() -> clientFactory.getOpenConnectionIds().isEmpty());
 		clients = clientFactory.getOpenConnectionIds();
-		assertThat(clients.size()).isEqualTo(0);
+		assertThat(clients).isEmpty();
 		assertThat(eventLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(events.size())
 				.as("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events)
@@ -260,7 +259,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 		String expected = "bean 'foo', port=" + factory.getPort() + " stopped before registering the server channel";
 		ArgumentCaptor<LogMessage> captor = ArgumentCaptor.forClass(LogMessage.class);
 		verify(logger, atLeast(1)).debug(captor.capture());
-		assertThat(captor.getAllValues().stream().map(Object::toString).collect(Collectors.toList())).contains(expected);
+		assertThat(captor.getAllValues().stream().map(Object::toString).toList()).contains(expected);
 		factory.stop();
 	}
 

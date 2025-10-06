@@ -29,7 +29,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;

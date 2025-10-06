@@ -128,7 +128,7 @@
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.jms.AbstractJmsChannel"/>
+					<tool:exports type="org.springframework.integration.jms.channel.AbstractJmsChannel"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -367,7 +367,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.jms.JmsMessageDrivenEndpoint' (one-way) to listen form message
+				'org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint' (one-way) to listen form message
 				on the JMS destination.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -531,7 +531,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.jms.JmsDestinationPollingSource'
+				'org.springframework.integration.jms.inbound.JmsDestinationPollingSource'
 				for polling a JMS Destination.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -610,7 +610,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Messaging Gateway Endpoint for the
-				'org.springframework.integration.jms.JmsMessageDrivenEndpoint' to listen for messages in the JMS
+				'org.springframework.integration.jms.inbound.JmsMessageDrivenEndpoint' to listen for messages in the JMS
 				destination and produce replies.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -800,7 +800,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jms.JmsSendingMessageHandler'
+				'org.springframework.integration.jms.outbound.JmsSendingMessageHandler'
 				to send messages to the JMS destination and wait for replies.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1161,7 +1161,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jms.JmsSendingMessageHandler'
+				'org.springframework.integration.jms.outbound.JmsSendingMessageHandler'
 				to send messages to the JMS destination without waiting for replies.
 			</xsd:documentation>
 		</xsd:annotation>

@@ -26,8 +26,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
-import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.integration.jms.inbound.JmsDestinationPollingSource;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.Assert;
 

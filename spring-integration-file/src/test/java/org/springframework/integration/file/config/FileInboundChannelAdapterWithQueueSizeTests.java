@@ -25,8 +25,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.HeadDirectoryScanner;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -65,15 +65,15 @@ public class FileInboundChannelAdapterWithQueueSizeTests {
 		HeadDirectoryScanner scanner1 = TestUtils.getPropertyValue(source1, "scanner", HeadDirectoryScanner.class);
 		HeadDirectoryScanner scanner2 = TestUtils.getPropertyValue(source2, "scanner", HeadDirectoryScanner.class);
 		List<File> files = scanner1.listFiles(inputDir);
-		assertThat(files.size()).isEqualTo(2);
+		assertThat(files).hasSize(2);
 		files = scanner2.listFiles(inputDir);
-		assertThat(files.size()).isEqualTo(2);
+		assertThat(files).hasSize(2);
 		files.get(0).delete();
 		files.get(1).delete();
 		files = scanner1.listFiles(inputDir);
-		assertThat(files.size()).isEqualTo(1);
+		assertThat(files).hasSize(1);
 		files = scanner2.listFiles(inputDir);
-		assertThat(files.size()).isEqualTo(1);
+		assertThat(files).hasSize(1);
 	}
 
 }

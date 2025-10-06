@@ -23,12 +23,13 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.outbound.FileWritingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
  * A common helper class for the 'outbound-channel-adapter' and 'outbound-gateway'
  * element parsers. Both of those are responsible for creating an instance of
- * {@link org.springframework.integration.file.FileWritingMessageHandler}.
+ * {@link FileWritingMessageHandler}.
  *
  * @author Mark Fisher
  * @author Artem Bilan

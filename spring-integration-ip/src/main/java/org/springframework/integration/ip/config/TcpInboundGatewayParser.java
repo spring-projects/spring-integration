@@ -24,15 +24,15 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
-
 	@Override
 	protected String getBeanClassName(Element element) {
-		return BASE_PACKAGE + ".TcpInboundGateway";
+		return org.springframework.integration.ip.tcp.inbound.TcpInboundGateway.class.getName();
 	}
 
 	@Override

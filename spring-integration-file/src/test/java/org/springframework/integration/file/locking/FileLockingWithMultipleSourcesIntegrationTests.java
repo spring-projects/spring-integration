@@ -19,13 +19,13 @@ package org.springframework.integration.file.locking;
 import java.io.File;
 import java.io.IOException;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -40,14 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class FileLockingWithMultipleSourcesIntegrationTests {
 
-	private static File workdir;
-
-	@BeforeAll
-	public static void setupWorkDirectory() {
-		workdir = new File(new File(System.getProperty("java.io.tmpdir")),
-				FileLockingWithMultipleSourcesIntegrationTests.class.getSimpleName());
-		workdir.mkdir();
-	}
+	@TempDir
+	public static File workdir;
 
 	@Autowired
 	@Qualifier("fileSource1")

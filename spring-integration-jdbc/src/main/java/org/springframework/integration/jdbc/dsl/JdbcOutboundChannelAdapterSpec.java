@@ -17,9 +17,9 @@
 package org.springframework.integration.jdbc.dsl;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
 import org.springframework.integration.jdbc.SqlParameterSourceFactory;
+import org.springframework.integration.jdbc.outbound.JdbcMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
 
 /**

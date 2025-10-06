@@ -32,6 +32,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -100,7 +101,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		test(location);
 	}
 
-	private void test(String location) throws InterruptedException, Exception {
+	private void test(String location) throws Exception {
 		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
@@ -111,7 +112,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		applicationContext.close();
 	}
 
-	private ClassPathXmlApplicationContext createContext(UdpUnicastEndToEndTests launcher, String location) {
+	private static ClassPathXmlApplicationContext createContext(UdpUnicastEndToEndTests launcher, String location) {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext();
 		applicationContext.setConfigLocation(location);
 		StandardEnvironment env = new StandardEnvironment();

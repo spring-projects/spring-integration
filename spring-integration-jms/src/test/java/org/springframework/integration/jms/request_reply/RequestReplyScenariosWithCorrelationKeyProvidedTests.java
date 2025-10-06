@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.integration.jms.outbound.JmsOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.test.util.TestUtils;
@@ -31,6 +31,7 @@ import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * @author Oleg Zhurakousky
@@ -41,12 +42,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends ActiveMQMultiContextTests {
 
 	@Test
-	public void messageCorrelationBasedCustomCorrelationKey() throws Exception {
+	public void messageCorrelationBasedCustomCorrelationKey() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
 		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGateway", RequestReplyExchanger.class);
 
-		gateway.exchange(MessageBuilder.withPayload("foo").build());
+		assertThatNoException()
+				.isThrownBy(() -> gateway.exchange(MessageBuilder.withPayload("test").build()));
+
 		context.close();
 	}
 
@@ -56,7 +59,9 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 				new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
 		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayB", RequestReplyExchanger.class);
 
-		gateway.exchange(MessageBuilder.withPayload("foo").build());
+		assertThatNoException()
+				.isThrownBy(() -> gateway.exchange(MessageBuilder.withPayload("test").build()));
+
 		context.close();
 	}
 
@@ -67,7 +72,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 		RequestReplyExchanger gateway = context.getBean("existingCorrelationKeyGatewayB", RequestReplyExchanger.class);
 
 		String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
-		Message<?> result = gateway.exchange(MessageBuilder.withPayload("foo")
+		Message<?> result = gateway.exchange(MessageBuilder.withPayload("test")
 				.setHeader(JmsHeaders.CORRELATION_ID, correlationId)
 				.build());
 		assertThat(result.getHeaders().get("receivedCorrelationId")).isEqualTo(correlationId);
@@ -92,14 +97,14 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 		JmsOutboundGateway outGateway =
 				TestUtils.getPropertyValue(context.getBean("outGateway"), "handler", JmsOutboundGateway.class);
 		outGateway.setReceiveTimeout(5000);
-		assertThat(gateway.exchange(MessageBuilder.withPayload("foo").build()).getPayload()).isEqualTo("foo");
+		assertThat(gateway.exchange(MessageBuilder.withPayload("test").build()).getPayload()).isEqualTo("test");
 		context.close();
 	}
 
 	public static class DelayedService {
 
 		public String echo(String s) throws Exception {
-			Thread.sleep(200);
+			Thread.sleep(10);
 			return s;
 		}
 

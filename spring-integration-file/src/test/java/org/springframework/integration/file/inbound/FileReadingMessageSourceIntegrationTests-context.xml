@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- under test -->
+    <bean id="pollableFileSource" class="org.springframework.integration.file.inbound.FileReadingMessageSource"
+          p:directory="#{T(org.springframework.integration.file.inbound.FileReadingMessageSourceIntegrationTests).inputDir}"
+          p:filter-ref="compositeFilter"/>
+
+	<bean id="integrationEvaluationContext" class="org.springframework.expression.spel.support.StandardEvaluationContext" />
+
+    <!-- customized filter -->
+    <bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
+        <constructor-arg>
+            <list>
+                <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter"/>
+                <bean class="org.springframework.integration.file.TestFileListFilter"/>
+                <bean class="org.springframework.integration.file.filters.SimplePatternFileListFilter">
+                    <constructor-arg value="test*"/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+
+</beans>

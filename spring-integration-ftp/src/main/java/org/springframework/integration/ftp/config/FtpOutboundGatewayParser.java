@@ -27,7 +27,7 @@ import org.springframework.integration.file.config.AbstractRemoteFileOutboundGat
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
-import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.outbound.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**

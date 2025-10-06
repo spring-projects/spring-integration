@@ -25,11 +25,11 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
-import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
-import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
+import org.springframework.integration.ws.inbound.MarshallingWebServiceInboundGateway;
+import org.springframework.integration.ws.inbound.SimpleWebServiceInboundGateway;
+import org.springframework.integration.ws.outbound.MarshallingWebServiceOutboundGateway;
+import org.springframework.integration.ws.outbound.SimpleWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -56,8 +56,8 @@ public class WsDslTests {
 
 	@Test
 	void marshallingInbound() {
-		Marshaller marshaller = mock(Marshaller.class);
-		Unmarshaller unmarshaller = mock(Unmarshaller.class);
+		Marshaller marshaller = mock();
+		Unmarshaller unmarshaller = mock();
 		MarshallingWebServiceInboundGateway gateway = Ws.marshallingInboundGateway(marshaller)
 				.unmarshaller(unmarshaller)
 				.getObject();
@@ -86,14 +86,14 @@ public class WsDslTests {
 
 	@Test
 	void marshallingOutbound() {
-		DestinationProvider destinationProvider = mock(DestinationProvider.class);
-		Marshaller marshaller = mock(Marshaller.class);
-		Unmarshaller unmarshaller = mock(Unmarshaller.class);
-		WebServiceMessageFactory messageFactory = mock(WebServiceMessageFactory.class);
-		FaultMessageResolver faultMessageResolver = mock(FaultMessageResolver.class);
-		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
-		ClientInterceptor interceptor = mock(ClientInterceptor.class);
-		WebServiceMessageSender messageSender = mock(WebServiceMessageSender.class);
+		DestinationProvider destinationProvider = mock();
+		Marshaller marshaller = mock();
+		Unmarshaller unmarshaller = mock();
+		WebServiceMessageFactory messageFactory = mock();
+		FaultMessageResolver faultMessageResolver = mock();
+		SoapHeaderMapper headerMapper = mock();
+		ClientInterceptor interceptor = mock();
+		WebServiceMessageSender messageSender = mock();
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
@@ -129,17 +129,17 @@ public class WsDslTests {
 
 	@Test
 	void simpleOutbound() {
-		DestinationProvider destinationProvider = mock(DestinationProvider.class);
-		WebServiceMessageFactory messageFactory = mock(WebServiceMessageFactory.class);
-		FaultMessageResolver faultMessageResolver = mock(FaultMessageResolver.class);
-		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
-		ClientInterceptor interceptor = mock(ClientInterceptor.class);
-		WebServiceMessageSender messageSender = mock(WebServiceMessageSender.class);
+		DestinationProvider destinationProvider = mock();
+		WebServiceMessageFactory messageFactory = mock();
+		FaultMessageResolver faultMessageResolver = mock();
+		SoapHeaderMapper headerMapper = mock();
+		ClientInterceptor interceptor = mock();
+		WebServiceMessageSender messageSender = mock();
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
 		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
-		SourceExtractor<?> sourceExtractor = mock(SourceExtractor.class);
+		SourceExtractor<?> sourceExtractor = mock();
 		SimpleWebServiceOutboundGateway gateway =
 				Ws.simpleOutboundGateway()
 						.destinationProvider(destinationProvider)
@@ -171,12 +171,12 @@ public class WsDslTests {
 
 	@Test
 	void marshallingOutboundTemplate() {
-		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
+		SoapHeaderMapper headerMapper = mock();
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
 		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
-		WebServiceTemplate template = mock(WebServiceTemplate.class);
+		WebServiceTemplate template = mock();
 		String uri = "foo";
 		MarshallingWebServiceOutboundGateway gateway =
 				Ws.marshallingOutboundGateway(template)
@@ -198,13 +198,13 @@ public class WsDslTests {
 
 	@Test
 	void simpleOutboundTemplate() {
-		SoapHeaderMapper headerMapper = mock(SoapHeaderMapper.class);
+		SoapHeaderMapper headerMapper = mock();
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
 		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
-		SourceExtractor<?> sourceExtractor = mock(SourceExtractor.class);
-		WebServiceTemplate template = mock(WebServiceTemplate.class);
+		SourceExtractor<?> sourceExtractor = mock();
+		WebServiceTemplate template = mock();
 		String uri = "foo";
 		SimpleWebServiceOutboundGateway gateway =
 				Ws.simpleOutboundGateway(template)

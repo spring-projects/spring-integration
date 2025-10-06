@@ -16,18 +16,6 @@
 
 package org.springframework.integration.ip;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.scheduling.SchedulingAwareRunnable;
-import org.springframework.util.Assert;
-
 /**
  * Base class for inbound TCP/UDP Channel Adapters.
  *
@@ -36,158 +24,15 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.ip.udp.inbound.AbstractInternetProtocolReceivingChannelAdapter}
  */
+@Deprecated(forRemoval = true, since = "7.0")
 public abstract class AbstractInternetProtocolReceivingChannelAdapter
-		extends MessageProducerSupport
-		implements ApplicationEventPublisherAware, SchedulingAwareRunnable, CommonSocketOptions {
-
-	private final int port;
-
-	@SuppressWarnings("NullAway.Init")
-	private ApplicationEventPublisher applicationEventPublisher;
-
-	private int soTimeout = 0;
-
-	private int soReceiveBufferSize = -1;
-
-	private int receiveBufferSize = 2048; // NOSONAR magic number
-
-	private @Nullable String localAddress;
-
-	private @Nullable Executor taskExecutor;
-
-	private boolean taskExecutorSet;
-
-	private int poolSize = 5; // NOSONAR magic number
-
-	private volatile boolean listening;
+		extends org.springframework.integration.ip.udp.inbound.AbstractInternetProtocolReceivingChannelAdapter {
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
-		this.port = port;
-	}
-
-	/**
-	 *
-	 * @return The port on which this receiver is listening.
-	 */
-	public int getPort() {
-		return this.port;
-	}
-
-	@Override
-	public void setSoTimeout(int soTimeout) {
-		this.soTimeout = soTimeout;
-	}
-
-	/**
-	 * @return the soTimeout
-	 */
-	public int getSoTimeout() {
-		return this.soTimeout;
-	}
-
-	@Override
-	public void setSoReceiveBufferSize(int soReceiveBufferSize) {
-		this.soReceiveBufferSize = soReceiveBufferSize;
-	}
-
-	/**
-	 * @return the soReceiveBufferSize
-	 */
-	public int getSoReceiveBufferSize() {
-		return this.soReceiveBufferSize;
-	}
-
-	public void setReceiveBufferSize(int receiveBufferSize) {
-		this.receiveBufferSize = receiveBufferSize;
-	}
-
-	/**
-	 * @return the receiveBufferSize
-	 */
-	public int getReceiveBufferSize() {
-		return this.receiveBufferSize;
-	}
-
-	public boolean isListening() {
-		return this.listening;
-	}
-
-	/**
-	 * @param listening the listening to set
-	 */
-	public void setListening(boolean listening) {
-		this.listening = listening;
-	}
-
-	public @Nullable String getLocalAddress() {
-		return this.localAddress;
-	}
-
-	@Override
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
-	}
-
-	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
-	}
-
-	public void setTaskExecutor(Executor taskExecutor) {
-		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
-		this.taskExecutor = taskExecutor;
-		this.taskExecutorSet = true;
-	}
-
-	/**
-	 * @return the taskExecutor
-	 */
-	public @Nullable Executor getTaskExecutor() {
-		return this.taskExecutor;
-	}
-
-	protected ApplicationEventPublisher getApplicationEventPublisher() {
-		return this.applicationEventPublisher;
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
-	@Override
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
-	protected void doStart() {
-		String beanName = getComponentName();
-		checkTaskExecutor((beanName == null ? "" : beanName + "-") + getComponentType());
-		this.taskExecutor.execute(this);
-	}
-
-	/**
-	 * Creates a default task executor if none was supplied.
-	 *
-	 * @param threadName The thread name.
-	 */
-	protected void checkTaskExecutor(final String threadName) {
-		if (isActive() && this.taskExecutor == null) {
-			this.taskExecutor =
-					Executors.newFixedThreadPool(this.poolSize,
-							(runner) -> {
-								Thread thread = new Thread(runner);
-								thread.setName(threadName);
-								thread.setDaemon(true);
-								return thread;
-							});
-		}
-	}
-
-	@Override
-	protected void doStop() {
-		Executor taskExecutorToShutdown = this.taskExecutor;
-		if (!this.taskExecutorSet && taskExecutorToShutdown != null) {
-			((ExecutorService) taskExecutorToShutdown).shutdown();
-			this.taskExecutor = null;
-		}
+		super(port);
 	}
 
 }

@@ -18,10 +18,10 @@ package org.springframework.integration.jms.dsl;
 
 import jakarta.jms.ConnectionFactory;
 
-import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.jms.channel.SubscribableJmsChannel;
 
 /**
- * A {@link JmsMessageChannelSpec} for a {@link org.springframework.integration.jms.SubscribableJmsChannel}
+ * A {@link JmsMessageChannelSpec} for a {@link SubscribableJmsChannel}
  * configured with a topic.
  *
  * @author Artem Bilan

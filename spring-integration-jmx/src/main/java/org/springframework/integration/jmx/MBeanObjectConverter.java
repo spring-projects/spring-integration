@@ -16,22 +16,14 @@
 
 package org.springframework.integration.jmx;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectInstance;
-
 /**
  * @author Stuart Williams
+ *
  * @since 3.0
  *
+ * @deprecated since 7.0 in favor {@link org.springframework.integration.jmx.inbound.MBeanObjectConverter}
  */
-@FunctionalInterface
-public interface MBeanObjectConverter {
-
-	/**
-	 * @param connection The connection.
-	 * @param instance The instance.
-	 * @return The mapped object instance.
-	 */
-	Object convert(MBeanServerConnection connection, ObjectInstance instance);
+@Deprecated(forRemoval = true, since = "7.0")
+public interface MBeanObjectConverter extends org.springframework.integration.jmx.inbound.MBeanObjectConverter {
 
 }

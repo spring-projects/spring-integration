@@ -16,30 +16,13 @@
 
 package org.springframework.integration.jms;
 
-import jakarta.jms.MessageListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.BroadcastCapableChannel;
-import org.springframework.integration.dispatcher.AbstractDispatcher;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
-import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
-import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
- * An {@link AbstractJmsChannel} implementation for message-driven subscriptions.
+ * An {@link org.springframework.integration.jms.channel.AbstractJmsChannel} implementation
+ * for message-driven subscriptions.
  * Also implements a {@link BroadcastCapableChannel} to represent possible pub-sub semantics
  * when configured against JMS topic.
  *
@@ -48,207 +31,14 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.jms.channel.SubscribableJmsChannel}
  */
-public class SubscribableJmsChannel extends AbstractJmsChannel
-		implements BroadcastCapableChannel, ManageableSmartLifecycle {
-
-	private final AbstractMessageListenerContainer container;
-
-	@SuppressWarnings("NullAway.Init")
-	private volatile AbstractDispatcher dispatcher;
-
-	private volatile boolean initialized;
-
-	@SuppressWarnings("NullAway.Init")
-	private volatile Integer maxSubscribers;
+@Deprecated(forRemoval = true, since = "7.0")
+public class SubscribableJmsChannel extends org.springframework.integration.jms.channel.SubscribableJmsChannel {
 
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
-		super(jmsTemplate);
-		Assert.notNull(container, "container must not be null");
-		this.container = container;
-	}
-
-	/**
-	 * Specify the maximum number of subscribers supported by the
-	 * channel's dispatcher.
-	 * @param maxSubscribers The maximum number of subscribers allowed.
-	 */
-	public void setMaxSubscribers(int maxSubscribers) {
-		this.maxSubscribers = maxSubscribers;
-	}
-
-	@Override
-	public boolean subscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null,
-				"'MessageDispatcher' must not be null. This channel might not have been initialized");
-		return this.dispatcher.addHandler(handler);
-	}
-
-	@Override
-	public boolean unsubscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null,
-				"'MessageDispatcher' must not be null. This channel might not have been initialized");
-		return this.dispatcher.removeHandler(handler);
-	}
-
-	@Override
-	public boolean isBroadcast() {
-		return this.container.isPubSubDomain();
-	}
-
-	@Override
-	public void onInit() {
-		if (this.initialized) {
-			return;
-		}
-		super.onInit();
-		boolean isPubSub = isBroadcast();
-		configureDispatcher(isPubSub);
-		MessageListener listener =
-				new DispatchingMessageListener(getJmsTemplate(), this.dispatcher, this, isPubSub,
-						getMessageBuilderFactory());
-		this.container.setMessageListener(listener);
-		if (!this.container.isActive()) {
-			this.container.afterPropertiesSet();
-		}
-		this.initialized = true;
-	}
-
-	private void configureDispatcher(boolean isPubSub) {
-		if (isPubSub) {
-			BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
-			broadcastingDispatcher.setBeanFactory(getBeanFactory());
-			this.dispatcher = broadcastingDispatcher;
-		}
-		else {
-			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
-			unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
-			this.dispatcher = unicastingDispatcher;
-		}
-		if (this.maxSubscribers == null) {
-			this.maxSubscribers =
-					isPubSub
-							? getIntegrationProperties().getChannelsMaxBroadcastSubscribers()
-							: getIntegrationProperties().getChannelsMaxUnicastSubscribers();
-		}
-		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
-	}
-
-	/*
-	 * SmartLifecycle implementation (delegates to the MessageListener container)
-	 */
-
-	@Override
-	public boolean isAutoStartup() {
-		return (this.container != null) && this.container.isAutoStartup();
-	}
-
-	@Override
-	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return (this.container != null) && this.container.isRunning();
-	}
-
-	@Override
-	public void start() {
-		if (this.container != null) {
-			this.container.start();
-		}
-	}
-
-	@Override
-	public void stop() {
-		if (this.container != null) {
-			this.container.stop();
-		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		if (this.container != null) {
-			this.container.stop(callback);
-		}
-		else {
-			callback.run();
-		}
-	}
-
-	@Override
-	public void destroy() {
-		if (this.container != null) {
-			this.container.destroy();
-		}
-	}
-
-	private static final class DispatchingMessageListener implements MessageListener {
-
-		private final Log logger = LogFactory.getLog(this.getClass());
-
-		private final JmsTemplate jmsTemplate;
-
-		private final MessageDispatcher dispatcher;
-
-		private final SubscribableJmsChannel channel;
-
-		private final boolean isPubSub;
-
-		private final MessageBuilderFactory messageBuilderFactory;
-
-		DispatchingMessageListener(JmsTemplate jmsTemplate,
-				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
-				MessageBuilderFactory messageBuilderFactory) {
-
-			this.jmsTemplate = jmsTemplate;
-			this.dispatcher = dispatcher;
-			this.channel = channel;
-			this.isPubSub = isPubSub;
-			this.messageBuilderFactory = messageBuilderFactory;
-		}
-
-		@SuppressWarnings("NullAway") // Dataflow analysis limitation
-		@Override
-		public void onMessage(jakarta.jms.Message message) {
-			Message<?> messageToSend = null;
-			try {
-				MessageConverter converter = this.jmsTemplate.getMessageConverter();
-				Object converted = null;
-				if (converter != null) {
-					converted = converter.fromMessage(message);
-				}
-				if (converted != null) {
-					messageToSend =
-							converted instanceof Message<?> convertedMessage
-									? convertedMessage
-									: this.messageBuilderFactory.withPayload(converted).build();
-					this.dispatcher.dispatch(messageToSend);
-				}
-				else if (this.logger.isWarnEnabled()) {
-					this.logger.warn("No converter found, or converter returned null for: " + message
-							+ ", no Message to dispatch");
-				}
-			}
-			catch (MessageDispatchingException e) {
-				String exceptionMessage = e.getMessage() + " for jms-channel '"
-						+ this.channel.getFullChannelName() + "'.";
-				if (this.isPubSub) {
-					// log only for backwards compatibility with pub/sub
-					if (this.logger.isWarnEnabled()) {
-						this.logger.warn(exceptionMessage, e);
-					}
-				}
-				else {
-					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
-				}
-			}
-			catch (Exception e) {
-				throw new MessagingException("failed to handle incoming JMS Message", e);
-			}
-		}
-
+		super(container, jmsTemplate);
 	}
 
 }

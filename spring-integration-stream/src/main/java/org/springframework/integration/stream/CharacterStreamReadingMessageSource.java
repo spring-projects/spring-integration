@@ -17,20 +17,9 @@
 package org.springframework.integration.stream;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * A pollable source for {@link Reader Readers}.
@@ -40,17 +29,12 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.stream.inbound.CharacterStreamReadingMessageSource}
  */
-public class CharacterStreamReadingMessageSource extends AbstractMessageSource<String>
-		implements ApplicationEventPublisherAware {
-
-	private final Lock lock = new ReentrantLock();
-
-	private final BufferedReader reader;
-
-	private final boolean blockToDetectEOF;
-
-	private @Nullable ApplicationEventPublisher applicationEventPublisher;
+@Deprecated(forRemoval = true, since = "7.0")
+public class CharacterStreamReadingMessageSource
+		extends org.springframework.integration.stream.inbound.CharacterStreamReadingMessageSource {
 
 	/**
 	 * Construct an instance with the provider reader.
@@ -94,50 +78,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 * @since 5.0
 	 */
 	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize, boolean blockToDetectEOF) {
-		Assert.notNull(reader, "reader must not be null");
-		if (reader instanceof BufferedReader bufferedReader) {
-			this.reader = bufferedReader;
-		}
-		else if (bufferSize > 0) {
-			this.reader = new BufferedReader(reader, bufferSize);
-		}
-		else {
-			this.reader = new BufferedReader(reader);
-		}
-		this.blockToDetectEOF = blockToDetectEOF;
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "stream:stdin-channel-adapter(character)";
-	}
-
-	@Override
-	public @Nullable String doReceive() {
-		try {
-			this.lock.lock();
-			try {
-				if (!this.blockToDetectEOF && !this.reader.ready()) {
-					return null;
-				}
-				String line = this.reader.readLine();
-				if (line == null && this.applicationEventPublisher != null) {
-					this.applicationEventPublisher.publishEvent(new StreamClosedEvent(this));
-				}
-				return line;
-			}
-			finally {
-				this.lock.unlock();
-			}
-		}
-		catch (IOException e) {
-			throw new MessagingException("IO failure occurred in adapter", e);
-		}
+		super(reader, bufferSize, blockToDetectEOF);
 	}
 
 	/**

@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jdbc.StoredProcExecutor;
-import org.springframework.integration.jdbc.StoredProcMessageHandler;
+import org.springframework.integration.jdbc.outbound.StoredProcMessageHandler;
 import org.springframework.util.Assert;
 
 /**
