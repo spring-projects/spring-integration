@@ -60,7 +60,7 @@ See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more informa
 All the modules now follow the standard package structure.
 The inbound and outbound components are declared in the `inbound` and `outbound` packages, respectively.
 The `MessageChannel` implementations in the `channel` package.
-Most of the modules have followed this rule from day first.
+Most of the modules have followed this rule from day one.
 The refactoring for package structure in this version includes the rest of modules: `spring-integration-file`, `spring-integration-ftp`, `spring-integration-ip`, `spring-integration-jdbc`, `spring-integration-jms`, `spring-integration-jmx`, `spring-integration-mail`, `spring-integration-sftp`, `spring-integration-stream` and `spring-integration-ws`.
 The classes which were in root packages are marked now as deprecated.
 
