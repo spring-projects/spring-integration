@@ -16,7 +16,11 @@
 
 package org.springframework.integration.scattergather;
 
+import java.time.Duration;
+
 import org.jspecify.annotations.Nullable;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -32,6 +36,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -146,11 +151,11 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 								}
 
 							});
-			if (this.gatherChannel instanceof SubscribableChannel) {
-				this.gatherEndpoint = new EventDrivenConsumer((SubscribableChannel) this.gatherChannel, this.gatherer);
+			if (this.gatherChannel instanceof SubscribableChannel subscribableChannel) {
+				this.gatherEndpoint = new EventDrivenConsumer(subscribableChannel, this.gatherer);
 			}
-			else if (this.gatherChannel instanceof PollableChannel) {
-				this.gatherEndpoint = new PollingConsumer((PollableChannel) this.gatherChannel, this.gatherer);
+			else if (this.gatherChannel instanceof PollableChannel pollableChannel) {
+				this.gatherEndpoint = new PollingConsumer(pollableChannel, this.gatherer);
 				((PollingConsumer) this.gatherEndpoint).setReceiveTimeout(this.gatherTimeout);
 			}
 			else if (this.gatherChannel instanceof ReactiveStreamsSubscribableChannel) {
@@ -191,7 +196,18 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	@Override
 	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
-		PollableChannel gatherResultChannel = new QueueChannel();
+		boolean async = isAsync();
+		MessageChannel gatherResultChannel;
+		Sinks.One<Message<?>> replyMono;
+
+		if (async) {
+			replyMono = Sinks.one();
+			gatherResultChannel = (message, timeout) -> replyMono.tryEmitValue(message).isSuccess();
+		}
+		else {
+			replyMono = null;
+			gatherResultChannel = new QueueChannel();
+		}
 
 		Message<?> scatterMessage =
 				getMessageBuilderFactory()
@@ -204,15 +220,26 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
-		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
-		if (gatherResult != null) {
-			return getMessageBuilderFactory()
-					.fromMessage(gatherResult)
-					.removeHeaders(GATHER_RESULT_CHANNEL, ORIGINAL_ERROR_CHANNEL,
-							MessageHeaders.REPLY_CHANNEL, MessageHeaders.ERROR_CHANNEL);
+		if (replyMono != null) {
+			return replyMono.asMono()
+					.map(this::replyFromGatherResult)
+					.timeout(Duration.ofMillis(this.gatherTimeout), Mono.empty());
+		}
+		else {
+			Message<?> gatherResult = ((PollableChannel) gatherResultChannel).receive(this.gatherTimeout);
+			if (gatherResult != null) {
+				return replyFromGatherResult(gatherResult);
+			}
 		}
 
 		return null;
+	}
+
+	private AbstractIntegrationMessageBuilder<?> replyFromGatherResult(Message<?> gatherResult) {
+		return getMessageBuilderFactory()
+				.fromMessage(gatherResult)
+				.removeHeaders(GATHER_RESULT_CHANNEL, ORIGINAL_ERROR_CHANNEL,
+						MessageHeaders.REPLY_CHANNEL, MessageHeaders.ERROR_CHANNEL);
 	}
 
 	@Override
@@ -240,8 +267,8 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 			Assert.isAssignable(clazz, gathererClass,
 					() -> "the '" + type + "' must be an " + className + " " + "instance");
 		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalStateException("The class for '" + className + "' cannot be loaded", e);
+		catch (ClassNotFoundException ex) {
+			throw new IllegalStateException("The class for '" + className + "' cannot be loaded", ex);
 		}
 	}
 
