@@ -38,72 +38,166 @@ import org.springframework.messaging.Message;
 public class AmqpClientMessageHandlerSpec
 		extends MessageHandlerSpec<AmqpClientMessageHandlerSpec, AmqpClientMessageHandler> {
 
+	/**
+	 * Construct an instance with the provided {@link AsyncAmqpTemplate}.
+	 * The {@link AsyncAmqpTemplate} must be an implementation for AMQP 1.0 protocol,
+	 * e.g. {@link org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate}.
+	 * @param amqpTemplate the {@link AsyncAmqpTemplate} to use.
+	 */
 	public AmqpClientMessageHandlerSpec(AsyncAmqpTemplate amqpTemplate) {
 		this.target = new AmqpClientMessageHandler(amqpTemplate);
 	}
 
+	/**
+	 * Set an {@link AmqpHeaderMapper} to map request (and reply) headers.
+	 * @param headerMapper the {@link AmqpHeaderMapper} to use.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec headerMapper(AmqpHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return this;
 	}
 
+	/**
+	 * Set a {@link MessageConverter} to replace the default
+	 * {@link org.springframework.amqp.support.converter.SimpleMessageConverter}.
+	 * If set to null, an AMQP message is sent as is into a message payload.
+	 * And a reply message has to return an AMQP message as its payload.
+	 * @param messageConverter the {@link MessageConverter} to use or null.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec messageConverter(MessageConverter messageConverter) {
 		this.target.setMessageConverter(messageConverter);
 		return this;
 	}
 
+	/**
+	 * Set an exchange for publishing a request message.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * @param exchange the exchange to send a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec exchange(String exchange) {
 		this.target.setExchange(exchange);
 		return this;
 	}
 
+	/**
+	 * Set a function to determine an exchange for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * @param exchangeFunction the function to determine an exchange against a request message.
+	 * @return the spec
+	 */
 	public <P> AmqpClientMessageHandlerSpec exchangeFunction(Function<Message<P>, String> exchangeFunction) {
 		return exchangeExpression(new FunctionExpression<>(exchangeFunction));
 	}
 
+	/**
+	 * Set a SpEL expression to determine exchange for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * @param exchangeExpression the SpEL expression to determine an exchange against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec exchangeExpression(Expression exchangeExpression) {
 		this.target.setExchangeExpression(exchangeExpression);
 		return this;
 	}
 
+	/**
+	 * Set a SpEL expression to determine an exchange for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * @param exchangeExpression the SpEL expression to determine an exchange against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec exchangeExpression(String exchangeExpression) {
 		this.target.setExchangeExpressionString(exchangeExpression);
 		return this;
 	}
 
+	/**
+	 * Set a routing key for publishing a request message.
+	 * Used only together with {@link #exchange(String)}.
+	 * @param routingKey the routing key to send a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec routingKey(String routingKey) {
 		this.target.setRoutingKey(routingKey);
 		return this;
 	}
 
+	/**
+	 * Set a function to determine routing key for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * Used only together with {@link #exchange(String)}.
+	 * @param routingKeyFunction the function to determine a routing key against a request message.
+	 * @return the spec
+	 */
 	public <P> AmqpClientMessageHandlerSpec routingKeyFunction(Function<Message<P>, String> routingKeyFunction) {
 		return routingKeyExpression(new FunctionExpression<>(routingKeyFunction));
 	}
 
+	/**
+	 * Set a SpEL expression to determine a routing key for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * Used only together with {@link #exchange(String)}.
+	 * @param routingKeyExpression the SpEL expression to determine a routing key against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec routingKeyExpression(String routingKeyExpression) {
 		this.target.setRoutingKeyExpressionString(routingKeyExpression);
 		return this;
 	}
 
+	/**
+	 * Set a SpEL expression to determine routing key for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #queue(String)}.
+	 * Used only together with {@link #exchange(String)}.
+	 * @param routingKeyExpression the SpEL expression determine a routing key against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec routingKeyExpression(Expression routingKeyExpression) {
 		this.target.setRoutingKeyExpression(routingKeyExpression);
 		return this;
 	}
 
+	/**
+	 * Set a queue for publishing a request message.
+	 * Mutually exclusive with {@link #exchange(String)}.
+	 * @param queue the queue to send a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec queue(String queue) {
 		this.target.setQueue(queue);
 		return this;
 	}
 
+	/**
+	 * Set a SpEL expression to determine a queue for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #exchange(String)}.
+	 * @param queueExpression the SpEL expression to determine a queue against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec queueExpression(String queueExpression) {
 		this.target.setQueueExpressionString(queueExpression);
 		return this;
 	}
 
+	/**
+	 * Set a function to determine a queue for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #exchange(String)}.
+	 * @param queueFunction the function to determine a queue against a request message.
+	 * @return the spec
+	 */
 	public <P> AmqpClientMessageHandlerSpec queueFunction(Function<Message<P>, String> queueFunction) {
 		return queueExpression(new FunctionExpression<>(queueFunction));
 	}
 
+	/**
+	 * Set a SpEL expression to determine a queue for publishing a request message at runtime.
+	 * Mutually exclusive with {@link #exchange(String)}.
+	 * @param queueExpression the SpEL expression to determine a queue against a request message.
+	 * @return the spec
+	 */
 	public AmqpClientMessageHandlerSpec queueExpression(Expression queueExpression) {
 		this.target.setQueueExpression(queueExpression);
 		return this;

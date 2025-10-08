@@ -29,7 +29,7 @@ import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
 public final class AmqpClient {
 
 	/**
-	 * Create an initial {@link AmqpInboundGatewaySpec}.
+	 * Create an initial {@link AmqpClientInboundGatewaySpec}.
 	 * @param connectionFactory the connectionFactory.
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundGatewaySpec.
