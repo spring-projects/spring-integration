@@ -39,7 +39,6 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.Message;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -93,11 +92,6 @@ public class AmqpClientInboundGateway extends MessagingGatewaySupport implements
 
 	public void setAfterReceivePostProcessors(MessagePostProcessor... afterReceivePostProcessors) {
 		this.afterReceivePostProcessors = MessagePostProcessorUtils.sort(Arrays.asList(afterReceivePostProcessors));
-	}
-
-	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		this.listenerContainer.setTaskScheduler(taskScheduler);
 	}
 
 	public void setAdviceChain(Advice... advices) {
