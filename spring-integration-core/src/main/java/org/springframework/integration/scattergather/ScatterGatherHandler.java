@@ -53,6 +53,9 @@ import org.springframework.util.ClassUtils;
 /**
  * The {@link MessageHandler} implementation for the
  * <a href="https://www.enterpriseintegrationpatterns.com/BroadcastAggregate.html">Scatter-Gather</a> EIP pattern.
+ * <p>
+ * When {@link #setAsync(boolean)} is {@code true}, the {@link ScatterGatherHandler} produces
+ * a {@link Mono} as a reply based on the gather result.
  *
  * @author Artem Bilan
  * @author Abdul Zaheer
