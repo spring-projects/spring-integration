@@ -77,6 +77,9 @@ public class XPathTests {
 	@Autowired
 	private MessageChannel xpathRouterInput;
 
+	@Autowired
+	private MessageChannel xpathRecipientsInput;
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testXPathUtils() {
@@ -203,6 +206,22 @@ public class XPathTests {
 		receive = this.channelZ.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("<name>X</name>");
+	}
+
+	@Test
+	public void recipientListRouteByXpath() {
+		this.xpathRecipientsInput.send(new GenericMessage<>("<passenger><age>2</age></passenger>"));
+		this.xpathRecipientsInput.send(new GenericMessage<>("<passenger><age>16</age></passenger>"));
+
+		Message<?> receive = this.channelA.receive(1000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.isEqualTo("<passenger><age>2</age></passenger>");
+
+		receive = this.channelB.receive(1000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.isEqualTo("<passenger><age>16</age></passenger>");
 	}
 
 	public static class TestNodeMapper implements NodeMapper<String> {

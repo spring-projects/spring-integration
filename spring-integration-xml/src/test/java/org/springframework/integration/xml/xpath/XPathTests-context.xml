@@ -36,4 +36,9 @@
 
 	<bean id="testNodeMapper" class="org.springframework.integration.xml.xpath.XPathTests$TestNodeMapper"/>
 
+	<int:recipient-list-router input-channel="xpathRecipientsInput">
+		<int:recipient channel="channelA" selector-expression="#xpath(payload, '/passenger/age/text() &lt;= 2', 'boolean')"/>
+		<int:recipient channel="channelB" selector-expression="#xpath(payload, '/passenger/age/text() > 12', 'boolean')"/>
+	</int:recipient-list-router>
+
 </beans>
