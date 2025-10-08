@@ -94,7 +94,7 @@ public class AmqpClientInboundGatewaySpec
 
 	/**
 	 * Set {@link Advice} instances to proxy message listener.
-	 * @param advices the taskScheduler to add
+	 * @param advices the advices to add
 	 * @return the spec
 	 */
 	public AmqpClientInboundGatewaySpec adviceChain(Advice... advices) {
@@ -116,8 +116,9 @@ public class AmqpClientInboundGatewaySpec
 	/**
 	 * Set the default behavior when a message processing has failed.
 	 * When true, messages will be requeued, when false, they will be discarded.
-	 * When true, the default can be overridden by the listener throwing an
-	 * {@link org.springframework.amqp.AmqpRejectAndDontRequeueException}.
+	 * This option can be overruled by throwing
+	 * {@link org.springframework.amqp.AmqpRejectAndDontRequeueException} or
+	 * {@link org.springframework.amqp.ImmediateRequeueAmqpException} from the downstream flow.
 	 * Default true.
 	 * @param defaultRequeue true to requeue by default.
 	 * @return the spec
@@ -128,7 +129,7 @@ public class AmqpClientInboundGatewaySpec
 	}
 
 	/**
-	 * Set a duration for how long to wait for all the consumers to shoutdown successfully on listener container stop.
+	 * Set a duration for how long to wait for all the consumers to shut down successfully on listener container stop.
 	 * Default 30 seconds.
 	 * @param gracefulShutdownPeriod the timeout to wait on stop.
 	 * @return the spec

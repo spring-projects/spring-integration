@@ -32,7 +32,7 @@ public final class AmqpClient {
 	 * Create an initial {@link AmqpClientInboundGatewaySpec}.
 	 * @param connectionFactory the connectionFactory.
 	 * @param queueNames the queueNames.
-	 * @return the AmqpInboundGatewaySpec.
+	 * @return the AmqpClientInboundGatewaySpec.
 	 */
 	public static AmqpClientInboundGatewaySpec inboundGateway(AmqpConnectionFactory connectionFactory,
 			String... queueNames) {
