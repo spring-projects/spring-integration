@@ -154,6 +154,10 @@ Mutually exclusive with `scatter-channel` attribute.
 <13> The `<aggregator>` options.
 Required.
 
+NOTE: Starting with version `6.5.3`, when a `ScatterGatherHandler` is configured for the `async = true` option, the request message handling thread is not blocked anymore waiting for a gather result on an internal `((PollableChannel) gatherResultChannel).receive(this.gatherTimeout)` operation.
+Instead, a `reactor.core.publisher.Mono` is returned as a reply object based on a gather result eventually produced from the `gatherResultChannel`.
+Such a `Mono` is handled then according to the xref:reactive-streams.adoc#reactive-reply-payload[Reactive Streams support] in the framework.
+
 [[scatter-gather-error-handling]]
 == Error Handling
 

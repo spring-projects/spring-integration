@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.routers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -463,15 +464,21 @@ public class RouterTests {
 	@Test
 	public void testScatterGather() {
 		QueueChannel replyChannel = new QueueChannel();
-		Message<String> request = MessageBuilder.withPayload("foo")
+		Message<String> request = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
 				.build();
 		this.scatterGatherFlowInput.send(request);
 		Message<?> bestQuoteMessage = replyChannel.receive(10000);
-		assertThat(bestQuoteMessage).isNotNull();
-		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload).isInstanceOf(List.class);
-		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
+		assertThat(bestQuoteMessage)
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
+				.hasSizeGreaterThanOrEqualTo(1)
+				.first()
+				.asInstanceOf(InstanceOfAssertFactories.type(Message.class))
+				.extracting(Message::getHeaders)
+				.asInstanceOf(InstanceOfAssertFactories.MAP)
+				.extractingByKey("gatherResultChannel")
+				.isNotInstanceOf(PollableChannel.class);
 	}
 
 	@Autowired
@@ -859,9 +866,11 @@ public class RouterTests {
 											group.size() == 3 ||
 													group.getMessages()
 															.stream()
-															.anyMatch(m -> (Double) m.getPayload() > 5)),
+															.anyMatch(m -> (Double) m.getPayload() > 5))
+									.outputProcessor(group -> new ArrayList<>(group.getMessages())),
 							scatterGather -> scatterGather
-									.gatherTimeout(10_000));
+									.gatherTimeout(10_000)
+									.async(true));
 		}
 
 		@Bean
