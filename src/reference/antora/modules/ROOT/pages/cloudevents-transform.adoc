@@ -1,0 +1,180 @@
+[[cloudevents-transformer]]
+
+= CloudEvent Transformer
+
+[[introduction]]
+== Introduction
+
+The CloudEvent transformer converts Spring Integration messages into CloudEvent compliant messages.
+This transformer provides  support for the CloudEvents specification v1.0 with configurable output formats, header pattern matching, and extension management.
+
+[[cloudevent-transformer-overview]]
+=== Overview
+
+The CloudEvent transformer (`ToCloudEventTransformer`) extends Spring Integration's `AbstractTransformer` to convert messages to CloudEvent format.
+To do this, it uses a `FormatStrategy` that allows users to transform the message to the desired "CloudEvent" format (CloudEvent, JSON, XML, AVRO, etc).  It defaults to `CloudEventFormatStrategy`.
+
+[[cloudevent-transformer-conversion-types]]
+=== Format Strategy
+
+The `ToCloudEventTransformer` accepts classes that implement the `FormatStrategy`  to serialize CloudEvent data to formats other than the default `CloudEventMessageFormatStrategy`.
+
+[[configure-transformer]]
+=== Configuring Transformer
+
+The `ToCloudEventTransformer` class provides configurations for CloudEvent metadata and formatting options.
+
+==== Properties Configuration
+
+[source,java]
+----
+ToCloudEventTransformer cloudEventTransformer = new ToCloudEventTransformer();
+cloudEventTransformer.setId("event-123");                                    // The CloudEvent ID. Default is "".
+cloudEventTransformer.setSource(URI.create("https://example.com/source"));   // The event source. Default is "".
+cloudEventTransformer.setType("com.example.OrderCreated");                   // The event type. The Default is "".
+cloudEventTransformer.setDataContentType("application/json");                // The data content type. Default is null.
+cloudEventTransformer.setDataSchema(URI.create("https://example.com/schema")); // The data schema. Default is null.
+cloudEventTransformer.setSubject("order-processing");                        // The event subject. Default is null.
+cloudEventTransformer.setTime(OffsetDateTime.now());                         // The event time. Default is null.
+----
+
+[[cloudevent-properties-defaults]]
+==== Default Values
+
+|===
+| Property | Default Value | Description
+
+| `id`
+| `""`
+| Empty string - should be set to unique identifier
+
+| `source`
+| `URI.create("")`
+| Empty URI - should be set to event source
+
+| `type`
+| `""`
+| Empty string - should be set to event type
+
+| `dataContentType`
+| `null`
+| Optional data content type
+
+| `dataSchema`
+| `null`
+| Optional data schema URI
+
+| `subject`
+| `null`
+| Optional event subject
+
+| `time`
+| `null`
+| Optional event timestamp
+
+| `cePrefix`
+| `CloudEventsHeaders.CE_PREFIX`
+| Default is CloudEventsHeaders.CE_PREFIX.
+|===
+
+[[cloudevent-extensions-pattern-matching]]
+==== Cloud Event Extension Pattern Matching
+
+The transformer allows the user to specify what `MessageHeaders` will be added as extensions to the CloudEvent.  The extension system uses pattern matching for extension identification:
+
+[source,java]
+----
+// Include headers starting with "key-" or "external-"
+// Exclude headers starting with "internal-"
+// If the header key is neither of the above it is not included in the extensions.
+String[] patterns = {"key-*", "external-*", "!internal-*"};
+
+// Extension patterns are processed during transformation
+ToCloudEventTransformer transformer = new ToCloudEventTransformer(
+    new CloudEventMessageFormatStrategy(),
+    patterns
+);
+----
+
+[[cloudevent-extensions-pattern-syntax]]
+==== Pattern Syntax
+
+The pattern matching supports:
+
+* **Wildcard patterns**: Use `\*` for wildcard matching (e.g., `external-\*` matches `external-id`, `external-span`)
+* **Negation patterns**: Use `!` prefix for exclusion (e.g., `!internal-*` excludes internal headers)
+* If the header key is neither of the above it is left in the `MessageHeader`.
+* **Multiple patterns**: Use comma-delimited patterns (e.g., `{"user-\*", "session-\*" , "!debug-*"}`)
+* **Null handling**: Null patterns disable extension processing, thus no `MessageHeaders` are moved to the CloudEvent extensions.
+
+[[cloudevent-transformer-integration]]
+=== Integration with Spring Integration Flows
+
+The CloudEvent transformer integrates with Spring Integration flows:
+
+==== Basic Flow
+
+[source,java]
+----
+@Bean
+public IntegrationFlow cloudEventTransformFlow() {
+    return IntegrationFlows
+        .from("inputChannel")
+        .transform(cloudEventTransformer())
+        .channel("outputChannel")
+        .get();
+}
+----
+
+[[cloudevent-transformer-transformation-process]]
+=== Transformation Process
+
+The transformer follows the process below:
+
+1. **Extension Extraction**: Extract CloudEvent extensions from message headers using configured patterns
+2. **CloudEvent Building**: Build a CloudEvent with configured properties and message payload
+3. **Format Conversion**: Apply the specified `FormatStrategy` to format the output
+
+==== Payload Handling
+
+The transformer supports multiple payload types:
+
+[source,java]
+----
+// String payload
+Message<String> stringMessage = MessageBuilder.withPayload("Hello World").build();
+
+// Byte array payload
+Message<byte[]> binaryMessage = MessageBuilder.withPayload("Hello".getBytes()).build();
+
+// Object payload (converted to string then bytes)
+Message<Object> objectMessage = MessageBuilder.withPayload(customObject).build();
+----
+
+[[cloudevent-transformer-examples]]
+=== Examples
+
+[[cloudevent-transformer-example-basic]]
+==== Basic Message Transformation
+
+[source,java]
+----
+// Input message with headers
+Message<String> inputMessage = MessageBuilder
+    .withPayload("Hello CloudEvents")
+    .setHeader("trace-id", "abc123")
+    .setHeader("user-session", "session456")
+    .build();
+
+// Transformer with extension patterns
+ToCloudEventTransformer transformer = new ToCloudEventTransformer(
+    new CloudEventMessageFormatStrategy(), "trace-*");
+// Configure properties
+transformer.setId("event-123");
+transformer.setSource(URI.create("https://example.com"));
+transformer.setType("com.example.MessageProcessed");
+
+// Transform to CloudEvent
+Message<?> cloudEventMessage = transformer.transform(inputMessage);
+----
+
