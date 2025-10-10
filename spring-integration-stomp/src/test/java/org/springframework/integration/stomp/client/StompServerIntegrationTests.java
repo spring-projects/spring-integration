@@ -210,7 +210,7 @@ public class StompServerIntegrationTests {
 		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent) && n++ < 100);
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
-				.isThrownBy(() -> stompOutputChannel1.send(new GenericMessage<>("foo".getBytes())))
+				.isThrownBy(() -> stompOutputChannel1.send(new GenericMessage<>("test".getBytes())))
 				.withMessageContaining("could not deliver message");
 
 		broker.start();
@@ -228,10 +228,10 @@ public class StompServerIntegrationTests {
 		}
 		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
 
-		stompOutputChannel1.send(new GenericMessage<>("foo".getBytes()));
+		stompOutputChannel1.send(new GenericMessage<>("test".getBytes()));
 		Message<?> receive25 = stompInputChannel2.receive(10000);
 		assertThat(receive25).isNotNull();
-		assertThat((byte[]) receive25.getPayload()).isEqualTo("foo".getBytes());
+		assertThat((byte[]) receive25.getPayload()).isEqualTo("test".getBytes());
 
 		context1.close();
 		context2.close();

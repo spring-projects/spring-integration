@@ -139,13 +139,13 @@ public class RouterTests {
 	public void testRouterSubflowWithReplyChannelHeader() {
 		PollableChannel replyChannel = new QueueChannel();
 		this.routeSubflowToReplyChannelFlowInput.send(
-				MessageBuilder.withPayload("baz")
+				MessageBuilder.withPayload("test")
 						.setReplyChannel(replyChannel)
 						.build());
 
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("BAZ");
+		assertThat(receive.getPayload()).isEqualTo("TEST");
 	}
 
 	@Autowired
@@ -158,13 +158,13 @@ public class RouterTests {
 
 	@Test
 	public void testRouterSubflowWithoutReplyToMainFlow() {
-		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("BOO"));
+		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("TEST"));
 
 		Message<?> receive = routerSubflowResult.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("boo");
+		assertThat(receive.getPayload()).isEqualTo("test");
 		assertThat(this.defaultOutputChannel.receive(1)).isNull();
-		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("foo"));
+		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("wrong"));
 		assertThat(this.defaultOutputChannel.receive(10000)).isNotNull();
 	}
 
@@ -475,7 +475,7 @@ public class RouterTests {
 				.hasSizeGreaterThanOrEqualTo(1)
 				.first()
 				.asInstanceOf(InstanceOfAssertFactories.type(Message.class))
-				.extracting(Message::getHeaders)
+				.extracting("headers")
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
 				.extractingByKey("gatherResultChannel")
 				.isNotInstanceOf(PollableChannel.class);
@@ -667,7 +667,7 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow routeSubflowWithoutReplyToMainFlow() {
 			return f -> f
-					.<String, Boolean>route("BOO"::equals, m -> m
+					.<String, Boolean>route("TEST"::equals, m -> m
 							.resolutionRequired(false)
 							.subFlowMapping(true, sf -> sf
 									.transform(String.class, String::toLowerCase)
