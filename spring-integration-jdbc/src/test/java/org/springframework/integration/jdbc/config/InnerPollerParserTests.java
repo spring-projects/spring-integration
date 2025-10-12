@@ -68,7 +68,7 @@ public class InnerPollerParserTests {
 
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(new GenericXmlApplicationContext(resource)::close)
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 
@@ -101,7 +101,7 @@ public class InnerPollerParserTests {
 
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(new GenericXmlApplicationContext(resource)::close)
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 
@@ -134,7 +134,7 @@ public class InnerPollerParserTests {
 
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(new GenericXmlApplicationContext(resource)::close)
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 
