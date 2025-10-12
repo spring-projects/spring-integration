@@ -29,8 +29,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -39,54 +38,32 @@ import static org.assertj.core.api.Assertions.fail;
 public class StoredProcInvalidConfigsTests {
 
 	@Test
-	public void testProcedureNameAndExpressionExclusivity() throws Exception {
-		try {
-			this.bootStrap("nameAndExpressionExclusivity");
-			fail("Expected a BeanDefinitionParsingException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage()
-					.contains("Exactly one of 'stored-procedure-name' or 'stored-procedure-name-expression' is " +
-							"required"))
-					.isTrue();
-		}
+	public void testProcedureNameAndExpressionExclusivity() {
+
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> this.bootStrap("nameAndExpressionExclusivity"))
+				.withMessageContaining("Exactly one of 'stored-procedure-name' or 'stored-procedure-name-expression' is required");
 	}
 
 	@Test
-	public void testReturnTypeForInParameter() throws Exception {
-		try {
-			this.bootStrap("returnTypeForInParameter");
-			fail("Expected a BeanDefinitionParsingException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage()
-					.contains("'return-type' attribute can't be provided for IN 'sql-parameter-definition' element."))
-					.isTrue();
-		}
+	public void testReturnTypeForInParameter() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> this.bootStrap("returnTypeForInParameter"))
+				.withMessageContaining("'return-type' attribute can't be provided for IN 'sql-parameter-definition' element.");
 	}
 
 	@Test
-	public void testTypeNameAndScaleExclusivity() throws Exception {
-		try {
-			this.bootStrap("typeNameAndScaleExclusivity");
-			fail("Expected a BeanDefinitionParsingException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().contains("'type-name' and 'scale' attributes are mutually exclusive " +
-					"for 'sql-parameter-definition' element.")).isTrue();
-		}
+	public void testTypeNameAndScaleExclusivity() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> this.bootStrap("typeNameAndScaleExclusivity"))
+				.withMessageContaining("'type-name' and 'scale' attributes are mutually exclusive for 'sql-parameter-definition' element.");
 	}
 
 	@Test
-	public void testReturnTypeAndScaleExclusivity() throws Exception {
-		try {
-			this.bootStrap("returnTypeAndScaleExclusivity");
-			fail("Expected a BeanDefinitionParsingException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().contains("'returnType' and 'scale' attributes are mutually exclusive " +
-					"for 'sql-parameter-definition' element.")).isTrue();
-		}
+	public void testReturnTypeAndScaleExclusivity() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> this.bootStrap("returnTypeAndScaleExclusivity"))
+				.withMessageContaining("'returnType' and 'scale' attributes are mutually exclusive for 'sql-parameter-definition' element.");
 	}
 
 	private ApplicationContext bootStrap(String configProperty) throws Exception {

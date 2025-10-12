@@ -37,7 +37,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -137,7 +136,7 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		Map<String, RowMapper<?>> rowmappers = new HashMap<String, RowMapper<?>>();
+		Map<String, RowMapper<?>> rowmappers = new HashMap<>();
 
 		storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
 
@@ -149,17 +148,9 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 	public void testSetSqlParameterSourceFactoryWithNullParameter() {
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		try {
-			storedProcExecutor.setSqlParameterSourceFactory(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("sqlParameterSourceFactory must not be null.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setSqlParameterSourceFactory(null))
+				.withMessage("sqlParameterSourceFactory must not be null.");
 	}
 
 	@Test

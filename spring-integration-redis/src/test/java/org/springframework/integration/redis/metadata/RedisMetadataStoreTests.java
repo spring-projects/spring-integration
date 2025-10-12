@@ -27,7 +27,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Gunnar Hillert
@@ -91,17 +91,9 @@ class RedisMetadataStoreTests implements RedisContainerTest {
 	@Test
 	void testPersistNullStringToMetadataStore() {
 		RedisMetadataStore metadataStore = new RedisMetadataStore(redisConnectionFactory, "testMetadata");
-
-		try {
-			metadataStore.put("RedisMetadataStoreTests-PersistEmpty", null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'value' must not be null.");
-			return;
-		}
-
-		fail("Expected an IllegalArgumentException to be thrown.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.put("RedisMetadataStoreTests-PersistEmpty", null))
+				.withMessage("'value' must not be null.");
 	}
 
 	@Test
@@ -116,31 +108,17 @@ class RedisMetadataStoreTests implements RedisContainerTest {
 	@Test
 	void testPersistWithNullKeyToMetadataStore() {
 		RedisMetadataStore metadataStore = new RedisMetadataStore(redisConnectionFactory, "testMetadata");
-
-		try {
-			metadataStore.put(null, "something");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
-			return;
-		}
-
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.put(null, "something"))
+				.withMessage("'key' must not be null.");
 	}
 
 	@Test
 	void testGetValueWithNullKeyFromMetadataStore() {
 		RedisMetadataStore metadataStore = new RedisMetadataStore(redisConnectionFactory, "testMetadata");
-
-		try {
-			metadataStore.get(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
-			return;
-		}
-
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> metadataStore.get(null))
+				.withMessage("'key' must not be null.");
 	}
 
 	@Test

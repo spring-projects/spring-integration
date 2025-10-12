@@ -25,7 +25,6 @@ import org.springframework.xml.xpath.XPathExpression;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Jonas Partner
@@ -105,21 +104,13 @@ public class XPathExpressionParserTests {
 					</map>
 				</si-xml:xpath-expression>
 				""";
-
-		try {
-			getXPathExpression(xmlDoc);
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getCause() instanceof SAXParseException).isTrue();
-			return;
-		}
-
-		fail("Expected an Exceptions");
-
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> getXPathExpression(xmlDoc))
+				.withCauseInstanceOf(SAXParseException.class);
 	}
 
 	@Test
-	public void testNamespacePrefixButNoUri() throws Exception {
+	public void testNamespacePrefixButNoUri() {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' />";
 		assertThatExceptionOfType(BeanDefinitionStoreException.class)
 				.isThrownBy(() -> getXPathExpression(xmlDoc))

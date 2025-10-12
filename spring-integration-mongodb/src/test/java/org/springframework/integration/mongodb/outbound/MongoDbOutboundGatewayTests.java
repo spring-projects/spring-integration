@@ -47,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Xavier Padro
@@ -102,13 +102,10 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 
 	@Test
 	void testNoTemplateSpecified() {
-		try {
-			new MongoDbOutboundGateway((MongoTemplate) null);
-			fail("Expected the test case to throw an IllegalArgumentException");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("mongoTemplate must not be null.");
-		}
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbOutboundGateway((MongoTemplate) null))
+				.withMessage("mongoTemplate must not be null.");
 	}
 
 	@Test
@@ -116,14 +113,12 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		MongoDbOutboundGateway gateway = createGateway();
 
-		try {
-			gateway.afterPropertiesSet();
-			gateway.handleRequestMessage(message);
-			fail("Expected the test case to throw an IllegalArgumentException");
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).isEqualTo("no query or collectionCallback is specified");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> {
+					gateway.afterPropertiesSet();
+					gateway.handleRequestMessage(message);
+				})
+				.withMessage("no query or collectionCallback is specified");
 	}
 
 	@Test
@@ -166,13 +161,10 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(MONGO_DATABASE_FACTORY);
 		gateway.setBeanFactory(beanFactory);
 		gateway.setMongoConverter(mongoConverter);
-		try {
-			gateway.afterPropertiesSet();
-			fail("Expected the test case to throw an IllegalStateException");
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).isEqualTo("no query or collectionCallback is specified");
-		}
+
+		assertThatIllegalStateException()
+				.isThrownBy(gateway::afterPropertiesSet)
+				.withMessage("no query or collectionCallback is specified");
 	}
 
 	@Test
@@ -260,13 +252,9 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
 		gateway.setExpectSingleResult(true);
 
-		try {
-			gateway.afterPropertiesSet();
-			fail("Expected the test case to throw an IllegalArgumentException");
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).isEqualTo("no collection name specified");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(gateway::afterPropertiesSet)
+				.withMessage("no collection name specified");
 	}
 
 	@Test
