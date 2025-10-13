@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,8 +39,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -53,6 +52,7 @@ import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
@@ -302,8 +302,7 @@ public class FileTests {
 		assertThat(payloads.toArray()).isEqualTo(new String[] {"test1", "test2"});
 
 		assertThat(TestUtils.getPropertyValue(
-				this.beanFactory.getBean(newFolder1.getName() + ".adapter.source"),
-				"scanner"))
+				this.beanFactory.getBean("dynamicFile.adapter.source"), "scanner"))
 				.isInstanceOf(RecursiveDirectoryScanner.class);
 	}
 
@@ -436,27 +435,24 @@ public class FileTests {
 	public static class MyService {
 
 		@Autowired
-		private AutowireCapableBeanFactory beanFactory;
+		private IntegrationFlowContext integrationFlowContext;
 
 		@Autowired
 		@Qualifier("dynamicAdaptersResult")
 		PollableChannel dynamicAdaptersResult;
 
 		void pollDirectories(File... directories) {
-			for (File directory : directories) {
-				StandardIntegrationFlow integrationFlow = IntegrationFlow
-						.from(Files.inboundAdapter(directory).recursive(true),
-								e -> e.poller(p -> p.fixedDelay(1000))
-										.id(directory.getName() + ".adapter"))
-						.transformWith(t -> t
-								.transformer(Files.toStringTransformer())
-								.id(directory.getName() + ".transformer"))
-						.channel(this.dynamicAdaptersResult)
-						.get();
-				this.beanFactory.initializeBean(integrationFlow, directory.getName());
-				this.beanFactory.getBean(directory.getName() + ".transformer", Lifecycle.class).start();
-				this.beanFactory.getBean(directory.getName() + ".adapter", Lifecycle.class).start();
-			}
+			AtomicInteger index = new AtomicInteger(0);
+			StandardIntegrationFlow integrationFlow = IntegrationFlow
+					.from(Files.inboundAdapter(() -> directories[index.getAndIncrement() % directories.length])
+									.recursive(true),
+							e -> e.poller(p -> p.fixedDelay(100))
+									.id("dynamicFile.adapter"))
+					.transformWith(t -> t
+							.transformer(Files.toStringTransformer()))
+					.channel(this.dynamicAdaptersResult)
+					.get();
+			this.integrationFlowContext.registration(integrationFlow).register();
 		}
 
 	}

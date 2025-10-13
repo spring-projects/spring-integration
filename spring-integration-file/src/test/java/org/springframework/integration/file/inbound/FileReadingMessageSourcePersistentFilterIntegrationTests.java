@@ -64,7 +64,7 @@ public class FileReadingMessageSourcePersistentFilterIntegrationTests {
 	@Test
 	public void configured() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollableFileSource);
-		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
+		assertThat(accessor.getPropertyValue("directoryExpression.value")).isEqualTo(inputDir);
 	}
 
 	@Test

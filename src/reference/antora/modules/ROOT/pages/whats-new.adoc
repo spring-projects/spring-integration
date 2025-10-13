@@ -103,6 +103,12 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
 See xref:mqtt.adoc[] for more information.
 
+[[x7.0-files-changes]]
+=== Files Changes
+
+The `FileReadingMessageSource` now can be configured with a SpEL `Expression` for its `directory` property.
+See xref:file/reading.adoc[] for more information.
+
 [[x7.0-remote-files-changes]]
 === Remote Files Support Changes
 

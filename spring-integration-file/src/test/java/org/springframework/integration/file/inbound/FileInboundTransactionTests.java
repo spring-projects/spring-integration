@@ -90,13 +90,11 @@ public class FileInboundTransactionTests {
 
 		new DirectFieldAccessor(scanner).setPropertyValue("filter", fileListFilter);
 
-		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean crash = new AtomicBoolean();
 		input.subscribe(message -> {
 			if (crash.get()) {
 				throw new MessagingException("eek");
 			}
-			latch.countDown();
 		});
 		pseudoTx.start();
 		File file = new File(tmpDir, "si-test1/foo");
@@ -112,11 +110,11 @@ public class FileInboundTransactionTests {
 		assertThat(result).isNotNull();
 		assertThat(file.delete()).isTrue();
 		assertThat(result.getPayload()).isEqualTo("foo");
-		pseudoTx.stop();
 		assertThat(transactionManager.getCommitted()).isFalse();
 		assertThat(transactionManager.getRolledBack()).isFalse();
-
 		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo"));
+
+		pseudoTx.stop();
 	}
 
 	@Test

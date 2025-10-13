@@ -19,6 +19,7 @@ package org.springframework.integration.file.dsl;
 import java.io.File;
 import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
@@ -42,7 +43,17 @@ public abstract class Files {
 	 * @return the {@link FileInboundChannelAdapterSpec} instance.
 	 */
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory) {
-		return inboundAdapter(directory, null);
+		return inboundAdapter(() -> directory);
+	}
+
+	/**
+	 * Create a {@link FileInboundChannelAdapterSpec} builder for the {@code FileReadingMessageSource}.
+	 * @param directorySupplier the Supplier for directory to scan files.
+	 * @return the {@link FileInboundChannelAdapterSpec} instance.
+	 * @since 7.0
+	 */
+	public static FileInboundChannelAdapterSpec inboundAdapter(Supplier<File> directorySupplier) {
+		return inboundAdapter(directorySupplier, null);
 	}
 
 	/**
@@ -54,7 +65,20 @@ public abstract class Files {
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory,
 			@Nullable Comparator<File> receptionOrderComparator) {
 
-		return new FileInboundChannelAdapterSpec(receptionOrderComparator).directory(directory);
+		return inboundAdapter(() -> directory, null);
+	}
+
+	/**
+	 * Create a {@link FileInboundChannelAdapterSpec} builder for the {@code FileReadingMessageSource}.
+	 * @param directorySupplier the Supplier for directory to scan files.
+	 * @param receptionOrderComparator the {@link Comparator} for ordering file objects.
+	 * @return the {@link FileInboundChannelAdapterSpec} instance.
+	 * @since 7.0
+	 */
+	public static FileInboundChannelAdapterSpec inboundAdapter(Supplier<File> directorySupplier,
+			@Nullable Comparator<File> receptionOrderComparator) {
+
+		return new FileInboundChannelAdapterSpec(receptionOrderComparator).directory(directorySupplier);
 	}
 
 	/**

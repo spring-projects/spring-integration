@@ -72,7 +72,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = TestUtils.getPropertyValue(this.source, "directory", File.class);
+		File actual = TestUtils.getPropertyValue(this.source, "directoryExpression.value", File.class);
 		assertThat(actual).isEqualTo(expected);
 	}
 

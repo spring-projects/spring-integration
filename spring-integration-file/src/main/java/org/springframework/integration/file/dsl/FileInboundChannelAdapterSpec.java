@@ -23,13 +23,16 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.RecursiveDirectoryScanner;
@@ -70,13 +73,13 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 * Specify the input directory.
-	 * @param directory the directory.
+	 * Specify the Supplier for input directory.
+	 * @param directorySupplier the Supplier for directory to poll.
 	 * @return the spec.
-	 * @see FileReadingMessageSource#setDirectory(File)
+	 * @see FileReadingMessageSource#setDirectoryExpression(Expression)
 	 */
-	FileInboundChannelAdapterSpec directory(File directory) {
-		this.target.setDirectory(directory);
+	FileInboundChannelAdapterSpec directory(Supplier<File> directorySupplier) {
+		this.target.setDirectoryExpression(new SupplierExpression<>(directorySupplier));
 		return _this();
 	}
 
