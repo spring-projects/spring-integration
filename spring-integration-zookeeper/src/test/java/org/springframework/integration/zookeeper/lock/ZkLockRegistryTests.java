@@ -34,7 +34,7 @@ import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Gary Russell
@@ -287,13 +287,9 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		}
 
 		Thread.sleep(10);
-		try {
-			registry.expireUnusedOlderThan(0);
-			fail("expected exception");
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).contains("expiry is not supported");
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> registry.expireUnusedOlderThan(0))
+				.withMessageContaining("expiry is not supported");
 		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 		registry.destroy();
 	}
