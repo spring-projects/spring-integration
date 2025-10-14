@@ -83,15 +83,15 @@ public class InnerPollerParserTests {
 						xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 							http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 							http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
-				
+
 					<int:poller id="outer" fixed-rate="5000"/>
-				
+
 					<int:channel id="someChannel"/>
-				
+
 					<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" query="select 1">
 						<int:poller ref="outer" default="true"/>
 					</int-jdbc:inbound-channel-adapter>
-				
+
 					<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
 						<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
 					</bean>
@@ -116,15 +116,15 @@ public class InnerPollerParserTests {
 						xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 							http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 							http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
-				
+
 					<int:poller id="outer" fixed-rate="5000"/>
-				
+
 					<int:channel id="someChannel"/>
-				
+
 					<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" query="select 1">
 						<int:poller ref="outer" default="false" fixed-rate="1000"/>
 					</int-jdbc:inbound-channel-adapter>
-				
+
 					<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
 						<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
 					</bean>
