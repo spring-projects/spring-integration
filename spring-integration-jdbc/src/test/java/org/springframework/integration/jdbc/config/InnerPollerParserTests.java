@@ -42,99 +42,98 @@ public class InnerPollerParserTests {
 	@Test
 	public void testRefExtraAttribute() {
 		// Load context from a String to avoid IDEs reporting the invalid configuration
-		String badContext =
-				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-						"<beans xmlns=\"http://www.springframework.org/schema/beans\"" +
-						"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
-						"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
-						"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-						"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
-						"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-						"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
-						"" +
-						"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
-						"" +
-						"	<int:channel id=\"someChannel\"/>" +
-						"" +
-						"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
-						"			query=\"select 1\">" +
-						"		<int:poller ref=\"outer\" fixed-rate=\"1000\"/>" + // <<<<< fixed-rate not allowed here
-						"	</int-jdbc:inbound-channel-adapter>" +
-						"" +
-						"	<bean id=\"ops\" class=\"org.mockito.Mockito\" factory-method=\"mock\">" +
-						"		<constructor-arg value=\"org.springframework.jdbc.core.JdbcOperations\"/>" +
-						"	</bean>" +
-						"</beans>";
+		String badContext = """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<beans xmlns="http://www.springframework.org/schema/beans"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:int="http://www.springframework.org/schema/integration"
+						xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+						xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+							http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+							http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
+					<int:poller id="outer" fixed-rate="5000"/>
+
+					<int:channel id="someChannel"/>
+
+					<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" query="select 1">
+						<int:poller ref="outer" fixed-rate="1000"/>
+					</int-jdbc:inbound-channel-adapter>
+
+					<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
+						<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
+					</bean>
+				</beans>
+				""";
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource))
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 
 	@Test
 	public void testRefDefaultTrue() {
 		// Load context from a String to avoid IDEs reporting the invalid configuration
-		String badContext =
-				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-						"<beans xmlns=\"http://www.springframework.org/schema/beans\"" +
-						"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
-						"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
-						"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-						"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
-						"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-						"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
-						"" +
-						"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
-						"" +
-						"	<int:channel id=\"someChannel\"/>" +
-						"" +
-						"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
-						"			query=\"select 1\">" +
-						"		<int:poller ref=\"outer\" default=\"true\"/>" + // <<<<< default true not allowed here
-						"	</int-jdbc:inbound-channel-adapter>" +
-						"" +
-						"	<bean id=\"ops\" class=\"org.mockito.Mockito\" factory-method=\"mock\">" +
-						"		<constructor-arg value=\"org.springframework.jdbc.core.JdbcOperations\"/>" +
-						"	</bean>" +
-						"</beans>";
+		String badContext = """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<beans xmlns="http://www.springframework.org/schema/beans"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:int="http://www.springframework.org/schema/integration"
+						xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+						xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+							http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+							http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+				
+					<int:poller id="outer" fixed-rate="5000"/>
+				
+					<int:channel id="someChannel"/>
+				
+					<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" query="select 1">
+						<int:poller ref="outer" default="true"/>
+					</int-jdbc:inbound-channel-adapter>
+				
+					<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
+						<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
+					</bean>
+				</beans>
+				""";
 
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource))
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 
 	@Test
 	public void testRefExtraAttributeAndDefaultFalse() {
 		// Load context from a String to avoid IDEs reporting the invalid configuration
-		String badContext =
-				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-						"<beans xmlns=\"http://www.springframework.org/schema/beans\"" +
-						"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
-						"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
-						"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-						"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
-						"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-						"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
-						"" +
-						"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
-						"" +
-						"	<int:channel id=\"someChannel\"/>" +
-						"" +
-						"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
-						"			query=\"select 1\">" +
-						"		<int:poller ref=\"outer\" default=\"false\" fixed-rate=\"1000\"/>" + // <<<<< fixed-rate not allowed here
-						"	</int-jdbc:inbound-channel-adapter>" +
-						"" +
-						"	<bean id=\"ops\" class=\"org.mockito.Mockito\" factory-method=\"mock\">" +
-						"		<constructor-arg value=\"org.springframework.jdbc.core.JdbcOperations\"/>" +
-						"	</bean>" +
-						"</beans>";
+		String badContext = """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<beans xmlns="http://www.springframework.org/schema/beans"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:int="http://www.springframework.org/schema/integration"
+						xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+						xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+							http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+							http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+				
+					<int:poller id="outer" fixed-rate="5000"/>
+				
+					<int:channel id="someChannel"/>
+				
+					<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" query="select 1">
+						<int:poller ref="outer" default="false" fixed-rate="1000"/>
+					</int-jdbc:inbound-channel-adapter>
+				
+					<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
+						<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
+					</bean>
+				</beans>
+				""";
 
 		Resource resource = new ByteArrayResource(badContext.getBytes());
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> new GenericXmlApplicationContext(resource).close())
+				.isThrownBy(() -> new GenericXmlApplicationContext(resource))
 				.withMessageStartingWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes.");
 	}
 

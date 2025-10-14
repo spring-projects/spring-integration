@@ -41,28 +41,28 @@ public class StoredProcInvalidConfigsTests {
 	public void testProcedureNameAndExpressionExclusivity() {
 
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> this.bootStrap("nameAndExpressionExclusivity"))
+				.isThrownBy(() -> bootStrap("nameAndExpressionExclusivity"))
 				.withMessageContaining("Exactly one of 'stored-procedure-name' or 'stored-procedure-name-expression' is required");
 	}
 
 	@Test
 	public void testReturnTypeForInParameter() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> this.bootStrap("returnTypeForInParameter"))
+				.isThrownBy(() -> bootStrap("returnTypeForInParameter"))
 				.withMessageContaining("'return-type' attribute can't be provided for IN 'sql-parameter-definition' element.");
 	}
 
 	@Test
 	public void testTypeNameAndScaleExclusivity() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> this.bootStrap("typeNameAndScaleExclusivity"))
+				.isThrownBy(() -> bootStrap("typeNameAndScaleExclusivity"))
 				.withMessageContaining("'type-name' and 'scale' attributes are mutually exclusive for 'sql-parameter-definition' element.");
 	}
 
 	@Test
 	public void testReturnTypeAndScaleExclusivity() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> this.bootStrap("returnTypeAndScaleExclusivity"))
+				.isThrownBy(() -> bootStrap("returnTypeAndScaleExclusivity"))
 				.withMessageContaining("'returnType' and 'scale' attributes are mutually exclusive for 'sql-parameter-definition' element.");
 	}
 

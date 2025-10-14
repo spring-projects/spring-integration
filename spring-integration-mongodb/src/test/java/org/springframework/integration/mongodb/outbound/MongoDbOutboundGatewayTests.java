@@ -114,10 +114,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 		MongoDbOutboundGateway gateway = createGateway();
 
 		assertThatIllegalStateException()
-				.isThrownBy(() -> {
-					gateway.afterPropertiesSet();
-					gateway.handleRequestMessage(message);
-				})
+				.isThrownBy(gateway::afterPropertiesSet)
 				.withMessage("no query or collectionCallback is specified");
 	}
 
