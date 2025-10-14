@@ -66,7 +66,7 @@ public class FileReadingMessageSourceIntegrationTests {
 
 	@Test
 	public void configured() {
-		assertThat(TestUtils.getPropertyValue(this.pollableFileSource, "directory")).isEqualTo(inputDir);
+		assertThat(TestUtils.getPropertyValue(this.pollableFileSource, "directoryExpression.value")).isEqualTo(inputDir);
 	}
 
 	@Test

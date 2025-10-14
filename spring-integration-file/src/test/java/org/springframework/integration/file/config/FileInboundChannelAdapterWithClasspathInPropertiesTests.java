@@ -62,7 +62,7 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	@SuppressWarnings("unchecked")
 	public void inputDirectory() throws Exception {
 		File expected = new ClassPathResource("").getFile();
-		File actual = (File) accessor.getPropertyValue("directory");
+		File actual = (File) accessor.getPropertyValue("directoryExpression.value");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 
 		FileListFilter<File> fileListFilter =

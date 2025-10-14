@@ -184,6 +184,10 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 
 NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java DSL has a convenient `recursive(boolean)` option to use a `RecursiveDirectoryScanner` in the target `FileReadingMessageSource` instead of the default one.
 
+Starting with version 7.0, the `FileReadingMessageSource` can be configured with a SpEL expression for its `directory` property.
+This expression evaluated each time when a new scan is requested.
+Such a logic might be useful in scenarios when input directory should be changed after scanning is exhausted, or when it is based on the timestamp rotation.
+
 [[file-namespace-support]]
 == Namespace Support
 

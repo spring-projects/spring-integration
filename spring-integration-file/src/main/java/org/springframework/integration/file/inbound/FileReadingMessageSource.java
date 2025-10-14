@@ -46,7 +46,9 @@ import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileHeaders;
@@ -78,7 +80,7 @@ import org.springframework.util.Assert;
  * {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter}
  * would allow for this.
  * <p>
- * If a external {@link DirectoryScanner} is used, then the {@link FileLocker}
+ * If an external {@link DirectoryScanner} is used, then the {@link FileLocker}
  * and {@link FileListFilter} objects should be set on the external
  * {@link DirectoryScanner}, not the instance of FileReadingMessageSource. An
  * {@link IllegalStateException} will result otherwise.
@@ -108,15 +110,10 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
-	/*
-	 * {@link PriorityBlockingQueue#iterator()} throws
-	 * {@link java.util.ConcurrentModificationException} in Java 5.
-	 * There is no locking around the queue, so there is also no iteration.
-	 */
-	private final Queue<File> toBeReceived;
+	private final Queue<DirFile> toBeReceived;
 
 	@SuppressWarnings("NullAway.Init")
-	private File directory;
+	private Expression directoryExpression;
 
 	private DirectoryScanner scanner = new DefaultDirectoryScanner();
 
@@ -174,7 +171,11 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 * @param receptionOrderComparator the comparator to be used to order the files in the internal queue
 	 */
 	public FileReadingMessageSource(@Nullable Comparator<File> receptionOrderComparator) {
-		this.toBeReceived = new PriorityBlockingQueue<>(DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+		Comparator<DirFile> comparatorToUse = null;
+		if (receptionOrderComparator != null) {
+			comparatorToUse = (dirFile1, dirFile2) -> receptionOrderComparator.compare(dirFile1.file, dirFile2.file);
+		}
+		this.toBeReceived = new PriorityBlockingQueue<>(DEFAULT_INTERNAL_QUEUE_CAPACITY, comparatorToUse);
 	}
 
 	/**
@@ -183,7 +184,18 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 */
 	public void setDirectory(File directory) {
 		Assert.notNull(directory, "directory must not be null");
-		this.directory = directory;
+		setDirectoryExpression(new ValueExpression<>(directory));
+	}
+
+	/**
+	 * Specify a SpEL expression for an input directory.
+	 * This expression is evaluated on each scan, but not each poll.
+	 * @param directoryExpression the SpEL expression to resolve a directory to monitor on each scan.
+	 * @since 7.0
+	 */
+	public void setDirectoryExpression(Expression directoryExpression) {
+		Assert.notNull(directoryExpression, "'directoryExpression' must not be null");
+		this.directoryExpression = directoryExpression;
 	}
 
 	/**
@@ -321,15 +333,23 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	@Override
 	public void start() {
 		if (!this.running.getAndSet(true)) {
-			if (!this.directory.exists() && this.autoCreateDirectory && !this.directory.mkdirs()) {
-				throw new IllegalStateException("Cannot create directory or its parents: " + this.directory);
+			if (this.directoryExpression instanceof ValueExpression) {
+				File directoryToCreate = this.directoryExpression.getValue(File.class);
+				if (directoryToCreate == null ||
+						(!directoryToCreate.exists() && this.autoCreateDirectory && !directoryToCreate.mkdirs())) {
+
+					throw new IllegalStateException("Cannot create directory or its parents: " + directoryToCreate);
+				}
+				Assert.isTrue(directoryToCreate.exists(),
+						() -> "Source directory [" + directoryToCreate + "] does not exist.");
+				Assert.isTrue(directoryToCreate.isDirectory(),
+						() -> "Source path [" + directoryToCreate + "] does not point to a directory.");
+				Assert.isTrue(directoryToCreate.canRead(),
+						() -> "Source directory [" + directoryToCreate + "] is not readable.");
+				if (this.scanner instanceof WatchServiceDirectoryScanner watchServiceDirectoryScanner) {
+					watchServiceDirectoryScanner.directory = directoryToCreate;
+				}
 			}
-			Assert.isTrue(this.directory.exists(),
-					() -> "Source directory [" + this.directory + "] does not exist.");
-			Assert.isTrue(this.directory.isDirectory(),
-					() -> "Source path [" + this.directory + "] does not point to a directory.");
-			Assert.isTrue(this.directory.canRead(),
-					() -> "Source directory [" + this.directory + "] is not readable.");
 			if (this.scanner instanceof Lifecycle lifecycle) {
 				lifecycle.start();
 			}
@@ -350,7 +370,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	@Override
 	protected void onInit() {
-		Assert.notNull(this.directory, "'directory' must not be null");
+		Assert.notNull(this.directoryExpression, "'directoryExpression' must not be null");
 
 		Assert.state(!(this.scannerExplicitlySet && this.useWatchService),
 				() -> "The 'scanner' and 'useWatchService' options are mutually exclusive: " + this.scanner);
@@ -380,31 +400,42 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			scanInputDirectory();
 		}
 
-		File file = this.toBeReceived.poll();
+		DirFile dirFile = this.toBeReceived.poll();
 
-		// file == null means the queue was empty
-		// we can't rely on isEmpty for concurrency reasons
-		while ((file != null) && !this.scanner.tryClaim(file)) {
-			file = this.toBeReceived.poll();
+		while ((dirFile != null) && !this.scanner.tryClaim(dirFile.file)) {
+			dirFile = this.toBeReceived.poll();
 		}
 
-		if (file != null) {
+		if (dirFile != null) {
 			return getMessageBuilderFactory()
-					.withPayload(file)
-					.setHeader(FileHeaders.RELATIVE_PATH, this.directory.toPath().relativize(file.toPath()).toString())
-					.setHeader(FileHeaders.FILENAME, file.getName())
-					.setHeader(FileHeaders.ORIGINAL_FILE, file);
+					.withPayload(dirFile.file)
+					.setHeader(FileHeaders.RELATIVE_PATH,
+							dirFile.root.toPath().relativize(dirFile.file.toPath()).toString())
+					.setHeader(FileHeaders.FILENAME, dirFile.file.getName())
+					.setHeader(FileHeaders.ORIGINAL_FILE, dirFile.file);
 		}
 
 		return null;
 	}
 
 	private void scanInputDirectory() {
-		List<File> filteredFiles = this.scanner.listFiles(this.directory);
-		Set<File> freshFiles = new LinkedHashSet<>(filteredFiles);
-		if (!freshFiles.isEmpty()) {
-			this.toBeReceived.addAll(freshFiles);
-			logger.debug(() -> "Added to queue: " + freshFiles);
+		File directory = this.directoryExpression.getValue(getEvaluationContext(), File.class);
+		Assert.notNull(directory, "'directoryExpression' must not evaluate to null");
+		if (this.scanner instanceof WatchServiceDirectoryScanner watchServiceDirectoryScanner) {
+			if (!watchServiceDirectoryScanner.directory.equals(directory)) {
+				watchServiceDirectoryScanner.stop();
+				watchServiceDirectoryScanner.directory = directory;
+				watchServiceDirectoryScanner.start();
+			}
+		}
+		List<File> filteredFiles = this.scanner.listFiles(directory);
+
+		for (File file : filteredFiles) {
+			this.toBeReceived.add(new DirFile(file, directory));
+		}
+
+		if (!filteredFiles.isEmpty()) {
+			logger.debug(() -> "Added to queue: " + filteredFiles);
 		}
 	}
 
@@ -414,7 +445,18 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 */
 	public void onFailure(Message<File> failedMessage) {
 		logger.warn(() -> "Failed to send: " + failedMessage);
-		this.toBeReceived.offer(failedMessage.getPayload());
+		String relativePath = failedMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class);
+		File file = failedMessage.getPayload();
+		File root;
+		if (relativePath != null) {
+			String absolutePath = file.getAbsolutePath();
+			String rootPath = absolutePath.substring(0, absolutePath.length() - relativePath.length());
+			root = new File(rootPath);
+		}
+		else {
+			root = file.getParentFile();
+		}
+		this.toBeReceived.offer(new DirFile(file, root));
 	}
 
 	public enum WatchEventType {
@@ -444,6 +486,9 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		@SuppressWarnings("NullAway.Init")
 		private WatchService watcher;
 
+		@SuppressWarnings("NullAway.Init")
+		private volatile File directory;
+
 		WatchServiceDirectoryScanner() {
 			this.kinds =
 					Arrays.stream(FileReadingMessageSource.this.watchEvents)
@@ -461,25 +506,33 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 		@Override
 		public void start() {
+			if (this.directory == null) {
+				File directoryToSet =
+						FileReadingMessageSource.this.directoryExpression.getValue(getEvaluationContext(), File.class);
+				Assert.notNull(directoryToSet, "'directoryExpression' must not evaluate to null");
+				this.directory = directoryToSet;
+			}
 			try {
 				this.watcher = FileSystems.getDefault().newWatchService();
-				Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
+				Set<File> initialFiles = walkDirectory(this.directory.toPath(), null);
 				initialFiles.addAll(filesFromEvents());
 				this.filesToPoll.addAll(initialFiles);
 			}
 			catch (IOException ex) {
-				logger.error(ex, () -> "Failed to create watcher for " + FileReadingMessageSource.this.directory);
+				logger.error(ex, () -> "Failed to create watcher for " + this.directory);
 			}
 		}
 
 		@Override
 		public void stop() {
 			try {
+				this.pathKeys.forEach((path, watchKey) -> watchKey.cancel());
 				this.watcher.close();
 				this.pathKeys.clear();
+				this.filesToPoll.clear();
 			}
 			catch (IOException ex) {
-				logger.error(ex, () -> "Failed to close watcher for " + FileReadingMessageSource.this.directory);
+				logger.error(ex, () -> "Failed to close watcher for " + this.directory);
 			}
 		}
 
@@ -508,13 +561,14 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			while (key != null) {
 				File parentDir = ((Path) key.watchable()).toAbsolutePath().toFile();
 				for (WatchEvent<?> event : key.pollEvents()) {
-					if (StandardWatchEventKinds.ENTRY_CREATE.equals(event.kind()) ||
-							StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind()) ||
-							StandardWatchEventKinds.ENTRY_DELETE.equals(event.kind())) {
+					WatchEvent.Kind<?> watchEventKind = event.kind();
+					if (StandardWatchEventKinds.ENTRY_CREATE.equals(watchEventKind) ||
+							StandardWatchEventKinds.ENTRY_MODIFY.equals(watchEventKind) ||
+							StandardWatchEventKinds.ENTRY_DELETE.equals(watchEventKind)) {
 
 						processFilesFromNormalEvent(files, parentDir, event);
 					}
-					else if (StandardWatchEventKinds.OVERFLOW.equals(event.kind())) {
+					else if (StandardWatchEventKinds.OVERFLOW.equals(watchEventKind)) {
 						processFilesFromOverflowEvent(files, event);
 					}
 				}
@@ -574,15 +628,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 				files.addAll(walkDirectory(path, event.kind()));
 			}
 			else {
-				files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
+				files.addAll(walkDirectory(this.directory.toPath(), event.kind()));
 			}
 		}
 
-		private Set<File> walkDirectory(Path directory, WatchEvent.@Nullable Kind<?> kind) {
+		private Set<File> walkDirectory(Path directoryToWalk, WatchEvent.@Nullable Kind<?> kind) {
 			final Set<File> walkedFiles = new LinkedHashSet<>();
 			try {
-				registerWatch(directory);
-				Files.walkFileTree(directory, Collections.emptySet(), FileReadingMessageSource.this.watchMaxDepth,
+				registerWatch(directoryToWalk);
+				Files.walkFileTree(directoryToWalk, Collections.emptySet(), FileReadingMessageSource.this.watchMaxDepth,
 						new SimpleFileVisitor<>() {
 
 							@Override
@@ -610,7 +664,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 						});
 			}
 			catch (IOException ex) {
-				logger.error(ex, () -> "Failed to walk directory: " + directory.toString());
+				logger.error(ex, () -> "Failed to walk directory: " + directoryToWalk);
 			}
 			return walkedFiles;
 		}
@@ -621,6 +675,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 				WatchKey watchKey = dir.register(this.watcher, this.kinds);
 				this.pathKeys.putIfAbsent(dir, watchKey);
 			}
+		}
+
+	}
+
+	private record DirFile(File file, File root) implements Comparable<DirFile> {
+
+		@Override
+		public int compareTo(DirFile other) {
+			return this.file.compareTo(other.file);
 		}
 
 	}
