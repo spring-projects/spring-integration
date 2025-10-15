@@ -28,6 +28,4 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests implements MySqlContainerTest {
 
-
-
 }

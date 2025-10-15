@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -117,6 +118,7 @@ public class WebSocketServerTests {
 	private Lifecycle requestUpgradeStrategy;
 
 	@Test
+	@Disabled("TODO until the lastest fix from SF mitigation")
 	public void testWebSocketOutboundMessageHandler() {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
