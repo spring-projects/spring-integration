@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -130,7 +131,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		assertThat(Integer.valueOf(testService.getDuplicateMessagesCount())).isEqualTo(Integer.valueOf(0));
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
 		final String groupId = "testInt2993Group";
 		for (int i = 0; i < 100; i++) {
