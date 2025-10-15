@@ -16,11 +16,6 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import java.util.concurrent.ExecutionException;
-
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
 import org.springframework.integration.jdbc.mysql.MySqlContainerTest;
 import org.springframework.test.context.ContextConfiguration;
 
