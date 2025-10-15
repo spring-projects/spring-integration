@@ -33,18 +33,6 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests implements MySqlContainerTest {
 
-	@Override
-	@Test
-	@Disabled("Fails sporadically")
-	public void testInt3181ConcurrentPolling() throws InterruptedException {
-		super.testInt3181ConcurrentPolling();
-	}
 
-	@Override
-	@Test
-	@Disabled("Fails sporadically")
-	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
-		super.testInt2993IdCacheConcurrency();
-	}
 
 }

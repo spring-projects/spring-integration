@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context
 			https://www.springframework.org/schema/context/spring-context.xsd
@@ -20,9 +20,9 @@
 	<context:mbean-export server="mbeanServer"/>
 
 	<jmx:tree-polling-channel-adapter id="adapter-default"
-			channel="channel1"
-			auto-startup="false">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel1"
+									  auto-startup="false">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</jmx:tree-polling-channel-adapter>
 
 	<si:channel id="channel1">
@@ -30,9 +30,9 @@
 	</si:channel>
 
 	<jmx:tree-polling-channel-adapter id="adapter-inner"
-			channel="channel2"
-			auto-startup="false">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel2"
+									  auto-startup="false">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 		<bean class="org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter"/>
 	</jmx:tree-polling-channel-adapter>
 
@@ -41,11 +41,11 @@
 	</si:channel>
 
 	<jmx:tree-polling-channel-adapter id="adapter-query-name"
-			channel="channel3"
-			auto-startup="false"
-			query-name="java.lang:type=Runtime"
-			query-expression="*:type=*">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel3"
+									  auto-startup="false"
+									  query-name="java.lang:type=Runtime"
+									  query-expression="*:type=*">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</jmx:tree-polling-channel-adapter>
 
 	<si:channel id="channel3">
@@ -53,10 +53,10 @@
 	</si:channel>
 
 	<jmx:tree-polling-channel-adapter id="adapter-query-name-bean"
-			channel="channel4"
-			auto-startup="false"
-			query-name-ref="queryName">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel4"
+									  auto-startup="false"
+									  query-name-ref="queryName">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</jmx:tree-polling-channel-adapter>
 
 	<bean id="queryName" class="javax.management.ObjectName">
@@ -70,10 +70,10 @@
 	</si:channel>
 
 	<jmx:tree-polling-channel-adapter id="adapter-query-expr-bean"
-			channel="channel5"
-			auto-startup="false"
-			query-expression-ref="queryExp">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel5"
+									  auto-startup="false"
+									  query-expression-ref="queryExp">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</jmx:tree-polling-channel-adapter>
 
 	<bean id="queryExp" class="javax.management.ObjectName">
@@ -87,12 +87,12 @@
 	</si:channel>
 
 	<jmx:tree-polling-channel-adapter id="adapter-converter"
-			channel="channel6" converter="converter"
-			auto-startup="false">
-		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
+									  channel="channel6" converter="converter"
+									  auto-startup="false">
+		<si:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</jmx:tree-polling-channel-adapter>
 
-	<bean id="converter" class="org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter" />
+	<bean id="converter" class="org.springframework.integration.jmx.inbound.DefaultMBeanObjectConverter"/>
 
 	<si:channel id="channel6">
 		<si:queue/>

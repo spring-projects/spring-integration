@@ -134,11 +134,11 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
 		final String groupId = "testInt2993Group";
 		for (int i = 0; i < 100; i++) {
-			this.jdbcChannelMessageStore.addMessageToGroup(groupId, new GenericMessage<String>("testInt2993Message"));
+			this.jdbcChannelMessageStore.addMessageToGroup(groupId, new GenericMessage<>("testInt2993Message"));
 		}
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executorService);
+		CompletionService<Boolean> completionService = new ExecutorCompletionService<>(executorService);
 
 		final int concurrency = 5;
 
@@ -155,12 +155,6 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 						catch (Exception e1) {
 							log.error("IdCache race condition.", e1);
 							return false;
-						}
-						try {
-							Thread.sleep(10);
-						}
-						catch (InterruptedException e2) {
-							log.error(e2);
 						}
 						if (message != null) {
 							jdbcChannelMessageStore.removeFromIdCache(message.getHeaders().getId().toString());
