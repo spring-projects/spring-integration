@@ -50,11 +50,13 @@ import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompEncoder;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -137,7 +139,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	/**
-	 * Set the message converters to use. These converters are used to convert the message to send for appropriate
+	 * Set the message converters to use. These converters are used to convert the message to send for the appropriate
 	 * internal subProtocols type.
 	 * @param messageConverters The message converters.
 	 */
@@ -156,7 +158,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	/**
-	 * Set the type for target message payload to convert the WebSocket message body to.
+	 * Set the type for the target message payload to convert the WebSocket message body to.
 	 * @param payloadType to convert inbound WebSocket message body
 	 * @see CompositeMessageConverter
 	 */
@@ -170,9 +172,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	 * bean for {@code non-MESSAGE} {@link org.springframework.web.socket.WebSocketMessage}s
 	 * and to route messages with broker destinations.
 	 * Since only single {@link AbstractBrokerMessageHandler} bean is allowed in the current
-	 * application context, the algorithm to lookup the former by type, rather than applying
+	 * application context, the algorithm is to look up the former by type, rather than applying
 	 * the bean reference.
-	 * This is used only on server side and is ignored from client side.
+	 * This is used only on the server side and is ignored from the client side.
 	 * @param useBroker the boolean flag.
 	 */
 	public void setUseBroker(boolean useBroker) {
@@ -230,13 +232,23 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 				SubProtocolHandler protocolHandler = this.subProtocolHandlerRegistry.findProtocolHandler(session);
 				protocolHandler.afterSessionStarted(session, this.subProtocolHandlerChannel);
 				if (!this.server && protocolHandler instanceof StompSubProtocolHandler) {
+					// The CONNECT frame is required by the STOMP specification.
 					StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
 					accessor.setSessionId(session.getId());
 					accessor.setLeaveMutable(true);
 					accessor.setAcceptVersion("1.1,1.2");
 
-					Message<?> connectMessage =
+					Message<byte[]> connectMessage =
 							MessageBuilder.createMessage(EMPTY_PAYLOAD, accessor.getMessageHeaders());
+
+					// In the client mode, the client session has to register itself
+					// into the StompSubProtocolHandler cache
+					// for proper correlation of the messages from the server side.
+					StompEncoder stompEncoder = new StompEncoder();
+					byte[] connectMessageBytes = stompEncoder.encode(connectMessage);
+					protocolHandler.handleMessageFromClient(session, new BinaryMessage(connectMessageBytes),
+							this.subProtocolHandlerChannel);
+
 					protocolHandler.handleMessageToClient(session, connectMessage);
 				}
 			}
@@ -309,7 +321,11 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		SimpMessageType messageType = headerAccessor.getMessageType();
 		if (isProcessingTypeOrCommand(headerAccessor, stompCommand, messageType)) {
 			if (SimpMessageType.CONNECT.equals(messageType)) {
-				produceConnectAckMessage(message, headerAccessor);
+				// Ignore the CONNECT frame in the client mode.
+				// Essentially, it has been just initiated from the {@link #afterSessionStarted}.
+				if (this.server) {
+					produceConnectAckMessage(message, headerAccessor);
+				}
 			}
 			else if (StompCommand.CONNECTED.equals(stompCommand)) {
 				this.eventPublisher.publishEvent(new SessionConnectedEvent(this, (Message<byte[]>) message));
@@ -337,7 +353,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, StompCommand stompCommand,
 			SimpMessageType messageType) {
 
-		return (messageType == null // NOSONAR pretty simple logic
+		return (messageType == null
 				|| SimpMessageType.MESSAGE.equals(messageType)
 				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker)
 				|| StompCommand.CONNECTED.equals(stompCommand)

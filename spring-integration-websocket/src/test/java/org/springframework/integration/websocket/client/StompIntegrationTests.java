@@ -84,6 +84,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
@@ -94,6 +95,7 @@ import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 /**
  * @author Artem Bilan
@@ -124,18 +126,21 @@ public class StompIntegrationTests {
 
 	@Test
 	public void sendMessageToController() throws Exception {
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
-		this.webSocketOutputChannel.send(MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build());
-
 		Message<?> receive = this.webSocketEvents.receive(20000);
-		assertThat(receive).isNotNull();
-		Object event = receive.getPayload();
-		assertThat(event).isInstanceOf(SessionConnectedEvent.class);
-		Message<?> connectedMessage = ((SessionConnectedEvent) event).getMessage();
-		headers = StompHeaderAccessor.wrap(connectedMessage);
-		assertThat(headers.getCommand()).isEqualTo(StompCommand.CONNECTED);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				// We've just registered our own connected client session from the WebSocketInboundChannelAdapter
+				.isInstanceOf(SessionConnectEvent.class);
 
-		headers = StompHeaderAccessor.create(StompCommand.SEND);
+		receive = this.webSocketEvents.receive(20000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.asInstanceOf(type(SessionConnectedEvent.class))
+				.extracting(SessionConnectedEvent::getMessage)
+				.extracting(connectedMessage -> StompHeaderAccessor.wrap(connectedMessage).getCommand())
+				.isEqualTo(StompCommand.CONNECTED);
+
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setSubscriptionId("sub1");
 		headers.setDestination("/app/simple");
 		Message<String> message = MessageBuilder.withPayload("foo").setHeaders(headers).build();
@@ -143,16 +148,22 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
-		assertThat(controller.latch.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(controller.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(controller.stompCommand).isEqualTo(StompCommand.SEND.name());
 	}
 
 	@Test
 	public void sendMessageToControllerAndReceiveReplyViaTopic() throws Exception {
 		Message<?> receive = this.webSocketEvents.receive(20000);
-		assertThat(receive).isNotNull();
-		Object event = receive.getPayload();
-		assertThat(event).isInstanceOf(SessionConnectedEvent.class);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				// We've just registered our own connected client session from the WebSocketInboundChannelAdapter
+				.isInstanceOf(SessionConnectEvent.class);
+
+		receive = this.webSocketEvents.receive(20000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.isInstanceOf(SessionConnectedEvent.class);
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
@@ -165,13 +176,14 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		receive = this.webSocketEvents.receive(20000);
-		assertThat(receive).isNotNull();
-		event = receive.getPayload();
-		assertThat(event).isInstanceOf(ReceiptEvent.class);
-		Message<?> receiptMessage = ((ReceiptEvent) event).getMessage();
-		headers = StompHeaderAccessor.wrap(receiptMessage);
-		assertThat(headers.getCommand()).isEqualTo(StompCommand.RECEIPT);
-		assertThat(headers.getReceiptId()).isEqualTo("myReceipt");
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.asInstanceOf(type(ReceiptEvent.class))
+				.extracting(event -> StompHeaderAccessor.wrap(event.getMessage()))
+				.satisfies(headerAccessor -> {
+					assertThat(headerAccessor.getCommand()).isEqualTo(StompCommand.RECEIPT);
+					assertThat(headerAccessor.getReceiptId()).isEqualTo("myReceipt");
+				});
 
 		waitForSubscribe("/topic/increment");
 
@@ -492,7 +504,7 @@ public class StompIntegrationTests {
 		public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(
 				final AbstractSubscribableChannel clientOutboundChannel) {
 			// Cannot be lambda because Java can't infer generic type from lambdas,
-			// therefore we end up with ClassCastException for other event types
+			// therefore, we end up with ClassCastException for other event types
 			return new ApplicationListener<SessionSubscribeEvent>() {
 
 				@Override

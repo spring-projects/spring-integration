@@ -96,6 +96,7 @@ public class WebSocketInboundChannelAdapterTests {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		headers.setLeaveMutable(true);
 		headers.setSessionId(sessionId);
+		headers.setSubscriptionId("sub1");
 		Message<byte[]> message =
 				MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
 
