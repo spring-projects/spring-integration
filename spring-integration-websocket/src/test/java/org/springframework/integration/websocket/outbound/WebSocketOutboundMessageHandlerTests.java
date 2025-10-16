@@ -18,7 +18,6 @@ package org.springframework.integration.websocket.outbound;
 
 import java.util.Collections;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@Disabled("TODO until the lastest fix from SF mitigation")
 public class WebSocketOutboundMessageHandlerTests {
 
 	@Autowired
@@ -68,22 +66,32 @@ public class WebSocketOutboundMessageHandlerTests {
 
 	@Test
 	public void testWebSocketOutboundMessageHandler() {
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
+		this.messageHandler.handleMessage(MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build());
+
+		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setMessageId("mess0");
 		headers.setSubscriptionId("sub0");
-		headers.setDestination("/foo");
+		headers.setDestination("/dest");
 		String payload = "Hello World";
 		Message<String> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
 		this.messageHandler.handleMessage(message);
 
 		Message<?> received = this.clientInboundChannel.receive(10000);
-		assertThat(received).isNotNull();
+		assertThat(received)
+				.extracting(StompHeaderAccessor::wrap)
+				.extracting(StompHeaderAccessor::getCommand)
+				.isEqualTo(StompCommand.CONNECT);
 
-		StompHeaderAccessor receivedHeaders = StompHeaderAccessor.wrap(received);
-		assertThat(receivedHeaders.getMessageId()).isEqualTo("mess0");
-		assertThat(receivedHeaders.getSubscriptionId()).isEqualTo("sub0");
-		assertThat(receivedHeaders.getDestination()).isEqualTo("/foo");
+		received = this.clientInboundChannel.receive(10000);
+		assertThat(received)
+				.extracting(StompHeaderAccessor::wrap)
+				.satisfies(headerAccessor -> {
+					assertThat(headerAccessor.getMessageId()).isEqualTo("mess0");
+					assertThat(headerAccessor.getSubscriptionId()).isEqualTo("sub0");
+					assertThat(headerAccessor.getDestination()).isEqualTo("/dest");
+				});
 
 		Object receivedPayload = received.getPayload();
 		assertThat(receivedPayload).isInstanceOf(byte[].class);

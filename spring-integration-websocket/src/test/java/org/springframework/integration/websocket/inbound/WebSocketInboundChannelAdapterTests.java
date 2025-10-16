@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +63,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@Disabled("TODO until the lastest fix from SF mitigation")
 public class WebSocketInboundChannelAdapterTests {
 
 	@Value("#{server.serverContext.getBean('subProtocolWebSocketHandler')}")
@@ -98,6 +96,7 @@ public class WebSocketInboundChannelAdapterTests {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		headers.setLeaveMutable(true);
 		headers.setSessionId(sessionId);
+		headers.setSubscriptionId("sub1");
 		Message<byte[]> message =
 				MessageBuilder.createMessage(ByteBuffer.allocate(0).array(), headers.getMessageHeaders());
 
