@@ -483,15 +483,13 @@ project('spring-integration-cloudevents') {
 
     dependencies {
         api "io.cloudevents:cloudevents-core:$cloudEventsVersion"
-        optionalApi "io.cloudevents:cloudevents-spring:$cloudEventsVersion"
-        optionalApi "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
+        testImplementation "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
 
-        optionalApi("io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion") {
+        testImplementation("io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion") {
             exclude group: 'org.apache.avro', module: 'avro'
         }
-        optionalApi "org.apache.avro:avro:$avroVersion"
-        optionalApi "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
-        testImplementation 'tools.jackson.core:jackson-databind'
+        testImplementation "org.apache.avro:avro:$avroVersion"
+        testImplementation "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
     }
 }
 

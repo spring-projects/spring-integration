@@ -36,7 +36,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.config.EnableIntegration;
@@ -44,30 +43,34 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@DirtiesContext
 @SpringJUnitConfig
-class ToCloudEventTransformerTests {
+class ToCloudEventsTransformerTests {
 
-	private static final String TRACE_HEADER = "{'trace-id' : 'trace-123'}";
+	private static final String TRACE_HEADER = "traceId";
 
-	private static final String SPAN_HEADER = "{'span-id' : 'span-456'}";
+	private static final String SPAN_HEADER = "spanId";
 
-	private static final String USER_HEADER = "{'user-id' : 'user-789'}";
+	private static final String USER_HEADER = "userId";
+
+	private static final String [] TEST_PATTERNS = {"trace*", SPAN_HEADER, USER_HEADER};
 
 	private static final byte[] PAYLOAD = "\"test message\"".getBytes(StandardCharsets.UTF_8);
 
 	@Autowired
-	private ToCloudEventTransformer transformerWithNoExtensions;
+	private ToCloudEventsTransformer transformerWithNoExtensions;
 
 	@Autowired
-	private ToCloudEventTransformer transformerWithExtensions;
+	private ToCloudEventsTransformer transformerWithExtensions;
 
 	@Autowired
-	private ToCloudEventTransformer transformerWithInvalidIDExpression;
+	private ToCloudEventsTransformer transformerWithInvalidIDExpression;
 
 	private final  JsonFormat jsonFormat = new JsonFormat();
 
@@ -173,7 +176,8 @@ class ToCloudEventTransformerTests {
 		String payload = "test message";
 		Message<byte[]> message = createBaseMessage(payload.getBytes(), "application/cloudevents+json")
 			.setHeader("correlation-id", "corr-999")
-			.build();
+				.setHeader(TRACE_HEADER, "trace-123")
+				.build();
 
 		Object result = this.transformerWithExtensions.doTransform(message);
 
@@ -182,9 +186,9 @@ class ToCloudEventTransformerTests {
 
 		assertThat(resultMessage.getHeaders()).containsKeys("correlation-id");
 		assertThat(resultMessage.getHeaders().get("correlation-id")).isEqualTo("corr-999");
-		assertThat(new String(resultMessage.getPayload())).contains("\"trace-id\":\"trace-123\"");
-		assertThat(new String(resultMessage.getPayload())).contains("\"span-id\":\"span-456\"");
-		assertThat(new String(resultMessage.getPayload())).contains("\"user-id\":\"user-789\"");
+		assertThat(new String(resultMessage.getPayload())).contains("\"traceId\":\"trace-123\"");
+		assertThat(new String(resultMessage.getPayload())).doesNotContain("\"spanId\":\"span-456\"",
+				"\"userId\":\"user-789\"");
 	}
 
 	@Test
@@ -203,20 +207,20 @@ class ToCloudEventTransformerTests {
 				.build();
 
 		assertThatThrownBy(() -> this.transformerWithInvalidIDExpression.transform(message)).isInstanceOf(MessageTransformationException.class)
-				.hasMessageContaining("No id was found with the specified expression");
+				.hasMessageContaining("failed to transform message");
 	}
 
 	private CloudEvent getTransformerNoExtensions(byte[] payload, EventFormat eventFormat) {
 		Message<byte[]> message = createBaseMessage(payload, eventFormat.serializedContentType())
-				.setHeader("custom-header", "test-value")
-				.setHeader("other-header", "other-value")
+				.setHeader("customheader", "test-value")
+				.setHeader("otherheader", "other-value")
 				.build();
 		Message<byte[]> result = transformMessage(message, this.transformerWithNoExtensions);
 		return eventFormat.deserialize(result.getPayload());
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<byte[]> transformMessage(Message<byte[]> message, ToCloudEventTransformer transformer) {
+	private Message<byte[]> transformMessage(Message<byte[]> message, ToCloudEventsTransformer transformer) {
 		Object result = transformer.doTransform(message);
 
 		assertThat(result).isNotNull();
@@ -232,7 +236,7 @@ class ToCloudEventTransformerTests {
 		return  byteArrayOutputStream.toByteArray();
 	}
 
-	private MessageBuilder<byte[]> createBaseMessage(byte[] payload, String contentType) {
+	private static MessageBuilder<byte[]> createBaseMessage(byte[] payload, String contentType) {
 		return MessageBuilder.withPayload(payload)
 				.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
 	}
@@ -241,25 +245,22 @@ class ToCloudEventTransformerTests {
 	@EnableIntegration
 	public static class ContextConfiguration {
 
+		private static final ExpressionParser parser = new SpelExpressionParser();
+
 		@Bean
-		public ToCloudEventTransformer transformerWithNoExtensions() {
-			return new ToCloudEventTransformer((Expression[]) null);
+		public ToCloudEventsTransformer transformerWithNoExtensions() {
+			return new ToCloudEventsTransformer();
 		}
 
 		@Bean
-		public ToCloudEventTransformer transformerWithExtensions() {
-			ExpressionParser parser = new SpelExpressionParser();
-			Expression[] expressions = {parser.parseExpression(TRACE_HEADER),
-					parser.parseExpression(SPAN_HEADER),
-					parser.parseExpression(USER_HEADER)};
-			return new ToCloudEventTransformer(expressions);
+		public ToCloudEventsTransformer transformerWithExtensions() {
+			return new ToCloudEventsTransformer(TEST_PATTERNS);
 		}
 
 		@Bean
-		public ToCloudEventTransformer transformerWithInvalidIDExpression() {
-			ExpressionParser parser = new SpelExpressionParser();
-			ToCloudEventTransformer transformer = new ToCloudEventTransformer((Expression[]) null);
-			transformer.setIdExpression(parser.parseExpression("null"));
+		public ToCloudEventsTransformer transformerWithInvalidIDExpression() {
+			ToCloudEventsTransformer transformer = new ToCloudEventsTransformer();
+			transformer.setEventIdExpression(parser.parseExpression("null"));
 			return transformer;
 		}
 	}
