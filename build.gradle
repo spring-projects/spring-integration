@@ -511,14 +511,23 @@ project('spring-integration-core') {
         }
     }
 
-dokka {
+    dokka {
         dokkaPublications.html {
             outputDirectory.set(file('../build/kdoc'))
         }
         dokkaSourceSets.configureEach {
-            noJdkLink.set(false)
             sourceRoots.setFrom(file('src/main/kotlin'))
             classpath.from(sourceSets['main'].runtimeClasspath)
+            externalDocumentationLinks.register("spring-integration-api") {
+                url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                packageListUrl.set(file('build/docs/javadoc/element-list').toURI())
+            }
+            externalDocumentationLinks.register("reactor-core") {
+                url.set(uri('https://projectreactor.io/docs/core/release/api/'))
+            }
+            externalDocumentationLinks.register("reactor-streams") {
+                url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+            }
         }
     }
 
@@ -1088,17 +1097,6 @@ tasks.register('api') {
     dependsOn javadoc
 }
 
-dokka {
-    moduleName.set('spring-integration')
-    dokkaPublications.html {
-        outputDirectory.set(file('build/kdoc'))
-    }
-}
-
-tasks.named('dokkaGeneratePublicationHtml') {
-    dependsOn 'api'
-}
-
 apply from: "${rootDir}/gradle/docs.gradle"
 
 tasks.register('schemaZip', Zip) {
@@ -1137,7 +1135,6 @@ tasks.register('schemaZip', Zip) {
 }
 
 tasks.register('docsZip', Zip) {
-    dependsOn 'dokkaGeneratePublicationHtml'
     dependsOn ':spring-integration-core:dokkaGenerate'
     group = 'Distribution'
     archiveClassifier = 'docs'
