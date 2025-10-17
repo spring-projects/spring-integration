@@ -1,0 +1,271 @@
+[[cloudevents]]
+= CloudEvents Support
+
+Spring Integration provides transformers (starting with version 7.0) for transforming messages into CloudEvent messages.
+It is fully based on the https://github.com/cloudevents/sdk-java[CloudEvents SDK] project.
+
+This dependency is required for the project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-cloudevents</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-cloudevents:{project-version}"
+----
+======
+
+[[cloudevent-transformers]]
+
+== CloudEvent Transformers
+
+[[tocloudeventstransformer]]
+=== ToCloudEventsTransformer
+
+The `ToCloudEventsTransformer` converts Spring Integration messages into CloudEvents compliant messages.
+This transformer provides  support for the CloudEvents specification v1.0 with configurable output format and defining attributes and extensions using `Expression` s.
+
+[[cloudevent-transformer-overview]]
+==== Overview
+
+The CloudEvents transformer (`ToCloudEventsTransformer`) converts messages to CloudEvents format.
+The CloudEvents transformer utilizes `io.cloudevents.core.provider.EventFormatProvider` to find `EventFormat` classes in the classpath and registers these as the available serializers for CloudEvents.
+The type of serialization (JSON, XML, AVRO, etc) of the CloudEvents' message is determined by `contentType` of the message.
+
+NOTE: Messages to be transformed must have a payload of `byte[]`.
+
+
+
+[[configure-transformer]]
+===== Configuring Transformer
+
+The `ToCloudEventsTransformer` allows the user to use SpEL `Expression`s to populate the attributes as well as the extensions.
+
+====== Attribute Expressions
+
+Users are allowed to set the CloudEvents' attributes of `id`, `source`, `type`, `dataSchema`, `subject` through SpEL `Expression` s.
+The example below shows where a `ToCloudEventTransformer` is created with a null `expression` 's variable.
+This indicates that this transformer will not place any `extensions` in the CloudEvent.
+But the user does want to set the `type` of the CloudEvent to `sampleType`.
+
+NOTE: The `time` attribute is set to the time that the CloudEvent message was created by the `ToCloudEventsTransformer` transformer.
+
+[source,java]
+----
+ToCloudEventTransformer transformer = new ToCloudEventTransformer(null);
+transformer.setTypeExpression(new LiteralExpression("sampleType"));
+----
+
+====== Extension Expressions
+
+The expressions constructor parameter is an array of `Expression` s.
+If the array is `null`, then no extensions will be added to the CloudEvent.
+Each `Expression` in the array must return the type `Map<String, Object>`.
+Where the key is a `String` and the value is of type `Object`.
+In the example below the extensions are hard coded to return 3 `Map<String, Object>` objects each containing one extension.
+
+[source,java]
+----
+ExpressionParser parser = new SpelExpressionParser();
+Expression[] extensionExpressions = {
+		parser.parseExpression("{'trace-id' : 'trace-123'}"),
+        parser.parseExpression("{'span-id' : 'span-456'}"),
+        parser.parseExpression("{'user-id' : 'user-789'}")};
+return new ToCloudEventTransformer(extensionExpressions);
+----
+
+[[cloudevent-attribute-defaults]]
+====== Default Values
+The following table contains the Attribute names and the value returned by the default `Expression`s.
+
+|===
+| Attribute Name | Default Value
+
+| `id`
+| the id of the message.
+
+| `source`
+| Prefix of "/spring/" followed by the appName a period then the name of the transformer's bean. i.e. `/spring/myapp.toCloudEventsTransformerBean`
+
+| `type`
+| "spring.message"
+
+| `dataContentType`
+| The `contentType` of the message.
+
+| `dataSchema`
+| `null`
+
+| `subject`
+| `null`
+
+| `time`
+| The time the CloudEvent message is created
+|===
+
+[[cloudevent-transformer-integration]]
+==== Integration with Spring Integration Flows
+
+The CloudEvent transformer integrates with Spring Integration flows:
+
+====== Basic Flow
+
+[source,java]
+----
+@Bean
+public IntegrationFlow cloudEventTransformFlow() {
+    return IntegrationFlows
+        .from("inputChannel")
+        .transform(cloudEventTransformer())
+        .channel("outputChannel")
+        .get();
+}
+----
+
+[[cloudevent-transformer-transformation-process]]
+===== Transformation Process
+
+The transformer follows the process below:
+
+1. **CloudEvent Building**: Build CloudEvent attributes
+2. **Extension Extraction**: Build the CloudEvent extensions using the array of extensionExpressions passed into the constructor.
+3. **Format Conversion**: Apply the specified `EventFormat` based on the message's `contentType to create the CloudEvent.
+
+[[cloudevent-transformer-examples]]
+===== Examples
+
+[[cloudevent-transformer-example-basic]]
+====== Basic Message Transformation
+
+[source,java]
+----
+// Input message with headers
+Message<String> inputMessage = MessageBuilder
+    .withPayload("Hello CloudEvents")
+    .withHeader("contentType", "application/octet-stream")
+    .build();
+// Transformer with extension patterns
+ToCloudEventTransformer transformer = new ToCloudEventTransformer();
+
+// Transform to CloudEvent
+Object cloudEventMessage = transformer.transform(inputMessage);
+----
+
+[[eventformats]]
+===== EventFormats
+
+The `ToCloudEventsTransformer` uses `EventFormat` s to serialize the CloudEvent into the message's payload.
+The `EventFormat` s used by the `ToCloudEventsTransformer` are obtained from the classpath of the project.
+The `EventFormat` s that are available from the https://github.com/cloudevents/sdk-java[CloudEvents SDK] project are as follows:
+
+[[jsonformat]]
+====== JsonFormat
+The following dependency can be used to include this `JsonFormat` in your project.
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>io.cloudevents</groupId>
+    <artifactId>cloudevents-json-jackson</artifactId>
+    <version>$cloudEventsVersion</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
+----
+======
+
+[[xmlformat]]
+====== XMLFormat
+The following dependency can be used to include this `XMLFormat` in your project.
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>io.cloudevents</groupId>
+    <artifactId>cloudevents-xml</artifactId>
+    <version>$cloudEventsVersion</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
+----
+======
+
+[[avrocompactformat]]
+====== AvroCompactFormat
+The following dependency can be used to include this `AvroCompactFormat` in your project.
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>io.cloudevents</groupId>
+    <artifactId>cloudevents-avro-compact</artifactId>
+    <version>$cloudEventsVersion</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion"
+----
+======
+
+[[protobufformat]]
+====== ProtobufFormat
+The following dependency can be used to include this `ProtobufFormat` in your project.
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>io.cloudevents</groupId>
+    <artifactId>cloudevents-protobuf</artifactId>
+    <version>$cloudEventsVersion</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "io.cloudevents:cloudevents-protobuf:$cloudEventsVersion"
+----
+======
