@@ -188,6 +188,8 @@ configure(javaProjects) { subproject ->
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
     apply plugin: 'io.spring.nullability'
+    apply plugin: 'org.jetbrains.dokka'
+
 
     apply from: "${rootDir}/gradle/publish-maven.gradle"
 
@@ -393,6 +395,27 @@ configure(javaProjects) { subproject ->
 
     check.dependsOn checkClasspathForConflicts, javadoc
 
+
+    dokka {
+        dokkaPublications.html {
+            outputDirectory.set(file(rootProject.layout.buildDirectory.file('kdoc')))
+        }
+        dokkaSourceSets.configureEach {
+            sourceRoots.setFrom(file('src/main/kotlin'))
+            classpath.from(sourceSets['main'].runtimeClasspath)
+            externalDocumentationLinks.register("spring-integration-api") {
+                url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                packageListUrl.set(file('build/docs/javadoc/element-list').toURI())
+            }
+            externalDocumentationLinks.register("reactor-core") {
+                url.set(uri('https://projectreactor.io/docs/core/release/api/'))
+            }
+            externalDocumentationLinks.register("reactor-streams") {
+                url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+            }
+        }
+    }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -468,7 +491,6 @@ project('spring-integration-cassandra') {
 project('spring-integration-core') {
     description = 'Spring Integration Core'
 
-    apply plugin: 'org.jetbrains.dokka'
     apply plugin: 'com.google.protobuf'
 
     dependencies {
@@ -508,17 +530,6 @@ project('spring-integration-core') {
             exclude group: 'io.opentelemetry'
             exclude group: 'com.wavefront'
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
-        }
-    }
-
-dokka {
-        dokkaPublications.html {
-            outputDirectory.set(file('../build/kdoc'))
-        }
-        dokkaSourceSets.configureEach {
-            noJdkLink.set(false)
-            sourceRoots.setFrom(file('src/main/kotlin'))
-            classpath.from(sourceSets['main'].runtimeClasspath)
         }
     }
 
@@ -1088,17 +1099,6 @@ tasks.register('api') {
     dependsOn javadoc
 }
 
-dokka {
-    moduleName.set('spring-integration')
-    dokkaPublications.html {
-        outputDirectory.set(file('build/kdoc'))
-    }
-}
-
-tasks.named('dokkaGeneratePublicationHtml') {
-    dependsOn 'api'
-}
-
 apply from: "${rootDir}/gradle/docs.gradle"
 
 tasks.register('schemaZip', Zip) {
@@ -1137,7 +1137,6 @@ tasks.register('schemaZip', Zip) {
 }
 
 tasks.register('docsZip', Zip) {
-    dependsOn 'dokkaGeneratePublicationHtml'
     dependsOn ':spring-integration-core:dokkaGenerate'
     group = 'Distribution'
     archiveClassifier = 'docs'
