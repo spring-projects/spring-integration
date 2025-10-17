@@ -18,7 +18,7 @@ plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.jetbrains.dokka' version '2.0.0'
+    id 'org.jetbrains.dokka' version '2.1.0'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
@@ -176,15 +176,6 @@ allprojects {
             mavenBom "org.mongodb:mongodb-driver-bom:$mongoDriverVersion"
         }
 
-    }
-
-    // TODO Remove when Dokka 2.1.0 is released
-    configurations.matching { it.name.startsWith('dokka') }.configureEach {
-        resolutionStrategy.eachDependency {
-            if (requested.group.startsWith('com.fasterxml.jackson')) {
-                useVersion('2.15.3')
-            }
-        }
     }
 
 }
@@ -520,24 +511,14 @@ project('spring-integration-core') {
         }
     }
 
-    dokkaHtmlPartial {
-        outputDirectory.set(new File('build', 'kdoc'))
-        dokkaSourceSets {
-            main {
-                sourceRoots.setFrom(file('src/main/kotlin'))
-                classpath.from(sourceSets['main'].runtimeClasspath)
-                noJdkLink.set(false)
-                externalDocumentationLink {
-                    url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                    packageListUrl.set(file('build/docs/javadoc/element-list').toURI().toURL())
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
-                }
-            }
+dokka {
+        dokkaPublications.html {
+            outputDirectory.set(file('../build/kdoc'))
+        }
+        dokkaSourceSets.configureEach {
+            noJdkLink.set(false)
+            sourceRoots.setFrom(file('src/main/kotlin'))
+            classpath.from(sourceSets['main'].runtimeClasspath)
         }
     }
 
@@ -1107,10 +1088,15 @@ tasks.register('api') {
     dependsOn javadoc
 }
 
-dokkaHtmlMultiModule {
-    dependsOn 'api'
+dokka {
     moduleName.set('spring-integration')
-    outputDirectory.set(file('build/kdoc'))
+    dokkaPublications.html {
+        outputDirectory.set(file('build/kdoc'))
+    }
+}
+
+tasks.named('dokkaGeneratePublicationHtml') {
+    dependsOn 'api'
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"
@@ -1151,7 +1137,8 @@ tasks.register('schemaZip', Zip) {
 }
 
 tasks.register('docsZip', Zip) {
-    dependsOn 'dokkaHtmlMultiModule'
+    dependsOn 'dokkaGeneratePublicationHtml'
+    dependsOn ':spring-integration-core:dokkaGenerate'
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
@@ -1165,7 +1152,7 @@ tasks.register('docsZip', Zip) {
         into 'api'
     }
 
-    from(dokkaHtmlMultiModule.outputDirectory) {
+    from(file('build/kdoc')) {
         into 'kdoc-api'
     }
 }
