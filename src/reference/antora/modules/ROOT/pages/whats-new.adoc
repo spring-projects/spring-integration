@@ -90,6 +90,11 @@ The message stores now use a `MESSAGE_CONTENT` column name for serialized messag
 All the out-of-the-box SQL schemas have beed changed, too, to rely on the `MESSAGE_CONTENT` name for the respective column in the `INT_MESSAGE` and `INT_CHANNEL_MESSAGE` tables.
 See xref:jdbc/message-store.adoc[] for more information.
 
+The `JdbcChannelMessageStore` now supports JSON serialization as an alternative to Java serialization.
+New components `JsonChannelMessageStorePreparedStatementSetter` and `JsonMessageRowMapper` enable storing messages in JSON format.
+This requires modifying the database schema to use text-based column types (such as JSONB, JSON, TEXT, or CLOB) instead of binary types.
+See xref:jdbc/message-store-json.adoc[] for more information.
+
 [[x7.0-redis-changes]]
 === Redis Changes
 

@@ -52,6 +52,7 @@ import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -89,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Trung Pham
  * @author Johannes Edmeier
  * @author Ngoc Nhan
+ * @author Yoobin Yoon
  *
  * @since 2.2
  */
@@ -148,7 +150,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private SerializingConverter serializer;
 
 	@SuppressWarnings("NullAway.Init")
-	private MessageRowMapper messageRowMapper;
+	private RowMapper<Message<?>> messageRowMapper;
 
 	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
@@ -232,13 +234,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Allow for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
-	 * is used to convert the selected database row representing the persisted
-	 * message into the actual {@link Message} object.
+	 * Allow for passing in a custom {@link RowMapper} for {@link Message}.
+	 * The {@link RowMapper} is used to convert the selected database row
+	 * representing the persisted message into the actual {@link Message} object.
 	 * @param messageRowMapper Must not be null
 	 */
-	public void setMessageRowMapper(MessageRowMapper messageRowMapper) {
-		Assert.notNull(messageRowMapper, "The provided MessageRowMapper must not be null.");
+	public void setMessageRowMapper(RowMapper<Message<?>> messageRowMapper) {
+		Assert.notNull(messageRowMapper, "The provided RowMapper must not be null.");
 		this.messageRowMapper = messageRowMapper;
 	}
 
@@ -388,7 +390,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Check mandatory properties ({@link DataSource} and
 	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper}
 	 * and {@link ChannelMessageStorePreparedStatementSetter} was explicitly set using
-	 * {@link #setMessageRowMapper(MessageRowMapper)} and
+	 * {@link #setMessageRowMapper(RowMapper)} and
 	 * {@link #setPreparedStatementSetter(ChannelMessageStorePreparedStatementSetter)}  respectively, the default
 	 * {@link MessageRowMapper} and {@link ChannelMessageStorePreparedStatementSetter} will be instantiated using the
 	 * specified {@link #deserializer}.
