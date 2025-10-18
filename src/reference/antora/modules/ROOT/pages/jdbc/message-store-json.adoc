@@ -1,0 +1,257 @@
+[[jdbc-channel-message-store-json]]
+= JDBC Channel Message Store JSON Serialization
+
+Version 7.0 introduced Jackson JSON serialization support for `JdbcChannelMessageStore`.
+By default, Spring Integration uses Java serialization to store messages in the database.
+The new JSON serialization option provides an alternative serialization mechanism that stores
+message content in JSON format.
+
+[IMPORTANT]
+====
+**Security Consideration:** JSON serialization stores message content as text in the database,
+which may expose sensitive data. Ensure proper database access controls, encryption at rest,
+and consider your organization's data protection requirements before using JSON serialization
+in production environments.
+====
+
+== Configuration
+
+To enable JSON serialization, you need two components:
+
+* `JacksonChannelMessageStorePreparedStatementSetter` - Serializes messages to JSON
+* `JacksonMessageRowMapper` - Deserializes messages from JSON
+
+[source,java]
+----
+@Bean
+public JdbcChannelMessageStore messageStore(DataSource dataSource) {
+    JdbcChannelMessageStore store = new JdbcChannelMessageStore(dataSource);
+    store.setChannelMessageStoreQueryProvider(
+        new PostgresChannelMessageStoreQueryProvider());
+
+    // Enable JSON serialization
+    store.setPreparedStatementSetter(
+        new JacksonChannelMessageStorePreparedStatementSetter());
+    store.setMessageRowMapper(
+        new JacksonMessageRowMapper("com.example"));
+
+    return store;
+}
+----
+
+The string parameter (`"com.example"`) specifies trusted packages for deserialization.
+Only classes from trusted packages can be deserialized for security.
+
+== Database Schema Modification
+
+[IMPORTANT]
+====
+JSON serialization **requires modifying your database schema**. You cannot use the
+default schema with BLOB/BYTEA column types for JSON serialization.
+====
+
+The `MESSAGE_CONTENT` column must be changed to a text-based type that can store JSON:
+
+=== PostgreSQL
+
+For PostgreSQL, you can use `JSONB`
+
+[source,sql]
+----
+-- JSONB (enables JSON queries)
+ALTER TABLE INT_CHANNEL_MESSAGE
+ALTER COLUMN MESSAGE_CONTENT TYPE JSONB
+USING MESSAGE_CONTENT::text::jsonb;
+----
+
+=== MySQL
+
+For MySQL, you can use `JSON`
+
+[source,sql]
+----
+-- JSON type (enables JSON functions)
+ALTER TABLE INT_CHANNEL_MESSAGE
+MODIFY COLUMN MESSAGE_CONTENT JSON;
+----
+
+=== H2
+
+For H2 database, you can use `CLOB`
+
+[source,sql]
+----
+ALTER TABLE INT_CHANNEL_MESSAGE
+ALTER COLUMN MESSAGE_CONTENT CLOB;
+----
+
+=== Other Databases
+
+For any database that supports large text columns (CLOB, TEXT, etc.), modify
+the `MESSAGE_CONTENT` column to an appropriate text type.
+
+== Example Schema for JSON Serialization
+
+The following lightweight schema examples show how to configure
+`JdbcChannelMessageStore` to store messages in JSON format.
+
+=== PostgreSQL
+
+[source,sql]
+----
+CREATE TABLE JSON_CHANNEL_MESSAGE (
+   MESSAGE_ID CHAR(36) NOT NULL,
+   GROUP_KEY CHAR(36) NOT NULL,
+   CREATED_DATE BIGINT NOT NULL,
+   MESSAGE_PRIORITY BIGINT,
+   MESSAGE_SEQUENCE BIGINT NOT NULL,
+   MESSAGE_CONTENT JSONB, -- JSON message content
+   REGION VARCHAR(100) NOT NULL,
+   CONSTRAINT JSON_CHANNEL_MESSAGE_PK
+      PRIMARY KEY (REGION, GROUP_KEY, CREATED_DATE, MESSAGE_SEQUENCE)
+);
+----
+
+=== MySQL
+
+[source,sql]
+----
+CREATE TABLE JSON_CHANNEL_MESSAGE (
+   MESSAGE_ID CHAR(36) NOT NULL,
+   GROUP_KEY CHAR(36) NOT NULL,
+   CREATED_DATE BIGINT NOT NULL,
+   MESSAGE_PRIORITY BIGINT,
+   MESSAGE_SEQUENCE BIGINT NOT NULL,
+   MESSAGE_CONTENT JSON, -- JSON message content
+   REGION VARCHAR(100) NOT NULL,
+   CONSTRAINT JSON_CHANNEL_MESSAGE_PK
+      PRIMARY KEY (REGION, GROUP_KEY, CREATED_DATE, MESSAGE_SEQUENCE)
+);
+----
+
+=== H2
+
+[source,sql]
+----
+CREATE TABLE JSON_CHANNEL_MESSAGE (
+   MESSAGE_ID CHAR(36) NOT NULL,
+   GROUP_KEY CHAR(36) NOT NULL,
+   CREATED_DATE BIGINT NOT NULL,
+   MESSAGE_PRIORITY BIGINT,
+   MESSAGE_SEQUENCE BIGINT NOT NULL,
+   MESSAGE_CONTENT CLOB, -- JSON message content
+   REGION VARCHAR(100) NOT NULL,
+   CONSTRAINT JSON_CHANNEL_MESSAGE_PK
+      PRIMARY KEY (REGION, GROUP_KEY, CREATED_DATE, MESSAGE_SEQUENCE)
+);
+----
+
+== JSON Structure
+
+Messages are stored with the following JSON structure:
+
+[source,json]
+----
+{
+  "@class": "org.springframework.messaging.support.GenericMessage",
+  "payload": {
+    "@class": "com.example.OrderMessage",
+    "orderId": "ORDER-12345",
+    "amount": 1299.99
+  },
+  "headers": {
+    "@class": "java.util.HashMap",
+    "priority": ["java.lang.String", "HIGH"],
+    "id": ["java.util.UUID", "a1b2c3d4-..."],
+    "timestamp": ["java.lang.Long", 1234567890]
+  }
+}
+----
+
+The `@class` properties provide type information necessary for proper deserialization
+of polymorphic types.
+
+== Querying JSON Content (Optional)
+
+If you use native JSON column types (PostgreSQL JSONB or MySQL JSON), you can
+query message content directly:
+
+=== PostgreSQL JSONB Queries
+
+[source,sql]
+----
+-- Find messages by payload field
+SELECT * FROM JSON_CHANNEL_MESSAGE
+WHERE MESSAGE_CONTENT @> '{"payload": {"orderId": "ORDER-12345"}}';
+
+-- Find high-priority messages
+SELECT * FROM JSON_CHANNEL_MESSAGE
+WHERE MESSAGE_CONTENT -> 'headers' @> '{"priority": ["java.lang.String", "HIGH"]}';
+----
+
+=== MySQL JSON Functions
+
+[source,sql]
+----
+-- Find messages by payload field
+SELECT * FROM JSON_CHANNEL_MESSAGE
+WHERE JSON_EXTRACT(MESSAGE_CONTENT, '$.payload.orderId') = 'ORDER-12345';
+
+-- Find high-priority messages
+SELECT * FROM JSON_CHANNEL_MESSAGE
+WHERE JSON_EXTRACT(MESSAGE_CONTENT, '$.headers.priority[1]') = 'HIGH';
+----
+
+[NOTE]
+====
+If you use `TEXT` or `CLOB` column types, these JSON-specific queries are not available,
+but the JSON serialization still works for storage and retrieval through Spring Integration.
+====
+
+== Trusted Packages
+
+The `JacksonMessagingUtils.messagingAwareMapper()` validates all deserialized classes
+against a trusted package list to prevent security vulnerabilities.
+
+Default trusted packages include:
+- `java.util`
+- `java.lang`
+- `org.springframework.messaging.support`
+- `org.springframework.integration.support`
+
+Additional packages specified in the constructor are appended to this list:
+
+[source,java]
+----
+// Trust additional packages
+new JacksonMessageRowMapper("com.example.orders", "com.example.payments")
+----
+
+== Custom ObjectMapper
+
+For advanced scenarios, you can provide a custom `ObjectMapper`:
+
+[source,java]
+----
+@Bean
+public JdbcChannelMessageStore messageStore(DataSource dataSource) {
+    ObjectMapper customMapper = JacksonMessagingUtils.messagingAwareMapper("com.example");
+    customMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    customMapper.registerModule(new CustomModule());
+
+    JdbcChannelMessageStore store = new JdbcChannelMessageStore(dataSource);
+    store.setPreparedStatementSetter(
+        new JacksonChannelMessageStorePreparedStatementSetter(customMapper));
+    store.setMessageRowMapper(
+        new JacksonMessageRowMapper(customMapper));
+
+    return store;
+}
+----
+
+[IMPORTANT]
+====
+The custom `ObjectMapper` should be configured appropriately for Spring Integration
+message serialization. It is recommended to start with
+`JacksonMessagingUtils.messagingAwareMapper()` and customize from there.
+====
