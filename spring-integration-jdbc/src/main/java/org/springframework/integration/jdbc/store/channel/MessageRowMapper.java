@@ -20,6 +20,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.messaging.Message;
@@ -33,13 +35,14 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yoobin Yoon
  *
  * @since 2.2
  *
  */
 public class MessageRowMapper implements RowMapper<Message<?>> {
 
-	private final AllowListDeserializingConverter deserializer;
+	private final @Nullable AllowListDeserializingConverter deserializer;
 
 	/**
 	 * Construct an instance based on the provided {@link AllowListDeserializingConverter}.
@@ -51,6 +54,19 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 		this.deserializer = deserializer;
 	}
 
+	/**
+	 * The default constructor for subclasses who are not interested in the message
+	 * deserialization from {@code byte[]} using {@link AllowListDeserializingConverter}.
+	 * The {@link #deserializer} is {@code null} from this constructor,
+	 * therefore any deserialization isn't happened in the default {@link #mapRow} implementation.
+	 * A target implementor must ensure the proper custom logic for reading message from the database.
+	 * @since 7.0
+	 */
+	protected MessageRowMapper() {
+		this.deserializer = null;
+	}
+
+	@SuppressWarnings("NullAway")
 	@Override
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 		byte[] blobAsBytes = rs.getBytes("MESSAGE_BYTES");

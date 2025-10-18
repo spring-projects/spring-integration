@@ -76,6 +76,7 @@ ext {
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.2.0'
     jrubyVersion = '10.0.2.0'
+    jsonassertVersion = '1.5.1'
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '6.0.0'
@@ -693,6 +694,7 @@ project('spring-integration-jdbc') {
     dependencies {
         api 'org.springframework:spring-jdbc'
         optionalApi "org.postgresql:postgresql:$postgresVersion"
+        optionalApi 'tools.jackson.core:jackson-databind'
 
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
@@ -704,6 +706,7 @@ project('spring-integration-jdbc') {
         testImplementation("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
             exclude group: 'commons-logging'
         }
+        testImplementation "org.skyscreamer:jsonassert:$jsonassertVersion"
         testImplementation 'org.testcontainers:mysql'
         testImplementation 'org.testcontainers:postgresql'
         testImplementation 'org.testcontainers:oracle-xe'

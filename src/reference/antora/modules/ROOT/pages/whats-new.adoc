@@ -86,6 +86,10 @@ The xref:jdbc/dsl.adoc[] chapter provides more details.
 The `JdbcLock` now supports the feature of customized time-to-live for the lock status data.
 See xref:jdbc/lock-registry.adoc[] for more information.
 
+The `JdbcChannelMessageStore` now supports built-in Jackson JSON serialization as an alternative to Java serialization, enabling human-readable message storage.
+New components `JacksonChannelMessageStorePreparedStatementSetter` and `JacksonMessageRowMapper` provide this functionality with JSON-specific database schemas for PostgreSQL, MySQL, and H2.
+See xref:jdbc/message-store-json.adoc[] for more information.
+
 [[x7.0-redis-changes]]
 === Redis Changes
 
