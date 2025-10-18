@@ -83,7 +83,7 @@ public final class JacksonJsonUtils {
 	 * @throws IllegalStateException if an implementation is not available.
 	 * @since 4.3.10
 	 */
-	public static ObjectMapper messagingAwareMapper(String... trustedPackages) {
+	public static ObjectMapper messagingAwareMapper(String @Nullable ... trustedPackages) {
 		if (JacksonPresent.isJackson2Present()) {
 			ObjectMapper mapper = new Jackson2JsonObjectMapper().getObjectMapper();
 

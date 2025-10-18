@@ -686,16 +686,14 @@ project('spring-integration-jdbc') {
         testImplementation "org.apache.derby:derbytools:$derbyVersion"
         testImplementation "org.apache.derby:derbyclient:$derbyVersion"
         testImplementation "org.postgresql:postgresql:$postgresVersion"
-        testImplementation "com.mysql:mysql-connector-j:$mysqlVersion"
-        testImplementation("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
-            exclude group: 'commons-logging'
-        }
+        testImplementation "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
         testImplementation 'org.testcontainers:testcontainers-mysql'
         testImplementation 'org.testcontainers:testcontainers-postgresql'
         testImplementation 'org.testcontainers:testcontainers-oracle-xe'
+		testImplementation 'tools.jackson.core:jackson-databind'
 
-        testRuntimeOnly 'tools.jackson.core:jackson-databind'
         testRuntimeOnly "com.oracle.database.jdbc:ojdbc11:$oracleVersion"
+		testRuntimeOnly "com.mysql:mysql-connector-j:$mysqlVersion"
     }
 }
 

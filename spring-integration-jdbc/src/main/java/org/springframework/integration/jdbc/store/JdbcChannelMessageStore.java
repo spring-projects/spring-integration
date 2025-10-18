@@ -52,6 +52,7 @@ import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -89,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Trung Pham
  * @author Johannes Edmeier
  * @author Ngoc Nhan
+ * @author Yoobin Yoon
  *
  * @since 2.2
  */
@@ -109,7 +111,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	private enum Query {
+	protected enum Query {
 		CREATE_MESSAGE,
 		COUNT_GROUPS,
 		GROUP_SIZE,
@@ -148,7 +150,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private SerializingConverter serializer;
 
 	@SuppressWarnings("NullAway.Init")
-	private MessageRowMapper messageRowMapper;
+	private RowMapper<Message<?>> messageRowMapper;
 
 	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
@@ -208,7 +210,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 5.4
@@ -232,18 +234,18 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Allow for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
-	 * is used to convert the selected database row representing the persisted
-	 * message into the actual {@link Message} object.
+	 * Allow for passing in a custom {@link RowMapper} for {@link Message}.
+	 * The {@link RowMapper} is used to convert the selected database row
+	 * representing the persisted message into the actual {@link Message} object.
 	 * @param messageRowMapper Must not be null
 	 */
-	public void setMessageRowMapper(MessageRowMapper messageRowMapper) {
-		Assert.notNull(messageRowMapper, "The provided MessageRowMapper must not be null.");
+	public void setMessageRowMapper(RowMapper<Message<?>> messageRowMapper) {
+		Assert.notNull(messageRowMapper, "The provided RowMapper must not be null.");
 		this.messageRowMapper = messageRowMapper;
 	}
 
 	/**
-	 * Set a {@link ChannelMessageStorePreparedStatementSetter} to insert message into the database.
+	 * Set a {@link ChannelMessageStorePreparedStatementSetter} to insert a message into the database.
 	 * @param preparedStatementSetter {@link ChannelMessageStorePreparedStatementSetter} to use.
 	 * Must not be null
 	 * @since 5.0
@@ -259,7 +261,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * The {@link JdbcChannelMessageStore} provides the SQL queries to retrieve messages from
 	 * the database. See the JavaDocs {@link ChannelMessageStoreQueryProvider} (all known
 	 * implementing classes) to see those implementations provided by the framework.
-	 * <p> You can provide your own query implementations, if you need to support additional
+	 * <p> You can provide your own query implementations if you need to support additional
 	 * databases and/or need to fine-tune the queries for your requirements.
 	 * @param channelMessageStoreQueryProvider Must not be null.
 	 */
@@ -313,7 +315,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * using a task executor.</p>
 	 * <p>The issue is that the {@link #pollMessageFromGroup(Object)} looks for the
 	 * oldest entry for a giving channel (groupKey) and region ({@link #setRegion(String)}).
-	 * If you do that with multiple threads and you are using transactions, other
+	 * If you do that with multiple threads, and you are using transactions, other
 	 * threads may be waiting for that same locked row.</p>
 	 * <p>If using the provided
 	 * {@link org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider},
@@ -323,7 +325,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * message id in an in-memory collection for the duration of processing. With
 	 * that, any polling threads will explicitly exclude those messages from
 	 * being polled.</p>
-	 * <p>For this to work, you must setup the corresponding
+	 * <p>For this to work, you must set up the corresponding
 	 * {@link org.springframework.integration.transaction.TransactionSynchronizationFactory}:</p>
 	 * <pre class="code">
 	 * {@code
@@ -388,7 +390,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Check mandatory properties ({@link DataSource} and
 	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper}
 	 * and {@link ChannelMessageStorePreparedStatementSetter} was explicitly set using
-	 * {@link #setMessageRowMapper(MessageRowMapper)} and
+	 * {@link #setMessageRowMapper(RowMapper)} and
 	 * {@link #setPreparedStatementSetter(ChannelMessageStorePreparedStatementSetter)}  respectively, the default
 	 * {@link MessageRowMapper} and {@link ChannelMessageStorePreparedStatementSetter} will be instantiated using the
 	 * specified {@link #deserializer}.
@@ -493,7 +495,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Return the number of message groups in the store for configured region.
+	 * Return the number of message groups in the store for a configured region.
 	 * @return The message group count.
 	 */
 	@ManagedAttribute
@@ -564,8 +566,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * This method executes a call to the DB to get the oldest Message in the
 	 * MessageGroup which in the context of the {@link JdbcChannelMessageStore}
 	 * means the channel identifier.
-	 * @param groupIdKey String representation of message group (Channel) ID
-	 * @return a message; could be null if query produced no Messages
+	 * @param groupIdKey String representation of a message group (Channel) ID
+	 * @return a message; could be null if a query produced no Messages
 	 */
 	protected @Nullable Message<?> doPollForMessage(String groupIdKey) {
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.jdbcTemplate);
