@@ -23,22 +23,16 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class ProcedureParameterTests {
 
 	@Test
 	public void testProcedureParameterStringObjectString() {
 
-		try {
-			new ProcedureParameter(null, "value", "expression");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'name' must not be empty.");
-			return;
-		}
-
-		fail("Expected Exception");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new ProcedureParameter(null, "value", "expression"))
+				.withMessage("'name' must not be empty.");
 	}
 
 	@Test
@@ -66,16 +60,9 @@ public class ProcedureParameterTests {
 		List<ProcedureParameter> procedureParameters = getProcedureParameterList();
 		procedureParameters.add(1, null);
 
-		try {
-			ProcedureParameter.convertStaticParameters(procedureParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'procedureParameters' must not contain null values.");
-			return;
-		}
-
-		fail("Expected Exception");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> ProcedureParameter.convertStaticParameters(procedureParameters))
+				.withMessage("'procedureParameters' must not contain null values.");
 	}
 
 	@Test
@@ -84,21 +71,14 @@ public class ProcedureParameterTests {
 		List<ProcedureParameter> procedureParameters = getProcedureParameterList();
 		procedureParameters.add(1, null);
 
-		try {
-			ProcedureParameter.convertExpressions(procedureParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("'procedureParameters' must not contain null values.");
-			return;
-		}
-
-		fail("Expected Exception");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> ProcedureParameter.convertExpressions(procedureParameters))
+				.withMessage("'procedureParameters' must not contain null values.");
 	}
 
 	private List<ProcedureParameter> getProcedureParameterList() {
 
-		List<ProcedureParameter> procedureParameterList = new ArrayList<ProcedureParameter>();
+		List<ProcedureParameter> procedureParameterList = new ArrayList<>();
 		procedureParameterList.add(new ProcedureParameter("param1", "value1", null));
 		procedureParameterList.add(new ProcedureParameter("param2", "value1", null));
 		procedureParameterList.add(new ProcedureParameter("param3", "value1", null));

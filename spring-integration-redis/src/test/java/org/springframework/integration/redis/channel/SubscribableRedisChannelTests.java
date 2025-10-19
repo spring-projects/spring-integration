@@ -36,7 +36,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -70,9 +70,9 @@ class SubscribableRedisChannelTests implements RedisContainerTest {
 		MessageHandler handler = message -> latch.countDown();
 		channel.subscribe(handler);
 
-		channel.send(new GenericMessage<String>("1"));
-		channel.send(new GenericMessage<String>("2"));
-		channel.send(new GenericMessage<String>("3"));
+		channel.send(new GenericMessage<>("1"));
+		channel.send(new GenericMessage<>("2"));
+		channel.send(new GenericMessage<>("3"));
 		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
 	}
 
@@ -91,19 +91,10 @@ class SubscribableRedisChannelTests implements RedisContainerTest {
 				.getPropertyValue(container, "channelMapping");
 		MessageListenerAdapter listener = channelMapping.entrySet().iterator().next().getValue().iterator().next();
 		Object delegate = TestUtils.getPropertyValue(listener, "delegate");
-		try {
-			ReflectionUtils.findMethod(delegate.getClass(), "handleMessage", Object.class).invoke(delegate,
-					"Hello, world!");
-			fail("Exception expected");
-		}
-		catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			assertThat(cause).isNotNull();
-			assertThat(cause.getMessage())
-					.contains("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel)" +
-							".");
-		}
-
+		assertThatExceptionOfType(InvocationTargetException.class)
+				.isThrownBy(() -> ReflectionUtils.findMethod(delegate.getClass(), "handleMessage", Object.class).invoke(delegate, "Hello, world!"))
+				.havingCause()
+				.withMessageContaining("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel).");
 	}
 
 }

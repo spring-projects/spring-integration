@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,7 +25,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.beans.BeansException;
@@ -158,9 +158,14 @@ public final class GlobalChannelInterceptorProcessor
 			List<GlobalChannelInterceptorWrapper> tempInterceptors,
 			GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper) {
 
-		@Nullable String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-		patterns = StringUtils.trimArrayElements(patterns);
-		if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
+		String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+		patterns =
+				Arrays.stream(patterns)
+						.filter(StringUtils::hasText)
+						.map(String::trim)
+						.toArray(String[]::new);
+
+		if (Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 			tempInterceptors.add(globalChannelInterceptorWrapper);
 		}
 	}

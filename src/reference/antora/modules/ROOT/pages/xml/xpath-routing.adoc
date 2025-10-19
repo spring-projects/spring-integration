@@ -89,7 +89,16 @@ For example, if we want to route based on the name of the root node, we can use 
         evaluate-as-string="true">
     <int-xml:xpath-expression expression="name(./node())"/>
 </int-xml:xpath-router>
+----
 
+The out-of-the-box `#xpath()` xref:spel.adoc#built-in-spel-functions[SpEL function] is also powerful enough to use with a generic router definition, including recipient list router:
+
+[source,xml]
+----
+<int:recipient-list-router input-channel="xpathRecipientsInput">
+    <int:recipient channel="channelA" selector-expression="#xpath(payload, '/passenger/age/text() &lt;= 2', 'boolean')"/>
+    <int:recipient channel="channelB" selector-expression="#xpath(payload, '/passenger/age/text() > 12', 'boolean')"/>
+</int:recipient-list-router>
 ----
 
 [[xpath-routing-converter]]

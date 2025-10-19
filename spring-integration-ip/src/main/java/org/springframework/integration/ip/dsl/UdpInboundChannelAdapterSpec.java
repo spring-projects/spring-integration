@@ -20,9 +20,9 @@ import java.net.DatagramSocket;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.MessageProducerSpec;
-import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.SocketCustomizer;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.MulticastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
 import org.springframework.scheduling.TaskScheduler;
 
 /**

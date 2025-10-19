@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,8 +39,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -53,14 +52,15 @@ import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.support.FileUtils;
@@ -215,7 +215,7 @@ public class FileTests {
 		assertThat(payload).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
 		List<String> result = (List<String>) payload;
-		assertThat(result.size()).isEqualTo(25);
+		assertThat(result).hasSize(25);
 		result.forEach(s -> assertThat(evens.contains(Integer.parseInt(s))).isTrue());
 
 		new File(tmpDir, "a.sitest").createNewFile();
@@ -237,7 +237,7 @@ public class FileTests {
 		String fileContent = FileCopyUtils.copyToString(new FileReader(resultFile));
 		assertThat(fileContent).isEqualTo(payload);
 		if (FileUtils.IS_POSIX) {
-			assertThat(java.nio.file.Files.getPosixFilePermissions(resultFile.toPath()).size()).isEqualTo(9);
+			assertThat(java.nio.file.Files.getPosixFilePermissions(resultFile.toPath())).hasSize(9);
 		}
 	}
 
@@ -255,7 +255,7 @@ public class FileTests {
 		Message<?> receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.START
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
+		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, 0);
 		receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		receive = this.fileSplittingResultChannel.receive(10000);
@@ -278,14 +278,14 @@ public class FileTests {
 	@Test
 	public void testDynamicFileFlows() throws Exception {
 		File newFolder1 = java.nio.file.Files.createTempDirectory(tmpDir.toPath(), "junit").toFile();
-		FileOutputStream file = new FileOutputStream(new File(newFolder1, "foo"));
-		file.write(("foo").getBytes());
+		FileOutputStream file = new FileOutputStream(new File(newFolder1, "test1"));
+		file.write(("test1").getBytes());
 		file.flush();
 		file.close();
 
 		File newFolder2 = java.nio.file.Files.createTempDirectory(tmpDir.toPath(), "junit").toFile();
-		file = new FileOutputStream(new File(newFolder2, "bar"));
-		file.write(("bar").getBytes());
+		file = new FileOutputStream(new File(newFolder2, "test2"));
+		file.write(("test2").getBytes());
 		file.flush();
 		file.close();
 
@@ -299,11 +299,10 @@ public class FileTests {
 		assertThat(receive).isNotNull();
 		payloads.add((String) receive.getPayload());
 
-		assertThat(payloads.toArray()).isEqualTo(new String[] {"bar", "foo"});
+		assertThat(payloads.toArray()).isEqualTo(new String[] {"test1", "test2"});
 
 		assertThat(TestUtils.getPropertyValue(
-				this.beanFactory.getBean(newFolder1.getName() + ".adapter.source"),
-				"scanner"))
+				this.beanFactory.getBean("dynamicFile.adapter.source"), "scanner"))
 				.isInstanceOf(RecursiveDirectoryScanner.class);
 	}
 
@@ -436,27 +435,24 @@ public class FileTests {
 	public static class MyService {
 
 		@Autowired
-		private AutowireCapableBeanFactory beanFactory;
+		private IntegrationFlowContext integrationFlowContext;
 
 		@Autowired
 		@Qualifier("dynamicAdaptersResult")
 		PollableChannel dynamicAdaptersResult;
 
 		void pollDirectories(File... directories) {
-			for (File directory : directories) {
-				StandardIntegrationFlow integrationFlow = IntegrationFlow
-						.from(Files.inboundAdapter(directory).recursive(true),
-								e -> e.poller(p -> p.fixedDelay(1000))
-										.id(directory.getName() + ".adapter"))
-						.transformWith(t -> t
-								.transformer(Files.toStringTransformer())
-								.id(directory.getName() + ".transformer"))
-						.channel(this.dynamicAdaptersResult)
-						.get();
-				this.beanFactory.initializeBean(integrationFlow, directory.getName());
-				this.beanFactory.getBean(directory.getName() + ".transformer", Lifecycle.class).start();
-				this.beanFactory.getBean(directory.getName() + ".adapter", Lifecycle.class).start();
-			}
+			AtomicInteger index = new AtomicInteger(0);
+			StandardIntegrationFlow integrationFlow = IntegrationFlow
+					.from(Files.inboundAdapter(() -> directories[index.getAndIncrement() % directories.length])
+									.recursive(true),
+							e -> e.poller(p -> p.fixedDelay(100))
+									.id("dynamicFile.adapter"))
+					.transformWith(t -> t
+							.transformer(Files.toStringTransformer()))
+					.channel(this.dynamicAdaptersResult)
+					.get();
+			this.integrationFlowContext.registration(integrationFlow).register();
 		}
 
 	}

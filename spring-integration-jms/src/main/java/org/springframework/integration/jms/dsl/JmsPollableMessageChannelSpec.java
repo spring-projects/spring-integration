@@ -22,7 +22,7 @@ import jakarta.jms.Destination;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.dsl.MessageChannelSpec;
-import org.springframework.integration.jms.AbstractJmsChannel;
+import org.springframework.integration.jms.channel.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;

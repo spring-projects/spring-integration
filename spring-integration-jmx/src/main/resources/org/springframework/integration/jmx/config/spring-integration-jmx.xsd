@@ -21,7 +21,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.jmx.AttributePollingMessageSource'
+				'org.springframework.integration.jmx.inbound.AttributePollingMessageSource'
 				that polls for JMX attribute values.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -41,7 +41,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.jmx.MBeanTreePollingMessageSource' that polls for JMX MBeans.
+				'org.springframework.integration.jmx.inbound.MBeanTreePollingMessageSource' that polls for JMX MBeans.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -55,7 +55,7 @@
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
 											<tool:expected-type
-													type="org.springframework.integration.jmx.MBeanObjectConverter"/>
+													type="org.springframework.integration.jmx.inbound.MBeanObjectConverter"/>
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -71,7 +71,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jmx.OperationInvokingMessageHandler'
+				'org.springframework.integration.jmx.outbound.OperationInvokingMessageHandler'
 				which allows for Message-driven invocation of managed operations that
 				return values.
 			</xsd:documentation>
@@ -106,7 +106,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jmx.OperationInvokingMessageHandler' for invoking JMX operations
+				'org.springframework.integration.jmx.outbound.OperationInvokingMessageHandler' for invoking JMX operations
 				without waiting for results.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -128,7 +128,7 @@
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
 				Defines a Message Producing Endpoint for the
-				'org.springframework.integration.jmx.NotificationListeningMessageProducer'
+				'org.springframework.integration.jmx.inbound.NotificationListeningMessageProducer'
 				that listens for JMX notifications. The 'object-name'
 				attribute on this endpoint can contain an ObjectName pattern and the MBeanServer will
 				be queried for MBeans with ObjectNames matching the pattern. In addition, it can contain
@@ -150,7 +150,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.jmx.NotificationPublishingMessageHandler' that publishes JMX
+				'org.springframework.integration.jmx.outbound.NotificationPublishingMessageHandler' that publishes JMX
 				notifications.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -301,7 +301,7 @@
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation>
-								<tool:expected-type type="org.springframework.integration.jmx.MBeanObjectConverter"/>
+								<tool:expected-type type="org.springframework.integration.jmx.inbound.MBeanObjectConverter"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>

@@ -22,12 +22,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -59,9 +59,8 @@ public class FileLockingNamespaceTests {
 
 	@BeforeEach
 	public void extractSources() {
-		nioLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(nioAdapter).getPropertyValue("source");
-		customLockingSource =
-				(FileReadingMessageSource) new DirectFieldAccessor(customAdapter).getPropertyValue("source");
+		this.nioLockingSource = (FileReadingMessageSource) this.nioAdapter.getMessageSource();
+		this.customLockingSource = (FileReadingMessageSource) this.customAdapter.getMessageSource();
 	}
 
 	@Test
@@ -71,19 +70,18 @@ public class FileLockingNamespaceTests {
 
 	@Test
 	public void shouldSetCustomLockerProperly() {
-		assertThat(extractFromScanner("locker", customLockingSource)).isInstanceOf(StubLocker.class);
-		assertThat(extractFromScanner("filter", customLockingSource)).isInstanceOf(CompositeFileListFilter.class);
-	}
-
-	private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
-		return new DirectFieldAccessor(new DirectFieldAccessor(source).getPropertyValue("scanner"))
-				.getPropertyValue(propertyName);
+		assertThat(TestUtils.getPropertyValue(this.customLockingSource, "scanner.locker"))
+				.isInstanceOf(StubLocker.class);
+		assertThat(TestUtils.getPropertyValue(this.customLockingSource, "scanner.filter"))
+				.isInstanceOf(CompositeFileListFilter.class);
 	}
 
 	@Test
 	public void shouldSetNioLockerProperly() {
-		assertThat(extractFromScanner("locker", nioLockingSource)).isInstanceOf(NioFileLocker.class);
-		assertThat(extractFromScanner("filter", nioLockingSource)).isInstanceOf(CompositeFileListFilter.class);
+		assertThat(TestUtils.getPropertyValue(this.nioLockingSource, "scanner.locker"))
+				.isInstanceOf(NioFileLocker.class);
+		assertThat(TestUtils.getPropertyValue(this.nioLockingSource, "scanner.filter"))
+				.isInstanceOf(CompositeFileListFilter.class);
 	}
 
 	public static class StubLocker extends AbstractFileLockerFilter {

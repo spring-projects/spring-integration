@@ -57,6 +57,13 @@ The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator
 
 See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more information.
 
+All the modules now follow the standard package structure.
+The inbound and outbound components are declared in the `inbound` and `outbound` packages, respectively.
+The `MessageChannel` implementations in the `channel` package.
+Most of the modules have followed this rule from day one.
+The refactoring for package structure in this version includes the rest of modules: `spring-integration-file`, `spring-integration-ftp`, `spring-integration-ip`, `spring-integration-jdbc`, `spring-integration-jms`, `spring-integration-jmx`, `spring-integration-mail`, `spring-integration-sftp`, `spring-integration-stream` and `spring-integration-ws`.
+The classes which were in root packages are marked now as deprecated.
+
 [[x7.0-new-components]]
 == New Components
 
@@ -95,6 +102,12 @@ Previously deprecated classes in the `spring-integation-hazelcast` module, such 
 
 The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
 See xref:mqtt.adoc[] for more information.
+
+[[x7.0-files-changes]]
+=== Files Changes
+
+The `FileReadingMessageSource` now can be configured with a SpEL `Expression` for its `directory` property.
+See xref:file/reading.adoc[] for more information.
 
 [[x7.0-remote-files-changes]]
 === Remote Files Support Changes

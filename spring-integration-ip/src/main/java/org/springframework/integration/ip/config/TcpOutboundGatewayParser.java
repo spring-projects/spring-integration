@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
 
 /**
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.

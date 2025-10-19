@@ -20,7 +20,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Polling Channel Adapter for the
-				'org.springframework.integration.stream.CharacterStreamReadingMessageSource'
+				'org.springframework.integration.stream.inbound.CharacterStreamReadingMessageSource'
 				that reads from stdin (System.in).
 			</xsd:documentation>
 		</xsd:annotation>
@@ -60,14 +60,13 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.stream.CharacterStreamWritingMessageHandler' that writes to stdout
-				(System.out) or to stderr (System.err) depending on the element name.
+				'org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler'
+				that writes to stdout (System.out) or to stderr (System.err) depending on the element name.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:all>
-			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
-						 minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="integration:poller" minOccurs="0"/>
+			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0"/>
 		</xsd:all>
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="charset" type="xsd:string"/>

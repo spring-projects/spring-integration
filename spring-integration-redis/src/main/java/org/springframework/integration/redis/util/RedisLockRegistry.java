@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -53,7 +54,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.integration.support.locks.DistributedLock;
@@ -97,6 +98,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Alex Peelman
  * @author Youbin Wu
  * @author Michal Domagala
+ * @author Severin Kistler
  *
  * @since 4.0
  *
@@ -213,7 +215,7 @@ public final class RedisLockRegistry
 				"'unlockNotifyMessageListener' must not have been re-initialized.");
 		RedisLockRegistry.this.redisMessageListenerContainer = new RedisMessageListenerContainer();
 		RedisLockRegistry.this.unlockNotifyMessageListener = new RedisPubSubLock.RedisUnLockNotifyMessageListener();
-		final Topic topic = new ChannelTopic(this.unLockChannelKey);
+		final Topic topic = new PatternTopic(this.unLockChannelKey + ":*");
 		RedisMessageListenerContainer container = RedisLockRegistry.this.redisMessageListenerContainer;
 		RedisPubSubLock.RedisUnLockNotifyMessageListener listener = RedisLockRegistry.this.unlockNotifyMessageListener;
 		container.setConnectionFactory(connectionFactory);
@@ -669,7 +671,7 @@ public final class RedisLockRegistry
 		private static final String UNLINK_UNLOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
 				if (lockClientId == ARGV[1] and redis.call('UNLINK', KEYS[1]) == 1) then
-					redis.call('PUBLISH', ARGV[2], KEYS[1])
+					redis.call('PUBLISH', KEYS[2], KEYS[1])
 					return true
 				end
 				return false
@@ -690,9 +692,10 @@ public final class RedisLockRegistry
 
 		@Override
 		protected boolean removeLockKeyInnerUnlink() {
+			final String unLockChannelKey = RedisLockRegistry.this.unLockChannelKey + ":" + this.lockKey;
 			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.clientId, RedisLockRegistry.this.unLockChannelKey));
+					UNLINK_UNLOCK_REDIS_SCRIPT, List.of(this.lockKey, unLockChannelKey),
+					RedisLockRegistry.this.clientId));
 		}
 
 		private boolean subscribeLock(long time, long expireAfter) throws ExecutionException, InterruptedException {

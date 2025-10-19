@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter;
 
 /**
  * Channel Adapter that receives TCP stream frames and maps them to Messages.

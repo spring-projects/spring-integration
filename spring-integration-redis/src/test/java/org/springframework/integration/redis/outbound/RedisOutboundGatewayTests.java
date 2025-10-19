@@ -36,7 +36,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -138,14 +138,8 @@ class RedisOutboundGatewayTests implements RedisContainerTest {
 		receive = this.replyChannel.receive(1000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(1L);
-
-		try {
-			this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
-			fail("ReplyRequiredException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(ReplyRequiredException.class);
-		}
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> this.getCommandChannel.send(MessageBuilder.withPayload("foo").build()));
 	}
 
 	@SuppressWarnings("unchecked")

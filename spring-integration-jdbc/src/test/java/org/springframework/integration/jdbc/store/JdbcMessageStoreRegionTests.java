@@ -31,7 +31,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Gunnar Hillert
@@ -94,16 +94,9 @@ public class JdbcMessageStoreRegionTests {
 
 	@Test
 	public void testInsertNullRegion() {
-
-		try {
-			messageStore1.setRegion(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("Region must not be null or empty.");
-			return;
-		}
-
-		fail("Expected an IllegalArgumentException to be thrown.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> messageStore1.setRegion(null))
+				.withMessage("Region must not be null or empty.");
 	}
 
 	@Test

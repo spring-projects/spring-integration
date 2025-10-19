@@ -49,6 +49,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
+import org.springframework.integration.ip.tcp.inbound.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.condition.LogLevels;

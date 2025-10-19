@@ -221,11 +221,13 @@ class ReactiveRedisStreamMessageProducerTests implements RedisContainerTest {
 
 		stepVerifier.verify(Duration.ofSeconds(10));
 
-		await().until(() ->
-				template.opsForStream()
-						.pending(STREAM_KEY, consumerGroup)
-						.block(Duration.ofMillis(100))
-						.getTotalPendingMessages() == 1);
+		await().untilAsserted(() ->
+				assertThat(
+						template.opsForStream()
+								.pending(STREAM_KEY, consumerGroup)
+								.block(Duration.ofMillis(100))
+								.getTotalPendingMessages())
+						.isEqualTo(1));
 
 		acknowledgmentReference.get().acknowledge();
 

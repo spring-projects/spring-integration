@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +30,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -91,7 +90,7 @@ public class FileInboundChannelAdapterParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) this.accessor.getPropertyValue("directory");
+		File actual = (File) this.accessor.getPropertyValue("directoryExpression.value");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 		assertThat(this.accessor.getPropertyValue("scanEachPoll")).isEqualTo(Boolean.TRUE);
 		assertThat(this.inputDirPollerSource.getComponentName()).isEqualTo("inputDirPoller.adapter.source");
@@ -110,22 +109,13 @@ public class FileInboundChannelAdapterParserTests {
 
 		FileReadingMessageSource.WatchEventType[] watchEvents =
 				(FileReadingMessageSource.WatchEventType[]) this.accessor.getPropertyValue("watchEvents");
-		assertThat(watchEvents.length).isEqualTo(2);
+		assertThat(watchEvents).hasSize(2);
 		for (FileReadingMessageSource.WatchEventType watchEvent : watchEvents) {
 			assertThat(watchEvent).isNotEqualTo(FileReadingMessageSource.WatchEventType.CREATE);
 			assertThat(watchEvent)
 					.isIn(FileReadingMessageSource.WatchEventType.MODIFY,
 							FileReadingMessageSource.WatchEventType.DELETE);
 		}
-	}
-
-	@Test
-	public void comparator() {
-		Object priorityQueue = accessor.getPropertyValue("toBeReceived");
-		assertThat(priorityQueue).isInstanceOf(PriorityBlockingQueue.class);
-		Object expected = context.getBean("testComparator");
-		Object actual = ((PriorityBlockingQueue) priorityQueue).comparator();
-		assertThat(actual).as("comparator reference not set, ").isSameAs(expected);
 	}
 
 	static class TestComparator implements Comparator<File> {

@@ -26,7 +26,57 @@ Also, a mutually exclusive to the `replyPayloadType`, a `returnMessage` flag cou
 
 The following example demonstrates how to configure an `AmqpClientMessageHandler` as a simple `@ServiceActivator`:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow sendFlow(RabbitAmqpTemplate rabbitTemplate) {
+    return f -> f
+            .handle(AmqpClient.outboundAdapter(rabbitTemplate)
+                    .exchange("e1")
+                    .routingKeyExpression("'k1'"));
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun sendFlow(rabbitTemplate: RabbitAmqpTemplate) =
+    integrationFlow {
+                handle(AmqpClient.outboundAdapter(rabbitTemplate)
+    		            .apply {
+    		                exchange("e1")
+                            routingKeyExpression("'k1'")
+    		            }
+    		    )
+    }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+sendFlow() {
+    integrationFlow {
+        handle(AmqpClient.outboundAdapter(rabbitTemplate)
+                .with {
+                     exchange 'e1'
+                     routingKeyExpression '''k1'''
+                }
+        )
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpClientSendChannel")
@@ -37,10 +87,56 @@ AmqpClientMessageHandler amqpClientMessageHandler(RabbitAmqpTemplate rabbitTempl
     return messageHandler;
 }
 ----
+======
 
 The gateway variant for the `AmqpClientMessageHandler` could be like:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow requestReplyOutboundFlow(RabbitAmqpTemplate rabbitTemplate) {
+    return f -> f
+            .handle(AmqpClient.outboundGateway(rabbitTemplate)
+                    .queueFunction(m -> "requestReply"));
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun sendFlow(rabbitTemplate: RabbitAmqpTemplate) =
+    integrationFlow {
+                handle(AmqpClient.outboundGateway(rabbitTemplate)
+    		            .queueFunction { "requestReply" }
+                )
+    }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+sendFlow() {
+    integrationFlow {
+        handle(AmqpClient.outboundGateway(rabbitTemplate)
+                .with {
+                     queueFunction { 'requestReply' }
+                }
+        )
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpClientSendAndReceiveChannel")
@@ -53,6 +149,7 @@ AmqpClientMessageHandler amqpClientGateway(RabbitAmqpTemplate rabbitTemplate) {
     return messageHandler;
 }
 ----
+======
 
 [[amqp-1.0-message-driver]]
 == AMQP 1.0 Message-Driver Channel Adapter
@@ -64,20 +161,59 @@ Some of `RabbitAmqpListenerContainer` configuration options are exposed as sette
 
 By default, the `MessageConverter` is an `org.springframework.amqp.support.converter.SimpleMessageConverter` that handles String, Serializable instances, and byte arrays.
 Also, a default `AmqpHeaderMapper` is a xref:amqp/message-headers.adoc[`DefaultAmqpHeaderMapper.inboundMapper()`].
-The `messageConverter` option can be set to `null` to fully skip conversion (including headers mapping), and return the received AMQP message as a payload of Spring message to produce.
+The `messageConverter` option can be set to `null` to fully skip conversion (including header mapping), and return the received AMQP message as a payload of the Spring message to produce.
 
 Also, the `AmqpClientMessageProducer` implements a `Pausable` contract and delegates to the respective `RabbitAmqpListenerContainer` API.
 
 When `AmqpClientMessageProducer.setBatchSize() > 1`, this channel adapter works in a batch mode.
 In this case received messages are gathered until the batch size is fulfilled, or `batchReceiveTimeout` period is exhausted.
-All the batched AMQP messages then converted to Spring messages, and result list is produced as a payload of wrapping message to send to the `outputChannel`.
-The batch mode gives some performance gain due to the settlement for all the batched message at once.
+All the batched AMQP messages then converted to Spring messages, and a result list is produced as a payload of a wrapping message to send to the `outputChannel`.
+The batch mode gives some performance gain due to the settlement for all the batched messages at once.
 
-When `autoSettle` flag is set to `false`, the `AcknowledgmentCallback` instance is provided as an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` message header to make settlement decision for received message or the whole batch.
+When `autoSettle` flag is set to `false`, the `AcknowledgmentCallback` instance is provided as an `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` message header to make settlement decision for the received message or the whole batch.
 
 The following example demonstrates how to configure an `AmqpClientMessageProducer` as a simple inbound endpoint:
 
-[source, java]
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow receiveFlow(AmqpConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(AmqpClient.inboundChannelAdapter(connectionFactory, "q1"))
+            .channel(c -> c.queue("receiveChannel"))
+            .get();
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun receiveFlow(connectionFactory: AmqpConnectionFactory) =
+        integrationFlow(AmqpClient.inboundChannelAdapter(connectionFactory, "q1")) {
+            channel("inputChannel")
+        }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+receiveFlow(AmqpConnectionFactory connectionFactory) {
+    integrationFlow(AmqpClient.inboundChannelAdapter(connectionFactory, 'q1')) {
+        channel 'inputChannel'
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
 ----
 @Bean
 AmqpClientMessageProducer batchAmqpClientMessageProducer(AmqpConnectionFactory connectionFactory,
@@ -89,3 +225,70 @@ AmqpClientMessageProducer batchAmqpClientMessageProducer(AmqpConnectionFactory c
     return amqpClientMessageProducer;
 }
 ----
+======
+
+[[amqp-1.0-inbound-gateway]]
+== AMQP 1.0 Inbound Gateway
+
+The `AmqpClientInboundGateway` is a `MessagingGatewaySupport` implementation for receiving request and producing replies over RabbitMQ AMQP 1.0 protocol.
+It is similar to the `AmqpClientMessageProducer` mentioned above and share many `RabbitAmqpListenerContainer` configuration options.
+In addition, to produce AMQP 1.0 replies, the `AmqpClientInboundGateway` uses internally a `RabbitAmqpTemplate`.
+
+For automatic replies correlation with their requests, a `replyTo` property of the request message must be supplied.
+For example, the `RabbitAmqpTemplate.sendAndReceive()` relies on the `RpcClient` from RabbitMQ AMQP 1.0 library which generates an exclusive and auto-deleted queue.
+Alternatively, the reply address could be set as a `replyExchange`(and optional `replyRoutingKey`) or `replyQueue` (but not both) on the `AmqpClientInboundGateway` which are delegated to the `RabbitAmqpTemplate` default options.
+The `messageId` or `correlationId` request message properties can be used for associating with replies.
+The `RpcClient` in the `RabbitAmqpTemplate.sendAndReceive()` generates one if missed.
+The `AmqpClientInboundGateway` is able to map back such a correlation key into a reply message.
+
+The following example demonstrates how to configure an `AmqpClientInboundGateway` as a simple inbound gateway:
+
+[tabs]
+======
+Java DSL::
++
+[source,java,role="primary"]
+----
+@Bean
+IntegrationFlow amqpClientInboundGatewayFlow(AmqpConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(AmqpClient.inboundGateway(connectionFactory, "requestReply"))
+            .channel(c -> c.queue("inputChannel"))
+            .get();
+}
+----
+
+Kotlin DSL::
++
+[source,kotlin,role="secondary"]
+----
+@Bean
+fun receiveFlow(connectionFactory: AmqpConnectionFactory) =
+        integrationFlow(AmqpClient.inboundGateway(connectionFactory, "requestReply")) {
+            channel { queue("inputChannel") }
+        }
+----
+
+Groovy DSL::
++
+[source,groovy,role="secondary"]
+----
+@Bean
+receiveFlow(AmqpConnectionFactory connectionFactory) {
+    integrationFlow(AmqpClient.inboundGateway(connectionFactory, 'requestReply')) {
+        channel { queue 'inputChannel' }
+    }
+}
+----
+
+Java::
++
+[source,java,role="secondary"]
+----
+@Bean
+AmqpClientInboundGateway amqpClientInboundGateway(AmqpConnectionFactory connectionFactory) {
+    AmqpClientInboundGateway amqpClientInboundGateway = new AmqpClientInboundGateway(connectionFactory, "requestReply");
+    amqpClientInboundGateway.setRequestChannelName("inputChannel");
+    return amqpClientInboundGateway;
+}
+----
+======

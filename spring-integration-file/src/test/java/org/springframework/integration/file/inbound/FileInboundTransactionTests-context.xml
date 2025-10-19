@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder/>
+
+	<int-file:inbound-channel-adapter id="pseudoTx"
+		channel="input" auto-startup="false"
+						directory="#{T (org.springframework.integration.file.inbound.FileInboundTransactionTests).tmpDir}/si-test1"
+						use-watch-service="true"
+						watch-events="CREATE,DELETE">
+		<int:poller fixed-rate="500">
+			<int:transactional synchronization-factory="syncFactoryA"/>
+		</int:poller>
+	</int-file:inbound-channel-adapter>
+
+	<int:channel id="input" />
+
+	<int:channel id="successChannel">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="failureChannel">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="txInput" />
+
+	<int-file:inbound-channel-adapter id="realTx" channel="txInput" auto-startup="false"
+							 directory="#{T (org.springframework.integration.file.inbound.FileInboundTransactionTests).tmpDir}/si-test2">
+		<int:poller fixed-rate="500">
+			<int:transactional transaction-manager="txManager" synchronization-factory="syncFactoryB"/>
+		</int:poller>
+	</int-file:inbound-channel-adapter>
+
+	<bean id="txManager" class="org.springframework.integration.file.inbound.FileInboundTransactionTests$DummyTxManager" />
+
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+
+	<bean id="syncFactoryA" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
+				<property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="syncFactoryB" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.committed')}"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
+				<property name="afterRollbackExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.rolledBack')}"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

@@ -27,10 +27,10 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -62,7 +62,7 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	@SuppressWarnings("unchecked")
 	public void inputDirectory() throws Exception {
 		File expected = new ClassPathResource("").getFile();
-		File actual = (File) accessor.getPropertyValue("directory");
+		File actual = (File) accessor.getPropertyValue("directoryExpression.value");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 
 		FileListFilter<File> fileListFilter =
@@ -70,7 +70,7 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 		assertThat(fileListFilter).isInstanceOf(CompositeFileListFilter.class);
 		Set<FileListFilter<File>> fileFilters =
 				TestUtils.getPropertyValue(fileListFilter, "fileFilters", Set.class);
-		assertThat(fileFilters.size()).isEqualTo(2);
+		assertThat(fileFilters).hasSize(2);
 		Iterator<FileListFilter<File>> iterator = fileFilters.iterator();
 		iterator.next();
 		FileListFilter<File> expressionFilter = iterator.next();

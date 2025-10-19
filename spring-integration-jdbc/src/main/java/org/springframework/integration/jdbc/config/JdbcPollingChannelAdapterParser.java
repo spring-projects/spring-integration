@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jdbc.JdbcPollingChannelAdapter;
+import org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter;
 import org.springframework.util.StringUtils;
 
 /**

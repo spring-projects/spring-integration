@@ -20,9 +20,9 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.udp.inbound.AbstractInternetProtocolReceivingChannelAdapter;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -73,15 +73,15 @@ public final class TestingUtilities {
 
 		Long delay = delayArg;
 		if (delay == null) {
-			delay = 100L; // NOSONAR magic number
+			delay = 100L;
 		}
 		else {
-			delay = delay / 100; // NOSONAR magic number
+			delay = delay / 100;
 		}
 		int n = 0;
 		while (!isListeningSupplier.get()) {
 			try {
-				Thread.sleep(100); // NOSONAR magic number
+				Thread.sleep(100);
 			}
 			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
@@ -101,24 +101,25 @@ public final class TestingUtilities {
 	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server doesn't stop listening in time.
 	 */
-	public static void waitStopListening(AbstractServerConnectionFactory serverConnectionFactory, @Nullable Long delayArg)
+	public static void waitStopListening(AbstractServerConnectionFactory serverConnectionFactory,
+			@Nullable Long delayArg)
 			throws IllegalStateException {
 
 		Long delay = delayArg;
 		if (delay == null) {
-			delay = 100L; // NOSONAR magic number
+			delay = 100L;
 		}
 		else {
-			delay = delay / 100; // NOSONAR magic number
+			delay = delay / 100;
 		}
 		int n = 0;
 		while (serverConnectionFactory.isListening()) {
 			try {
-				Thread.sleep(100); // NOSONAR magic number
+				Thread.sleep(100);
 			}
-			catch (InterruptedException e) {
+			catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
-				throw new IllegalStateException(e);
+				throw new IllegalStateException(ex);
 			}
 			if (n++ > delay) {
 				throw new IllegalStateException("Server didn't stop listening.");
@@ -138,12 +139,12 @@ public final class TestingUtilities {
 			throws InterruptedException {
 
 		int timer = 0;
-		while (timer < 10000) { // NOSONAR magic number
+		while (timer < 10000) {
 			if (factory.getOpenConnectionIds().size() == n) {
 				return;
 			}
-			Thread.sleep(100); // NOSONAR magic number
-			timer += 100; // NOSONAR magic number
+			Thread.sleep(100);
+			timer += 100;
 		}
 		throw new IllegalStateException("Connections=" + factory.getOpenConnectionIds().size() + "wanted=" + n);
 	}

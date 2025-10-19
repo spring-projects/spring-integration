@@ -27,11 +27,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
+import org.springframework.integration.file.inbound.FileReadingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -72,7 +72,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = TestUtils.getPropertyValue(this.source, "directory", File.class);
+		File actual = TestUtils.getPropertyValue(this.source, "directoryExpression.value", File.class);
 		assertThat(actual).isEqualTo(expected);
 	}
 

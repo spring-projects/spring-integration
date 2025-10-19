@@ -22,7 +22,7 @@ import java.util.function.Function;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.ip.udp.SocketCustomizer;
-import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**

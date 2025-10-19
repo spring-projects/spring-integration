@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.mapping.InboundMessageMapper;
@@ -131,7 +131,8 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 
 		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
 				this.connectionFactory);
-		handler.setSerializer(new Jackson3JsonRedisSerializer<Object>(Object.class));
+		handler.setSerializer(GenericJacksonJsonRedisSerializer.create(b -> {
+		}));
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(this.connectionFactory);

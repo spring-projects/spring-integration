@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws.dsl;
 
-import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
+import org.springframework.integration.ws.inbound.SimpleWebServiceInboundGateway;
 
 /**
  * The spec for a {@link SimpleWebServiceInboundGateway}.

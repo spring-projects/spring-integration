@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.routers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -138,13 +139,13 @@ public class RouterTests {
 	public void testRouterSubflowWithReplyChannelHeader() {
 		PollableChannel replyChannel = new QueueChannel();
 		this.routeSubflowToReplyChannelFlowInput.send(
-				MessageBuilder.withPayload("baz")
+				MessageBuilder.withPayload("test")
 						.setReplyChannel(replyChannel)
 						.build());
 
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("BAZ");
+		assertThat(receive.getPayload()).isEqualTo("TEST");
 	}
 
 	@Autowired
@@ -157,13 +158,13 @@ public class RouterTests {
 
 	@Test
 	public void testRouterSubflowWithoutReplyToMainFlow() {
-		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("BOO"));
+		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("TEST"));
 
 		Message<?> receive = routerSubflowResult.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("boo");
+		assertThat(receive.getPayload()).isEqualTo("test");
 		assertThat(this.defaultOutputChannel.receive(1)).isNull();
-		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("foo"));
+		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("wrong"));
 		assertThat(this.defaultOutputChannel.receive(10000)).isNotNull();
 	}
 
@@ -463,15 +464,21 @@ public class RouterTests {
 	@Test
 	public void testScatterGather() {
 		QueueChannel replyChannel = new QueueChannel();
-		Message<String> request = MessageBuilder.withPayload("foo")
+		Message<String> request = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
 				.build();
 		this.scatterGatherFlowInput.send(request);
 		Message<?> bestQuoteMessage = replyChannel.receive(10000);
-		assertThat(bestQuoteMessage).isNotNull();
-		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload).isInstanceOf(List.class);
-		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
+		assertThat(bestQuoteMessage)
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
+				.hasSizeGreaterThanOrEqualTo(1)
+				.first()
+				.asInstanceOf(InstanceOfAssertFactories.type(Message.class))
+				.extracting("headers")
+				.asInstanceOf(InstanceOfAssertFactories.MAP)
+				.extractingByKey("gatherResultChannel")
+				.isNotInstanceOf(PollableChannel.class);
 	}
 
 	@Autowired
@@ -660,7 +667,7 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow routeSubflowWithoutReplyToMainFlow() {
 			return f -> f
-					.<String, Boolean>route("BOO"::equals, m -> m
+					.<String, Boolean>route("TEST"::equals, m -> m
 							.resolutionRequired(false)
 							.subFlowMapping(true, sf -> sf
 									.transform(String.class, String::toLowerCase)
@@ -859,9 +866,11 @@ public class RouterTests {
 											group.size() == 3 ||
 													group.getMessages()
 															.stream()
-															.anyMatch(m -> (Double) m.getPayload() > 5)),
+															.anyMatch(m -> (Double) m.getPayload() > 5))
+									.outputProcessor(group -> new ArrayList<>(group.getMessages())),
 							scatterGather -> scatterGather
-									.gatherTimeout(10_000));
+									.gatherTimeout(10_000)
+									.async(true));
 		}
 
 		@Bean

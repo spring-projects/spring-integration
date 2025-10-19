@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.jmx.MBeanObjectConverter;
+import org.springframework.integration.jmx.inbound.MBeanObjectConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -109,13 +109,13 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterDefault.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
 		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
-
-		adapterDefault.stop();
 	}
 
 	@Test
@@ -128,13 +128,13 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterInner.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
 		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
-
-		adapterInner.stop();
 	}
 
 	@Test
@@ -153,6 +153,8 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterQueryName.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
@@ -160,8 +162,6 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertThat(beans)
 				.containsKey("java.lang:type=Runtime")
 				.doesNotContainKey("java.lang:type=OperatingSystem");
-
-		adapterQueryName.stop();
 	}
 
 	@Test
@@ -174,6 +174,8 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterQueryNameBean.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
@@ -181,8 +183,6 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertThat(beans)
 				.containsKey("java.lang:type=OperatingSystem")
 				.doesNotContainKey("java.lang:type=Runtime");
-
-		adapterQueryNameBean.stop();
 	}
 
 	@Test
@@ -195,6 +195,8 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterQueryExprBean.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
@@ -202,8 +204,6 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertThat(beans)
 				.containsKey("java.lang:type=Runtime")
 				.doesNotContainKey("java.lang:type=OperatingSystem");
-
-		adapterQueryExprBean.stop();
 	}
 
 	@Test
@@ -216,13 +216,14 @@ public class MBeanTreePollingChannelAdapterParserTests {
 				.extracting(Message::getPayload)
 				.isInstanceOf(HashMap.class);
 
+		adapterConverter.stop();
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
 		// test for a couple of MBeans
 		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
 
-		adapterConverter.stop();
 		assertThat(TestUtils.getPropertyValue(adapterConverter, "source.converter")).isSameAs(converter);
 	}
 

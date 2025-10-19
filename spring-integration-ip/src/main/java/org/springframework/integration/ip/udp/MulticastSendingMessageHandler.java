@@ -16,22 +16,13 @@
 
 package org.springframework.integration.ip.udp;
 
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.expression.Expression;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a
  * Message into a UDP datagram packet and sends that to the specified multicast address
  * (224.0.0.0 to 239.255.255.255) and port.
- *
+ * <p>
  * The only difference between this and its super class is the ability to specify how many
  * acknowledgments are required to determine success.
  *
@@ -40,17 +31,15 @@ import org.springframework.expression.Expression;
  * @author Christian Tzolov
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor or {@link org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHandler}
  */
-public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler {
-
-	private int timeToLive = -1;
-
-	private @Nullable String localAddress;
-
-	private volatile @Nullable MulticastSocket multicastSocket;
+@Deprecated(forRemoval = true, since = "7.0")
+public class MulticastSendingMessageHandler
+		extends org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHandler {
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port.
 	 * @param address The multicast address.
 	 * @param port The port.
 	 */
@@ -59,7 +48,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the lengthCheck option (if set, a length is prepended to the packet and checked
 	 * at the destination).
 	 * @param address The multicast address.
@@ -71,7 +60,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
 	 * @param address The multicast address.
 	 * @param port The port.
@@ -87,7 +76,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * Construct a MulticastSendingMessageHandler to send data to the multicast address/port
 	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
 	 * @param address The multicast address.
 	 * @param port The port.
@@ -126,76 +115,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 */
 	public MulticastSendingMessageHandler(String destinationExpression) {
 		super(destinationExpression);
-	}
-
-	@Override
-	protected DatagramSocket getSocket() throws IOException {
-		this.lock.lock();
-		try {
-			if (getTheSocket() == null) {
-				createSocket();
-			}
-			return super.getSocket();
-		}
-		finally {
-			this.lock.unlock();
-		}
-	}
-
-	private void createSocket() throws IOException {
-		if (getTheSocket() == null) {
-			MulticastSocket socket;
-			if (isAcknowledge()) {
-				int ackPort = getAckPort();
-				if (this.localAddress == null) {
-					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
-				}
-				else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
-				}
-				int soReceiveBufferSize = getSoReceiveBufferSize();
-				if (soReceiveBufferSize > 0) {
-					socket.setReceiveBufferSize(soReceiveBufferSize);
-				}
-				logger.debug(() -> "Listening for acks on port: " + socket.getLocalPort());
-				setSocket(socket);
-				updateAckAddress();
-			}
-			else {
-				socket = new MulticastSocket();
-				setSocket(socket);
-			}
-			if (this.timeToLive >= 0) {
-				socket.setTimeToLive(this.timeToLive);
-			}
-			setSocketAttributes(socket);
-			if (this.localAddress != null) {
-				socket.setNetworkInterface(NetworkInterface.getByInetAddress(InetAddress.getByName(this.localAddress)));
-			}
-			this.multicastSocket = socket;
-		}
-	}
-
-	/**
-	 * If acknowledge = true; how many acks needed for success.
-	 * @param minAcksForSuccess The minimum number of acks that will represent success.
-	 */
-	public void setMinAcksForSuccess(int minAcksForSuccess) {
-		this.setAckCounter(minAcksForSuccess);
-	}
-
-	/**
-	 * Set the underlying {@link MulticastSocket} time to live property.
-	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
-	 */
-	public void setTimeToLive(int timeToLive) {
-		this.timeToLive = timeToLive;
-	}
-
-	@Override
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
 	}
 
 }

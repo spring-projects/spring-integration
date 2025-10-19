@@ -17,7 +17,7 @@
 package org.springframework.integration.syslog.inbound;
 
 import org.springframework.integration.channel.FixedSubscriberChannel;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
 
 /**
  * UDP implementation of a syslog inbound channel adapter.

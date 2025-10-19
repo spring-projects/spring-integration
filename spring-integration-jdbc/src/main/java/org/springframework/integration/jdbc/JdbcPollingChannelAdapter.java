@@ -16,32 +16,10 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import javax.sql.DataSource;
 
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ParameterDisposer;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlProvider;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.util.Assert;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -53,27 +31,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ *
+ * @deprecated since 7.0 in favor of {@link org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter}
  */
-public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
-
-	private final NamedParameterJdbcOperations jdbcOperations;
-
-	@SuppressWarnings("NullAway.Init")
-	private RowMapper<?> rowMapper;
-
-	private @Nullable SqlParameterSource sqlQueryParameterSource;
-
-	private boolean updatePerRow = false;
-
-	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
-
-	private boolean sqlParameterSourceFactorySet;
-
-	private int maxRows = 0;
-
-	private volatile String selectQuery;
-
-	private volatile @Nullable String updateSql;
+@Deprecated(forRemoval = true, since = "7.0")
+public class JdbcPollingChannelAdapter extends org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter {
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
@@ -92,177 +54,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
-		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations) {
-
-			@Override
-			protected PreparedStatementCreator getPreparedStatementCreator(String sql,
-					SqlParameterSource paramSource, @Nullable Consumer<PreparedStatementCreatorFactory> customizer) {
-
-				PreparedStatementCreator preparedStatementCreator =
-						super.getPreparedStatementCreator(sql, paramSource, customizer);
-
-				return new PreparedStatementCreatorWithMaxRows(preparedStatementCreator,
-						JdbcPollingChannelAdapter.this.maxRows);
-			}
-
-		};
-
-		setSelectQuery(selectQuery);
-		this.rowMapper = new ColumnMapRowMapper();
-	}
-
-	/**
-	 * Set a {@link RowMapper}.
-	 * @param rowMapper the {@link RowMapper} to use.
-	 */
-	public void setRowMapper(@Nullable RowMapper<?> rowMapper) {
-		this.rowMapper = Objects.requireNonNullElseGet(rowMapper, ColumnMapRowMapper::new);
-	}
-
-	/**
-	 * Set the select query.
-	 * @param selectQuery the query.
-	 * @since 5.2.1
-	 */
-	public final void setSelectQuery(String selectQuery) {
-		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
-		this.selectQuery = selectQuery;
-	}
-
-	/**
-	 * Set an update query.
-	 * @param updateSql the update query to use.
-	 */
-	public void setUpdateSql(String updateSql) {
-		this.updateSql = updateSql;
-	}
-
-	/**
-	 * Set a flag to update per record or not. Defaults to false.
-	 * @param updatePerRow the flag to control an update per record or whole batch.
-	 */
-	public void setUpdatePerRow(boolean updatePerRow) {
-		this.updatePerRow = updatePerRow;
-	}
-
-	/**
-	 * Set an {@link SqlParameterSourceFactory} for update query.
-	 * @param sqlParameterSourceFactory the {@link SqlParameterSourceFactory} to use.
-	 */
-	public void setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		Assert.notNull(sqlParameterSourceFactory, "'sqlParameterSourceFactory' must be null.");
-		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
-		this.sqlParameterSourceFactorySet = true;
-	}
-
-	/**
-	 * A source of parameters for the select query used for polling.
-	 * @param sqlQueryParameterSource the sql query parameter source to set
-	 */
-	public void setSelectSqlParameterSource(@Nullable SqlParameterSource sqlQueryParameterSource) {
-		this.sqlQueryParameterSource = sqlQueryParameterSource;
-	}
-
-	/**
-	 * The maximum number of rows to query. Default is zero - select all records.
-	 * @param maxRows the max rows to set
-	 * @since 5.1
-	 */
-	public void setMaxRows(int maxRows) {
-		this.maxRows = maxRows;
-	}
-
-	@Override
-	protected void onInit() {
-		BeanFactory beanFactory = getBeanFactory();
-		if (!this.sqlParameterSourceFactorySet && beanFactory != null) {
-			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
-					.setBeanFactory(beanFactory);
-		}
-	}
-
-	@Override
-	public String getComponentType() {
-		return "jdbc:inbound-channel-adapter";
-	}
-
-	/**
-	 * Execute the select query and the update query if provided. Returns the
-	 * rows returned by the select query. If a RowMapper has been provided, the
-	 * mapped results are returned.
-	 */
-	@Override
-	protected @Nullable Object doReceive() {
-		List<?> payload = doPoll(this.sqlQueryParameterSource);
-		if (payload.isEmpty()) {
-			payload = null;
-		}
-		if (payload != null && this.updateSql != null) {
-			if (this.updatePerRow) {
-				for (Object row : payload) {
-					executeUpdateQuery(row);
-				}
-			}
-			else {
-				executeUpdateQuery(payload);
-			}
-		}
-		return payload;
-	}
-
-	/**
-	 * Perform a select against provided {@link SqlParameterSource}.
-	 * @param sqlQueryParameterSource the {@link SqlParameterSource} to use. Optional.
-	 * @return the result of the query.
-	 */
-	protected List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
-		if (sqlQueryParameterSource != null) {
-			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
-		}
-		else {
-			return this.jdbcOperations.query(this.selectQuery, this.rowMapper);
-		}
-	}
-
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
-	private void executeUpdateQuery(Object obj) {
-		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
-	}
-
-	private record PreparedStatementCreatorWithMaxRows(PreparedStatementCreator delegate, int maxRows)
-			implements PreparedStatementCreator, PreparedStatementSetter, SqlProvider, ParameterDisposer {
-
-		@Override
-		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-			PreparedStatement preparedStatement = this.delegate.createPreparedStatement(con);
-			preparedStatement.setMaxRows(this.maxRows); // We can't mutate provided JdbOperations for this option
-			return preparedStatement;
-		}
-
-		@Override
-		public @Nullable String getSql() {
-			if (this.delegate instanceof SqlProvider) {
-				return ((SqlProvider) this.delegate).getSql();
-			}
-			else {
-				return null;
-			}
-		}
-
-		@Override
-		public void setValues(PreparedStatement ps) throws SQLException {
-			if (this.delegate instanceof PreparedStatementSetter) {
-				((PreparedStatementSetter) this.delegate).setValues(ps);
-			}
-		}
-
-		@Override
-		public void cleanupParameters() {
-			if (this.delegate instanceof ParameterDisposer) {
-				((ParameterDisposer) this.delegate).cleanupParameters();
-			}
-		}
-
+		super(jdbcOperations, selectQuery);
 	}
 
 }

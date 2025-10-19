@@ -19,9 +19,9 @@ package org.springframework.integration.jdbc.dsl;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
 import org.springframework.integration.jdbc.SqlParameterSourceFactory;
+import org.springframework.integration.jdbc.outbound.JdbcOutboundGateway;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 

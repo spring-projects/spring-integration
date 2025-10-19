@@ -19,6 +19,7 @@ package org.springframework.integration.jms;
 import jakarta.jms.ConnectionFactory;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.jms.outbound.JmsSendingMessageHandler;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;

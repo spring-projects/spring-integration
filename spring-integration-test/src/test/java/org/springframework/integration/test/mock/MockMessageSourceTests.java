@@ -46,7 +46,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -181,18 +181,12 @@ public class MockMessageSourceTests {
 
 	@Test
 	public void testWrongBeanForInstead() {
-		try {
-			this.mockIntegrationContext.substituteMessageSourceFor("errorChannel", () -> null);
-			fail("BeanNotOfRequiredTypeException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanNotOfRequiredTypeException.class);
-			assertThat(e.getMessage()).contains("Bean named 'errorChannel' is expected to be of type " +
-					"'org.springframework.integration.endpoint.SourcePollingChannelAdapter' " +
-					"but was actually of type " +
-					"'org.springframework.integration.channel.PublishSubscribeChannel");
-
-		}
+		assertThatExceptionOfType(BeanNotOfRequiredTypeException.class)
+				.isThrownBy(() -> this.mockIntegrationContext.substituteMessageSourceFor("errorChannel", () -> null))
+				.withMessageContaining("Bean named 'errorChannel' is expected to be of type " +
+						"'org.springframework.integration.endpoint.SourcePollingChannelAdapter' " +
+						"but was actually of type " +
+						"'org.springframework.integration.channel.PublishSubscribeChannel");
 	}
 
 	@Configuration

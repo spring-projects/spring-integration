@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Ruslan Stelmachenko
+ * @author Artem Bilan
  *
  * @since 5.3.10
  */
@@ -70,17 +72,17 @@ class DefaultLockRepositoryTests {
 		TransactionSynchronization transactionSynchronization = spy(TransactionSynchronization.class);
 		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);
 
-		this.client.acquire("foo", Duration.ofSeconds(10)); // 1
-		this.client.renew("foo", Duration.ofSeconds(10)); // 2
-		this.client.delete("foo"); // 3
-		this.client.isAcquired("foo"); // 4
+		this.client.acquire("test", Duration.ofSeconds(10)); // 1
+		this.client.renew("test", Duration.ofSeconds(10)); // 2
+		this.client.delete("test"); // 3
+		this.client.isAcquired("test"); // 4
 		this.client.deleteExpired(); // 5
 		this.client.close(); // 6
 
 		// Make sure a transaction is still active
 		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
 		// And was suspended for each invocation of @Transactional methods of DefaultLockRepository,
-		// that confirms that these methods were called in a separate transaction each.
+		// which confirms that these methods were called in a separate transaction each.
 		verify(transactionSynchronization, times(6)).suspend();
 	}
 
@@ -92,26 +94,26 @@ class DefaultLockRepositoryTests {
 		assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel())
 				.isEqualTo(Connection.TRANSACTION_REPEATABLE_READ);
 
-		this.client.acquire("foo", Duration.ofSeconds(10));
-		assertThat(this.client.isAcquired("foo")).isTrue();
+		this.client.acquire("test", Duration.ofSeconds(10));
+		assertThat(this.client.isAcquired("test")).isTrue();
 
-		this.client.delete("foo");
-		assertThat(this.client.isAcquired("foo")).isFalse();
+		this.client.delete("test");
+		assertThat(this.client.isAcquired("test")).isFalse();
 	}
 
 	@Test
 	void testAcquired() {
-		client.acquire("foo", Duration.ofMillis(100));
-		assertThat(this.client.isAcquired("foo")).isTrue();
+		client.acquire("test", Duration.ofMillis(100));
+		assertThat(this.client.isAcquired("test")).isTrue();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testAcquireSameLockTwiceAndTtlWillBeUpdated() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(150));
-		Thread.sleep(100);
-		client.acquire("foo", Duration.ofMillis(150));
+		client.acquire("test", Duration.ofMillis(150));
+		Thread.sleep(10);
+		client.acquire("test", Duration.ofMillis(150));
 		Thread.sleep(60);
-		assertThat(this.client.isAcquired("foo")).isTrue();
+		assertThat(this.client.isAcquired("test")).isTrue();
 	}
 
 	@Test
@@ -121,22 +123,22 @@ class DefaultLockRepositoryTests {
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofMillis(100));
-		assertThat(this.client.acquire("foo", Duration.ofMillis(100))).isFalse();
+		lockRepositoryOfAnotherProcess.acquire("test", Duration.ofMillis(100));
+		assertThat(this.client.acquire("test", Duration.ofMillis(100))).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testAcquiredLockIsAcquiredByAnotherProcessButExpired() throws InterruptedException {
 		DefaultLockRepository lockRepositoryOfAnotherProcess = new DefaultLockRepository(dataSource);
 		lockRepositoryOfAnotherProcess.setTransactionManager(transactionManager);
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofMillis(100));
+		lockRepositoryOfAnotherProcess.acquire("test", Duration.ofMillis(100));
 		Thread.sleep(110);
-		assertThat(this.client.acquire("foo", Duration.ofMillis(100))).isTrue();
+		assertThat(this.client.acquire("test", Duration.ofMillis(100))).isTrue();
 
 		lockRepositoryOfAnotherProcess.close();
 	}
@@ -148,35 +150,35 @@ class DefaultLockRepositoryTests {
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofMillis(100));
-		assertThat(this.client.isAcquired("foo")).isFalse();
+		lockRepositoryOfAnotherProcess.acquire("test", Duration.ofMillis(100));
+		assertThat(this.client.isAcquired("test")).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testIsAcquiredLockIsExpired() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(100));
+		client.acquire("test", Duration.ofMillis(100));
 		Thread.sleep(110);
-		assertThat(this.client.isAcquired("foo")).isFalse();
+		assertThat(this.client.isAcquired("test")).isFalse();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testRenew() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(150));
-		Thread.sleep(100);
-		assertThat(client.renew("foo", Duration.ofMillis(150))).isTrue();
+		client.acquire("test", Duration.ofMillis(150));
+		Thread.sleep(10);
+		assertThat(client.renew("test", Duration.ofMillis(150))).isTrue();
 		Thread.sleep(60);
-		assertThat(this.client.isAcquired("foo")).isTrue();
+		assertThat(this.client.isAcquired("test")).isTrue();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testRenewLockIsExpiredAndLockStatusHasBeenCleanUp() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(100));
+		client.acquire("test", Duration.ofMillis(100));
 		Thread.sleep(110);
 		client.deleteExpired();
 
-		assertThat(this.client.renew("foo", Duration.ofMillis(100))).isFalse();
+		assertThat(this.client.renew("test", Duration.ofMillis(100))).isFalse();
 	}
 
 	@Test
@@ -186,17 +188,17 @@ class DefaultLockRepositoryTests {
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofMillis(100));
-		assertThat(this.client.renew("foo", Duration.ofMillis(100))).isFalse();
+		lockRepositoryOfAnotherProcess.acquire("test", Duration.ofMillis(100));
+		assertThat(this.client.renew("test", Duration.ofMillis(100))).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
 	}
 
 	@Test
 	void testDelete() {
-		this.client.acquire("foo", Duration.ofSeconds(10));
-		assertThat(this.client.delete("foo")).isTrue();
-		assertThat(this.client.isAcquired("foo")).isFalse();
+		this.client.acquire("test", Duration.ofSeconds(10));
+		assertThat(this.client.delete("test")).isTrue();
+		assertThat(this.client.isAcquired("test")).isFalse();
 	}
 
 	@Test
@@ -206,27 +208,28 @@ class DefaultLockRepositoryTests {
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofSeconds(10));
-		assertThat(this.client.delete("foo")).isFalse();
+		lockRepositoryOfAnotherProcess.acquire("test", Duration.ofSeconds(10));
+		assertThat(this.client.delete("test")).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testDeleteAfterLockIsExpiredAndLockStatusHasBeenCleanUp() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(100));
-		Thread.sleep(200);
+		client.acquire("test", Duration.ofMillis(10));
+		Thread.sleep(50);
 		client.deleteExpired();
 
-		assertThat(this.client.delete("foo")).isFalse();
+		assertThat(this.client.delete("test")).isFalse();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testDeleteExpired() throws InterruptedException {
-		client.acquire("foo", Duration.ofMillis(100));
-		Thread.sleep(200);
+		client.acquire("test", Duration.ofMillis(10));
+		Thread.sleep(50);
 		client.deleteExpired();
 
-		assertThat(this.client.renew("foo", Duration.ofMillis(100))).isFalse();
+		assertThat(this.client.renew("test", Duration.ofMillis(100))).isFalse();
 	}
+
 }

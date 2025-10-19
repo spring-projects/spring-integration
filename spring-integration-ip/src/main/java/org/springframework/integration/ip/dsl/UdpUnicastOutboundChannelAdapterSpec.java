@@ -18,11 +18,12 @@ package org.springframework.integration.ip.dsl;
 
 import java.util.function.Function;
 
+import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
  * A {@link org.springframework.integration.dsl.MessageHandlerSpec} for
- * {@link org.springframework.integration.ip.udp.UnicastSendingMessageHandler}s.
+ * {@link UnicastSendingMessageHandler}s.
  *
  * @author Gary Russell
  * @author Artem Bilan

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:file="http://www.springframework.org/schema/integration/file"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/file
+			https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+			http://www.springframework.org/schema/util
+			https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- under test -->
+	<file:inbound-channel-adapter
+			directory="#{inputDirectory.path}"
+			channel="fileMessages" filter="compositeFilter"/>
+
+	<bean id="inputDirectory" class="java.io.File">
+		<constructor-arg value="#{T(org.springframework.integration.file.inbound.FileToChannelIntegrationTests).tempDir.path}"/>
+	</bean>
+
+	<si:channel id="fileMessages">
+		<si:queue capacity="10"/>
+	</si:channel>
+
+	<bean class="org.springframework.integration.file.filters.CompositeFileListFilter" id="compositeFilter">
+		<constructor-arg>
+			<util:list>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:preventDuplicates="true"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:preventDuplicates="false"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:filenamePattern="test*"/>
+			</util:list>
+		</constructor-arg>
+	</bean>
+
+	<si:poller default="true" fixed-rate="10">
+		<si:transactional synchronization-factory="syncFactory"/>
+	</si:poller>
+
+	<si:channel id="resultChannel">
+		<si:queue/>
+	</si:channel>
+
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+
+	<bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression"
+						  value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<property name="afterCommitChannel" ref="resultChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+</beans>

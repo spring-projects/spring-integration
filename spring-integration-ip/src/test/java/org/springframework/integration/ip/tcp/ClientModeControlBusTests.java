@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.TaskScheduler;

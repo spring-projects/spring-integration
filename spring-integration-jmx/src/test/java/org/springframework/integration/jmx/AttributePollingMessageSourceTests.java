@@ -22,6 +22,7 @@ import javax.management.MBeanServer;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.jmx.inbound.AttributePollingMessageSource;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.Message;

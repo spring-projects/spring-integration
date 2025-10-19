@@ -45,8 +45,8 @@ import org.springframework.util.StringUtils;
  * <p>
  * With the {@link #setRequiresReply(boolean)} configured as {@code true}, this message handler
  * behaves as a gateway - the RPC over AMQP.
- * In this case, the {@link AsyncAmqpTemplate} must be able to convert
- * a reply into a provided {@link #replyPayloadTypeExpression}.
+ * In this case, when {@link #replyPayloadTypeExpression} is provided,
+ * the {@link #messageConverter} must be an instance of {@link SmartMessageConverter}.
  * <p>
  * This handler is {@code async} by default.
  * <p>

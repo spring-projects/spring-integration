@@ -17,8 +17,8 @@
 package org.springframework.integration.jdbc.dsl;
 
 import org.springframework.integration.dsl.MessageSourceSpec;
-import org.springframework.integration.jdbc.JdbcPollingChannelAdapter;
 import org.springframework.integration.jdbc.SqlParameterSourceFactory;
+import org.springframework.integration.jdbc.inbound.JdbcPollingChannelAdapter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;

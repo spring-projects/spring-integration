@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
@@ -42,7 +42,7 @@ import org.springframework.messaging.MessageChannel;
 public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewaySpec, TcpOutboundGateway>
 		implements ComponentsRegistration {
 
-	protected final @Nullable AbstractClientConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractClientConnectionFactory connectionFactory;
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.

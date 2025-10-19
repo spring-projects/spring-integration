@@ -40,10 +40,6 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.ip.tcp.TcpInboundGateway;
-import org.springframework.integration.ip.tcp.TcpOutboundGateway;
-import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
-import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
@@ -60,12 +56,16 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
+import org.springframework.integration.ip.tcp.inbound.TcpInboundGateway;
+import org.springframework.integration.ip.tcp.inbound.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.outbound.TcpSendingMessageHandler;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
-import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
-import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.SocketCustomizer;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
-import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.integration.ip.udp.inbound.MulticastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHandler;
+import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -142,7 +142,7 @@ public class ParserUnitTests {
 
 	// verify we can still inject by generated name
 	@Autowired
-	@Qualifier("org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
+	@Qualifier("org.springframework.integration.ip.tcp.outbound.TcpOutboundGateway#0")
 	TcpOutboundGateway tcpOutboundGatewayByGeneratedName;
 
 	@Autowired
@@ -338,8 +338,8 @@ public class ParserUnitTests {
 		assertThat(TestUtils.getPropertyValue(socketSupport, "sslContext")).isNotNull();
 
 		TcpSSLContextSupport tcpSSLContextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
-		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore") instanceof UrlResource).isTrue();
-		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore") instanceof UrlResource).isTrue();
+		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore")).isInstanceOf(UrlResource.class);
+		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore")).isInstanceOf(UrlResource.class);
 	}
 
 	@Test
@@ -409,21 +409,21 @@ public class ParserUnitTests {
 	@Test
 	public void udpAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
-		this.udpAdviceChannel.send(new GenericMessage<String>("foo"));
+		this.udpAdviceChannel.send(new GenericMessage<>("foo"));
 		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void tcpAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
-		this.tcpAdviceChannel.send(new GenericMessage<String>("foo"));
+		this.tcpAdviceChannel.send(new GenericMessage<>("foo"));
 		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void tcpGatewayAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
-		this.tcpAdviceGateChannel.send(new GenericMessage<String>("foo"));
+		this.tcpAdviceGateChannel.send(new GenericMessage<>("foo"));
 		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
@@ -612,10 +612,8 @@ public class ParserUnitTests {
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertThat(iterator.next()).isSameAs(this.tcpNewOut2);            //15
-		assertThat(iterator.next()).isSameAs(this.tcpOutboundGateway);    //24
-		assertThat(iterator.next()).isSameAs(this.tcpNewOut1);            //25
-		assertThat(iterator.next()).isSameAs(this.tcpOut);                //35
+		assertThat(iterator).toIterable()
+				.contains(this.tcpNewOut2, this.tcpOutboundGateway, this.tcpNewOut1, this.tcpOut);
 	}
 
 	@Test

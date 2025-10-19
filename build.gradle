@@ -23,7 +23,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '8.14.2'
-    id 'io.spring.nullability' version '0.0.5' apply false
+    id 'io.spring.nullability' version '0.0.6' apply false
 }
 
 if (isCI) {
@@ -50,22 +50,22 @@ ext {
     aspectjVersion = '1.9.24'
     assertjVersion = '3.27.6'
     assertkVersion = '0.28.1'
-    avroVersion = '1.12.0'
+    avroVersion = '1.12.1'
     awaitilityVersion = '4.3.0'
     camelVersion = '4.14.1'
     commonsDbcp2Version = '2.13.0'
     commonsIoVersion = '2.20.0'
     commonsNetVersion = '3.12.0'
     curatorVersion = '5.9.0'
-    debeziumVersion = '3.2.3.Final'
+    debeziumVersion = '3.2.4.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.1'
     graalvmVersion = '24.2.2'
-    greenmailVersion = '2.1.6'
-    groovyVersion = '5.0.1'
+    greenmailVersion = '2.1.7'
+    groovyVersion = '5.0.2'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.5.0'
-    hibernateVersion = '7.1.2.Final'
+    hibernateVersion = '7.1.4.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
     jacksonVersion = '2.20.0'
@@ -79,6 +79,7 @@ ext {
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '6.0.0'
+    junitPioneerVersion = '2.3.0'
     kotlinCoroutinesVersion = '1.10.2'
     kryoVersion = '5.6.2'
     lettuceVersion = '6.8.1.RELEASE'
@@ -87,7 +88,7 @@ ext {
     micrometerTracingVersion = '1.6.0-SNAPSHOT'
     micrometerVersion = '1.16.0-SNAPSHOT'
     mockitoVersion = '5.19.0'
-    mongoDriverVersion = '5.6.0'
+    mongoDriverVersion = '5.6.1'
     mysqlVersion = '9.4.0'
     oracleVersion = '23.9.0.25.07'
     pahoMqttClientVersion = '1.2.5'
@@ -108,7 +109,7 @@ ext {
     springVersion = '7.0.0-SNAPSHOT'
     springWsVersion = '5.0.0-SNAPSHOT'
     testcontainersVersion = '1.21.3'
-    tomcatVersion = '11.0.11'
+    tomcatVersion = '11.0.13'
     xmlUnitVersion = '2.10.4'
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
@@ -229,7 +230,7 @@ configure(javaProjects) { subproject ->
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(24)
+            languageVersion = JavaLanguageVersion.of(25)
         }
         withJavadocJar()
         withSourcesJar()
@@ -290,6 +291,7 @@ configure(javaProjects) { subproject ->
         }
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'
+        testImplementation "org.junit-pioneer:junit-pioneer:$junitPioneerVersion"
         testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion") {
             exclude group: 'org.jetbrains.kotlin'
         }

@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
-import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.inbound.TcpInboundGateway;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.scheduling.TaskScheduler;
 public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway>
 		implements ComponentsRegistration {
 
-	protected final @Nullable AbstractConnectionFactory connectionFactory; // NOSONAR - final
+	protected final @Nullable AbstractConnectionFactory connectionFactory;
 
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.

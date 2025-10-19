@@ -26,8 +26,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.mail.ImapIdleChannelAdapter;
-import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.ImapIdleChannelAdapter;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 

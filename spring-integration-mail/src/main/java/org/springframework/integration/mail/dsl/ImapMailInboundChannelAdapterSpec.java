@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mail.dsl;
 
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.SearchTermStrategy;
+import org.springframework.integration.mail.inbound.ImapMailReceiver;
+import org.springframework.integration.mail.inbound.SearchTermStrategy;
 
 /**
  * A {@link MailInboundChannelAdapterSpec} for IMAP.

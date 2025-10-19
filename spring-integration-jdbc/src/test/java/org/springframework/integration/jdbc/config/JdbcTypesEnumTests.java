@@ -21,7 +21,7 @@ import java.sql.Types;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class JdbcTypesEnumTests {
 
@@ -45,31 +45,17 @@ public class JdbcTypesEnumTests {
 	@Test
 	public void testConvertToJdbcTypesEnumWithNullParameter() {
 
-		try {
-			JdbcTypesEnum.convertToJdbcTypesEnum(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("Parameter sqlTypeAsString, must not be null nor empty");
-			return;
-		}
-
-		fail("Expected Exception");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JdbcTypesEnum.convertToJdbcTypesEnum(null))
+				.withMessage("Parameter sqlTypeAsString, must not be null nor empty");
 	}
 
 	@Test
 	public void testConvertToJdbcTypesEnumWithEmptyParameter() {
 
-		try {
-			JdbcTypesEnum.convertToJdbcTypesEnum("   ");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("Parameter sqlTypeAsString, must not be null nor empty");
-			return;
-		}
-
-		fail("Expected Exception");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JdbcTypesEnum.convertToJdbcTypesEnum("   "))
+				.withMessage("Parameter sqlTypeAsString, must not be null nor empty");
 	}
 
 }

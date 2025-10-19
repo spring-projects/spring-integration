@@ -28,13 +28,14 @@ import org.springframework.util.StringUtils;
  * Parser for the "stdout-" and "stderr-channel-adapter" elements.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ConsoleOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.stream.CharacterStreamWritingMessageHandler");
+				org.springframework.integration.stream.outbound.CharacterStreamWritingMessageHandler.class);
 		if (element.getLocalName().startsWith("stderr")) {
 			builder.setFactoryMethod("stderr");
 		}

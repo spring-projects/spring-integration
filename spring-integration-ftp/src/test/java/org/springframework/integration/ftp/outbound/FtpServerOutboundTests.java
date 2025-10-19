@@ -60,7 +60,6 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
-import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.server.ApacheMinaFtpEvent;
 import org.springframework.integration.ftp.server.DirectoryCreatedEvent;
 import org.springframework.integration.ftp.server.FileWrittenEvent;

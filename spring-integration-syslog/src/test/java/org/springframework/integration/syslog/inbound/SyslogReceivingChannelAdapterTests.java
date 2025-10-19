@@ -39,7 +39,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.inbound.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.syslog.DefaultMessageConverter;
 import org.springframework.integration.syslog.RFC5424MessageConverter;

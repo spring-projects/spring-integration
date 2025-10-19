@@ -8,7 +8,7 @@ The following example shows how to configure a `FileReadingMessageSource`:
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:directory="${input.directory}"/>
 ----
 
@@ -57,7 +57,7 @@ The following example configures a `FileReadingMessageSource` with a filter:
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:inputDirectory="${input.directory}"
     p:filter-ref="customFilterBean"/>
 ----
@@ -71,7 +71,7 @@ The `CompositeFileListFilter` enables the composition, as the following example 
 [source,xml]
 ----
 <bean id="pollableFileSource"
-    class="org.springframework.integration.file.FileReadingMessageSource"
+    class="org.springframework.integration.file.inbound.FileReadingMessageSource"
     p:inputDirectory="${input.directory}"
     p:filter-ref="compositeFilter"/>
 
@@ -183,6 +183,10 @@ For example, the `SimplePatternFileListFilter` filters out directories by defaul
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/AbstractDirectoryAwareFileListFilter.html[`AbstractDirectoryAwareFileListFilter`] and its implementations for more information.
 
 NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java DSL has a convenient `recursive(boolean)` option to use a `RecursiveDirectoryScanner` in the target `FileReadingMessageSource` instead of the default one.
+
+Starting with version 7.0, the `FileReadingMessageSource` can be configured with a SpEL expression for its `directory` property.
+This expression evaluated each time when a new scan is requested.
+Such a logic might be useful in scenarios when input directory should be changed after scanning is exhausted, or when it is based on the timestamp rotation.
 
 [[file-namespace-support]]
 == Namespace Support
