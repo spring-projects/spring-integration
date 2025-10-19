@@ -99,6 +99,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Youbin Wu
  * @author Michal Domagala
  * @author Severin Kistler
+ * @author PiotrDuz
  *
  * @since 4.0
  *
