@@ -62,7 +62,7 @@ ext {
     ftpServerVersion = '1.2.1'
     graalvmVersion = '24.1.2'
     greenmailVersion = '2.1.7'
-    groovyVersion = '4.0.28'
+    groovyVersion = '4.0.29'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.4.0'
     hibernateVersion = '6.6.33.Final'
