@@ -115,6 +115,11 @@ ext {
     ztZipVersion = '1.17'
 
     javaProjects = subprojects - project(':spring-integration-bom')
+
+    // Modules that have Kotlin sources to document using dokka
+    dokkaProjects = [
+            'spring-integration-core'
+    ]
 }
 
 allprojects {
@@ -188,8 +193,6 @@ configure(javaProjects) { subproject ->
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
     apply plugin: 'io.spring.nullability'
-    apply plugin: 'org.jetbrains.dokka'
-
 
     apply from: "${rootDir}/gradle/publish-maven.gradle"
 
@@ -395,27 +398,6 @@ configure(javaProjects) { subproject ->
 
     check.dependsOn checkClasspathForConflicts, javadoc
 
-
-    dokka {
-        dokkaPublications.html {
-            outputDirectory.set(file(rootProject.layout.buildDirectory.file('kdoc')))
-        }
-        dokkaSourceSets.configureEach {
-            sourceRoots.setFrom(file('src/main/kotlin'))
-            classpath.from(sourceSets['main'].runtimeClasspath)
-            externalDocumentationLinks.register("spring-integration-api") {
-                url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                packageListUrl.set(file('build/docs/javadoc/element-list').toURI())
-            }
-            externalDocumentationLinks.register("reactor-core") {
-                url.set(uri('https://projectreactor.io/docs/core/release/api/'))
-            }
-            externalDocumentationLinks.register("reactor-streams") {
-                url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
-            }
-        }
-    }
-
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -427,6 +409,30 @@ configure(javaProjects) { subproject ->
                      pomDeps.'*'.find { it.artifactId.text() == dep.name }.scope.first().value = 'provided'
                     }
                 }
+            }
+        }
+    }
+}
+
+// Process only the modules that require kotlin docs
+configure(subprojects.findAll { dokkaProjects.contains(it.name) }) { subproject ->
+    apply plugin: 'org.jetbrains.dokka'
+    dokka {
+        dokkaPublications.html {
+            outputDirectory.set(file(rootProject.layout.buildDirectory.file('kdoc')))
+        }
+        dokkaSourceSets.configureEach {
+            sourceRoots.setFrom(file('src/main/kotlin'))
+            classpath.from(sourceSets['main'].runtimeClasspath)
+            externalDocumentationLinks.register("spring-integration-api") {
+                url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                packageListUrl.set(file(rootProject.layout.buildDirectory.file('docs/javadoc/element-list')).toURI())
+            }
+            externalDocumentationLinks.register("reactor-core") {
+                url.set(uri('https://projectreactor.io/docs/core/release/api/'))
+            }
+            externalDocumentationLinks.register("reactive-streams") {
+                url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
             }
         }
     }
@@ -1137,7 +1143,7 @@ tasks.register('schemaZip', Zip) {
 }
 
 tasks.register('docsZip', Zip) {
-    dependsOn ':spring-integration-core:dokkaGenerate'
+    dependsOn dokkaProjects.collect { ":${it}:dokkaGenerate" }
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
