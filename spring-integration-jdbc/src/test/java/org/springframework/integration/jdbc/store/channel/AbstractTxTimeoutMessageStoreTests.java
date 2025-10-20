@@ -132,7 +132,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 	}
 
 	@RetryingTest(10)
-	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
+	public void idCacheConcurrency() throws InterruptedException, ExecutionException {
 		final String groupId = "testInt2993Group";
 		for (int i = 0; i < 100; i++) {
 			this.jdbcChannelMessageStore.addMessageToGroup(groupId, new GenericMessage<>("testInt2993Message"));
@@ -179,8 +179,8 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	@Test
-	public void testInt3181ConcurrentPolling() throws InterruptedException {
+	@RetryingTest(10)
+	public void concurrentPolling() throws InterruptedException {
 		for (int i = 0; i < 10; i++) {
 			this.first.send(new GenericMessage<Object>("test"));
 		}
@@ -195,7 +195,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
 		String messageGroup = "TEST_MESSAGE_GROUP";
 		this.jdbcChannelMessageStore.addMessageToGroup(messageGroup, new GenericMessage<Object>("foo"));
-		// The simple sleep to to be sure that messages are stored with different 'CREATED_DATE'
+		// The simple sleep to be sure that messages are stored with different 'CREATED_DATE'
 		Thread.sleep(10);
 		this.jdbcChannelMessageStore.addMessageToGroup(messageGroup, new GenericMessage<Object>("bar"));
 
