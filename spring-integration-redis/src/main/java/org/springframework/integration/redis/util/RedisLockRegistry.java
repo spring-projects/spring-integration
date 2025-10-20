@@ -601,8 +601,9 @@ public final class RedisLockRegistry
 		}
 
 		protected final void stopRenew() {
-			if (this.renewFuture != null) {
-				this.renewFuture.cancel(true);
+			ScheduledFuture<?> renewFutureToCancel = this.renewFuture;
+			if (renewFutureToCancel != null) {
+				renewFutureToCancel.cancel(true);
 				this.renewFuture = null;
 			}
 		}
