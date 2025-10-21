@@ -106,7 +106,7 @@ ext {
     springRetryVersion = '2.0.12'
     springSecurityVersion = '6.4.11'
     springVersion = '6.2.12'
-    springWsVersion = '4.0.15'
+    springWsVersion = '4.0.16'
     testcontainersVersion = '1.20.6'
     tomcatVersion = '10.1.48'
     xmlUnitVersion = '2.10.4'
