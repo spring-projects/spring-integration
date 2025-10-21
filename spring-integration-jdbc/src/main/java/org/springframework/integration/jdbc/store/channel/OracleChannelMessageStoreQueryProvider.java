@@ -34,7 +34,7 @@ public class OracleChannelMessageStoreQueryProvider implements ChannelMessageSto
 	@Override
 	public String getCreateMessageQuery() {
 		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, "
-				+ "MESSAGE_SEQUENCE, MESSAGE_BYTES)"
+				+ "MESSAGE_SEQUENCE, MESSAGE_CONTENT)"
 				+ " values (?, ?, ?, ?, ?, %PREFIX%MESSAGE_SEQ.NEXTVAL, ?)";
 	}
 
@@ -55,7 +55,7 @@ public class OracleChannelMessageStoreQueryProvider implements ChannelMessageSto
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
 		return """
 				SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */
-					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
+					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_CONTENT
 				from %PREFIX%CHANNEL_MESSAGE
 				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
 					and %PREFIX%CHANNEL_MESSAGE.REGION = :region
@@ -68,7 +68,7 @@ public class OracleChannelMessageStoreQueryProvider implements ChannelMessageSto
 	public String getPriorityPollFromGroupQuery() {
 		return """
 				SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */
-					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
+					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_CONTENT
 				from %PREFIX%CHANNEL_MESSAGE
 				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
 					and %PREFIX%CHANNEL_MESSAGE.REGION = :region

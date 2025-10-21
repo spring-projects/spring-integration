@@ -53,7 +53,7 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	@Override
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-		byte[] blobAsBytes = rs.getBytes("MESSAGE_BYTES");
+		byte[] blobAsBytes = rs.getBytes("MESSAGE_CONTENT");
 		return (Message<?>) this.deserializer.convert(Objects.requireNonNull(blobAsBytes));
 	}
 

@@ -32,7 +32,7 @@ package org.springframework.integration.jdbc.store.channel;
 public interface ChannelMessageStoreQueryProvider {
 
 	String SELECT_COMMON = """
-				SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
+				SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_CONTENT
 				from %PREFIX%CHANNEL_MESSAGE
 				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region
 			""";
@@ -53,7 +53,7 @@ public interface ChannelMessageStoreQueryProvider {
 	 */
 	default String getMessageQuery() {
 		return """
-				SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES
+				SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_CONTENT
 				from %PREFIX%CHANNEL_MESSAGE
 				where MESSAGE_ID=? and GROUP_KEY=? and REGION=?
 				""";
@@ -87,7 +87,7 @@ public interface ChannelMessageStoreQueryProvider {
 					REGION,
 					CREATED_DATE,
 					MESSAGE_PRIORITY,
-					MESSAGE_BYTES)
+					MESSAGE_CONTENT)
 				values (?, ?, ?, ?, ?, ?)
 				""";
 	}

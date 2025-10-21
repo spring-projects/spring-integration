@@ -38,7 +38,7 @@ public class PostgresChannelMessageStoreQueryProvider implements ChannelMessageS
 								and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids)
 							order by CREATED_DATE, MESSAGE_SEQUENCE
 							limit 1 for update skip locked)
-				returning MESSAGE_ID, MESSAGE_BYTES;
+				returning MESSAGE_ID, MESSAGE_CONTENT;
 				""";
 	}
 
@@ -53,7 +53,7 @@ public class PostgresChannelMessageStoreQueryProvider implements ChannelMessageS
 								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
 							order by CREATED_DATE, MESSAGE_SEQUENCE
 							limit 1 for update skip locked)
-				returning MESSAGE_ID, MESSAGE_BYTES;
+				returning MESSAGE_ID, MESSAGE_CONTENT;
 				""";
 	}
 
@@ -69,7 +69,7 @@ public class PostgresChannelMessageStoreQueryProvider implements ChannelMessageS
 								and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids)
 							order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE
 							limit 1 for update skip locked)
-				returning MESSAGE_ID, MESSAGE_BYTES;
+				returning MESSAGE_ID, MESSAGE_CONTENT;
 				""";
 	}
 
@@ -84,7 +84,7 @@ public class PostgresChannelMessageStoreQueryProvider implements ChannelMessageS
 								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
 							order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE
 							limit 1 for update skip locked)
-				returning MESSAGE_ID, MESSAGE_BYTES;
+				returning MESSAGE_ID, MESSAGE_CONTENT;
 				""";
 	}
 

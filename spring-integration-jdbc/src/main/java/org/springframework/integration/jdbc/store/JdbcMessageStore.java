@@ -129,7 +129,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				"""),
 
 		LIST_MESSAGES_BY_GROUP_KEY("""
-				SELECT MESSAGE_ID, MESSAGE_BYTES, CREATED_DATE
+				SELECT MESSAGE_ID, MESSAGE_CONTENT, CREATED_DATE
 				from %PREFIX%MESSAGE
 				where MESSAGE_ID in (SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?)
 					and REGION = ?
@@ -137,7 +137,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				"""),
 
 		POLL_FROM_GROUP("""
-				SELECT %PREFIX%MESSAGE.MESSAGE_ID, %PREFIX%MESSAGE.MESSAGE_BYTES
+				SELECT %PREFIX%MESSAGE.MESSAGE_ID, %PREFIX%MESSAGE.MESSAGE_CONTENT
 				from %PREFIX%MESSAGE
 				where %PREFIX%MESSAGE.MESSAGE_ID = (
 						SELECT min(m.MESSAGE_ID)
@@ -159,13 +159,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				"""),
 
 		GET_MESSAGE("""
-				SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES
+				SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_CONTENT
 				from %PREFIX%MESSAGE
 				where MESSAGE_ID=? and REGION=?
 				"""),
 
 		GET_MESSAGE_FROM_GROUP("""
-				SELECT m.MESSAGE_ID, m.CREATED_DATE, m.MESSAGE_BYTES
+				SELECT m.MESSAGE_ID, m.CREATED_DATE, m.MESSAGE_CONTENT
 				from %PREFIX%MESSAGE m
 				inner join %PREFIX%GROUP_TO_MESSAGE gm
 					on m.MESSAGE_ID = gm.MESSAGE_ID
@@ -187,7 +187,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				"""),
 
 		CREATE_MESSAGE("""
-				INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)
+				INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_CONTENT)
 				values (?, ?, ?, ?)
 				"""),
 
