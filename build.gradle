@@ -18,7 +18,7 @@ plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.jetbrains.dokka' version '2.0.0'
+    id 'org.jetbrains.dokka' version '2.1.0' apply false
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
@@ -115,6 +115,7 @@ ext {
     ztZipVersion = '1.17'
 
     javaProjects = subprojects - project(':spring-integration-bom')
+
 }
 
 allprojects {
@@ -176,15 +177,6 @@ allprojects {
             mavenBom "org.mongodb:mongodb-driver-bom:$mongoDriverVersion"
         }
 
-    }
-
-    // TODO Remove when Dokka 2.1.0 is released
-    configurations.matching { it.name.startsWith('dokka') }.configureEach {
-        resolutionStrategy.eachDependency {
-            if (requested.group.startsWith('com.fasterxml.jackson')) {
-                useVersion('2.15.3')
-            }
-        }
     }
 
 }
@@ -416,6 +408,30 @@ configure(javaProjects) { subproject ->
             }
         }
     }
+
+    // Process only the modules that require kotlin docs
+    if (file('src/main/kotlin')) {
+        apply plugin: 'org.jetbrains.dokka'
+        dokka {
+            dokkaPublications.html {
+                outputDirectory = rootProject.layout.buildDirectory.dir('kdoc')
+            }
+            dokkaSourceSets.configureEach {
+                sourceRoots.setFrom(file('src/main/kotlin'))
+                classpath.from(sourceSets['main'].runtimeClasspath)
+                externalDocumentationLinks.register("spring-integration-api") {
+                    url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                    packageListUrl.set(file(rootProject.layout.buildDirectory.file('docs/javadoc/element-list')).toURI())
+                }
+                externalDocumentationLinks.register("reactor-core") {
+                    url.set(uri('https://projectreactor.io/docs/core/release/api/'))
+                }
+                externalDocumentationLinks.register("reactive-streams") {
+                    url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+                }
+            }
+        }
+    }
 }
 
 project('spring-integration-test-support') {
@@ -477,7 +493,6 @@ project('spring-integration-cassandra') {
 project('spring-integration-core') {
     description = 'Spring Integration Core'
 
-    apply plugin: 'org.jetbrains.dokka'
     apply plugin: 'com.google.protobuf'
 
     dependencies {
@@ -517,27 +532,6 @@ project('spring-integration-core') {
             exclude group: 'io.opentelemetry'
             exclude group: 'com.wavefront'
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
-        }
-    }
-
-    dokkaHtmlPartial {
-        outputDirectory.set(new File('build', 'kdoc'))
-        dokkaSourceSets {
-            main {
-                sourceRoots.setFrom(file('src/main/kotlin'))
-                classpath.from(sourceSets['main'].runtimeClasspath)
-                noJdkLink.set(false)
-                externalDocumentationLink {
-                    url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                    packageListUrl.set(file('build/docs/javadoc/element-list').toURI().toURL())
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
-                }
-                externalDocumentationLink {
-                    url.set(new URL('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
-                }
-            }
         }
     }
 
@@ -1107,12 +1101,6 @@ tasks.register('api') {
     dependsOn javadoc
 }
 
-dokkaHtmlMultiModule {
-    dependsOn 'api'
-    moduleName.set('spring-integration')
-    outputDirectory.set(file('build/kdoc'))
-}
-
 apply from: "${rootDir}/gradle/docs.gradle"
 
 tasks.register('schemaZip', Zip) {
@@ -1150,8 +1138,21 @@ tasks.register('schemaZip', Zip) {
     }
 }
 
+apply plugin: 'org.jetbrains.dokka'
+
+dependencies {
+    dokka project(':spring-integration-core')
+}
+
+dokka {
+    moduleName = "spring-integration"
+    dokkaPublications.html {
+        outputDirectory = project.layout.buildDirectory.dir('kdoc')
+    }
+}
+
 tasks.register('docsZip', Zip) {
-    dependsOn 'dokkaHtmlMultiModule'
+    dependsOn 'dokkaGenerate'
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
@@ -1165,7 +1166,7 @@ tasks.register('docsZip', Zip) {
         into 'api'
     }
 
-    from(dokkaHtmlMultiModule.outputDirectory) {
+    from(file('build/kdoc')) {
         into 'kdoc-api'
     }
 }
