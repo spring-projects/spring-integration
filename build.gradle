@@ -18,7 +18,7 @@ plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.jetbrains.dokka' version '2.1.0'
+    id 'org.jetbrains.dokka' version '2.1.0' apply false
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
@@ -410,23 +410,25 @@ configure(javaProjects) { subproject ->
     }
 
     // Process only the modules that require kotlin docs
-    apply plugin: 'org.jetbrains.dokka'
-    dokka {
-        dokkaPublications.html {
-            outputDirectory.set(file(rootProject.layout.buildDirectory.dir('kdoc')))
-        }
-        dokkaSourceSets.configureEach {
-            sourceRoots.setFrom(file('src/main/kotlin'))
-            classpath.from(sourceSets['main'].runtimeClasspath)
-            externalDocumentationLinks.register("spring-integration-api") {
-                url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                packageListUrl.set(file(rootProject.layout.buildDirectory.file('docs/javadoc/element-list')).toURI())
+    if (file('src/main/kotlin')) {
+        apply plugin: 'org.jetbrains.dokka'
+        dokka {
+            dokkaPublications.html {
+                outputDirectory = rootProject.layout.buildDirectory.dir('kdoc')
             }
-            externalDocumentationLinks.register("reactor-core") {
-                url.set(uri('https://projectreactor.io/docs/core/release/api/'))
-            }
-            externalDocumentationLinks.register("reactive-streams") {
-                url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+            dokkaSourceSets.configureEach {
+                sourceRoots.setFrom(file('src/main/kotlin'))
+                classpath.from(sourceSets['main'].runtimeClasspath)
+                externalDocumentationLinks.register("spring-integration-api") {
+                    url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
+                    packageListUrl.set(file(rootProject.layout.buildDirectory.file('docs/javadoc/element-list')).toURI())
+                }
+                externalDocumentationLinks.register("reactor-core") {
+                    url.set(uri('https://projectreactor.io/docs/core/release/api/'))
+                }
+                externalDocumentationLinks.register("reactive-streams") {
+                    url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+                }
             }
         }
     }
@@ -1136,8 +1138,21 @@ tasks.register('schemaZip', Zip) {
     }
 }
 
+apply plugin: 'org.jetbrains.dokka'
+
+dependencies {
+    dokka project(':spring-integration-core')
+}
+
+dokka {
+    moduleName = "spring-integration"
+    dokkaPublications.html {
+        outputDirectory = project.layout.buildDirectory.dir('kdoc')
+    }
+}
+
 tasks.register('docsZip', Zip) {
-    dependsOn javaProjects.findAll { it.file('src/main/kotlin').exists() }.collect { ":${it.name}:dokkaGenerate" }
+    dependsOn 'dokkaGenerate'
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
