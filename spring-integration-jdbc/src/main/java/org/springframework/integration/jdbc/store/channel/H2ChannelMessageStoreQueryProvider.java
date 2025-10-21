@@ -31,7 +31,7 @@ public class H2ChannelMessageStoreQueryProvider implements ChannelMessageStoreQu
 	@Override
 	public String getCreateMessageQuery() {
 		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, " +
-				"MESSAGE_SEQUENCE, MESSAGE_BYTES) " +
+				"MESSAGE_SEQUENCE, MESSAGE_CONTENT) " +
 				"values (?, ?, ?, ?, ?, NEXT VALUE FOR %PREFIX%MESSAGE_SEQ, ?)";
 	}
 

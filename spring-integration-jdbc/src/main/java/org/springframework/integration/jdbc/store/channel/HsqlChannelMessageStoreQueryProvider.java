@@ -36,7 +36,7 @@ public class HsqlChannelMessageStoreQueryProvider implements ChannelMessageStore
 					CREATED_DATE,
 					MESSAGE_PRIORITY,
 					MESSAGE_SEQUENCE,
-					MESSAGE_BYTES)
+					MESSAGE_CONTENT)
 				values (?, ?, ?, ?, ?, NEXT VALUE FOR %PREFIX%MESSAGE_SEQ, ?)
 				""";
 	}
