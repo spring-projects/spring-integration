@@ -29,7 +29,7 @@
 		<int:queue />
 	</int:channel>
 
-	<bean id="jackson" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+	<bean id="jackson" class="org.springframework.amqp.support.converter.JacksonJsonMessageConverter" />
 
 	<bean id="mapperIn" class="org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper"
 		factory-method="inboundMapper" />

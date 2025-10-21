@@ -5,7 +5,7 @@ buildscript {
         gradlePluginPortal()
         mavenCentral()
         if (version.endsWith('SNAPSHOT')) {
-            maven { url 'https://repo.spring.io/snapshot' }
+            maven { url = 'https://repo.spring.io/snapshot' }
         }
     }
     dependencies {
@@ -22,7 +22,7 @@ plugins {
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
-    id 'io.freefair.aggregate-javadoc' version '8.14.2'
+    id 'io.freefair.aggregate-javadoc' version '9.0.0'
     id 'io.spring.nullability' version '0.0.6' apply false
 }
 
@@ -46,28 +46,28 @@ ext {
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
     apacheSshdVersion = '2.16.0'
-    artemisVersion = '2.42.0'
+    artemisVersion = '2.43.0'
     aspectjVersion = '1.9.24'
     assertjVersion = '3.27.6'
     assertkVersion = '0.28.1'
     avroVersion = '1.12.1'
     awaitilityVersion = '4.3.0'
-    camelVersion = '4.14.1'
+    camelVersion = '4.15.0'
     commonsDbcp2Version = '2.13.0'
     commonsIoVersion = '2.20.0'
     commonsNetVersion = '3.12.0'
     curatorVersion = '5.9.0'
-    debeziumVersion = '3.2.4.Final'
+    debeziumVersion = '3.3.1.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.1'
-    graalvmVersion = '24.2.2'
+    graalvmVersion = '25.0.0'
     greenmailVersion = '2.1.7'
     groovyVersion = '5.0.2'
     hamcrestVersion = '3.0'
-    hazelcastVersion = '5.5.0'
+    hazelcastVersion = '5.6.0'
     hibernateVersion = '7.1.4.Final'
     hsqldbVersion = '2.7.4'
-    h2Version = '2.3.232'
+    h2Version = '2.4.240'
     jacksonVersion = '2.20.0'
     jackson3Version = '3.0.0'
     jaxbVersion = '4.0.6'
@@ -85,30 +85,30 @@ ext {
     lettuceVersion = '6.8.1.RELEASE'
     log4jVersion = '2.25.2'
     mailVersion = '2.0.5'
-    micrometerTracingVersion = '1.6.0-SNAPSHOT'
-    micrometerVersion = '1.16.0-SNAPSHOT'
-    mockitoVersion = '5.19.0'
+    micrometerTracingVersion = '1.6.0-RC1'
+    micrometerVersion = '1.16.0-RC1'
+    mockitoVersion = '5.20.0'
     mongoDriverVersion = '5.6.1'
     mysqlVersion = '9.4.0'
     oracleVersion = '23.9.0.25.07'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.7.8'
-    protobufVersion = '4.32.1'
+    protobufVersion = '4.33.0'
     r2dbch2Version = '1.0.1.RELEASE'
-    reactorVersion = '2025.0.0-SNAPSHOT'
+    reactorVersion = '2025.0.0-RC1'
     resilience4jVersion = '2.3.0'
     romeToolsVersion = '2.1.0'
     rsocketVersion = '1.1.5'
     servletApiVersion = '6.1.0'
     smackVersion = '4.4.8'
-    springAmqpVersion = '4.0.0-SNAPSHOT'
-    springDataVersion = '2025.1.0-SNAPSHOT'
-    springGraphqlVersion = '2.0.0-SNAPSHOT'
-    springKafkaVersion = '4.0.0-SNAPSHOT'
-    springSecurityVersion = '7.0.0-SNAPSHOT'
-    springVersion = '7.0.0-SNAPSHOT'
-    springWsVersion = '5.0.0-SNAPSHOT'
-    testcontainersVersion = '1.21.3'
+    springAmqpVersion = '4.0.0-RC1'
+    springDataVersion = '2025.1.0-RC1'
+    springGraphqlVersion = '2.0.0-RC1'
+    springKafkaVersion = '4.0.0-RC1'
+    springSecurityVersion = '7.0.0-RC1'
+    springVersion = '7.0.0-RC1'
+    springWsVersion = '5.0.0-RC1'
+    testcontainersVersion = '2.0.1'
     tomcatVersion = '11.0.13'
     xmlUnitVersion = '2.10.4'
     xstreamVersion = '1.4.21'
@@ -126,12 +126,12 @@ allprojects {
             mavenLocal()
         }
         mavenCentral()
-        maven { url 'https://repo.spring.io/milestone' }
+        maven { url = 'https://repo.spring.io/milestone' }
         if (version.endsWith('SNAPSHOT')) {
-            maven { url 'https://repo.spring.io/snapshot' }
-            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+            maven { url = 'https://repo.spring.io/snapshot' }
+            maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
         }
-//		maven { url 'https://repo.spring.io/libs-staging-local' }
+//		maven { url = 'https://repo.spring.io/libs-staging-local' }
     }
 
     ext.javadocLinks = [
@@ -278,9 +278,7 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-        testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
-            exclude group: 'org.hamcrest'
-        }
+        testImplementation "org.awaitility:awaitility:$awaitilityVersion"
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'
         testImplementation "org.junit-pioneer:junit-pioneer:$junitPioneerVersion"
@@ -290,7 +288,7 @@ configure(javaProjects) { subproject ->
         testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
         testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
         testImplementation 'io.projectreactor:reactor-test'
-        testImplementation 'org.testcontainers:junit-jupiter'
+        testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
 
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -334,7 +332,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '11.0.1'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '12.1.0'
     }
 
     jar {
@@ -417,15 +415,15 @@ configure(javaProjects) { subproject ->
             }
             dokkaSourceSets.configureEach {
                 sourceRoots.setFrom(file('src/main/kotlin'))
-                classpath.from(sourceSets['main'].runtimeClasspath)
-                externalDocumentationLinks.register("spring-integration-api") {
+                classpath.from(sourceSets.main.runtimeClasspath)
+                externalDocumentationLinks.register('spring-integration-api') {
                     url.set(uri("https://docs.spring.io/spring-integration/docs/$version/api/"))
                     packageListUrl.set(file(rootProject.layout.buildDirectory.file('docs/javadoc/element-list')).toURI())
                 }
-                externalDocumentationLinks.register("reactor-core") {
+                externalDocumentationLinks.register('reactor-core') {
                     url.set(uri('https://projectreactor.io/docs/core/release/api/'))
                 }
-                externalDocumentationLinks.register("reactive-streams") {
+                externalDocumentationLinks.register('reactive-streams') {
                     url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
                 }
             }
@@ -459,8 +457,7 @@ project('spring-integration-amqp') {
         testImplementation 'org.springframework.amqp:spring-rabbit-junit'
         testImplementation project(':spring-integration-stream')
         testImplementation 'org.springframework:spring-web'
-        testImplementation 'org.testcontainers:rabbitmq'
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'org.testcontainers:testcontainers-rabbitmq'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -484,7 +481,7 @@ project('spring-integration-cassandra') {
     dependencies {
         api 'org.springframework.data:spring-data-cassandra'
 
-        testImplementation 'org.testcontainers:cassandra'
+        testImplementation 'org.testcontainers:testcontainers-cassandra'
         testRuntimeOnly "commons-io:commons-io:$commonsIoVersion"
     }
 }
@@ -554,7 +551,7 @@ project('spring-integration-debezium') {
         }
 
         testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
-        testImplementation 'org.testcontainers:mysql'
+        testImplementation 'org.testcontainers:testcontainers-mysql'
     }
 }
 
@@ -581,7 +578,6 @@ project('spring-integration-file') {
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
         testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -654,11 +650,9 @@ project('spring-integration-http') {
         optionalApi "com.rometools:rome:$romeToolsVersion"
         optionalApi 'org.springframework:spring-webflux'
 
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'org.springframework.security:spring-security-messaging'
         testImplementation 'org.springframework.security:spring-security-config'
         testImplementation 'org.springframework.security:spring-security-test'
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
 
         testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
@@ -672,7 +666,6 @@ project('spring-integration-ip') {
         testImplementation project(':spring-integration-event')
 
         testRuntimeOnly "com.esotericsoftware:kryo:$kryoVersion"
-        testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
         testRuntimeOnly 'tools.jackson.core:jackson-databind'
     }
 
@@ -697,11 +690,10 @@ project('spring-integration-jdbc') {
         testImplementation("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
             exclude group: 'commons-logging'
         }
-        testImplementation 'org.testcontainers:mysql'
-        testImplementation 'org.testcontainers:postgresql'
-        testImplementation 'org.testcontainers:oracle-xe'
+        testImplementation 'org.testcontainers:testcontainers-mysql'
+        testImplementation 'org.testcontainers:testcontainers-postgresql'
+        testImplementation 'org.testcontainers:testcontainers-oracle-xe'
 
-        testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
         testRuntimeOnly 'tools.jackson.core:jackson-databind'
         testRuntimeOnly "com.oracle.database.jdbc:ojdbc11:$oracleVersion"
     }
@@ -718,7 +710,6 @@ project('spring-integration-jms') {
         }
         testImplementation "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
         testImplementation 'org.springframework:spring-oxm'
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
     }
@@ -751,7 +742,6 @@ project('spring-integration-kafka') {
         testImplementation ('org.springframework.kafka:spring-kafka-test') {
             exclude group: 'ch.qos.logback'
         }
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -777,7 +767,7 @@ project('spring-integration-mongodb') {
         optionalApi 'org.mongodb:mongodb-driver-sync'
         optionalApi 'org.mongodb:mongodb-driver-reactivestreams'
 
-        testImplementation 'org.testcontainers:mongodb'
+        testImplementation 'org.testcontainers:testcontainers-mongodb'
     }
 }
 
@@ -797,7 +787,6 @@ project('spring-integration-mqtt') {
         optionalApi "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
 
         testImplementation project(':spring-integration-jmx')
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -808,7 +797,6 @@ project('spring-integration-redis') {
         api 'org.springframework.data:spring-data-redis'
 
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -879,7 +867,6 @@ project('spring-integration-stomp') {
             exclude group: 'io.netty'
         }
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
 
         testRuntimeOnly 'org.springframework:spring-webmvc'
@@ -925,11 +912,9 @@ project('spring-integration-webflux') {
         optionalApi 'io.projectreactor.netty:reactor-netty-http'
 
         testImplementation "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
-        testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'org.springframework:spring-webmvc'
         testImplementation 'org.springframework.security:spring-security-config'
         testImplementation 'org.springframework.security:spring-security-test'
-        testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation('io.micrometer:micrometer-tracing-integration-test') {
@@ -952,7 +937,6 @@ project('spring-integration-websocket') {
         testImplementation project(':spring-integration-event')
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 
-        testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
         testRuntimeOnly 'tools.jackson.core:jackson-databind'
     }
 
@@ -969,16 +953,13 @@ project('spring-integration-ws') {
         api 'org.springframework:spring-oxm'
         api 'org.springframework:spring-webmvc'
         api('org.springframework.ws:spring-ws-core') {
-            exclude group: 'org.springframework'
             exclude group: 'org.glassfish.jaxb'
         }
 
         provided "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
 
         testImplementation "com.thoughtworks.xstream:xstream:$xstreamVersion"
-        testImplementation('org.springframework.ws:spring-ws-support') {
-            exclude group: 'org.springframework'
-        }
+        testImplementation 'org.springframework.ws:spring-ws-support'
         testImplementation 'org.springframework:spring-jms'
         testImplementation "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
         testImplementation "org.igniterealtime.smack:smack-tcp:$smackVersion"
@@ -991,12 +972,9 @@ project('spring-integration-xml') {
     description = 'Spring Integration XML Support'
     dependencies {
         api 'org.springframework:spring-oxm'
-        api('org.springframework.ws:spring-xml') {
-            exclude group: 'org.springframework'
-        }
-        optionalApi('org.springframework.ws:spring-ws-core') {
-            exclude group: 'org.springframework'
-        }
+        api 'org.springframework.ws:spring-xml'
+
+        optionalApi 'org.springframework.ws:spring-ws-core'
 
         testImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
         testImplementation "org.xmlunit:xmlunit-assertj3:$xmlUnitVersion"
@@ -1024,7 +1002,6 @@ project('spring-integration-zeromq') {
     dependencies {
         api "org.zeromq:jeromq:$jeroMqVersion"
 
-        optionalApi 'com.fasterxml.jackson.core:jackson-databind'
         optionalApi 'tools.jackson.core:jackson-databind'
     }
 }
@@ -1055,7 +1032,7 @@ project('spring-integration-bom') {
 
     dependencies {
         constraints {
-            javaProjects.sort { "$it.name" }.each {
+            javaProjects.sort { it.name }.each {
                 api it
             }
         }
@@ -1091,7 +1068,9 @@ javadoc {
     }
 
     destinationDir = file('build/api')
-    classpath = files().from { files(javaProjects.collect { it.sourceSets.main.compileClasspath }) }
+	doFirst {
+		classpath = files(javaProjects.collect { it.sourceSets.main.compileClasspath })
+	}
 }
 
 tasks.register('api') {
@@ -1153,7 +1132,7 @@ dependencies {
 }
 
 dokka {
-    moduleName = "spring-integration"
+    moduleName = 'spring-integration'
     dokkaPublications.html {
         outputDirectory = project.layout.buildDirectory.dir('kdoc')
     }
@@ -1187,30 +1166,30 @@ tasks.register('distZip', Zip) {
     description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
             "suitable for community download page."
 
-    ext.baseDir = "${project.name}-${project.version}"
+    def baseDir = "${project.name}-${project.version}"
 
     from('src/dist') {
         include 'readme.txt'
         include 'notice.txt'
-        into "${baseDir}"
+        into baseDir
         expand(copyright: new Date().format('yyyy'), version: project.version)
     }
 
     from("$project.rootDir") {
         include 'LICENSE.txt'
-        into "${baseDir}"
+        into baseDir
     }
 
     from(zipTree(docsZip.archiveFile)) {
-        into "${baseDir}/docs"
+        into "$baseDir/docs"
     }
 
     from(zipTree(schemaZip.archiveFile)) {
-        into "${baseDir}/schema"
+        into "$baseDir/schema"
     }
 
     javaProjects.each { subproject ->
-        into("${baseDir}/libs") {
+        into("$baseDir/libs") {
             from subproject.jar
             from subproject.sourcesJar
             from subproject.javadocJar
@@ -1218,7 +1197,7 @@ tasks.register('distZip', Zip) {
     }
 
     from(project(':spring-integration-bom').generatePomFileForMavenJavaPublication) {
-        into "${baseDir}/libs"
+        into "$baseDir/libs"
         rename 'pom-default.xml', "spring-integration-bom-${project.version}.xml"
     }
 }
@@ -1229,7 +1208,7 @@ tasks.register('dist') {
     description = 'Builds -dist, -docs and -schema distribution archives.'
 }
 
-apply from: "${rootDir}/gradle/publish-maven.gradle"
+apply from: "$rootDir/gradle/publish-maven.gradle"
 
 publishing {
     publications {

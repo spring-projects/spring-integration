@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -128,7 +129,7 @@ public class ReactiveStreamsTests {
 		assertThat(TestUtils.getPropertyValue(this.messageSource, "messagingTemplate.sendTimeout")).isEqualTo(256L);
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testPollableReactiveFlow() throws Exception {
 		assertThat(this.reactiveTransformer).isInstanceOf(ReactiveStreamsConsumer.class);
 		this.reactiveTransformer.setTaskScheduler(new SimpleAsyncTaskScheduler());

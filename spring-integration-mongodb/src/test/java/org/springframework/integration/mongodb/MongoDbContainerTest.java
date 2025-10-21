@@ -27,8 +27,8 @@ import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
@@ -52,7 +52,7 @@ import org.springframework.messaging.Message;
  * The Testcontainers 'reuse' option must be disabled, so, Ryuk container is started
  * and will clean all the containers up from this test suite after JVM exit.
  * Since the Redis container instance is shared via static property, it is going to be
- * started only once per JVM, therefore the target Docker container is reused automatically.
+ * started only once per JVM; therefore, the target Docker container is reused automatically.
  *
  * @author Oleg Zhurakousky
  * @author Xavier Padro

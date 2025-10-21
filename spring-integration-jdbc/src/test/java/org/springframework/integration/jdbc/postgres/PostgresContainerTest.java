@@ -20,15 +20,15 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * The base contract for JUnit tests based on the container for Postgres.
  * The Testcontainers 'reuse' option must be disabled, so, Ryuk container is started
  * and will clean all the containers up from this test suite after JVM exit.
  * Since the Postgres container instance is shared via static property, it is going to be
- * started only once per JVM, therefore the target Docker container is reused automatically.
+ * started only once per JVM; therefore, the target Docker container is reused automatically.
  *
  * @author Artem Bilan
  * @author Rafael Winterhalter
@@ -39,7 +39,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public interface PostgresContainerTest {
 
-	PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:11")
+	PostgreSQLContainer POSTGRES_CONTAINER = new PostgreSQLContainer("postgres:11")
 			.withInitScript("org/springframework/integration/jdbc/schema-postgresql.sql");
 
 	@BeforeAll

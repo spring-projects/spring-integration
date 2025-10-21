@@ -104,7 +104,7 @@
 		<property name="delegates">
 			<map>
 				<entry key="application/json">
-					<bean class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+					<bean class="org.springframework.amqp.support.converter.JacksonJsonMessageConverter" />
 				</entry>
 			</map>
 		</property>

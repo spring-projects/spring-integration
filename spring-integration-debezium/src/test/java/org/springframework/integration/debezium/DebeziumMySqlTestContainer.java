@@ -21,8 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -36,8 +36,8 @@ public interface DebeziumMySqlTestContainer {
 
 	int EXPECTED_DB_TX_COUNT = 52;
 
-	MySQLContainer<?> DEBEZIUM_MYSQL =
-			new MySQLContainer<>(
+	MySQLContainer DEBEZIUM_MYSQL =
+			new MySQLContainer(
 					DockerImageName.parse("debezium/example-mysql:3.0.0.Final")
 							.asCompatibleSubstituteFor("mysql"))
 					.withUsername("mysqluser")

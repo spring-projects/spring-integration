@@ -21,9 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -141,7 +139,7 @@ public class R2dbcMessageHandlerTests {
 
 		this.personRepository.findAll()
 				.as(StepVerifier::create)
-				.consumeNextWith(p -> Assert.assertEquals(Optional.of(40), Optional.ofNullable(p.getAge())))
+				.consumeNextWith(p -> assertThat(p.getAge()).isEqualTo(40))
 				.verifyComplete();
 	}
 
@@ -181,7 +179,7 @@ public class R2dbcMessageHandlerTests {
 		this.client.sql("SELECT age,name FROM person where age=40")
 				.fetch().all()
 				.as(StepVerifier::create)
-				.consumeNextWith(response -> Assert.assertEquals("{AGE=40, NAME=Bob}", response.toString()))
+				.consumeNextWith(response -> assertThat(response.toString()).isEqualTo("{AGE=40, NAME=Bob}"))
 				.verifyComplete();
 
 	}

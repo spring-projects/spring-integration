@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.rabbitmq.RabbitMQContainer;
 
 /**
  * Provides a static {@link RabbitMQContainer} that can be shared across test classes.

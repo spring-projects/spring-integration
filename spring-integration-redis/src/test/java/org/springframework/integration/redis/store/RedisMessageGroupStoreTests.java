@@ -26,7 +26,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -313,7 +312,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 				MessageGroup group = store1.addMessageToGroup(this.groupId, message);
 				if (group.getMessages().size() != 1) {
 					failures.add("ADD");
-					throw new AssertionFailedError("Failed on ADD");
+					throw new RuntimeException("Failed on ADD");
 				}
 			});
 			executor.execute(() -> {
@@ -321,7 +320,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 				MessageGroup group = store2.getMessageGroup(this.groupId);
 				if (!group.getMessages().isEmpty()) {
 					failures.add("REMOVE");
-					throw new AssertionFailedError("Failed on Remove");
+					throw new RuntimeException("Failed on Remove");
 				}
 			});
 
