@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.expression.SupplierExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
 import org.springframework.integration.file.transformer.FileToStringTransformer;
 import org.springframework.messaging.Message;
@@ -43,7 +45,7 @@ public abstract class Files {
 	 * @return the {@link FileInboundChannelAdapterSpec} instance.
 	 */
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory) {
-		return inboundAdapter(() -> directory);
+		return inboundAdapter(directory, null);
 	}
 
 	/**
@@ -65,7 +67,8 @@ public abstract class Files {
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory,
 			@Nullable Comparator<File> receptionOrderComparator) {
 
-		return inboundAdapter(() -> directory, null);
+		return new FileInboundChannelAdapterSpec(receptionOrderComparator)
+				.directory(new ValueExpression<>(directory));
 	}
 
 	/**
@@ -78,7 +81,8 @@ public abstract class Files {
 	public static FileInboundChannelAdapterSpec inboundAdapter(Supplier<File> directorySupplier,
 			@Nullable Comparator<File> receptionOrderComparator) {
 
-		return new FileInboundChannelAdapterSpec(receptionOrderComparator).directory(directorySupplier);
+		return new FileInboundChannelAdapterSpec(receptionOrderComparator)
+				.directory(new SupplierExpression<>(directorySupplier));
 	}
 
 	/**
@@ -92,7 +96,7 @@ public abstract class Files {
 
 	/**
 	 * Create a {@link FileWritingMessageHandlerSpec} builder for the one-way {@code FileWritingMessageHandler}.
-	 * @param directoryExpression the SpEL expression to evaluate target directory for writing files.
+	 * @param directoryExpression the SpEL expression to evaluate the target directory for writing files.
 	 * @return the {@link FileWritingMessageHandlerSpec} instance.
 	 */
 	public static FileWritingMessageHandlerSpec outboundAdapter(String directoryExpression) {
@@ -129,7 +133,7 @@ public abstract class Files {
 
 	/**
 	 * Create a {@link FileWritingMessageHandlerSpec} builder for the gateway {@code FileWritingMessageHandler}.
-	 * @param directoryExpression the SpEL expression to evaluate target directory for writing files.
+	 * @param directoryExpression the SpEL expression to evaluate the target directory for writing files.
 	 * @return the {@link FileWritingMessageHandlerSpec} instance.
 	 */
 	public static FileWritingMessageHandlerSpec outboundGateway(String directoryExpression) {
@@ -193,7 +197,7 @@ public abstract class Files {
 	}
 
 	/**
-	 * Create a {@link FileToStringTransformer} instance with default {@code charset} and no delete files afterwards.
+	 * Create a {@link FileToStringTransformer} instance with default {@code charset} and no delete files afterward.
 	 * @return the {@link FileToStringTransformer}.
 	 */
 	public static FileToStringTransformer toStringTransformer() {
@@ -201,7 +205,7 @@ public abstract class Files {
 	}
 
 	/**
-	 * Create a {@link FileToStringTransformer} instance with default {@code charset} and with delete files flag.
+	 * Create a {@link FileToStringTransformer} instance with default {@code charset} and the flag to delete files.
 	 * @param deleteFiles true to delete the file.
 	 * @return the {@link FileToStringTransformer}.
 	 */
@@ -210,7 +214,7 @@ public abstract class Files {
 	}
 
 	/**
-	 * Create a {@link FileToStringTransformer} instance with provided {@code charset} and no delete files afterwards.
+	 * Create a {@link FileToStringTransformer} instance with provided {@code charset} and no delete files afterward.
 	 * @param charset The charset.
 	 * @return the {@link FileToStringTransformer}.
 	 */
@@ -219,7 +223,7 @@ public abstract class Files {
 	}
 
 	/**
-	 * Create a {@link FileToStringTransformer} instance with provided {@code charset} and delete files flag.
+	 * Create a {@link FileToStringTransformer} instance with provided {@code charset} and the flag to delete files.
 	 * @param charset The charset.
 	 * @param deleteFiles true to delete the file.
 	 * @return the {@link FileToStringTransformer}.
@@ -244,7 +248,7 @@ public abstract class Files {
 	/**
 	 * Create a {@link FileToByteArrayTransformer} instance.
 	 * @param deleteFiles specify whether to delete the File after transformation.
-	 * Default is <em>false</em>.
+	 * Default is {@code false}.
 	 * @return the {@link FileToByteArrayTransformer}.
 	 */
 	public static FileToByteArrayTransformer toByteArrayTransformer(boolean deleteFiles) {

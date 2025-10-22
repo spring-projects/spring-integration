@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
@@ -32,7 +31,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.RecursiveDirectoryScanner;
@@ -54,7 +52,7 @@ public class FileInboundChannelAdapterSpec
 		extends MessageSourceSpec<FileInboundChannelAdapterSpec, FileReadingMessageSource>
 		implements ComponentsRegistration {
 
-	protected final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean(); // NOSONAR
+	protected final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean();
 
 	private @Nullable FileLocker locker;
 
@@ -73,18 +71,18 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 * Specify the Supplier for input directory.
-	 * @param directorySupplier the Supplier for directory to poll.
+	 * Specify the SpEL expression for the input directory.
+	 * @param directoryExpression the SpEL expression for directory to poll.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setDirectoryExpression(Expression)
 	 */
-	FileInboundChannelAdapterSpec directory(Supplier<File> directorySupplier) {
-		this.target.setDirectoryExpression(new SupplierExpression<>(directorySupplier));
+	FileInboundChannelAdapterSpec directory(Expression directoryExpression) {
+		this.target.setDirectoryExpression(directoryExpression);
 		return _this();
 	}
 
 	/**
-	 * A convenient flag to determine if target message source should use a
+	 * A convenient flag to determine if a target message source should use a
 	 * {@link RecursiveDirectoryScanner} or stay with a default one.
 	 * @param recursive to set or not a {@link RecursiveDirectoryScanner}.
 	 * @return the spec.
