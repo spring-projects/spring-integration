@@ -679,6 +679,7 @@ project('spring-integration-jdbc') {
     dependencies {
         api 'org.springframework:spring-jdbc'
         optionalApi "org.postgresql:postgresql:$postgresVersion"
+        optionalApi 'tools.jackson.core:jackson-databind'
 
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
