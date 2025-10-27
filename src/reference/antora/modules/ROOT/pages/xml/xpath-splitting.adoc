@@ -6,10 +6,31 @@ The splitter uses the provided XPath expression to split the payload into a numb
 By default, this results in each `Node` instance becoming the payload of a new message.
 When each message should be a `Document`, you can set the `createDocuments` flag.
 Where a `String` payload is passed in, the payload is converted and then split before being converted back to a number of `String` messages.
-The XPath splitter implements `MessageHandler` and should therefore be configured in conjunction with an appropriate endpoint (see the namespace support example after the following example for a simpler configuration alternative).
+The XPath splitter implements `MessageHandler` and should therefore be configured in conjunction with an appropriate endpoint (see example after the following example for a simpler configuration alternative).
 The following example configures a bean that uses an `XPathMessageSplitter`:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public EventDrivenConsumer splittingEndpoint(SubscribableChannel orderChannel,
+        MessageChannel orderItemsChannel,
+        DocumentBuilderFactory customisedDocumentBuilder) {
+
+    XPathMessageSplitter splitterHandler = new XPathMessageSplitter("/order/items");
+    splitterHandler.setDocumentBuilder(customisedDocumentBuilder);
+    splitterHandler.setOutputChannel(orderItemsChannel);
+
+    return new EventDrivenConsumer(orderChannel, splitterHandler);
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <bean id="splittingEndpoint"
       class="org.springframework.integration.endpoint.EventDrivenConsumer">
@@ -23,10 +44,44 @@ The following example configures a bean that uses an `XPathMessageSplitter`:
     </constructor-arg>
 </bean>
 ----
+======
 
-XPath splitter namespace support lets you create a message endpoint with an input channel and output channel, as the following example shows:
+`XPathMessageSplitter` (when using Java configuration) or XPath splitter namespace support (when using XML configuration) lets you create a message endpoint with an input channel and output channel, as the following example shows:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow orderItemSplitterFlow() {
+    return IntegrationFlow.from("orderChannel")
+            .split(new XPathMessageSplitter("/order/items"))
+            .channel("orderItemsChannel")
+            .get();
+}
+
+@Bean
+public IntegrationFlow orderItemDocumentSplitterFlow(PollableChannel orderChannelQueue) {
+    XPathMessageSplitter xPathMessageSplitter = new XPathMessageSplitter("/order/items");
+    xPathMessageSplitter.setCreateDocuments(true);
+
+    org.springframework.integration.core.MessageSource<Object> messageSource =
+            () -> (org.springframework.messaging.Message<Object>) orderChannelQueue.receive(1000);
+
+    return IntegrationFlow.from(messageSource,
+                    c -> c.poller(Pollers.fixedRate(Duration.ofMillis(2000)).maxMessagesPerPoll(1)))
+            .split(xPathMessageSplitter)
+            .channel("orderItemsChannel")
+            .get();
+}
+
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <!-- Split the order into items and create a new message for each item node -->
 <int-xml:xpath-splitter id="orderItemSplitter"
@@ -44,11 +99,41 @@ XPath splitter namespace support lets you create a message endpoint with an inpu
     <int:poller fixed-rate="2000"/>
 </int-xml:xpath-splitter>
 ----
+======
 
 Starting with version 4.2, the `XPathMessageSplitter` exposes the `outputProperties` (such as `OutputKeys.OMIT_XML_DECLARATION`) property for an `javax.xml.transform.Transformer` instance when a request `payload` is not of type `org.w3c.dom.Node`.
 The following example defines a property and uses it with the `output-properties` property:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public Properties outputProperties() {
+    Properties props = new Properties();
+    // The SpEL expression from XML is replaced with a direct static import
+    props.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    return props;
+}
+
+@Bean
+public IntegrationFlow splitterWithPropertiesFlow(
+        @Qualifier("outputProperties") Properties customOutputProperties) {
+    XPathMessageSplitter xPathMessageSplitter = new XPathMessageSplitter("/order/items");
+    xPathMessageSplitter.setOutputProperties(customOutputProperties);
+
+    return IntegrationFlow.from("input")
+            .split(xPathMessageSplitter)
+            .channel("outputProperties")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <util:properties id="outputProperties">
 	<beans:prop key="#{T (javax.xml.transform.OutputKeys).OMIT_XML_DECLARATION}">yes</beans:prop>
@@ -59,6 +144,8 @@ The following example defines a property and uses it with the `output-properties
     <xpath-expression expression="/orders/order"/>
 </xpath-splitter>
 ----
+======
+
 
 Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults to `true`).
 This allows the "`streaming`" of split nodes in the downstream flow.
