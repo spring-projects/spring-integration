@@ -19,7 +19,7 @@ package org.springframework.integration.smb.inbound;
 import java.io.File;
 import java.util.Comparator;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -29,6 +29,7 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  * A {@link org.springframework.integration.core.MessageSource} implementation for SMB.
  *
  * @author Markus Spann
+ * @author Daniel Frey
  *
  * @since 6.0
  */

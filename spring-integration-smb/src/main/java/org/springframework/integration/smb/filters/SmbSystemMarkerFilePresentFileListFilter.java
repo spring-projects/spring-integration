@@ -19,7 +19,7 @@ package org.springframework.integration.smb.filters;
 import java.util.Map;
 import java.util.function.Function;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.filters.AbstractMarkerFilePresentFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -28,6 +28,7 @@ import org.springframework.integration.file.filters.FileListFilter;
  * Implementation of {@link AbstractMarkerFilePresentFileListFilter} for SMB.
  *
  * @author Prafull Kumar Soni
+ * @author Daniel Frey
  *
  * @since 6.0
  */

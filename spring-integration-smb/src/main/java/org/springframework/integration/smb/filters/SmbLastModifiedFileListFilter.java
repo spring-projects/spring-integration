@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Consumer;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.filters.AbstractLastModifiedFileListFilter;
 
@@ -33,6 +33,7 @@ import org.springframework.integration.file.filters.AbstractLastModifiedFileList
  * When discardCallback {@link #addDiscardCallback(Consumer)} is provided, it called for all the rejected files.
  *
  * @author Adama Sorho
+ * @author Daniel Frey
  *
  * @since 6.2
  */

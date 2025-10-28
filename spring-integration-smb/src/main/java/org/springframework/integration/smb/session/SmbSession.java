@@ -25,9 +25,9 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
 
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileOutputStream;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFileOutputStream;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Gregory Bragg
  * @author Adam Jones
  * @author Paolo Fosser
+ * @author Daniel Frey
  *
  * @since 6.0
  */

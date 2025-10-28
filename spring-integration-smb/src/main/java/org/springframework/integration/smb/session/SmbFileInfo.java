@@ -18,11 +18,11 @@ package org.springframework.integration.smb.session;
 
 import java.io.IOException;
 
-import jcifs.internal.dtyp.ACE;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codelibs.jcifs.smb.ACE;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */
@@ -103,8 +104,8 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 	 * </pre>
 	 * @return a list of Access Control Entry (ACE) objects representing the security
 	 * descriptor entry and permissions associated with this file or directory.
-	 * @see jcifs.ACE
-	 * @see jcifs.SID
+	 * @see org.codelibs.jcifs.smb.ACE
+	 * @see org.codelibs.jcifs.smb.SID
 	 */
 	@Override
 	public @Nullable String getPermissions() {

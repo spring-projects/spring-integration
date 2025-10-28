@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Markus Spann
  * @author Gunnar Hillert
+ * @author Daniel Frey
  */
 public class SmbInboundRemoteFileSystemSynchronizerTests extends AbstractBaseTests {
 

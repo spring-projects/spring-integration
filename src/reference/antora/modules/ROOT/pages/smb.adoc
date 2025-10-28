@@ -76,9 +76,9 @@ public SmbSessionFactory smbSessionFactory() {
 }
 ----
 
-The `SmbSessionFactory` can be initialized with a custom `jcifs.CIFSContext`.
+The `SmbSessionFactory` can be initialized with a custom `org.codelibs.jcifs.smb.CIFSContext`.
 
-NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `jcifs.CIFSContext`.
+NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `org.codelibs.jcifs.smb.CIFSContext`.
 
 [source,java]
 ----
@@ -101,6 +101,7 @@ public SmbSessionFactory smbSessionFactory() {
 The `SmbSessionFactory` initiates a new connection every time when a `Session` is requested.
 In most cases that is not necessary and `Session` could be cached.
 For that purpose, the `SmbSessionFactory` as mentioned earlier should be wrapped into an instance of `CachingSessionFactory`:
+
 [source,java]
 ----
 @Bean
@@ -512,7 +513,7 @@ If the transfer is ignored, the remote file is not deleted, because the `FileExi
 
 The message payload resulting from an `mget` operation is a `List<File>` object (that is, a `List` of `File` objects, each representing a retrieved file).
 
-IMPORTANT: If the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contains files that were not fetched due to the file already existing.
+IMPORTANT: If the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contains files not fetched due to the file already existing.
 Previously, the array contained all files, including those that already existed.
 
 The expression you use determines the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
@@ -534,7 +535,7 @@ However, we describe an alternative available after this note.
 
 If you filter a subdirectory, no additional traversal of that subdirectory is performed.
 
-The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` to obtain the directory tree and the directories themselves cannot be included in the list).
+The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` to get the directory tree and the directories themselves cannot be included in the list).
 
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
@@ -637,7 +638,7 @@ The `get` and `mget` commands support the `local-directory-expression` attribute
 It defines a SpEL expression to generate the names of local directories during the transfer.
 The root object of the evaluation context is the request message.
 The `remoteDirectory` variable is also available.
-It is particularly useful for mget (for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`).
+It is particularly useful for `mget` (for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`).
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
