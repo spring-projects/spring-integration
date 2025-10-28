@@ -18,7 +18,7 @@ package org.springframework.integration.smb.session;
 
 import java.io.IOException;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  */
 public class SmbSessionTests extends SmbTestSupport {

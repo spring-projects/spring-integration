@@ -19,7 +19,7 @@ package org.springframework.integration.smb.filters;
 import java.time.Duration;
 import java.time.Instant;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.5
  */

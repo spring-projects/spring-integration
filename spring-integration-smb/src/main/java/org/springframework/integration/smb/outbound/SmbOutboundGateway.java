@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -37,6 +37,7 @@ import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
  *
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import jcifs.DialectVersion;
+import org.codelibs.jcifs.smb.DialectVersion;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gregory Bragg
  * @author Jelle Smits
+ * @author Daniel Frey
  *
  * @since 6.0
  */
