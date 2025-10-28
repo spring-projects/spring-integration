@@ -18,9 +18,9 @@ package org.springframework.integration.smb.session;
 
 import java.util.List;
 
-import jcifs.smb.NtStatus;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.NtStatus;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -30,6 +30,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
  * The SMB-specific {@link RemoteFileTemplate} implementation.
  *
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

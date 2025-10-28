@@ -19,10 +19,10 @@ package org.springframework.integration.smb.session;
 import java.io.IOException;
 import java.util.Properties;
 
-import jcifs.CIFSContext;
-import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codelibs.jcifs.smb.CIFSContext;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Markus Spann
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

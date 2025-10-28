@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
+ * @author Daniel Frey
  */
 public class SmbSendingMessageHandlerTests extends AbstractBaseTests implements TestApplicationContextAware {
 

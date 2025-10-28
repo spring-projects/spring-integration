@@ -18,8 +18,8 @@ package org.springframework.integration.smb.filters;
 
 import java.io.UncheckedIOException;
 
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 
@@ -28,6 +28,7 @@ import org.springframework.integration.file.filters.AbstractSimplePatternFileLis
  *
  * @author Markus Spann
  * @author Prafull Kumar Soni
+ * @author Daniel Frey
  *
  * @since 6.0
  */

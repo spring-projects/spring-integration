@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.dsl;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.dsl.RemoteFileOutboundGatewaySpec;
 import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter;
@@ -27,6 +27,7 @@ import org.springframework.integration.smb.outbound.SmbOutboundGateway;
  * A {@link RemoteFileOutboundGatewaySpec} for SMB.
  *
  * @author Gregory Bragg
+ * @author Daniel Frey
  *
  * @since 6.0
  */

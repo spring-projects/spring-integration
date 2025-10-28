@@ -21,9 +21,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import jcifs.DialectVersion;
-import jcifs.smb.SmbFile;
 import org.apache.commons.io.IOUtils;
+import org.codelibs.jcifs.smb.DialectVersion;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -59,6 +59,7 @@ import org.springframework.integration.smb.session.SmbSessionFactory;
  * @author Gregory Bragg
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

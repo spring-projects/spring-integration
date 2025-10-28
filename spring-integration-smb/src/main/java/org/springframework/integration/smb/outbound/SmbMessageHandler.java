@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.outbound;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -29,6 +29,7 @@ import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
  *
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  *

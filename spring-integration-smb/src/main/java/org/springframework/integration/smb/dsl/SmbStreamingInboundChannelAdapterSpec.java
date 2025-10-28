@@ -18,7 +18,7 @@ package org.springframework.integration.smb.dsl;
 
 import java.util.Comparator;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
@@ -36,6 +36,7 @@ import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
  *
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

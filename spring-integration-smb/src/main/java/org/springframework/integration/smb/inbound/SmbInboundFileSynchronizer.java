@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.inbound;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -26,6 +26,7 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  *
  * @author Markus Spann
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

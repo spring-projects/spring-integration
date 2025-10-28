@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileInputStream;
+import org.codelibs.jcifs.smb.impl.SmbException;
+import org.codelibs.jcifs.smb.impl.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFileInputStream;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +72,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gregory Bragg
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

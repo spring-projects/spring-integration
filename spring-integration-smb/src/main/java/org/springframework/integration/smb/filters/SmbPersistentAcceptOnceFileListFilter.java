@@ -16,7 +16,7 @@
 
 package org.springframework.integration.smb.filters;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
@@ -26,6 +26,7 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
  *
  * @author Prafull Kumar Soni
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.0
  */

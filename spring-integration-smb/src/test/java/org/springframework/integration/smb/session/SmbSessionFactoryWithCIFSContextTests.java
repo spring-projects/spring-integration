@@ -20,10 +20,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import jcifs.CIFSContext;
-import jcifs.context.SingletonContext;
-import jcifs.smb.SmbFile;
-import jcifs.util.Strings;
+import org.codelibs.jcifs.smb.CIFSContext;
+import org.codelibs.jcifs.smb.context.SingletonContext;
+import org.codelibs.jcifs.smb.impl.SmbFile;
+import org.codelibs.jcifs.smb.util.Strings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gregory Bragg
  * @author Artem Bilan
+ * @author Daniel Frey
  */
 public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests implements TestApplicationContextAware {
 

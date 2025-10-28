@@ -19,7 +19,7 @@ package org.springframework.integration.smb.filters;
 import java.time.Duration;
 import java.time.Instant;
 
-import jcifs.smb.SmbFile;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 
 import org.springframework.integration.file.filters.AbstractRecentFileListFilter;
 
@@ -27,6 +27,7 @@ import org.springframework.integration.file.filters.AbstractRecentFileListFilter
  * The {@link AbstractRecentFileListFilter} implementation for SMB protocol.
  *
  * @author Artem Bilan
+ * @author Daniel Frey
  *
  * @since 6.2
  */
