@@ -15,7 +15,7 @@ This section will explain the workings of the following transformers and how to 
 All the XML transformers extend either https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[`AbstractTransformer`] or  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[`AbstractPayloadTransformer`] and therefore implement  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[`Transformer`].
 When configuring XML transformers as beans in Spring Integration, you would normally configure the `Transformer` in conjunction with a  https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html[`MessageTransformingHandler`].
 This lets the transformer be used as an endpoint.
-Finally, we discuss the namespace support, which allows for configuring the transformers as elements in XML.
+Finally, we discuss configuring transformers using Java Configuration as well as XML namespace support, which allows for configuring the transformers as elements in XML.
 
 [[xml-unmarshalling-transformer]]
 === UnmarshallingTransformer
@@ -35,7 +35,28 @@ See xref:ws.adoc#mtom-support[MTOM Support] for more information.
 
 The following example shows how to define an unmarshalling transformer:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+	@Bean
+	public Jaxb2Marshaller jaxb2Marshaller() {
+		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+		marshaller.setContextPath("org.example");
+		return marshaller;
+	}
+
+	@Bean
+	public UnmarshallingTransformer unmarshallingTransformer(Jaxb2Marshaller jaxb2Marshaller) {
+		return new UnmarshallingTransformer(jaxb2Marshaller);
+	}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
@@ -45,6 +66,7 @@ The following example shows how to define an unmarshalling transformer:
     </constructor-arg>
 </bean>
 ----
+======
 
 [[xml-marshalling-transformer]]
 === Using `MarshallingTransformer`
@@ -57,7 +79,21 @@ To do so, configure a `ResultTransformer`.
 Spring integration provides two implementations, one that converts to `String` and another that converts to `Document`.
 The following example configures a marshalling transformer that transforms to a document:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+	@Bean
+	public MarshallingTransformer marshallingTransformer(Jaxb2Marshaller jaxb2Marshaller) {
+		return new MarshallingTransformer(jaxb2Marshaller, new ResultToDocumentTransformer());
+	}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <bean id="marshallingTransformer" class="o.s.i.xml.transformer.MarshallingTransformer">
     <constructor-arg>
@@ -70,7 +106,7 @@ The following example configures a marshalling transformer that transforms to a 
     </constructor-arg>
 </bean>
 ----
-
+======
 By default, the `MarshallingTransformer` passes the payload object to the `Marshaller`.
 However, if its boolean `extractPayload` property is set to `false`, the entire `Message` instance is passed to the `Marshaller` instead.
 That may be useful for certain custom implementations of the `Marshaller` interface, but, typically, the payload is the appropriate source object for marshalling when you delegate to any of the various `Marshaller` implementations.
@@ -95,7 +131,22 @@ You can customize this by providing a https://docs.spring.io/spring-integration/
 
 The following example configures a bean that works as an XSLT payload transformer:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+	@Bean
+	public XsltPayloadTransformer xsltPayloadTransformer() {
+		var xslResource = new ClassPathResource("org/example/xsl/transform.xsl");
+		return new XsltPayloadTransformer(xslResource, new ResultToDocumentTransformer());
+	}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <bean id="xsltPayloadTransformer" class="o.s.i.xml.transformer.XsltPayloadTransformer">
   <constructor-arg value="classpath:org/example/xsl/transform.xsl"/>
@@ -104,9 +155,9 @@ The following example configures a bean that works as an XSLT payload transforme
   </constructor-arg>
 </bean>
 ----
+======
 
-Starting with Spring Integration 3.0, you can specify the transformer factory class name by using a constructor argument.
-You can do so by using the `transformer-factory-class` attribute when you use the namespace.
+Starting with Spring Integration 3.0, you can now specify the transformer factory class name by setting `transformerFactoryClassName` in the constructor when using Java configuration or `transformer-factory-class` attribute when using XML configuration.
 
 [[xml-using-result-transformers]]
 === Using `ResultTransformer` Implementations
@@ -127,23 +178,49 @@ By default, if the input payload is an instance of `String` or https://docs.orac
 However, if the input payload is a https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Source.html[`Source`] or any other type, the `resultTransformer` property is applied.
 Additionally, you can set the `alwaysUseResultFactory` property to `true`, which also causes the specified `resultTransformer` to be used.
 
-For more information and examples, see xref:xml/transformation.adoc#xml-using-result-transformers-namespace[Namespace Configuration and Result Transformers].
+For more information and examples, see xref:xml/transformation.adoc#configuration-and-result-transformers[Configuration and Result Transformers].
 
 [[xml-transformer-namespace]]
 == Namespace Support for XML Transformers
 
-Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which was xref:xml/xpath-namespace-support.adoc[shown earlier].
-The namespace support for transformers creates an instance of either `EventDrivenConsumer` or `PollingConsumer`, according to the type of the provided input channel.
-The namespace support is designed to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer that use one element.
+Configure XML transformers using Java DSL or XML namespace support. With Java configuration, define an IntegrationFlow bean and use Xml.* factory methods (such as Xml.xpathTransformer()) to create the transformer within the flow.
+With XML configuration, use the Spring Integration XML namespace as xref:xml/xpath-namespace-support.adoc[shown earlier]. Both approaches create an instance of either `EventDrivenConsumer` or `PollingConsumer`, according to the type of the provided input channel.
+Java DSL offers a fluent, type-safe API for building integration flows, while XML namespace support reduces configuration by combining endpoint and transformer creation into a single element.
 
 [[using-an-unmarshallingtransformer]]
 === Using an `UnmarshallingTransformer`
 
-The namespace support for the `UnmarshallingTransformer` is shown below.
-Since the namespace creates an endpoint instance rather than a transformer, you can nest a poller within the element to control the polling of the input channel.
+Configure the `UnmarshallingTransformer` using Java DSL or XML namespace support. With Java configuration, create an IntegrationFlow bean and use Xml.unmarshaller() with your Unmarshaller implementation. With XML configuration, use the namespace support as shown below. Since both approaches create an endpoint instance rather than just a transformer, configure polling behavior directly on the endpoint. In Java DSL, specify the poller in the source endpoint configuration. In XML, nest a poller element within the transformer element to control the polling of the input channel.
 The following example shows how to do so:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow unmarshallingFlow(Unmarshaller unmarshaller) {
+    return IntegrationFlow.from("input")
+            .transform(new UnmarshallingTransformer(unmarshaller))
+            .channel("output")
+            .get();
+}
+
+@Bean
+public IntegrationFlow pollingUnmarshallingFlow(QueueChannel input, Unmarshaller unmarshaller) {
+    MessageSource<Object> messageSource =
+            () -> (org.springframework.messaging.Message<Object>) input.receive(1000);
+    return IntegrationFlow.from(messageSource, endpoint -> endpoint.poller(Pollers.fixedRate(2000)))
+            .transform(new UnmarshallingTransformer(unmarshaller))
+            .channel("output")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input" output-channel="output"
@@ -155,16 +232,47 @@ The following example shows how to do so:
     <int:poller fixed-rate="2000"/>
 <int-xml:unmarshalling-transformer/>
 ----
+======
 
 [[using-a-marshallingtransformer]]
 === Using a `MarshallingTransformer`
 
-The namespace support for the marshalling transformer requires an `input-channel`, an `output-channel`, and a reference to a `marshaller`.
-You can use the optional `result-type` attribute to control the type of result created.
+Configuring the marshalling transformer requires an `input-channel`, an `output-channel`, and a reference to a `marshaller`.
+With the XML namespace support you can use the optional `result-type` attribute to control the type of result created.
 Valid values are `StringResult` or `DomResult` (the default).
 The following example configures a marshalling transformer:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow marshallingToStringFlow(Marshaller marshaller) {
+    return IntegrationFlow.from("marshallingTransformerStringResultFactory")
+            .transform(new MarshallingTransformer(marshaller))
+            .channel("output")
+            .get();
+}
+
+	@Bean
+	public IntegrationFlow marshallingWithResultType(
+			Marshaller marshaller) {
+
+		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
+		transformer.setResultType(MarshallingTransformer.STRING_RESULT);
+
+		return IntegrationFlow.from("marshallingTransformerWithResultTransformer")
+				.transform(transformer)
+				.channel("output")
+				.get();
+	}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
@@ -180,7 +288,7 @@ The following example configures a marshalling transformer:
 
 <bean id="resultTransformer" class="o.s.i.xml.transformer.ResultToStringTransformer"/>
 ----
-
+======
 Where the provided result types do not suffice, you can provide a reference to a custom implementation of `ResultFactory` as an alternative to setting the `result-type` attribute by using the `result-factory` attribute.
 The `result-type` and `result-factory` attributes  are mutually exclusive.
 
@@ -189,15 +297,49 @@ NOTE: Internally, the `StringResult` and `DomResult` result types are represente
 [[using-an-xsltpayloadtransformer]]
 === Using an `XsltPayloadTransformer`
 
-Namespace support for the `XsltPayloadTransformer` lets you  either pass in a `Resource` (in order to create the https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[`Templates`] instance) or  pass in a pre-created `Templates` instance as a reference.
-As with the marshalling transformer, you can control the type of the result output by specifying either the `result-factory` or the `result-type` attribute.
-When you need to convert a result before sending, you can use a `result-transformer` attribute to reference an implementation of `ResultTransformer`.
+Configure the XsltPayloadTransformer using Java DSL or XML namespace support.
+In Java configuration, use `Xml.xsltTransformer()` and pass either a `Resource` (to create the https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[`Templates`] instance) or a pre-created Templates instance.
+In XML configuration, specify either approach using the appropriate attribute.
+As with the marshalling transformer, control the type of result output by specifying either the `result-factory` or the `result-type`.
+In Java configuration set the `resultFactory` or `resultType` on the transformer.
+In XML, set the corresponding `result-factory` or `result-type` attribute.
+When you need to convert a result before sending, provide a ResultTransformer implementation.
+In Java configuration, set the `resultTransformer` in the constructor's parameter.
+In XML configuration, use the `result-transformer` attribute to reference your implementation.
 
 IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, the `alwaysUseResultFactory` property on the underlying https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[`XsltPayloadTransformer`] is set to `true` by the https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html[`XsltPayloadTransformerParser`].
 
 The following example configures two XSLT transformers:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow xsltFromResourceFlow() {
+    return IntegrationFlow.from("withResourceIn")
+            .transform(new XsltPayloadTransformer(
+                    new ClassPathResource("org/springframework/integration/xml/config/test.xsl")))
+            .channel("output")
+            .get();
+}
+
+@Bean
+public IntegrationFlow xsltWithTemplatesFlow(Templates templates, ResultTransformer resultTransformer) {
+    XsltPayloadTransformer transformer = new XsltPayloadTransformer(templates, resultTransformer);
+
+    return IntegrationFlow.from("withTemplatesAndResultTransformerIn")
+            .transform(transformer)
+            .channel("output")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:xslt-transformer id="xsltTransformerWithResource"
     input-channel="withResourceIn" output-channel="output"
@@ -208,22 +350,49 @@ The following example configures two XSLT transformers:
     xsl-templates="templates"
     result-transformer="resultTransformer"/>
 ----
-
+======
 You may need to have access to `Message` data, such as the `Message` headers, in order to assist with transformation.
 For example, you may need to get access to certain `Message` headers and pass them on as parameters to a transformer, for example, `transformer.setParameter(..)`.
 Spring Integration provides two convenient ways to accomplish this, as the following example shows:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow xsltWithParamsFlow() {
+    var transformer = new XsltPayloadTransformer(new ClassPathResource("transformer.xslt"));
+    transformer.setXsltParamHeaders("testP*", "*testsuffix", "test1", "test2");
+
+    ExpressionParser parser = new SpelExpressionParser();
+    Map<String, Expression>  expressions = new HashMap<>();
+    expressions.put("helloParameter", new ValueExpression<>("hello"));
+    expressions.put("firstName", parser.parseExpression("headers.fname"));
+    transformer.setXslParameterMappings(expressions);
+
+    return IntegrationFlow.from("paramHeadersComboChannel")
+            .transform(transformer)
+            .channel("output")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:xslt-transformer id="paramHeadersCombo"
     input-channel="paramHeadersComboChannel" output-channel="output"
     xsl-resource="classpath:transformer.xslt"
-    xslt-param-headers="testP*, *foo, bar, baz">
+    xslt-param-headers="testP*, *testsuffix, test1, test2">
 
     <int-xml:xslt-param name="helloParameter" value="hello"/>
     <int-xml:xslt-param name="firstName" expression="headers.fname"/>
 </int-xml:xslt-transformer>
 ----
+======
 
 If message header names match one-to-one to parameter names, you can use the `xslt-param-headers` attribute.
 In it, you can use wildcards for simple pattern matching.
@@ -236,29 +405,69 @@ The `value` attribute (as with any `value` in Spring beans) lets you specify sim
 You can also use property placeholders (such as `${some.value}`).
 So, with the `expression` and `value` attributes, you can map XSLT parameters to any accessible part of the `Message` as well as any literal value.
 
-Starting with Spring Integration 3.0, you can now specify the transformer factory class name by setting the `transformer-factory-class` attribute.
+Starting with Spring Integration 3.0, you can now specify the transformer factory class name by setting `transformerFactoryClassName` in the constructor when using Java configuration or `transformer-factory-class` attribute when using XML configuration.
 
-[[xml-using-result-transformers-namespace]]
-== Namespace Configuration and Result Transformers
+[[configuration-and-result-transformers]]
+== Configuration and Result Transformers
 
 We cover using result transformers in xref:xml/transformation.adoc#xml-using-result-transformers[Using `ResultTransformer` Implementations].
-The examples in this section use XML namespace configuration to illustrate several special use cases.
+The examples in this section use Java Configuration as well as XML namespace configuration to illustrate several special use cases.
 First, we define the `ResultTransformer`, as the following example shows:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public ResultTransformer resultToDoc() {
+    return new ResultToDocumentTransformer();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <beans:bean id="resultToDoc" class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
 ----
+======
 
 This `ResultTransformer` accepts either a `StringResult` or a `DOMResult` as input and converts the input into a `Document`.
 
 Now we can declare the transformer as follows:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow xsltWithResultTransformerFlow(
+        @Qualifier("resultToDoc") ResultTransformer resultTransformer) {
+
+    var transformer = new XsltPayloadTransformer(
+        new ClassPathResource("noop.xslt"),
+        resultTransformer
+    );
+
+    return IntegrationFlow.from("in")
+            .transform(transformer)
+            .channel("fahrenheitChannel")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
     xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"/>
 ----
+======
 
 If the incoming message's payload is of type `Source`, then, as a first step, the `Result` is determined by using the `ResultFactory`.
 As we did not specify a `ResultFactory`, the default `DomResultFactory` is used, meaning that the transformation yields a `DomResult`.
@@ -280,12 +489,38 @@ The `result-type` is internally represented by the `StringResultFactory`.
 Thus, you could have also added a reference to a `StringResultFactory`, by using the `result-factory` attribute, which would have been the same.
 The following example shows that transformer declaration:
 
-[source,xml]
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Bean
+public IntegrationFlow xsltWithResultTypeFlow(
+        @Qualifier("resultToDoc") ResultTransformer resultTransformer) {
+
+    var transformer = new XsltPayloadTransformer(
+            new ClassPathResource("noop.xslt"),
+            resultTransformer
+    );
+    transformer.setResultType("StringResult");
+
+    return IntegrationFlow.from("in")
+            .transform(transformer)
+            .channel("fahrenheitChannel")
+            .get();
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
 ----
 <int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
 		xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"
 		result-type="StringResult"/>
 ----
+======
 
 Because we use a `ResultFactory`, the `alwaysUseResultFactory` property of the `XsltPayloadTransformer` class is implicitly set to `true`.
 Consequently, the referenced `ResultToDocumentTransformer` is used.
