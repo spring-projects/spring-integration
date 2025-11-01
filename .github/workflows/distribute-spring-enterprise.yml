@@ -15,7 +15,7 @@ on:
 
 jobs:
   distribute-release-to-spring-enterprise:
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-enterprise-release-bundle.yml@v5
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-enterprise-release-bundle.yml@v6
     with:
       artifactoryUrl: https://usw1.packages.broadcom.com
       bundleName: TNZ-${{ github.event.repository.name }}
