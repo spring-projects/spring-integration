@@ -68,7 +68,7 @@ ext {
     hibernateVersion = '7.1.4.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.4.240'
-    jacksonVersion = '2.20.0'
+    jacksonVersion = '2.20.1'
     jackson3Version = '3.0.1'
     jaxbVersion = '4.0.6'
     jcifsVersion = '2.1.40'
