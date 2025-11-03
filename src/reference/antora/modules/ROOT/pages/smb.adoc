@@ -76,9 +76,9 @@ public SmbSessionFactory smbSessionFactory() {
 }
 ----
 
-The `SmbSessionFactory` can be initialized with a custom `jcifs.CIFSContext`.
+The `SmbSessionFactory` can be initialized with a custom `org.codelibs.jcifs.smb.CIFSContext`.
 
-NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `jcifs.CIFSContext`.
+NOTE: Setting of the SMB protocol Min/Max versions must be done in your implementation of `org.codelibs.jcifs.smb.CIFSContext`.
 
 [source,java]
 ----
