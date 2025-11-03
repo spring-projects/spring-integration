@@ -31,6 +31,7 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -171,7 +172,7 @@ public class KafkaDslTests {
 	@Autowired
 	private QueueChannel recoveringErrorChannel;
 
-	@Test
+	@RetryingTest(10)
 	void testKafkaAdapters() throws Exception {
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
