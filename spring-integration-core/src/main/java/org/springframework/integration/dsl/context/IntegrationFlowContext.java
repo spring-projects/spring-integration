@@ -75,7 +75,7 @@ public interface IntegrationFlowContext {
 	IntegrationFlowRegistration getRegistrationById(String flowId);
 
 	/**
-	 * Destroy an {@link IntegrationFlow} bean (as well as all its dependant beans)
+	 * Destroy an {@link IntegrationFlow} bean (as well as all its dependent beans)
 	 * for provided {@code flowId} and clean up all the local cache for it.
 	 * @param flowId the bean name to destroy from
 	 */
@@ -187,7 +187,7 @@ public interface IntegrationFlowContext {
 		IntegrationFlowRegistrationBuilder autoStartup(boolean autoStartup);
 
 		/**
-		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
+		 * Add an object which will be registered as an {@link IntegrationFlow} dependent bean in the
 		 * application context. Usually it is some support component, which needs an application context.
 		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
 		 * @param bean an additional arbitrary bean to register into the application context.
@@ -196,7 +196,7 @@ public interface IntegrationFlowContext {
 		IntegrationFlowRegistrationBuilder addBean(Object bean);
 
 		/**
-		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
+		 * Add an object which will be registered as an {@link IntegrationFlow} dependent bean in the
 		 * application context. Usually it is some support component, which needs an application context.
 		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
 		 * @param name the name for the bean to register.
@@ -237,7 +237,7 @@ public interface IntegrationFlowContext {
 		}
 
 		/**
-		 * Register an {@link IntegrationFlow} and all the dependant and support components
+		 * Register an {@link IntegrationFlow} and all the dependent and support components
 		 * in the application context and return an associated {@link IntegrationFlowRegistration}
 		 * control object.
 		 * @return the {@link IntegrationFlowRegistration} instance.

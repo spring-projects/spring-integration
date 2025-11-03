@@ -143,7 +143,7 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 			this.headerAccessor.removeHeader(headerName);
 		}
 		else if (LOGGER.isInfoEnabled()) {
-			LOGGER.info("The header [" + headerName + "] is ignored for removal because it is is readOnly.");
+			LOGGER.info("The header [" + headerName + "] is ignored for removal because it is readOnly.");
 		}
 		return _this();
 	}

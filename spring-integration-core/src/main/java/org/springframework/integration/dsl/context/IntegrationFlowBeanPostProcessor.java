@@ -141,7 +141,7 @@ public class IntegrationFlowBeanPostProcessor
 				String scope = this.beanFactory.getBeanDefinition(beanName).getScope();
 				if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope)) {
 					throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
-							"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
+							"Any dependent beans are registered as singletons, meanwhile IntegrationFlow is just a " +
 							"logical container for them. \n" +
 							"Consider using [IntegrationFlowContext] for manual registration of IntegrationFlows.");
 				}

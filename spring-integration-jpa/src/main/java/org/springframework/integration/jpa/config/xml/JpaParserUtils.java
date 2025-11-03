@@ -80,7 +80,7 @@ public final class JpaParserUtils {
 
 			if (attributeCount > 0) {
 				parserContext.getReaderContext().error("Exactly only one of the attributes 'entity-manager' or " +
-						"'entity-manager-factory' or 'jpa-operations' must be be set.", source);
+						"'entity-manager-factory' or 'jpa-operations' must be set.", source);
 			}
 
 			attributeCount++;
@@ -91,7 +91,7 @@ public final class JpaParserUtils {
 
 			if (attributeCount > 0) {
 				parserContext.getReaderContext().error("Exactly only one of the attributes 'entity-manager' or " +
-						"'entity-manager-factory' or 'jpa-operations' must be be set.", source);
+						"'entity-manager-factory' or 'jpa-operations' must be set.", source);
 			}
 
 			attributeCount++;
@@ -100,7 +100,7 @@ public final class JpaParserUtils {
 
 		if (attributeCount == 0) {
 			parserContext.getReaderContext().error("Exactly one of the attributes 'entity-manager' or " +
-					"'entity-manager-factory' or 'jpa-operations' must be be set.", source);
+					"'entity-manager-factory' or 'jpa-operations' must be set.", source);
 		}
 
 		final ManagedList<BeanDefinition> jpaParameterList = getJpaParameterBeanDefinitions(element, parserContext);

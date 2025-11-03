@@ -63,7 +63,7 @@ public class MutableMessageBuilderFactoryTests {
 
 		boolean result = this.latch.await(2L, TimeUnit.SECONDS);
 
-		assertThat(result).as("A failure means that that MMBF wasn't used").isTrue();
+		assertThat(result).as("A failure means that MMBF wasn't used").isTrue();
 	}
 
 	@Configuration

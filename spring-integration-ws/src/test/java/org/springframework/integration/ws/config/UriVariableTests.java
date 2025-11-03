@@ -136,7 +136,7 @@ public class UriVariableTests {
 		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20%26%20test2");
 	}
 
-	@Disabled("Until SF for for URL parser")
+	@Disabled("Until SF for URL parser")
 	@Test
 	public void testInt2720JmsUriVariables() throws JMSException, IOException {
 		final String destinationName = "SPRING.INTEGRATION.QUEUE";
