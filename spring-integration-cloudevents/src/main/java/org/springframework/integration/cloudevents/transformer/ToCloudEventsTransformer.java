@@ -19,7 +19,6 @@ package org.springframework.integration.cloudevents.transformer;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +57,16 @@ import org.springframework.util.Assert;
  */
 public class ToCloudEventsTransformer extends AbstractTransformer {
 
+	private static final String DEFAULT_PREFIX = "ce-";
+
+	private static final String DEFAULT_SPECVERSION_KEY = "specversion";
+
+	private static final String DEFAULT_DATACONTENTTYPE_KEY = "datacontenttype";
+
+	private String cloudEventPrefix = DEFAULT_PREFIX;
+
+	private boolean noFormat = false;
+
 	private Expression eventIdExpression = new FunctionExpression<Message<?>>(
 			msg -> Objects.requireNonNull(msg.getHeaders().getId()).toString());
 
@@ -71,7 +80,10 @@ public class ToCloudEventsTransformer extends AbstractTransformer {
 
 	private @Nullable Expression subjectExpression;
 
-	private final String [] extensionPatterns;
+	private final String[] extensionPatterns;
+
+	@SuppressWarnings("NullAway.Init")
+	private CloudEventMessageConverter cloudEventMessageConverter;
 
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
@@ -149,6 +161,7 @@ public class ToCloudEventsTransformer extends AbstractTransformer {
 			appName = appName == null ? "unknown" : appName;
 			this.sourceExpression = new ValueExpression<>(URI.create("/spring/" + appName + "." + getBeanName()));
 		}
+		this.cloudEventMessageConverter = new CloudEventMessageConverter(this.cloudEventPrefix, this.getSpecVersionKey(), this.getDataContentTypeKey());
 	}
 
 	/**
@@ -171,11 +184,6 @@ public class ToCloudEventsTransformer extends AbstractTransformer {
 			throw new MessageTransformationException(message, "Missing 'Content-Type' header");
 		}
 
-		EventFormat eventFormat = this.eventFormatProvider.resolveFormat(contentType);
-		if (eventFormat == null) {
-			throw new MessageTransformationException("No EventFormat found for '" + contentType + "'");
-		}
-
 		ToCloudEventTransformerExtensions extensions =
 				new ToCloudEventTransformerExtensions(message.getHeaders(),
 						this.extensionPatterns);
@@ -194,19 +202,72 @@ public class ToCloudEventsTransformer extends AbstractTransformer {
 			cloudEventBuilder.withDataSchema(this.dataSchemaExpression.getValue(this.evaluationContext, message, URI.class));
 		}
 
-		CloudEvent cloudEvent = cloudEventBuilder.withData((byte[])message.getPayload())
+		CloudEvent cloudEvent = cloudEventBuilder.withData((byte[]) message.getPayload())
 				.withExtension(extensions)
 				.build();
 
-		return MessageBuilder.withPayload(eventFormat.serialize(cloudEvent))
-				.copyHeaders(message.getHeaders())
-				.setHeader(MessageHeaders.CONTENT_TYPE, "application/cloudevents")
-				.build();
+		EventFormat eventFormat = this.eventFormatProvider.resolveFormat(contentType);
+		if (eventFormat == null && !this.noFormat) {
+			throw new MessageTransformationException("No EventFormat found for '" + contentType + "'");
+		}
+
+		if (eventFormat != null) {
+			return MessageBuilder.withPayload(eventFormat.serialize(cloudEvent))
+					.copyHeaders(message.getHeaders())
+					.setHeader(MessageHeaders.CONTENT_TYPE, "application/cloudevents")
+					.build();
+		}
+		Map<String, Object> headers = new HashMap<>(message.getHeaders());
+		headers.putAll(extensions.cloudEventExtensions);
+
+		return this.cloudEventMessageConverter.toMessage(cloudEvent, new MessageHeaders(headers));
 	}
 
 	@Override
 	public String getComponentType() {
 		return "ce:to-cloudevents-transformer";
+	}
+
+	/**
+	 * Returns CloudEvent information to the header if no {@link EventFormat} is found for content type.
+	 * @return true if CloudEvent information should be added to header if no {@link EventFormat} is found.
+	 */
+	public boolean isNoFormat() {
+		return this.noFormat;
+	}
+
+	/**
+	 * Set CloudEvent information to the header if no {@link EventFormat} is found for content type.
+	 * When true and no {@link EventFormat} is found for the content type, CloudEvents are sent with headers instead of
+	 * structured format.
+	 * @param noFormat true to disable format serialization
+	 */
+	public void setNoFormat(boolean noFormat) {
+		this.noFormat = noFormat;
+	}
+
+	/**
+	 * Return the prefix used for CloudEvent headers in binary content mode.
+	 * @return the CloudEvent header prefix
+	 */
+	public String getCloudEventPrefix() {
+		return this.cloudEventPrefix;
+	}
+
+	/**
+	 * Set the prefix for CloudEvent headers in binary content mode.
+	 * @param cloudEventPrefix the prefix to use for CloudEvent headers
+	 */
+	public void setCloudEventPrefix(String cloudEventPrefix) {
+		this.cloudEventPrefix = cloudEventPrefix;
+	}
+
+	private String getSpecVersionKey() {
+		return this.cloudEventPrefix + DEFAULT_SPECVERSION_KEY;
+	}
+
+	private String getDataContentTypeKey() {
+		return this.cloudEventPrefix + DEFAULT_DATACONTENTTYPE_KEY;
 	}
 
 	private static class ToCloudEventTransformerExtensions implements CloudEventExtension {

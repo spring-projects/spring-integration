@@ -59,7 +59,7 @@ class ToCloudEventsTransformerTests {
 
 	private static final String USER_HEADER = "userId";
 
-	private static final String [] TEST_PATTERNS = {"trace*", SPAN_HEADER, USER_HEADER};
+	private static final String[] TEST_PATTERNS = {"trace*", SPAN_HEADER, USER_HEADER};
 
 	private static final byte[] PAYLOAD = "\"test message\"".getBytes(StandardCharsets.UTF_8);
 
@@ -68,6 +68,15 @@ class ToCloudEventsTransformerTests {
 
 	@Autowired
 	private ToCloudEventsTransformer transformerWithExtensions;
+
+	@Autowired
+	private ToCloudEventsTransformer transformerWithNoExtensionsNoFormat;
+
+	@Autowired
+	private ToCloudEventsTransformer transformerWithExtensionsNoFormat;
+
+	@Autowired
+	private ToCloudEventsTransformer transformerWithExtensionsNoFormatWithPrefix;
 
 	@Autowired
 	private ToCloudEventsTransformer transformerWithInvalidIDExpression;
@@ -134,6 +143,45 @@ class ToCloudEventsTransformerTests {
 	}
 
 	@Test
+	void convertMessageNoExtensions() {
+		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD)
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
+				.setHeader(TRACE_HEADER, "test-value")
+				.setHeader(SPAN_HEADER, "other-value")
+				.build();
+		Message<byte[]> result = transformMessage(message, this.transformerWithNoExtensionsNoFormat);
+		assertThat(result.getPayload()).isEqualTo(PAYLOAD);
+		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
+		assertThat(result.getHeaders()).doesNotContainKeys("ce-" + TRACE_HEADER, "ce-" + SPAN_HEADER);
+	}
+
+	@Test
+	void convertMessageWithExtensions() {
+		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD)
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
+				.setHeader(TRACE_HEADER, "test-value")
+				.setHeader(SPAN_HEADER, "other-value")
+				.build();
+		Message<byte[]> result = transformMessage(message, this.transformerWithExtensionsNoFormat);
+		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
+		assertThat(result.getHeaders()).containsKeys("ce-" + TRACE_HEADER, "ce-" + SPAN_HEADER);
+	}
+
+	@Test
+	void convertMessageWithExtensionsNewPrefix() {
+		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD)
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
+				.setHeader(TRACE_HEADER, "test-value")
+				.setHeader(SPAN_HEADER, "other-value")
+				.build();
+		Message<byte[]> result = transformMessage(message, this.transformerWithExtensionsNoFormatWithPrefix);
+		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
+		assertThat(result.getHeaders()).containsKeys("CLOUDEVENTS-" + TRACE_HEADER, "CLOUDEVENTS-" + SPAN_HEADER,
+				"CLOUDEVENTS-id", "CLOUDEVENTS-specversion", "CLOUDEVENTS-datacontenttype");
+
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	void doTransformWithObjectPayload() throws Exception {
 		TestRecord testRecord = new TestRecord("sample data");
@@ -171,7 +219,7 @@ class ToCloudEventsTransformerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	void multipleExtensionMappings() {
 		String payload = "test message";
 		Message<byte[]> message = createBaseMessage(payload.getBytes(), "application/cloudevents+json")
@@ -255,6 +303,28 @@ class ToCloudEventsTransformerTests {
 		@Bean
 		public ToCloudEventsTransformer transformerWithExtensions() {
 			return new ToCloudEventsTransformer(TEST_PATTERNS);
+		}
+
+		@Bean
+		public ToCloudEventsTransformer transformerWithNoExtensionsNoFormat() {
+			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer();
+			toCloudEventsTransformer.setNoFormat(true);
+			return toCloudEventsTransformer;
+		}
+
+		@Bean
+		public ToCloudEventsTransformer transformerWithExtensionsNoFormat() {
+			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer(TEST_PATTERNS);
+			toCloudEventsTransformer.setNoFormat(true);
+			return toCloudEventsTransformer;
+		}
+
+		@Bean
+		public ToCloudEventsTransformer transformerWithExtensionsNoFormatWithPrefix() {
+			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer(TEST_PATTERNS);
+			toCloudEventsTransformer.setNoFormat(true);
+			toCloudEventsTransformer.setCloudEventPrefix("CLOUDEVENTS-");
+			return toCloudEventsTransformer;
 		}
 
 		@Bean
