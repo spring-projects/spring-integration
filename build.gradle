@@ -1096,18 +1096,9 @@ tasks.register('schemaZip', Zip) {
             shortName = ''
         }
 
-		/* TODO until Gradle 9.1.1 or 9.2+
 		subproject.sourceSets.main.resources.find {
 			it.path.endsWith("META-INF${File.separator}spring.schemas")
-		}?.withInputStream { schemas.load(it) }*/
-
-		File schemasFile = subproject.sourceSets.main.resources.find  {
-			it.path.endsWith("META-INF${File.separator}spring.schemas")
-		}
-
-		if (schemasFile) {
-			schemasFile.withInputStream { schemas.load(it) }
-		}
+		}?.withInputStream { schemas.load(it) }
 
         for (def key : schemas.keySet()) {
             File xsdFile = subproject.sourceSets.main.resources.find {
