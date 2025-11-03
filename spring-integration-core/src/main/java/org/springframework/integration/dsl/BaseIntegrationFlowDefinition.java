@@ -2015,7 +2015,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *  .gateway(f -> f.transform("From Gateway SubFlow: "::concat))
 	 * }
 	 * </pre>
-	 * @param flow the {@link IntegrationFlow} to to send a request message and wait for reply.
+	 * @param flow the {@link IntegrationFlow} to send a request message and wait for reply.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B gateway(IntegrationFlow flow) {
@@ -2032,7 +2032,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *  .gateway(f -> f.transform("From Gateway SubFlow: "::concat), e -> e.replyTimeout(100L))
 	 * }
 	 * </pre>
-	 * @param flow the {@link IntegrationFlow} to to send a request message and wait for reply.
+	 * @param flow the {@link IntegrationFlow} to send a request message and wait for reply.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */

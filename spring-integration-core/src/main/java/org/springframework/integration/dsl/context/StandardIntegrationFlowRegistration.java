@@ -145,7 +145,7 @@ class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration
 	}
 
 	/**
-	 * Destroy the {@link IntegrationFlow} bean (as well as all its dependant beans)
+	 * Destroy the {@link IntegrationFlow} bean (as well as all its dependent beans)
 	 * and clean up all the local cache for it.
 	 */
 	@Override

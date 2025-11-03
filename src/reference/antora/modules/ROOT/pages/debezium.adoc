@@ -76,7 +76,7 @@ Later can be handy for some common use-cases with opinionated configuration and 
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
 
 - `contentType` - allows handling for  `JSON` (default), `AVRO` and `PROTOBUF` message contents.
-The contentType `must` be be aligned with the `SerializationFormat` configured for the provided `DebeziumEngine.Builder`.
+The contentType `must` be aligned with the `SerializationFormat` configured for the provided `DebeziumEngine.Builder`.
 - `enableBatch` - when set to `false` (default), the debezium adapter would send new `Message` for every `ChangeEvent` data change event received from the source database.
 If set to `true` then the adapter sends downstream a single `Message` for each batch of `ChangeEvent` received from the Debezium engine.
 Such a payload is not serializable and would require a custom serialization/deserialization implementation.

@@ -110,7 +110,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 	}
 
 	/**
-	 * Specify the the timeout in milliseconds to wait for the STOMP session establishment.
+	 * Specify the timeout in milliseconds to wait for the STOMP session establishment.
 	 * Must be greater than
 	 * {@link org.springframework.integration.stomp.AbstractStompSessionManager#setRecoveryInterval(int)}.
 	 * @param connectTimeout the timeout to use.

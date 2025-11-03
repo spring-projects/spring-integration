@@ -376,7 +376,7 @@ The `MessageBuilderFactory` bean with `IntegrationUtils.INTEGRATION_MESSAGE_BUIL
 By default, it is an instance of `DefaultMessageBuilderFactory`.
 Out of the box, the framework also provides a `MutableMessageBuilderFactory` to create `MutableMessage` instances in the framework components instead.
 To customize `Message` instances creation, a `MessageBuilderFactory` bean with `IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME` has to be provided in the target application context to override a default one.
-For example, a custom `MessageBuilderFactory` could be registered for an implementation of the `BaseMessageBuilder` where we would like to provide a `GenericMessage` extension with overridden `toString()` to to hide sensitive information from payload and headers when such a message is logged.
+For example, a custom `MessageBuilderFactory` could be registered for an implementation of the `BaseMessageBuilder` where we would like to provide a `GenericMessage` extension with overridden `toString()` to hide sensitive information from payload and headers when such a message is logged.
 
 Some quick implementation of these classes to demonstrate personal identifiable information mitigation can be like this:
 [source,java]
