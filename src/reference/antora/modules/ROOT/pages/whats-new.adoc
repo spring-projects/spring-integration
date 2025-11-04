@@ -129,3 +129,8 @@ See xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters] fo
 === Null Safety
 Updated the codebase to use JSpecify and NullAway, adding a comprehensive null safety implementation that uses `@NullMarked` annotations to default all types to non-null at the package level and `@Nullable` annotations to explicitly mark types that can be null.
 See xref:null-safety.adoc[] for more information.
+
+[[x7.0-smb-upgrade]]
+=== SMB JCIFS Upgrade to 3.0.0
+The JCIFS library behind SMB support has been upgraded to 3.0.0. It is a major rewrite of the codebase and implements a new package structure. This is a breaking change and direct references to components of the JCIFS library will need to be updated.
+See xref:smb.adoc[] for more information.
