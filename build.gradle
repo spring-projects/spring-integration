@@ -46,7 +46,7 @@ ext {
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
     apacheSshdVersion = '2.16.0'
-    artemisVersion = '2.43.0'
+    artemisVersion = '2.44.0'
     aspectjVersion = '1.9.24'
     assertjVersion = '3.27.6'
     assertkVersion = '0.28.1'
@@ -65,7 +65,7 @@ ext {
     groovyVersion = '5.0.2'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
-    hibernateVersion = '7.1.5.Final'
+    hibernateVersion = '7.1.6.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.4.240'
     jacksonVersion = '2.20.1'
@@ -76,13 +76,13 @@ ext {
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.2.0'
     jrubyVersion = '10.0.2.0'
-    jsonpathVersion = '2.9.0'
+    jsonpathVersion = '2.10.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '6.0.1'
     junitPioneerVersion = '2.3.0'
     kotlinCoroutinesVersion = '1.10.2'
     kryoVersion = '5.6.2'
-    lettuceVersion = '6.8.1.RELEASE'
+    lettuceVersion = '7.0.0.RELEASE'
     log4jVersion = '2.25.2'
     mailVersion = '2.0.5'
     micrometerTracingVersion = '1.6.0-RC1'
@@ -101,16 +101,16 @@ ext {
     rsocketVersion = '1.1.5'
     servletApiVersion = '6.1.0'
     smackVersion = '4.4.8'
-    springAmqpVersion = '4.0.0-SNAPSHOT'
-    springDataVersion = '2025.1.0-SNAPSHOT'
-    springGraphqlVersion = '2.0.0-SNAPSHOT'
+    springAmqpVersion = '4.0.0-RC1'
+    springDataVersion = '2025.1.0-RC2'
+    springGraphqlVersion = '2.0.0-RC2'
     springKafkaVersion = '4.0.0-RC1'
-    springSecurityVersion = '7.0.0-SNAPSHOT'
-    springVersion = '7.0.0-RC1'
-    springWsVersion = '5.0.0-SNAPSHOT'
+    springSecurityVersion = '7.0.0-RC2'
+    springVersion = '7.0.0-RC3'
+    springWsVersion = '5.0.0-RC1'
     testcontainersVersion = '2.0.1'
     tomcatVersion = '11.0.13'
-    xmlUnitVersion = '2.10.4'
+    xmlUnitVersion = '2.11.0'
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
 
@@ -332,7 +332,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '12.1.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '12.1.1'
     }
 
     jar {
