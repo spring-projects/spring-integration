@@ -23,7 +23,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '9.0.0'
-    id 'io.spring.nullability' version '0.0.6' apply false
+    id 'io.spring.nullability' version '0.0.7' apply false
 }
 
 if (isCI) {
@@ -47,7 +47,7 @@ ext {
 
     apacheSshdVersion = '2.16.0'
     artemisVersion = '2.44.0'
-    aspectjVersion = '1.9.24'
+    aspectjVersion = '1.9.25'
     assertjVersion = '3.27.6'
     assertkVersion = '0.28.1'
     avroVersion = '1.12.1'
