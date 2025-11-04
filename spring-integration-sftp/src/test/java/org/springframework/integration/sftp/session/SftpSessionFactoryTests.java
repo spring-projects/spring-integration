@@ -278,8 +278,7 @@ class SftpSessionFactoryTests {
 			session.close();
 
 			assertThat(session.isOpen()).isFalse();
-			// TODO until https://github.com/apache/mina-sshd/issues/700
-			await().untilAsserted(() -> assertThat(clientSession.isClosed()).isTrue());
+			assertThat(clientSession.isClosed()).isTrue();
 
 			sftpSessionFactory.destroy();
 		}
