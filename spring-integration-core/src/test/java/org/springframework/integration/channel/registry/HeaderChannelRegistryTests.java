@@ -238,6 +238,7 @@ public class HeaderChannelRegistryTests {
 	@Test
 	public void testRemoveOnGet() {
 		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry();
+		registry.setTaskScheduler(this.taskScheduler);
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
 		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);
