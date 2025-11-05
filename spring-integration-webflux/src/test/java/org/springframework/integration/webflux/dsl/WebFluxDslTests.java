@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.Collections;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
@@ -244,7 +243,7 @@ public class WebFluxDslTests {
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
 				.expectBody(String.class)
-				.value(Matchers.containsString("errorTest"));
+				.value(body -> assertThat(body).contains("errorTest"));
 	}
 
 	@Test

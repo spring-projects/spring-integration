@@ -23,7 +23,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '9.0.0'
-    id 'io.spring.nullability' version '0.0.6' apply false
+    id 'io.spring.nullability' version '0.0.8' apply false
 }
 
 if (isCI) {
@@ -105,7 +105,7 @@ ext {
     springDataVersion = '2025.1.0-RC2'
     springGraphqlVersion = '2.0.0-SNAPSHOT'
     springKafkaVersion = '4.0.0-RC1'
-    springSecurityVersion = '7.0.0-RC2'
+    springSecurityVersion = '7.0.0-SNAPSHOT'
     springVersion = '7.0.0-RC3'
     springWsVersion = '5.0.0-SNAPSHOT'
     testcontainersVersion = '2.0.1'

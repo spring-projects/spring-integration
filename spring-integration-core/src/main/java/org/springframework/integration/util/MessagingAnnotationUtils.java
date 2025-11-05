@@ -96,7 +96,7 @@ public final class MessagingAnnotationUtils {
 		if ((annotationValue instanceof String) && ObjectUtils.isEmpty(annotationValue)) {
 			return false;
 		}
-		// Annotation with 'value' set to special 'none' string
+		// Annotation with 'value' set to a special 'none' string
 		return (!(annotationValue instanceof Annotation)) ||
 				!ValueConstants.DEFAULT_NONE.equals(AnnotationUtils.getValue((Annotation) annotationValue));
 	}
@@ -104,7 +104,7 @@ public final class MessagingAnnotationUtils {
 	public static @Nullable Method findAnnotatedMethod(Object target,
 		final Class<? extends Annotation> annotationType) {
 
-		final AtomicReference<Method> reference = new AtomicReference<>();
+		final AtomicReference<@Nullable Method> reference = new AtomicReference<>();
 
 		ReflectionUtils.doWithMethods(AopProxyUtils.ultimateTargetClass(target),
 				method -> reference.compareAndSet(null, method),
