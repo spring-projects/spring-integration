@@ -204,6 +204,10 @@ configure(javaProjects) { subproject ->
         [compileClasspath, testCompileClasspath, testRuntimeClasspath].each {
             it.extendsFrom(provided)
         }
+
+		configureEach {
+			resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+		}
     }
 
     components.java.with {
