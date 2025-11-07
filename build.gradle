@@ -17,7 +17,6 @@ buildscript {
 plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
-    id 'io.spring.dependency-management' version '1.1.7'
     id 'org.jetbrains.dokka' version '2.1.0' apply false
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
@@ -144,41 +143,37 @@ allprojects {
             'https://docs.spring.io/spring-ws/docs/current/api/'
     ] as String[]
 
-    apply plugin: 'io.spring.dependency-management'
+	configurations {
+		dependencyManagement {
+			canBeConsumed = false
+			canBeResolved = false
+		}
 
-    dependencyManagement {
-        resolutionStrategy {
-            cacheChangingModulesFor 0, 'seconds'
-        }
-        applyMavenExclusions = false
-        generatedPomCustomization {
-            enabled = false
-        }
+		configureEach {
+			resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+		}
+	}
 
-        imports {
-            mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
-            mavenBom "tools.jackson:jackson-bom:$jackson3Version"
-            mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
-            mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
-            mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
-            mavenBom "org.apache.camel:camel-bom:$camelVersion"
-            mavenBom "org.apache.groovy:groovy-bom:$groovyVersion"
-            mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
-            mavenBom "org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"
-            mavenBom "org.junit:junit-bom:$junitJupiterVersion"
-            mavenBom "org.mockito:mockito-bom:$mockitoVersion"
-            mavenBom "org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"
-            mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
-            mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
-            mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
-            mavenBom "org.springframework:spring-framework-bom:$springVersion"
-            mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
-            mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
-            mavenBom "org.mongodb:mongodb-driver-bom:$mongoDriverVersion"
-        }
-
-    }
-
+	dependencies {
+		dependencyManagement(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+		dependencyManagement(platform("tools.jackson:jackson-bom:$jackson3Version"))
+		dependencyManagement(platform("org.junit:junit-bom:$junitJupiterVersion"))
+		dependencyManagement(platform("org.springframework:spring-framework-bom:$springVersion"))
+		dependencyManagement(platform("io.projectreactor:reactor-bom:$reactorVersion"))
+		dependencyManagement(platform("org.apache.logging.log4j:log4j-bom:$log4jVersion"))
+		dependencyManagement(platform("org.springframework.data:spring-data-bom:$springDataVersion"))
+		dependencyManagement(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
+		dependencyManagement(platform("io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"))
+		dependencyManagement(platform("org.testcontainers:testcontainers-bom:$testcontainersVersion"))
+		dependencyManagement(platform("org.apache.camel:camel-bom:$camelVersion"))
+		dependencyManagement(platform("org.apache.groovy:groovy-bom:$groovyVersion"))
+		dependencyManagement(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"))
+		dependencyManagement(platform("org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"))
+		dependencyManagement(platform("org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"))
+		dependencyManagement(platform("org.springframework.security:spring-security-bom:$springSecurityVersion"))
+		dependencyManagement(platform("org.springframework.ws:spring-ws-bom:$springWsVersion"))
+		dependencyManagement(platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion"))
+	}
 }
 
 configure(javaProjects) { subproject ->
@@ -201,13 +196,10 @@ configure(javaProjects) { subproject ->
             }
         }
 
-        [compileClasspath, testCompileClasspath, testRuntimeClasspath].each {
+        [compileClasspath, runtimeClasspath, testCompileClasspath, testRuntimeClasspath].each {
             it.extendsFrom(provided)
+			it.extendsFrom(dependencyManagement)
         }
-
-		configureEach {
-			resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
-		}
     }
 
     components.java.with {
@@ -439,7 +431,7 @@ project('spring-integration-test-support') {
     description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
     dependencies {
         api "org.hamcrest:hamcrest-library:$hamcrestVersion"
-        api 'org.mockito:mockito-core'
+        api "org.mockito:mockito-core:$mockitoVersion"
         api "org.assertj:assertj-core:$assertjVersion"
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
@@ -495,7 +487,13 @@ project('spring-integration-core') {
 
     apply plugin: 'com.google.protobuf'
 
-    dependencies {
+	configurations {
+		[compileProtoPath, testCompileProtoPath].each {
+			it.extendsFrom(dependencyManagement)
+		}
+	}
+
+	dependencies {
         api 'org.springframework:spring-aop'
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
@@ -741,9 +739,7 @@ project('spring-integration-kafka') {
     dependencies {
         api 'org.springframework.kafka:spring-kafka'
 
-        testImplementation ('org.springframework.kafka:spring-kafka-test') {
-            exclude group: 'ch.qos.logback'
-        }
+        testImplementation 'org.springframework.kafka:spring-kafka-test'
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -835,9 +831,7 @@ project('spring-integration-sftp') {
     dependencies {
         api project(':spring-integration-file')
         api 'org.springframework:spring-context-support'
-        api("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
-            exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
-        }
+        api "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
 
         testImplementation project(':spring-integration-event')
         testImplementation project(':spring-integration-file').sourceSets.test.output
@@ -864,10 +858,7 @@ project('spring-integration-stomp') {
         testImplementation project(':spring-integration-websocket')
         testImplementation project(':spring-integration-websocket').sourceSets.test.output
         testImplementation project(':spring-integration-event')
-        testImplementation("org.apache.activemq:artemis-stomp-protocol:$artemisVersion") {
-            exclude group: 'org.jboss.logmanager'
-            exclude group: 'io.netty'
-        }
+        testImplementation "org.apache.activemq:artemis-stomp-protocol:$artemisVersion"
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
         testImplementation 'tools.jackson.core:jackson-databind'
 
@@ -1054,6 +1045,8 @@ dependencies {
         javadoc it
     }
 }
+
+configurations.javadocClasspath.extendsFrom(configurations.dependencyManagement)
 
 javadoc {
     title = "${rootProject.description} ${version} API"
