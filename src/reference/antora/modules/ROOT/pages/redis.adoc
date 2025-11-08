@@ -870,8 +870,9 @@ The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl
 [[elasticache-valkey-cluster]]
 === AWS ElastiCache for Valkey Support in cluster mode
 
-Starting with version 6.4.9/6.5.4/7.0.0, `RedisLockRegistry` supports AWS Elasticache for Valkey in cluster mode. In this version of valkey (a redis drop-in replacement), all PubSub operations (`PUBLISH`, `SUBSCRIBE`, etc.) use their sharded variants (`SPUBLISH`, `SSUBSCRIBE`, etc.) internally.
-If you are observing errors in the form of
+Starting with version 6.4.9/6.5.4/7.0.0, `RedisLockRegistry` supports AWS Elasticache for Valkey in cluster mode.
+In this version of valkey (a redis drop-in replacement), all PubSub operations (`PUBLISH`, `SUBSCRIBE`, etc.) use their sharded variants (`SPUBLISH`, `SSUBSCRIBE`, etc.) internally.
+If you are observing errors in the form of:
 
 [source]
 ----
