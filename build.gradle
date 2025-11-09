@@ -68,7 +68,7 @@ ext {
     hsqldbVersion = '2.7.4'
     h2Version = '2.4.240'
     jacksonVersion = '2.20.1'
-    jackson3Version = '3.0.1'
+    jackson3Version = '3.0.2'
     jaxbVersion = '4.0.6'
     jcifsVersion = '3.0.0'
     jeroMqVersion = '0.6.0'
