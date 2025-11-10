@@ -866,3 +866,26 @@ When it is set, the lock will be automatically renewed every `1/3` of the expira
 Starting with version 7.0, the `RedisLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
 A `RedisLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
 The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.
+
+[[elasticache-valkey-cluster]]
+=== AWS ElastiCache for Valkey Support in cluster mode
+
+Starting with version 6.4.9/6.5.4/7.0.0, `RedisLockRegistry` supports AWS Elasticache for Valkey in cluster mode.
+In this version of valkey (a redis drop-in replacement), all PubSub operations (`PUBLISH`, `SUBSCRIBE`, etc.) use their sharded variants (`SPUBLISH`, `SSUBSCRIBE`, etc.) internally.
+If you are observing errors in the form of:
+
+[source]
+----
+Caused by: io.lettuce.core.RedisCommandExecutionException: ERR Script attempted to access keys that do not hash to the same slot script: b2dedc0ab01c17f9f20e3e6ddb62dcb6afbed0bd, on @user_script:3.
+----
+
+in the `unlock` step of the `RedisLockRegistry`,  you have to supply a lock key that includes a hash tag `{...}` to ensure all operations in the `unlock` script are hashed to the same cluster slot/shard, e.g.:
+
+[source]
+----
+RedisLockRegistry lockRegistry = new RedisLockRegistry("my-lock-key{choose_your_tag}");
+
+lockRegistry.lock();
+# critical section
+lockRegistry.unlock();
+----

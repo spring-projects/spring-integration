@@ -670,7 +670,7 @@ public final class RedisLockRegistry
 		private static final String UNLINK_UNLOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
 				if (lockClientId == ARGV[1] and redis.call('UNLINK', KEYS[1]) == 1) then
-					redis.call('PUBLISH', KEYS[2], KEYS[1])
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
 					return true
 				end
 				return false
@@ -693,8 +693,8 @@ public final class RedisLockRegistry
 		protected boolean removeLockKeyInnerUnlink() {
 			final String unLockChannelKey = RedisLockRegistry.this.unLockChannelKey + ":" + this.lockKey;
 			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					UNLINK_UNLOCK_REDIS_SCRIPT, List.of(this.lockKey, unLockChannelKey),
-					RedisLockRegistry.this.clientId));
+					UNLINK_UNLOCK_REDIS_SCRIPT, List.of(this.lockKey),
+					RedisLockRegistry.this.clientId, unLockChannelKey));
 		}
 
 		private boolean subscribeLock(long time, long expireAfter) throws ExecutionException, InterruptedException {
