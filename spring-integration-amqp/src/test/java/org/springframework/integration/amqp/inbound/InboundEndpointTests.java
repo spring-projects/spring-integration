@@ -350,7 +350,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -380,7 +380,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -416,7 +416,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -451,7 +451,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -736,7 +736,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -784,7 +784,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		AtomicReference<List<org.springframework.amqp.core.Message>> recoveredMessages = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);

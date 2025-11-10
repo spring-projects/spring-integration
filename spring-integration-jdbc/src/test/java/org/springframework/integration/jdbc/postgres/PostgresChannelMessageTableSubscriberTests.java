@@ -254,9 +254,9 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		List<Object> payloads = new ArrayList<>();
 		AtomicInteger actualTries = new AtomicInteger();
 
-		int maxAttempts = 2;
+		int maxRetries = 2;
 		postgresSubscribableChannel.setRetryTemplate(
-				new RetryTemplate(RetryPolicy.builder().maxAttempts(maxAttempts).delay(Duration.ZERO).build()));
+				new RetryTemplate(RetryPolicy.builder().maxRetries(maxRetries).delay(Duration.ZERO).build()));
 
 		if (transactionsEnabled) {
 			postgresSubscribableChannel.setTransactionManager(transactionManager);
@@ -281,7 +281,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(actualTries.get()).isEqualTo(maxAttempts);
+		assertThat(actualTries.get()).isEqualTo(maxRetries);
 		assertThat(payloads).containsExactly("1");
 	}
 

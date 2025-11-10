@@ -705,9 +705,7 @@ project('spring-integration-jms') {
         api 'org.springframework:spring-jms'
         provided "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
 
-        testImplementation("org.apache.activemq:artemis-server:$artemisVersion") {
-            exclude group: 'org.jboss.logmanager'
-        }
+        testImplementation "org.apache.activemq:artemis-server:$artemisVersion"
         testImplementation "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'tools.jackson.core:jackson-databind'

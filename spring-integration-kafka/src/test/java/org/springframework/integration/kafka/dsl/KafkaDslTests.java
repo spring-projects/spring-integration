@@ -305,7 +305,7 @@ public class KafkaDslTests {
 											.id("topic1ListenerContainer"))
 							.errorChannel(errorChannel())
 							.retryTemplate(
-									new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
+									new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()))
 							.onPartitionsAssignedSeekCallback((map, callback) ->
 									ContextConfiguration.this.onPartitionsAssignedCalledLatch.countDown()))
 					.filter(Message.class, m ->

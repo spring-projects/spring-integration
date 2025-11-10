@@ -465,7 +465,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 											.taskExecutor(Executors.newCachedThreadPool()))
 							.id("observedJmsMessageDrivenChannelAdapter")
 							.retryTemplate(new RetryTemplate(
-									RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build())))
+									RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build())))
 					.handle((p, h) -> {
 						if (h.get(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, AtomicInteger.class).get() < 3) {
 							throw new RuntimeException("intentional for retry");

@@ -7,21 +7,21 @@
 
 	<int:handler-retry-advice id="a1" />
 
-	<int:handler-retry-advice id="a2" max-attempts="4" />
+	<int:handler-retry-advice id="a2" max-retries="4" />
 
-	<int:handler-retry-advice id="a3" max-attempts="5">
+	<int:handler-retry-advice id="a3" max-retries="5">
 		<int:fixed-back-off />
 	</int:handler-retry-advice>
 
-	<int:handler-retry-advice id="a4" max-attempts="6">
+	<int:handler-retry-advice id="a4" max-retries="6">
 		<int:fixed-back-off interval="1234" />
 	</int:handler-retry-advice>
 
-	<int:handler-retry-advice id="a5" max-attempts="7">
+	<int:handler-retry-advice id="a5" max-retries="7">
 		<int:exponential-back-off />
 	</int:handler-retry-advice>
 
-	<int:handler-retry-advice id="a6" max-attempts="8">
+	<int:handler-retry-advice id="a6" max-retries="8">
 		<int:exponential-back-off initial="1000" multiplier="3.0" maximum="10000" jitter="6"/>
 	</int:handler-retry-advice>
 
@@ -37,7 +37,7 @@
 
 	<int:service-activator id="sa2" input-channel="foo" expression="'foo'">
 		<int:request-handler-advice-chain>
-			<int:retry-advice max-attempts="9" />
+			<int:retry-advice max-retries="9" />
 		</int:request-handler-advice-chain>
 	</int:service-activator>
 

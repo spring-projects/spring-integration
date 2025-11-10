@@ -55,6 +55,8 @@ For the stateless retry logic, there is just enough to provide a `org.springfram
 The stateful retry logic is activated by the `Function<Message<?>, Object> stateKeyFunction`.
 The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
 
+The `max-attempts` attribute of the `<int:handler-retry-advice>` XML component has been renamed to the `max-retries` to better reflect the logic behind this property which is exactly about the number of attempts to call a failing handler.
+
 See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more information.
 
 All the modules now follow the standard package structure.

@@ -316,7 +316,7 @@ class InboundGatewayTests {
 
 		});
 		gateway.setReplyTimeout(30_000);
-		gateway.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		gateway.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		gateway.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errors, new RawRecordHeaderErrorMessageStrategy()));
 		gateway.afterPropertiesSet();
@@ -378,7 +378,7 @@ class InboundGatewayTests {
 		gateway.setRequestChannel(out);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setReplyTimeout(30_000);
-		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxAttempts(4).delay(Duration.ZERO).build());
+		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxRetries(4).delay(Duration.ZERO).build());
 		final CountDownLatch retryCountLatch = new CountDownLatch(4);
 		retryTemplate.setRetryListener(new RetryListener() {
 

@@ -246,7 +246,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -308,7 +308,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 		};
 		adapter.setOutputChannel(out);
-		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build());
+		RetryTemplate retryTemplate = new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build());
 		final CountDownLatch retryCountLatch = new CountDownLatch(3);
 		retryTemplate.setRetryListener(new RetryListener() {
 

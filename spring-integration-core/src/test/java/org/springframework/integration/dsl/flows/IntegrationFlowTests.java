@@ -919,7 +919,7 @@ public class IntegrationFlowTests {
 			requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel()));
 			RetryPolicy retryPolicy =
 					RetryPolicy.builder()
-							.maxAttempts(2)
+							.maxRetries(2)
 							.delay(Duration.ZERO)
 							.build();
 			requestHandlerRetryAdvice.setRetryPolicy(retryPolicy);

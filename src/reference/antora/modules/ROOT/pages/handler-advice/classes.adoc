@@ -97,7 +97,7 @@ RequestHandlerRetryAdvice retryAdvice() {
     RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
     requestHandlerRetryAdvice.setRecoveryCallback(new ErrorMessageSendingRecoverer(recoveryChannel()));
     RetryPolicy retryPolicy = RetryPolicy.builder()
-            .maxAttempts(4)
+            .maxRetries(4)
             .delay(Duration.ofSeconds(1))
             .multiplier(5.0)
             .maxDelay(Duration.ofMinutes(1))
@@ -118,7 +118,7 @@ The following examples demonstrate how the `RequestHandlerRetryAdvice` can be co
     </int:request-handler-advice-chain>
 </int:service-activator>
 
-<int:handler-retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
+<int:handler-retry-advice id="retrier" max-retries="4" recovery-channel="myErrorChannel">
     <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
 </int:handler-retry-advice>
 ----
@@ -130,7 +130,7 @@ You can also define the advice directly within the chain, as the following examp
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
-        <int:retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
+        <int:retry-advice id="retrier" max-retries="4" recovery-channel="myErrorChannel">
             <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
         </int:retry-advice>
     </int:request-handler-advice-chain>

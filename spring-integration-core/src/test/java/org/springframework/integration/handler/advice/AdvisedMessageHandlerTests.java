@@ -932,7 +932,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
-		RetryPolicy.Builder retryPolicyBuilder = RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO);
+		RetryPolicy.Builder retryPolicyBuilder = RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO);
 		if (retryForMyException) {
 			retryPolicyBuilder.includes(MessagingException.class);
 		}

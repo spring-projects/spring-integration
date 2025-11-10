@@ -147,7 +147,7 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(null);
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
 		container.getContainerProperties().setMessageListener(null);
 		adapter.afterPropertiesSet();
 

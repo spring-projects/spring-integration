@@ -236,7 +236,7 @@ class KafkaDslKotlinTests {
 
 					}
 					.errorChannel(errorChannel())
-					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
+					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()))
 					.filterInRetry(true)) {
 				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
 					throwExceptionOnRejection(
@@ -259,7 +259,7 @@ class KafkaDslKotlinTests {
 							.groupId("kotlin_topic2_group")
 					}
 					.errorChannel(errorChannel())
-					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxAttempts(2).delay(Duration.ZERO).build()))
+					.retryTemplate(RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()))
 					.filterInRetry(true)) {
 				filter<Message<*>>({ m -> (m.headers[KafkaHeaders.RECEIVED_KEY] as Int) < 101 }) {
 					throwExceptionOnRejection(

@@ -44,25 +44,25 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RequestHandlerRetryAdvice.class);
 
-		String maxAttempts = element.getAttribute("max-attempts");
+		String maxRetries = element.getAttribute("max-retries");
 
 		// Default to 3 attempts and no delay in between.
 		BeanDefinitionBuilder backOffBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(FixedBackOff.class)
 						.addConstructorArgValue(0)
-						.addConstructorArgValue(maxAttempts);
+						.addConstructorArgValue(maxRetries);
 
 		Element backOffPolicyEle = DomUtils.getChildElementByTagName(element, "fixed-back-off");
 		if (backOffPolicyEle != null) {
 			backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(FixedBackOff.class)
 					.addConstructorArgValue(backOffPolicyEle.getAttribute("interval"))
-					.addConstructorArgValue(maxAttempts);
+					.addConstructorArgValue(maxRetries);
 		}
 		else {
 			backOffPolicyEle = DomUtils.getChildElementByTagName(element, "exponential-back-off");
 			if (backOffPolicyEle != null) {
 				backOffBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExponentialBackOff.class)
-						.addPropertyValue("maxAttempts", maxAttempts)
+						.addPropertyValue("maxAttempts", maxRetries)
 						.addPropertyValue("multiplier", backOffPolicyEle.getAttribute("multiplier"))
 						.addPropertyValue("initialInterval", backOffPolicyEle.getAttribute("initial"))
 						.addPropertyValue("maxInterval", backOffPolicyEle.getAttribute("maximum"))

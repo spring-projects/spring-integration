@@ -4992,7 +4992,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	<xsd:complexType name="retryAdviceType">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				A convenient way of defining a MessageHandlerRetryAdvice. Uses a SimpleRetryPolicy
+				A convenient way of defining a MessageHandlerRetryAdvice. Uses a RetryPolicy
 				and an optional Exponential or Fixed BackOffPolicy. Default is no back off.
 			]]></xsd:documentation>
 		</xsd:annotation>
@@ -5059,10 +5059,10 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:choice>
-		<xsd:attribute name="max-attempts" type="xsd:string" default="3">
+		<xsd:attribute name="max-retries" type="xsd:string" default="3">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					The maximum number of attempts to invoke the handler.
+					The maximum number of retries to invoke a failing handler.
 					Default 3.
 				]]></xsd:documentation>
 			</xsd:annotation>
@@ -5070,8 +5070,8 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		<xsd:attribute name="recovery-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					A MessageChannel to receive the message after retries are exhausted. Default
-					is to not recover and throw the exception.
+					A MessageChannel to receive the message after retries are exhausted.
+					The default is to not recover and throw the exception.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

@@ -78,7 +78,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	private @Nullable TransactionTemplate transactionTemplate;
 
 	private RetryTemplate retryTemplate =
-			new RetryTemplate(RetryPolicy.builder().maxAttempts(1).delay(Duration.ZERO).build());
+			new RetryTemplate(RetryPolicy.builder().maxRetries(1).delay(Duration.ZERO).build());
 
 	private ErrorHandler errorHandler = ReflectionUtils::rethrowRuntimeException;
 
