@@ -668,7 +668,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private static final String UNLINK_UNLOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
 				if (lockClientId == ARGV[1] and redis.call('UNLINK', KEYS[1]) == 1) then
-					redis.call('PUBLISH', KEYS[2], KEYS[1])
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
 					return true
 				end
 				return false
@@ -711,8 +711,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private boolean removeLockKeyWithScript(RedisScript<Boolean> redisScript) {
 			String unLockChannelKeyToUse = RedisLockRegistry.this.unLockChannelKey + ":" + this.lockKey;
 			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					redisScript, List.of(this.lockKey, unLockChannelKeyToUse),
-					RedisLockRegistry.this.clientId));
+					redisScript, List.of(this.lockKey),
+					RedisLockRegistry.this.clientId, unLockChannelKey));
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
