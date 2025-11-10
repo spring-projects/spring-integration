@@ -712,7 +712,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			String unLockChannelKeyToUse = RedisLockRegistry.this.unLockChannelKey + ":" + this.lockKey;
 			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
 					redisScript, List.of(this.lockKey),
-					RedisLockRegistry.this.clientId, unLockChannelKey));
+					RedisLockRegistry.this.clientId, unLockChannelKeyToUse));
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
