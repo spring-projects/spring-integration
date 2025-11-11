@@ -27,14 +27,14 @@ compile "org.springframework.integration:spring-integration-redis:{project-versi
 ----
 ======
 
-You also need to include Redis client dependency, e.g. Lettuce.
+The Redis client dependency must be included, e.g. https://redis.io/docs/latest/develop/clients/lettuce[Lettuce].
 
 To download, install, and run Redis, see the https://redis.io/download[Redis documentation].
 
 [[redis-connection]]
 == Connecting to Redis
 
-To begin interacting with Redis, you first need to connect to it.
+To begin interacting with Redis, a connection must be obtained first.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
 Those abstractions simplify integration with several Redis client Java APIs.
 Currently, Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] and https://lettuce.io/[Lettuce].
@@ -42,7 +42,7 @@ Currently, Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] 
 [[using-redisconnectionfactory]]
 === Using `RedisConnectionFactory`
 
-To connect to Redis, you can use one of the implementations of the `RedisConnectionFactory` interface.
+The `RedisConnectionFactory` from Spring Data Redis is a high-level abstraction for managing connections with Redis.
 The following listing shows the interface definition:
 
 [source,java]
@@ -75,8 +75,8 @@ The following example shows how to create a `LettuceConnectionFactory` in Spring
 </bean>
 ----
 
-The implementations of `RedisConnectionFactory` provide a set of properties, such as port and host, that you can set if needed.
-Once you have an instance of `RedisConnectionFactory`, you can create an instance of `RedisTemplate` and inject it with the `RedisConnectionFactory`.
+The implementations of `RedisConnectionFactory` provide a set of properties, such as port and host.
+Once an instance of `RedisConnectionFactory` exists, the `RedisTemplate` can be created.
 
 [[using-redistemplate]]
 === Using `RedisTemplate`
@@ -112,9 +112,9 @@ As with JMS and AMQP, Spring Integration provides message channels and adapters 
 === Redis Publish/Subscribe channel
 
 Similarly to JMS, there are cases where both the producer and consumer are intended to be part of the same application, running within the same process.
-You can accomplish this by using a pair of inbound and outbound channel adapters.
+This can be accomplished with a pair of inbound and outbound channel adapters.
 However, as with Spring Integration's JMS support, there is a simpler way to address this use case.
-You can create a publish-subscribe channel, as the following example shows:
+Instead, a publish-subscribe channel can be used, as the following example shows:
 
 [source,xml]
 ----
@@ -129,7 +129,7 @@ In Redis, topics are simple `String` values that play the role of an address.
 The producer and consumer can communicate by using the same `String` value as their topic name.
 A simple subscription to this channel means that asynchronous publish-subscribe messaging is possible between the producing and consuming endpoints.
 However, unlike the asynchronous message channels created by adding a `<queue/>` element within a simple Spring Integration `<channel/>` element, the messages are not stored in an in-memory queue.
-Instead, those messages are passed through Redis, which lets you rely on its support for persistence and clustering as well as its interoperability with other non-Java platforms.
+Instead, those messages are passed through Redis, which lets rely on its support for persistence and clustering as well as its interoperability with other non-Java platforms.
 
 [[redis-inbound-channel-adapter]]
 === Redis Inbound Channel Adapter
@@ -157,7 +157,7 @@ The following example shows how to configure a Redis inbound channel adapter:
 The preceding example shows a simple but complete configuration of a Redis inbound channel adapter.
 Note that the preceding configuration relies on the familiar Spring paradigm of auto-discovering certain beans.
 In this case, the `redisConnectionFactory` is implicitly injected into the adapter.
-You can specify it explicitly by using the `connection-factory` attribute instead.
+Alternatively, a custom `RedisConnectionFactory` can be injected via `connection-factory` attribute.
 
 Also, note that the preceding configuration injects the adapter with a custom `MessageConverter`.
 The approach is similar to JMS, where `MessageConverter` instances are used to convert between Redis messages and the Spring Integration message payloads.
@@ -173,9 +173,9 @@ Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis me
 The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be set to an empty string, which results in a `null` value for the `RedisSerializer` property.
 In this case, the raw `byte[]` bodies of Redis messages are provided as the message payloads.
 
-Since version 5.0, you can provide an `Executor` instance to the inbound adapter by using the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
+Since version 5.0, an `Executor` instance can be injected into the inbound adapter by using the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
 Also, the received Spring Integration messages now have the `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the published message: topic or pattern.
-You can use this downstream for routing logic.
+This can be used downstream for routing logic.
 
 [[redis-outbound-channel-adapter]]
 === Redis Outbound Channel Adapter
@@ -203,14 +203,14 @@ The configuration parallels the Redis inbound channel adapter.
 The adapter is implicitly injected with a `RedisConnectionFactory`, which is defined with `redisConnectionFactory` as its bean name.
 This example also includes the optional (and custom) `MessageConverter` (the `testConverter` bean).
 
-Since Spring Integration 3.0, the `<int-redis:outbound-channel-adapter>` offers an alternative to the `topic` attribute: You can use the `topic-expression` attribute to determine the Redis topic for the message at runtime.
+Since Spring Integration 3.0, the `<int-redis:outbound-channel-adapter>` offers an alternative to the `topic` attribute: a `topic-expression` attribute is present to determine the Redis topic for the message at runtime.
 These attributes are mutually exclusive.
 
 [[redis-queue-inbound-channel-adapter]]
 === Redis Queue Inbound Channel Adapter
 
 Spring Integration 3.0 introduced a queue inbound channel adapter to "`pop`" messages from a Redis list.
-By default, it uses "`right pop`", but you can configure it to use "`left pop`" instead.
+By default, it uses "`right pop`", but can be configured to use "`left pop`" instead.
 The adapter is message-driven.
 It uses an internal listener thread and does not use a poller.
 
@@ -235,7 +235,7 @@ The following listing shows all the available attributes for `queue-inbound-chan
 ----
 
 <1> The component bean name.
-If you do not provide the `channel` attribute, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
+If `channel` attribute not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
 In this case, the endpoint itself is registered with the bean name `id` plus `.adapter`.
 (If the bean name were `thing1`, the endpoint is registered as `thing1.adapter`.)
 <2> The `MessageChannel` to which to send `Message` instances from this Endpoint.
@@ -268,14 +268,14 @@ Its default is `true`.
 Since version 4.3.
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
-The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose your application to the possible deadlock situation.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose the application to the possible deadlock situation.
 See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
 
 [[redis-queue-outbound-channel-adapter]]
 === Redis Queue Outbound Channel Adapter
 
 Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" to a Redis list from Spring Integration messages.
-By default, it uses "`left push`", but you can configure it to use "`right push`" instead.
+By default, it uses "`left push`", but "`right push`" can be configured instead.
 The following listing shows all the available attributes for a Redis `queue-outbound-channel-adapter`:
 
 [source,xml]
@@ -292,7 +292,7 @@ The following listing shows all the available attributes for a Redis `queue-outb
 ----
 
 <1> The component bean name.
-If you do not provide the `channel` attribute, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
+If the `channel` attribute is not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
 In this case, the endpoint is registered with a bean name of `id` plus `.adapter`.
 (If the bean name were `thing1`, the endpoint is registered as `thing1.adapter`.)
 <2> The `MessageChannel` from which this endpoint receives `Message` instances.
@@ -326,7 +326,7 @@ Handling these events with an `<int-event:inbound-channel-adapter/>` can be usef
 [[redis-message-store]]
 == Redis Message Store
 
-As described in the _Enterprise Integration Patterns_ (EIP) book, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[message store] lets you persist messages.
+As described in the _Enterprise Integration Patterns_ (EIP) book, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[message store] lets persist messages.
 This can be useful when dealing with components that have a capability to buffer messages (aggregator, resequencer, and others) when reliability is a concern.
 In Spring Integration, the `MessageStore` strategy also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
 
@@ -346,16 +346,16 @@ The following example shows how to use it with a aggregator:
 The preceding example is a bean configuration, and it expects a `RedisConnectionFactory` as a constructor argument.
 
 By default, the `RedisMessageStore` uses Java serialization to serialize the message.
-However, if you want to use a different serialization technique (such as JSON), you can provide your own serializer by setting the `valueSerializer` property of the `RedisMessageStore`.
+However, if a different serialization technique (such as JSON) is required, a custom serializer can be set into the `valueSerializer` property of the `RedisMessageStore`.
 
 The Framework provides Jackson serializer and deserializer implementations for `Message` instances and `MessageHeaders` instances -- `MessageJsonDeserializer` and `MessageHeadersJsonSerializer`, respectively.
 They have to be configured with the `SimpleModule` options for the `ObjectMapper`.
-In addition, you should set `enableDefaultTyping` on the `ObjectMapper` to add type information for each serialized complex object (if you trust the source).
-That type information is then used during deserialization.
+In addition, the `enableDefaultTyping` should be set on the `ObjectMapper` to add type information for each serialized complex object.
+That `type` information is then used during deserialization.
 The framework provides a utility method called `JacksonMessagingUtils.messagingAwareMapper()`, which is already supplied with all the previously mentioned properties and serializers.
 This utility method comes with the `trustedPackages` argument to limit Java packages for deserialization to avoid security vulnerabilities.
 The default trusted packages: `java.util`, `java.lang`, `org.springframework.messaging.support`, `org.springframework.integration.support`, `org.springframework.integration.message`, `org.springframework.integration.store`.
-To manage JSON serialization in the `RedisMessageStore`, you must configure it in a fashion similar to the following example:
+To manage JSON serialization in the `RedisMessageStore`, a configuration like following must be applied:
 
 [source,java]
 ----
@@ -371,11 +371,11 @@ Starting with version 4.3.12, `RedisMessageStore` supports the `prefix` option t
 === Redis Channel Message Stores
 
 The `RedisMessageStore` xref:redis.adoc#redis-message-store[shown earlier] maintains each group as a value under a single key (the group ID).
-While you can use this to back a `QueueChannel` for persistence, a specialized `RedisChannelMessageStore` is provided for that purpose (since version 4.0).
+While a `QueueChannel` can be used for persistence, a specialized `RedisChannelMessageStore` is provided for that purpose (since version 4.0).
 This store uses a `LIST` for each channel, `LPUSH` when sending messages, and `RPOP` when receiving messages.
-By default, this store also uses JDK serialization, but you can modify the value serializer, as xref:redis.adoc#redis-message-store[described earlier].
+By default, this store also uses JDK serialization, but it can be modified for the value serializer, as xref:redis.adoc#redis-message-store[described earlier].
 
-We recommend using this store backing channel, instead of using the general `RedisMessageStore`.
+It is recommended to use a store-backing channel, instead of using the general `RedisMessageStore`.
 The following example defines a Redis message store and uses it in a channel with a queue:
 
 [source,xml]
@@ -392,7 +392,7 @@ The following example defines a Redis message store and uses it in a channel wit
 The keys used to store the data have the form: `<storeBeanName>:<channelId>` (in the preceding example, `redisMessageStore:somePersistentQueueChannel`).
 
 In addition, a subclass `RedisChannelPriorityMessageStore` is also provided.
-When you use this with a `QueueChannel`, the messages are received in (FIFO) priority order.
+When this is used with a `QueueChannel`, the messages are received in (FIFO) priority order.
 It uses the standard `IntegrationMessageHeaderAccessor.PRIORITY` header and supports priority values (`0 - 9`).
 Messages with other priorities (and messages with no priority) are retrieved in FIFO order after any messages with priority.
 
@@ -403,8 +403,8 @@ They can be used only for situations such as backing a `QueueChannel`.
 == Redis Metadata Store
 
 Spring Integration 3.0 introduced a new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see xref:meta-data-store.adoc[Metadata Store]) implementation.
-You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
-You can use this new `MetadataStore` implementation with adapters such as:
+The `RedisMetadataStore` can be used to maintain the state of a `MetadataStore` across application restarts.
+Such a `MetadataStore` implementation can be used with adapters such as:
 
 
 * xref:feed.adoc#feed-inbound-channel-adapter[Feed]
@@ -430,7 +430,7 @@ By default, this `key` has a value of `MetaData`.
 
 Starting with version 4.0, this store implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances where only one instance is allowed to store or modify a key's value.
 
-IMPORTANT: You cannot use the `RedisMetadataStore.replace()` (for example, in the `AbstractPersistentAcceptOnceFileListFilter`) with a Redis cluster, since the `WATCH` command for atomicity is not currently supported.
+IMPORTANT: The `RedisMetadataStore.replace()` cannot be used (for example, in the `AbstractPersistentAcceptOnceFileListFilter`) with a Redis cluster, since the `WATCH` command for atomicity is not currently supported.
 
 [[redis-store-inbound-channel-adapter]]
 == Redis Store Inbound Channel Adapter
@@ -456,16 +456,16 @@ The preceding example shows how to configure a Redis store inbound channel adapt
 The supported Collections are `LIST`, `SET`, `ZSET`, `PROPERTIES`, and `MAP`.
 * `connection-factory`: Reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`.
 * `redis-template`: Reference to an instance of `o.s.data.redis.core.RedisTemplate`.
-* Other attributes that are common across all other inbound adapters (such as 'channel').
+* Other attributes that are common across all inbound adapters (such as 'channel').
 
-NOTE: You cannot set both `redis-template` and `connection-factory`.
+NOTE: The `redis-template` and `connection-factory` are mutually exclusive.
 
 [IMPORTANT]
 =====
 By default, the adapter uses a `StringRedisTemplate`.
 This uses `StringRedisSerializer` instances for keys, values, hash keys, and hash values.
-If your Redis store contains objects that are serialized with other techniques, you must supply a `RedisTemplate` configured with appropriate serializers.
-For example, if the store is written to using a Redis store outbound adapter that has its `extract-payload-elements` set to `false`, you must provide a `RedisTemplate` configured as follows:
+If Redis store contains objects that are serialized with other techniques, the `RedisTemplate` must be configured with appropriate serializers.
+For example, if the store is written to using a Redis store outbound adapter that has its `extract-payload-elements` set to `false`, th `RedisTemplate` should be configured as follows:
 
 [source,xml]
 ----
@@ -484,12 +484,12 @@ The `RedisTemplate` uses `String` serializers for keys and hash keys and the def
 =====
 
 Because it has a literal value for the `key`, the preceding example is relatively simple and static.
-Sometimes, you may need to change the value of the key at runtime based on some condition.
+Sometimes, the value of the key must be changed at runtime based on some condition.
 To do so, use `key-expression` instead, where the provided expression can be any valid SpEL expression.
 
-Also, you may wish to perform some post-processing on the successfully processed data that was read from the Redis collection.
-For example, you may want to move or remove the value after it has been processed.
-You can do so by using the transaction synchronization feature that was added with Spring Integration 2.2.
+Also, some post-processing could be done on the successfully processed data that was read from the Redis collection.
+For example, the value may be moved or removed after it has been processed.
+The transaction synchronization feature could be used for such a logic.
 The following example uses `key-expression` and transaction synchronization:
 
 [source,xml]
@@ -512,21 +512,20 @@ The following example uses `key-expression` and transaction synchronization:
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>
 ----
 
-You can declare your poller to be transactional by using a `transactional` element.
-This element can reference a real transaction manager, for example, if some other part of your flow invokes JDBC.
-If you do not have a "`real`" transaction, you can use an `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Redis adapter when there is no actual transaction.
+The poller can be transactional by using a `transactional` element.
+This element can reference a real transaction manager, for example, if some other part of the flow invokes JDBC.
+If no "`real`" transaction, a `o.s.i.transaction.PseudoTransactionManager` can be used instead, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Redis adapter when there is no actual transaction.
 
 IMPORTANT: This does not make the Redis activities themselves transactional.
 It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
 
-Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
+Once the poller is transactional, an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` can be added on the `transactional` element.
 `TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
-For your convenience, we have exposed a default SpEL-based `TransactionSynchronizationFactory`, which lets you configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
+For convenience, a default SpEL-based `TransactionSynchronizationFactory` is exposed, which lets configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
 Expressions for before-commit, after-commit, and after-rollback are supported, together with channels (one for each kind of event) where the evaluation results (if any) is sent.
-For each child element, you can specify `expression` and `channel` attributes.
+For each child element, an `expression` and `channel` attributes can be specified.
 If only the `channel` attribute is present, the received message is sent there as part of the particular synchronization scenario.
 If only the `expression` attribute is present and the result of an expression is a non-null value, a message with the result as the payload is generated and sent to a default channel (`NullChannel`) and appears in the logs (at the `DEBUG` level).
-If you want the evaluation result to go to a specific channel, add a `channel` attribute.
 If the result of an expression is null or void, no message is generated.
 
 The `RedisStoreMessageSource` adds a `store` attribute with a `RedisStore` instance bound to the transaction `IntegrationResourceHolder`, which can be accessed from a `TransactionSynchronizationProcessor` implementation.
@@ -536,7 +535,7 @@ For more information about transaction synchronization, see xref:transactions.ad
 [[redis-store-outbound-channel-adapter]]
 == RedisStore Outbound Channel Adapter
 
-The RedisStore outbound channel adapter lets you write a message payload to a Redis collection, as the following example shows:
+The RedisStore outbound channel adapter lets write a message payload to a Redis collection, as the following example shows:
 
 [source,xml]
 ----
@@ -559,24 +558,24 @@ The supported Collections are `LIST`, `SET`, `ZSET`, `PROPERTIES`, and `MAP`.
 It applies only if the `collection-type` is `MAP` or `PROPERTIES` and 'extract-payload-elements' is false.
 * `connection-factory`: Reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`.
 * `redis-template`: Reference to an instance of `o.s.data.redis.core.RedisTemplate`.
-* Other attributes that are common across all other inbound adapters (such as 'channel').
+* Other attributes that are common across all inbound adapters (such as 'channel').
 
-NOTE: You cannot set both `redis-template` and `connection-factory`.
+NOTE: The `redis-template` and `connection-factory` are mutually exclusive.
 
 IMPORTANT: By default, the adapter uses a `StringRedisTemplate`.
 This uses `StringRedisSerializer` instances for keys, values, hash keys, and hash values.
 However, if `extract-payload-elements` is set to `false`, a `RedisTemplate` that has `StringRedisSerializer` instances for keys and hash keys and `JdkSerializationRedisSerializer` instances s for values and hash values will be used.
 With the JDK serializer, it is important to understand that Java serialization is used for all values, regardless of whether the value is actually a collection or not.
-If you need more control over the serialization of values, consider providing your own `RedisTemplate` rather than relying upon these defaults.
+In case of more control over the serialization of values, a custom `RedisTemplate` could be provided rather than relying upon these defaults.
 
 Because it has literal values for the `key` and other attributes, the preceding example is relatively simple and static.
-Sometimes, you may need to change the values dynamically at runtime based on some condition.
-To do so, use their `-expression` equivalents (`key-expression`, `map-key-expression`, and so on), where the provided expression can be any valid SpEL expression.
+Sometimes, the values may be changed dynamically at runtime based on some condition.
+To do so, their `-expression` equivalents (`key-expression`, `map-key-expression`, and so on) are provided, where an expression can be any valid SpEL expression.
 
 [[redis-outbound-gateway]]
 == Redis Outbound Command Gateway
 
-Spring Integration 4.0 introduced the Redis command gateway to let you perform any standard Redis command by using the generic `RedisConnection#execute` method.
+Spring Integration 4.0 introduced the Redis command gateway to let perform any standard Redis command by using the generic `RedisConnection#execute` method.
 The following listing shows the available attributes for the Redis outbound gateway:
 
 [source,xml]
@@ -614,15 +613,15 @@ It defaults to the `redis_command` message header.
 It must not evaluate to `null`.
 <9> Comma-separated SpEL expressions that are evaluated as command arguments.
 Mutually exclusive with the `arguments-strategy` attribute.
-If you provide neither attribute, the `payload` is used as the command arguments.
+If neither attribute is provided, the `payload` is used as the command arguments.
 The argument expressions can evaluate to 'null' to support a variable number of arguments.
 <10> A `boolean` flag to specify whether the evaluated Redis command string is made available as the `#cmd` variable in the expression evaluation context in the `o.s.i.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured.
 Otherwise, this attribute is ignored.
 <11> Reference to an instance of `o.s.i.redis.outbound.ArgumentsStrategy`.
 It is mutually exclusive with `argument-expressions` attribute.
-If you provide neither attribute, the `payload` is used as the command arguments.
+If neither attribute is provided, the `payload` is used as the command arguments.
 
-You can use the `<int-redis:outbound-gateway>` as a common component to perform any desired Redis operation.
+The `<int-redis:outbound-gateway>` can be used as a common component to perform any desired Redis operation.
 The following example shows how to get incremented values from Redis atomic number:
 
 [source,xml]
@@ -729,7 +728,7 @@ If this attribute is set to `true`, the `serializer` cannot be an empty string, 
 <11> The time (in milliseconds) the listener task should sleep after exceptions on the "`right pop`" operation before restarting the listener task.
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
-The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose your application to the possible deadlock situation.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it is preferable to not expose the application to the possible deadlock situation.
 See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
 
 [[redis-stream-outbound]]
@@ -821,7 +820,7 @@ Similar logic is required even when an exception happens during deserialization 
 So, the target error handler must decide to ack or nack such a failed message.
 Alongside with `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`, the `ReactiveRedisStreamMessageProducer` also populates these headers into the message to produce: `RedisHeaders.STREAM_KEY`, `RedisHeaders.STREAM_MESSAGE_ID`, `RedisHeaders.CONSUMER_GROUP` and `RedisHeaders.CONSUMER`.
 
-Starting with version 5.5, you can configure `StreamReceiver.StreamReceiverOptionsBuilder` options explicitly on the `ReactiveRedisStreamMessageProducer`, including the newly introduced `onErrorResume` function, which is required if the Redis Stream consumer should continue polling when deserialization errors occur.
+Starting with version 5.5, `StreamReceiver.StreamReceiverOptionsBuilder` options can be configured explicitly on the `ReactiveRedisStreamMessageProducer`, including the newly introduced `onErrorResume` function, which is required if the Redis Stream consumer should continue polling when deserialization errors occur.
 The default function sends a message to the error channel (if provided) with possible acknowledgement for the failed message as it is described above.
 All these `StreamReceiver.StreamReceiverOptionsBuilder` are mutually exclusive with an externally provided `StreamReceiver.StreamReceiverOptions`.
 
@@ -831,18 +830,18 @@ All these `StreamReceiver.StreamReceiverOptionsBuilder` are mutually exclusive w
 Spring Integration 4.0 introduced the `RedisLockRegistry`.
 Certain components, (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
 The `DefaultLockRegistry` performs this function within a single component.
-You can now configure an external lock registry on these components.
-When you use it with a shared `MessageGroupStore`, you can use the `RedisLockRegistry` to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
+An external lock registry can be configured on these components.
+When it is used with a shared `MessageGroupStore`, the `RedisLockRegistry` can be set to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
 
 When a lock is released by a local thread, another local thread can generally acquire the lock immediately.
 If a lock is released by a thread using a different registry instance, it can take up to 100ms to acquire the lock.
 
-To avoid "`hung`" locks (when a server fails), the locks in this registry are expired after a default 60 seconds, but you can configure this value on the registry.
+To avoid "`hung`" locks (when a server fails), the locks in this registry are expired after default 60 seconds, but it can be configured on the registry.
 Locks are normally held for a much smaller time.
 
 IMPORTANT: Because the keys can expire, an attempt to unlock an expired lock results in an exception being thrown.
 However, the resources protected by such a lock may have been compromised, so such exceptions should be considered to be severe.
-You should set the expiry at a large enough value to prevent this condition, but set it low enough that the lock can be recovered after a server failure in a reasonable amount of time.
+The expiry should be set at a large enough value to prevent this condition, but set it low enough that the lock can be recovered after a server failure in a reasonable amount of time.
 
 Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.
 
@@ -865,21 +864,21 @@ When it is set, the lock will be automatically renewed every `1/3` of the expira
 
 Starting with version 7.0, the `RedisLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
 A `RedisLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
-The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.
+The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing to renew the lock with a custom time-to-live value.
 
 [[elasticache-valkey-cluster]]
 === AWS ElastiCache for Valkey Support in cluster mode
 
 Starting with version 6.4.9/6.5.4/7.0.0, `RedisLockRegistry` supports AWS Elasticache for Valkey in cluster mode.
 In this version of valkey (a redis drop-in replacement), all PubSub operations (`PUBLISH`, `SUBSCRIBE`, etc.) use their sharded variants (`SPUBLISH`, `SSUBSCRIBE`, etc.) internally.
-If you are observing errors in the form of:
+If there are any errors in the form of:
 
 [source]
 ----
 Caused by: io.lettuce.core.RedisCommandExecutionException: ERR Script attempted to access keys that do not hash to the same slot script: b2dedc0ab01c17f9f20e3e6ddb62dcb6afbed0bd, on @user_script:3.
 ----
 
-in the `unlock` step of the `RedisLockRegistry`,  you have to supply a lock key that includes a hash tag `{...}` to ensure all operations in the `unlock` script are hashed to the same cluster slot/shard, e.g.:
+"in the `unlock` step of the `RedisLockRegistry`, a lock key that includes a hashtag `{...}` must be supplied to ensure all operations in the `unlock` script are hashed to the same cluster slot/shard, e.g.:
 
 [source]
 ----
