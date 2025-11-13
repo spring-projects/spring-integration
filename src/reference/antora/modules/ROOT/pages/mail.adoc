@@ -43,14 +43,14 @@ It delegates to a configured instance of Spring's `JavaMailSender`, as the follo
 
 `MailSendingMessageHandler` has various mapping strategies that use Spring's `MailMessage` abstraction.
 If the received message's payload is already a `MailMessage` instance, it is sent directly.
-Therefore, we generally recommend that you precede this consumer with a transformer for non-trivial `MailMessage` construction requirements.
+Therefore, it is generally recommended that this consumer be preceded with a transformer for non-trivial `MailMessage` construction requirements.
 However, Spring Integration supports a few simple message mapping strategies.
 For example, if the message payload is a byte array, that is mapped to an attachment.
-For simple text-based emails, you can provide a string-based message payload.
+For simple text-based emails, a string-based message payload can be provided.
 In that case, a `MailMessage` is created with that `String` as the text content.
-If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in xref:transformer.adoc#transformer-namespace[Configuring a Transformer with XML] for more detail).
+If working with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in xref:transformer.adoc#transformer-namespace[Configuring a Transformer with XML] for more detail).
 
-You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
+Another option is to configure the outbound `MailMessage` with certain values from `MessageHeaders`.
 If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the `from`, the `reply-to`, and the `subject`.
 The header names are defined by the following constants:
 
@@ -64,7 +64,7 @@ The header names are defined by the following constants:
  MailHeaders.REPLY_TO
 ----
 
-NOTE: `MailHeaders` also lets you override corresponding `MailMessage` values.
+NOTE: `MailHeaders` also overrides corresponding `MailMessage` values.
 For example, if `MailMessage.to` is set to 'thing1@things.com' and the `MailHeaders.TO` message header is provided, it takes precedence and overrides the corresponding value in `MailMessage`.
 
 [[mail-inbound]]
@@ -80,7 +80,7 @@ The easiest way to instantiate either of these is by passing the 'uri' for a mai
 MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
 ----
 
-Another option for receiving mail is the IMAP `idle` command (if supported by your mail server).
+Another option for receiving mail is the IMAP `idle` command (if supported by the mail server).
 Spring Integration provides the `ImapIdleChannelAdapter`, which is itself a message-producing endpoint.
 It delegates to an instance of the `ImapMailReceiver`.
 The next section has examples of configuring both types of inbound channel adapter with Spring Integration's namespace support in the 'mail' schema.
@@ -108,7 +108,7 @@ This inconsistency was further exacerbated by the xref:mail.adoc#mail-mapping[Ma
 This meant that the IMAP content differed, depending on whether a header mapper was provided.
 
 Starting with version 5.0, messages originating from an IMAP source render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
-If you do not use a header mapper, and you wish to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
+If not using a header mapper, and wishing to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
 This property now controls the rendering regardless of whether a header mapper is used.
 It now allows body-only rendering when a header mapper is provided.
 
@@ -144,8 +144,8 @@ If an async hand-off is required, an `ExecutorChannel` can be used as the output
 == Inbound Mail Message Mapping
 
 By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`.
-You can use that object to interrogate the headers and content.
-Starting with version 4.3, you can provide a `HeaderMapper<MimeMessage>` to map the headers to `MessageHeaders`.
+Optionally that object can be used to interrogate the headers and content.
+Starting with version 4.3, a `HeaderMapper<MimeMessage>` can be provided to map the headers to `MessageHeaders`.
 For convenience, Spring Integration provides a `DefaultMailHeaderMapper` for this purpose.
 It maps the following headers:
 
@@ -176,8 +176,8 @@ The `contentType` header is `application/octet-stream` in this case.
 To change this behavior and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on `MailReceiver`.
 For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType` header of `application/octet-stream`.
 
-When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `jakarta.mail`.
-The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`:
+When a header mapper is not provided, the message payload is the `MimeMessage` presented by `jakarta.mail`.
+The framework provides a `MailToStringTransformer` that can be used to convert the message by using a strategy to convert the mail contents to a `String`:
 
 [tabs]
 ======
@@ -206,7 +206,7 @@ Kotlin DSL::
 [source, kotlin, role="secondary"]
 ----
    ...
-   .transform(Mail.toStringTransformer())
+   transform(Mail.toStringTransformer())
    ...
 ----
 
@@ -230,7 +230,7 @@ XML::
 
 Starting with version 4.3, the transformer handles embedded `Part` instances (as well as `Multipart` instances, which were handled previously).
 The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
-If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
+When performing some other transformation on the message, consider subclassing `AbstractMailTransformer`.
 
 Starting with version 5.4, when no `headerMapper` is provided, `autoCloseFolder` is `false` and `simpleContent` is `false`, the `MimeMessage` is returned as-is in the payload of the Spring message produced.
 This way, the content of the `MimeMessage` is loaded on demand when referenced, later in the flow.
@@ -265,10 +265,21 @@ Java::
 [source,java,role="primary"]
 ----
 @Bean
+public JavaMailSender mailSender() {
+    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+    mailSender.setHost("somehost");
+    mailSender.setUsername("someuser");
+    mailSender.setPassword("somepassword");
+    Properties javaMailProperties = new Properties();
+    javaMailProperties.put("mail.smtp.starttls.enable", "true");
+    mailSender.setJavaMailProperties(javaMailProperties);
+    return mailSender;
+}
+
+@Bean
 @ServiceActivator(inputChannel = "outboundMail")
 public MessageHandler outboundMailMessageHandler(JavaMailSender mailSender) {
-    MailSendingMessageHandler handler = new MailSendingMessageHandler(mailSender);
-    return handler;
+    return new MailSendingMessageHandler(mailSender);
 }
 ----
 Java DSL::
@@ -276,8 +287,20 @@ Java DSL::
 [source,java,role="secondary"]
 ----
 @Bean
-public IntegrationFlow mailOutboundFlow(JavaMailSender mailSender) {
-    return IntegrationFlow.from("outboundMail")
+public JavaMailSender mailSender() {
+    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+    mailSender.setHost("somehost");
+    mailSender.setUsername("someuser");
+    mailSender.setPassword("somepassword");
+    Properties javaMailProperties = new Properties();
+    javaMailProperties.put("mail.smtp.starttls.enable", "true");
+    mailSender.setJavaMailProperties(javaMailProperties);
+    return mailSender;
+}
+
+@Bean
+public IntegrationFlow mailOutboundFlow(MessageChannel outboundMail, JavaMailSender mailSender) {
+    return IntegrationFlow.from(outboundMail)
             .handle(Mail.outboundAdapter(mailSender))
             .get();
 }
@@ -287,19 +310,40 @@ Kotlin DSL::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun mailOutboundFlow(mailSender: JavaMailSender): IntegrationFlow {
-    return IntegrationFlow.from("outboundMail")
+fun mailSender(): JavaMailSender =
+    JavaMailSenderImpl().apply {
+        host = "somehost"
+        username = "someuser"
+        password = "somepassword"
+        javaMailProperties = Properties().apply {
+            put("mail.smtp.starttls.enable", "true")
+    }
+}
+
+@Bean
+fun mailOutboundFlow(outboundMail: MessageChannel, mailSender: JavaMailSender): IntegrationFlow =
+    IntegrationFlows.from(outboundMail)
         .handle(Mail.outboundAdapter(mailSender))
         .get()
-}
 ----
 Groovy DSL::
 +
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow mailOutboundFlow(JavaMailSender mailSender) {
-    return IntegrationFlow.from("outboundMail")
+JavaMailSender mailSender() {
+    new JavaMailSenderImpl().with {
+        host = "somehost"
+        username = "someuser"
+        password = "somepassword"
+        javaMailProperties = ['mail.smtp.starttls.enable': 'true']
+        it
+    }
+}
+
+@Bean
+IntegrationFlow mailOutboundFlow(MessageChannel outboundMail, JavaMailSender mailSender) {
+    IntegrationFlow.from(outboundMail)
         .handle(Mail.outboundAdapter(mailSender))
         .get()
 }
@@ -308,12 +352,22 @@ XML::
 +
 [source,xml,role="secondary"]
 ----
+<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="somehost"/>
+        <property name="username" value="someuser"/>
+        <property name="password" value="somepassword"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+            </props>
+        </property>
+    </bean>
 <int-mail:outbound-channel-adapter channel="outboundMail"
     mail-sender="mailSender"/>
 ----
 ======
 
-Alternatively, you can configure the mail sender directly with host credentials:
+Alternatively the mail sender can be configured directly with host credentials:
 
 [tabs]
 ======
@@ -333,8 +387,7 @@ public JavaMailSender mailSender() {
 @Bean
 @ServiceActivator(inputChannel = "outboundMail")
 public MessageHandler outboundMailMessageHandler(JavaMailSender mailSender) {
-    MailSendingMessageHandler handler = new MailSendingMessageHandler(mailSender);
-    return handler;
+    return new MailSendingMessageHandler(mailSender);
 }
 ----
 Java DSL::
@@ -393,12 +446,12 @@ mail.smtp.host=smtp.gmail.com
 mail.smtp.port=587
 ----
 
-NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support]).
+NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, provide a `<poller>` element (see xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support]).
 
-You can also use a `header-enricher` message transformer.
+Optionally a `header-enricher` message transformer can be used.
 Doing so simplifies the application of the headers mentioned earlier to any message prior to sending to the mail outbound channel adapter.
 
-The following example assumes the payload is a Java bean with appropriate getters for the specified properties, but you can use any SpEL expression:
+The following example assumes the payload is a Java bean with appropriate getters for the specified properties, optionally any SpEL expression can be used:
 
 [tabs]
 ======
@@ -409,7 +462,7 @@ Java::
 @Bean
 @Transformer(inputChannel = "expressionsInput", outputChannel = "outboundMail")
 public Transformer headerEnricher() {
-    Map<String, ExpressionEvaluatingHeaderValueMessageProcessor<String>> headerMap= new HashMap<>();
+    Map<String, ExpressionEvaluatingHeaderValueMessageProcessor<String>> headerMap = new HashMap<>();
     ExpressionParser parser = new SpelExpressionParser();
 
     headerMap.put(MailHeaders.TO, new ExpressionEvaluatingHeaderValueMessageProcessor<>(
@@ -441,11 +494,6 @@ public IntegrationFlow mailOutboundFlow(MessageChannel outboundMail) {
                     .headerExpression(MailHeaders.REPLY_TO, "payload.replyTo")
                     .headerExpression(MailHeaders.FROM, "payload.from")
                     .headerExpression(MailHeaders.SUBJECT, "payload.subject"))
-            .transform(new ObjectToJsonTransformer())
-            .handle(Mail.outboundAdapter(mailProperties.getHost())
-                    .port(mailProperties.getPort())
-                    .credentials(mailProperties.getUsername(), mailProperties.getPassword())
-                    .javaMailProperties(p -> p.put("mail.smtp.starttls.enable", "true")))
             .get();
 }
 ----
@@ -463,11 +511,6 @@ fun mailOutboundFlow(outboundMail: MessageChannel) = integrationFlow(outboundMai
         headerExpression(MailHeaders.FROM, "payload.from")
         headerExpression(MailHeaders.SUBJECT, "payload.subject")
     }
-    transform(ObjectToJsonTransformer())
-    handle(Mail.outboundAdapter(mailProperties.host)
-        .port(mailProperties.port)
-        .credentials(mailProperties.username, mailProperties.password)
-        .javaMailProperties { p -> p.put("mail.smtp.starttls.enable", "true") })
 }
 ----
 Groovy DSL::
@@ -485,11 +528,6 @@ IntegrationFlow mailOutboundFlow(MessageChannel outboundMail) {
                 .headerExpression(MailHeaders.FROM, 'payload.from')
                 .headerExpression(MailHeaders.SUBJECT, 'payload.subject')
         }
-        .transform(new ObjectToJsonTransformer())
-        .handle(Mail.outboundAdapter(mailProperties.host)
-            .port(mailProperties.port)
-            .credentials(mailProperties.username, mailProperties.password)
-            .javaMailProperties { p -> p.put('mail.smtp.starttls.enable', 'true') })
         .get()
 }
 ----
@@ -509,13 +547,13 @@ XML::
 ======
 
 
-Alternatively, you can use the `value` attribute to specify a literal.
-You also can specify `default-overwrite` and individual `overwrite` attributes to control the behavior with existing headers.
+Alternatively, a `value` attribute can be used to specify a literal.
+Another option is to specify `default-overwrite` and individual `overwrite` attributes to control the behavior with existing headers.
 
 [[configuring-inbound-channel-adapters]]
 == Configuring Inbound Channel Adapters
 
-To configure an inbound channel adapter, you have the choice between polling or event-driven (assuming your mail server supports IMAP `idle` -- if not, then polling is the only option).
+When configuring an inbound channel adapter, choose between polling or event-driven (assuming the mail server supports IMAP `idle` -- if not, then polling is the only option).
 A polling channel adapter requires the store URI and the channel to which to send inbound messages.
 The URI may begin with `pop3` or `imap`.
 The following example uses an `imap` URI:
@@ -566,8 +604,8 @@ Kotlin DSL::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun imapMailInboundFlow(javaMailProperties: Properties, receiveChannel: MessageChannel): IntegrationFlow {
-    return integrationFlow(
+fun imapMailInboundFlow(javaMailProperties: Properties, receiveChannel: MessageChannel) =
+   integrationFlow(
         Mail.imapInboundAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
             .shouldDeleteMessages(true)
             .shouldMarkMessagesAsRead(true)
@@ -577,14 +615,13 @@ fun imapMailInboundFlow(javaMailProperties: Properties, receiveChannel: MessageC
     ) {
         channel(receiveChannel)
     }
-}
 ----
 Groovy DSL::
 +
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow imapMailInboundFlow(Properties javaMailProperties,MessageChannel receiveChannel) {
+IntegrationFlow imapMailInboundFlow(Properties javaMailProperties, MessageChannel receiveChannel) {
     return IntegrationFlow.from(Mail.imapInboundAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
                 .shouldDeleteMessages(true)
                 .shouldMarkMessagesAsRead(true)
@@ -611,7 +648,7 @@ XML::
 ----
 ======
 
-If you do have IMAP `idle` support, you may want to configure the `imap-idle-channel-adapter` element instead.
+If there is IMAP `idle` support, optionally configure the `imap-idle-channel-adapter` element instead.
 Since the `idle` command enables event-driven notifications, no poller is necessary for this adapter.
 It sends a message to the specified channel as soon as it receives the notification that new mail is available.
 The following example configures an IMAP `idle` mail channel:
@@ -623,11 +660,11 @@ Java::
 [source,java,role="primary"]
 ----
 @Bean
-public ImapMailReceiver imapMailReceiver(Properties javaMailProps) {
+public ImapMailReceiver imapMailReceiver(Properties javaMailProperties) {
     ImapMailReceiver receiver = new ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX");
     receiver.setShouldDeleteMessages(false);
     receiver.setShouldMarkMessagesAsRead(true);
-    receiver.setJavaMailProperties(javaMailProps);
+    receiver.setJavaMailProperties(javaMailProperties);
     return receiver;
 }
 @Bean
@@ -645,20 +682,18 @@ Java DSL::
 ----
 @Bean
 public IntegrationFlow imapIdleFlow(MessageChannel receiveChannel, MailMessageHandler mailMessageHandler,
- Properties javaMailProperties) {
+    Properties javaMailProperties) {
 
-	ImapMailReceiver receiver = new ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX");
-    receiver.setShouldDeleteMessages(false);
-    receiver.setShouldMarkMessagesAsRead(true);
-    receiver.setJavaMailProperties(javaMailProperties);
-
-    return IntegrationFlow
-        .from(Mail.imapIdleAdapter(receiver)
-            .autoStartup(true)
-            .id("imapIdleAdapter"))
-        .channel(receiveChannel)
-        .handle(mailMessageHandler)
-        .get();
+	return IntegrationFlow
+    .from(Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
+            .shouldDeleteMessages(false)
+            .shouldMarkMessagesAsRead(true)
+            .javaMailProperties(javaMailProperties)
+        .autoStartup(true)
+        .id("imapIdleAdapter"))
+    .channel(receiveChannel)
+    .handle(mailMessageHandler)
+    .get();
 }
 
 ----
@@ -668,24 +703,20 @@ Kotlin DSL::
 ----
 @Bean
 fun kotlinImapIdleFlow(receiveChannel: MessageChannel, mailMessageHandler: MailMessageHandler,
-    javaMailProperties: Properties): IntegrationFlow {
+    javaMailProperties: Properties) =
 
-    val receiver = ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
-        setShouldDeleteMessages(false)
-        setShouldMarkMessagesAsRead(true)
-        setJavaMailProperties(javaMailProperties)
+    integrationFlow(
+        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
+            shouldDeleteMessages(false)
+            shouldMarkMessagesAsRead(true)
+            javaMailProperties(javaMailProperties)
+            autoStartup(true)
+            id("kotlinImapIdleAdapter")
+        }
+    ) {
+        channel(receiveChannel)
+        handle(mailMessageHandler)
     }
-
-    return IntegrationFlow
-        .from(
-            Mail.imapIdleAdapter(receiver)
-                .autoStartup(true)
-                .id("kotlinImapIdleAdapter")
-        )
-        .channel(receiveChannel)
-        .handle(mailMessageHandler)
-        .get()
-}
 ----
 Groovy DSL::
 +
@@ -695,15 +726,11 @@ Groovy DSL::
 IntegrationFlow groovyImapIdleFlow(MessageChannel receiveChannel, MailMessageHandler mailMessageHandler,
     Properties javaMailProperties) {
 
-    def receiver = new ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX")      .with {
-            shouldDeleteMessages = false
-            shouldMarkMessagesAsRead = true
-            javaMailProperties = javaMailProperties
-            delegate
-        }
-
     IntegrationFlow.from(
-        Mail.imapIdleAdapter(receiver)
+        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
+        .shouldDeleteMessages(false)
+        .shouldMarkMessagesAsRead(true)
+        .javaMailProperties(javaMailProperties)
             .autoStartup(true)
             .id("groovyImapIdleAdapter")
     )
@@ -726,9 +753,9 @@ XML::
 ----
 ======
 
-You can provide `javaMailProperties` by creating and populating a regular `java.util.Properties` object -- for example, by using the `util` namespace provided by Spring.
+`javaMailProperties` can be provided by creating and populating a regular `java.util.Properties` object -- for example, by using the `util` namespace provided by Spring.
 
-IMPORTANT: If your username contains the `@` character, use `%40` instead of `@` to avoid parsing errors from the underlying JavaMail API.
+IMPORTANT: If a username contains the `@` character, use `%40` instead of `@` to avoid parsing errors from the underlying JavaMail API.
 
 The following example shows how to configure a `java.util.Properties` object:
 
@@ -753,7 +780,7 @@ Kotlin::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun createJavaMailProperties(): Properties = Properties().apply {
+fun javaMailProperties(): Properties = Properties().apply {
     this["mail.imaps.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
     this["mail.imaps.socketFactory.fallback"] = "false"
     this["mail.store.protocol"] = "imaps"
@@ -764,14 +791,11 @@ Groovy::
 [source,groovy,role="secondary"]
 ----
 @Bean
-Properties createJavaMailProperties() {
-    new Properties().with {
-        it['mail.imaps.socketFactory.class'] = 'javax.net.ssl.SSLSocketFactory'
-        it['mail.imaps.socketFactory.fallback'] = 'false'
-        it['mail.store.protocol'] = 'imaps'
-        it
-    }
-}
+Properties javaMailProperties = new Properties([
+    "mail.imaps.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
+    "mail.imaps.socketFactory.fallback": "false",
+    "mail.store.protocol": "imaps"
+])
 ----
 XML::
 +
@@ -795,9 +819,9 @@ By default, the `ImapMailReceiver` searches for messages based on the default `S
 * Are NOT SEEN
 * Have not been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)
 
-The custom user flag is `spring-integration-mail-adapter`, but you can configure it.
-Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable with `SearchTermStrategy`, which you can inject by using the `search-term-strategy` attribute.
-A `SearchTermStrategy` is a strategy interface with a single method that lets you create an instance of the `SearchTerm` used by the `ImapMailReceiver`.
+The custom user flag is `spring-integration-mail-adapter`, but is configurable.
+Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable with `SearchTermStrategy`, which can be injected by using the `search-term-strategy` attribute.
+A `SearchTermStrategy` is a strategy interface with a single method that creates an instance of the `SearchTerm` used by the `ImapMailReceiver`.
 The following listing shows the `SearchTermStrategy` interface:
 
 [source,java]
@@ -835,12 +859,15 @@ Kotlin::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun imapMailReceiver(): ImapMailReceiver {
-    return ImapMailReceiver("imap:something").apply {
-        // ...
-        setSearchTermStrategy(TestSearchTermStrategy())
-    }
-}
+fun imapMailReceiver(kotlinSearchTermStrategy: SearchTermStrategy) =
+        integrationFlow(
+            Mail.imapIdleAdapter(mailProperties.buildStoreUri()).apply {
+                // ...
+                searchTermStrategy(kotlinSearchTermStrategy)
+                // ...
+            }
+
+        )
 ----
 Groovy::
 +
@@ -850,7 +877,7 @@ Groovy::
 ImapMailReceiver imapMailReceiver(SearchTermStrategy searchTermStrategy) {
     def receiver = new ImapMailReceiver("imap:something")
     // ...
-    receiver.searchTermStrategy = TestSearchTermStrategy()
+    receiver.searchTermStrategy = searchTermStrategy
     return receiver
 }
 ----
@@ -875,7 +902,7 @@ See xref:mail.adoc#imap-seen[Marking IMAP Messages When `Recent` Is Not Supporte
 =====
 Starting with version 4.1.1, the IMAP mail receiver uses the `mail.imap.peek` or `mail.imaps.peek` JavaMail property, if specified.
 Previously, the receiver ignored the property and always set the `PEEK` flag.
-Now, if you explicitly set this property to `false`, the message is marked as `\Seen` regardless of the setting of `shouldMarkMessagesRead`.
+Explicitly setting this property to `false`, the message is marked as `\Seen` regardless of the setting of `shouldMarkMessagesRead`.
 If not specified, the previous behavior is retained (peek is `true`).
 =====
 
@@ -884,26 +911,26 @@ If not specified, the previous behavior is retained (peek is `true`).
 
 When using an IMAP `idle` channel adapter, connections to the server may be lost, (for example, through network failure), it is important to understand the JavaMail API and how to deal with them when configuring IMAP `idle` adapters.
 Spring Integration mail adapters were tested with JavaMail 2.0.2.
-You must pay special attention to some JavaMail properties that need to be set with regard to auto-reconnect.
+Pay special attention to some JavaMail properties that need to be set with regard to auto-reconnect.
 
 IMPORTANT: In both configurations, `channel` and `should-delete-messages` are required attributes.
-You should understand why `should-delete-messages` is required.
+Understand why `should-delete-messages` is a requirement.
 The issue is with the POP3 protocol, which does not have any knowledge of messages that were read.
 It can only know what has been read within a single session.
-This means that, when your POP3 mail adapter runs, emails are successfully consumed as they become available during each poll and no single email message is delivered more than once.
-However, as soon as you restart your adapter and begin a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
+This means that, when the POP3 mail adapter runs, emails are successfully consumed as they become available during each poll and no single email message is delivered more than once.
+However, as soon as the adapter is restarted and begins a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
 That is the nature of POP3.
 Some might argue that `should-delete-messages` should be `true` by default.
 In other words, there are two valid and mutually exclusive uses that make it very hard to pick the single best default.
-You may want to configure your adapter as the only email receiver, in which case you want to be able to restart your adapter without fear that previously delivered messages are not delivered again.
+When configuring the adapter as the only email receiver, restart it without fear that previously delivered messages are not delivered again.
 In this case, setting `should-delete-messages` to `true` would make the most sense.
-However, you may have another use case where you may want to have multiple adapters monitor email servers and their content.
-In other words, you want to 'peek but not touch'.
+However, another use case is to have multiple adapters monitor email servers and their content.
+In other words, 'peek but not touch'.
 Then setting `should-delete-messages` to `false` is much more appropriate.
-So since it is hard to choose what should be the right default value for the `should-delete-messages` attribute, we made it a required attribute to be set by you.
-Leaving it up to you also means that you are less likely to end up with unintended behavior.
+So since it is hard to choose what should be the right default value for the `should-delete-messages` attribute, it is a required attribute to be set.
+This approach reduces the likelihood of unintended behavior.
 
-NOTE: When configuring a polling email adapter's `should-mark-messages-as-read` attribute, you should be aware of the protocol you are configuring to retrieve messages.
+NOTE: When configuring a polling email adapter's `should-mark-messages-as-read` attribute, be aware of the protocol that is being configured to retrieve messages.
 For example, POP3 does not support this flag, which means setting it to either value has no effect, as messages are not marked as read.
 
 In the case of a silently dropped connection, an idle cancel task is run in the background periodically (a new IDLE will usually immediately be processed).
@@ -912,10 +939,10 @@ RFC 2177 recommends an interval no larger than 29 minutes.
 
 [IMPORTANT]
 =====
-You should understand that these actions (marking messages read and deleting messages) are performed after the messages are received but before they are processed.
+Understand that these actions (marking messages read and deleting messages) are performed after the messages are received but before they are processed.
 This can cause messages to be lost.
 
-You may wish to consider using transaction synchronization instead.
+Also consider using transaction synchronization instead.
 See xref:mail.adoc#mail-tx-sync[Transaction Synchronization].
 =====
 
@@ -925,7 +952,7 @@ Otherwise, if the downstream channels are synchronous, any such exception is log
 
 NOTE: Beginning with the 3.0 release, the IMAP `idle` adapter emits application events (specifically `ImapIdleExceptionEvent` instances) when exceptions occur.
 This allows applications to detect and act on those exceptions.
-You can obtain the events by using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
+Events can be obtained by using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
 
 [[imap-seen]]
 == Marking IMAP Messages When `\Recent` Is Not Supported
@@ -941,27 +968,27 @@ In some scenarios such a flag on the message in mailbox is not desirable, regard
 
 As discussed in xref:mail.adoc#search-term[`SearchTerm`], the default `SearchTermStrategy` ignores messages that are so flagged.
 
-Starting with version 4.2.2, you can set the name of the user flag by using `setUserFlag` on the `MailReceiver`.
+Starting with version 4.2.2, the name of the user flag can be set by using `setUserFlag` on the `MailReceiver`.
 Doing so lets multiple receivers use a different flag (as long as the mail server supports user flags).
 The `user-flag` attribute is available when configuring the adapter with the namespace.
 
 [[mail-filtering]]
 == Email Message Filtering
 
-Very often, you may encounter a requirement to filter incoming messages (for example, you want to read only emails that have 'Spring Integration' in the `Subject` line).
-You can accomplish this by connecting an inbound mail adapter with an expression-based `Filter`.
+When encountering a requirement to filter incoming messages (for example, a requirement to read only emails that have 'Spring Integration' in the `Subject` line).
+This can be accomplished by connecting an inbound mail adapter with an expression-based `Filter`.
 Although it would work, there is a downside to this approach.
 Since messages would be filtered after going through the inbound mail adapter, all such messages would be marked as read (`SEEN`) or unread (depending on the value of `should-mark-messages-as-read` attribute).
 However, in reality, it is more useful to mark messages as `SEEN` only if they pass the filtering criteria.
-This is similar to looking at your email client while scrolling through all the messages in the preview pane, but only flagging messages that were actually opened and read as `SEEN`.
+This is similar to looking at the email client while scrolling through all the messages in the preview pane, but only flagging messages that were actually opened and read as `SEEN`.
 
 Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
-This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
-For example, if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).\*Spring Integration.*"`.
+This attribute accepts an expression that is a combination of SpEL and a regular expression.
+For example, to read-only emails that contain 'Spring Integration' in the subject line, configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).\*Spring Integration.*"`.
 
-Since `jakarta.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
+With `jakarta.mail.internet.MimeMessage` as the root context of the SpEL evaluation context, any value available through `MimeMessage` can be filtered on, including the actual body of the message.
 This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.
-However, since we now set the `PEEK` flag of every incoming message to 'true', only messages that were explicitly marked as `SEEN` are marked as read.
+However, since the `PEEK` flag is now set for every incoming message to 'true', only messages that were explicitly marked as `SEEN` are marked as read.
 
 So, in the following example, only messages that match the filter expression are output by this adapter and only those messages are marked as read:
 
@@ -1027,7 +1054,7 @@ XML::
 In the preceding example, thanks to the `mail-filter-expression` attribute, only messages that contain 'Spring Integration' in the subject line are produced by this adapter.
 
 Another reasonable question is what happens on the next poll or idle event or what happens when such an adapter is restarted.
-Can there be duplication of messages to be filtered? In other words, if, on the last retrieval where you had five new messages and only one passed the filter, what happens with the other four?
+Can there be duplication of messages to be filtered? In other words, if, on the last retrieval where there were five new messages and only one passed the filter, what happens with the other four?
 Would they go through the filtering logic again on the next poll or idle?
 After all, they were not marked as `SEEN`.
 The answer is no.
@@ -1039,15 +1066,15 @@ In other words, while our adapter may peek at the email, it also lets the email 
 [[mail-tx-sync]]
 == Transaction Synchronization
 
-Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
-When using XML schema, transaction synchronization is enabled by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
-Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
-When using Java configuration you can establish the transaction synchronization by using the `transactionSynchronizationFactory(transactionSynchronizationFactory)` method on the `PollerMetadata` or via the DSL.
+Transaction synchronization for inbound adapters enables different actions after a transaction commits or rolls back.
+Transaction synchronization is enabled by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>` when using XML schema.
+Even if there is no 'real' transaction involved, this feature can still be enabled by using a `PseudoTransactionManager` with the `<transactional/>` element.
+When using Java configuration the transaction synchronization can be established by using the `transactionSynchronizationFactory(transactionSynchronizationFactory)` method on the `PollerMetadata` or via the DSL.
 For more information, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
-Because of the different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
-You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.
-For example, to move an IMAP message to a different folder after the transaction commits, you might use something similar to the following:
+Because of the different mail servers and specifically the limitations that some have, at this time a strategy is provided for these transaction synchronizations.
+Messages can be sent to other Spring Integration components or a custom bean can be invoked to perform some action.
+For example, to move an IMAP message to a different folder after the transaction commits, an option could be to use something similar to the following:
 
 [tabs]
 ======
@@ -1074,29 +1101,42 @@ TransactionSynchronizationFactory transactionSynchronizationFactory) {
     adapter.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
     return adapter;
 }
+
+@Bean
+public Mover syncProcessor() {
+    return new Mover();
+}
 ----
 Java DSL::
 +
 [source,java,role="secondary"]
 ----
+
+@Bean
+TransactionSynchronizationFactory transactionSynchronizationFactory() {
+    SpelExpressionParser parser = new SpelExpressionParser();
+    ExpressionEvaluatingTransactionSynchronizationProcessor expressionEvaluatingTransactionSynchronizationProcessor =
+            new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    expressionEvaluatingTransactionSynchronizationProcessor.setAfterCommitExpression(parser.parseExpression("@syncProcessor.process(payload)"));
+    return new DefaultTransactionSynchronizationFactory(expressionEvaluatingTransactionSynchronizationProcessor);
+}
+
 @Bean
 public IntegrationFlow imapIdleFlow(ImapMailReceiver imapMailReceiver, MessageChannel receiveChannel,
-    MailMessageHandler mailMessageHandler) {
-
-	SpelExpressionParser parser = new SpelExpressionParser();
-	ExpressionEvaluatingTransactionSynchronizationProcessor expressionEvaluatingTransactionSynchronizationProcessor =
-        new ExpressionEvaluatingTransactionSynchronizationProcessor();
-	expressionEvaluatingTransactionSynchronizationProcessor.setAfterCommitExpression(parser.parseExpression("@syncProcessor.process(payload)"));
-	var transactionSynchronizationFactory = new DefaultTransactionSynchronizationFactory(expressionEvaluatingTransactionSynchronizationProcessor);
-
-    return IntegrationFlow
+    TransactionSynchronizationFactory transactionSynchronizationFactory) {
+	return IntegrationFlow
         .from(Mail.imapIdleAdapter(imapMailReceiver)
+            .shouldDeleteMessages(false)
             .autoStartup(true)
             .id("imapIdleAdapter")
                 .transactionSynchronizationFactory(transactionSynchronizationFactory))
         .channel(receiveChannel)
-        .handle(mailMessageHandler)
         .get();
+}
+
+@Bean
+public Mover syncProcessor() {
+    return new Mover();
 }
 ----
 Kotlin DSL::
@@ -1104,22 +1144,31 @@ Kotlin DSL::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun imapIdleFlow(imapMailReceiver: ImapMailReceiver, receiveChannel: MessageChannel,
-    mailMessageHandler: MailMessageHandler): IntegrationFlow {
+fun transactionSynchronizationFactory(): TransactionSynchronizationFactory {
     val processor = ExpressionEvaluatingTransactionSynchronizationProcessor().apply {
-        setAfterCommitExpression(
-            SpelExpressionParser().parseExpression("@syncProcessor.process(payload)")
-        )
+        setAfterCommitExpression(SpelExpressionParser().parseExpression("@syncProcessor.process(payload)"))
+    }
+    return DefaultTransactionSynchronizationFactory(processor)
+}
+
+@Bean
+fun imapIdleFlow(receiveChannel: MessageChannel, javaMailProperties: Properties,
+    transactionSynchronizationFactory: TransactionSynchronizationFactory) =
+    integrationFlow(
+        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
+            shouldDeleteMessages(false)
+            javaMailProperties(javaMailProperties)
+            autoStartup(true)
+            id("kotlinImapIdleAdapter")
+            transactionSynchronizationFactory(transactionSynchronizationFactory)
+        }
+    ) {
+        channel(receiveChannel)
     }
 
-    return IntegrationFlow
-        .from(Mail.imapIdleAdapter(imapMailReceiver)
-            .autoStartup(true)
-            .id("kotlinImapIdleAdapter")
-            .transactionSynchronizationFactory(DefaultTransactionSynchronizationFactory(processor)))
-        .channel(receiveChannel)
-        .handle(mailMessageHandler)
-        .get()
+@Bean
+fun syncProcessor(): Mover {
+    return Mover()
 }
 ----
 Groovy DSL::
@@ -1127,22 +1176,33 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow imapIdleFlow(ImapMailReceiver imapMailReceiver, MessageChannel receiveChannel,
-    MailMessageHandler mailMessageHandler) {
+TransactionSynchronizationFactory transactionSynchronizationFactory() {
+    new DefaultTransactionSynchronizationFactory(
+        new ExpressionEvaluatingTransactionSynchronizationProcessor().with {
+            afterCommitExpression = new SpelExpressionParser().parseExpression("@syncProcessor.process(payload)")
+            it
+        }
+    )
+}
 
-    def processor = new ExpressionEvaluatingTransactionSynchronizationProcessor()
-    processor.afterCommitExpression = new SpelExpressionParser().parseExpression("@syncProcessor.process(payload)")
-    def transactionSynchronizationFactory =  new DefaultTransactionSynchronizationFactory(processor)
-
-    return IntegrationFlow.from(
-        Mail.imapIdleAdapter(imapMailReceiver)
-            .autoStartup(true)
-            .id("groovyImapIdleAdapter")
-            .transactionSynchronizationFactory(transactionSynchronizationFactory)
+@Bean
+IntegrationFlow imapIdleFlow(MessageChannel receiveChannel, Properties javaMailProperties,
+    TransactionSynchronizationFactory transactionSynchronizationFactory ) {
+    IntegrationFlow.from(
+        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
+        .shouldDeleteMessages(false)
+        .javaMailProperties(javaMailProperties)
+        .autoStartup(true)
+        .id("groovyImapIdleAdapter")
+        .transactionSynchronizationFactory(transactionSynchronizationFactory)
     )
     .channel(receiveChannel)
-    .handle(mailMessageHandler)
     .get()
+}
+
+@Bean
+Mover syncProcessor() {
+    return new Mover()
 }
 ----
 XML::
