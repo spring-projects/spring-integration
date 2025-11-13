@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 import org.w3c.dom.DOMException;
@@ -114,13 +113,13 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
+	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		if (this.evaluateAsString) {
-			return Collections.singletonList(Objects.requireNonNull(this.xPathExpression.evaluateAsString(node)));
+			return Collections.<@Nullable Object>singletonList(this.xPathExpression.evaluateAsString(node));
 		}
 		else {
-			return this.xPathExpression.evaluate(node, this.nodeMapper);
+			return (List<@Nullable Object>) this.xPathExpression.evaluate(node, this.nodeMapper);
 		}
 	}
 

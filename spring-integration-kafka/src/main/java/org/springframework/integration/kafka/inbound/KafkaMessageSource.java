@@ -897,7 +897,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				synchronized (candidates) {
 					if (candidates.iterator().next().equals(this.ackInfo)) {
 						// see if there are any pending acks for higher offsets
-						List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>();
+						List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>(candidates.size());
 						for (KafkaAckInfo<K, V> info : candidates) {
 							if (!this.ackInfo.equals(info)) {
 								if (info.isAckDeferred()) {

@@ -371,7 +371,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @return the List of filenames to check
 	 */
 	private List<String> calculateFilenamesForLocale(String basename, Locale locale) {
-		List<String> result = new ArrayList<>();
+		List<String> result = new ArrayList<>(3);
 		String language = locale.getLanguage();
 		String country = locale.getCountry();
 		String variant = locale.getVariant();

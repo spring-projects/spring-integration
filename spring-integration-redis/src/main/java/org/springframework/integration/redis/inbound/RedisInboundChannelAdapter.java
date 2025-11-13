@@ -126,7 +126,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
 		adapter.setSerializer(this.serializer);
-		List<Topic> topicList = new ArrayList<>();
+		List<Topic> topicList = new ArrayList<>(hasTopics ? this.topics.length : this.topicPatterns.length);
 		if (hasTopics) {
 			for (String topic : this.topics) {
 				topicList.add(new ChannelTopic(topic));

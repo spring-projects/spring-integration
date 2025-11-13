@@ -25,6 +25,8 @@ import com.esotericsoftware.kryo.Registration;
  * A {@link KryoRegistrar} implementation backed by a List of {@link Registration}.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class KryoRegistrationRegistrar extends AbstractKryoRegistrar {
@@ -32,9 +34,7 @@ public class KryoRegistrationRegistrar extends AbstractKryoRegistrar {
 	private final List<Registration> registrations;
 
 	public KryoRegistrationRegistrar(List<Registration> registrations) {
-		this.registrations = registrations != null
-				? new ArrayList<Registration>(registrations)
-				: new ArrayList<Registration>();
+		this.registrations = new ArrayList<>(registrations);
 	}
 
 	@Override

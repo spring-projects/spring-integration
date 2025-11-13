@@ -16,7 +16,7 @@
 
 package org.springframework.integration.selector;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.integration.core.MessageSelector;
@@ -29,10 +29,11 @@ import org.springframework.util.Assert;
  * of the selector's accepted types.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class PayloadTypeSelector implements MessageSelector {
 
-	private final List<Class<?>> acceptedTypes = new ArrayList<Class<?>>();
+	private final List<Class<?>> acceptedTypes;
 
 	/**
 	 * Create a selector for the provided types. At least one is required.
@@ -41,9 +42,7 @@ public class PayloadTypeSelector implements MessageSelector {
 	 */
 	public PayloadTypeSelector(Class<?>... types) {
 		Assert.notEmpty(types, "at least one type is required");
-		for (Class<?> type : types) {
-			this.acceptedTypes.add(type);
-		}
+		this.acceptedTypes = Arrays.asList(types);
 	}
 
 	@Override

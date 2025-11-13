@@ -264,10 +264,15 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		Collection<MessageChannel> channels = new ArrayList<>();
-		Collection<Object> channelKeys = getChannelKeys(message);
-		addToCollection(channels, channelKeys, message);
-		return channels;
+		Collection<@Nullable Object> channelKeys = getChannelKeys(message);
+		if (channelKeys != null) {
+			Collection<MessageChannel> channels = new ArrayList<>(channelKeys.size());
+			addToCollection(channels, channelKeys, message);
+			return channels;
+		}
+		else {
+			return Collections.emptyList();
+		}
 	}
 
 	/**
@@ -277,7 +282,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * @param message The message.
 	 * @return The channel keys.
 	 */
-	protected abstract @Nullable List<Object> getChannelKeys(Message<?> message);
+	protected abstract @Nullable List<@Nullable Object> getChannelKeys(Message<?> message);
 
 	/**
 	 * Convenience method allowing conversion of a list
@@ -362,10 +367,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		}
 	}
 
-	private void addToCollection(Collection<MessageChannel> channels, @Nullable Collection<?> channelKeys, Message<?> message) {
-		if (channelKeys == null) {
-			return;
-		}
+	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelKeys, Message<?> message) {
 		for (Object channelKey : channelKeys) {
 			if (channelKey != null) {
 				addChannelKeyToCollection(channels, message, channelKey);

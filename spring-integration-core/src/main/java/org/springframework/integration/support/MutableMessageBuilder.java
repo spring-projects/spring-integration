@@ -82,7 +82,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public 	@Nullable <V> V getHeader(String key, Class<V> type) {
+	public @Nullable <V> V getHeader(String key, Class<V> type) {
 		Object value = this.headers.get(key);
 		if (value == null) {
 			return null;
@@ -179,12 +179,10 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	private List<String> getMatchingHeaderNames(String pattern, Map<String, Object> headers) {
-		List<String> matchingHeaderNames = new ArrayList<>();
-		if (headers != null) {
-			for (Map.Entry<String, Object> header : headers.entrySet()) {
-				if (PatternMatchUtils.simpleMatch(pattern, header.getKey())) {
-					matchingHeaderNames.add(header.getKey());
-				}
+		List<String> matchingHeaderNames = new ArrayList<>(headers.size());
+		for (Map.Entry<String, Object> header : headers.entrySet()) {
+			if (PatternMatchUtils.simpleMatch(pattern, header.getKey())) {
+				matchingHeaderNames.add(header.getKey());
 			}
 		}
 		return matchingHeaderNames;

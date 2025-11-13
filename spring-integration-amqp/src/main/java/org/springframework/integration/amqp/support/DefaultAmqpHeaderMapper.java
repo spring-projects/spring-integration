@@ -16,7 +16,6 @@
 
 package org.springframework.integration.amqp.support;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -62,36 +61,33 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
-	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
-
-	static {
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.APP_ID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CLUSTER_ID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_ENCODING);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_LENGTH);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_TYPE);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CORRELATION_ID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELAY);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_MODE);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_TAG);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.EXPIRATION);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_COUNT);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_ID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_DELAY);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_DELIVERY_MODE);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_EXCHANGE);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_ROUTING_KEY);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.REDELIVERED);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.REPLY_TO);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
-		STANDARD_HEADER_NAMES.add(JsonHeaders.TYPE_ID);
-		STANDARD_HEADER_NAMES.add(JsonHeaders.CONTENT_TYPE_ID);
-		STANDARD_HEADER_NAMES.add(JsonHeaders.KEY_TYPE_ID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
-	}
+	private static final List<String> STANDARD_HEADER_NAMES =
+			List.of(AmqpHeaders.APP_ID,
+					AmqpHeaders.CLUSTER_ID,
+					AmqpHeaders.CONTENT_ENCODING,
+					AmqpHeaders.CONTENT_LENGTH,
+					AmqpHeaders.CONTENT_TYPE,
+					AmqpHeaders.CORRELATION_ID,
+					AmqpHeaders.DELAY,
+					AmqpHeaders.DELIVERY_MODE,
+					AmqpHeaders.DELIVERY_TAG,
+					AmqpHeaders.EXPIRATION,
+					AmqpHeaders.MESSAGE_COUNT,
+					AmqpHeaders.MESSAGE_ID,
+					AmqpHeaders.RECEIVED_DELAY,
+					AmqpHeaders.RECEIVED_DELIVERY_MODE,
+					AmqpHeaders.RECEIVED_EXCHANGE,
+					AmqpHeaders.RECEIVED_ROUTING_KEY,
+					AmqpHeaders.REDELIVERED,
+					AmqpHeaders.REPLY_TO,
+					AmqpHeaders.TIMESTAMP,
+					AmqpHeaders.TYPE,
+					AmqpHeaders.USER_ID,
+					JsonHeaders.TYPE_ID,
+					JsonHeaders.CONTENT_TYPE_ID,
+					JsonHeaders.KEY_TYPE_ID,
+					AmqpHeaders.SPRING_REPLY_CORRELATION,
+					AmqpHeaders.SPRING_REPLY_TO_STACK);
 
 	@SuppressWarnings("this-escape")
 	protected DefaultAmqpHeaderMapper(String @Nullable [] requestHeaderNames, String @Nullable [] replyHeaderNames) {

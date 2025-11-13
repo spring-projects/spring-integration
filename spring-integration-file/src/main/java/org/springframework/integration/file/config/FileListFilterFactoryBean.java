@@ -130,9 +130,9 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	private FileListFilter<File> initializeFileListFilter() {
 		validate();
 
-		final List<FileListFilter<File>> filtersNeeded = new ArrayList<>();
+		final List<FileListFilter<File>> filtersNeeded = new ArrayList<>(3);
 
-		if (!Boolean.FALSE.equals(this.ignoreHidden)) {
+		if (this.ignoreHidden) {
 			filtersNeeded.add(new IgnoreHiddenFileListFilter());
 		}
 

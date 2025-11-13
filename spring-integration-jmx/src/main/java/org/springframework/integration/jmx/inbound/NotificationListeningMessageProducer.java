@@ -202,7 +202,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 * @return the collection of {@link ObjectName} ofr provided {@link #mBeanObjectNames}.
 	 */
 	protected Collection<ObjectName> retrieveMBeanNames() {
-		List<ObjectName> objectNames = new ArrayList<>();
+		List<ObjectName> objectNames = new ArrayList<>(this.mBeanObjectNames.length);
 		for (ObjectName pattern : this.mBeanObjectNames) {
 			Set<ObjectInstance> mBeanInfos;
 			try {

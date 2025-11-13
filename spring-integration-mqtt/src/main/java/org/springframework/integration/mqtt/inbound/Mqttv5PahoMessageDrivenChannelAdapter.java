@@ -121,7 +121,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	 */
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, MqttSubscription... mqttSubscriptions) {
 		this(url, clientId, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = new ArrayList<>();
+		this.subscriptions = new ArrayList<>(mqttSubscriptions.length);
 		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 
@@ -145,7 +145,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		this(connectionOptions, clientId,
 				Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = new ArrayList<>();
+		this.subscriptions = new ArrayList<>(mqttSubscriptions.length);
 		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 
@@ -171,7 +171,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			MqttSubscription... mqttSubscriptions) {
 
 		this(clientManager, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = new ArrayList<>();
+		this.subscriptions = new ArrayList<>(mqttSubscriptions.length);
 		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 

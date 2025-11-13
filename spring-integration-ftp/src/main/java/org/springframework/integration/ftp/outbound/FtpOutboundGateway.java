@@ -187,7 +187,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	@Override
 	protected List<AbstractFileInfo<FTPFile>> asFileInfoList(Collection<FTPFile> files) {
-		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>();
+		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>(files.size());
 		for (FTPFile file : files) {
 			canonicalFiles.add(new FtpFileInfo(file));
 		}

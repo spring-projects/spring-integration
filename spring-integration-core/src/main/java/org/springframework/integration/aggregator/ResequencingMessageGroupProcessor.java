@@ -49,7 +49,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 		if (!messages.isEmpty()) {
 			List<Message<?>> sorted = new ArrayList<>(messages);
 			sorted.sort(this.comparator);
-			ArrayList<Message<?>> partialSequence = new ArrayList<>();
+			ArrayList<Message<?>> partialSequence = new ArrayList<>(messages.size());
 			int previousSequence = extractSequenceNumber(sorted.get(0));
 			int currentSequence = previousSequence;
 			for (Message<?> message : sorted) {

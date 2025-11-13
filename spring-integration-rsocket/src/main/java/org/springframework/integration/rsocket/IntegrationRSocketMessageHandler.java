@@ -128,9 +128,10 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 				new IntegrationRSocketPayloadReturnValueHandler((List<Encoder<?>>) getEncoders(),
 						getReactiveAdapterRegistry());
 		if (this.messageMappingCompatible) {
-			List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
+			List<HandlerMethodReturnValueHandler> customHandlers = getReturnValueHandlerConfigurer().getCustomHandlers();
+			List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>(customHandlers.size() + 1);
 			handlers.add(integrationRSocketPayloadReturnValueHandler);
-			handlers.addAll(getReturnValueHandlerConfigurer().getCustomHandlers());
+			handlers.addAll(customHandlers);
 			return handlers;
 		}
 		else {

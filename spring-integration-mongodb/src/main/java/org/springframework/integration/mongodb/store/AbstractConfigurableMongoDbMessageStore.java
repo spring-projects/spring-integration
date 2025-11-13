@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -152,9 +151,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
-				List<Object> customConverters = new ArrayList<>();
-				customConverters.add(new MessageToBinaryConverter());
-				customConverters.add(new BinaryToMessageConverter());
+				List<Object> customConverters = List.of(new MessageToBinaryConverter(), new BinaryToMessageConverter());
 				this.mappingMongoConverter.setCustomConversions(new MongoCustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}

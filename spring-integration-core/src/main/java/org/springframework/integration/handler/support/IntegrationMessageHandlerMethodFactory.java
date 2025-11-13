@@ -93,7 +93,7 @@ public class IntegrationMessageHandlerMethodFactory extends DefaultMessageHandle
 	}
 
 	private List<HandlerMethodArgumentResolver> buildArgumentResolvers(boolean listCapable) {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>(6);
 		resolvers.add(new PayloadExpressionArgumentResolver());
 		resolvers.add(new NullAwarePayloadArgumentResolver(this.messageConverter));
 		resolvers.add(new PayloadsArgumentResolver());

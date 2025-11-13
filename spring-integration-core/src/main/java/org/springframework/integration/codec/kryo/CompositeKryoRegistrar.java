@@ -29,6 +29,8 @@ import org.springframework.util.CollectionUtils;
  * A {@link KryoRegistrar} that delegates and validates registrations across all components.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
@@ -36,7 +38,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	private final List<KryoRegistrar> delegates;
 
 	public CompositeKryoRegistrar(List<KryoRegistrar> delegates) {
-		this.delegates = new ArrayList<KryoRegistrar>(delegates);
+		this.delegates = new ArrayList<>(delegates);
 
 		if (!CollectionUtils.isEmpty(this.delegates)) {
 			validateRegistrations();
@@ -52,7 +54,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 
 	@Override
 	public final List<Registration> getRegistrations() {
-		List<Registration> registrations = new ArrayList<Registration>();
+		List<Registration> registrations = new ArrayList<>();
 		for (KryoRegistrar registrar : this.delegates) {
 			registrations.addAll(registrar.getRegistrations());
 		}
@@ -60,10 +62,11 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	}
 
 	private void validateRegistrations() {
-		List<Integer> ids = new ArrayList<Integer>();
-		List<Class<?>> types = new ArrayList<Class<?>>();
+		List<Registration> registrations = getRegistrations();
+		List<Integer> ids = new ArrayList<>(registrations.size());
+		List<Class<?>> types = new ArrayList<>(registrations.size());
 
-		for (Registration registration : getRegistrations()) {
+		for (Registration registration : registrations) {
 			Assert.isTrue(registration.getId() >= MIN_REGISTRATION_VALUE,
 					"registration ID must be >= " + MIN_REGISTRATION_VALUE);
 			if (ids.contains(registration.getId())) {

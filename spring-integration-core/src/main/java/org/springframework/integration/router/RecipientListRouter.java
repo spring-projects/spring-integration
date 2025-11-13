@@ -257,7 +257,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		List<MessageChannel> result = new ArrayList<>();
+		List<MessageChannel> result = new ArrayList<>(this.recipients.size());
 		for (Recipient recipient : this.recipients) {
 			if (recipient.accept(message)) {
 				result.add(recipient.getChannel());
@@ -276,7 +276,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 
 		private final @Nullable MessageSelector selector;
 
-		private @Nullable MessageChannel channel;
+		@SuppressWarnings("NullAway.Init")
+		private MessageChannel channel;
 
 		private @Nullable String channelName;
 
@@ -308,7 +309,6 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			return this.selector;
 		}
 
-		@Nullable
 		public MessageChannel getChannel() {
 			if (this.channel == null) {
 				String channelNameForInitialization = this.channelName;

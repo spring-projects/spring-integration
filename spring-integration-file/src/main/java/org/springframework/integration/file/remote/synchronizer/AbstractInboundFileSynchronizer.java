@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -399,7 +400,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			List<F> sliceToTransfer = remoteFiles;
 			List<F> remoteFilesToCache = null;
 			if (!CollectionUtils.isEmpty(remoteFiles) && maxFetchSize > 0) {
-				remoteFilesToCache = remoteFiles;
+				remoteFilesToCache = new ArrayList<>(remoteFiles);
 				sliceToTransfer = remoteFiles.stream().limit(maxFetchSize).toList();
 				remoteFilesToCache.removeAll(sliceToTransfer);
 			}
@@ -477,8 +478,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				}
 			}
 			else {
-				filteredFiles = new ArrayList<>();
-				Collections.addAll(filteredFiles, files);
+				filteredFiles = Arrays.asList(files);
 			}
 
 			return filteredFiles;

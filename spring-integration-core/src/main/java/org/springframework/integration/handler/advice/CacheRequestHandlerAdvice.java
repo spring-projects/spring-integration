@@ -91,7 +91,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 	private final String @Nullable [] cacheNames;
 
-	private final List<CacheOperation> cacheOperations = new ArrayList<>();
+	private final List<CacheOperation> cacheOperations = new ArrayList<>(3);
 
 	private Expression keyExpression = new FunctionExpression<Message<?>>(Message::getPayload);
 

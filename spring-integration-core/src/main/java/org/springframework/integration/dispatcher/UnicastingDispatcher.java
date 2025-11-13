@@ -167,7 +167,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 						IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
 								() -> "Dispatcher failed to deliver Message", ex);
 				if (exceptions == null) {
-					exceptions = new ArrayList<>();
+					exceptions = new ArrayList<>(getHandlerCount());
 				}
 				exceptions.add(runtimeException);
 				boolean isLast = !handlerIterator.hasNext();

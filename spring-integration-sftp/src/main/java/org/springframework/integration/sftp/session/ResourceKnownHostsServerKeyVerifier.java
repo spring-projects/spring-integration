@@ -121,7 +121,7 @@ public class ResourceKnownHostsServerKeyVerifier implements ServerKeyVerifier {
 			return Collections.emptyList();
 		}
 
-		List<KnownHostsServerKeyVerifier.HostEntryPair> matches = new ArrayList<>();
+		List<KnownHostsServerKeyVerifier.HostEntryPair> matches = new ArrayList<>(knownHosts.size());
 		for (KnownHostsServerKeyVerifier.HostEntryPair match : knownHosts) {
 			KnownHostEntry entry = match.getHostEntry();
 			for (SshdSocketAddress host : candidates) {

@@ -34,13 +34,13 @@ import org.springframework.messaging.MessageHandler;
  */
 public class CompositeMessageHandlerNode extends MessageHandlerNode {
 
-	private final List<InnerHandler> handlers = new ArrayList<>();
+	private final List<InnerHandler> handlers;
 
 	public CompositeMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
 			@Nullable String output, List<InnerHandler> handlers) {
 
 		super(nodeId, name, handler, input, output);
-		this.handlers.addAll(handlers);
+		this.handlers = new ArrayList<>(handlers);
 	}
 
 	public List<InnerHandler> getHandlers() {

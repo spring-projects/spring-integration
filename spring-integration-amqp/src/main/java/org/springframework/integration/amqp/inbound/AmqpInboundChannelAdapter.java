@@ -491,7 +491,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			else {
 				converted = convertPayloads(messages, channel);
 				if (BatchMode.EXTRACT_PAYLOADS_WITH_HEADERS.equals(AmqpInboundChannelAdapter.this.batchMode)) {
-					List<Map<String, @Nullable Object>> listHeaders = new ArrayList<>();
+					List<Map<String, @Nullable Object>> listHeaders = new ArrayList<>(messages.size());
 					messages.forEach(msg -> listHeaders.add(AmqpInboundChannelAdapter.this.headerMapper
 							.toHeadersFromRequest(msg.getMessageProperties())));
 					headers = listHeaders;
@@ -553,7 +553,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		private @Nullable List<org.springframework.messaging.Message<?>> convertMessages(List<Message> messages,
 				@Nullable Channel channel) {
 
-			List<org.springframework.messaging.Message<?>> converted = new ArrayList<>();
+			List<org.springframework.messaging.Message<?>> converted = new ArrayList<>(messages.size());
 			try {
 				messages.forEach(message -> converted.add(createMessageFromAmqp(message, channel)));
 				return converted;
@@ -574,7 +574,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		}
 
 		private @Nullable List<?> convertPayloads(List<Message> messages, @Nullable Channel channel) {
-			List<Object> converted = new ArrayList<>();
+			List<Object> converted = new ArrayList<>(messages.size());
 			try {
 				messages.forEach(message -> converted.add(this.converter.fromMessage(message)));
 				return converted;

@@ -27,14 +27,16 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Ngoc Nhan
+ *
  * @since 2.0
  */
 public class UniqueMethodFilter implements MethodFilter {
 
-	private final List<Method> uniqueMethods = new ArrayList<>();
+	private final List<Method> uniqueMethods;
 
 	public UniqueMethodFilter(Class<?> targetClass) {
 		Method[] allMethods = ReflectionUtils.getAllDeclaredMethods(targetClass);
+		this.uniqueMethods = new ArrayList<>(allMethods.length);
 		for (Method method : allMethods) {
 			this.uniqueMethods.add(org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetClass));
 		}

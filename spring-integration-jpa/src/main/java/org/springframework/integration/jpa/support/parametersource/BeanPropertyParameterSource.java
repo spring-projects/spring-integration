@@ -73,8 +73,8 @@ public class BeanPropertyParameterSource implements ParameterSource {
 	 */
 	public String[] getReadablePropertyNames() {
 		if (this.propertyNames == null) {
-			final List<String> names = new ArrayList<>();
 			PropertyDescriptor[] props = this.beanWrapper.getPropertyDescriptors();
+			final List<String> names = new ArrayList<>(props.length);
 			for (PropertyDescriptor pd : props) {
 				if (this.beanWrapper.isReadableProperty(pd.getName())) {
 					names.add(pd.getName());

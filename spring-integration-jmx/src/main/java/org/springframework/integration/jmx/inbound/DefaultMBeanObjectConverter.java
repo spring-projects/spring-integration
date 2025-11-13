@@ -132,8 +132,8 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 	private @Nullable Object convertFromArray(Object input) {
 		if (CompositeData.class.isAssignableFrom(input.getClass().getComponentType())) {
-			List<@Nullable Object> converted = new ArrayList<>();
 			int length = Array.getLength(input);
+			List<@Nullable Object> converted = new ArrayList<>(length);
 			for (int i = 0; i < length; i++) {
 				Object value = checkAndConvert(Array.get(input, i));
 				converted.add(value);

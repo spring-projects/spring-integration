@@ -178,7 +178,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Collection<UUID> ids = new ArrayList<>();
+		Collection<UUID> ids = new ArrayList<>(messages.size());
 		for (Message<?> messageToRemove : messages) {
 			ids.add(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
 			if (ids.size() >= getRemoveBatchSize()) {
