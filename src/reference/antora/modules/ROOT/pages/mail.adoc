@@ -216,7 +216,7 @@ Groovy DSL::
 [source, groovy, role="secondary"]
 ----
    ...
-   .transform(Mail.toStringTransformer())
+   transform(Mail.toStringTransformer())
    ...
 ----
 
@@ -331,7 +331,7 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-JavaMailSender mailSender() {
+mailSender() {
     new JavaMailSenderImpl().with {
         host = "somehost"
         username = "someuser"
@@ -342,10 +342,10 @@ JavaMailSender mailSender() {
 }
 
 @Bean
-IntegrationFlow mailOutboundFlow(MessageChannel outboundMail, JavaMailSender mailSender) {
-    IntegrationFlow.from(outboundMail)
-        .handle(Mail.outboundAdapter(mailSender))
-        .get()
+mailOutboundFlow(MessageChannel outboundMail, JavaMailSender mailSender) {
+    integrationFlow(outboundMail) {
+        handle(Mail.outboundAdapter(mailSender))
+    }
 }
 ----
 XML::
@@ -419,12 +419,13 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow mailOutboundFlow(MessageChannel outboundMail) {
-    IntegrationFlow.from(outboundMail)
-        .handle(Mail.outboundAdapter("somehost")
-            .credentials("someuser", "somepassword")
-            .javaMailProperties { p -> p.put('mail.smtp.starttls.enable', 'true') })
-        .get()
+mailOutboundFlow(MessageChannel outboundMail) {
+    integrationFlow(outboundMail) {
+        handle(Mail.outboundAdapter("somehost").with {
+            credentials("someuser", "somepassword")
+            javaMailProperties { p -> p.put('mail.smtp.starttls.enable', 'true') }
+        })
+    }
 }
 ----
 XML::
@@ -518,17 +519,17 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow mailOutboundFlow(MessageChannel outboundMail) {
-    IntegrationFlow.from(outboundMail)
-        .enrichHeaders { h ->
-            h.headerExpression(MailHeaders.TO, 'payload.to')
-                .headerExpression(MailHeaders.CC, 'payload.cc')
-                .headerExpression(MailHeaders.BCC, 'payload.bcc')
-                .headerExpression(MailHeaders.REPLY_TO, 'payload.replyTo')
-                .headerExpression(MailHeaders.FROM, 'payload.from')
-                .headerExpression(MailHeaders.SUBJECT, 'payload.subject')
+mailOutboundFlow(MessageChannel outboundMail) {
+    integrationFlow(outboundMail) {
+        enrichHeaders {
+            headerExpression(MailHeaders.TO, 'payload.to')
+            headerExpression(MailHeaders.CC, 'payload.cc')
+            headerExpression(MailHeaders.BCC, 'payload.bcc')
+            headerExpression(MailHeaders.REPLY_TO, 'payload.replyTo')
+            headerExpression(MailHeaders.FROM, 'payload.from')
+            headerExpression(MailHeaders.SUBJECT, 'payload.subject')
         }
-        .get()
+    }
 }
 ----
 XML::
@@ -621,15 +622,18 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow imapMailInboundFlow(Properties javaMailProperties, MessageChannel receiveChannel) {
-    return IntegrationFlow.from(Mail.imapInboundAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
-                .shouldDeleteMessages(true)
-                .shouldMarkMessagesAsRead(true)
-                .javaMailProperties(javaMailProperties)
-                .maxFetchSize(1),
-            { e -> e.poller(Pollers.fixedRate(5000)) })
-        .channel(receiveChannel)
-        .get()
+imapMailInboundFlow(Properties javaMailProps, MessageChannel receiveChannel) {
+    integrationFlow(
+            Mail.imapInboundAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").with {
+                shouldMarkMessagesAsRead true
+                shouldDeleteMessages true
+                id 'groovyImapIdleAdapter'
+                javaMailProperties javaMailProps
+                maxFetchSize 1
+            }, { e -> e.poller(Pollers.fixedRate(5000)) }
+    ) {
+        channel receiveChannel
+    }
 }
 ----
 XML::
@@ -692,7 +696,6 @@ public IntegrationFlow imapIdleFlow(MessageChannel receiveChannel, MailMessageHa
         .autoStartup(true)
         .id("imapIdleAdapter"))
     .channel(receiveChannel)
-    .handle(mailMessageHandler)
     .get();
 }
 
@@ -702,8 +705,7 @@ Kotlin DSL::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun kotlinImapIdleFlow(receiveChannel: MessageChannel, mailMessageHandler: MailMessageHandler,
-    javaMailProperties: Properties) =
+fun imapIdleFlow(receiveChannel: MessageChannel, javaMailProperties: Properties) =
 
     integrationFlow(
         Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
@@ -715,7 +717,6 @@ fun kotlinImapIdleFlow(receiveChannel: MessageChannel, mailMessageHandler: MailM
         }
     ) {
         channel(receiveChannel)
-        handle(mailMessageHandler)
     }
 ----
 Groovy DSL::
@@ -723,20 +724,19 @@ Groovy DSL::
 [source,groovy,role="secondary"]
 ----
 @Bean
-IntegrationFlow groovyImapIdleFlow(MessageChannel receiveChannel, MailMessageHandler mailMessageHandler,
-    Properties javaMailProperties) {
+imapIdleFlow(MessageChannel receiveChannel, Properties javaMailProps) {
 
-    IntegrationFlow.from(
-        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
-        .shouldDeleteMessages(false)
-        .shouldMarkMessagesAsRead(true)
-        .javaMailProperties(javaMailProperties)
-            .autoStartup(true)
-            .id("groovyImapIdleAdapter")
-    )
-    .channel(receiveChannel)
-    .handle(mailMessageHandler)
-    .get()
+    integrationFlow(
+        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").with {
+             shouldMarkMessagesAsRead false
+             shouldDeleteMessages true
+             javaMailProperties javaMailProps
+             autoStartup true
+             id 'groovyImapIdleAdapter'
+        }
+    ) {
+        channel receiveChannel
+    }
 }
 ----
 XML::
@@ -791,11 +791,13 @@ Groovy::
 [source,groovy,role="secondary"]
 ----
 @Bean
-Properties javaMailProperties = new Properties([
-    "mail.imaps.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
-    "mail.imaps.socketFactory.fallback": "false",
-    "mail.store.protocol": "imaps"
-])
+javaMailProperties() {
+    new Properties([
+            "mail.imaps.socketFactory.class"   : "javax.net.ssl.SSLSocketFactory",
+            "mail.imaps.socketFactory.fallback": "false",
+            "mail.store.protocol"              : "imaps"
+    ])
+}
 ----
 XML::
 +
@@ -859,26 +861,39 @@ Kotlin::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun imapMailReceiver(kotlinSearchTermStrategy: SearchTermStrategy) =
-        integrationFlow(
-            Mail.imapIdleAdapter(mailProperties.buildStoreUri()).apply {
-                // ...
-                searchTermStrategy(kotlinSearchTermStrategy)
-                // ...
-            }
+fun imapIdleFlow(searchTermStrategy: SearchTermStrategy) =
+    integrationFlow(
+        Mail.imapIdleAdapter("imap:something").apply {
+            // ...
+            searchTermStrategy(searchTermStrategy)
+            // ...
+        }
+    )
+// ...
 
-        )
+@Bean fun searchTermStrategy(): SearchTermStrategy {
+    return TestSearchTermStrategy()
+}
 ----
 Groovy::
 +
 [source,groovy,role="secondary"]
 ----
 @Bean
-ImapMailReceiver imapMailReceiver(SearchTermStrategy searchTermStrategy) {
-    def receiver = new ImapMailReceiver("imap:something")
-    // ...
-    receiver.searchTermStrategy = searchTermStrategy
-    return receiver
+imapIdleFlow(SearchTermStrategy searchStrategy) {
+    integrationFlow(
+            Mail.imapIdleAdapter("imap:something").with {
+                 // ...
+                 searchTermStrategy searchStrategy
+                 // ...
+            }
+    )
+// ...
+}
+
+@Bean
+SearchTermStrategy searchTermStrategy() {
+    return new TestSearchTermStrategy();
 }
 ----
 XML::
@@ -1014,23 +1029,21 @@ Kotlin::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun imapMailReceiver(javaMailProps: Properties): ImapMailReceiver {
-    return ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
+fun imapMailReceiver(javaMailProps: Properties) =
+    ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX").apply {
         setShouldDeleteMessages(false)
         setShouldMarkMessagesAsRead(true)
         setJavaMailProperties(javaMailProps)
-        val parser: ExpressionParser = SpelExpressionParser()
-        setSelectorExpression(parser.parseExpression("subject matches '(?i).*Spring Integration.*'"))
+        setSelectorExpression(SpelExpressionParser().parseExpression("subject matches '(?i).*Spring Integration.*'"))
     }
-}
 ----
 Groovy::
 +
 [source,groovy,role="secondary"]
 ----
 @Bean
-ImapMailReceiver imapMailReceiver(Properties javaMailProps) {
-    return new ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX").with {
+imapMailReceiver(Properties javaMailProps) {
+     new ImapMailReceiver("imaps://[username]:[password]@imap.gmail.com/INBOX").with {
         shouldDeleteMessages = false
         shouldMarkMessagesAsRead = true
         javaMailProperties = javaMailProps
@@ -1144,12 +1157,10 @@ Kotlin DSL::
 [source,kotlin,role="secondary"]
 ----
 @Bean
-fun transactionSynchronizationFactory(): TransactionSynchronizationFactory {
-    val processor = ExpressionEvaluatingTransactionSynchronizationProcessor().apply {
+fun transactionSynchronizationFactory() =
+    DefaultTransactionSynchronizationFactory(ExpressionEvaluatingTransactionSynchronizationProcessor().apply {
         setAfterCommitExpression(SpelExpressionParser().parseExpression("@syncProcessor.process(payload)"))
-    }
-    return DefaultTransactionSynchronizationFactory(processor)
-}
+    })
 
 @Bean
 fun imapIdleFlow(receiveChannel: MessageChannel, javaMailProperties: Properties,
@@ -1167,16 +1178,15 @@ fun imapIdleFlow(receiveChannel: MessageChannel, javaMailProperties: Properties,
     }
 
 @Bean
-fun syncProcessor(): Mover {
-    return Mover()
-}
+fun syncProcessor() =
+     Mover()
 ----
 Groovy DSL::
 +
 [source,groovy,role="secondary"]
 ----
 @Bean
-TransactionSynchronizationFactory transactionSynchronizationFactory() {
+transactionSynchronizationFactory() {
     new DefaultTransactionSynchronizationFactory(
         new ExpressionEvaluatingTransactionSynchronizationProcessor().with {
             afterCommitExpression = new SpelExpressionParser().parseExpression("@syncProcessor.process(payload)")
@@ -1186,23 +1196,24 @@ TransactionSynchronizationFactory transactionSynchronizationFactory() {
 }
 
 @Bean
-IntegrationFlow imapIdleFlow(MessageChannel receiveChannel, Properties javaMailProperties,
-    TransactionSynchronizationFactory transactionSynchronizationFactory ) {
-    IntegrationFlow.from(
-        Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX")
-        .shouldDeleteMessages(false)
-        .javaMailProperties(javaMailProperties)
-        .autoStartup(true)
-        .id("groovyImapIdleAdapter")
-        .transactionSynchronizationFactory(transactionSynchronizationFactory)
-    )
-    .channel(receiveChannel)
-    .get()
+imapIdleFlow(MessageChannel receiveChannel, TransactionSynchronizationFactory tranSyncFactory,
+    Properties javaMailProps) {
+    integrationFlow(
+            Mail.imapIdleAdapter("imaps://[username]:[password]@imap.gmail.com/INBOX").with {
+                 shouldDeleteMessages false
+                 javaMailProperties javaMailProps
+                 autoStartup true
+                 id 'groovyImapIdleAdapter'
+                 transactionSynchronizationFactory tranSyncFactory
+            }
+    ) {
+        channel receiveChannel
+    }
 }
 
 @Bean
-Mover syncProcessor() {
-    return new Mover()
+syncProcessor() {
+    Mover()
 }
 ----
 XML::
