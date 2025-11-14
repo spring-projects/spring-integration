@@ -39,6 +39,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  *
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class XPathRouter extends AbstractMappingMessageRouter {
 
@@ -63,7 +64,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 
 	/**
 	 * Create a router uses an XPath expression with one namespace. For example,
-	 * expression='/ns1:one/@type' prefix='ns1' namespace='www.example.org'
+	 * {@code expression='/ns1:one/@type' prefix='ns1' namespace='www.example.org'}
 	 * @param expression the XPath expression as a String
 	 * @param prefix namespace prefix
 	 * @param namespace namespace uri
@@ -77,7 +78,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 
 	/**
 	 * Create a router that uses an XPath expression with no namespaces.
-	 * For example '/one/@type'
+	 * For example, {@code '/one/@type'}
 	 * @param expression the XPath expression as a String
 	 */
 	public XPathRouter(String expression) {
@@ -119,7 +120,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 			return Collections.<@Nullable Object>singletonList(this.xPathExpression.evaluateAsString(node));
 		}
 		else {
-			return (List<@Nullable Object>) this.xPathExpression.evaluate(node, this.nodeMapper);
+			return this.xPathExpression.evaluate(node, this.nodeMapper);
 		}
 	}
 
