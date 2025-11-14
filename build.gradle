@@ -623,6 +623,12 @@ project('spring-integration-groovy') {
     tasks.withType(JavaForkOptions) {
         jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
     }
+
+    tasks.withType(GroovyCompile).configureEach {
+        options.fork = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        options.encoding = 'UTF-8'
+    }
 }
 
 project('spring-integration-hazelcast') {
