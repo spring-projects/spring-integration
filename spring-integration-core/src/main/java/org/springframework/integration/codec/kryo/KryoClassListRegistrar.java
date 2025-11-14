@@ -64,17 +64,18 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 	 * @param initialValue the initial value
 	 */
 	public void setInitialValue(int initialValue) {
-		Assert.isTrue(initialValue >= MIN_REGISTRATION_VALUE, "'initialValue' must be >= " + MIN_REGISTRATION_VALUE);
+		Assert.isTrue(initialValue >= MIN_REGISTRATION_VALUE,
+				() -> "'initialValue' must be >= " + MIN_REGISTRATION_VALUE);
 		this.initialValue = initialValue;
 	}
 
 	@Override
 	public List<Registration> getRegistrations() {
-		List<Registration> registrations = new ArrayList<>();
+		List<Registration> registrations = new ArrayList<>(this.registeredClasses.size());
 		if (!CollectionUtils.isEmpty(this.registeredClasses)) {
 			for (int i = 0; i < this.registeredClasses.size(); i++) {
-				registrations.add(new Registration(this.registeredClasses.get(i),
-						KRYO.getSerializer(this.registeredClasses.get(i)), i + this.initialValue));
+				Class<?> type = this.registeredClasses.get(i);
+				registrations.add(new Registration(type, KRYO.getSerializer(type), i + this.initialValue));
 			}
 		}
 		return registrations;

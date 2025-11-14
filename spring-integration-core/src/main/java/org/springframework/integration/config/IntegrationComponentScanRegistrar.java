@@ -76,17 +76,13 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	private static final String BEAN_NAME = IntegrationComponentScanRegistrar.class.getName();
 
-	private final List<TypeFilter> defaultFilters = new ArrayList<>();
+	private final List<TypeFilter> defaultFilters = List.of(new AnnotationTypeFilter(MessagingGateway.class, true));
 
 	@SuppressWarnings("NullAway.Init")
 	private ResourceLoader resourceLoader;
 
 	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
-
-	public IntegrationComponentScanRegistrar() {
-		this.defaultFilters.add(new AnnotationTypeFilter(MessagingGateway.class, true));
-	}
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -132,7 +128,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 		};
 
-		filter(registry, componentScan, scanner); // NOSONAR - never null
+		filter(registry, componentScan, scanner);
 
 		scanner.setResourceLoader(this.resourceLoader);
 		scanner.setEnvironment(this.environment);
@@ -151,7 +147,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	private void filter(BeanDefinitionRegistry registry, AnnotationAttributes componentScan,
 			ClassPathScanningCandidateComponentProvider scanner) {
 
-		if (componentScan.getBoolean("useDefaultFilters")) { // NOSONAR - never null
+		if (componentScan.getBoolean("useDefaultFilters")) {
 			for (TypeFilter typeFilter : this.defaultFilters) {
 				scanner.addIncludeFilter(typeFilter);
 			}
@@ -188,10 +184,11 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	}
 
 	private List<TypeFilter> typeFiltersFor(AnnotationAttributes filter, BeanDefinitionRegistry registry) {
-		List<TypeFilter> typeFilters = new ArrayList<>();
+		Class<?>[] classes = filter.getClassArray("classes");
+		List<TypeFilter> typeFilters = new ArrayList<>(classes.length);
 		FilterType filterType = filter.getEnum("type");
 
-		for (Class<?> filterClass : filter.getClassArray("classes")) {
+		for (Class<?> filterClass : classes) {
 			switch (filterType) {
 				case ANNOTATION -> {
 					Assert.isAssignable(Annotation.class, filterClass,
@@ -230,23 +227,23 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			ResourceLoader resourceLoader, BeanDefinitionRegistry registry) {
 
 		if (parserStrategyBean instanceof Aware) {
-			if (parserStrategyBean instanceof BeanClassLoaderAware) {
+			if (parserStrategyBean instanceof BeanClassLoaderAware beanClassLoaderAware) {
 				ClassLoader classLoader =
 						registry instanceof ConfigurableBeanFactory
 								? ((ConfigurableBeanFactory) registry).getBeanClassLoader()
 								: resourceLoader.getClassLoader();
 				if (classLoader != null) {
-					((BeanClassLoaderAware) parserStrategyBean).setBeanClassLoader(classLoader);
+					beanClassLoaderAware.setBeanClassLoader(classLoader);
 				}
 			}
-			if (parserStrategyBean instanceof BeanFactoryAware && registry instanceof BeanFactory) {
-				((BeanFactoryAware) parserStrategyBean).setBeanFactory((BeanFactory) registry);
+			if (parserStrategyBean instanceof BeanFactoryAware beanFactoryAware && registry instanceof BeanFactory) {
+				beanFactoryAware.setBeanFactory((BeanFactory) registry);
 			}
-			if (parserStrategyBean instanceof EnvironmentAware) {
-				((EnvironmentAware) parserStrategyBean).setEnvironment(environment);
+			if (parserStrategyBean instanceof EnvironmentAware environmentAware) {
+				environmentAware.setEnvironment(environment);
 			}
-			if (parserStrategyBean instanceof ResourceLoaderAware) {
-				((ResourceLoaderAware) parserStrategyBean).setResourceLoader(resourceLoader);
+			if (parserStrategyBean instanceof ResourceLoaderAware resourceLoaderAware) {
+				resourceLoaderAware.setResourceLoader(resourceLoader);
 			}
 		}
 	}

@@ -19,6 +19,7 @@ package org.springframework.integration.websocket.support;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -52,7 +53,7 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 
 	public void setSupportedProtocols(String... supportedProtocols) {
 		Assert.noNullElements(supportedProtocols, "'supportedProtocols' must not be empty");
-		this.supportedProtocols.addAll(Arrays.asList(supportedProtocols));
+		Collections.addAll(this.supportedProtocols, supportedProtocols);
 	}
 
 	@Override

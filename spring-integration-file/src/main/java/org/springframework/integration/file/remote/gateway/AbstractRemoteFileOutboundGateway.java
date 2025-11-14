@@ -967,7 +967,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private List<String> putLocalDirectory(Message<?> requestMessage, File file, @Nullable String subDirectory) {
 		List<File> filteredFiles = filterMputFiles(file.listFiles());
-		List<String> replies = new ArrayList<>();
+		List<String> replies = new ArrayList<>(filteredFiles.size());
 		try {
 			for (File filteredFile : filteredFiles) {
 				if (!filteredFile.isDirectory()) {
@@ -1027,7 +1027,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			purgeDots(lsFiles);
 		}
 		if (this.options.contains(Option.NAME_ONLY)) {
-			List<String> results = new ArrayList<>();
+			List<String> results = new ArrayList<>(lsFiles.size());
 			for (F file : lsFiles) {
 				results.add(getFilename(file));
 			}
@@ -1051,7 +1051,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private List<F> listFilesInRemoteDir(Session<F> session, @Nullable String directory, String subDirectory)
 			throws IOException {
 
-		List<F> lsFiles = new ArrayList<>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
 		F[] list = session.list(remoteDirectory);
@@ -1063,11 +1062,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			files = Arrays.asList(list);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
+			List<F> lsFiles = new ArrayList<>(files.size());
 			for (F file : files) {
 				processFile(session, directory, subDirectory, lsFiles, this.options.contains(Option.RECURSIVE), file);
 			}
+			return lsFiles;
 		}
-		return lsFiles;
+		return Collections.emptyList();
 	}
 
 	private String buildRemotePath(@Nullable String parent, String child) {
@@ -1269,10 +1270,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private List<File> mGetWithoutRecursion(Message<?> message, Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
 
-		List<File> files = new ArrayList<>();
 		String remotePath = buildRemotePath(remoteDirectory, remoteFilename);
 		List<AbstractFileInfo<F>> remoteFiles = lsRemoteFilesForMget(message, session, remoteDirectory,
 				remoteFilename, remotePath);
+		List<File> files = new ArrayList<>(remoteFiles.size());
 		try {
 			for (AbstractFileInfo<F> lsEntry : remoteFiles) {
 				if (lsEntry.isDirectory()) {
@@ -1313,9 +1314,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private List<File> mGetWithRecursion(Message<?> message, Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
 
-		List<File> files = new ArrayList<>();
 		List<AbstractFileInfo<F>> fileNames = lsRemoteFilesForMget(message, session, remoteDirectory,
 				remoteFilename, remoteDirectory);
+		List<File> files = new ArrayList<>(fileNames.size());
 		try {
 			for (AbstractFileInfo<F> lsEntry : fileNames) {
 				File file = getRemoteFileForMget(message, session, remoteDirectory, lsEntry);

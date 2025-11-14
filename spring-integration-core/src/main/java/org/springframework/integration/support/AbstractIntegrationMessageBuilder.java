@@ -70,7 +70,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 		List<List<Object>> incomingSequenceDetails = getSequenceDetails();
 		if (incomingCorrelationId != null) {
 			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<>();
+				incomingSequenceDetails = new ArrayList<>(1);
 			}
 			else {
 				incomingSequenceDetails = new ArrayList<>(incomingSequenceDetails);

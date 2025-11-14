@@ -70,7 +70,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 
 	@Override
 	protected List<AbstractFileInfo<FTPFile>> asFileInfoList(Collection<FTPFile> files) {
-		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>();
+		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>(files.size());
 		for (FTPFile file : files) {
 			canonicalFiles.add(new FtpFileInfo(file));
 		}

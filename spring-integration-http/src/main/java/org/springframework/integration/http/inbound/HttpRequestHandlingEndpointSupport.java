@@ -113,9 +113,9 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInboundEndpoint {
 
-	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<>();
+	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<>(10);
 
-	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<>(10);
 
 	private boolean convertersMerged;
 
@@ -136,7 +136,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	}
 
 	/**
-	 * Construct a gateway. If 'expectReply' is true it will wait for the
+	 * Construct a gateway. If 'expectReply' is {@code true} it will wait for the
 	 * {@link #setReplyTimeout(long) replyTimeout} for a reply; if the timeout is exceeded
 	 * a '500 Internal Server Error' status code is returned. This can be modified using
 	 * the {@link #setStatusCodeExpression statusCodeExpression}.

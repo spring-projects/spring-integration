@@ -322,7 +322,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Collection<UUID> ids = new ArrayList<>();
+		Collection<UUID> ids = new ArrayList<>(messages.size());
 		for (Message<?> messageToRemove : messages) {
 			UUID id = messageToRemove.getHeaders().getId();
 			Assert.state(id != null, () -> "The message 'id' must notbe null:" + messageToRemove);
@@ -552,7 +552,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public void afterPropertiesSet() {
-			List<Object> converters = new ArrayList<>();
+			List<Object> converters =
+					new ArrayList<>(7 + (this.customConverters != null ? this.customConverters.length : 0));
 			converters.add(new MessageHistoryToDocumentConverter());
 			converters.add(new DocumentToMessageHistoryConverter());
 			converters.add(new DocumentToGenericMessageConverter());

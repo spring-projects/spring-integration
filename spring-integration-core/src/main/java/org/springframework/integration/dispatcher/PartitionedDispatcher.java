@@ -58,9 +58,9 @@ import org.springframework.util.ErrorHandler;
  */
 public class PartitionedDispatcher extends AbstractDispatcher {
 
-	private final List<UnicastingDispatcher> partitions = new ArrayList<>();
+	private final List<UnicastingDispatcher> partitions;
 
-	private final List<ExecutorService> executors = new ArrayList<>();
+	private final List<ExecutorService> executors;
 
 	private final int partitionCount;
 
@@ -79,7 +79,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	private final Lock lock = new ReentrantLock();
 
 	/**
-	 * Instantiate based on a provided number of partitions and function for partition key against
+	 * Instantiate based on a provided number of partitions and function for a partition key against
 	 * the message to dispatch.
 	 * @param partitionCount the number of partitions in this channel.
 	 * @param partitionKeyFunction the function to resolve a partition key against the message
@@ -90,6 +90,8 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 		Assert.notNull(partitionKeyFunction, "'partitionKeyFunction' must not be null");
 		this.partitionKeyFunction = partitionKeyFunction;
 		this.partitionCount = partitionCount;
+		this.partitions = new ArrayList<>(partitionCount);
+		this.executors = new ArrayList<>(partitionCount);
 	}
 
 	/**
@@ -143,7 +145,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Set a {@link MessageHandlingTaskDecorator} to wrap a message handling task into some
-	 * addition logic, e.g. message channel may provide an interception for its operations.
+	 * addition logic, e.g., a message channel may provide an interception for its operations.
 	 * @param messageHandlingTaskDecorator the {@link MessageHandlingTaskDecorator} to use.
 	 */
 	public void setMessageHandlingTaskDecorator(MessageHandlingTaskDecorator messageHandlingTaskDecorator) {
@@ -153,7 +155,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Shutdown this dispatcher on application close.
-	 * The partition executors are shutdown and internal state of this instance is cleared.
+	 * The partition executors are shutdown and the internal state of this instance is cleared.
 	 */
 	public void shutdown() {
 		this.executors.forEach(ExecutorService::shutdown);

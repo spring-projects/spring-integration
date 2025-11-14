@@ -17,6 +17,7 @@
 package org.springframework.integration.file.filters;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -38,15 +39,16 @@ public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 
 	@Override
 	public final List<F> filterFiles(F @Nullable [] files) {
-		List<F> accepted = new ArrayList<>();
 		if (files != null) {
+			List<F> accepted = new ArrayList<>(files.length);
 			for (F file : files) {
-				if (this.accept(file)) {
+				if (accept(file)) {
 					accepted.add(file);
 				}
 			}
+			return accepted;
 		}
-		return accepted;
+		return Collections.emptyList();
 	}
 
 	@Override

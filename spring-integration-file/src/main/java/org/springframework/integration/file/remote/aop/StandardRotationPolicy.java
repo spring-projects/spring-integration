@@ -54,7 +54,7 @@ public class StandardRotationPolicy implements RotationPolicy {
 
 	private final DelegatingSessionFactory<?> factory;
 
-	private final List<KeyDirectory> keyDirectories = new ArrayList<>();
+	private final List<KeyDirectory> keyDirectories;
 
 	private final boolean fair;
 
@@ -69,10 +69,9 @@ public class StandardRotationPolicy implements RotationPolicy {
 			boolean fair) {
 
 		Assert.notNull(factory, "factory cannot be null");
-		Assert.notNull(keyDirectories, "keyDirectories cannot be null");
-		Assert.isTrue(!keyDirectories.isEmpty(), "At least one KeyDirectory is required");
+		Assert.notEmpty(keyDirectories, "keyDirectories must not be empty");
 		this.factory = factory;
-		this.keyDirectories.addAll(keyDirectories);
+		this.keyDirectories = new ArrayList<>(keyDirectories);
 		this.fair = fair;
 		this.iterator = this.keyDirectories.iterator();
 	}

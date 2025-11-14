@@ -120,7 +120,7 @@ public final class GlobalChannelInterceptorProcessor
 			LOGGER.debug("Applying global interceptors on channel '" + beanName + "'");
 		}
 
-		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<>();
+		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<>(this.positiveOrderInterceptors.size());
 
 		this.positiveOrderInterceptors
 				.forEach(interceptorWrapper ->

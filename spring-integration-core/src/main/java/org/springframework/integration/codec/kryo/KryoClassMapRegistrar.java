@@ -30,6 +30,8 @@ import org.springframework.util.CollectionUtils;
  * used to explicitly set the registration ID for each class.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
@@ -37,16 +39,16 @@ public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
 	private final Map<Integer, Class<?>> registeredClasses;
 
 	public KryoClassMapRegistrar(Map<Integer, Class<?>> kryoRegisteredClasses) {
-		this.registeredClasses = new HashMap<Integer, Class<?>>(kryoRegisteredClasses);
+		this.registeredClasses = new HashMap<>(kryoRegisteredClasses);
 	}
 
 	@Override
 	public List<Registration> getRegistrations() {
-		List<Registration> registrations = new ArrayList<Registration>();
+		List<Registration> registrations = new ArrayList<>(this.registeredClasses.size());
 		if (!CollectionUtils.isEmpty(this.registeredClasses)) {
 			for (Map.Entry<Integer, Class<?>> entry : this.registeredClasses.entrySet()) {
-				registrations.add(
-						new Registration(entry.getValue(), KRYO.getSerializer(entry.getValue()), entry.getKey()));
+				Class<?> type = entry.getValue();
+				registrations.add(new Registration(type, KRYO.getSerializer(type), entry.getKey()));
 			}
 		}
 		return registrations;

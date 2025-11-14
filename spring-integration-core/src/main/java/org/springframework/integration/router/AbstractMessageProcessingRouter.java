@@ -19,6 +19,8 @@ package org.springframework.integration.router;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
@@ -80,7 +82,7 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter
 	}
 
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
+	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		return Collections.singletonList(result);
 	}

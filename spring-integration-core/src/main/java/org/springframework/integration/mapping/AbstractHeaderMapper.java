@@ -74,9 +74,9 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	public static final String NON_STANDARD_HEADER_NAME_PATTERN = "NON_STANDARD_HEADERS";
 
 	private static final Collection<String> TRANSIENT_HEADER_NAMES =
-			Arrays.asList(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
+			List.of(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final String standardHeaderPrefix;
 
@@ -92,7 +92,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	/**
 	 * Create a new instance.
-	 * @param standardHeaderPrefix the header prefix that identifies standard header. Such prefix helps to
+	 * @param standardHeaderPrefix the header prefix that identifies the standard header. Such a prefix helps to
 	 * differentiate user-defined headers from standard headers. If set, user-defined headers are also
 	 * mapped by default
 	 * @param requestHeaderNames the header names that should be mapped from a request to {@link MessageHeaders}
@@ -158,36 +158,35 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * <p>Special patterns are also recognized: {@link #STANDARD_REQUEST_HEADER_NAME_PATTERN},
 	 * {@link #STANDARD_REQUEST_HEADER_NAME_PATTERN} and {@link #NON_STANDARD_HEADER_NAME_PATTERN}.
 	 * @param patterns the patterns to apply
-	 * @return a header mapper that match if any of the specified patters match
+	 * @return a header mapper that matches if any of the specified patters match
 	 */
 	protected HeaderMatcher createHeaderMatcher(Collection<String> patterns) {
-		List<HeaderMatcher> matchers = new ArrayList<>();
+		List<HeaderMatcher> matchers = new ArrayList<>(patterns.size());
 		for (String pattern : patterns) {
-			if (STANDARD_REQUEST_HEADER_NAME_PATTERN.equals(pattern)) {
-				matchers.add(new ContentBasedHeaderMatcher(true, this.requestHeaderNames));
-			}
-			else if (STANDARD_REPLY_HEADER_NAME_PATTERN.equals(pattern)) {
-				matchers.add(new ContentBasedHeaderMatcher(true, this.replyHeaderNames));
-			}
-			else if (NON_STANDARD_HEADER_NAME_PATTERN.equals(pattern)) {
-				matchers.add(new PrefixBasedMatcher(false, this.standardHeaderPrefix));
-			}
-			else {
-				String thePattern = pattern;
-				boolean negate = false;
-				if (pattern.startsWith("!")) {
-					thePattern = pattern.substring(1);
-					negate = true;
-				}
-				else if (pattern.startsWith("\\!")) {
-					thePattern = pattern.substring(1);
-				}
-				if (negate) {
-					// negative matchers get priority
-					matchers.add(0, new SinglePatternBasedHeaderMatcher(thePattern, negate));
-				}
-				else {
-					matchers.add(new SinglePatternBasedHeaderMatcher(thePattern, negate));
+			switch (pattern) {
+				case STANDARD_REQUEST_HEADER_NAME_PATTERN ->
+						matchers.add(new ContentBasedHeaderMatcher(true, this.requestHeaderNames));
+				case STANDARD_REPLY_HEADER_NAME_PATTERN ->
+						matchers.add(new ContentBasedHeaderMatcher(true, this.replyHeaderNames));
+				case NON_STANDARD_HEADER_NAME_PATTERN ->
+						matchers.add(new PrefixBasedMatcher(false, this.standardHeaderPrefix));
+				default -> {
+					String thePattern = pattern;
+					boolean negate = false;
+					if (pattern.startsWith("!")) {
+						thePattern = pattern.substring(1);
+						negate = true;
+					}
+					else if (pattern.startsWith("\\!")) {
+						thePattern = pattern.substring(1);
+					}
+					if (negate) {
+						// negative matchers get priority
+						matchers.add(0, new SinglePatternBasedHeaderMatcher(thePattern, negate));
+					}
+					else {
+						matchers.add(new SinglePatternBasedHeaderMatcher(thePattern, negate));
+					}
 				}
 			}
 		}
@@ -485,16 +484,14 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	protected static class PatternBasedHeaderMatcher implements HeaderMatcher {
 
-		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(PatternBasedHeaderMatcher.class);
 
-		private final Collection<String> patterns = new ArrayList<>();
+		private final Collection<String> patterns;
 
 		public PatternBasedHeaderMatcher(Collection<String> patterns) {
 			Assert.notNull(patterns, "Patterns must no be null");
 			Assert.notEmpty(patterns, "At least one pattern must be specified");
-			for (String pattern : patterns) {
-				this.patterns.add(pattern.toLowerCase(Locale.ROOT));
-			}
+			this.patterns = patterns.stream().map((pattern) -> pattern.toLowerCase(Locale.ROOT)).toList();
 		}
 
 		@Override
@@ -525,7 +522,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	protected static class SinglePatternBasedHeaderMatcher implements HeaderMatcher {
 
-		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(SinglePatternBasedHeaderMatcher.class);
 
 		private final String pattern;
 
@@ -569,7 +566,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	protected static class PrefixBasedMatcher implements HeaderMatcher {
 
-		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(PrefixBasedMatcher.class);
 
 		private final boolean match;
 
@@ -604,7 +601,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	protected static class CompositeHeaderMatcher implements HeaderMatcher {
 
-		private static final Log LOGGER = LogFactory.getLog(HeaderMatcher.class);
+		private static final Log LOGGER = LogFactory.getLog(CompositeHeaderMatcher.class);
 
 		private final Collection<HeaderMatcher> matchers;
 

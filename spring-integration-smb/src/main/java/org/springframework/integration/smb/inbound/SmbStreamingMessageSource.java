@@ -72,7 +72,7 @@ public class SmbStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 
 	@Override
 	protected List<AbstractFileInfo<SmbFile>> asFileInfoList(Collection<SmbFile> files) {
-		List<AbstractFileInfo<SmbFile>> canonicalFiles = new ArrayList<>();
+		List<AbstractFileInfo<SmbFile>> canonicalFiles = new ArrayList<>(files.size());
 		for (SmbFile file : files) {
 			canonicalFiles.add(new SmbFileInfo(file));
 		}

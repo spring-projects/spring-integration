@@ -207,8 +207,8 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		if (selector == null) {
 			return this.clear();
 		}
-		List<Message<?>> purgedMessages = new ArrayList<>();
 		Object[] array = this.queue.toArray();
+		List<Message<?>> purgedMessages = new ArrayList<>(array.length);
 		for (Object o : array) {
 			Message<?> message = (Message<?>) o;
 			if (!selector.accept(message) && this.queue.remove(message)) {

@@ -143,8 +143,8 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	}
 
 	private void setupComponentNamePatterns(IntegrationMBeanExporter exporter) {
-		List<String> patterns = new ArrayList<>();
 		String[] managedComponents = this.attributes.getStringArray("managedComponents");
+		List<String> patterns = new ArrayList<>(managedComponents.length);
 		for (String managedComponent : managedComponents) {
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
 			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));

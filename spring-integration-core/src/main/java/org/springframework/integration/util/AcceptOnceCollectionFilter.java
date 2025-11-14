@@ -43,7 +43,7 @@ public class AcceptOnceCollectionFilter<T> implements CollectionFilter<T> {
 	public Collection<T> filter(Collection<T> unfilteredElements) {
 		this.lock.lock();
 		try {
-			List<T> filteredElements = new ArrayList<>();
+			List<T> filteredElements = new ArrayList<>(unfilteredElements.size());
 			for (T element : unfilteredElements) {
 				if (!this.lastSeenElements.contains(element)) {
 					filteredElements.add(element);

@@ -126,7 +126,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 		final Set<String> candidates = Arrays.stream(files)
 				.map(this::getFilename)
 				.collect(Collectors.toSet());
-		List<F> results = new ArrayList<>();
+		List<F> results = new ArrayList<>(files.length);
 		for (F file : files) {
 			boolean anyMatch = this.filtersAndFunctions.entrySet().stream().anyMatch(entry -> {
 				F[] fileToCheck = (F[]) Array.newInstance(file.getClass(), 1);

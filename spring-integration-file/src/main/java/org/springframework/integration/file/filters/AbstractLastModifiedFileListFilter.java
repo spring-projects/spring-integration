@@ -19,6 +19,7 @@ package org.springframework.integration.file.filters;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -83,8 +84,8 @@ public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAw
 
 	@Override
 	public List<F> filterFiles(F @Nullable [] files) {
-		List<F> list = new ArrayList<>();
 		if (files != null) {
+			List<F> list = new ArrayList<>(files.length);
 			Instant now = Instant.now();
 			for (F file : files) {
 				if (fileIsAged(file, now)) {
@@ -94,9 +95,10 @@ public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAw
 					this.discardCallback.accept(file);
 				}
 			}
+			return list;
 		}
 
-		return list;
+		return Collections.emptyList();
 	}
 
 	@Override

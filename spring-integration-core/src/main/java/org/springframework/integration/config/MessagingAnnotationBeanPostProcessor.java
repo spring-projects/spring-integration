@@ -63,7 +63,7 @@ public class MessagingAnnotationBeanPostProcessor
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors;
 
-	private final List<Runnable> methodsToPostProcessAfterContextInitialization = new ArrayList<>();
+	private final List<Runnable> methodsToPostProcessAfterContextInitialization;
 
 	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
@@ -74,6 +74,7 @@ public class MessagingAnnotationBeanPostProcessor
 			Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors) {
 
 		this.postProcessors = postProcessors;
+		this.methodsToPostProcessAfterContextInitialization = new ArrayList<>(this.postProcessors.size());
 	}
 
 	@Override
@@ -217,7 +218,7 @@ public class MessagingAnnotationBeanPostProcessor
 	protected static List<MessagingMetaAnnotation> obtainMessagingAnnotations(
 			Set<Class<? extends Annotation>> postProcessors, MergedAnnotations annotations, String identified) {
 
-		List<MessagingMetaAnnotation> messagingAnnotations = new ArrayList<>();
+		List<MessagingMetaAnnotation> messagingAnnotations = new ArrayList<>(postProcessors.size());
 
 		for (Class<? extends Annotation> annotationType : postProcessors) {
 			annotations.stream()

@@ -229,7 +229,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	@Override
 	public int drainTo(Collection<? super Message<?>> collection, int maxElements) {
 		int originalSize = collection.size();
-		ArrayList<Message<?>> list = new ArrayList<>();
+		ArrayList<Message<?>> list = new ArrayList<>(maxElements);
 		final Lock lock = this.storeLock;
 		try {
 			lock.lockInterruptibly();

@@ -42,14 +42,14 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	/**
 	 * Selects the most appropriate channel name matching channel identifiers which are the
 	 * fully qualified class names encountered while traversing the payload type hierarchy.
-	 * To resolve ties and conflicts (e.g., Serializable and String) it will match:
+	 * To resolve ties and conflicts (e.g., Serializable and String), it will match:
 	 * 1. Type name to channel identifier else...
 	 * 2. Name of the subclass of the type to channel identifier else...
 	 * 3. Name of the Interface of the type to channel identifier while also
-	 *    preferring direct interface over indirect subclass
+	 *    preferring direct interface to indirect subclass
 	 */
 	@Override
-	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<@Nullable Object> getChannelKeys(Message<?> message) {
 		if (CollectionUtils.isEmpty(getChannelMappings())) {
 			return null;
 		}
@@ -59,7 +59,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 			type = type.getComponentType();
 		}
 		String closestMatch = findClosestMatch(type, isArray);
-		return (closestMatch != null) ? Collections.singletonList(closestMatch) : null;
+		return (closestMatch != null) ? Collections.<@Nullable Object>singletonList(closestMatch) : null;
 	}
 
 	private @Nullable String findClosestMatch(Class<?> type, boolean isArray) { // NOSONAR

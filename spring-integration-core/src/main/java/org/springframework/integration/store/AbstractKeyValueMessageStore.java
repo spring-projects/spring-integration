@@ -243,7 +243,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
-			List<UUID> ids = new ArrayList<>();
+			List<UUID> ids = new ArrayList<>(messages.size());
 			for (Message<?> messageToRemove : messages) {
 				UUID id = messageToRemove.getHeaders().getId();
 				Assert.state(id != null, () -> "Message 'id' must not be null: " + messageToRemove);
@@ -252,7 +252,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 			messageGroupMetadata.removeAll(ids);
 
-			List<Object> messageIds = new ArrayList<>();
+			List<Object> messageIds = new ArrayList<>(ids.size());
 			for (UUID id : ids) {
 				messageIds.add(this.messagePrefix + groupId + '_' + id);
 			}
@@ -391,14 +391,15 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupId);
-		ArrayList<Message<?>> messages = new ArrayList<>();
 		if (groupMetadata != null) {
+			ArrayList<Message<?>> messages = new ArrayList<>(groupMetadata.size());
 			Iterator<UUID> messageIds = groupMetadata.messageIdIterator();
 			while (messageIds.hasNext()) {
 				messages.add(getMessageFromGroup(messageIds.next(), groupId));
 			}
+			return messages;
 		}
-		return messages;
+		return Collections.emptyList();
 	}
 
 	@Override

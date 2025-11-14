@@ -72,7 +72,7 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 
 	@Override
 	protected List<AbstractFileInfo<SftpClient.DirEntry>> asFileInfoList(Collection<SftpClient.DirEntry> files) {
-		List<AbstractFileInfo<SftpClient.DirEntry>> canonicalFiles = new ArrayList<>();
+		List<AbstractFileInfo<SftpClient.DirEntry>> canonicalFiles = new ArrayList<>(files.size());
 		for (SftpClient.DirEntry file : files) {
 			canonicalFiles.add(new SftpFileInfo(file));
 		}

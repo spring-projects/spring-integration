@@ -19,6 +19,8 @@ package org.springframework.integration.router;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -45,7 +47,7 @@ public class HeaderValueRouter extends AbstractMappingMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
+	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
 		Object value = message.getHeaders().get(this.headerName);
 		if (value instanceof String && ((String) value).indexOf(',') != -1) {
 			value = StringUtils.tokenizeToStringArray((String) value, ",");

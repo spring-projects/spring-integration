@@ -450,7 +450,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private void setAccept(HttpHeaders target, Object value) {
 		Collection<?> valuesToAccept = valueToCollection(value);
 		if (!CollectionUtils.isEmpty(valuesToAccept)) {
-			List<MediaType> acceptableMediaTypes = new ArrayList<>();
+			List<MediaType> acceptableMediaTypes = new ArrayList<>(valuesToAccept.size());
 			for (Object type : valuesToAccept) {
 				if (type instanceof MimeType) {
 					acceptableMediaTypes.add(MediaType.asMediaType((MimeType) type));
@@ -472,7 +472,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private void setAcceptCharset(HttpHeaders target, Object value) {
 		Collection<?> valuesToConvert = valueToCollection(value);
 		if (!CollectionUtils.isEmpty(valuesToConvert)) {
-			List<Charset> acceptableCharsets = new ArrayList<>();
+			List<Charset> acceptableCharsets = new ArrayList<>(valuesToConvert.size());
 			for (Object charset : valuesToConvert) {
 				if (charset instanceof Charset) {
 					acceptableCharsets.add((Charset) charset);
@@ -665,11 +665,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private void setIfNoneMatch(HttpHeaders target, Object value) {
 		Collection<?> valuesToAccept = valueToCollection(value);
-		List<String> ifNoneMatchList = new ArrayList<>();
+		List<String> ifNoneMatchList = new ArrayList<>(valuesToAccept.size());
 
 		for (Object match : valuesToAccept) {
-			if (match instanceof String) {
-				ifNoneMatchList.add((String) match);
+			if (match instanceof String stringValue) {
+				ifNoneMatchList.add(stringValue);
 			}
 			else {
 				throwIllegalArgumentForUnexpectedValue(

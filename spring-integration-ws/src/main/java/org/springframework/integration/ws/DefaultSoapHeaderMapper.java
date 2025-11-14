@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ws;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,13 +61,9 @@ import org.springframework.xml.transform.TransformerHelper;
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
 
-	protected static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
+	protected static final List<String> STANDARD_HEADER_NAMES = List.of(WebServiceHeaders.SOAP_ACTION);
 
-	static {
-		STANDARD_HEADER_NAMES.add(WebServiceHeaders.SOAP_ACTION);
-	}
-
-	protected final TransformerHelper transformerHelper = new TransformerHelper(); // NOSONAR final
+	protected final TransformerHelper transformerHelper = new TransformerHelper();
 
 	public DefaultSoapHeaderMapper() {
 		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.emptyList());

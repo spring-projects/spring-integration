@@ -16,7 +16,6 @@
 
 package org.springframework.integration.xmpp.support;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,15 +46,12 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder> implements XmppHeaderMapper {
 
-	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
-
-	static {
-		STANDARD_HEADER_NAMES.add(XmppHeaders.FROM);
-		STANDARD_HEADER_NAMES.add(XmppHeaders.SUBJECT);
-		STANDARD_HEADER_NAMES.add(XmppHeaders.THREAD);
-		STANDARD_HEADER_NAMES.add(XmppHeaders.TO);
-		STANDARD_HEADER_NAMES.add(XmppHeaders.TYPE);
-	}
+	private static final List<String> STANDARD_HEADER_NAMES =
+			List.of(XmppHeaders.FROM,
+					XmppHeaders.SUBJECT,
+					XmppHeaders.THREAD,
+					XmppHeaders.TO,
+					XmppHeaders.TYPE);
 
 	public DefaultXmppHeaderMapper() {
 		super(XmppHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);

@@ -265,7 +265,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		catch (RuntimeException ex) {
 			if (this.strictOrder) {
 				// If we could not fetch the file content, then it is fatal.
-				// Clear local queue to be refreshed on the next 'receive()' call.
+				// Clear the local queue to be refreshed on the next 'receive()' call.
 				List<AbstractFileInfo<F>> filesToReset = new ArrayList<>();
 				filesToReset.add(file);
 				this.toBeReceived.drainTo(filesToReset);

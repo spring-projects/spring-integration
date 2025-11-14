@@ -19,6 +19,7 @@ package org.springframework.integration.file.filters;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -41,7 +42,7 @@ public abstract class AbstractRecentFileListFilter<F> implements FileListFilter<
 	private final Duration age;
 
 	/**
-	 * Construct an instance with default age as 1 day.
+	 * Construct an instance with the default age as 1 day.
 	 */
 	public AbstractRecentFileListFilter() {
 		this(Duration.ofDays(1));
@@ -58,17 +59,18 @@ public abstract class AbstractRecentFileListFilter<F> implements FileListFilter<
 
 	@Override
 	public List<F> filterFiles(F @Nullable [] files) {
-		List<F> list = new ArrayList<>();
 		if (files != null) {
+			List<F> list = new ArrayList<>(files.length);
 			Instant now = Instant.now();
 			for (F file : files) {
 				if (!fileIsAged(file, now)) {
 					list.add(file);
 				}
 			}
+			return list;
 		}
 
-		return list;
+		return Collections.emptyList();
 	}
 
 	@Override
