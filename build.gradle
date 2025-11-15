@@ -52,6 +52,7 @@ ext {
     avroVersion = '1.12.1'
     awaitilityVersion = '4.3.0'
     camelVersion = '4.15.0'
+    cloudEventsVersion = '4.0.1'
     commonsDbcp2Version = '2.13.0'
     commonsIoVersion = '2.20.0'
     commonsNetVersion = '3.12.0'
@@ -479,6 +480,21 @@ project('spring-integration-cassandra') {
 
         testImplementation 'org.testcontainers:testcontainers-cassandra'
         testRuntimeOnly "commons-io:commons-io:$commonsIoVersion"
+    }
+}
+
+project('spring-integration-cloudevents') {
+    description = 'Spring Integration CloudEvents Support'
+
+    dependencies {
+        api "io.cloudevents:cloudevents-core:$cloudEventsVersion"
+        testImplementation "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
+
+        testImplementation("io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion") {
+            exclude group: 'org.apache.avro', module: 'avro'
+        }
+        testImplementation "org.apache.avro:avro:$avroVersion"
+        testImplementation "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
     }
 }
 
