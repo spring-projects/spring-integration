@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * executors.
  *
  * @author Gary Russell
+ * @author Yoobin Yoon
  * @since 3.0.3
  *
  */
@@ -46,7 +47,7 @@ public class CompositeExecutor implements Executor {
 
 	public CompositeExecutor(Executor primaryTaskExecutor, Executor secondaryTaskExecutor) {
 		Assert.notNull(primaryTaskExecutor, "'primaryTaskExecutor' cannot be null");
-		Assert.notNull(primaryTaskExecutor, "'secondaryTaskExecutor' cannot be null");
+		Assert.notNull(secondaryTaskExecutor, "'secondaryTaskExecutor' cannot be null");
 		this.primaryTaskExecutor = primaryTaskExecutor;
 		this.secondaryTaskExecutor = secondaryTaskExecutor;
 	}
