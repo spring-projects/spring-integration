@@ -104,6 +104,17 @@ class GroovyIntegrationFlowDefinition {
 	}
 
 	/**
+	 * Populate a {@link org.springframework.integration.channel.NullChannel} instance
+	 * at the current {@link IntegrationFlow} chain position.
+	 * The nullChannel acts like "/dev/null".
+	 * @see org.springframework.integration.channel.NullChannel
+	 */
+	GroovyIntegrationFlowDefinition nullChannel() {
+		this.delegate.nullChannel()
+		this
+	}
+
+	/**
 	 * Populate a {@link org.springframework.integration.dsl.support.MessageChannelReference} instance
 	 * at the current {@link IntegrationFlow} chain position.
 	 * The provided {@code messageChannelName} is used for the bean registration

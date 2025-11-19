@@ -220,6 +220,50 @@ class GroovyDslTests {
 		assert groovyTestService.result.get() == 'TEST'
 	}
 
+	@Autowired
+	@Qualifier('nullChannelFlow.input')
+	private MessageChannel nullChannelFlowInput
+
+	@Test
+	void 'nullChannelFlow discards messages'() {
+		def wireTapChannel = new QueueChannel()
+		def testFlow = integrationFlow {
+			wireTap(wireTapChannel)
+			nullChannel()
+		}
+		def registration = this.integrationFlowContext.registration(testFlow).register()
+		registration.inputChannel.send(new GenericMessage<Object>('test'))
+		def tappedMessage = wireTapChannel.receive(1000)
+		registration.destroy()
+
+		assert tappedMessage?.payload == 'test' //verify that a message was sent and assume nullChannel discarded it.
+
+	}
+
+	@Autowired
+	@Qualifier('nullChannelWithTransformFlow.input')
+	private MessageChannel nullChannelWithTransformFlowInput
+
+	@Test
+	void 'nullChannel can be used after transform in a flow'() {
+		def wireTapChannel = new QueueChannel()
+		def testFlow = integrationFlow {
+			transform {
+				transformer { it.toUpperCase() }
+			}
+			wireTap(wireTapChannel)
+			nullChannel()
+		}
+		def registration = this.integrationFlowContext.registration(testFlow).register()
+		registration.inputChannel.send(new GenericMessage<Object>('test'))
+		def tappedMessage = wireTapChannel.receive(1000)
+		registration.destroy()
+
+		//verify that a message was sent, transformed and assume nullChannel discarded it.
+		assert tappedMessage?.payload == 'TEST'
+
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -359,6 +403,27 @@ class GroovyDslTests {
 				handle groovyTestService
 			}
 
+		}
+
+		@Bean
+		nullChannelFlow() {
+			integrationFlow {
+				{
+					log LoggingHandler.Level.WARN, 'test.category'
+				}
+				nullChannel()
+			}
+
+		}
+
+		@Bean
+		nullChannelWithTransformFlow() {
+			integrationFlow {
+				transform {
+					transformer { it.toUpperCase() }
+				}
+				nullChannel()
+			}
 		}
 
 	}
