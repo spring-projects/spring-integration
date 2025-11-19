@@ -224,20 +224,17 @@ class GroovyDslTests {
 	@Qualifier('nullChannelFlow.input')
 	private MessageChannel nullChannelFlowInput
 
+	@Autowired
+	private MessageChannel nullCheckWireTapChannel
+
+
 	@Test
 	void 'nullChannelFlow discards messages'() {
-		def wireTapChannel = new QueueChannel()
-		def testFlow = integrationFlow {
-			wireTap(wireTapChannel)
-			nullChannel()
-		}
-		def registration = this.integrationFlowContext.registration(testFlow).register()
-		registration.inputChannel.send(new GenericMessage<Object>('test'))
-		def tappedMessage = wireTapChannel.receive(1000)
-		registration.destroy()
+		nullChannelFlowInput.send MessageBuilder.withPayload('test').build()
+		def tappedMessage = nullCheckWireTapChannel.receive(1000)
 
-		assert tappedMessage?.payload == 'test' //verify that a message was sent and assume nullChannel discarded it.
-
+		//verify that a message was sent and assume nullChannel discarded it.
+		assert tappedMessage?.payload == 'test'
 	}
 
 	@Autowired
@@ -246,22 +243,10 @@ class GroovyDslTests {
 
 	@Test
 	void 'nullChannel can be used after transform in a flow'() {
-		def wireTapChannel = new QueueChannel()
-		def testFlow = integrationFlow {
-			transform {
-				transformer { it.toUpperCase() }
-			}
-			wireTap(wireTapChannel)
-			nullChannel()
-		}
-		def registration = this.integrationFlowContext.registration(testFlow).register()
-		registration.inputChannel.send(new GenericMessage<Object>('test'))
-		def tappedMessage = wireTapChannel.receive(1000)
-		registration.destroy()
-
+		nullChannelWithTransformFlowInput.send MessageBuilder.withPayload('test').build()
+		def tappedMessage = nullCheckWireTapChannel.receive(1000)
 		//verify that a message was sent, transformed and assume nullChannel discarded it.
 		assert tappedMessage?.payload == 'TEST'
-
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -406,24 +391,27 @@ class GroovyDslTests {
 		}
 
 		@Bean
-		nullChannelFlow() {
+		nullChannelFlow(@Qualifier('nullCheckWireTapChannel') MessageChannel nullCheckWireTapChannel) {
 			integrationFlow {
-				{
-					log LoggingHandler.Level.WARN, 'test.category'
-				}
+				wireTap(nullCheckWireTapChannel)
 				nullChannel()
 			}
-
 		}
 
 		@Bean
-		nullChannelWithTransformFlow() {
+		nullChannelWithTransformFlow(@Qualifier('nullCheckWireTapChannel') MessageChannel nullCheckWireTapChannel) {
 			integrationFlow {
 				transform {
 					transformer { it.toUpperCase() }
 				}
+				wireTap(nullCheckWireTapChannel)
 				nullChannel()
 			}
+		}
+
+		@Bean
+		MessageChannel nullCheckWireTapChannel() {
+			new QueueChannel()
 		}
 
 	}

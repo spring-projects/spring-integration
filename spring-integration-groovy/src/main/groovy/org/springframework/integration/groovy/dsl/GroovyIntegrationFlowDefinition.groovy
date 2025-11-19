@@ -108,6 +108,7 @@ class GroovyIntegrationFlowDefinition {
 	 * at the current {@link IntegrationFlow} chain position.
 	 * The nullChannel acts like "/dev/null".
 	 * @see org.springframework.integration.channel.NullChannel
+	 * @since 7.0.1
 	 */
 	GroovyIntegrationFlowDefinition nullChannel() {
 		this.delegate.nullChannel()
