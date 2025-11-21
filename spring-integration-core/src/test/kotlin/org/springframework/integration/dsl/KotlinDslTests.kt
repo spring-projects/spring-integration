@@ -56,6 +56,7 @@ import java.util.function.Function
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -239,6 +240,35 @@ class KotlinDslTests : TestApplicationContextAware {
 		registration.destroy()
 	}
 
+	@Autowired
+	@Qualifier("nullChannelFlow.input")
+	private lateinit var nullChannelFlowInput: MessageChannel
+
+	@Autowired
+	private lateinit var nullCheckWireTapChannel: QueueChannel
+
+
+	@Test
+	fun `nullChannelFlow discards messages`() {
+		nullChannelFlowInput.send(MessageBuilder.withPayload("test").build())
+		val tappedMessage = nullCheckWireTapChannel.receive(1000)
+
+		//verify that a message was sent and assume nullChannel discarded it.
+		assertThat(tappedMessage?.payload).isNotNull().isEqualTo("test")
+	}
+
+	@Autowired
+	@Qualifier("nullChannelWithTransformFlow.input")
+	private lateinit var nullChannelWithTransformFlowInput: MessageChannel
+
+	@Test
+	fun `nullChannel can be used after transform in a flow`() {
+		nullChannelWithTransformFlowInput.send(MessageBuilder.withPayload("test").build())
+		val tappedMessage = nullCheckWireTapChannel.receive(1000)
+		//verify that a message was sent, transformed and assume nullChannel discarded it.
+		assertThat(tappedMessage?.payload).isNotNull().isEqualTo("TEST")
+	}
+
 	@Configuration
 	@EnableIntegration
 	class Config {
@@ -386,6 +416,27 @@ class KotlinDslTests : TestApplicationContextAware {
 				}
 			}
 
+		@Bean
+		fun nullCheckWireTapChannel() = QueueChannel()
+
+		@Bean
+		fun nullChannelFlow(@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
+			integrationFlow {
+				wireTap(nullCheckWireTapChannel)
+				nullChannel()
+			}
+
+		@Bean
+		fun nullChannelWithTransformFlow(
+			@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
+			integrationFlow {
+				transformWith {
+					transformer<Message<String>> { it.payload.uppercase() }
+					id("testid")
+				}
+				wireTap(nullCheckWireTapChannel)
+				nullChannel()
+			}
 
 	}
 
