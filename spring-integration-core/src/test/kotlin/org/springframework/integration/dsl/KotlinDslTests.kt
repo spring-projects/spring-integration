@@ -368,7 +368,7 @@ class KotlinDslTests : TestApplicationContextAware {
 				transform<String> { it.uppercase() }
 			}
 
-		
+
 		/*
 		A Java variant for the flow below
 		@Bean
