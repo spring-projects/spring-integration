@@ -177,6 +177,7 @@ class KotlinDslTests : TestApplicationContextAware {
 			integrationFlow(publisher) {
 				transformWith {
 					transformer<Message<Int>> { it.payload * 2 }
+					id("foo")
 				}
 				channel(fluxChannel)
 			}
@@ -331,6 +332,7 @@ class KotlinDslTests : TestApplicationContextAware {
 				log<Any>(LoggingHandler.Level.WARN) { it.payload }
 				transformWith {
 					expression("payload")
+					id("spelTransformer")
 				}
 			}
 
@@ -365,7 +367,25 @@ class KotlinDslTests : TestApplicationContextAware {
 				}
 				transform<String> { it.uppercase() }
 			}
-
+		/*
+		A Java variant for the flow below
+		@Bean
+		public IntegrationFlow scatterGatherFlow() {
+			return f -> f
+			.scatterGather(scatterer -> scatterer
+			.applySequence(true)
+				.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+			.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+			.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
+			gatherer -> gatherer
+			.releaseStrategy(group ->
+			group.size() == 3 ||
+					group.getMessages()
+						.stream()
+						.anyMatch(m -> (Double) m.getPayload() > 5)),
+			scatterGather -> scatterGather
+			.gatherTimeout(10_000));
+		}*/
 		@Bean
 		fun scatterGatherFlow() =
 			integrationFlow {
@@ -393,9 +413,7 @@ class KotlinDslTests : TestApplicationContextAware {
 		fun nullChannelWithTransformFlow(
 			@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
 			integrationFlow {
-				transformWith {
-					transformer<String>{ it.uppercase() }
-				}
+				transform<String>{ it.uppercase() }
 				wireTap(nullCheckWireTapChannel)
 				nullChannel()
 			}
