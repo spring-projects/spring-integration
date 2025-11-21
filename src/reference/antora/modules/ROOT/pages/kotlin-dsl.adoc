@@ -65,7 +65,7 @@ fun functionFlow() =
 
 @Bean
 fun messageSourceFlow() =
-        integrationFlow(MessageProcessorMessageSource { "testSource" },
+        integrationFlow({ "testSource" },
                 { poller { it.fixedDelay(10).maxMessagesPerPoll(1) } }) {
             channel { queue("fromSupplierQueue") }
         }
