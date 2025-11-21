@@ -372,20 +372,21 @@ class KotlinDslTests : TestApplicationContextAware {
 		@Bean
 		public IntegrationFlow scatterGatherFlow() {
 			return f -> f
-			.scatterGather(scatterer -> scatterer
-			.applySequence(true)
-				.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
-			.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
-			.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
-			gatherer -> gatherer
-			.releaseStrategy(group ->
-			group.size() == 3 ||
-					group.getMessages()
-						.stream()
-						.anyMatch(m -> (Double) m.getPayload() > 5)),
-			scatterGather -> scatterGather
-			.gatherTimeout(10_000));
+				.scatterGather(scatterer -> scatterer
+								.applySequence(true)
+								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
+							gatherer -> gatherer
+								.releaseStrategy(group ->
+											group.size() == 3 ||
+													group.getMessages()
+														.stream()
+														.anyMatch(m -> (Double) m.getPayload() > 5)),
+							scatterGather -> scatterGather
+								.gatherTimeout(10_000));
 		}*/
+
 		@Bean
 		fun scatterGatherFlow() =
 			integrationFlow {
