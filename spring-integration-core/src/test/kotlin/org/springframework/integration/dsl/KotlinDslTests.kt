@@ -17,7 +17,13 @@
 package org.springframework.integration.dsl
 
 import assertk.assertThat
-import assertk.assertions.*
+import assertk.assertions.doesNotContain
+import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
+import assertk.assertions.size
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,8 +55,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import reactor.core.publisher.Flux
 import reactor.test.StepVerifier
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.atomic.AtomicReference
+import java.util.Date
 import java.util.function.Function
 
 
@@ -171,7 +177,6 @@ class KotlinDslTests : TestApplicationContextAware {
 			integrationFlow(publisher) {
 				transformWith {
 					transformer<Message<Int>> { it.payload * 2 }
-					id("foo")
 				}
 				channel(fluxChannel)
 			}
@@ -241,21 +246,7 @@ class KotlinDslTests : TestApplicationContextAware {
 	}
 
 	@Autowired
-	@Qualifier("nullChannelFlow.input")
-	private lateinit var nullChannelFlowInput: MessageChannel
-
-	@Autowired
 	private lateinit var nullCheckWireTapChannel: QueueChannel
-
-
-	@Test
-	fun `nullChannelFlow discards messages`() {
-		nullChannelFlowInput.send(MessageBuilder.withPayload("test").build())
-		val tappedMessage = nullCheckWireTapChannel.receive(1000)
-
-		//verify that a message was sent and assume nullChannel discarded it.
-		assertThat(tappedMessage?.payload).isNotNull().isEqualTo("test")
-	}
 
 	@Autowired
 	@Qualifier("nullChannelWithTransformFlow.input")
@@ -340,7 +331,6 @@ class KotlinDslTests : TestApplicationContextAware {
 				log<Any>(LoggingHandler.Level.WARN) { it.payload }
 				transformWith {
 					expression("payload")
-					id("spelTransformer")
 				}
 			}
 
@@ -376,26 +366,6 @@ class KotlinDslTests : TestApplicationContextAware {
 				transform<String> { it.uppercase() }
 			}
 
-
-		/*
-		A Java variant for the flow below
-		@Bean
-		public IntegrationFlow scatterGatherFlow() {
-			return f -> f
-				.scatterGather(scatterer -> scatterer
-								.applySequence(true)
-								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
-								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
-								.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
-							gatherer -> gatherer
-								.releaseStrategy(group ->
-											group.size() == 3 ||
-													group.getMessages()
-														.stream()
-														.anyMatch(m -> (Double) m.getPayload() > 5)),
-							scatterGather -> scatterGather
-								.gatherTimeout(10_000));
-		}*/
 		@Bean
 		fun scatterGatherFlow() =
 			integrationFlow {
@@ -420,19 +390,11 @@ class KotlinDslTests : TestApplicationContextAware {
 		fun nullCheckWireTapChannel() = QueueChannel()
 
 		@Bean
-		fun nullChannelFlow(@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
-			integrationFlow {
-				wireTap(nullCheckWireTapChannel)
-				nullChannel()
-			}
-
-		@Bean
 		fun nullChannelWithTransformFlow(
 			@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
 			integrationFlow {
 				transformWith {
-					transformer<Message<String>> { it.payload.uppercase() }
-					id("testid")
+					transformer<String>{ it.uppercase() }
 				}
 				wireTap(nullCheckWireTapChannel)
 				nullChannel()
