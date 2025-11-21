@@ -367,6 +367,8 @@ class KotlinDslTests : TestApplicationContextAware {
 				}
 				transform<String> { it.uppercase() }
 			}
+
+		
 		/*
 		A Java variant for the flow below
 		@Bean
@@ -386,7 +388,6 @@ class KotlinDslTests : TestApplicationContextAware {
 							scatterGather -> scatterGather
 								.gatherTimeout(10_000));
 		}*/
-
 		@Bean
 		fun scatterGatherFlow() =
 			integrationFlow {
