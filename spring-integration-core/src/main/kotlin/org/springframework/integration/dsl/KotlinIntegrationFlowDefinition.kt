@@ -64,6 +64,7 @@ import java.util.function.Consumer
  * @property delegate the [IntegrationFlowDefinition] this instance is delegating to.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.3
  */
@@ -173,6 +174,17 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun channel(messageChannelName: String) {
 		this.delegate.channel(messageChannelName)
+	}
+
+	/**
+	 * Populate a [org.springframework.integration.channel.NullChannel] instance
+	 * at the current [IntegrationFlow] chain position.
+	 * The nullChannel acts like "/dev/null".
+	 * @since 7.0.1
+	 * @see org.springframework.integration.channel.NullChannel
+	 */
+	fun nullChannel() {
+		this.delegate.nullChannel()
 	}
 
 	/**

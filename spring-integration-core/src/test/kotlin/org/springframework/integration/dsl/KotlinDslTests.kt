@@ -17,7 +17,13 @@
 package org.springframework.integration.dsl
 
 import assertk.assertThat
-import assertk.assertions.*
+import assertk.assertions.doesNotContain
+import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
+import assertk.assertions.size
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,13 +55,14 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import reactor.core.publisher.Flux
 import reactor.test.StepVerifier
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.atomic.AtomicReference
+import java.util.Date
 import java.util.function.Function
 
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -239,6 +246,21 @@ class KotlinDslTests : TestApplicationContextAware {
 		registration.destroy()
 	}
 
+	@Autowired
+	private lateinit var nullCheckWireTapChannel: QueueChannel
+
+	@Autowired
+	@Qualifier("nullChannelWithTransformFlow.input")
+	private lateinit var nullChannelWithTransformFlowInput: MessageChannel
+
+	@Test
+	fun `nullChannel can be used after transform in a flow`() {
+		nullChannelWithTransformFlowInput.send(MessageBuilder.withPayload("test").build())
+		val tappedMessage = nullCheckWireTapChannel.receive(1000)
+		//verify that a message was sent, transformed and assume nullChannel discarded it.
+		assertThat(tappedMessage?.payload).isNotNull().isEqualTo("TEST")
+	}
+
 	@Configuration
 	@EnableIntegration
 	class Config {
@@ -386,6 +408,17 @@ class KotlinDslTests : TestApplicationContextAware {
 				}
 			}
 
+		@Bean
+		fun nullCheckWireTapChannel() = QueueChannel()
+
+		@Bean
+		fun nullChannelWithTransformFlow(
+			@Qualifier("nullCheckWireTapChannel") nullCheckWireTapChannel: MessageChannel) =
+			integrationFlow {
+				transform<String>{ it.uppercase() }
+				wireTap(nullCheckWireTapChannel)
+				nullChannel()
+			}
 
 	}
 
