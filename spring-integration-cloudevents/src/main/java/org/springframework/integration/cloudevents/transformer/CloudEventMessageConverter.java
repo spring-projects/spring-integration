@@ -28,7 +28,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
- * Convert Spring Integration {@link Message}s to CloudEvents.
+ * Convert Spring Integration {@link Message}s into CloudEvent messages.
  *
  * @author Glenn Renfro
  *
@@ -69,7 +69,7 @@ class CloudEventMessageConverter implements MessageConverter {
 			return CloudEventUtils.toReader(event).read(new MessageBuilderMessageWriter(this.cloudEventPrefix,
 					this.specVersionKey, this.dataContentTypeKey, Objects.requireNonNull(headers)));
 		}
-		throw new MessageTransformationException("Unsupported payload type.  Should be CloudEvent but was: " +
+		throw new MessageTransformationException("Unsupported payload type. Should be CloudEvent but was: " +
 				payload.getClass());
 	}
 
