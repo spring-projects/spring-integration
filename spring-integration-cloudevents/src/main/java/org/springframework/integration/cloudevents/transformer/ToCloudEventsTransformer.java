@@ -229,17 +229,20 @@ public class ToCloudEventsTransformer extends AbstractTransformer {
 	}
 
 	/**
-	 * Returns CloudEvent information to the header if no {@link EventFormat} is found for content type.
-	 * @return true if CloudEvent information should be added to header if no {@link EventFormat} is found.
+	 * Indicates whether CloudEvent metadata should be added to the message headers
+	 * when no {@link EventFormat} is available for the content type.
+	 * @return {@code true} if CloudEvent metadata should be added to headers
+	 *         when no suitable {@link EventFormat} is found;
+	 *         {@code false} otherwise
 	 */
 	public boolean isNoFormat() {
 		return this.noFormat;
 	}
 
 	/**
-	 * Set CloudEvent information to the header if no {@link EventFormat} is found for content type.
-	 * When true and no {@link EventFormat} is found for the content type, CloudEvents are sent with headers instead of
-	 * structured format.
+	 * Establishes if CloudEvent information is written to the header if no {@link EventFormat} is found for content
+	 * type.  When true and no {@link EventFormat} is found for the content type, CloudEvents are sent with headers
+	 * instead of structured format.
 	 * @param noFormat true to disable format serialization
 	 */
 	public void setNoFormat(boolean noFormat) {
