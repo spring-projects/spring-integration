@@ -248,10 +248,6 @@ configure(javaProjects) { subproject ->
         options.addBooleanOption('Werror', true) // fail build on Javadoc warnings
     }
 
-    tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'java.base/java.util=ALL-UNNAMED'
-    }
-
     eclipse {
         project {
             natures += 'org.springframework.ide.eclipse.core.springnature'
@@ -640,13 +636,7 @@ project('spring-integration-hazelcast') {
     }
 
     tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-modules', 'java.se',
-                '--add-exports', 'java.base/jdk.internal.ref=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
-                '--add-opens', 'java.management/sun.management=ALL-UNNAMED',
-                '--add-opens', 'jdk.management/com.sun.management.internal=ALL-UNNAMED',
-                '-Dhazelcast.logging.type=log4j2'
+        jvmArgs '-Dhazelcast.logging.type=log4j2'
     }
 }
 
@@ -678,7 +668,8 @@ project('spring-integration-ip') {
     }
 
     tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'java.base/java.nio.channels.spi=ALL-UNNAMED'
+        jvmArgs '--add-opens', 'java.base/java.nio.channels.spi=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.util=ALL-UNNAMED'
     }
 }
 
@@ -823,10 +814,8 @@ project('spring-integration-scripting') {
     }
 
     tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.io=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '-Dpolyglot.engine.WarnInterpreterOnly=false'
+        jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+				'--enable-native-access=ALL-UNNAMED'
     }
 }
 
@@ -868,12 +857,6 @@ project('spring-integration-stomp') {
 
         testRuntimeOnly 'org.springframework:spring-webmvc'
         testRuntimeOnly 'io.projectreactor.netty:reactor-netty-http'
-    }
-
-    tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '--add-opens', 'java.rmi/sun.rmi.transport=ALL-UNNAMED'
     }
 }
 
@@ -935,12 +918,6 @@ project('spring-integration-websocket') {
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 
         testRuntimeOnly 'tools.jackson.core:jackson-databind'
-    }
-
-    tasks.withType(JavaForkOptions) {
-        jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '--add-opens', 'java.rmi/sun.rmi.transport=ALL-UNNAMED'
     }
 }
 
