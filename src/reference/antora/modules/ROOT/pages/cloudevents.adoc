@@ -35,7 +35,7 @@ compile "org.springframework.integration:spring-integration-cloudevents:{project
 === ToCloudEventsTransformer
 
 The `ToCloudEventsTransformer` converts Spring Integration messages into CloudEvents compliant messages.
-This transformer provides  support for the CloudEvents specification v1.0 with configurable output format and defining attributes and extensions using `Expression` s.
+This transformer provides  support for the CloudEvents specification v1.0 with configurable output format and defining attributes using `Expression` s and identifying extensions in the message headers via patterns.
 
 [[cloudevent-transformer-overview]]
 ==== Overview
@@ -51,7 +51,8 @@ NOTE: Messages to be transformed must have a payload of `byte[]`.
 [[configure-transformer]]
 ===== Configuring Transformer
 
-The `ToCloudEventsTransformer` allows the user to use SpEL `Expression`s to populate the attributes as well as the extensions.
+The `ToCloudEventsTransformer` allows the user to use SpEL `Expression`s to populate the attributes.
+Extensions are populated from the headers using pattern matching.
 
 ====== Attribute Expressions
 
@@ -68,22 +69,18 @@ ToCloudEventTransformer transformer = new ToCloudEventTransformer(null);
 transformer.setTypeExpression(new LiteralExpression("sampleType"));
 ----
 
-====== Extension Expressions
+====== Extension Patterns
 
-The expressions constructor parameter is an array of `Expression` s.
+The extensionPatterns constructor parameter is an array of `Strings` s.
 If the array is `null`, then no extensions will be added to the CloudEvent.
-Each `Expression` in the array must return the type `Map<String, Object>`.
-Where the key is a `String` and the value is of type `Object`.
-In the example below the extensions are hard coded to return 3 `Map<String, Object>` objects each containing one extension.
+Each `pattern` in the array is the search criteria for finding the headers that need to be added as extensions to the new `CloudEvent`.
+In the example below the system will search for any header key that starts with the word `trace` and add those headers to the extensions for the `CloudEvent` message.
+Then it will search for any header that contains a key of 'span-id' as well as 'user-id' and add those headers as extensions if found.
 
 [source,java]
 ----
-ExpressionParser parser = new SpelExpressionParser();
-Expression[] extensionExpressions = {
-		parser.parseExpression("{'trace-id' : 'trace-123'}"),
-        parser.parseExpression("{'span-id' : 'span-456'}"),
-        parser.parseExpression("{'user-id' : 'user-789'}")};
-return new ToCloudEventTransformer(extensionExpressions);
+String[] extensionPatterns = {"trace*", "span-id", "user-id"};
+return new ToCloudEventTransformer(extensionPatterns);
 ----
 
 [[cloudevent-attribute-defaults]]
