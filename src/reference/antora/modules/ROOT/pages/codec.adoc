@@ -117,7 +117,7 @@ NOTE: This class uses `ClassUtils.findClosestMatch` to select the appropriate co
 When multiple codecs match an object type, `ClassUtils.findClosestMatch` offers the `failOnTie` option.
 If `failOnTie` is `false`, it will return any one of the matching codecs.
 If `failOnTie` is `true` and multiple codecs match, it will throw an `IllegalStateException`.
-CompositeCodec` sets `failOnTie` to `true`, so if multiple codecs match, an `IllegalStateException` is thrown.
+`CompositeCodec` sets `failOnTie` to `true`, so if multiple codecs match, an `IllegalStateException` is thrown.
 
 [[customizing-kryo]]
 === Customizing Kryo

@@ -2,7 +2,7 @@
 = TCP Connection Events
 
 Beginning with version 3.0, changes to `TcpConnection` instances are reported by `TcpConnectionEvent` instances.
-`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext`, or an `@EventListener` method. 
+`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext`, or an `@EventListener` method.
 Also see xref:event.adoc#appevent-inbound[an event inbound channel adapter].
 
 `TcpConnectionEvents` have the following properties:
@@ -13,7 +13,7 @@ Also see xref:event.adoc#appevent-inbound[an event inbound channel adapter].
 * `source`: The `TcpConnection`.
 You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
 
-Available `TcpConnectionEvent` s, related to a specific connection include: 
+Available ``TcpConnectionEvent``s, related to a specific connection include:
 
 * `TcpConnectionOpenEvent`
 * `TcpConnectionCloseEvent`

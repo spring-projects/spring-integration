@@ -71,7 +71,7 @@ Consider using the `CachingClientConnectionFactory` if you wish to support concu
 
 Starting with version 5.4, the inbound can be configured with an `unsolicitedMessageChannel`.
 Unsolicited inbound messages will be sent to this channel, as well as late replies (where the client timed out).
-To support this on the server side, you can now register multiple `TcpSender` s with the connection factory.
+To support this on the server side, you can now register multiple ``TcpSender``s with the connection factory.
 Gateways and Channel Adapters automatically register themselves.
 When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
 

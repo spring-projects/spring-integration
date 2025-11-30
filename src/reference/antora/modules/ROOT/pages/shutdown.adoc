@@ -12,7 +12,7 @@ Doing so lets such components prepare for shutdown.
 Examples of components that implement this interface and what they do with this call include JMS and AMQP message-driven adapters that stop their listener containers, TCP server connection factories that stop accepting new connections (while keeping existing connections open), TCP inbound endpoints that drop (log) any new messages received, and HTTP inbound endpoints that return `503 - Service Unavailable` for any new requests.
 . Stop any active channels, such as JMS- or AMQP-backed channels.
 . Stop all `MessageSource` instances.
-. Stop all inbound `MessageProducer` s (that are not `OrderlyShutdownCapable`).
+. Stop all inbound ``MessageProducer``s (that are not `OrderlyShutdownCapable`).
 . Wait for any remaining time left, as defined by the value of the `Long` parameter passed in to the operation.
 +
 Doing so lets any in-flight messages complete their journeys.

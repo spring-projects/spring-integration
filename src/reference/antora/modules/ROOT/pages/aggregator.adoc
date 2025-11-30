@@ -697,7 +697,7 @@ If `send-partial-result-on-expiry` is `true`, existing messages in the (partial)
 Otherwise, it is discarded.
 
 There is a difference between `groupTimeout` behavior and `MessageGroupStoreReaper` (see xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML]).
-The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
+The reaper initiates forced completion for all ``MessageGroup``s in the `MessageGroupStore` periodically.
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
 Also, the reaper can be used to remove empty groups (those retained in order to discard late messages if `expire-groups-upon-completion` is false).
 
