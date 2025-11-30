@@ -65,7 +65,7 @@ ext {
     groovyVersion = '4.0.29'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.4.0'
-    hibernateVersion = '6.6.36.Final'
+    hibernateVersion = '6.6.37.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
     jacksonVersion = '2.18.5'
