@@ -233,7 +233,7 @@ In that case, the attributes on the adapter are transferred to an instance of yo
 =====
 You can't use the Spring JMS namespace element `<jms:listener-container/>` to configure a container reference for the `<int-jms:message-driven-channel-adapter>` since that element doesn't actually reference a container.
 Each `<jms:listener/>` sub-element gets its own `DefaultMessageListenerContainer` (with shared attributes defined on the parent `<jms:listener-container/>` element).
-You can give each listener sub-element an `id`, and use that to inject into the channel adapter, however, the `<jms:/>` namespace requires a real listener.
+You can give each listener subelement an `id`, and use that to inject into the channel adapter, however, the `<jms:/>` namespace requires a real listener.
 
 It is recommended to configure a regular `<bean>` for the `DefaultMessageListenerContainer` and use it as a reference in the channel adapter.
 =====
