@@ -174,7 +174,7 @@ public class AnnotationService {
 
 The `@Poller` annotation provides only simple `PollerMetadata` options.
 You can configure the `@Poller` annotation's attributes (`maxMessagesPerPoll`, `fixedDelay`, `fixedRate`, and `cron`) with property placeholders.
-Also, starting with version 5.1, the `receiveTimeout` option for `PollingConsumer` s is also provided.
+Also, starting with version 5.1, the `receiveTimeout` option for ``PollingConsumer``s is also provided.
 If it is necessary to provide more polling options (for example, `transaction`, `advice-chain`, `error-handler`, and others), you should configure the `PollerMetadata` as a generic bean and use its bean name as the `@Poller` 's `value` attribute.
 In this case, no other attributes are allowed (they must be specified on the `PollerMetadata` bean).
 Note, if `inputChannel` is a `PollableChannel` and no `@Poller` is configured, the default `PollerMetadata` is used (if it is present in the application context).

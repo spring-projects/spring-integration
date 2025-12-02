@@ -71,7 +71,7 @@ See xref:control-bus.adoc[Control Bus] for more information.
 The `Function<MessageGroup, Map<String, Object>>` strategy has been introduced for the aggregator component to merge and compute headers for output messages.
 See xref:aggregator.adoc#aggregator-api[Aggregator Programming Model] for more information.
 
-All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
+All the ``MessageHandlingException``s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
 See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for more information.
 
 For better end-user experience, Java DSL now provides a configurer variant for starting flow with a gateway interface.

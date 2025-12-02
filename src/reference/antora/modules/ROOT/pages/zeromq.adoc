@@ -123,7 +123,7 @@ If the `unwrapTopic` option is set to `false`, the incoming message is considere
 Otherwise, by default, the `ZMsg` is considered to consist of three frames: the first one containing the topic, the last frame containing the message, with an empty frame in the middle.
 
 With `SocketType.SUB`, the `ZeroMqMessageProducer` uses the provided `topics` option for subscriptions; defaults to subscribe to all.
-Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubscribeFromTopics()` `@ManagedOperation` s.
+Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubscribeFromTopics()` ``@ManagedOperation``s.
 
 Here is a sample of `ZeroMqMessageProducer` configuration:
 

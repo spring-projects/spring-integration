@@ -327,7 +327,7 @@ The logic internally is based on the `CacheAspectSupport` extension, where proxy
 This advice can be configured with a SpEL expression or a `Function` to evaluate a cache key.
 The request `Message<?>` is available as the root object for the SpEL evaluation context, or as the `Function` input argument.
 By default, the `payload` of the request message is used for the cache key.
-The `CacheRequestHandlerAdvice` must be configured with `cacheNames`, when a default cache operation is a `CacheableOperation`, or with a set of any arbitrary `CacheOperation` s.
+The `CacheRequestHandlerAdvice` must be configured with `cacheNames`, when a default cache operation is a `CacheableOperation`, or with a set of any arbitrary ``CacheOperation``s.
 Every `CacheOperation` can be configured separately or have shared options, like a `CacheManager`, `CacheResolver` and `CacheErrorHandler`, can be reused from the `CacheRequestHandlerAdvice` configuration.
 This configuration functionality is similar to Spring Framework's `@CacheConfig` and `@Caching` annotation combination.
 If a `CacheManager` is not provided, a single bean is resolved by default from the `BeanFactory` in the `CacheAspectSupport`.
