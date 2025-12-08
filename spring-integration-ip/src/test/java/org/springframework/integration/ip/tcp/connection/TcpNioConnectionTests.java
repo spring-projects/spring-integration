@@ -397,7 +397,6 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream =
 				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
-		;
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		stream.write(ByteBuffer.wrap("bar".getBytes()));
 		byte[] out = new byte[6];
