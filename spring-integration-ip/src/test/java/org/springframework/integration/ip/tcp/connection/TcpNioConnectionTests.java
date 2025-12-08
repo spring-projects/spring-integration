@@ -52,10 +52,10 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -85,7 +85,6 @@ import org.springframework.util.StopWatch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,15 +108,15 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
-	private final ApplicationEventPublisher nullPublisher = mock(ApplicationEventPublisher.class);
+	private final ApplicationEventPublisher nullPublisher = mock();
 
 	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("TcpNioConnectionTests-");
 
 	@Test
 	public void testWriteTimeout(TestInfo testInfo) throws Exception {
-		final CountDownLatch latch = new CountDownLatch(1);
-		final CountDownLatch done = new CountDownLatch(1);
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		CountDownLatch latch = new CountDownLatch(1);
+		CountDownLatch done = new CountDownLatch(1);
+		AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
@@ -140,8 +139,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		factory.setLookupHost(true);
 		AtomicReference<String> connectionId = new AtomicReference<>();
 		factory.setApplicationEventPublisher(event -> {
-			if (event instanceof TcpConnectionOpenEvent) {
-				connectionId.set(((TcpConnectionOpenEvent) event).getConnectionId());
+			if (event instanceof TcpConnectionOpenEvent tcpConnectionOpenEvent) {
+				connectionId.set(tcpConnectionOpenEvent.getConnectionId());
 			}
 		});
 		factory.setSoTimeout(100);
@@ -163,9 +162,9 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testReadTimeout(TestInfo testInfo) throws Exception {
-		final CountDownLatch latch = new CountDownLatch(1);
-		final CountDownLatch done = new CountDownLatch(1);
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		CountDownLatch latch = new CountDownLatch(1);
+		CountDownLatch done = new CountDownLatch(1);
+		AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
@@ -189,17 +188,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		factory.setApplicationEventPublisher(nullPublisher);
 		factory.setSoTimeout(100);
 		factory.start();
-		try {
-			TcpConnection connection = factory.getConnection();
-			connection.send(MessageBuilder.withPayload("Test").build());
-			with().pollInterval(Duration.ofMillis(10))
-					.await()
-					.atMost(Duration.ofSeconds(10))
-					.until(() -> !connection.isOpen());
-		}
-		catch (Exception e) {
-			fail("Unexpected exception " + e);
-		}
+		TcpConnection connection = factory.getConnection();
+		connection.send(MessageBuilder.withPayload("Test").build());
+		with().pollInterval(Duration.ofMillis(10))
+				.await()
+				.atMost(Duration.ofSeconds(10))
+				.until(() -> !connection.isOpen());
+
 		done.countDown();
 		factory.stop();
 		serverSocket.get().close();
@@ -230,18 +225,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		factory.setApplicationEventPublisher(nullPublisher);
 		factory.setNioHarvestInterval(100);
 		factory.start();
-		try {
-			TcpConnection connection = factory.getConnection();
-			Map<SocketChannel, TcpNioConnection> connections = factory.getConnections();
-			assertThat(connections.size()).isEqualTo(1);
-			connection.close();
-			assertThat(!connection.isOpen()).isTrue();
-			TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
-			await().atMost(Duration.ofSeconds(10)).until(connections::isEmpty);
-		}
-		catch (Exception e) {
-			fail("Unexpected exception " + e);
-		}
+		TcpConnection connection = factory.getConnection();
+		Map<SocketChannel, TcpNioConnection> connections = factory.getConnections();
+		assertThat(connections).hasSize(1);
+		connection.close();
+		assertThat(!connection.isOpen()).isTrue();
+		TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
+		await().atMost(Duration.ofSeconds(10)).until(connections::isEmpty);
 		factory.stop();
 		serverSocket.get().close();
 	}
@@ -251,75 +241,75 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
 		Map<SocketChannel, TcpNioConnection> connections = new HashMap<>();
-		SocketChannel chan1 = mock(SocketChannel.class);
-		SocketChannel chan2 = mock(SocketChannel.class);
-		SocketChannel chan3 = mock(SocketChannel.class);
-		TcpNioConnection conn1 = mock(TcpNioConnection.class);
-		TcpNioConnection conn2 = mock(TcpNioConnection.class);
-		TcpNioConnection conn3 = mock(TcpNioConnection.class);
+		SocketChannel chan1 = mock();
+		SocketChannel chan2 = mock();
+		SocketChannel chan3 = mock();
+		TcpNioConnection conn1 = mock();
+		TcpNioConnection conn2 = mock();
+		TcpNioConnection conn3 = mock();
 		connections.put(chan1, conn1);
 		connections.put(chan2, conn2);
 		connections.put(chan3, conn3);
 		willReturn(true).given(chan1).isOpen();
 		willReturn(true).given(chan2).isOpen();
 		willReturn(true).given(chan3).isOpen();
-		Selector selector = mock(Selector.class);
+		Selector selector = mock();
 		HashSet<SelectionKey> keys = new HashSet<>();
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(3); // all open
+		assertThat(connections).hasSize(3); // all open
 
 		DirectFieldAccessor factoryFieldAccessor = new DirectFieldAccessor(factory);
 
 		willReturn(false).given(chan1).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(3); // interval didn't pass
+		assertThat(connections).hasSize(3); // interval didn't pass
 
 		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
 
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(2); // first is closed
+		assertThat(connections).hasSize(2); // first is closed
 
 		willReturn(false).given(chan2).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(2); // interval didn't pass
+		assertThat(connections).hasSize(2); // interval didn't pass
 
 		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
 
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(1); // second is closed
+		assertThat(connections).hasSize(1); // second is closed
 
 		willReturn(false).given(chan3).isOpen();
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(1); // interval didn't pass
+		assertThat(connections).hasSize(1); // interval didn't pass
 
 		factoryFieldAccessor.setPropertyValue("nextCheckForClosedNioConnections", System.currentTimeMillis() - 10);
 
 		factory.processNioSelections(1, selector, null, connections);
-		assertThat(connections.size()).isEqualTo(0); // third is closed
+		assertThat(connections).isEmpty(); // third is closed
 
-		assertThat(TestUtils.getPropertyValue(factory, "connections", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(factory, "connections", Map.class)).isEmpty();
 	}
 
 	@Test
 	public void testInsufficientThreads() throws Exception {
 		final ExecutorService exec = Executors.newFixedThreadPool(2);
-		Future<Object> future = exec.submit(() -> {
-			SocketChannel channel = mock(SocketChannel.class);
-			Socket socket = mock(Socket.class);
-			Mockito.when(channel.socket()).thenReturn(socket);
-			doAnswer(invocation -> {
-				ByteBuffer buffer = invocation.getArgument(0);
-				buffer.position(1);
-				return 1;
-			}).when(channel).read(Mockito.any(ByteBuffer.class));
-			when(socket.getReceiveBufferSize()).thenReturn(1024);
-			final TcpNioConnection connection = new TcpNioConnection(channel, false, false, nullPublisher, null);
-			connection.setTaskExecutor(exec);
-			connection.setPipeTimeout(200);
-			Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
-			method.setAccessible(true);
-			// Nobody reading, should timeout on 6th write.
+		SocketChannel channel = mock();
+		Socket socket = mock();
+		Mockito.when(channel.socket()).thenReturn(socket);
+		doAnswer(invocation -> {
+			ByteBuffer buffer = invocation.getArgument(0);
+			buffer.position(1);
+			return 1;
+		}).when(channel).read(Mockito.any(ByteBuffer.class));
+		when(socket.getReceiveBufferSize()).thenReturn(1024);
+		final TcpNioConnection connection = new TcpNioConnection(channel, false, false, nullPublisher, null);
+		connection.setTaskExecutor(exec);
+		connection.setPipeTimeout(200);
+		Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
+		method.setAccessible(true);
+		Future<@Nullable Object> future = exec.submit(() -> {
+			// Nobody reading, should time out on 6th write.
 			try {
 				for (int i = 0; i < 6; i++) {
 					method.invoke(connection);
@@ -345,36 +335,32 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testSufficientThreads() throws Exception {
-		final ExecutorService exec = Executors.newFixedThreadPool(3);
-		final CountDownLatch messageLatch = new CountDownLatch(1);
-		Future<Object> future = exec.submit(() -> {
-			SocketChannel channel = mock(SocketChannel.class);
-			Socket socket = mock(Socket.class);
-			Mockito.when(channel.socket()).thenReturn(socket);
-			doAnswer(invocation -> {
-				ByteBuffer buffer = invocation.getArgument(0);
-				buffer.position(1025);
-				buffer.put((byte) '\r');
-				buffer.put((byte) '\n');
-				return 1027;
-			}).when(channel).read(Mockito.any(ByteBuffer.class));
-			final TcpNioConnection connection = new TcpNioConnection(channel, false, false,
-					null, null);
-			connection.setTaskExecutor(exec);
-			connection.registerListener(message -> messageLatch.countDown());
-			TcpMessageMapper mapper = new TcpMessageMapper();
-			mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-			connection.setMapper(mapper);
-			connection.setDeserializer(new ByteArrayCrLfSerializer());
-			Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
-			method.setAccessible(true);
-			try {
-				for (int i = 0; i < 20; i++) {
-					method.invoke(connection);
-				}
-			}
-			catch (Exception e) {
-				throw (Exception) e.getCause();
+		ExecutorService exec = Executors.newFixedThreadPool(3);
+		CountDownLatch messageLatch = new CountDownLatch(1);
+		SocketChannel channel = mock();
+		Socket socket = mock();
+		Mockito.when(channel.socket()).thenReturn(socket);
+		doAnswer(invocation -> {
+			ByteBuffer buffer = invocation.getArgument(0);
+			buffer.position(1025);
+			buffer.put((byte) '\r');
+			buffer.put((byte) '\n');
+			return 1027;
+		})
+				.when(channel)
+				.read(Mockito.any(ByteBuffer.class));
+		TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
+		connection.setTaskExecutor(exec);
+		connection.registerListener(message -> messageLatch.countDown());
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		connection.setMapper(mapper);
+		connection.setDeserializer(new ByteArrayCrLfSerializer());
+		Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
+		method.setAccessible(true);
+		Future<@Nullable Object> future = exec.submit(() -> {
+			for (int i = 0; i < 20; i++) {
+				method.invoke(connection);
 			}
 			return null;
 		});
@@ -386,12 +372,12 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testByteArrayRead() throws Exception {
-		SocketChannel socketChannel = mock(SocketChannel.class);
-		Socket socket = mock(Socket.class);
+		SocketChannel socketChannel = mock();
+		Socket socket = mock();
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
-		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
-				.getPropertyValue("channelInputStream");
+		TcpNioConnection.ChannelInputStream stream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[2];
 		int n = stream.read(out);
@@ -405,12 +391,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testByteArrayReadMulti() throws Exception {
-		SocketChannel socketChannel = mock(SocketChannel.class);
-		Socket socket = mock(Socket.class);
+		SocketChannel socketChannel = mock();
+		Socket socket = mock();
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
-		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
-				.getPropertyValue("channelInputStream");
+		TcpNioConnection.ChannelInputStream stream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+		;
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		stream.write(ByteBuffer.wrap("bar".getBytes()));
 		byte[] out = new byte[6];
@@ -421,12 +408,12 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testByteArrayReadWithOffset() throws Exception {
-		SocketChannel socketChannel = mock(SocketChannel.class);
-		Socket socket = mock(Socket.class);
+		SocketChannel socketChannel = mock();
+		Socket socket = mock();
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
-		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
-				.getPropertyValue("channelInputStream");
+		TcpNioConnection.ChannelInputStream stream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 		int n = stream.read(out, 1, 4);
@@ -436,12 +423,12 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testByteArrayReadWithBadArgs() throws Exception {
-		SocketChannel socketChannel = mock(SocketChannel.class);
-		Socket socket = mock(Socket.class);
+		SocketChannel socketChannel = mock();
+		Socket socket = mock();
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
-		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
-				.getPropertyValue("channelInputStream");
+		TcpNioConnection.ChannelInputStream stream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 
@@ -457,12 +444,12 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testByteArrayBlocksForZeroRead() throws Exception {
-		SocketChannel socketChannel = mock(SocketChannel.class);
-		Socket socket = mock(Socket.class);
+		SocketChannel socketChannel = mock();
+		Socket socket = mock();
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
-		final TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
-				.getPropertyValue("channelInputStream");
+		final TcpNioConnection.ChannelInputStream stream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final byte[] out = new byte[4];
 		this.executor.execute(() -> {
@@ -483,8 +470,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void transferHeaders() throws Exception {
-		Socket inSocket = mock(Socket.class);
-		SocketChannel inChannel = mock(SocketChannel.class);
+		Socket inSocket = mock();
+		SocketChannel inChannel = mock();
 		when(inChannel.socket()).thenReturn(inSocket);
 
 		TcpNioConnection inboundConnection = new TcpNioConnection(inChannel, true, false, nullPublisher, null);
@@ -493,19 +480,15 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		MessageConvertingTcpMessageMapper inMapper = new MessageConvertingTcpMessageMapper(inConverter);
 		inboundConnection.setMapper(inMapper);
 		final ByteArrayOutputStream written = new ByteArrayOutputStream();
-		doAnswer(new Answer<Integer>() {
-
-			@Override
-			public Integer answer(InvocationOnMock invocation) {
-				ByteBuffer buff = invocation.getArgument(0);
-				byte[] bytes = written.toByteArray();
-				buff.put(bytes);
-				return bytes.length;
-			}
+		doAnswer((Answer<Integer>) invocation -> {
+			ByteBuffer buff = invocation.getArgument(0);
+			byte[] bytes = written.toByteArray();
+			buff.put(bytes);
+			return bytes.length;
 		}).when(inChannel).read(any(ByteBuffer.class));
 
-		Socket outSocket = mock(Socket.class);
-		SocketChannel outChannel = mock(SocketChannel.class);
+		Socket outSocket = mock();
+		SocketChannel outChannel = mock();
 		when(outChannel.socket()).thenReturn(outSocket);
 		TcpNioConnection outboundConnection = new TcpNioConnection(outChannel, true, false, nullPublisher, null);
 		doAnswer(invocation -> {
@@ -527,8 +510,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				.build();
 		outboundConnection.send(message);
 
-		final AtomicReference<Message<?>> inboundMessage = new AtomicReference<Message<?>>();
-		final CountDownLatch latch = new CountDownLatch(1);
+		AtomicReference<Message<?>> inboundMessage = new AtomicReference<>();
+		CountDownLatch latch = new CountDownLatch(1);
 		TcpListener listener = message1 -> {
 			inboundMessage.set(message1);
 			latch.countDown();
@@ -592,7 +575,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		return tcpNioServerConnectionFactory;
 	}
 
-	private void cleanupCompositeExecutor(CompositeExecutor compositeExec) throws Exception {
+	private static void cleanupCompositeExecutor(CompositeExecutor compositeExec) throws Exception {
 		TestUtils.getPropertyValue(compositeExec, "primaryTaskExecutor", DisposableBean.class).destroy();
 		TestUtils.getPropertyValue(compositeExec, "secondaryTaskExecutor", DisposableBean.class).destroy();
 	}
@@ -669,7 +652,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		cleanupCompositeExecutor(compositeExec);
 	}
 
-	private CompositeExecutor compositeExecutor() {
+	private static CompositeExecutor compositeExecutor() {
 		ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
 		ioExec.setCorePoolSize(2);
 		ioExec.setMaxPoolSize(4);
@@ -815,7 +798,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		testMulti(false);
 	}
 
-	private void testMulti(boolean multiAccept) throws InterruptedException, IOException {
+	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
 		CountDownLatch serverReadyLatch = new CountDownLatch(1);
 		CountDownLatch latch = new CountDownLatch(21);
 		List<Socket> sockets = new ArrayList<>();
@@ -858,7 +841,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		}
 	}
 
-	private void readFully(InputStream is, byte[] buff) throws IOException {
+	private static void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();
 		}
