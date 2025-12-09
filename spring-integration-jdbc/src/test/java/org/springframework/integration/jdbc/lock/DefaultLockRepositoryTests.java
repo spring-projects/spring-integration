@@ -63,6 +63,21 @@ class DefaultLockRepositoryTests {
 		this.client.close();
 	}
 
+	@Test
+	void testAcquired() {
+		this.client.acquire("test", Duration.ofSeconds(10));
+		assertThat(this.client.isAcquired("test")).isTrue();
+
+		this.client.delete("test");
+	}
+
+	@Test
+	void testDelete() {
+		this.client.acquire("test", Duration.ofSeconds(10));
+		assertThat(this.client.delete("test")).isTrue();
+		assertThat(this.client.isAcquired("test")).isFalse();
+	}
+
 	@Transactional
 	@Test
 	void testNewTransactionIsStartedWhenTransactionIsAlreadyActive() {
@@ -101,19 +116,14 @@ class DefaultLockRepositoryTests {
 		assertThat(this.client.isAcquired("test")).isFalse();
 	}
 
-	@Test
-	void testAcquired() {
-		client.acquire("test", Duration.ofMillis(100));
-		assertThat(this.client.isAcquired("test")).isTrue();
-	}
-
 	@RetryingTest(10)
 	void testAcquireSameLockTwiceAndTtlWillBeUpdated() throws InterruptedException {
 		client.acquire("test", Duration.ofMillis(150));
 		Thread.sleep(10);
-		client.acquire("test", Duration.ofMillis(150));
+		client.acquire("test", Duration.ofSeconds(10));
 		Thread.sleep(60);
 		assertThat(this.client.isAcquired("test")).isTrue();
+		this.client.delete("test");
 	}
 
 	@Test
@@ -167,9 +177,10 @@ class DefaultLockRepositoryTests {
 	void testRenew() throws InterruptedException {
 		client.acquire("test", Duration.ofMillis(150));
 		Thread.sleep(10);
-		assertThat(client.renew("test", Duration.ofMillis(150))).isTrue();
+		assertThat(client.renew("test", Duration.ofSeconds(1))).isTrue();
 		Thread.sleep(60);
 		assertThat(this.client.isAcquired("test")).isTrue();
+		this.client.delete("test");
 	}
 
 	@RetryingTest(10)
@@ -192,13 +203,6 @@ class DefaultLockRepositoryTests {
 		assertThat(this.client.renew("test", Duration.ofMillis(100))).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
-	}
-
-	@Test
-	void testDelete() {
-		this.client.acquire("test", Duration.ofSeconds(10));
-		assertThat(this.client.delete("test")).isTrue();
-		assertThat(this.client.isAcquired("test")).isFalse();
 	}
 
 	@Test

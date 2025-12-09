@@ -77,6 +77,7 @@ import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
@@ -150,9 +151,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause() instanceof SocketTimeoutException)
-					.as("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
-							":" + e.getMessage()).isTrue();
+			assertThat(e).hasCauseInstanceOf(SocketTimeoutException.class);
 		}
 		done.countDown();
 		factory.stop();
@@ -183,13 +182,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
-		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
-				serverSocket.get().getLocalPort());
+		TcpNioClientConnectionFactory factory =
+				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
 		factory.setSoTimeout(100);
 		factory.start();
 		TcpConnection connection = factory.getConnection();
-		connection.send(MessageBuilder.withPayload("Test").build());
+		connection.send(new GenericMessage<>("Test"));
 		with().pollInterval(Duration.ofMillis(10))
 				.await()
 				.atMost(Duration.ofSeconds(10))
@@ -220,8 +219,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
-		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
-				serverSocket.get().getLocalPort());
+		TcpNioClientConnectionFactory factory =
+				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
 		factory.setNioHarvestInterval(100);
 		factory.start();
@@ -237,6 +236,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testCleanup() {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -504,9 +504,10 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		outboundConnection.setMapper(outMapper);
 		outboundConnection.setSerializer(new MapJsonSerializer());
 
-		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("bar", "baz")
-				.build();
+		Message<String> message =
+				MessageBuilder.withPayload("foo")
+						.setHeader("bar", "baz")
+						.build();
 		outboundConnection.send(message);
 
 		AtomicReference<Message<?>> inboundMessage = new AtomicReference<>();
@@ -556,7 +557,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 			Thread.sleep(100);
 		}
-		assertThat(n < 100).as("Could not open socket to localhost:" + port).isTrue();
+		assertThat(n).as("Could not open socket to localhost:" + port).isLessThan(100);
 		socket.getOutputStream().write("foo\r\n".getBytes());
 		socket.close();
 
@@ -614,7 +615,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				}
 				Thread.sleep(1);
 			}
-			assertThat(n < 100).as("Could not open socket to localhost:" + port).isTrue();
+			assertThat(n).as("Could not open socket to localhost:" + port).isLessThan(100);
 			sockets[i] = socket;
 		}
 		for (int i = 0; i < numberOfSockets; i++) {
@@ -717,8 +718,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
 		dfa.setPropertyValue("logger", logger);
 
-		ChannelInputStream cis = spy(TestUtils
-				.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
+		ChannelInputStream cis =
+				spy(TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
 		dfa.setPropertyValue("channelInputStream", cis);
 
 		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
