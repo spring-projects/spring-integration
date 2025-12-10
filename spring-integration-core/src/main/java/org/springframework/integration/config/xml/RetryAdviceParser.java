@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import java.time.Duration;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -75,6 +76,7 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 						.addConstructorArgValue(Set.of())
 						.addConstructorArgValue(Set.of())
 						.addConstructorArgValue(null)
+						.addConstructorArgValue(Duration.ZERO)
 						.addConstructorArgValue(backOffBuilder.getBeanDefinition());
 
 		builder.addPropertyValue("retryPolicy", retryPolicyBuilder.getBeanDefinition());
