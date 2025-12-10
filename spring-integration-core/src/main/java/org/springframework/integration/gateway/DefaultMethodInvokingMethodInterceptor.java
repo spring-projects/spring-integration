@@ -20,10 +20,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -32,10 +31,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ConcurrentReferenceHashMap.ReferenceType;
-import org.springframework.util.ReflectionUtils;
 
 /**
- * Method interceptor to invoke default methods on the gateway proxy.
+ * Method interceptor to invoke default methods from the interfaces on the proxy.
  * <p>
  * The copy of {@code DefaultMethodInvokingMethodInterceptor} from Spring Data Commons.
  *
@@ -46,167 +44,48 @@ import org.springframework.util.ReflectionUtils;
  *
  * @since 5.3
  */
-class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
+public class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
-	private final MethodHandleLookup methodHandleLookup = MethodHandleLookup.getMethodHandleLookup();
+	private static final Lookup LOOKUP = MethodHandles.lookup();
 
 	private final Map<Method, MethodHandle> methodHandleCache =
 			new ConcurrentReferenceHashMap<>(10, ReferenceType.WEAK);
 
 	@Override
-	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
 		if (!method.isDefault()) {
 			return invocation.proceed();
 		}
-		@Nullable Object[] arguments = invocation.getArguments();
 		Object proxy = ((ProxyMethodInvocation) invocation).getProxy();
+		@Nullable Object[] arguments = invocation.getArguments();
 		return getMethodHandle(method)
 				.bindTo(proxy)
 				.invokeWithArguments(arguments);
 	}
 
-	private MethodHandle getMethodHandle(Method method) {
-		return this.methodHandleCache.computeIfAbsent(method,
-				(key) -> {
-					try {
-						return this.methodHandleLookup.lookup(key);
-					}
-					catch (ReflectiveOperationException ex) {
-						throw new IllegalStateException(ex);
-					}
-				});
+	private MethodHandle getMethodHandle(Method method) throws Exception {
+		return this.methodHandleCache.computeIfAbsent(method, DefaultMethodInvokingMethodInterceptor::lookup);
 	}
 
-	enum MethodHandleLookup {
-
-		/**
-		 * Encapsulated {@link MethodHandle} lookup working on Java 9.
-		 */
-		ENCAPSULATED {
-
-			@Nullable
-			private final transient Method privateLookupIn =
-					ReflectionUtils.findMethod(MethodHandles.class, "privateLookupIn", Class.class, Lookup.class);
-
-			@Override
-			MethodHandle lookup(Method method) throws ReflectiveOperationException {
-				if (this.privateLookupIn == null) {
-					throw new IllegalStateException("Could not obtain MethodHandles.privateLookupIn!");
-				}
-				return doLookup(method, getLookup(method.getDeclaringClass(), this.privateLookupIn));
-			}
-
-			@Override
-			boolean isAvailable() {
-				return this.privateLookupIn != null;
-			}
-
-			private Lookup getLookup(Class<?> declaringClass, Method privateLookupIn) {
-				Lookup lookup = MethodHandles.lookup();
-				try {
-					return (Lookup) privateLookupIn.invoke(MethodHandles.class, declaringClass, lookup);
-				}
-				catch (ReflectiveOperationException e) {
-					return lookup;
-				}
-			}
-
-		},
-
-		/**
-		 * Open (via reflection construction of {@link Lookup}) method handle lookup. Works with Java 8 and
-		 * with Java 9 permitting illegal access.
-		 */
-		OPEN {
-
-			private volatile boolean constructorResolved;
-
-			private transient @Nullable Constructor<Lookup> constructor;
-
-			private final Supplier<@Nullable Constructor<Lookup>> constructorSupplier =
-					() -> {
-						if (!this.constructorResolved) {
-							Constructor<Lookup> ctor = null;
-							try {
-								ctor = Lookup.class.getDeclaredConstructor(Class.class);
-								ReflectionUtils.makeAccessible(ctor);
-							}
-							catch (Exception ex) {
-								// this is the signal that we are on Java 9 (encapsulated) and can't use the accessible
-								// constructor approach.
-								if (!ex.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
-									throw new IllegalStateException(ex);
-								}
-							}
-							this.constructor = ctor;
-							this.constructorResolved = true;
-						}
-						return this.constructor;
-					};
-
-			@Override
-			MethodHandle lookup(Method method) throws ReflectiveOperationException {
-				Constructor<Lookup> lookupConstructor = this.constructorSupplier.get();
-				if (lookupConstructor != null) {
-					return lookupConstructor.newInstance(method.getDeclaringClass())
-							.unreflectSpecial(method, method.getDeclaringClass());
-				}
-				else {
-					throw new IllegalStateException("Could not obtain MethodHandles.lookup constructor!");
-				}
-			}
-
-			@Override
-			boolean isAvailable() {
-				return this.constructorSupplier.get() != null;
-			}
-
-		},
-
-		/**
-		 * Fallback {@link MethodHandle} lookup using {@link MethodHandles#lookup() public lookup}.
-		 */
-		FALLBACK {
-			@Override
-			MethodHandle lookup(Method method) throws ReflectiveOperationException {
-				return doLookup(method, MethodHandles.lookup());
-			}
-
-			@Override
-			boolean isAvailable() {
-				return true;
-			}
-
-		};
-
-		private static MethodHandle doLookup(Method method, Lookup lookup) throws ReflectiveOperationException {
+	/**
+	 * Lookup a {@link MethodHandle} given {@link Method} to look up.
+	 * @param method must not be {@literal null}.
+	 * @return the method handle.
+	 */
+	private static MethodHandle lookup(Method method) {
+		try {
+			Class<?> declaringClass = method.getDeclaringClass();
+			Lookup lookup = MethodHandles.privateLookupIn(declaringClass, LOOKUP);
 			MethodType methodType = MethodType.methodType(method.getReturnType(), method.getParameterTypes());
-			return lookup.findSpecial(method.getDeclaringClass(), method.getName(),
-					methodType, method.getDeclaringClass());
+
+			return Modifier.isStatic(method.getModifiers())
+					? lookup.findStatic(declaringClass, method.getName(), methodType)
+					: lookup.findSpecial(declaringClass, method.getName(), methodType, declaringClass);
 		}
-
-		abstract MethodHandle lookup(Method method) throws ReflectiveOperationException;
-
-		/**
-		 * @return {@literal true} if the lookup is available.
-		 */
-		abstract boolean isAvailable();
-
-		/**
-		 * Obtain the first available {@link MethodHandleLookup}.
-		 * @return the {@link MethodHandleLookup}
-		 * @throws IllegalStateException if no {@link MethodHandleLookup} is available.
-		 */
-		static MethodHandleLookup getMethodHandleLookup() {
-			for (MethodHandleLookup it : MethodHandleLookup.values()) {
-				if (it.isAvailable()) {
-					return it;
-				}
-			}
-			throw new IllegalStateException("No MethodHandleLookup available!");
+		catch (Exception ex) {
+			throw new IllegalStateException(ex);
 		}
-
 	}
 
 }
