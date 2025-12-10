@@ -39,6 +39,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
 
 /**
@@ -99,10 +100,22 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	/**
 	 * Set a {@link RetryPolicy} to use.
 	 * Defaults to 3 attempts with no delay in between.
+	 * Mutually exclusive with {@link #setBackOff(BackOff)}.
 	 * @param retryPolicy the policy.
 	 */
 	public void setRetryPolicy(RetryPolicy retryPolicy) {
 		this.retryPolicy = retryPolicy;
+		this.retryTemplate.setRetryPolicy(this.retryPolicy);
+	}
+
+	/**
+	 * Set a {@link BackOff} to be used in the internal {@link RetryPolicy} with rest options as defaults.
+	 * Mutually exclusive with {@link #setRetryPolicy(RetryPolicy)}.
+	 * @param backOff the back-off.
+	 * @since 7.0.1
+	 */
+	public void setBackOff(BackOff backOff) {
+		this.retryPolicy = RetryPolicy.builder().backOff(backOff).build();
 		this.retryTemplate.setRetryPolicy(this.retryPolicy);
 	}
 

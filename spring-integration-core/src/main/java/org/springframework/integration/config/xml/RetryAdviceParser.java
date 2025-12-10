@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import java.time.Duration;
-import java.util.Set;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -71,15 +68,7 @@ public class RetryAdviceParser extends AbstractBeanDefinitionParser {
 			}
 		}
 
-		BeanDefinitionBuilder retryPolicyBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.core.retry.DefaultRetryPolicy")
-						.addConstructorArgValue(Set.of())
-						.addConstructorArgValue(Set.of())
-						.addConstructorArgValue(null)
-						.addConstructorArgValue(Duration.ZERO)
-						.addConstructorArgValue(backOffBuilder.getBeanDefinition());
-
-		builder.addPropertyValue("retryPolicy", retryPolicyBuilder.getBeanDefinition());
+		builder.addPropertyValue("backOff", backOffBuilder.getBeanDefinition());
 		String recoveryChannelAttr = element.getAttribute("recovery-channel");
 		if (StringUtils.hasText(recoveryChannelAttr)) {
 			BeanDefinitionBuilder emsrBuilder =
