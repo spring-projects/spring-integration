@@ -18,11 +18,15 @@ package org.springframework.integration.dsl.transformers;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,6 +36,7 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.config.EnableIntegration;
@@ -273,6 +278,41 @@ public class TransformerTests {
 				.isEqualTo("transform failed");
 	}
 
+	@Autowired
+	@Qualifier("asyncTransformerFlow.input")
+	MessageChannel asyncTransformerFlowInput;
+
+	@Test
+	void asyncTransformerReplyIsProcessed() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.asyncTransformerFlowInput.send(
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).extracting(Message::getPayload).isEqualTo("test async");
+
+	}
+
+	@Test
+	void reactiveTransformerReplyIsProcessed() {
+		FluxMessageChannel replyChannel = new FluxMessageChannel();
+		this.asyncTransformerFlowInput.send(
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		StepVerifier.create(
+						Flux.from(replyChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+				.expectNext("test async")
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -463,6 +503,15 @@ public class TransformerTests {
 									})
 									.advice(expressionAdvice()))
 					.log();
+		}
+
+		@Bean
+		public IntegrationFlow asyncTransformerFlow() {
+			return f -> f
+					.transformWith(endpoint -> endpoint
+							.<String, CompletableFuture<String>>transformer(payload ->
+									CompletableFuture.completedFuture(payload + " async"))
+							.async(true));
 		}
 
 	}

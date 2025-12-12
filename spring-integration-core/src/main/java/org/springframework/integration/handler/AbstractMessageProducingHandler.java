@@ -321,25 +321,42 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			replyChannel = getOutputChannel();
 		}
 
+		Object replyPayload = reply;
+		Message<?> replyMessage = reply instanceof Message<?> message ? message : null;
+
+		if (replyMessage != null) {
+			replyPayload = replyMessage.getPayload();
+		}
+
 		if (this.async) {
-			boolean isFutureReply = reply instanceof CompletableFuture<?>;
+			boolean isFutureReply = replyPayload instanceof CompletableFuture<?>;
 
 			ReactiveAdapter reactiveAdapter = null;
 			if (!isFutureReply) {
-				reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
+				reactiveAdapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, replyPayload);
 			}
 
 			if (isFutureReply || reactiveAdapter != null) {
 				if (replyChannel instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
-					Publisher<?> reactiveReply = toPublisherReply(reply, reactiveAdapter);
+					Publisher<?> reactiveReply = toPublisherReply(replyPayload, reactiveAdapter);
 					reactiveStreamsSubscribableChannel
 							.subscribeTo(
 									Flux.from(reactiveReply)
 											.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
-											.map(result -> createOutputMessage(result, requestHeaders)));
+											.map(result -> {
+												if (replyMessage != null) {
+													return getMessageBuilderFactory()
+															.withPayload(result)
+															.copyHeaders(replyMessage.getHeaders())
+															.build();
+												}
+												else {
+													return createOutputMessage(result, requestHeaders);
+												}
+											}));
 				}
 				else {
-					CompletableFuture<?> futureReply = toFutureReply(reply, reactiveAdapter);
+					CompletableFuture<?> futureReply = toFutureReply(replyPayload, replyMessage, reactiveAdapter);
 					futureReply.whenComplete(new ReplyFutureCallback(requestMessage, replyChannel));
 				}
 
@@ -359,8 +376,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
-	@SuppressWarnings("try")
-	private CompletableFuture<?> toFutureReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
+	@SuppressWarnings({"try", "unchecked"})
+	private CompletableFuture<?> toFutureReply(Object reply, @Nullable Message<?> replyMessage,
+			@Nullable ReactiveAdapter reactiveAdapter) {
+
+		CompletableFuture<Object> replyFuture;
+
 		if (reactiveAdapter != null) {
 			Mono<?> reactiveReply;
 			Publisher<?> publisher = reactiveAdapter.toPublisher(reply);
@@ -371,7 +392,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				reactiveReply = Mono.from(publisher);
 			}
 
-			CompletableFuture<Object> replyFuture = new CompletableFuture<>();
+			replyFuture = new CompletableFuture<>();
 
 			reactiveReply
 					/*
@@ -379,7 +400,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 					 and it does not suppose to, since there is no guarantee how this Future is going to
 					 be handled downstream.
 					 However, in our case we process it directly in this class in the doProduceOutput()
-					 via whenComplete() callback. So, when value is set into the Future, it is available
+					 via whenComplete() callback. So, when the value is set into the Future, it is available
 					 in the callback in the same thread immediately.
 					 */
 					.doOnEach((signal) -> {
@@ -400,12 +421,20 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 					})
 					.contextCapture()
 					.subscribe();
-
-			return replyFuture;
 		}
 		else {
-			return (CompletableFuture<?>) reply;
+			replyFuture = (CompletableFuture<Object>) reply;
 		}
+
+		if (replyMessage == null) {
+			return replyFuture;
+		}
+
+		return replyFuture.thenApply(result ->
+				getMessageBuilderFactory()
+						.withPayload(result)
+						.copyHeaders(replyMessage.getHeaders())
+						.build());
 	}
 
 	private AbstractIntegrationMessageBuilder<?> addRoutingSlipHeader(Object reply, List<?> routingSlip,

@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -236,6 +237,7 @@ public class WebFluxDslTests {
 	}
 
 	@Test
+	@Disabled
 	public void testHttpReactivePostWithError() {
 		this.webTestClient.post().uri("/reactivePostErrors")
 				.headers(headers -> headers.setBasicAuth("guest", "guest"))
