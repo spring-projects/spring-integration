@@ -33,7 +33,7 @@ import org.testcontainers.rabbitmq.RabbitMQContainer;
 @Testcontainers(disabledWithoutDocker = true)
 public interface RabbitTestContainer {
 
-	RabbitMQContainer RABBITMQ = new RabbitMQContainer("rabbitmq:management")
+	RabbitMQContainer RABBITMQ = new RabbitMQContainer("rabbitmq:4.2.0-management")
 			.withExposedPorts(5672, 15672, 5552)
 			.withStartupTimeout(Duration.ofMinutes(2));
 
