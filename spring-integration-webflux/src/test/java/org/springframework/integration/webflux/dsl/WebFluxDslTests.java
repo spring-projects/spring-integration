@@ -139,6 +139,9 @@ public class WebFluxDslTests {
 						.apply(SecurityMockServerConfigurers.springSecurity())
 						.configureClient()
 						.responseTimeout(Duration.ofSeconds(10))
+						.codecs(clientCodecConfigurer -> clientCodecConfigurer
+								.defaultCodecs()
+								.maxInMemorySize(1024 * 1024))
 						.build();
 	}
 
