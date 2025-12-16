@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * The {@code partitionKeyFunction} is used to determine to which partition the message
  * has to be dispatched.
  * By default, the {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} message header is used
- * for partition key.
+ * for a partition key.
  * <p>
  * The actual dispatching and threading logic is implemented in the {@link PartitionedDispatcher}.
  * <p>
@@ -68,7 +68,7 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	}
 
 	/**
-	 * Instantiate based on a provided number of partitions and function for partition key against
+	 * Instantiate based on a provided number of partitions and function for a partition key against
 	 * the message.
 	 * @param partitionCount the number of partitions in this channel.
 	 * @param partitionKeyFunction the function to resolve a partition key against the message
@@ -118,6 +118,16 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 */
 	public void setLoadBalancingStrategy(@Nullable LoadBalancingStrategy loadBalancingStrategy) {
 		getDispatcher().setLoadBalancingStrategy(loadBalancingStrategy);
+	}
+
+	/**
+	 * Provide a size of the queue in the partition executor's worker.
+	 * Default to zero.
+	 * @param workerQueueSize the size of the partition executor's worker queue.
+	 * @since 6.4.10
+	 */
+	public void setWorkerQueueSize(int workerQueueSize) {
+		getDispatcher().setWorkerQueueSize(workerQueueSize);
 	}
 
 	@Override
