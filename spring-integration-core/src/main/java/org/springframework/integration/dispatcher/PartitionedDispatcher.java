@@ -21,15 +21,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.springframework.integration.util.CallerBlocksPolicy;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -78,6 +83,8 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
 	private final Lock lock = new ReentrantLock();
+
+	private int workerQueueSize;
 
 	/**
 	 * Instantiate based on a provided number of partitions and function for partition key against
@@ -153,6 +160,17 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	/**
+	 * Provide a size of the queue in the partition executor's worker.
+	 * Default to zero.
+	 * @param workerQueueSize the size of the partition executor's worker queue.
+	 * @since 6.4.10
+	 */
+	public void setWorkerQueueSize(int workerQueueSize) {
+		Assert.isTrue(workerQueueSize >= 0, "'workerQueueSize' must be greater than or equal to 0.");
+		this.workerQueueSize = workerQueueSize;
+	}
+
+	/**
 	 * Shutdown this dispatcher on application close.
 	 * The partition executors are shutdown and internal state of this instance is cleared.
 	 */
@@ -189,7 +207,16 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	private UnicastingDispatcher newPartition() {
-		ExecutorService executor = Executors.newSingleThreadExecutor(this.threadFactory);
+		BlockingQueue<Runnable> workQueue =
+				this.workerQueueSize == 0
+						? new SynchronousQueue<>()
+						: new LinkedBlockingQueue<>(this.workerQueueSize);
+		ExecutorService executor =
+				new ThreadPoolExecutor(1, 1,
+						0L, TimeUnit.MILLISECONDS,
+						workQueue,
+						this.threadFactory,
+						new CallerBlocksPolicy(Long.MAX_VALUE));
 		this.executors.add(executor);
 		DelegateDispatcher delegateDispatcher =
 				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));

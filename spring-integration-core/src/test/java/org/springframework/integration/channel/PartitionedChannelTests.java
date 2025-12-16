@@ -18,8 +18,13 @@ package org.springframework.integration.channel;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -48,6 +54,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -128,6 +135,11 @@ public class PartitionedChannelTests {
 		String partitionForLastMessage = partitionedMessages.keySet().iterator().next();
 		assertThat(partitionForLastMessage).isIn(allocatedPartitions);
 
+		List<?> partitionExecutors = TestUtils.getPropertyValue(partitionedChannel, "dispatcher.executors", List.class);
+		BlockingQueue<?> workQueue = ((ThreadPoolExecutor) partitionExecutors.get(0)).getQueue();
+
+		assertThat(workQueue).isInstanceOf(SynchronousQueue.class);
+
 		partitionedChannel.destroy();
 	}
 
@@ -137,6 +149,9 @@ public class PartitionedChannelTests {
 
 	@Autowired
 	PollableChannel resultChannel;
+
+	@Autowired
+	PartitionedChannel testChannel;
 
 	@Test
 	void messagesArePartitionedByCorrelationId() {
@@ -153,6 +168,14 @@ public class PartitionedChannelTests {
 		Set<String> strings = new HashSet<>((Collection<? extends String>) receive.getPayload());
 		assertThat(strings).hasSize(1)
 				.allMatch(value -> value.startsWith("testChannel-partition-thread-"));
+
+		List<?> partitionExecutors = TestUtils.getPropertyValue(this.testChannel, "dispatcher.executors", List.class);
+		BlockingQueue<?> workQueue = ((ThreadPoolExecutor) partitionExecutors.get(0)).getQueue();
+
+		assertThat(workQueue)
+				.asInstanceOf(type(LinkedBlockingQueue.class))
+				.extracting(LinkedBlockingQueue::remainingCapacity)
+				.isEqualTo(1);
 	}
 
 	@Configuration
@@ -163,7 +186,7 @@ public class PartitionedChannelTests {
 		IntegrationFlow someFlow() {
 			return f -> f
 					.split()
-					.channel(c -> c.partitioned("testChannel", 10))
+					.channel(c -> c.partitioned("testChannel", 10).workerQueueSize(1))
 					.transform(p -> Thread.currentThread().getName())
 					.aggregate()
 					.channel(c -> c.queue("resultChannel"));

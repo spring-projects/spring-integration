@@ -40,6 +40,8 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 	@Nullable
 	private ThreadFactory threadFactory;
 
+	private int workerQueueSize;
+
 	protected PartitionedChannelSpec(int partitionCount) {
 		this.partitionCount = partitionCount;
 	}
@@ -54,6 +56,18 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 		return this;
 	}
 
+	/**
+	 * Provide a size of the queue in the partition executor's worker.
+	 * Default to zero.
+	 * @param workerQueueSize the size of the partition executor's worker queue.
+	 * @return the spec.
+	 * @since 6.4.10
+	 */
+	public PartitionedChannelSpec workerQueueSize(int workerQueueSize) {
+		this.workerQueueSize = workerQueueSize;
+		return this;
+	}
+
 	@Override
 	protected PartitionedChannel doGet() {
 		if (this.partitionKeyFunction != null) {
@@ -63,6 +77,7 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 			this.channel = new PartitionedChannel(this.partitionCount);
 		}
 		this.channel.setLoadBalancingStrategy(this.loadBalancingStrategy);
+		this.channel.setWorkerQueueSize(this.workerQueueSize);
 		if (this.failoverStrategy != null) {
 			this.channel.setFailoverStrategy(this.failoverStrategy);
 		}
