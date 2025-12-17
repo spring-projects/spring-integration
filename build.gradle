@@ -20,7 +20,7 @@ plugins {
     id 'org.jetbrains.dokka' version '2.1.0' apply false
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
-    id 'com.google.protobuf' version '0.9.5' apply false
+    id 'com.google.protobuf' version '0.9.6' apply false
     id 'io.freefair.aggregate-javadoc' version '9.1.0'
     id 'io.spring.nullability' version '0.0.8' apply false
 }
