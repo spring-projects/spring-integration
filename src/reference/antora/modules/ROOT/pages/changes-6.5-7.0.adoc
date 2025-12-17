@@ -1,0 +1,133 @@
+[[migration-6.5-7.0]]
+= Changes between 6.5 and 7.0
+
+[[x7.0-general]]
+== General Changes
+
+Junit 4-Based Support Components are deprecated.
+
+The project now leverages https://jspecify.dev/docs/start-here/[JSpecify] annotations to expose null-safe APIs and to check the consistency of those nullability declarations with https://github.com/uber/NullAway[NullAway] as part of its build.
+
+The `spring-retry` dependency, together with all its API usage have been replaced by retry API in Spring Framework Core module.
+This breaking change is the natural evolution of the whole Spring portfolio.
+In general, the following references have been migrated:
+
+- `org.springframework.retry.support.RetryTemplate` -> `org.springframework.core.retry.RetryTemplate`;
+- `org.springframework.retry.RetryPolicy` -> `org.springframework.core.retry.RetryPolicy`;
+- `org.springframework.retry.RecoveryCallback` -> `org.springframework.integration.core.RecoveryCallback`.
+There is no `RecoveryCallback` abstraction in the Spring Framework, since regular `try..catch` on the `RetryException` is enough.
+For Spring Integration, the `RecoveryCallback` makes sense as a dead-letter publisher to an error channel;
+- `org.springframework.retry.backoff.BackOffPolicy` -> `org.springframework.util.backoff.BackOff`.
+However, it is not exposed directly as a `RetryTemplate` options: rather as an internal API backed by the configuration via `RetryPolicy.Builder`;
+- The `RetryContext` in AMPQ, JMS and Apache Kafka channel adapters is replaced with an internal `AttributeAccessor` implementation.
+
+Therefore, the following project classes have suffered breaking changes:
+
+- `AmqpBaseInboundChannelAdapterSpec`
+- `AmqpBaseInboundGatewaySpec`
+- `AmqpInboundChannelAdapter`
+- `AmqpInboundGateway`
+- `PostgresSubscribableChannel`
+- `ChannelPublishingJmsMessageListener`
+- `JmsInboundGatewaySpec`
+- `JmsMessageDrivenChannelAdapterSpec`
+- `KafkaInboundGatewaySpec`
+- `KafkaMessageDrivenChannelAdapterSpec`
+- `KafkaInboundEndpoint`
+- `KafkaInboundGateway`
+- `KafkaMessageDrivenChannelAdapter`
+
+The `RequestHandlerRetryAdvice` was rebuilt to avoid external API as much as possible.
+For the stateless retry logic, there is just enough to provide a `org.springframework.core.retry.RetryPolicy`.
+The stateful retry logic is activated by the `Function<Message<?>, Object> stateKeyFunction`.
+The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
+
+The `max-attempts` attribute of the `<int:handler-retry-advice>` XML component has been renamed to the `max-retries` to better reflect the logic behind this property which is exactly about the number of attempts to call a failing handler.
+
+See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more information.
+
+All the modules now follow the standard package structure.
+The inbound and outbound components are declared in the `inbound` and `outbound` packages, respectively.
+The `MessageChannel` implementations in the `channel` package.
+Most of the modules have followed this rule from day one.
+The refactoring for package structure in this version includes the rest of modules: `spring-integration-file`, `spring-integration-ftp`, `spring-integration-ip`, `spring-integration-jdbc`, `spring-integration-jms`, `spring-integration-jmx`, `spring-integration-mail`, `spring-integration-sftp`, `spring-integration-stream` and `spring-integration-ws`.
+The classes which were in root packages are marked now as deprecated.
+
+[[x7.0-new-components]]
+== New Components
+
+A new `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
+See xref:distributed-locks.adoc[] for more information.
+
+The Jackson 2 support has been deprecated for removal.
+Jackson 3 is now the default with new components: `JacksonJsonObjectMapper`, `JacksonPropertyAccessor`, `JacksonIndexAccessor`, and `JacksonMessagingUtils`.
+See their Javadocs for more information and deprecated classes for a migration path.
+
+The `spring-integration-amqp` module now implements channel adapters for RabbitMQ AMQP 1.0 support.
+The dedicated xref:amqp/amqp-1.0.adoc[AMQP 1.0 Support] chapter provides more information.
+
+[[x7.0-jdbc-changes]]
+=== JDBC Changes
+
+The JDBC module now provides a Java DSL API via its dedicated `org.springframework.integration.jdbc.dsl.Jdbc` factory.
+The xref:jdbc/dsl.adoc[] chapter provides more details.
+
+The `JdbcLock` now supports the feature of customized time-to-live for the lock status data.
+See xref:jdbc/lock-registry.adoc[] for more information.
+
+The message stores now use a `MESSAGE_CONTENT` column name for serialized messages instead of `MESSAGE_BYTES` since the content might not always be stored as a byte array.
+All the out-of-the-box SQL schemas have been changed, too, to rely on the `MESSAGE_CONTENT` name for the respective column in the `INT_MESSAGE` and `INT_CHANNEL_MESSAGE` tables.
+See xref:jdbc/message-store.adoc[] for more information.
+
+The `JdbcChannelMessageStore` now supports JSON serialization as an alternative to Java serialization.
+New components `JsonChannelMessageStorePreparedStatementSetter` and `JsonMessageRowMapper` enable storing messages in JSON format.
+This requires modifying the database schema to use text-based column types (such as `JSONB`, `JSON`, `TEXT`, or `CLOB`) instead of binary types.
+See xref:jdbc/message-store-json.adoc[] for more information.
+
+[[x7.0-redis-changes]]
+=== Redis Changes
+
+The `RedisLock` now supports the feature of customized time-to-live for the lock status data.
+See xref:redis.adoc#redis-lock-registry[Redis Lock Registry] for more information.
+
+[[x7.0-hazelcast-changes]]
+=== Hazelcast Changes
+
+Previously deprecated classes in the `spring-integation-hazelcast` module, such as `LeaderInitiator`, `HazelcastMembershipListener`, `HazelcastLocalInstanceRegistrar` and `HazelcastLockRegistry`, are now removed due to not supported CP-subsystem in Hazelcast library for Open Source.
+
+[[x7.0-mqtt-changes]]
+=== MQTT Changes
+
+The `AbstractMqttMessageDrivenChannelAdapter` and `ClientManager` implementations now expose a `quiescentTimeout` option which is propagated in their `stop()` method down to the `disconnectForcibly()` API of the MQTT Paho clients.
+See xref:mqtt.adoc[] for more information.
+
+[[x7.0-files-changes]]
+=== Files Changes
+
+The `FileReadingMessageSource` now can be configured with a SpEL `Expression` for its `directory` property.
+See xref:file/reading.adoc[] for more information.
+
+[[x7.0-remote-files-changes]]
+=== Remote Files Support Changes
+
+The `AbstractInboundFileSynchronizer` now caches a filtered result of the `Session.list(remoteDirectory)` after slicing by the `maxFetchSize`.
+So, later synchronizations deal with the cache only by the `maxFetchSize` until the cache is exhausted.
+See xref:sftp/max-fetch.adoc[] for more information.
+
+All the `AbstractPersistentAcceptOnceFileListFilter` implementations now use a "long file name" for the metadata entry key.
+Previously, just a file name may cause the metadata overriding problem when the same filter is used for different directories with same file names.
+For example, the `RotatingServerAdvice` may switch to directories based on the timestamp, but files are placed there with the same name according to business logic.
+See xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters] for more information.
+
+[[x7.0-null-safety]]
+=== Null Safety
+Updated the codebase to use JSpecify and NullAway, adding a comprehensive null safety implementation that uses `@NullMarked` annotations to default all types to non-null at the package level and `@Nullable` annotations to explicitly mark types that can be null.
+See xref:null-safety.adoc[] for more information.
+
+[[x7.0-smb-upgrade]]
+=== SMB Support Changes
+
+The JCIFS library behind the SMB support module has been upgraded to 3.0.0.
+It is a major rewrite of the codebase and implements a new package structure.
+This is a breaking change, and direct references to components of the JCIFS library will need to be updated.
+See xref:smb.adoc[] for more information.
