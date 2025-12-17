@@ -47,7 +47,7 @@ ext {
 
     apacheSshdVersion = '2.15.0'
     artemisVersion = '2.41.0'
-    aspectjVersion = '1.9.25'
+    aspectjVersion = '1.9.25.1'
     assertjVersion = '3.27.6'
     assertkVersion = '0.28.1'
     avroVersion = '1.12.1'
