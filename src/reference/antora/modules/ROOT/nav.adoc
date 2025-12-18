@@ -150,6 +150,7 @@
 ** xref:ftp/server-events.adoc[]
 ** xref:ftp/remote-file-info.adoc[]
 * xref:graphql.adoc[]
+* xref:grpc.adoc[]
 * xref:hazelcast.adoc[]
 * xref:http.adoc[]
 ** xref:http/inbound.adoc[]

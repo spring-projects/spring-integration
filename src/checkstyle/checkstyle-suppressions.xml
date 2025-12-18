@@ -14,4 +14,5 @@
 	<suppress files="[\\/]test[\\/]" checks="Atclause*"/>
 	<suppress files="[\\/]test[\\/]" checks="InterfaceIsType"/>
 	<suppress files="org[\\/]springframework[\\/]integration[\\/]transformer[\\/]proto" checks=".*"/>
+	<suppress files="org[\\/]springframework[\\/]integration[\\/]grpc[\\/]proto" checks=".*"/>
 </suppressions>

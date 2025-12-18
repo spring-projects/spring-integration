@@ -62,6 +62,7 @@ ext {
     graalvmVersion = '25.0.1'
     greenmailVersion = '2.1.8'
     groovyVersion = '5.0.3'
+	grpcVersion = '1.77.0'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
     hibernateVersion = '7.1.12.Final'
@@ -173,6 +174,7 @@ allprojects {
 		dependencyManagement(platform("org.springframework.security:spring-security-bom:$springSecurityVersion"))
 		dependencyManagement(platform("org.springframework.ws:spring-ws-bom:$springWsVersion"))
 		dependencyManagement(platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion"))
+		dependencyManagement(platform("io.grpc:grpc-bom:$grpcVersion"))
 	}
 }
 
@@ -625,6 +627,45 @@ project('spring-integration-groovy') {
         sourceCompatibility = JavaVersion.VERSION_17
         options.encoding = 'UTF-8'
     }
+}
+
+project('spring-integration-grpc') {
+	description = 'Spring Integration gRPC Support'
+
+	apply plugin: 'com.google.protobuf'
+
+	configurations {
+		[compileProtoPath, testCompileProtoPath].each {
+			it.extendsFrom(dependencyManagement)
+		}
+	}
+
+	dependencies {
+		api 'io.grpc:grpc-stub'
+
+		testImplementation 'io.grpc:grpc-protobuf'
+		testImplementation 'io.grpc:grpc-inprocess'
+		testImplementation "com.google.protobuf:protobuf-java:$protobufVersion"
+	}
+
+	protobuf {
+		protoc {
+			artifact = "com.google.protobuf:protoc:$protobufVersion"
+		}
+		plugins {
+			grpc {
+				artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+			}
+		}
+		generateProtoTasks {
+			// Only generate for test source set, not main
+			ofSourceSet('test')*.plugins {
+				grpc {
+					option '@generated=omit'
+				}
+			}
+		}
+	}
 }
 
 project('spring-integration-hazelcast') {
