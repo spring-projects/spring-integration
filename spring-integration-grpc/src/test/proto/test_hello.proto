@@ -23,6 +23,9 @@ service TestHelloWorld {
   // Streams requests and replies
   rpc BidiStreamHello(stream HelloRequest) returns (stream HelloReply) {}
 
+  // Fail with error
+  rpc ErrorOnHello(HelloRequest) returns (HelloReply) {}
+
 }
 
 // The request message containing the user's name.

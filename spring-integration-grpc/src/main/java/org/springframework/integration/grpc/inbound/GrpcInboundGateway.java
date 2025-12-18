@@ -22,6 +22,8 @@ import java.util.Arrays;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -152,7 +154,9 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 			StreamObserver<Object> responseObserver) {
 
 		sendRequestAndProduceReply(methodDescriptor, requestPayload)
-				.subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
+				.subscribe(responseObserver::onNext,
+						t -> responseObserver.onError(toGrpcStatusException(t)),
+						responseObserver::onCompleted);
 	}
 
 	private void serverStreaming(MethodDescriptor<?, ?> methodDescriptor, Object requestPayload,
@@ -160,7 +164,9 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 
 		sendRequestAndProduceReply(methodDescriptor, requestPayload)
 				.flatMapMany(payload -> payload instanceof Flux<?> flux ? flux : Flux.just(payload))
-				.subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
+				.subscribe(responseObserver::onNext,
+						t -> responseObserver.onError(toGrpcStatusException(t)),
+						responseObserver::onCompleted);
 	}
 
 	private StreamObserver<?> clientStreaming(MethodDescriptor<?, ?> methodDescriptor,
@@ -177,15 +183,15 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 
 			@Override
 			public void onError(Throwable t) {
-				throw new IllegalStateException(
-						"gRPC request [" + methodDescriptor.getFullMethodName() + "] has failed", t);
+				throw toGrpcStatusException(t, "gRPC request [" + methodDescriptor.getFullMethodName() + "] has failed");
 			}
 
 			@Override
 			public void onCompleted() {
 				requestPayload.tryEmitComplete();
 				sendRequestAndProduceReply(methodDescriptor, requestPayload.asFlux())
-						.subscribe(responseObserver::onNext, responseObserver::onError,
+						.subscribe(responseObserver::onNext,
+								t -> responseObserver.onError(toGrpcStatusException(t)),
 								responseObserver::onCompleted);
 			}
 
@@ -200,13 +206,13 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 			@Override
 			public void onNext(Object value) {
 				sendRequestAndProduceReply(methodDescriptor, value)
-						.subscribe(responseObserver::onNext, responseObserver::onError);
+						.subscribe(responseObserver::onNext,
+								t -> responseObserver.onError(toGrpcStatusException(t)));
 			}
 
 			@Override
 			public void onError(Throwable t) {
-				throw new IllegalStateException(
-						"gRPC request [" + methodDescriptor.getFullMethodName() + "] has failed", t);
+				throw toGrpcStatusException(t, "gRPC request [" + methodDescriptor.getFullMethodName() + "] has failed");
 			}
 
 			@Override
@@ -229,6 +235,16 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 
 		return sendAndReceiveMessageReactive(requestMessage)
 				.map(Message::getPayload);
+	}
+
+	private static StatusRuntimeException toGrpcStatusException(Throwable throwable) {
+		return toGrpcStatusException(throwable, throwable.getMessage());
+	}
+
+	private static StatusRuntimeException toGrpcStatusException(Throwable throwable, @Nullable String description) {
+		return Status.fromThrowable(throwable)
+				.withDescription(description)
+				.asRuntimeException();
 	}
 
 }

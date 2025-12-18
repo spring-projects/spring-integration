@@ -27,6 +27,8 @@ import java.util.function.Consumer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -49,6 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -146,6 +149,18 @@ class GrpcInboundGatewayTests {
 				.containsAll(Arrays.stream(names).map("Hello "::concat).toList());
 	}
 
+	@Test
+	void errorFromServer() {
+		assertThatExceptionOfType(StatusRuntimeException.class)
+				.isThrownBy(() -> this.testHelloWorldBlockingStub.errorOnHello(newHelloRequest("Error")))
+				.satisfies(e -> {
+					assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE);
+					assertThat(e.getStatus().getDescription())
+							.contains("Failed to transform Message in bean " +
+									"'grpcIntegrationFlow.subFlow#4.method-invoking-transformer#1'");
+				});
+	}
+
 	private static HelloRequest newHelloRequest(String message) {
 		return HelloRequest.newBuilder().setName(message).build();
 	}
@@ -218,6 +233,12 @@ class GrpcInboundGatewayTests {
 
 									.subFlowMapping("BidiStreamHello", flow -> flow
 											.transform(this::requestReply))
+
+									.subFlowMapping("ErrorOnHello", flow -> flow
+											.transform(p -> {
+												throw Status.UNAVAILABLE.withDescription("intentional")
+														.asRuntimeException();
+											}))
 					)
 					.get();
 		}

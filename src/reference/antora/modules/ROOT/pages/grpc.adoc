@@ -66,7 +66,7 @@ The `GrpcInboundGateway` is a `MessagingGatewaySupport` implementation to receiv
 For initialization, the instance of this gateway requires only an abstract gRPC service class implementing `BindableService`, usually generated from Protobuf and comes with a `*ImplBase` class name.
 
 WARNING: Only standard gRPC services are supported: a generated `AsyncService` contract is what `GrpcInboundGateway` logic based on.
-The Reactor and Kotlin-based service generation don't make sense in Spring Integration logic since those types are not exposed anyhow from the gateway definition.
+The Reactor and Kotlin-based service generation don't make sense in Spring Integration logic since those types are not exposed from the gateway definition.
 
 The gateway uses the mentioned `AsyncService` interface to create proxy and intercept gRPC service methods.
 
@@ -81,17 +81,17 @@ GrpcInboundGateway helloWorldService() {
 ----
 
 The `GrpcInboundGateway` implements a `BindableService` and exposes a `ServerServiceDefinition` based on the mentioned proxy for an `AsyncService` contract of the gRPC service.
-Therefore, exactly instance of this gateway has to be registered into a `ServerBuilder` and no need in any other `*ImplBase` implementations in the application.
+Therefore, an instance of this gateway has to be registered into a `ServerBuilder` and no need in any other `*ImplBase` implementations in the application.
 
 IMPORTANT: With https://spring.io/projects/spring-grpc[Spring gRPC] and its auto-discovery for `BindableService` implementations, the `GrpcInboundGateway` has to be declared as a top-level bean.
 Therefore, Java DSL API like `IntegrationFlow.from(new GrpcInboundGateway(TestHelloWorldGrpc.TestHelloWorldImplBase.class))` is not recommended because such a `BindableService` implementation won't make it visible for respective Spring gRPC infrastructure.
 
 The `GrpcInboundGateway` uses a `sendAndReceiveMessageReactive()` API to interact with the downstream flow and adapts a `Mono` reply to the gRPC `StreamObserver`.
 As mentioned before, the request message payload is exactly a gRPC request message, and it expects a reply in a from of gRPC response message.
-The downstream logic could be type-safe and deal with gRPC messages similar way as if `*ImplBase` would be implemented manually.
+The downstream logic can be type-safe and deal with gRPC messages similar way as if `*ImplBase` would be implemented manually.
 
 The `MethodDescriptor.MethodType.UNARY` and `MethodDescriptor.MethodType.BIDI_STREAMING` are same from the downstream handling logic perspective.
-In other words, the `BIDI_STREAMING` is handled as a loop on request items and the gateway produces a response item for each of them.
+In other words, the `BIDI_STREAMING` is handled as a loop on request items and the gateway produces a response item immediately into the response `StreamObserver`.
 For different `BIDI_STREAMING` logic, the regular gRPC service implementation is recommended.
 
 The `MethodDescriptor.MethodType.CLIENT_STREAMING` mode produces a message with a `Flux` as a payload of gRPC request items.

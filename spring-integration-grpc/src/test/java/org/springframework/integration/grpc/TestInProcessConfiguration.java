@@ -73,7 +73,7 @@ public class TestInProcessConfiguration implements DisposableBean {
 
 	@Override
 	public void destroy() {
-		this.server.shutdown();
+		this.server.shutdownNow();
 	}
 
 }
