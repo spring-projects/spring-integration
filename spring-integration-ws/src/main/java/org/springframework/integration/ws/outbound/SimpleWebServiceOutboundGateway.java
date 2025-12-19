@@ -35,6 +35,7 @@ import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.mime.Attachment;
 import org.springframework.ws.mime.MimeMessage;
@@ -88,6 +89,28 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			@Nullable WebServiceMessageFactory messageFactory) {
 
 		super(uri, messageFactory);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
+	}
+
+	/**
+	 * Create an instance based on the predefined {@link WebServiceTemplate}
+	 * as an alternative to fine-grained configuration.
+	 * @param template the {@link WebServiceTemplate} to use.
+	 * @since 7.1
+	 */
+	public SimpleWebServiceOutboundGateway(WebServiceTemplate template) {
+		this(template, null);
+	}
+
+	/**
+	 * Create an instance based on the predefined {@link WebServiceTemplate}
+	 * as an alternative to fine-grained configuration.
+	 * @param template the {@link WebServiceTemplate} to use.
+	 * @param sourceExtractor the {@link SourceExtractor} to use.
+	 * @since 7.1
+	 */
+	public SimpleWebServiceOutboundGateway(WebServiceTemplate template, @Nullable SourceExtractor<?> sourceExtractor) {
+		super(template);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 

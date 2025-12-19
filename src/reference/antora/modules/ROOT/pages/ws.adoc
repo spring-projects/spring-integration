@@ -40,6 +40,7 @@ To invoke a web service when you send a message to a channel, you have two optio
 The former accepts either a `String` or `javax.xml.transform.Source` as the message payload.
 The latter supports any implementation of the `Marshaller` and `Unmarshaller` interfaces.
 Both require a Spring Web Services `DestinationProvider`, to determine the URI of the web service to be called.
+Or explicit uri directly, or via `WebServiceTemplate.defaultUri` (since version 7.1).
 The following example shows both options for invoking a web service:
 
 [source,java]
