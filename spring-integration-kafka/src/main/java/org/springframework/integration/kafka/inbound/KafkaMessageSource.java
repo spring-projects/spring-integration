@@ -625,10 +625,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private Object recordToMessage(ConsumerRecord<K, V> record) {
 		if (record.value() == null && this.checkNullValueForExceptions) {
-			checkDeserializationException(record, SerializationUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER);
+			checkDeserializationException(record, KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER);
 		}
 		if (record.key() == null && this.checkNullKeyForExceptions) {
-			checkDeserializationException(record, SerializationUtils.KEY_DESERIALIZER_EXCEPTION_HEADER);
+			checkDeserializationException(record, KafkaUtils.KEY_DESERIALIZER_EXCEPTION_HEADER);
 		}
 
 		TopicPartition topicPartition = new TopicPartition(record.topic(), record.partition());

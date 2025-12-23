@@ -154,6 +154,7 @@ public class PartitionedChannelTests {
 	PartitionedChannel testChannel;
 
 	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void messagesArePartitionedByCorrelationId() {
 		this.inputChannel.send(new GenericMessage<>(IntStream.range(0, 5).toArray()));
 
@@ -164,7 +165,6 @@ public class PartitionedChannelTests {
 				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSize(5);
 
-		@SuppressWarnings("unchecked")
 		Set<String> strings = new HashSet<>((Collection<? extends String>) receive.getPayload());
 		assertThat(strings).hasSize(1)
 				.allMatch(value -> value.startsWith("testChannel-partition-thread-"));
