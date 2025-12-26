@@ -58,7 +58,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		String uri = element.getAttribute("uri");
 		String destinationProvider = element.getAttribute("destination-provider");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
-		if (StringUtils.hasText(destinationProvider) == StringUtils.hasText(uri)) {
+		if (StringUtils.hasText(destinationProvider) && StringUtils.hasText(uri)) {
 			parserContext.getReaderContext().error(
 					"Exactly one of 'uri' or 'destination-provider' is required.", element);
 		}
@@ -140,7 +140,9 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		}
 	}
 
-	private void parseMarshallerAttribute(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	private static void parseMarshallerAttribute(BeanDefinitionBuilder builder, Element element,
+			ParserContext parserContext) {
+
 		String marshallerRef = element.getAttribute("marshaller");
 		String unmarshallerRef = element.getAttribute("unmarshaller");
 		if (StringUtils.hasText(marshallerRef)) {

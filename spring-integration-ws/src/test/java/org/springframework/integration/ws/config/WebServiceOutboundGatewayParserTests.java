@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
@@ -444,10 +445,12 @@ public class WebServiceOutboundGatewayParserTests {
 
 	@Test
 	public void invalidGatewayWithNeitherUriNorDestinationProvider() {
-		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+		assertThatExceptionOfType(BeanCreationException.class)
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml",
-								getClass()));
+								getClass()))
+				.withMessageContaining("'destinationProvider' or 'uri' must be provided, " +
+						"or 'defaultUri' must be set on the 'WebServiceTemplate'");
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -175,9 +175,10 @@ public class WsDslTests {
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
-		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
-		WebServiceTemplate template = mock();
-		String uri = "foo";
+		uriVariableExpressions.put("testVariable", new LiteralExpression("testValue"));
+		WebServiceTemplate template = new WebServiceTemplate();
+		String uri = "testUri";
+		template.setDefaultUri(uri);
 		MarshallingWebServiceOutboundGateway gateway =
 				Ws.marshallingOutboundGateway(template)
 						.uri(uri)
@@ -202,13 +203,12 @@ public class WsDslTests {
 		WebServiceMessageCallback requestCallback = msg -> {
 		};
 		Map<String, Expression> uriVariableExpressions = new HashMap<>();
-		uriVariableExpressions.put("foo", new LiteralExpression("bar"));
+		uriVariableExpressions.put("testVariable", new LiteralExpression("testValue"));
 		SourceExtractor<?> sourceExtractor = mock();
-		WebServiceTemplate template = mock();
-		String uri = "foo";
+		WebServiceTemplate template = new WebServiceTemplate();
+		template.setDefaultUri("testUri");
 		SimpleWebServiceOutboundGateway gateway =
 				Ws.simpleOutboundGateway(template)
-						.uri(uri)
 						.sourceExtractor(sourceExtractor)
 						.encodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY)
 						.headerMapper(headerMapper)
