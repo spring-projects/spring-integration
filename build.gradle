@@ -485,9 +485,6 @@ project('spring-integration-cloudevents') {
         api "io.cloudevents:cloudevents-core:$cloudEventsVersion"
         testImplementation "io.cloudevents:cloudevents-json-jackson:$cloudEventsVersion"
 
-        testImplementation("io.cloudevents:cloudevents-avro-compact:$cloudEventsVersion") {
-            exclude group: 'org.apache.avro', module: 'avro'
-        }
         testImplementation "org.apache.avro:avro:$avroVersion"
         testImplementation "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
     }
