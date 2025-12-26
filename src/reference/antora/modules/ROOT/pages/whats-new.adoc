@@ -14,3 +14,8 @@ For more details, see the https://github.com/spring-projects/spring-integration/
 In general, the project has been moved to the latest dependency versions.
 Java 17 is still the baseline, but Java 25 is supported.
 
+[[x7.1-cloudevents]]
+=== CloudEvents
+
+CloudEvents are now supported in the `spring-integration-cloudevents` module.
+See xref:cloudevents.adoc[] for more information.
