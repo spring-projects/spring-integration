@@ -22,16 +22,10 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
 import io.cloudevents.CloudEvent;
-import io.cloudevents.CloudEventData;
-import io.cloudevents.avro.compact.AvroCompactFormat;
-import io.cloudevents.core.format.EventDeserializationException;
 import io.cloudevents.core.format.EventFormat;
-import io.cloudevents.core.format.EventSerializationException;
 import io.cloudevents.jackson.JsonFormat;
-import io.cloudevents.rw.CloudEventDataMapper;
 import io.cloudevents.xml.XMLFormat;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -49,9 +43,17 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+
+/**
+ * Test {@link ToCloudEventTransformer} transformer.
+ *
+ * @author Glenn Renfro
+ *
+ * @since 7.1
+ */
 @DirtiesContext
 @SpringJUnitConfig
-class ToCloudEventsTransformerTests {
+class ToCloudEventTransformerTests {
 
 	private static final String TRACE_HEADER = "traceId";
 
@@ -64,26 +66,27 @@ class ToCloudEventsTransformerTests {
 	private static final byte[] PAYLOAD = "\"test message\"".getBytes(StandardCharsets.UTF_8);
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithNoExtensions;
+	private ToCloudEventTransformer transformerWithNoExtensions;
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithExtensions;
+	private ToCloudEventTransformer transformerWithExtensions;
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithNoExtensionsNoFormat;
+	private ToCloudEventTransformer transformerWithNoExtensionsNoFormat;
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithExtensionsNoFormat;
+	private ToCloudEventTransformer transformerWithNoExtensionsNoFormatEnabled;
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithExtensionsNoFormatWithPrefix;
+	private ToCloudEventTransformer transformerWithExtensionsNoFormat;
 
 	@Autowired
-	private ToCloudEventsTransformer transformerWithInvalidIDExpression;
+	private ToCloudEventTransformer transformerWithExtensionsNoFormatWithPrefix;
+
+	@Autowired
+	private ToCloudEventTransformer transformerWithInvalidIDExpression;
 
 	private final  JsonFormat jsonFormat = new JsonFormat();
-
-	private final  AvroCompactFormat avroFormat = new AvroCompactFormat();
 
 	private final  XMLFormat xmlFormat = new XMLFormat();
 
@@ -107,39 +110,6 @@ class ToCloudEventsTransformerTests {
 		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/unknown.transformerWithNoExtensions");
 		assertThat(cloudEvent.getDataSchema()).isNull();
 		assertThat(cloudEvent.getDataContentType()).isEqualTo(XMLFormat.XML_CONTENT_TYPE);
-	}
-
-	@Test
-	@SuppressWarnings("NullAway")
-	void doAvroTransformWithPayloadBasedOnContentType() {
-		CloudEvent cloudEvent = getTransformerNoExtensions(PAYLOAD, avroFormat);
-		assertThat(cloudEvent.getData().toBytes()).isEqualTo(PAYLOAD);
-		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/unknown.transformerWithNoExtensions");
-		assertThat(cloudEvent.getDataSchema()).isNull();
-		assertThat(cloudEvent.getDataContentType()).isEqualTo(AvroCompactFormat.AVRO_COMPACT_CONTENT_TYPE);
-	}
-
-	@Test
-	void unregisteredFormatType() {
-		EventFormat testFormat = new EventFormat() {
-
-			@Override
-			public byte[] serialize(CloudEvent event) throws EventSerializationException {
-				return new byte[0];
-			}
-
-			@Override
-			public CloudEvent deserialize(byte[] bytes, CloudEventDataMapper<? extends CloudEventData> mapper) throws EventDeserializationException {
-				return Mockito.mock(CloudEvent.class);
-			}
-
-			@Override
-			public String serializedContentType() {
-				return "application/cloudevents+invalid";
-			}
-		};
-		assertThatThrownBy(() -> getTransformerNoExtensions(PAYLOAD, testFormat))
-				.hasMessage("No EventFormat found for 'application/cloudevents+invalid'");
 	}
 
 	@Test
@@ -213,9 +183,16 @@ class ToCloudEventsTransformerTests {
 	@Test
 	void noContentType() {
 		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD).build();
-		assertThatThrownBy(() -> this.transformerWithNoExtensions.transform(message))
+		Message<?> result = this.transformerWithNoExtensions.transform(message);
+		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("application/octet-stream");
+	}
+
+	@Test
+	void noContentTypeNoFormatEnabled() {
+		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD).build();
+		assertThatThrownBy(() -> this.transformerWithNoExtensionsNoFormatEnabled.transform(message))
 				.isInstanceOf(MessageTransformationException.class)
-				.hasMessageContaining("Missing 'Content-Type' header");
+				.hasMessageContaining("No EventFormat found for 'application/octet-stream'");
 	}
 
 	@Test
@@ -268,7 +245,7 @@ class ToCloudEventsTransformerTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<byte[]> transformMessage(Message<byte[]> message, ToCloudEventsTransformer transformer) {
+	private Message<byte[]> transformMessage(Message<byte[]> message, ToCloudEventTransformer transformer) {
 		Object result = transformer.doTransform(message);
 
 		assertThat(result).isNotNull();
@@ -296,42 +273,49 @@ class ToCloudEventsTransformerTests {
 		private static final ExpressionParser parser = new SpelExpressionParser();
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithNoExtensions() {
-			return new ToCloudEventsTransformer();
+		public ToCloudEventTransformer transformerWithNoExtensions() {
+			return new ToCloudEventTransformer();
 		}
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithExtensions() {
-			return new ToCloudEventsTransformer(TEST_PATTERNS);
+		public ToCloudEventTransformer transformerWithExtensions() {
+			return new ToCloudEventTransformer(TEST_PATTERNS);
 		}
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithNoExtensionsNoFormat() {
-			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer();
-			toCloudEventsTransformer.setNoFormat(true);
+		public ToCloudEventTransformer transformerWithNoExtensionsNoFormat() {
+			ToCloudEventTransformer toCloudEventsTransformer =  new ToCloudEventTransformer();
+			toCloudEventsTransformer.setFailOnNoFormat(false);
 			return toCloudEventsTransformer;
 		}
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithExtensionsNoFormat() {
-			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer(TEST_PATTERNS);
-			toCloudEventsTransformer.setNoFormat(true);
+		public ToCloudEventTransformer transformerWithExtensionsNoFormat() {
+			ToCloudEventTransformer toCloudEventsTransformer =  new ToCloudEventTransformer(TEST_PATTERNS);
+			toCloudEventsTransformer.setFailOnNoFormat(false);
 			return toCloudEventsTransformer;
 		}
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithExtensionsNoFormatWithPrefix() {
-			ToCloudEventsTransformer toCloudEventsTransformer =  new ToCloudEventsTransformer(TEST_PATTERNS);
-			toCloudEventsTransformer.setNoFormat(true);
+		public ToCloudEventTransformer transformerWithExtensionsNoFormatWithPrefix() {
+			ToCloudEventTransformer toCloudEventsTransformer =  new ToCloudEventTransformer(TEST_PATTERNS);
+			toCloudEventsTransformer.setFailOnNoFormat(false);
 			toCloudEventsTransformer.setCloudEventPrefix("CLOUDEVENTS-");
 			return toCloudEventsTransformer;
 		}
 
 		@Bean
-		public ToCloudEventsTransformer transformerWithInvalidIDExpression() {
-			ToCloudEventsTransformer transformer = new ToCloudEventsTransformer();
+		public ToCloudEventTransformer transformerWithInvalidIDExpression() {
+			ToCloudEventTransformer transformer = new ToCloudEventTransformer();
 			transformer.setEventIdExpression(parser.parseExpression("null"));
 			return transformer;
+		}
+
+		@Bean
+		public ToCloudEventTransformer transformerWithNoExtensionsNoFormatEnabled() {
+			ToCloudEventTransformer toCloudEventsTransformer =  new ToCloudEventTransformer();
+			toCloudEventsTransformer.setFailOnNoFormat(true);
+			return toCloudEventsTransformer;
 		}
 	}
 
