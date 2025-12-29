@@ -798,6 +798,62 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		testMulti(false);
 	}
 
+	@Test
+	public void testWritingLatchClearedAfterRead() throws Exception {
+		SocketChannel channel = mock();
+		Socket socket = mock();
+		when(channel.socket()).thenReturn(socket);
+		when(socket.getReceiveBufferSize()).thenReturn(1024);
+
+		doAnswer(invocation -> {
+			ByteBuffer buffer = invocation.getArgument(0);
+			buffer.put("foo".getBytes());
+			return 3;
+		}).when(channel).read(Mockito.any(ByteBuffer.class));
+
+		TcpNioConnection connection = new TcpNioConnection(channel, false, false, this.nullPublisher, null);
+
+		CompositeExecutor compositeExec = compositeExecutor();
+		connection.setTaskExecutor(compositeExec);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
+
+		ChannelInputStream originalStream =
+				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+		assertThat(originalStream).isNotNull();
+
+		ChannelInputStream streamSpy = spy(originalStream);
+		dfa.setPropertyValue("channelInputStream", streamSpy);
+
+		AtomicReference<CountDownLatch> latchSeenDuringWrite = new AtomicReference<>();
+
+		doAnswer(invocation -> {
+			CountDownLatch currentLatch = (CountDownLatch) dfa.getPropertyValue("writingLatch");
+			if (currentLatch != null) {
+				latchSeenDuringWrite.compareAndSet(null, currentLatch);
+			}
+			return invocation.callRealMethod();
+		}).when(streamSpy).write(any(ByteBuffer.class));
+
+		Method doRead = TcpNioConnection.class.getDeclaredMethod("doRead");
+		doRead.setAccessible(true);
+
+		doRead.invoke(connection);
+
+		assertThat(latchSeenDuringWrite.get())
+				.as("writingLatch should be non-null while data is written to the pipe")
+				.isNotNull();
+
+		CountDownLatch writingLatchAfterRead = (CountDownLatch) dfa.getPropertyValue("writingLatch");
+		assertThat(writingLatchAfterRead)
+				.as("writingLatch must be null after a completed read cycle")
+				.isNull();
+
+		connection.close();
+
+		cleanupCompositeExecutor(compositeExec);
+	}
+
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
 		CountDownLatch serverReadyLatch = new CountDownLatch(1);
 		CountDownLatch latch = new CountDownLatch(21);
