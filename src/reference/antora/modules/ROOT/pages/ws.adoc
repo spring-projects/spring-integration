@@ -39,7 +39,7 @@ compile "org.springframework.integration:spring-integration-ws:{project-version}
 To invoke a web service when you send a message to a channel, you have two options, both of which build upon the https://projects.spring.io/spring-ws/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
 The former accepts either a `String` or `javax.xml.transform.Source` as the message payload.
 The latter supports any implementation of the `Marshaller` and `Unmarshaller` interfaces.
-Both require a Spring Web Services `DestinationProvider`, to determine the URI of the web service to be called.
+Both require a Spring Web Services `DestinationProvider` to determine the URI of the web service to be called, or an explicit URI can be provided directly or via `WebServiceTemplate.defaultUri` (since version 7.1).
 The following example shows both options for invoking a web service:
 
 [source,java]

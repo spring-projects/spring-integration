@@ -23,11 +23,12 @@
 		<si:queue capacity="10"/>
 	</si:channel>
 
-	<bean id="webServiceTemplate" class="org.springframework.ws.client.core.WebServiceTemplate"/>
+	<bean id="webServiceTemplate" class="org.springframework.ws.client.core.WebServiceTemplate">
+		<property name="defaultUri" value="https://example.org" />
+	</bean>
 
 	<ws:outbound-gateway id="gatewayWithReplyChannel"
 	                     request-channel="inputChannel"
-	                     uri="https://example.org"
 	                     reply-channel="outputChannel"
 	                     reply-timeout="777"
 	                     web-service-template="webServiceTemplate"

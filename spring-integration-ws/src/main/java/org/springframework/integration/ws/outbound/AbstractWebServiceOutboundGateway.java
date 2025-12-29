@@ -69,13 +69,13 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private final Lock lock = new ReentrantLock();
 
-	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
-
-	private final @Nullable String uri;
+	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory();
 
 	private final @Nullable DestinationProvider destinationProvider;
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
+
+	private @Nullable String uri;
 
 	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
@@ -90,8 +90,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private boolean webServiceTemplateExplicitlySet;
 
-	public AbstractWebServiceOutboundGateway(@Nullable final String uri, @Nullable WebServiceMessageFactory messageFactory) {
-		Assert.hasText(uri, "URI must not be empty");
+	public AbstractWebServiceOutboundGateway(@Nullable final String uri,
+			@Nullable WebServiceMessageFactory messageFactory) {
+
 		this.webServiceTemplate = messageFactory != null ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.destinationProvider = null;
@@ -106,9 +107,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.destinationProvider = destinationProvider;
 		// we always call WebServiceTemplate methods with an explicit URI argument,
-		// but in case the WebServiceTemplate is accessed directly we'll set this:
+		// but in case the WebServiceTemplate is accessed directly, we'll set this:
 		this.webServiceTemplate.setDestinationProvider(destinationProvider);
 		this.uri = null;
+	}
+
+	public AbstractWebServiceOutboundGateway(WebServiceTemplate webServiceTemplate) {
+		doSetWebServiceTemplate(webServiceTemplate);
+		this.destinationProvider = null;
 	}
 
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
@@ -165,6 +171,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		Assert.notNull(template, "'webServiceTemplate' must not be null");
 		this.webServiceTemplate = template;
 		this.webServiceTemplateExplicitlySet = true;
+		if (!StringUtils.hasText(this.uri)) {
+			this.uri = this.webServiceTemplate.getDefaultUri();
+		}
 	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
@@ -200,6 +209,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		Assert.state(this.destinationProvider == null || CollectionUtils.isEmpty(this.uriVariableExpressions),
 				"uri variables are not supported when a DestinationProvider is supplied.");
+
+		Assert.state(this.destinationProvider != null || StringUtils.hasText(this.uri),
+				"'destinationProvider' or 'uri' must be provided, " +
+						"or 'defaultUri' must be set on the 'WebServiceTemplate'");
 	}
 
 	protected WebServiceTemplate getWebServiceTemplate() {
@@ -234,7 +247,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 						.withRoot(requestMessage)
 						.build();
 
-		Assert.notNull(this.uri, "'uri' must not be null");
+		Assert.hasText(this.uri, "'uri' must be provided, or 'defaultUri' must be set on the 'WebServiceTemplate'");
 		return this.uriFactory.expand(this.uri, uriVariables);
 	}
 
