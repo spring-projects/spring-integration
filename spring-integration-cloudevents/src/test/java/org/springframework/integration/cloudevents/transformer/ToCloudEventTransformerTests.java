@@ -48,7 +48,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Test {@link ToCloudEventTransformer} transformer.
  *
  * @author Glenn Renfro
- *
  * @since 7.1
  */
 @DirtiesContext
@@ -86,16 +85,16 @@ class ToCloudEventTransformerTests {
 	@Autowired
 	private ToCloudEventTransformer transformerWithInvalidIDExpression;
 
-	private final  JsonFormat jsonFormat = new JsonFormat();
+	private final JsonFormat jsonFormat = new JsonFormat();
 
-	private final  XMLFormat xmlFormat = new XMLFormat();
+	private final XMLFormat xmlFormat = new XMLFormat();
 
 	@Test
 	@SuppressWarnings("NullAway")
 	void doJsonTransformWithPayloadBasedOnContentType() {
-		CloudEvent cloudEvent = getTransformerNoExtensions(PAYLOAD, jsonFormat);
+		CloudEvent cloudEvent = getTransformerNoExtensions(PAYLOAD, this.jsonFormat);
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(PAYLOAD);
-		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/unknown.transformerWithNoExtensions");
+		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/null.transformerWithNoExtensions");
 		assertThat(cloudEvent.getDataSchema()).isNull();
 		assertThat(cloudEvent.getDataContentType()).isEqualTo(JsonFormat.CONTENT_TYPE);
 	}
@@ -105,9 +104,9 @@ class ToCloudEventTransformerTests {
 	void doXMLTransformWithPayloadBasedOnContentType() {
 		String xmlPayload = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><payload>" +
 				"<message>testmessage</message></payload>");
-		CloudEvent cloudEvent = getTransformerNoExtensions(xmlPayload.getBytes(), xmlFormat);
+		CloudEvent cloudEvent = getTransformerNoExtensions(xmlPayload.getBytes(), this.xmlFormat);
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(xmlPayload.getBytes());
-		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/unknown.transformerWithNoExtensions");
+		assertThat(cloudEvent.getSource().toString()).isEqualTo("/spring/null.transformerWithNoExtensions");
 		assertThat(cloudEvent.getDataSchema()).isNull();
 		assertThat(cloudEvent.getDataContentType()).isEqualTo(XMLFormat.XML_CONTENT_TYPE);
 	}
@@ -135,6 +134,7 @@ class ToCloudEventTransformerTests {
 		Message<byte[]> result = transformMessage(message, this.transformerWithExtensionsNoFormat);
 		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
 		assertThat(result.getHeaders()).containsKeys("ce-" + TRACE_HEADER, "ce-" + SPAN_HEADER);
+		assertThat(result.getPayload()).isEqualTo(PAYLOAD);
 	}
 
 	@Test
@@ -148,7 +148,7 @@ class ToCloudEventTransformerTests {
 		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
 		assertThat(result.getHeaders()).containsKeys("CLOUDEVENTS-" + TRACE_HEADER, "CLOUDEVENTS-" + SPAN_HEADER,
 				"CLOUDEVENTS-id", "CLOUDEVENTS-specversion", "CLOUDEVENTS-datacontenttype");
-
+		assertThat(result.getPayload()).isEqualTo(PAYLOAD);
 	}
 
 	@Test
@@ -172,12 +172,14 @@ class ToCloudEventTransformerTests {
 	@Test
 	@SuppressWarnings("NullAway")
 	void emptyExtensionNames() {
-		Message<byte[]> message = createBaseMessage(PAYLOAD, "application/cloudevents+json").build();
+		Message<byte[]> message = createBaseMessage(PAYLOAD, JsonFormat.CONTENT_TYPE).build();
 
 		Object result = this.transformerWithNoExtensions.doTransform(message);
 		assertThat(result).isNotNull();
 		Message<?> resultMessage = (Message<?>) result;
 		assertThat(resultMessage.getPayload()).isNotNull();
+		assertThat(message.getPayload()).isEqualTo(PAYLOAD);
+
 	}
 
 	@Test
@@ -185,6 +187,8 @@ class ToCloudEventTransformerTests {
 		Message<byte[]> message = MessageBuilder.withPayload(PAYLOAD).build();
 		Message<?> result = this.transformerWithNoExtensions.transform(message);
 		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("application/octet-stream");
+		assertThat(message.getPayload()).isEqualTo(PAYLOAD);
+
 	}
 
 	@Test
@@ -231,7 +235,8 @@ class ToCloudEventTransformerTests {
 				.setHeader("contentType", JsonFormat.CONTENT_TYPE)
 				.build();
 
-		assertThatThrownBy(() -> this.transformerWithInvalidIDExpression.transform(message)).isInstanceOf(MessageTransformationException.class)
+		assertThatThrownBy(() -> this.transformerWithInvalidIDExpression.transform(message))
+				.isInstanceOf(MessageTransformationException.class)
 				.hasMessageContaining("failed to transform message");
 	}
 
@@ -317,7 +322,9 @@ class ToCloudEventTransformerTests {
 			toCloudEventsTransformer.setFailOnNoFormat(true);
 			return toCloudEventsTransformer;
 		}
+
 	}
 
 	private record TestRecord(String sampleValue) implements Serializable { }
+
 }
