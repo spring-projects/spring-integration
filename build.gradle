@@ -62,7 +62,7 @@ ext {
     graalvmVersion = '25.0.1'
     greenmailVersion = '2.1.8'
     groovyVersion = '5.0.3'
-	grpcVersion = '1.77.0'
+	grpcVersion = '1.77.1'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
     hibernateVersion = '7.1.13.Final'
