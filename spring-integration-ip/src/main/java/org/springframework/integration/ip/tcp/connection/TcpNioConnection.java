@@ -478,6 +478,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		finally {
 			this.writingToPipe = false;
 			this.writingLatch.countDown();
+			this.writingLatch = null;
 		}
 	}
 
@@ -819,7 +820,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					Thread.currentThread().interrupt();
 					throw new IOException("Interrupted while waiting for buffer space", e);
 				}
-				TcpNioConnection.this.writingLatch = new CountDownLatch(1);
 			}
 		}
 
