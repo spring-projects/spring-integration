@@ -152,3 +152,109 @@ private static HelloReply newHelloReply(String message) {
 
 The routing is done on the `GrpcHeaders.SERVICE_METHOD` header populated by the `GrpcInboundGateway`.
 All the downstream transformer business methods are type-safe in regard to gRPC messages for the `TestHelloWorldGrpc.TestHelloWorldImplBase` service.
+
+[[grpc-outbound-gateway]]
+== Outbound Gateway for gRPC
+
+The `GrpcOutboundGateway` is an `AbstractReplyProducingMessageHandler` implementation to send gRPC requests to a remote gRPC server and receive responses.
+For initialization, the instance of this gateway requires a gRPC `Channel`, the gRPC service class (e.g., `TestHelloWorldGrpc.class`), and an `Expression` specifying the method name to invoke.
+
+The gateway dynamically invokes gRPC methods using ``MethodDescriptor``s obtained from the service's `ServiceDescriptor`.
+It supports the following gRPC communication patterns:
+
+* **Unary**: Single request → single response (blocking call)
+* **Server streaming**: Single request → `Flux` of multiple responses
+* **Client streaming**: `Flux` of requests → single response (wrapped in `Flux`)
+* **Bidirectional streaming**: `Flux` of requests → `Flux` of multiple responses
+
+The following example demonstrates how to configure a `GrpcOutboundGateway`:
+
+[source, java]
+----
+@Bean
+public ManagedChannel grpcChannel() {
+    return ManagedChannelBuilder.forAddress("localhost", 9090)
+            .usePlaintext()
+            .build();
+}
+
+@Bean
+public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
+    return new GrpcOutboundGateway(channel,
+                                   TestHelloWorldGrpc.class,
+                                   new LiteralExpression("SayHello"));
+}
+----
+
+The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
+
+* For **UNARY** methods, the gateway performs a blocking call and returns the gRPC response message directly.
+* For **SERVER_STREAMING** methods, the gateway returns a `Flux<ResponseType>` containing all streamed responses.
+* For **CLIENT_STREAMING** and **BIDI_STREAMING** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Flux<ResponseType>`.
+
+=== Configuring Timeout
+
+The default timeout for asynchronous gRPC calls is 10 seconds.
+You can configure a custom timeout:
+
+[source, java]
+----
+@Bean
+public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel,
+                                                          TestHelloWorldGrpc.class,
+                                                          new LiteralExpression("SayHello"));
+    gateway.setAsyncTimeout(30, TimeUnit.SECONDS);
+    return gateway;
+}
+----
+
+=== Integration Flow Examples
+
+The following example demonstrates an `IntegrationFlow` implementation using the `GrpcOutboundGateway` for different gRPC method types:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow unaryCallFlow(GrpcOutboundGateway grpcGateway) {
+    return IntegrationFlow.from("unaryInput")
+            .handle(grpcGateway)
+            .channel("unaryOutput")
+            .get();
+}
+
+@Bean
+public IntegrationFlow serverStreamingFlow() {
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(grpcChannel(),
+                                                          TestHelloWorldGrpc.class,
+                                                          new LiteralExpression("StreamSayHello"));
+    return IntegrationFlow.from("streamInput")
+            .handle(gateway)
+            .channel("streamOutput")
+            .get();
+}
+
+@Bean
+public IntegrationFlow bidiStreamingFlow() {
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(grpcChannel(),
+                                                          TestHelloWorldGrpc.class,
+                                                          new LiteralExpression("BidiStreamHello"));
+    return IntegrationFlow.from("bidiInput")
+            .transform(Message.class, message -> {
+                // Payload must be a Flux for bidirectional streaming
+                Flux<HelloRequest> requestFlux = (Flux<HelloRequest>) message.getPayload();
+                return MessageBuilder.withPayload(requestFlux)
+                        .copyHeaders(message.getHeaders())
+                        .build();
+            })
+            .handle(gateway)
+            .channel("bidiOutput")
+            .get();
+}
+----
+
+=== Type Safety
+
+Similar to `GrpcInboundGateway`, the request and response payloads are gRPC message types (e.g., `HelloRequest`, `HelloReply`).
+The upstream flow must provide the correct gRPC request message type as the payload, and the downstream flow receives the gRPC response message type.
+This maintains type safety throughout the integration flow when working with gRPC services.
