@@ -32,7 +32,7 @@ compile "org.springframework.integration:spring-integration-cloudevents:{project
 === `ToCloudEventTransformer`
 
 The `ToCloudEventTransformer` converts Spring Integration messages into CloudEvents compliant messages.
-This transformer provides support for the CloudEvents specification v1.0 with configurable output format and defining attributes using ``Expression`` s and identifying extensions in the message headers via patterns.
+This transformer provides support for the CloudEvents specification v1.0, automatically serializing CloudEvents based on the message's `contentType` header, defining attributes using Expressions, and identifying extensions in the message headers via patterns.
 
 NOTE: Ensure messages to be transformed have a payload of type `byte[]`.
 The transformer throws an `IllegalArgumentException` if the payload is not a byte array.
@@ -73,13 +73,20 @@ Some other examples are but not limited to: `application/json`, `application/x-a
 
 ==== Extension Patterns
 
-The extensionPatterns constructor parameter is a vararg of ``String``s.
-Each `pattern` in the array is the search criteria for finding the headers that need to be added as extensions to the new `CloudEvent`.
-In this example, the following patterns were passed to the constructor: `"trace*", "span-id", "user-id"`.
-`ToCloudEventTransformer` searches for any header key that starts with the word `trace` and adds those headers to the extensions for the `CloudEvent` message.
-Then it searches for any header that contains a key of `span-id` as well as `user-id` and adds those headers as extensions if found.
+The extensionPatterns constructor parameter is a vararg of strings that supports pattern matching with wildcards (`*`).
+Message headers with keys matching any pattern are included as CloudEvent extensions.
+Patterns also support negation using a `!` prefix to explicitly exclude headers.
+The first matching pattern wins (positive or negative).
+
+For example, with patterns `"trace*", "span-id", "user-id"`:
+- Headers starting with `trace` (e.g., `trace-id`, `traceparent`) are included
+- Headers with exact keys `span-id` and `user-id` are included
+- All matching headers are added as extensions to the CloudEvent
+
+To exclude specific headers, use negated patterns: `"custom-*", "!custom-internal"` would include all headers starting with `custom-` except `custom-internal`.
 
 [[configuration-with-dsl]]
+
 ==== Configuration With DSL
 
 Add the CloudEvent transformer to flows using the DSL:
@@ -102,6 +109,7 @@ public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEv
 ----
 
 [[cloudevent-transformer-process]]
+
 ==== CloudEvent Transformer Process
 
 The transformer follows the process below:
@@ -117,9 +125,9 @@ A basic transformation may have the following pattern:
 // Input message with headers
 Message<byte[]> inputMessage = MessageBuilder
     .withPayload("Hello CloudEvents".getBytes(StandardCharsets.UTF_8))
-    .withHeader(MessageHeaders.CONTENT_TYPE, "application/octet-stream")
+    .withHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
     .build();
-// Transformer with extension patterns
+
 ToCloudEventTransformer transformer = new ToCloudEventTransformer();
 
 // Transform to CloudEvent
@@ -127,9 +135,13 @@ Object cloudEventMessage = transformer.transform(inputMessage);
 ----
 
 [[eventformats]]
+
 ==== EventFormats
 
-The `ToCloudEventTransformer` uses ``EventFormat``s to serialize the CloudEvent into the message's payload.
+The `ToCloudEventTransformer` uses ``EventFormat``s to serialize the CloudEvent into the message's payload if the EventFormat for the content type is available.
+For example if the content type is `application/cloudevents+xml` and the `io.cloudevents:cloudevents-xml` dependency is specified, then the XMLFormat will be used to serialize the CloudEvent to the payload.
+However, if the type is not supported by one of the cloudevents dependencies and the `failOnNoFormat` is set to `false`, (for example `text/plain`) then cloud event attributes and extensions are added to the message headers with the cloud event prefix (default is `ce-`) and the payload is left unchanged.
+If `failOnNoFormat` is set to `true` then a `MessageTransformationException` is thrown if a `EventFormat` is not found.
 To utilize a specific `EventFormat`, add the associated dependency.
 For example, to add the XML `EventFormat`, add the following dependency: `io.cloudevents:cloudevents-xml`.
 See the https://github.com/cloudevents/sdk-java[CloudEvents SDK project's] reference docs for information on the ``EventFormat``s that are available.

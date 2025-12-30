@@ -1,3 +1,6 @@
+/**
+ * Provides CloudEvents transformer implementations
+ */
 
 @org.jspecify.annotations.NullMarked
 package org.springframework.integration.cloudevents.transformer;
