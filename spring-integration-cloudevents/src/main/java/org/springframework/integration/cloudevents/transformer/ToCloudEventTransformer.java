@@ -43,6 +43,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -52,9 +53,9 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.util.StringUtils;
 
 /**
  * Convert messages to CloudEvent format.
@@ -67,13 +68,13 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	private static final String DEFAULT_PREFIX = "ce-";
 
-	private static final EventFormatProvider eventFormatProvider = EventFormatProvider.getInstance();
+	private final EventFormatProvider eventFormatProvider = EventFormatProvider.getInstance();
 
 	private final String[] extensionPatterns;
 
 	private String cloudEventPrefix = DEFAULT_PREFIX;
 
-	private boolean failOnNoFormat = false;
+	private boolean failOnNoFormat;
 
 	private Expression eventIdExpression = new FunctionExpression<Message<?>>(
 			msg -> Objects.requireNonNull(msg.getHeaders().getId()).toString());
@@ -83,7 +84,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	private Expression typeExpression = new LiteralExpression("spring.message");
 
-	@SuppressWarnings("NullAway.Init")
 	private @Nullable Expression dataSchemaExpression;
 
 	private @Nullable Expression subjectExpression;
@@ -93,7 +93,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Create a ToCloudEventTransformer with no extensionPatterns.
-	 * @since 7.1
 	 */
 	public ToCloudEventTransformer() {
 		this(new String[0]);
@@ -103,7 +102,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Create a ToCloudEventTransformer.
 	 * @param extensionPatterns patterns to evaluate whether message headers should be added as extensions
 	 *                          to the CloudEvent
-	 * @since 7.1
 	 */
 	public ToCloudEventTransformer(String... extensionPatterns) {
 		this.extensionPatterns = Arrays.copyOf(extensionPatterns, extensionPatterns.length);
@@ -113,12 +111,14 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	protected void onInit() {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		if (this.sourceExpression == null) {  // in the case the user sets the value prior to onInit.
+		if (this.sourceExpression == null) {
 			ApplicationContext applicationContext = getApplicationContext();
 			String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
-			logger.warn("'spring.application.name' is not set. " +
-					"CloudEvent source URIs will use 'null' as the application name. " +
-					"Consider setting 'spring.application.name'");
+			if (!StringUtils.hasText(appName)) {
+				logger.warn("'spring.application.name' is not set. " +
+						"CloudEvent source URIs will use 'null' as the application name. " +
+						"Consider setting 'spring.application.name'");
+			}
 			this.sourceExpression = new ValueExpression<>(URI.create("/spring/" + appName + "." + getBeanName()));
 		}
 	}
@@ -127,7 +127,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Set the {@link Expression} to create CloudEvent ids.
 	 * Defaults to extracting the id from the {@link MessageHeaders} of the message.
 	 * @param eventIdExpression the expression to create the id for each CloudEvent
-	 * @since 7.1
 	 */
 	public void setEventIdExpression(Expression eventIdExpression) {
 		this.eventIdExpression = eventIdExpression;
@@ -137,7 +136,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Set the {@link Expression} to create CloudEvent source.
 	 * Defaults to {@code "/spring/" + appName + "." + getBeanName())}.
 	 * @param sourceExpression the expression to create the source for each CloudEvent
-	 * @since 7.1
 	 */
 	public void setSourceExpression(Expression sourceExpression) {
 		this.sourceExpression = sourceExpression;
@@ -147,7 +145,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Set the {@link Expression} to extract the type for the CloudEvent.
 	 * Defaults to "spring.message".
 	 * @param typeExpression the expression to create the type for each CloudEvent
-	 * @since 7.1
 	 */
 	public void setTypeExpression(Expression typeExpression) {
 		this.typeExpression = typeExpression;
@@ -156,7 +153,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	/**
 	 * Set the {@link Expression} to create the dataSchema for the CloudEvent.
 	 * @param dataSchemaExpression the expression to create the dataSchema for each CloudEvent
-	 * @since 7.1
 	 */
 	public void setDataSchemaExpression(Expression dataSchemaExpression) {
 		this.dataSchemaExpression = dataSchemaExpression;
@@ -165,7 +161,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	/**
 	 * Set the {@link Expression} to create the subject for the CloudEvent.
 	 * @param subjectExpression the expression to create the subject for each CloudEvent
-	 * @since 7.1
 	 */
 	public void setSubjectExpression(Expression subjectExpression) {
 		this.subjectExpression = subjectExpression;
@@ -176,7 +171,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * When {@code false} and no {@link EventFormat} is found, then a {@link CloudEvent}' body is
 	 * set as an output message's payload, and its attributes are set into headers.
 	 * @param failOnNoFormat true to disable format serialization
-	 * @since 7.1
 	 */
 	public void setFailOnNoFormat(boolean failOnNoFormat) {
 		this.failOnNoFormat = failOnNoFormat;
@@ -188,7 +182,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * @return {@code true} if transformation should fail
 	 *         when no suitable {@link EventFormat} is found;
 	 *         {@code false} otherwise
-	 * @since 7.1
 	 */
 	public boolean isFailOnNoFormat() {
 		return this.failOnNoFormat;
@@ -197,7 +190,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	/**
 	 * Set the prefix for CloudEvent headers in binary content mode.
 	 * @param cloudEventPrefix the prefix to use for CloudEvent headers
-	 * @since 7.1
 	 */
 	public void setCloudEventPrefix(String cloudEventPrefix) {
 		this.cloudEventPrefix = cloudEventPrefix;
@@ -206,7 +198,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	/**
 	 * Return the prefix used for CloudEvent headers in binary content mode.
 	 * @return the CloudEvent header prefix
-	 * @since 7.1
 	 */
 	public String getCloudEventPrefix() {
 		return this.cloudEventPrefix;
@@ -220,14 +211,14 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 */
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.isInstanceOf(byte[].class, message.getPayload(), "Message payload must be byte[]");
+		Object payload = message.getPayload();
+		Assert.isInstanceOf(byte[].class, payload, "Message payload must be byte[]");
 
 		String id = this.eventIdExpression.getValue(this.evaluationContext, message, String.class);
 		URI source = this.sourceExpression.getValue(this.evaluationContext, message, URI.class);
 		String type = this.typeExpression.getValue(this.evaluationContext, message, String.class);
 		MessageHeaders headers = message.getHeaders();
-		MessageHeaderAccessor accessor = new MessageHeaderAccessor(message);
-		MimeType mimeType = accessor.getContentType();
+		MimeType mimeType = StaticMessageHeaderAccessor.getContentType(message);
 		String contentType;
 		if (mimeType == null) {
 			contentType = "application/octet-stream";
@@ -257,11 +248,11 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 					this.dataSchemaExpression.getValue(this.evaluationContext, message, URI.class));
 		}
 
-		CloudEvent cloudEvent = cloudEventBuilder.withData((byte[]) message.getPayload())
+		CloudEvent cloudEvent = cloudEventBuilder.withData((byte[]) payload)
 				.withExtension(extensions)
 				.build();
 
-		EventFormat eventFormat = eventFormatProvider.resolveFormat(contentType);
+		EventFormat eventFormat = this.eventFormatProvider.resolveFormat(contentType);
 
 		if (eventFormat == null && this.failOnNoFormat) {
 			throw new MessageTransformationException("No EventFormat found for '" + contentType + "'");
@@ -273,10 +264,11 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 					.setHeader(MessageHeaders.CONTENT_TYPE, eventFormat.serializedContentType())
 					.build();
 		}
+
 		HashMap<String, Object> messageMap = new HashMap<>(headers);
 		messageMap.put(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
 		return CloudEventUtils.toReader(cloudEvent)
-				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, new MessageHeaders(messageMap)));
+				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, messageMap));
 	}
 
 	@Override
@@ -295,25 +287,26 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	private Map<String, Object> getCloudEventExtensions(MessageHeaders headers) {
 		Map<String, Object> cloudEventExtensions = new HashMap<>();
 		Boolean patternResult;
+		String headerKey;
 		for (Map.Entry<String, Object> header : headers.entrySet()) {
-			patternResult = PatternMatchUtils.smartMatch(header.getKey(), this.extensionPatterns);
-			if (patternResult != null && patternResult) {
-				cloudEventExtensions.put(header.getKey(), header.getValue());
+			headerKey = header.getKey();
+			patternResult = PatternMatchUtils.smartMatch(headerKey, this.extensionPatterns);
+			if (Boolean.TRUE.equals(patternResult)) {
+				cloudEventExtensions.put(headerKey, header.getValue());
 			}
 		}
 		return cloudEventExtensions;
 	}
 
+	/**
+	 * A custom CloudEvent extension implementation that wraps a map of headers as CloudEvent extension attributes.
+	 */
 	private static class ToCloudEventTransformerExtension implements CloudEventExtension {
 
 		private final Map<String, Object> cloudEventExtensions;
 
-		/**
-		 * Create CloudEvent extensions by processing a message using expressions.
-		 * @param headers to be added as cloudEventExtensions
-		 */
 		ToCloudEventTransformerExtension(Map<String, Object> headers) {
-			this.cloudEventExtensions = Map.copyOf(headers);
+			this.cloudEventExtensions = headers;
 		}
 
 		@Override
@@ -333,24 +326,20 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	}
 
+	/**
+	 * A CloudEvent writer implementation that converts CloudEvent objects into
+	 * Spring Integration {@link Message} instances with CloudEvent attributes as headers.
+	 */
 	private static class MessageBuilderMessageWriter implements CloudEventWriter<Message<byte[]>>,
 			CloudEventWriterFactory<MessageBuilderMessageWriter, Message<byte[]>> {
 
 		private final String cloudEventPrefix;
 
-		private final String specVersionKey;
+		private final Map<String, Object> headers;
 
-		private final Map<String, Object> headers = new HashMap<>();
-
-		/**
-		 * Create a MessageBuilderMessageWriter with the specified configuration.
-		 * @param cloudEventPrefix the prefix to prepend to CloudEvent attribute names in message headers
-		 * @param headers the base message headers to include in the output message
-		 */
 		MessageBuilderMessageWriter(String cloudEventPrefix, Map<String, Object> headers) {
-			this.headers.putAll(headers);
+			this.headers = headers;
 			this.cloudEventPrefix = cloudEventPrefix;
-			this.specVersionKey = this.cloudEventPrefix + "specversion";
 		}
 
 		/**
@@ -363,7 +352,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 */
 		@Override
 		public Message<byte[]> end(CloudEventData value) throws CloudEventRWException {
-			return org.springframework.integration.support.MessageBuilder
+			return MessageBuilder
 					.withPayload(value.toBytes())
 					.copyHeaders(this.headers)
 					.build();
@@ -377,7 +366,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 */
 		@Override
 		public Message<byte[]> end() {
-			return org.springframework.integration.support.MessageBuilder
+			return MessageBuilder
 					.withPayload(new byte[0])
 					.copyHeaders(this.headers)
 					.build();
@@ -406,7 +395,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 */
 		@Override
 		public MessageBuilderMessageWriter create(SpecVersion version) {
-			this.headers.put(this.specVersionKey, version.toString());
+			this.headers.put(this.cloudEventPrefix + "specversion", version.toString());
 			return this;
 		}
 
