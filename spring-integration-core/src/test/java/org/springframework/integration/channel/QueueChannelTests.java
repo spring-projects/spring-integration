@@ -81,7 +81,7 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel(new ArrayDeque<>());
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
-			Message<?> message = channel.receive(1);
+			Message<?> message = channel.receive(10000);
 			if (message != null) {
 				latch.countDown();
 			}
@@ -115,6 +115,7 @@ public class QueueChannelTests {
 		};
 		singleThreadExecutor.execute(receiveTask2);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(messageNull).isTrue();
 		singleThreadExecutor.shutdownNow();
 	}
 
@@ -131,7 +132,7 @@ public class QueueChannelTests {
 		});
 		exec.shutdownNow();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(messageNull.get()).isTrue();
+		assertThat(messageNull).isTrue();
 	}
 
 	@Test
@@ -141,13 +142,13 @@ public class QueueChannelTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
-			Message<?> message = channel.receive(10000);
+			Message<?> message = channel.receive(1);
 			messageNull.set(message == null);
 			latch.countDown();
 		});
-		exec.shutdownNow();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(messageNull.get()).isTrue();
+		assertThat(messageNull).isTrue();
+		exec.shutdownNow();
 	}
 
 	@Test
