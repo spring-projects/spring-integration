@@ -83,7 +83,7 @@ class ToCloudEventTransformerTests {
 	private ToCloudEventTransformer transformerWithNoExtensionsNoFormat;
 
 	@Autowired
-	private ToCloudEventTransformer transformerWithNoExtensionsNoFormatEnabled;
+	private ToCloudEventTransformer invalidEventFormatContentTypeExpression;
 
 	@Autowired
 	private ToCloudEventTransformer transformerWithExtensionsNoFormat;
@@ -215,16 +215,16 @@ class ToCloudEventTransformerTests {
 	void noContentType() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
 		Message<?> result = this.transformerWithNoExtensionsNoFormat.transform(message);
-		assertThat(result.getHeaders()).containsEntry("ce-datacontenttype", "application/octet-stream");
+		assertThat(result.getHeaders()).containsEntry("ce-datacontenttype", "application/cloudevents");
 		assertThat(message.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
 	@Test
-	void noContentTypeNoFormatEnabled() {
+	void invalidEventFormatContentTypeExpression() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
-		assertThatThrownBy(() -> this.transformerWithNoExtensionsNoFormatEnabled.transform(message))
+		assertThatThrownBy(() -> this.invalidEventFormatContentTypeExpression.transform(message))
 				.isInstanceOf(MessageTransformationException.class)
-				.hasMessageContaining("No EventFormat found for 'application/octet-stream'");
+				.hasMessageContaining("No EventFormat found for the expression 'invalid/type'");
 	}
 
 	@Test
@@ -316,17 +316,23 @@ class ToCloudEventTransformerTests {
 
 		@Bean
 		public ToCloudEventTransformer xmlTransformerWithNoExtensions() {
-			return new ToCloudEventTransformer(new XMLFormat());
+			ToCloudEventTransformer transformer = new ToCloudEventTransformer();
+			transformer.setEventFormat(new XMLFormat());
+			return transformer;
 		}
 
 		@Bean
 		public ToCloudEventTransformer jsonTransformerWithNoExtensions() {
-			return new ToCloudEventTransformer(new JsonFormat());
+			ToCloudEventTransformer transformer = new ToCloudEventTransformer();
+			transformer.setEventFormat(new JsonFormat());
+			return transformer;
 		}
 
 		@Bean
 		public ToCloudEventTransformer jsonTransformerWithExtensions() {
-			return new ToCloudEventTransformer(new JsonFormat(), TEST_PATTERNS);
+			ToCloudEventTransformer transformer = new ToCloudEventTransformer(TEST_PATTERNS);
+			transformer.setEventFormat(new JsonFormat());
+			return transformer;
 		}
 
 		@Bean
@@ -336,27 +342,28 @@ class ToCloudEventTransformerTests {
 
 		@Bean
 		public ToCloudEventTransformer transformerWithExtensionsNoFormat() {
-			return new ToCloudEventTransformer(null, TEST_PATTERNS);
+			return new ToCloudEventTransformer(TEST_PATTERNS);
 		}
 
 		@Bean
 		public ToCloudEventTransformer transformerWithExtensionsNoFormatWithPrefix() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer(null, TEST_PATTERNS);
+			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer(TEST_PATTERNS);
 			toCloudEventsTransformer.setCloudEventPrefix("CLOUDEVENTS-");
 			return toCloudEventsTransformer;
 		}
 
 		@Bean
 		public ToCloudEventTransformer xmlTransformerWithInvalidIDExpression() {
-			ToCloudEventTransformer transformer = new ToCloudEventTransformer(new XMLFormat());
+			ToCloudEventTransformer transformer = new ToCloudEventTransformer();
+			transformer.setEventFormat(new XMLFormat());
 			transformer.setEventIdExpression(parser.parseExpression("null"));
 			return transformer;
 		}
 
 		@Bean
-		public ToCloudEventTransformer transformerWithNoExtensionsNoFormatEnabled() {
+		public ToCloudEventTransformer invalidEventFormatContentTypeExpression() {
 			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
-			toCloudEventsTransformer.setFailOnNoFormat(true);
+			toCloudEventsTransformer.setEventFormatContentTypeExpression(new LiteralExpression("invalid/type"));
 			return toCloudEventsTransformer;
 		}
 
@@ -364,7 +371,6 @@ class ToCloudEventTransformerTests {
 		public ToCloudEventTransformer transformerWithNoExtensionsNoFormatEnabledWithProviderExpression() {
 			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
 			toCloudEventsTransformer.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
-			toCloudEventsTransformer.setFailOnNoFormat(true);
 			return toCloudEventsTransformer;
 		}
 	}

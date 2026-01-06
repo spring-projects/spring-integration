@@ -23,5 +23,5 @@ See xref:ws.adoc[] for more information.
 [[x7.1-cloudevents]]
 === CloudEvents
 
-CloudEvents are now supported in the `spring-integration-cloudevents` module.
+The new spring-integration-cloudevents module has been introduced to support CloudEvents specification.
 See xref:cloudevents.adoc[] for more information.
