@@ -59,6 +59,21 @@ import org.springframework.util.StringUtils;
 
 /**
  * Transform messages to CloudEvent format with attributes and extensions mapping.
+ * <p>This transformer supports two output modes:
+ * <ul>
+ *   <li><b>Structured Content Mode:</b> When an {@link EventFormat} is available
+ *   (either configured via {@link #setEventFormat(EventFormat)} or resolved via
+ *   {@link #setEventFormatContentTypeExpression(Expression)}), the CloudEvent is
+ *   serialized into the message payload using that format (e.g., JSON, XML).
+ *   The output message contains the serialized CloudEvent as payload with
+ *   {@link MessageHeaders#CONTENT_TYPE} set to the format's serialized content type.</li>
+ *   <li><b>Binary Content Mode:</b> When no {@link EventFormat} is available,
+ *   the transformer uses {@link MessageBuilderMessageWriter} to convert the CloudEvent
+ *   into a message where CloudEvent attributes are mapped to headers with a configurable
+ *   prefix (default: {@code "ce-"}), and the CloudEvent data becomes the payload.
+ *   The output message contains the original data as payload with
+ *   {@link MessageHeaders#CONTENT_TYPE} set to {@code "application/cloudevents"}.</li>
+ * </ul>
  *
  * @author Glenn Renfro
  *
@@ -118,8 +133,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 			String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
 			if (!StringUtils.hasText(appName)) {
 				logger.warn("'spring.application.name' is not set. " +
-						"CloudEvent source URIs will use 'null' as the application name. " +
-						"Consider setting 'spring.application.name'");
+						"CloudEvent source URIs will use 'null' as the application name. ");
 			}
 			this.sourceExpression = new ValueExpression<>(URI.create("/spring/" + appName + "." + getBeanName()));
 		}
@@ -157,7 +171,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	}
 
 	/**
-	 * Set the {@link Expression} to create the dataSchema for the CloudEvent.
+	 * Set the {@link Expression} to create the {@code dataSchema} for the CloudEvent.
 	 * @param dataSchemaExpression the expression to create the dataSchema for each CloudEvent
 	 */
 	public void setDataSchemaExpression(Expression dataSchemaExpression) {
@@ -165,8 +179,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	}
 
 	/**
-	 * Set the {@link Expression} to create the subject for the CloudEvent.
-	 * @param subjectExpression the expression to create the subject for each CloudEvent
+	 * Set the {@link Expression} to create the {@code subject} for the CloudEvent.
+	 * @param subjectExpression the expression to create the {@code subject} for each CloudEvent
 	 */
 	public void setSubjectExpression(Expression subjectExpression) {
 		this.subjectExpression = subjectExpression;
@@ -174,8 +188,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the {@link EventFormat} to use for CloudEvent serialization.
-	 * The eventFormat and the eventFormatContentTypeExpression are mutually exclusive.
-	 * If both are present then the eventFormatContentTypeExpression is ignored.
+	 * If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
+	 * the eventFormat has a precedence.
 	 * @param eventFormat the event format for serializing CloudEvents
 	 */
 	public void setEventFormat(EventFormat eventFormat) {
@@ -186,13 +200,14 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Set the {@link Expression} to produce a cloud event format content type
 	 * when {@link EventFormatProvider} is to be used to determine
 	 * {@link EventFormat}.
-	 * The eventFormat and the eventFormatContentTypeExpression are mutually exclusive.
-	 * If both are present then the eventFormatContentTypeExpression is ignored.
+	 * If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
+	 * the eventFormat has a precedence.
 	 * @param eventFormatContentTypeExpression the expression to create
 	 * content type for the {@link EventFormatProvider}
-	 *
 	 * More can be read about content types EventFormatProvider supports here:
-	 *  https://github.com/cloudevents/sdk-java/blob/main/core/src/main/java/io/cloudevents/core/format/ContentType.java
+	 * @see <a href="
+	 * https://github.com/cloudevents/sdk-java/blob/main/core/src/main/java/io/cloudevents/core/format/ContentType.java"
+	 * >CloudEvents ContentType source</a>
 	 */
 	public void setEventFormatContentTypeExpression(Expression eventFormatContentTypeExpression) {
 		this.eventFormatContentTypeExpression = eventFormatContentTypeExpression;
@@ -242,20 +257,21 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		CloudEvent cloudEvent = cloudEventBuilder.withData((byte[]) payload)
 				.withExtension(extensions)
 				.build();
-
+		EventFormat selectedEventFormat = this.eventFormat;
 		if (this.eventFormat == null && this.eventFormatContentTypeExpression != null) {
-			this.eventFormat = this.eventFormatProvider.resolveFormat(
-					this.eventFormatContentTypeExpression.getValue(this.evaluationContext, message, String.class));
-			if (this.eventFormat == null) {
-				throw new MessageTransformationException("No EventFormat found for the expression '" +
+			String expressionContentType = this.eventFormatContentTypeExpression.getValue(this.evaluationContext, message, String.class);
+			selectedEventFormat = this.eventFormatProvider.resolveFormat(expressionContentType);
+			if (selectedEventFormat == null) {
+				throw new MessageTransformationException("No EventFormat found for content type of '" +
+						expressionContentType + "' provided by the expression '" +
 						this.eventFormatContentTypeExpression.getExpressionString() + "'");
 			}
 		}
 
-		if (this.eventFormat != null) {
-			return MessageBuilder.withPayload(this.eventFormat.serialize(cloudEvent))
+		if (selectedEventFormat != null) {
+			return MessageBuilder.withPayload(selectedEventFormat.serialize(cloudEvent))
 					.copyHeaders(headers)
-					.setHeader(MessageHeaders.CONTENT_TYPE, this.eventFormat.serializedContentType())
+					.setHeader(MessageHeaders.CONTENT_TYPE, selectedEventFormat.serializedContentType())
 					.build();
 		}
 
@@ -355,13 +371,12 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		@Override
 		public MessageBuilderMessageWriter create(SpecVersion version) {
 			this.headers.put(this.cloudEventPrefix + "specversion", version.toString());
+			this.headers.put(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
 			return this;
 		}
 
 		/**
 		 * Complete the message creation with CloudEvent data.
-		 * Create a message with the CloudEvent data as the payload. Set CloudEvent attributes
-		 * as headers via {@link #withContextAttribute(String, String)}.
 		 * @param value the CloudEvent data to use as the message payload
 		 * @return the Spring Integration message with CloudEvent data and attributes
 		 * @throws CloudEventRWException if an error occurs during message creation
@@ -371,14 +386,12 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 			return MessageBuilder
 					.withPayload(value.toBytes())
 					.copyHeaders(this.headers)
-					.setHeader(this.cloudEventPrefix + "datacontenttype", "application/cloudevents")
 					.build();
 		}
 
 		/**
 		 * Complete the message creation without CloudEvent data.
 		 * Create a message with an empty payload when the CloudEvent contains no data.
-		 * Set CloudEvent attributes as headers via {@link #withContextAttribute(String, String)}.
 		 * @return the Spring Integration message with an empty payload and CloudEvent attributes as headers
 		 */
 		@Override

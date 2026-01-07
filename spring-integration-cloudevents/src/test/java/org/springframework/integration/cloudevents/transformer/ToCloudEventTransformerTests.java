@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.jackson.JsonCloudEventData;
 import io.cloudevents.jackson.JsonFormat;
@@ -31,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -101,6 +100,7 @@ class ToCloudEventTransformerTests {
 
 	private final XMLFormat xmlFormat = new XMLFormat();
 
+	@SuppressWarnings({"unchecked"})
 	@Test
 	void transformWithPayloadBasedOnJsonFormatContentTypeWithProviderExpression() {
 		Message<byte[]> originalMessage = createBaseMessage(JSON_PAYLOAD, "text/plain")
@@ -155,6 +155,7 @@ class ToCloudEventTransformerTests {
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(XML_PAYLOAD);
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Test
 	void convertMessageNoExtensions() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD)
@@ -165,10 +166,11 @@ class ToCloudEventTransformerTests {
 		Message<byte[]> result =  (Message<byte[]>) this.transformerWithNoExtensionsNoFormat.doTransform(message);
 		assertThat(result.getHeaders()).containsKeys(TRACE_HEADER, SPAN_HEADER);
 		assertThat(result.getHeaders()).doesNotContainKeys("ce-" + TRACE_HEADER, "ce-" + SPAN_HEADER);
-		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain");
+		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
 		assertThat(result.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Test
 	void convertMessageWithExtensions() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD)
@@ -182,6 +184,7 @@ class ToCloudEventTransformerTests {
 		assertThat(result.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Test
 	void convertMessageWithExtensionsNewPrefix() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD)
@@ -202,20 +205,20 @@ class ToCloudEventTransformerTests {
 		TestRecord testRecord = new TestRecord("sample data");
 		byte[] payload = convertPayloadToBytes(testRecord);
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeader("test_id", "test-id")
-				.setHeader(MessageHeaders.CONTENT_TYPE, JsonFormat.CONTENT_TYPE)
+				.setHeader(MessageHeaders.CONTENT_TYPE, "application/x-java-serialized-object")
 				.build();
 
 		Message<byte[]> resultMessage = (Message<byte[]>) this.jsonTransformerWithNoExtensions.doTransform(message);
 		CloudEvent cloudEvent = this.jsonFormat.deserialize(resultMessage.getPayload());
-		verifyCloudEvent(cloudEvent, "jsonTransformerWithNoExtensions", JsonFormat.CONTENT_TYPE);
-		assertThat(new String(resultMessage.getPayload())).contains(new String(payload));
+		verifyCloudEvent(cloudEvent, "jsonTransformerWithNoExtensions", "application/x-java-serialized-object");
+		assertThat(cloudEvent.getData().toBytes()).contains(payload);
 	}
 
 	@Test
 	void noContentType() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
 		Message<?> result = this.transformerWithNoExtensionsNoFormat.transform(message);
-		assertThat(result.getHeaders()).containsEntry("ce-datacontenttype", "application/cloudevents");
+		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
 		assertThat(message.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
@@ -224,7 +227,8 @@ class ToCloudEventTransformerTests {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
 		assertThatThrownBy(() -> this.invalidEventFormatContentTypeExpression.transform(message))
 				.isInstanceOf(MessageTransformationException.class)
-				.hasMessageContaining("No EventFormat found for the expression 'invalid/type'");
+				.hasMessageContaining("No EventFormat found for content type of 'invalid/type' provided by " +
+						"the expression 'invalid/type'");
 	}
 
 	@Test
@@ -262,6 +266,7 @@ class ToCloudEventTransformerTests {
 		verifyCloudEvent(cloudEvent, "jsonTransformerWithExtensions", "application/json");
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Test
 	void emptyStringPayloadHandling() {
 		Message<byte[]> message = createBaseMessage("".getBytes(), "text/plain").build();
@@ -286,6 +291,7 @@ class ToCloudEventTransformerTests {
 		assertThat(cloudEvent.getDataSchema()).isNull();
 	}
 
+	@SuppressWarnings({"unchecked"})
 	private static Message<byte[]> getTransformerNoExtensions(byte[] payload,
 			ToCloudEventTransformer transformer, String contentType) {
 		Message<byte[]> message = createBaseMessage(payload, contentType)
@@ -296,9 +302,8 @@ class ToCloudEventTransformerTests {
 	}
 
 	private static byte[] convertPayloadToBytes(TestRecord testRecord) throws Exception {
-		ObjectMapper objectMapper = new ObjectMapper();
-		ObjectWriter writer = objectMapper.writer();
-		return writer.writeValueAsBytes(testRecord);
+		DefaultSerializer defaultSerializer = new DefaultSerializer();
+		return defaultSerializer.serializeToByteArray(testRecord);
 	}
 
 	private static MessageBuilder<byte[]> createBaseMessage(byte[] payload, String contentType) {

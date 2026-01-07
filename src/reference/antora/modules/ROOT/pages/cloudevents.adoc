@@ -1,7 +1,7 @@
 [[cloudevents]]
 = CloudEvents Support
 
-Spring Integration provides support for the CloudEvents specification as discussed https://cloudevents.io/[here].
+Spring Integration provides support for the CloudEvents https://github.com/cloudevents/spec[specification].
 
 Add the following dependency to your project:
 
@@ -34,7 +34,7 @@ Use the `ToCloudEventTransformer` to convert Spring Integration messages into Cl
 This transformer supports the CloudEvents specification v1.0 and serializes CloudEvents if an `EventFormat` or `eventFormatContentTypeExpression` is specified.
 When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the CloudEvent in the payload.
 If neither are specified, the transformer writes the event data message payload as-is and adds attributes as well as extensions to the message headers.
-The transformer supports defining attributes using Expressions, and identifies extensions in the message headers via patterns.
+The transformer supports defining attributes using expressions, and identifies extensions in the message headers via patterns.
 
 ==== Attribute Expressions
 
@@ -97,7 +97,7 @@ Add the CloudEvent transformer to flows using the DSL:
 ----
 @Bean
 public ToCloudEventTransformer cloudEventTransformer() {
-    return new ToCloudEventTransformer(new JsonFormat(), "trace*", "correlation-id");
+    return new ToCloudEventTransformer("trace*", "correlation-id");
 }
 
 @Bean
@@ -140,17 +140,17 @@ Object cloudEventMessage = transformer.transform(inputMessage);
 
 ==== EventFormats
 
-Use ``EventFormat``s to serialize the CloudEvent into the message's payload when the EventFormat is available, or use Binary Format Mode when an `EventFormat` is not available.
+The ToCloudEventTransformer will use ``EventFormat``s to serialize the CloudEvent into the message's payload when the EventFormat is available, or use Binary Format Mode when an `EventFormat` is not available.
 Set the `EventFormat` in one of two ways:
 
 1. Set the desired `EventFormat`.
 2. Set the `eventFormatContentTypeExpression` with an expression that resolves to a content type that `EventFormatProvider` can use to provide the required `EventFormat`.
+When the `eventFormatContentTypeExpression` is set and the `EventFormatProvider` returns null because it cannot find the `EventFormat` for the content type, the transformer throws a `MessageTransformationException`.
 Examples of content type that the `eventFormatContentTypeExpression` can be resolved to that are accepted by the `EventFormatProvider` are:
    - `application/cloudevents+json`
    - `application/cloudevents+xml`
 
-If the `EventFormat` is not set and the content type is not supported by one of the cloudevents dependencies (for example `text/plain`), the transformer adds cloud event attributes and extensions to the message headers with the cloud event prefix (default is `ce-`) and leaves the payload unchanged (Binary Format Mode).
-When the `eventFormatContentTypeExpression` is set and the `EventFormatProvider` returns null because it cannot find the `EventFormat` for the content type, the transformer throws a `MessageTransformationException`.
+If the `EventFormat` and the `eventFormatContentTypeExpression` are not set, the transformer adds cloud event attributes and extensions to the message headers with the cloud event prefix (default is `ce-`) and leaves the payload unchanged (Binary Format Mode).
 
 To utilize a specific `EventFormat`, add the associated dependency.
 For example, to add the XML `EventFormat`, add the following dependency: `io.cloudevents:cloudevents-xml`.
