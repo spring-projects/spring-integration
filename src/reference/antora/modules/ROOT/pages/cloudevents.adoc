@@ -154,7 +154,7 @@ When the `eventFormatContentTypeExpression` is set and the `EventFormatProvider`
 
 To utilize a specific `EventFormat`, add the associated dependency.
 For example, to add the XML `EventFormat`, add the following dependency: `io.cloudevents:cloudevents-xml`.
-See the https://cloudevents.github.io/sdk-java/xml.html[CloudEvents Java Reference Docs] for information on the ``EventFormat``s that are available.
+See the https://cloudevents.github.io/sdk-java[CloudEvents Java Reference Documentation] for information on the ``EventFormat``s that are available.
 
 [[Payload]]
 
