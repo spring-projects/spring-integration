@@ -261,8 +261,8 @@ class ToCloudEventTransformerTests {
 		Message<byte[]> resultMessage = (Message<byte[]>) result;
 		CloudEvent cloudEvent = this.jsonFormat.deserialize(resultMessage.getPayload());
 		assertThat(resultMessage.getHeaders()).containsEntry("correlation-id", "corr-999");
-		assertThat(cloudEvent.getExtensionNames()).containsExactly("traceid").
-				doesNotContain("correlation-id");
+		assertThat(cloudEvent.getExtensionNames()).containsExactly("traceid")
+				.doesNotContain("correlation-id");
 		verifyCloudEvent(cloudEvent, "jsonTransformerWithExtensions", "application/json");
 	}
 

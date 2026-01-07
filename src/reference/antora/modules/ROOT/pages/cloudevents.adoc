@@ -27,7 +27,6 @@ compile "org.springframework.integration:spring-integration-cloudevents:{project
 ======
 
 [[to-cloud-event-transformer]]
-
 === `ToCloudEventTransformer`
 
 Use the `ToCloudEventTransformer` to convert Spring Integration messages into CloudEvents compliant messages.
@@ -88,7 +87,6 @@ For example, configure patterns `"trace*", "span-id", "user-id"` to:
 To exclude specific headers, use negated patterns: `"custom-*", "!custom-internal"` includes all headers starting with `custom-` except `custom-internal`.
 
 [[configuration-with-dsl]]
-
 ==== Configuration With DSL
 
 Add the CloudEvent transformer to flows using the DSL:
@@ -111,7 +109,6 @@ public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEv
 ----
 
 [[cloudevent-transformer-process]]
-
 ==== CloudEvent Transformer Process
 
 Understand the transformation process:
@@ -137,7 +134,6 @@ Object cloudEventMessage = transformer.transform(inputMessage);
 ----
 
 [[eventformats]]
-
 ==== EventFormats
 
 The ToCloudEventTransformer will use ``EventFormat``s to serialize the CloudEvent into the message's payload when the EventFormat is available, or use Binary Format Mode when an `EventFormat` is not available.
@@ -157,7 +153,6 @@ For example, to add the XML `EventFormat`, add the following dependency: `io.clo
 See the https://cloudevents.github.io/sdk-java[CloudEvents Java Reference Documentation] for information on the ``EventFormat``s that are available.
 
 [[Payload]]
-
 ==== Payload
 
 NOTE: Ensure messages to be transformed have a payload of type `byte[]`.

@@ -204,10 +204,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * the eventFormat has a precedence.
 	 * @param eventFormatContentTypeExpression the expression to create
 	 * content type for the {@link EventFormatProvider}
-	 * More can be read about content types EventFormatProvider supports here:
-	 * @see <a href="
-	 * https://github.com/cloudevents/sdk-java/blob/main/core/src/main/java/io/cloudevents/core/format/ContentType.java"
-	 * >CloudEvents ContentType source</a>
+	 * @see io.cloudevents.core.format.ContentType
 	 */
 	public void setEventFormatContentTypeExpression(Expression eventFormatContentTypeExpression) {
 		this.eventFormatContentTypeExpression = eventFormatContentTypeExpression;
@@ -258,7 +255,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 				.withExtension(extensions)
 				.build();
 		EventFormat selectedEventFormat = this.eventFormat;
-		if (this.eventFormat == null && this.eventFormatContentTypeExpression != null) {
+		if (selectedEventFormat == null && this.eventFormatContentTypeExpression != null) {
 			String expressionContentType = this.eventFormatContentTypeExpression.getValue(this.evaluationContext, message, String.class);
 			selectedEventFormat = this.eventFormatProvider.resolveFormat(expressionContentType);
 			if (selectedEventFormat == null) {
