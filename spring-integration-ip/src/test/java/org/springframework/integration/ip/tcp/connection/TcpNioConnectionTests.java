@@ -38,11 +38,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -852,6 +856,57 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		connection.close();
 
 		cleanupCompositeExecutor(compositeExec);
+	}
+
+	@Test
+	public void delayedReadsDueToRejectedExecutionException() throws InterruptedException {
+		CountDownLatch delayReadLatch = new CountDownLatch(1);
+		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0) {
+
+			@Override
+			protected void delayRead(Selector selector, long now, SelectionKey key) {
+				// Means RejectedExecutionException was propagated from the TcpNioConnection.readPacket()
+				delayReadLatch.countDown();
+			}
+
+		};
+
+		ThreadPoolExecutor threadPoolExecutor =
+				new ThreadPoolExecutor(1, 2, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+		factory.setTaskExecutor(threadPoolExecutor);
+		factory.start();
+		SocketChannel chan1 = mock();
+		willReturn(true).given(chan1).isOpen();
+		when(chan1.socket()).thenReturn(mock());
+		TcpNioConnection conn1 = new TcpNioConnection(chan1, false, false, null, null);
+		conn1.setTaskExecutor(threadPoolExecutor);
+		conn1 = spy(conn1);
+		AtomicReference<RejectedExecutionException> reeReference = new AtomicReference<>();
+		doAnswer(invocation -> {
+			try {
+				return invocation.callRealMethod();
+			}
+			catch (RejectedExecutionException ree) {
+				reeReference.set(ree);
+				throw ree;
+			}
+		})
+				.when(conn1)
+				.readPacket();
+
+		Map<SocketChannel, TcpNioConnection> connections = Map.of(chan1, conn1);
+		SelectionKey key1 = mock();
+		willReturn(true).given(key1).isReadable();
+		willReturn(true).given(key1).isValid();
+		willReturn(conn1).given(key1).attachment();
+		Set<SelectionKey> keys = new HashSet<>();
+		keys.add(key1);
+		Selector selector = mock();
+		when(selector.selectedKeys()).thenReturn(keys);
+		factory.processNioSelections(1, selector, null, connections);
+		assertThat(delayReadLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reeReference.get()).isNotNull();
+		threadPoolExecutor.shutdown();
 	}
 
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
