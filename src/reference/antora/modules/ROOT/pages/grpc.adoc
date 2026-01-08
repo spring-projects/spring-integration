@@ -29,7 +29,7 @@ implementation "org.springframework.integration:spring-integration-grpc:{project
 Spring Integration components for gRPC are not generated from Protocol buffers, and they are not type-safe as typical gRPC service and stub implementations.
 This is mostly due to the generic nature of the Spring Integration framework itself, where the unit of work is a `Message` abstraction and the payload type of this message is usually out of integration component internal logic scope.
 Therefore, gRPC messages for service calls are sent and received as is without conversion assumptions.
-For example, if gRCP service methods are like this:
+For example, if gRPC service methods are like this:
 
 [source,protobuf]
 ----
@@ -41,7 +41,7 @@ service TestHelloWorld {
   // Sends a greeting and something else
   rpc StreamSayHello(HelloRequest) returns (stream HelloReply) {}
 
-  // Sends a greeting to everyone presenting
+  // Sends a greeting to everyone present
   rpc HelloToEveryOne(stream HelloRequest) returns (HelloReply) {}
 
   // Streams requests and replies
@@ -62,13 +62,13 @@ NOTE: The `GrpcHeaders.SERVICE_METHOD` header on the inbound gateway has a value
 [[grpc-inbound-gateway]]
 == Inbound Gateway for gRPC
 
-The `GrpcInboundGateway` is a `MessagingGatewaySupport` implementation to receive gRPC requests, send messages downstream flow and produce gRPC responses.
+The `GrpcInboundGateway` is a `MessagingGatewaySupport` implementation to receive gRPC requests, send messages to the downstream flow, and produce gRPC responses.
 For initialization, the instance of this gateway requires only an abstract gRPC service class implementing `BindableService`, usually generated from Protobuf and comes with a `*ImplBase` class name.
 
-WARNING: Only standard gRPC services are supported: a generated `AsyncService` contract is what `GrpcInboundGateway` logic based on.
+WARNING: Only standard gRPC services are supported: a generated `AsyncService` contract is what `GrpcInboundGateway` logic is based on.
 The Reactor and Kotlin-based service generation don't make sense in Spring Integration logic since those types are not exposed from the gateway definition.
 
-The gateway uses the mentioned `AsyncService` interface to create proxy and intercept gRPC service methods.
+The gateway uses the mentioned `AsyncService` interface to create a proxy and intercept gRPC service methods.
 
 The following example demonstrates how to configure a `GrpcInboundGateway`:
 
@@ -81,22 +81,22 @@ GrpcInboundGateway helloWorldService() {
 ----
 
 The `GrpcInboundGateway` implements a `BindableService` and exposes a `ServerServiceDefinition` based on the mentioned proxy for an `AsyncService` contract of the gRPC service.
-Therefore, an instance of this gateway has to be registered into a `ServerBuilder` and no need in any other `*ImplBase` implementations in the application.
+Therefore, an instance of this gateway has to be registered into a `ServerBuilder` and there is no need for any other `*ImplBase` implementations in the application.
 
 IMPORTANT: With https://spring.io/projects/spring-grpc[Spring gRPC] and its auto-discovery for `BindableService` implementations, the `GrpcInboundGateway` has to be declared as a top-level bean.
 Therefore, Java DSL API like `IntegrationFlow.from(new GrpcInboundGateway(TestHelloWorldGrpc.TestHelloWorldImplBase.class))` is not recommended because such a `BindableService` implementation won't make it visible for respective Spring gRPC infrastructure.
 
 The `GrpcInboundGateway` uses a `sendAndReceiveMessageReactive()` API to interact with the downstream flow and adapts a `Mono` reply to the gRPC `StreamObserver`.
-As mentioned before, the request message payload is exactly a gRPC request message, and it expects a reply in a from of gRPC response message.
-The downstream logic can be type-safe and deal with gRPC messages similar way as if `*ImplBase` would be implemented manually.
+As mentioned before, the request message payload is exactly a gRPC request message, and it expects a reply in the form of a gRPC response message.
+The downstream logic can be type-safe and deal with gRPC messages in a similar way as if `*ImplBase` would be implemented manually.
 
-The `MethodDescriptor.MethodType.UNARY` and `MethodDescriptor.MethodType.BIDI_STREAMING` are same from the downstream handling logic perspective.
+The `MethodDescriptor.MethodType.UNARY` and `MethodDescriptor.MethodType.BIDI_STREAMING` are the same from the downstream handling logic perspective.
 In other words, the `BIDI_STREAMING` is handled as a loop on request items and the gateway produces a response item immediately into the response `StreamObserver`.
 For different `BIDI_STREAMING` logic, the regular gRPC service implementation is recommended.
 
 The `MethodDescriptor.MethodType.CLIENT_STREAMING` mode produces a message with a `Flux` as a payload of gRPC request items.
 
-For the `MethodDescriptor.MethodType.SERVER_STREAMING` mode a reply payload can be a single gRPC response message or a `Flux` of them.
+For the `MethodDescriptor.MethodType.SERVER_STREAMING` mode, a reply payload can be a single gRPC response message or a `Flux` of them.
 
 The following example demonstrates an `IntegrationFlow` implementation for the mentioned `TestHelloWorldGrpc.TestHelloWorldImplBase` service:
 
@@ -157,17 +157,19 @@ All the downstream transformer business methods are type-safe in regard to gRPC 
 == Outbound Gateway for gRPC
 
 The `GrpcOutboundGateway` is an `AbstractReplyProducingMessageHandler` implementation to send gRPC requests to a remote gRPC server and receive responses.
-For initialization, the instance of this gateway requires a gRPC `Channel`, the gRPC service class (e.g., `TestHelloWorldGrpc.class`), and an `Expression` specifying the method name to invoke.
+For initialization, the instance of this gateway requires a gRPC `Channel` and the gRPC service class (e.g., `TestHelloWorldGrpc.class`).
+The method name to invoke can be specified via an `Expression` using the `setMethodNameExpression()` setter.
+If not specified, the gateway automatically detects the method name when the service descriptor contains exactly one method.
 
 The gateway dynamically invokes gRPC methods using ``MethodDescriptor``s obtained from the service's `ServiceDescriptor`.
 It supports the following gRPC communication patterns:
 
-* **Unary**: Single request → single response (blocking call)
+* **Unary**: Single request → single response (blocking call returns the message directly)
 * **Server streaming**: Single request → `Flux` of multiple responses
-* **Client streaming**: `Flux` of requests → single response (wrapped in `Flux`)
+* **Client streaming**: `Flux` of requests → `Mono` with single response
 * **Bidirectional streaming**: `Flux` of requests → `Flux` of multiple responses
 
-The following example demonstrates how to configure a `GrpcOutboundGateway`:
+The following example demonstrates how to configure a `GrpcOutboundGateway` with an explicit method name:
 
 [source, java]
 ----
@@ -180,76 +182,45 @@ public ManagedChannel grpcChannel() {
 
 @Bean
 public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
-    return new GrpcOutboundGateway(channel,
-                                   TestHelloWorldGrpc.class,
-                                   new LiteralExpression("SayHello"));
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
+    gateway.setMethodNameExpression(new LiteralExpression("SayHello"));
+    return gateway;
 }
 ----
 
-The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
-
-* For **UNARY** methods, the gateway performs a blocking call and returns the gRPC response message directly.
-* For **SERVER_STREAMING** methods, the gateway returns a `Flux<ResponseType>` containing all streamed responses.
-* For **CLIENT_STREAMING** and **BIDI_STREAMING** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Flux<ResponseType>`.
-
-=== Configuring Timeout
-
-The default timeout for asynchronous gRPC calls is 10 seconds.
-You can configure a custom timeout:
+For services with a single method, the gateway can auto-detect the method name:
 
 [source, java]
 ----
 @Bean
 public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
-    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel,
-                                                          TestHelloWorldGrpc.class,
-                                                          new LiteralExpression("SayHello"));
-    gateway.setAsyncTimeout(30, TimeUnit.SECONDS);
-    return gateway;
+    // When TestSingleMethodGrpc has only one method, it will be auto-detected
+    return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
 }
 ----
 
-=== Integration Flow Examples
+The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
 
-The following example demonstrates an `IntegrationFlow` implementation using the `GrpcOutboundGateway` for different gRPC method types:
+* For **Unary** methods, the gateway performs a blocking call and returns the gRPC response message directly.
+* For **Server streaming** methods, the gateway returns a `Flux<ResponseType>` containing all streamed responses.
+* For **Client streaming** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Mono<ResponseType>` with the single aggregated response.
+* For **Bidirectional streaming** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Flux<ResponseType>` with multiple responses.
+
+=== Method Name Configuration
+
+The method name can be specified in several ways:
+
+* **Explicit method name**: Use `setMethodNameExpression()` with a `LiteralExpression` for a fixed method name
+* **Auto-detection**: Omit the method name expression for services with exactly one method
 
 [source, java]
 ----
 @Bean
-public IntegrationFlow unaryCallFlow(GrpcOutboundGateway grpcGateway) {
-    return IntegrationFlow.from("unaryInput")
-            .handle(grpcGateway)
-            .channel("unaryOutput")
-            .get();
-}
-
-@Bean
-public IntegrationFlow serverStreamingFlow() {
-    GrpcOutboundGateway gateway = new GrpcOutboundGateway(grpcChannel(),
-                                                          TestHelloWorldGrpc.class,
-                                                          new LiteralExpression("StreamSayHello"));
-    return IntegrationFlow.from("streamInput")
-            .handle(gateway)
-            .channel("streamOutput")
-            .get();
-}
-
-@Bean
-public IntegrationFlow bidiStreamingFlow() {
-    GrpcOutboundGateway gateway = new GrpcOutboundGateway(grpcChannel(),
-                                                          TestHelloWorldGrpc.class,
-                                                          new LiteralExpression("BidiStreamHello"));
-    return IntegrationFlow.from("bidiInput")
-            .transform(Message.class, message -> {
-                // Payload must be a Flux for bidirectional streaming
-                Flux<HelloRequest> requestFlux = (Flux<HelloRequest>) message.getPayload();
-                return MessageBuilder.withPayload(requestFlux)
-                        .copyHeaders(message.getHeaders())
-                        .build();
-            })
-            .handle(gateway)
-            .channel("bidiOutput")
-            .get();
+public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
+    // Method name determined from message header at runtime
+    gateway.setMethodNameExpression(new LiteralExpression("methodName"));
+    return gateway;
 }
 ----
 
