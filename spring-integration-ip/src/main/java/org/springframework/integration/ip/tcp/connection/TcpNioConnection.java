@@ -220,7 +220,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * Subclasses can override this, for example to wrap the input stream.
+	 * Subclasses can override this, for example, to wrap the input stream.
 	 * @return the input stream.
 	 * @since 5.0
 	 */
@@ -231,7 +231,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	/**
 	 * Allocate a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.
-	 *
 	 * @param length The buffer length.
 	 * @return The buffer.
 	 */
@@ -244,7 +243,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * When there is a listener, this method assembles
 	 * data into messages by invoking convertAndSend whenever there is
 	 * data in the input Stream. Method exits when a message is complete
-	 * and there is no more data; thus freeing the thread to work on other
+	 * and there is no more data, thus freeing the thread to work on other
 	 * sockets.
 	 */
 	@Override
@@ -535,6 +534,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			closeConnection(true);
 		}
+		catch (RejectedExecutionException ree) {
+			throw ree;
+		}
 		catch (Exception e) {
 			logger.error("Exception on Read " + getConnectionId() + " " + e.getMessage(), e);
 			closeConnection(true);
@@ -563,7 +565,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
-	 * If true, connection will attempt to use direct buffers where possible.
+	 * If true, the connection will attempt to use direct buffers where possible.
 	 * @param usingDirectBuffers the usingDirectBuffers to set.
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
