@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
@@ -871,13 +872,29 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		};
 
 		ThreadPoolExecutor threadPoolExecutor =
-				new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+				new ThreadPoolExecutor(1, 2, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
 		factory.setTaskExecutor(threadPoolExecutor);
 		factory.start();
 		SocketChannel chan1 = mock();
-		TcpNioConnection conn1 = mock();
-		Map<SocketChannel, TcpNioConnection> connections = Map.of(chan1, conn1);
 		willReturn(true).given(chan1).isOpen();
+		when(chan1.socket()).thenReturn(mock());
+		TcpNioConnection conn1 = new TcpNioConnection(chan1, false, false, null, null);
+		conn1.setTaskExecutor(threadPoolExecutor);
+		conn1 = spy(conn1);
+		AtomicReference<RejectedExecutionException> reeReference = new AtomicReference<>();
+		doAnswer(invocation -> {
+			try {
+				return invocation.callRealMethod();
+			}
+			catch (RejectedExecutionException ree) {
+				reeReference.set(ree);
+				throw ree;
+			}
+		})
+				.when(conn1)
+				.readPacket();
+
+		Map<SocketChannel, TcpNioConnection> connections = Map.of(chan1, conn1);
 		SelectionKey key1 = mock();
 		willReturn(true).given(key1).isReadable();
 		willReturn(true).given(key1).isValid();
@@ -888,6 +905,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(delayReadLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reeReference.get()).isNotNull();
 		threadPoolExecutor.shutdown();
 	}
 
