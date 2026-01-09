@@ -22,7 +22,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.springframework.integration:spring-integration-mongodb:{project-version}"
+implementation "org.springframework.integration:spring-integration-mongodb:{project-version}"
 ----
 ======
 
@@ -53,7 +53,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.mongodb:mongodb-driver-reactivestreams"
+implementation "org.mongodb:mongodb-driver-reactivestreams"
 ----
 ======
 
@@ -76,7 +76,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.mongodb:mongodb-driver-sync"
+implementation "org.mongodb:mongodb-driver-sync"
 ----
 ======
 

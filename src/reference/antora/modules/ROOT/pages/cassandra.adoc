@@ -23,7 +23,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.springframework.integration:spring-integration-cassandra:{project-version}"
+implementation "org.springframework.integration:spring-integration-cassandra:{project-version}"
 ----
 ======
 
@@ -81,7 +81,7 @@ public MessageHandler cassandraMessageHandler() {
     Map<String, Expression> params = new HashMap<>();
     params.put("author", PARSER.parseExpression("payload"));
     params.put("size", PARSER.parseExpression("headers.limit"));
-    
+
     cassandraMessageHandler.setParameterExpressions(params);
 
     cassandraMessageHandler.setOutputChannel(resultChannel());

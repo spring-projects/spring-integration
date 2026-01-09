@@ -29,7 +29,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.springframework.integration:spring-integration-ws:{project-version}"
+implementation "org.springframework.integration:spring-integration-ws:{project-version}"
 ----
 ======
 

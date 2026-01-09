@@ -24,7 +24,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.springframework.integration:spring-integration-http:{project-version}"
+implementation "org.springframework.integration:spring-integration-http:{project-version}"
 ----
 ======
 
