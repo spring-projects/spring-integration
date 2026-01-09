@@ -23,7 +23,7 @@ Gradle::
 +
 [source, groovy, subs="normal", role="secondary"]
 ----
-compile "org.springframework.integration:spring-integration-debezium:{project-version}"
+implementation "org.springframework.integration:spring-integration-debezium:{project-version}"
 ----
 ======
 
@@ -48,7 +48,7 @@ Gradle::
 +
 [source, groovy, role="secondary"]
 ----
-compile "io.debezium:debezium-connector-postgres:{debezium-version}"
+implementation "io.debezium:debezium-connector-postgres:{debezium-version}"
 ----
 ======
 
