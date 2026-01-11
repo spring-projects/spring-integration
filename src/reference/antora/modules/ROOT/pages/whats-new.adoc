@@ -25,3 +25,9 @@ See xref:ws.adoc[] for more information.
 
 The new `spring-integration-cloudevents` module has been introduced to support CloudEvents specification.
 See xref:cloudevents.adoc[] for more information.
+
+[[x7.1-grpc]]
+=== gRPC
+
+The new `spring-integration-grpc` module has been introduced to support gRPC framework.
+See xref:grpc.adoc[] for more information.
