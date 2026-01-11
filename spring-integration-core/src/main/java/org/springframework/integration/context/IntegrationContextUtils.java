@@ -193,14 +193,14 @@ public abstract class IntegrationContextUtils {
 	}
 
 	/**
-	 * @param beanFactory The bean factory.
+	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return the global {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME}
 	 *         bean from provided {@code #beanFactory}, which represents the merged
 	 *         properties values from all 'META-INF/spring.integration.properties'.
 	 *         Or user-defined {@link IntegrationProperties} bean.
 	 *         May return only {@link IntegrationProperties#defaults()} if there is no
 	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean in the
-	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
+	 *         provided {@code #beanFactory}.
 	 */
 	public static IntegrationProperties getIntegrationProperties(BeanFactory beanFactory) {
 		IntegrationProperties integrationProperties =
