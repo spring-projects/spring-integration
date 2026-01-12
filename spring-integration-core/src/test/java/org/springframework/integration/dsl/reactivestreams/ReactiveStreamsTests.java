@@ -71,7 +71,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.0
  */
 @SpringJUnitConfig
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ReactiveStreamsTests {
 
 	@Autowired
@@ -277,8 +277,6 @@ public class ReactiveStreamsTests {
 	ConfigurableApplicationContext applicationContext;
 
 	@Test
-	@DirtiesContext
-		// Use disruptive this.applicationContext.start()
 	void verifyFluxMessageChannelRestart() {
 		for (long i = 0; i < 3L; i++) {
 			assertThat(this.fromPublisherResult.receive(10_000)).extracting(Message::getPayload).isEqualTo(i);
