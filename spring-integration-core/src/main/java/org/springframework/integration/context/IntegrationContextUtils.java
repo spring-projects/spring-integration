@@ -200,7 +200,8 @@ public abstract class IntegrationContextUtils {
 	 *         Or user-defined {@link IntegrationProperties} bean.
 	 *         May return only {@link IntegrationProperties#defaults()} if there is no
 	 *         {@link IntegrationContextUtils#INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME} bean in the
-	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
+	 *         provided {@code #beanFactory}.
+	 * @throws IllegalArgumentException if provided {@code beanFactory} is {@code null}.
 	 */
 	public static IntegrationProperties getIntegrationProperties(BeanFactory beanFactory) {
 		IntegrationProperties integrationProperties =
