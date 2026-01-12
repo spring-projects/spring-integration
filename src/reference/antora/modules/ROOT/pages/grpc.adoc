@@ -158,38 +158,21 @@ All the downstream transformer business methods are type-safe in regard to gRPC 
 
 The `GrpcOutboundGateway` is an `AbstractReplyProducingMessageHandler` implementation to send gRPC requests to a remote gRPC server and receive responses.
 For initialization, the instance of this gateway requires a gRPC `Channel` and the gRPC service class (e.g., `TestHelloWorldGrpc.class`).
-The method name to invoke can be specified via an `Expression` using the `setMethodNameExpression()` setter.
-If not specified, the gateway automatically detects the method name when the service descriptor contains exactly one method.
 
 The gateway dynamically invokes gRPC methods using ``MethodDescriptor``s obtained from the service's `ServiceDescriptor`.
 It supports the following gRPC communication patterns:
 
 * **Unary**: Single request → single response (blocking call returns the message directly)
 * **Server streaming**: Single request → `Flux` of multiple responses
-* **Client streaming**: `Flux` of requests → `Mono` with single response
-* **Bidirectional streaming**: `Flux` of requests → `Flux` of multiple responses
+* **Client streaming**: Multiple requests → `Mono` with single response
+* **Bidirectional streaming**: Multiple requests → `Flux` of multiple responses
 
-The following example demonstrates how to configure a `GrpcOutboundGateway` with an explicit method name:
+=== Method Name Configuration
 
-[source, java]
-----
-@Bean
-public ManagedChannel grpcChannel() {
-    return ManagedChannelBuilder.forAddress("localhost", 9090)
-            .usePlaintext()
-            .build();
-}
+The method name to invoke can be configured in three ways:
 
-@Bean
-public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
-    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
-    gateway.setMethodNameExpression(new LiteralExpression("SayHello"));
-    return gateway;
-}
-----
-
-For services with a single method, the gateway can auto-detect the method name:
-
+1. **Auto-detection** for services with a single method:
++
 [source, java]
 ----
 @Bean
@@ -198,34 +181,47 @@ public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
     return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
 }
 ----
+2. **Explicit method name** using `setMethodName()`:
++
+[source, java]
+----
+@Bean
+public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
+    GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
+    gateway.setMethodName("SayHello");
+    return gateway;
+}
+----
 
-The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
-
-* For **Unary** methods, the gateway performs a blocking call and returns the gRPC response message directly.
-* For **Server streaming** methods, the gateway returns a `Flux<ResponseType>` containing all streamed responses.
-* For **Client streaming** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Mono<ResponseType>` with the single aggregated response.
-* For **Bidirectional streaming** methods, the request payload must be a `Flux<RequestType>`, and the gateway returns a `Flux<ResponseType>` with multiple responses.
-
-=== Method Name Configuration
-
-The method name can be specified in several ways:
-
-* **Explicit method name**: Use `setMethodNameExpression()` with a `LiteralExpression` for a fixed method name
-* **Auto-detection**: Omit the method name expression for services with exactly one method
-
+3. **Dynamic resolution** from message headers using `setMethodNameExpression()`:
++
 [source, java]
 ----
 @Bean
 public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
     GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
-    // Method name determined from message header at runtime
-    gateway.setMethodNameExpression(new LiteralExpression("methodName"));
+    // Method name determined from GrpcHeaders.SERVICE_METHOD header at runtime
+    gateway.setMethodNameExpression(new FunctionExpression<>(
+            msg -> msg.getHeaders().get(GrpcHeaders.SERVICE_METHOD, String.class)));
     return gateway;
 }
 ----
++
+By default, if no method name or expression is configured and the service has more than one method, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
 
-=== Type Safety
+=== Request Payload Handling
 
-Similar to `GrpcInboundGateway`, the request and response payloads are gRPC message types (e.g., `HelloRequest`, `HelloReply`).
-The upstream flow must provide the correct gRPC request message type as the payload, and the downstream flow receives the gRPC response message type.
-This maintains type safety throughout the integration flow when working with gRPC services.
+The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
+
+* **Unary** methods accept a single gRPC request message and perform a blocking call, returning the gRPC response message directly.
+
+* **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>` containing all streamed responses.
+
+* **Client streaming** and **Bidirectional streaming** methods accept flexible input types:
+** `Flux<RequestType>`
+** `Mono<RequestType>`
+** `Stream<RequestType>`
+** `Collection<RequestType>`
+** Single `RequestType` object
++
+Client streaming methods return a `Mono<ResponseType>` with the single aggregated response, while bidirectional streaming methods return a `Flux<ResponseType>` with multiple responses.

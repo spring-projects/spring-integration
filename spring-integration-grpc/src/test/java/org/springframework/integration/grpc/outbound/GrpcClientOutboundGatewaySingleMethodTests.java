@@ -26,10 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.grpc.TestInProcessConfiguration;
 import org.springframework.integration.grpc.proto.HelloReply;
 import org.springframework.integration.grpc.proto.HelloRequest;
 import org.springframework.integration.grpc.proto.TestSingleHelloWorldGrpc;
@@ -55,14 +51,13 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 	private ManagedChannel channel;
 
 	@Autowired
-	private GenericApplicationContext applicationContext;
+	private GrpcOutboundGateway grpcOutboundGateway;
 
 	// ==================== SimpleBlockingStub Tests ====================
 
 	@Test
 	void testSingleMethodProto() {
-		GrpcOutboundGateway gateway = createGateway("SayHello", TestSingleHelloWorldGrpc.class);
-		validateBlockingStub(gateway, "SayHello");
+		validateBlockingStub(this.grpcOutboundGateway, "SayHello");
 	}
 
 	private void validateBlockingStub(GrpcOutboundGateway gateway, String name) {
@@ -83,17 +78,6 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 		assertThat(reply.getMessage()).isEqualTo("Hello, " + name + "!");
 	}
 
-	/**
-	 * Create and configure a GrpcOutboundGateway.
-	 */
-	private GrpcOutboundGateway createGateway(String methodName, Class<?> grpcClass) {
-		GrpcOutboundGateway gateway = new GrpcOutboundGateway(this.channel, grpcClass);
-		gateway.setBeanFactory(applicationContext);
-		gateway.setApplicationContext(applicationContext);
-		gateway.afterPropertiesSet();
-		return gateway;
-	}
-
 	// ==================== Mock gRPC Service Implementation ====================
 
 	/**
@@ -112,8 +96,6 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@Import(TestInProcessConfiguration.class)
-	@EnableIntegration
 	static class TestConfig {
 
 		@Bean
@@ -132,6 +114,11 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 					.forName(serverName)
 					.directExecutor()
 					.build();
+		}
+
+		@Bean
+		GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
+			return new GrpcOutboundGateway(channel, TestSingleHelloWorldGrpc.class);
 		}
 	}
 }

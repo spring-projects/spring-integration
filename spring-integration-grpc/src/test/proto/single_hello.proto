@@ -1,5 +1,5 @@
 syntax = "proto3";
-import "test_hello.proto";
+import "types.proto";
 
 package integration.grpc.test;
 

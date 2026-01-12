@@ -653,6 +653,7 @@ project('spring-integration-grpc') {
 
 	dependencies {
 		api 'io.grpc:grpc-stub'
+
         testImplementation 'io.grpc:grpc-protobuf'
 		testImplementation 'io.grpc:grpc-inprocess'
 		testImplementation "com.google.protobuf:protobuf-java:$protobufVersion"
