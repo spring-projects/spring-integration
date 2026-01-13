@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.context.ApplicationContext;
@@ -99,6 +100,28 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	void testV5ClientManagerRuntime() throws Exception {
 		testSubscribeAndPublishRuntime(Mqttv5ConfigRuntime.class, Mqttv5ConfigRuntime.TOPIC_NAME,
 				Mqttv5ConfigRuntime.subscribedLatch);
+	}
+
+	@Test
+	public void sharedTopicWithClientManager() {
+		try (var ctx = new AnnotationConfigApplicationContext(Mqttv5Config.class)) {
+			var input = ctx.getBean("mqttOutFlow.input", MessageChannel.class);
+			var mqttv5MessageDrivenChannelAdapter = ctx.getBean(Mqttv5PahoMessageDrivenChannelAdapter.class);
+			mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopic");
+			var output = ctx.getBean("fromMqttChannel", PollableChannel.class);
+
+			String testPayload = "shared topic payload";
+
+			input.send(
+					MessageBuilder.withPayload(testPayload)
+							.setHeader(MqttHeaders.TOPIC, "testTopic")
+							.build());
+
+			Message<?> receive = output.receive(10_000);
+
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo(testPayload.getBytes());
+		}
 	}
 
 	@SuppressWarnings("unchecked")

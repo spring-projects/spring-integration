@@ -70,6 +70,12 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	private final Lock lock = new ReentrantLock();
 
+	/**
+	 * Never invoked because MQTT v3 does not support shared subscriptions.
+	 * But it is here for consistency with the {@link ClientManager} requirements
+	 */
+	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrived;
+
 	private final MqttPahoClientFactory clientFactory;
 
 	@SuppressWarnings("NullAway.Init")
@@ -200,6 +206,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 				IMqttAsyncClient theClient = clientManager.getClient();
 				Assert.state(theClient != null, "The 'client' must not be null, consider to start the 'clientManager'.");
 				this.client = theClient;
+				// In reality is never used since shared subscription is not supported with MQTT v3.
+				// Therefore, the client does not fail to handle messages via the provided listener in the 'subscribe'.
+				clientManager.addDefaultMessageHandler(this.defaultMessageHandler);
 			}
 		}
 		finally {
@@ -224,7 +233,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 				logger.error(ex1, "Exception while unsubscribing");
 			}
 
-			if (getClientManager() != null) {
+			ClientManager<IMqttAsyncClient, MqttConnectOptions> clientManager = getClientManager();
+			if (clientManager != null) {
+				clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 				return;
 			}
 
@@ -357,6 +368,14 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
+		// Just simple check since MQTT v3 does not support shared subscriptions.
+		boolean subscribed = Arrays.asList(getTopic()).contains(topic);
+		if (!subscribed) {
+			logger.trace(() ->
+					"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
+			return;
+		}
+
 		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
 		if (builder != null) {
 			if (isManualAcks()) {
