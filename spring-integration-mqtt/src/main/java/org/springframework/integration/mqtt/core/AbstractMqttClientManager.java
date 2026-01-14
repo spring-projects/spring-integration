@@ -54,6 +54,8 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 
+	private final Set<DefaultMessageHandler<?>> defaultMessageHandlers = Collections.synchronizedSet(new HashSet<>());
+
 	private final String clientId;
 
 	private int phase = DEFAULT_MANAGER_PHASE;
@@ -109,6 +111,11 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	protected Set<ConnectCallback> getCallbacks() {
 		return this.connectCallbacks;
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	protected <M> Set<DefaultMessageHandler<M>> getDefaultMessageHandlers() {
+		return (Set<DefaultMessageHandler<M>>) (Set) this.defaultMessageHandlers;
 	}
 
 	/**
@@ -192,6 +199,16 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	@Override
 	public boolean removeCallback(ConnectCallback connectCallback) {
 		return this.connectCallbacks.remove(connectCallback);
+	}
+
+	@Override
+	public <M> void addDefaultMessageHandler(DefaultMessageHandler<M> defaultMessageHandler) {
+		this.defaultMessageHandlers.add(defaultMessageHandler);
+	}
+
+	@Override
+	public <M> boolean removeDefaultMessageHandler(DefaultMessageHandler<M> defaultMessageHandler) {
+		return this.defaultMessageHandlers.remove(defaultMessageHandler);
 	}
 
 	public boolean isRunning() {

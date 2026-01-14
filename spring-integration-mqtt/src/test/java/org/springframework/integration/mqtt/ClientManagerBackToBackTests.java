@@ -97,6 +97,28 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 				Mqttv5ConfigRuntime.subscribedLatch);
 	}
 
+	@Test
+	public void sharedTopicWithClientManager() {
+		try (var ctx = new AnnotationConfigApplicationContext(Mqttv5Config.class)) {
+			var input = ctx.getBean("mqttOutFlow.input", MessageChannel.class);
+			var mqttv5MessageDrivenChannelAdapter = ctx.getBean(Mqttv5PahoMessageDrivenChannelAdapter.class);
+			mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopic");
+			var output = ctx.getBean("fromMqttChannel", PollableChannel.class);
+
+			String testPayload = "shared topic payload";
+
+			input.send(
+					MessageBuilder.withPayload(testPayload)
+							.setHeader(MqttHeaders.TOPIC, "testTopic")
+							.build());
+
+			Message<?> receive = output.receive(10_000);
+
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo(testPayload.getBytes());
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private void testSubscribeAndPublish(Class<?> configClass, String topicName, CountDownLatch subscribedLatch)
 			throws Exception {
