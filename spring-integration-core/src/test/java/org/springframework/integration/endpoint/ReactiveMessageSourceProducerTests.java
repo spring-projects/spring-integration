@@ -17,7 +17,9 @@
 package org.springframework.integration.endpoint;
 
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -53,12 +55,14 @@ public class ReactiveMessageSourceProducerTests {
 
 		AtomicBoolean ackState = new AtomicBoolean();
 
+		CountDownLatch lastValueLatch = new CountDownLatch(1);
+
 		MessageSource<Integer> messageSource =
 				() -> {
 					Integer integer = queue.poll();
 					if (integer == null) {
 						try {
-							Thread.sleep(200);
+							lastValueLatch.await(10, TimeUnit.SECONDS);
 						}
 						catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
@@ -90,6 +94,7 @@ public class ReactiveMessageSourceProducerTests {
 										.boxed()
 										.collect(Collectors.toList()))
 						.expectNoEvent(Duration.ofMillis(100))
+						.then(lastValueLatch::countDown)
 						.expectNext(100)
 						.thenCancel()
 						.verifyLater();
