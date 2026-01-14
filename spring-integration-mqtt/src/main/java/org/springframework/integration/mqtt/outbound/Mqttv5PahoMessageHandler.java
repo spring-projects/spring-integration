@@ -17,12 +17,15 @@
 package org.springframework.integration.mqtt.outbound;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.function.Predicate;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttActionListener;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttClientException;
 import org.eclipse.paho.mqttv5.client.MqttClientPersistence;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
@@ -32,6 +35,9 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.core.ClientManager;
@@ -52,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  */
@@ -67,6 +74,8 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	@Nullable
 	private MqttClientPersistence persistence;
+
+	private int retryConnectionCount = 5;
 
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
 
@@ -113,6 +122,18 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	public void setHeaderMapper(HeaderMapper<MqttProperties> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * Set the number of connection retries when {@code MqttClientException} is thrown with reason
+	 * codes of {@code MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS} or
+	 * {@code MqttClientException.REASON_CODE_CLIENT_CONNECTED}.
+	 * @param retryConnectionCount the retry count.
+	 * @since 7.1
+	 */
+	public void setRetryConnectionCount(int retryConnectionCount) {
+		Assert.isTrue(retryConnectionCount >= 0, "'retryConnectionCount' must be >= 0");
+		this.retryConnectionCount = retryConnectionCount;
 	}
 
 	@Override
@@ -245,14 +266,22 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			if (!this.mqttClient.isConnected()) {
 				this.lock.lock();
 				try {
-					if (!this.mqttClient.isConnected()) {
-						this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
-					}
+					RetryTemplate retryTemplate = getRetryTemplate();
+					retryTemplate.<@Nullable Object>execute(() -> {
+						if (!this.mqttClient.isConnected()) {
+							this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+						}
+						return null;
+					});
+				}
+				catch (RetryException retryEx) {
+					throw new MessageHandlingException(message, retryEx.getCause());
 				}
 				finally {
 					this.lock.unlock();
 				}
 			}
+
 			IMqttToken token =
 					this.mqttClient.publish(topic, (MqttMessage) mqttMessage, null, this.mqttPublishActionListener);
 			if (!isAsync()) {
@@ -295,6 +324,29 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
+
+	}
+
+	private RetryTemplate getRetryTemplate() {
+		return new RetryTemplate(RetryPolicy.builder()
+				.maxRetries(this.retryConnectionCount)
+				.predicate(new MqttExceptionMatcher())
+				.delay(Duration.ofMillis(100))
+				.build());
+	}
+
+	private final class MqttExceptionMatcher implements Predicate<Throwable> {
+
+		@Override
+		public boolean test(Throwable throwable) {
+			if (throwable instanceof MqttException mqttException) {
+				if (mqttException.getReasonCode() == MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS ||
+						mqttException.getReasonCode() == MqttClientException.REASON_CODE_CLIENT_CONNECTED) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 	}
 
