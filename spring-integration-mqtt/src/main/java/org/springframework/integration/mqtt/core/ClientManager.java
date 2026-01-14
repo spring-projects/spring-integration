@@ -89,6 +89,21 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	boolean removeCallback(ConnectCallback connectCallback);
 
 	/**
+	 * Register a callback for the {@code messageArrived} event from the client.
+	 * @param defaultMessageHandler a {@link DefaultMessageHandler} to register.
+	 * @since 6.5.6
+	 */
+	<M> void addDefaultMessageHandler(DefaultMessageHandler<M> defaultMessageHandler);
+
+	/**
+	 * Remove the callback from registration.
+	 * @param defaultMessageHandler a {@link DefaultMessageHandler} to unregister.
+	 * @return true if callback was removed.
+	 * @since 6.5.6
+	 */
+	<M> boolean removeDefaultMessageHandler(DefaultMessageHandler<M> defaultMessageHandler);
+
+	/**
 	 * Return the managed clients isConnected.
 	 * @return the managed clients isConnected.
 	 * @since 6.4
@@ -106,9 +121,32 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 
 		/**
 		 * Called when the connection to the server is completed successfully.
-		 * @param isReconnect if true, the connection was the result of automatic reconnect.
+		 * @param isReconnect if true, the connection was the result of automatic reconnecting.
 		 */
 		void connectComplete(boolean isReconnect);
+
+	}
+
+	/**
+	 * A contract for a default message handler on the {@code messageArrived} event from the client.
+	 *
+	 * @param <M> the message type from the specific client implementation.
+	 *
+	 * @since 6.5.6
+	 *
+	 * @see org.eclipse.paho.mqttv5.client.MqttCallback#messageArrived(String, org.eclipse.paho.mqttv5.common.MqttMessage)
+	 * @see org.eclipse.paho.client.mqttv3.MqttCallback#messageArrived(String, org.eclipse.paho.client.mqttv3.MqttMessage)
+	 */
+	@FunctionalInterface
+	interface DefaultMessageHandler<M> {
+
+		/**
+		 * Called when the {@code messageArrived} is called from the client as a fallback message listener.
+		 * @param topic the topic from which the message was received.
+		 *              Could be used in the target implementation to filter messages by topic.
+		 * @param message the received and unrouted MQTT message.
+		 */
+		void messageArrived(String topic, M message);
 
 	}
 

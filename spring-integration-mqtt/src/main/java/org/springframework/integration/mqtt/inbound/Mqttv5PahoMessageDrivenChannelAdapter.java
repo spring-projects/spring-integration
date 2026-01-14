@@ -93,6 +93,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private final Lock lock = new ReentrantLock();
 
+	/**
+	 * Used as a fallback option for shared subscriptions unrouted messages
+	 */
+	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrived;
+
 	private final MqttConnectionOptions connectionOptions;
 
 	private @Nullable List<MqttSubscription> subscriptions;
@@ -278,6 +283,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				IMqttAsyncClient client = clientManager.getClient();
 				Assert.state(client != null, "The 'client' must not be null, consider to start the 'clientManager'.");
 				this.mqttClient = client;
+				clientManager.addDefaultMessageHandler(this.defaultMessageHandler);
 			}
 		}
 		finally {
@@ -322,6 +328,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 		catch (ConcurrentModificationException ex) {
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
+		}
+		ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager = getClientManager();
+		if (clientManager != null) {
+			clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 		}
 	}
 
@@ -392,6 +402,12 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
+		if (!isTopicSubscribed(topic)) {
+			logger.trace(() ->
+					"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
+			return;
+		}
+
 		Map<String, Object> headers = this.headerMapper.toHeaders(mqttMessage.getProperties());
 		headers.put(MqttHeaders.ID, mqttMessage.getId());
 		headers.put(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos());
@@ -424,6 +440,17 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Unhandled exception for " + message);
 			throw ex;
 		}
+	}
+
+	private boolean isTopicSubscribed(String receivedTopic) {
+		for (String subscribedTopic : getTopic()) {
+			if (subscribedTopic.equals(receivedTopic)
+					|| subscribedTopic.startsWith("$share/") && subscribedTopic.endsWith(receivedTopic)) {
+
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

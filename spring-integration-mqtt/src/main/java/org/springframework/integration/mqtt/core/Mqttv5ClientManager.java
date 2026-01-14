@@ -176,7 +176,8 @@ public class Mqttv5ClientManager
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) {
-		// not this manager concern
+		getDefaultMessageHandlers()
+				.forEach((defaultMessageHandler) -> defaultMessageHandler.messageArrived(topic, message));
 	}
 
 	@Override
@@ -186,7 +187,7 @@ public class Mqttv5ClientManager
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		getCallbacks().forEach(callback -> callback.connectComplete(reconnect));
+		getCallbacks().forEach((callback) -> callback.connectComplete(reconnect));
 	}
 
 	@Override

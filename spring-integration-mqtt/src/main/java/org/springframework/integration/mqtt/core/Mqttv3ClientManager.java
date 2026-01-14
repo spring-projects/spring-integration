@@ -188,7 +188,8 @@ public class Mqttv3ClientManager
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) {
-		// not this manager concern
+		getDefaultMessageHandlers()
+				.forEach((defaultMessageHandler) -> defaultMessageHandler.messageArrived(topic, message));
 	}
 
 	@Override
