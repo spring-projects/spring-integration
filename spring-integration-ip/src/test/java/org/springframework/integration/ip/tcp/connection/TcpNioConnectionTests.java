@@ -64,7 +64,6 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -684,23 +683,13 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	public void int3453RaceTest() throws Exception {
+	public void nioAssemblerThreadIsReleased() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		final CountDownLatch connectionLatch = new CountDownLatch(1);
-		factory.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				if (event instanceof TcpConnectionOpenEvent) {
-					connectionLatch.countDown();
-				}
+		factory.setApplicationEventPublisher(event -> {
+			if (event instanceof TcpConnectionOpenEvent) {
+				connectionLatch.countDown();
 			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
 		});
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
 		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
@@ -723,27 +712,11 @@ public class TcpNioConnectionTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		assertThat(connectionLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
+		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
+
 		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", Map.class)
 				.values().iterator().next();
 		Log logger = spy(TestUtils.getPropertyValue(connection, "logger", Log.class));
-		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
-		dfa.setPropertyValue("logger", logger);
-
-		ChannelInputStream cis = spy(TestUtils
-				.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
-		dfa.setPropertyValue("channelInputStream", cis);
-
-		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
-		final CountDownLatch readerFinishedLatch = new CountDownLatch(1);
-		doAnswer(invocation -> {
-			invocation.callRealMethod();
-			// delay the reader thread resetting writingToPipe
-			readerLatch.await(10, TimeUnit.SECONDS);
-			Thread.sleep(100);
-			readerFinishedLatch.countDown();
-			return null;
-		}).when(cis).write(any(ByteBuffer.class));
-
 		doReturn(true).when(logger).isTraceEnabled();
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
@@ -756,6 +729,21 @@ public class TcpNioConnectionTests {
 			readerLatch.countDown();
 			return null;
 		}).when(logger).trace(contains("Nio assembler continuing"));
+		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
+		dfa.setPropertyValue("logger", logger);
+
+		final CountDownLatch readerFinishedLatch = new CountDownLatch(1);
+		ChannelInputStream cis =
+				spy(TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			// delay the reader thread resetting writingToPipe
+			readerLatch.await(10, TimeUnit.SECONDS);
+			Thread.sleep(100);
+			readerFinishedLatch.countDown();
+			return null;
+		}).when(cis).write(any(ByteBuffer.class));
+		dfa.setPropertyValue("channelInputStream", cis);
 
 		socket.getOutputStream().write("foo\r\n".getBytes());
 
