@@ -44,24 +44,23 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * Tests for race condition handling in {@link Mqttv5PahoMessageHandler}
- * when multiple threads attempt to connect simultaneously
+ * Tests the reconnect feature if {@link MqttException} has reason code of "REASON_CODE_CONNECT_IN_PROGRESS"
+ * in {@link Mqttv5PahoMessageHandler}.
  *
  * @author Glenn Renfro
  *
  * @since 7.1
  */
-public class Mqttv5ReconnectionRaceConditionTests {
+public class Mqttv5ReconnectionConditionTests {
 
 	@Test
 	public void testConnectAfterSingleInProgress() throws Exception {
-		IMqttAsyncClient mockClient = mock(IMqttAsyncClient.class);
-		IMqttToken mockConnectToken = mock(IMqttToken.class);
-		IMqttToken mockPublishToken = mock(IMqttToken.class);
+		IMqttAsyncClient mockClient = mock();
+		IMqttToken mockConnectToken = mock();
+		IMqttToken mockPublishToken = mock();
 
 		AtomicInteger connectAttempts = new AtomicInteger(0);
 		AtomicBoolean connectionCompleted = new AtomicBoolean(false);
@@ -73,8 +72,7 @@ public class Mqttv5ReconnectionRaceConditionTests {
 		willAnswer(invocation -> connectionCompleted.get()).given(mockClient).isConnected();
 
 		willAnswer(invocation -> {
-			int attempt = connectAttempts.incrementAndGet();
-			if (attempt == 1) {
+			if (connectAttempts.incrementAndGet() == 1) {
 				// First attempt throws "connect already in progress" (REASON_CODE_CONNECT_IN_PROGRESS)
 				// Simulate another thread completing the connection
 				connectionCompleted.set(true);
@@ -96,8 +94,8 @@ public class Mqttv5ReconnectionRaceConditionTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 
 		handler.handleMessage(message);
-		verify(mockClient, times(1)).connect(any(MqttConnectionOptions.class));
-		verify(mockClient, times(1)).publish(anyString(), any(MqttMessage.class), any(), any());
+		verify(mockClient).connect(any(MqttConnectionOptions.class));
+		verify(mockClient).publish(anyString(), any(MqttMessage.class), any(), any());
 	}
 
 	@Test

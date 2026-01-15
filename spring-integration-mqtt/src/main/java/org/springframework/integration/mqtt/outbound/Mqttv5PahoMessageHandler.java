@@ -261,7 +261,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 								}
 							}
 						}
-
 				}
 				finally {
 					this.lock.unlock();
