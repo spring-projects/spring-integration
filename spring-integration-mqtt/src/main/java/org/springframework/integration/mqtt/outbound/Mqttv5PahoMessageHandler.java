@@ -23,6 +23,7 @@ import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttActionListener;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttClientException;
 import org.eclipse.paho.mqttv5.client.MqttClientPersistence;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
@@ -52,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  */
@@ -245,24 +247,39 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			if (!this.mqttClient.isConnected()) {
 				this.lock.lock();
 				try {
-					if (!this.mqttClient.isConnected()) {
-						this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
-					}
+						while (!this.mqttClient.isConnected()) {
+							try {
+								this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+							}
+							catch (MqttException ex) {
+								int reasonCode = ex.getReasonCode();
+								if (reasonCode == MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS) {
+										Thread.sleep(100);
+								}
+								else if (reasonCode != MqttClientException.REASON_CODE_CLIENT_CONNECTED) {
+									throw ex;
+								}
+							}
+						}
 				}
 				finally {
 					this.lock.unlock();
 				}
 			}
+
 			IMqttToken token =
 					this.mqttClient.publish(topic, (MqttMessage) mqttMessage, null, this.mqttPublishActionListener);
 			if (!isAsync()) {
-				token.waitForCompletion(completionTimeout); // NOSONAR (sync)
+				token.waitForCompletion(completionTimeout);
 			}
 			else {
 				messageSentEvent(message, topic, token.getMessageId());
 			}
 		}
-		catch (MqttException ex) {
+		catch (MqttException | InterruptedException ex) {
+			if (ex instanceof InterruptedException) {
+				Thread.currentThread().interrupt();
+			}
 			throw new MessageHandlingException(message, "Failed to publish to MQTT in the [" + this + ']', ex);
 		}
 	}
