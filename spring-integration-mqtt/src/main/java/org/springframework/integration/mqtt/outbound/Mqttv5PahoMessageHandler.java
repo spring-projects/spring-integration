@@ -17,8 +17,6 @@
 package org.springframework.integration.mqtt.outbound;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.function.Predicate;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
@@ -35,9 +33,6 @@ import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.core.ClientManager;
@@ -75,12 +70,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	@Nullable
 	private MqttClientPersistence persistence;
 
-	private int retryConnectionCount = 5;
-
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
-
-	@SuppressWarnings("NullAway.Init")
-	private RetryTemplate connectionRetryTemplate;
 
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
@@ -127,28 +117,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		this.headerMapper = headerMapper;
 	}
 
-	/**
-	 * Set the number of connection retries when {@code MqttClientException} is thrown with reason
-	 * codes of {@code MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS} or
-	 * {@code MqttClientException.REASON_CODE_CLIENT_CONNECTED}.  This feature is disabled if
-	 * the {@code connectionRetryTemplate} has been set.
-	 * @param retryConnectionCount the retry count.
-	 * @since 7.1
-	 */
-	public void setRetryConnectionCount(int retryConnectionCount) {
-		Assert.isTrue(retryConnectionCount >= 0, "'retryConnectionCount' must be >= 0");
-		this.retryConnectionCount = retryConnectionCount;
-	}
-
-	/**
-	 * Set the {@link RetryTemplate} to use for retrying connections to the MQTT broker.
-	 *
-	 * @param connectionRetryTemplate the {@link RetryTemplate} used for retrying failed connection attempts
-	 */
-	public void setConnectionRetryTemplate(RetryTemplate connectionRetryTemplate) {
-		this.connectionRetryTemplate = connectionRetryTemplate;
-	}
-
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -170,9 +138,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		else {
 			Assert.state(!(getConverter() instanceof MqttMessageConverter),
 					"MessageConverter must not be an MqttMessageConverter");
-		}
-		if (this.connectionRetryTemplate == null) {
-			this.connectionRetryTemplate = getDefaultConnectionRetryTemplate();
 		}
 	}
 
@@ -282,15 +247,21 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			if (!this.mqttClient.isConnected()) {
 				this.lock.lock();
 				try {
-					this.connectionRetryTemplate.<@Nullable Object>execute(() -> {
-						if (!this.mqttClient.isConnected()) {
-							this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+						while (!this.mqttClient.isConnected()) {
+							try {
+								this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+							}
+							catch (MqttException ex) {
+								int reasonCode = ex.getReasonCode();
+								if (reasonCode == MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS) {
+										Thread.sleep(100);
+								}
+								else if (reasonCode != MqttClientException.REASON_CODE_CLIENT_CONNECTED) {
+									throw ex;
+								}
+							}
 						}
-						return null;
-					});
-				}
-				catch (RetryException retryEx) {
-					throw new MessageHandlingException(message, retryEx.getCause());
+
 				}
 				finally {
 					this.lock.unlock();
@@ -306,7 +277,10 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 				messageSentEvent(message, topic, token.getMessageId());
 			}
 		}
-		catch (MqttException ex) {
+		catch (MqttException | InterruptedException ex) {
+			if (ex instanceof InterruptedException) {
+				Thread.currentThread().interrupt();
+			}
 			throw new MessageHandlingException(message, "Failed to publish to MQTT in the [" + this + ']', ex);
 		}
 	}
@@ -339,29 +313,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
-
-	}
-
-	private RetryTemplate getDefaultConnectionRetryTemplate() {
-		return new RetryTemplate(RetryPolicy.builder()
-				.maxRetries(this.retryConnectionCount)
-				.predicate(new MqttExceptionMatcher())
-				.delay(Duration.ofMillis(100))
-				.build());
-	}
-
-	private final class MqttExceptionMatcher implements Predicate<Throwable> {
-
-		@Override
-		public boolean test(Throwable throwable) {
-			if (throwable instanceof MqttException mqttException) {
-				if (mqttException.getReasonCode() == MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS ||
-						mqttException.getReasonCode() == MqttClientException.REASON_CODE_CLIENT_CONNECTED) {
-					return true;
-				}
-			}
-			return false;
-		}
 
 	}
 

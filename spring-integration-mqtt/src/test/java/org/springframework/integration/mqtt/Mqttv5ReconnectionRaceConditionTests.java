@@ -101,18 +101,6 @@ public class Mqttv5ReconnectionRaceConditionTests {
 	}
 
 	@Test
-	public void testConnectAfterExceedingRetryCountDefault() throws Exception {
-			Mqttv5PahoMessageHandler handler = getFailConnectMessageHandler(MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS);
-		Message<String> message = MessageBuilder.withPayload("test").build();
-
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> {
-					handler.handleMessage(message);
-				})
-				.withCause(new MqttException(MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS));
-	}
-
-	@Test
 	public void testNonRetryableReasonCode() throws Exception {
 		Mqttv5PahoMessageHandler handler = getFailConnectMessageHandler(MqttClientException.REASON_CODE_CONNECTION_LOST);
 
