@@ -37,7 +37,7 @@ The transformer supports defining attributes using expressions and identifies ex
 
 === Attribute Expressions
 
-Set the CloudEvents attributes of `id`, `source`, `type`, `dataSchema`, and `subject` through SpEL expressions.
+Set the CloudEvents' attributes of `id`, `source`, `type`, `dataSchema`, and `subject` through SpEL expressions.
 
 NOTE: The transformer sets the `time` attribute to the time when it creates the CloudEvent instance.
 

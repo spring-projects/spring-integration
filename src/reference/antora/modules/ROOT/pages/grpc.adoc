@@ -200,14 +200,13 @@ public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
 @Bean
 public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
     GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
-    // Method name determined from GrpcHeaders.SERVICE_METHOD header at runtime
-    gateway.setMethodNameExpression(new FunctionExpression<>(
-            msg -> msg.getHeaders().get(GrpcHeaders.SERVICE_METHOD, String.class)));
+    gateway.setMethodNameExpression(new SpelExpressionParser().parseExpression("payload.class.simpleName"));
     return gateway;
 }
 ----
 +
-By default, if no method name or expression is configured and the service has more than one method, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
+If no `methodName` or  `methodNameExpression` is configured and there is only one method offered by the service then, that method's name will be used.
+If no `methodName` or  `methodNameExpression` is configured and the service has more than one method, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
 
 === Request Payload Handling
 
@@ -224,4 +223,4 @@ The `GrpcOutboundGateway` automatically detects the method type from the `Method
 ** `Collection<RequestType>`
 ** Single `RequestType` object
 +
-Client streaming methods return a `Mono<ResponseType>` with the single aggregated response, while bidirectional streaming methods return a `Flux<ResponseType>` with multiple responses.
+Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>`.

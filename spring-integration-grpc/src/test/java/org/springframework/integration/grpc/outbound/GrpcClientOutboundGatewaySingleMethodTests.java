@@ -17,8 +17,6 @@
 package org.springframework.integration.grpc.outbound;
 
 import io.grpc.ManagedChannel;
-import io.grpc.Server;
-import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
@@ -26,6 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.grpc.TestInProcessConfiguration;
 import org.springframework.integration.grpc.proto.HelloReply;
 import org.springframework.integration.grpc.proto.HelloRequest;
 import org.springframework.integration.grpc.proto.TestSingleHelloWorldGrpc;
@@ -96,24 +97,13 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	@EnableIntegration
+	@Import(TestInProcessConfiguration.class)
 	static class TestConfig {
 
 		@Bean
-		Server server() throws Exception {
-			return InProcessServerBuilder
-					.forName(serverName)
-					.directExecutor()
-					.addService(new GrpcClientOutboundGatewaySingleMethodTests.SimpleServiceImpl())
-					.build()
-					.start();
-		}
-
-		@Bean
-		ManagedChannel channel() {
-			return InProcessChannelBuilder
-					.forName(serverName)
-					.directExecutor()
-					.build();
+		SimpleServiceImpl simpleService() {
+			return new SimpleServiceImpl();
 		}
 
 		@Bean

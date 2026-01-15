@@ -33,15 +33,20 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.grpc.GrpcHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Outbound Gateway for gRPC client invocations.
@@ -49,21 +54,30 @@ import org.springframework.util.ReflectionUtils;
  * This component acts as a bridge between Spring Integration messaging and gRPC service calls,
  * supporting multiple invocation patterns based on the gRPC method type.
  * <p>
- * Supported gRPC patterns:
+ * Supported gRPC requests:
  * <ul>
- *   <li>Unary: single request → single response (blocking call returns the message directly)</li>
- *   <li>Server streaming: single request → {@link Flux} with multiple responses</li>
- *   <li>Client streaming: {@link Flux} of requests → {@link reactor.core.publisher.Mono Mono} with single response</li>
- *   <li>Bidirectional streaming: {@link Flux} of requests → {@link Flux} with multiple responses</li>
+ *   <li><b>Unary:</b> Accepts a single request object</li>
+ *   <li><b>Server Streaming:</b> Accepts a single request object</li>
+ *   <li><b>Client Streaming:</b> Accepts {@link Flux}, {@link Mono}, {@link java.util.stream.Stream Stream},
+ *       {@link java.util.Collection Collection}, or a single object</li>
+ *   <li><b>Bidirectional Streaming:</b> Accepts {@link Flux}, {@link Mono}, {@link java.util.stream.Stream Stream},
+ *       {@link java.util.Collection Collection}, or a single object</li>
  * </ul>
+ * <p>
+ *  <b>Return type for the requests from the gateway:</b>
+ * 	<ul>
+ * 	 <li><b>Unary:</b> Returns the response message object directly (blocking call)</li>
+ * 	 <li><b>Server Streaming:</b> Returns a {@link Flux} of response messages</li>
+ * 	 <li><b>Client Streaming:</b> Returns a {@link Mono} with the single response</li>
+ * 	<li><b>Bidirectional Streaming:</b> Returns a {@link Flux} of response messages</li>
+ *  </ul>
+ * </p>
+ *
  * @author Glenn Renfro
  *
  * @since 7.1
  */
 public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
-
-	private final FunctionExpression<Message<?>> defaultFunctionExpression = new FunctionExpression<>(
-		msg -> Objects.requireNonNull(msg.getHeaders().get(GrpcHeaders.SERVICE_METHOD)).toString());
 
 	private final Channel channel;
 
@@ -71,7 +85,13 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final ServiceDescriptor serviceDescriptor;
 
-	private Expression methodNameExpression = this.defaultFunctionExpression;
+	private Expression methodNameExpression = new FunctionExpression<>(
+			(Message<?> msg) -> Objects.requireNonNull(msg.getHeaders().get(GrpcHeaders.SERVICE_METHOD)).toString());
+
+	private boolean methodNameExpressionSet;
+
+	@SuppressWarnings("NullAway.Init")
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Create a new {@code GrpcOutboundGateway} with the specified configuration.
@@ -85,10 +105,37 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.serviceDescriptor = (ServiceDescriptor) Objects.requireNonNull(ReflectionUtils.invokeMethod(getServiceDescriptor, null));
 	}
 
+	/**
+	 * Set the {@link Expression} to resolve the gRPC method name at runtime.
+	 * <p>
+	 * If not provided, the default expression checks the {@link org.springframework.messaging.MessageHeaders}
+	 * for {@code GrpcHeaders.SERVICE_METHOD}. If that header is absent, the gateway auto-detects
+	 * the method name if the service descriptor contains exactly one method.
+	 *
+	 * @param methodNameExpression the expression to resolve the method name
+	 */
+	public void setMethodNameExpression(Expression methodNameExpression) {
+		this.methodNameExpression = methodNameExpression;
+		this.methodNameExpressionSet = true;
+	}
+
+	/**
+	 * Set the name of the gRPC method to call.
+	 * <p>
+	 * If neither this nor the method name expression is provided, the gateway will auto-detect the method
+	 * when the service descriptor contains exactly one method.
+	 *
+	 * @param methodName the name of the gRPC method to call
+	 */
+	public void setMethodName(String methodName) {
+		this.methodNameExpression = new LiteralExpression(methodName);
+		this.methodNameExpressionSet = true;
+	}
+
 	@Override
 	protected void doInit() {
 		super.doInit();
-		if (this.methodNameExpression.equals(this.defaultFunctionExpression)) {
+		if (!this.methodNameExpressionSet) {
 			Collection<MethodDescriptor<?, ?>> methods = this.serviceDescriptor.getMethods();
 			if (methods.size() == 1) {
 				Iterator<MethodDescriptor<?, ?>> methodIterator = methods.iterator();
@@ -96,28 +143,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 				this.methodNameExpression = new LiteralExpression(methodName);
 			}
 		}
-	}
-
-	/**
-	 * Set an {@link Expression} to resolve the gRPC method name at runtime.
-	 * <p>
-	 * If not provided, the gateway will auto-detect the method when the service
-	 * descriptor contains exactly one method.
-	 * @param methodNameExpression the expression to resolve the method name
-	 */
-	public void setMethodNameExpression(Expression methodNameExpression) {
-		this.methodNameExpression = methodNameExpression;
-	}
-
-	/**
-	 * Set the method name of the gRPC method.
-	 * <p>
-	 * If not provided or the method name expression, the gateway will auto-detect the method when the service
-	 * descriptor contains exactly one method.
-	 * @param methodName the method name of the gRPC method
-	 */
-	public void setMethodName(String methodName) {
-		this.methodNameExpression = new LiteralExpression(methodName);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	/**
@@ -132,24 +158,6 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 *       Client Streaming, or Bidirectional Streaming).</li>
 	 *   <li>Invokes the appropriate gRPC call based on the method type.</li>
 	 * </ol>
-	 * <p>
-	 * <b>Request Payload Handling:</b>
-	 * <ul>
-	 *   <li><b>Unary:</b> Accepts a single request object</li>
-	 *   <li><b>Server Streaming:</b> Accepts a single request object</li>
-	 *   <li><b>Client Streaming:</b> Accepts {@link Flux}, {@link Mono}, {@link java.util.stream.Stream Stream},
-	 *       {@link java.util.Collection Collection}, or a single object</li>
-	 *   <li><b>Bidirectional Streaming:</b> Accepts {@link Flux}, {@link Mono}, {@link java.util.stream.Stream Stream},
-	 *       {@link java.util.Collection Collection}, or a single object</li>
-	 * </ul>
-	 * <p>
-	 * <b>Return Type by Method Type:</b>
-	 * <ul>
-	 *   <li><b>Unary:</b> Returns the response message object directly (blocking call)</li>
-	 *   <li><b>Server Streaming:</b> Returns a {@link Flux} of response messages</li>
-	 *   <li><b>Client Streaming:</b> Returns a {@link Mono} with the single response</li>
-	 *   <li><b>Bidirectional Streaming:</b> Returns a {@link Flux} of response messages</li>
-	 * </ul>
 	 * @param requestMessage the message containing the gRPC request payload. The payload type depends on the
 	 * gRPC method type (see above for details).
 	 * @return the gRPC response: direct message object for Unary, {@link Mono} for Client streaming,
@@ -162,17 +170,11 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 
-		MethodDescriptor.MethodType methodType;
-		MethodDescriptor<?, ?> methodDescriptor;
+		String methodName = this.methodNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
+		Assert.state(StringUtils.hasText(methodName), "MethodNameExpression must not resolve to an empty string");
 
-		Object methodNameObject = this.methodNameExpression.getValue(requestMessage, String.class);
-		String methodName;
-		Assert.state(methodNameObject != null, "MethodNameExpression must not resolve to null");
-		methodName = methodNameObject.toString();
-		Assert.state(!methodName.isEmpty(), "MethodNameExpression must not resolve to an empty string");
-
-		methodDescriptor = getMethodDescriptor(methodName, this.grpcServiceClass);
-		methodType = methodDescriptor.getType();
+		MethodDescriptor<?, ?> methodDescriptor = getMethodDescriptor(methodName, this.grpcServiceClass);
+		MethodDescriptor.MethodType methodType = methodDescriptor.getType();
 
 		Object request = requestMessage.getPayload();
 
@@ -192,75 +194,16 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return grpcResponse;
 	}
 
-	private Object invokeClientStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
-		Sinks.One<Object> responseSink = Sinks.one();
+	private MethodDescriptor<?, ?> getMethodDescriptor(String methodName, Class<?> grpcServiceClass) {
 
-		StreamObserver<Object> responseObserver = new StreamObserver<>() {
-
-			@Override
-			public void onNext(Object value) {
-				Sinks.EmitResult result = responseSink.tryEmitValue(value);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit value to sink: " + result);
-				}
+		for (MethodDescriptor<?, ?> method : this.serviceDescriptor.getMethods()) {
+			if (methodName.equalsIgnoreCase(method.getBareMethodName())) {
+				return method;
 			}
-
-			@Override
-			public void onError(Throwable ex) {
-				Sinks.EmitResult result = responseSink.tryEmitError(ex);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.error(ex, () -> "Failed to emit error to sink: " + result);
-				}
-			}
-
-			@Override
-			public void onCompleted() {
-			}
-
-		};
-
-		this.subscribeToFlux(request, responseObserver, methodDescriptor);
-
-		return responseSink.asMono();
-	}
-
-	@SuppressWarnings({"NullAway", "unchecked"})
-	private void subscribeToFlux(Object request, StreamObserver<Object> responseObserver,
-			MethodDescriptor<?, ?> methodDescriptor) {
-		Flux<Object> typedRequestFlux = this.getFluxFromRequest(request);
-
-		StreamObserver<Object> requestObserver =
-				this.invokeBiDirectional(methodDescriptor, responseObserver);
-
-		typedRequestFlux.subscribe(
-				requestObserver::onNext,
-				ex -> {
-					requestObserver.onError(ex);
-					responseObserver.onError(ex);
-				},
-				requestObserver::onCompleted
-		);
-	}
-
-	@SuppressWarnings("unchecked")
-	private Flux<Object> getFluxFromRequest(Object request) {
-		Flux<Object> typedRequestFlux;
-		if (request instanceof Flux<?> requestFlux) {
-			typedRequestFlux = (Flux<Object>) requestFlux;
 		}
-		else if (request instanceof Mono<?> requestMono) {
-			typedRequestFlux = Flux.from(requestMono);
-		}
-		else if (request instanceof Stream<?> requestStream) {
-			typedRequestFlux = Flux.fromStream(requestStream);
-		}
-		else if (request instanceof Collection<?> requestCollection) {
-			typedRequestFlux = Flux.fromIterable(requestCollection);
-		}
-		else {
-			typedRequestFlux = Flux.just(request);
-		}
-		return typedRequestFlux;
+
+		throw new IllegalArgumentException("Method '" + methodName +
+				"' not found in service class: " + grpcServiceClass.getName());
 	}
 
 	private Object invokeBidirectionalStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
@@ -294,12 +237,12 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		};
 
-		this.subscribeToFlux(request, responseObserver, methodDescriptor);
+		this.handleRequestAsFlux(request, responseObserver, methodDescriptor);
 
 		return responseSink.asFlux();
 	}
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings({"NullAway", "unchecked", "rawtypes"})
 	private Object invokeServerStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
 		Sinks.Many<Object> responseSink = Sinks.many().unicast().onBackpressureBuffer();
 
@@ -331,35 +274,88 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		};
 
-		// Unary or Server-streaming
-		this.invoke(methodDescriptor, request, responseObserver);
+		ClientCall call = this.channel.newCall(methodDescriptor, CallOptions.DEFAULT);
+		ClientCalls.asyncServerStreamingCall(call, request, responseObserver);
 
 		return responseSink.asFlux();
 	}
 
-	private MethodDescriptor<?, ?> getMethodDescriptor(String methodName, Class<?> grpcServiceClass) {
+	private Mono<?> invokeClientStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
+		Sinks.One<Object> responseSink = Sinks.one();
 
-		for (MethodDescriptor<?, ?> method : this.serviceDescriptor.getMethods()) {
-			if (methodName.equalsIgnoreCase(method.getBareMethodName())) {
-				return method;
+		StreamObserver<Object> responseObserver = new StreamObserver<>() {
+
+			@Override
+			public void onNext(Object value) {
+				Sinks.EmitResult result = responseSink.tryEmitValue(value);
+				if (result.isFailure()) {
+					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit value to sink: " + result);
+				}
 			}
+
+			@Override
+			public void onError(Throwable ex) {
+				Sinks.EmitResult result = responseSink.tryEmitError(ex);
+				if (result.isFailure()) {
+					GrpcOutboundGateway.this.logger.error(ex, () -> "Failed to emit error to sink: " + result);
+				}
+			}
+
+			@Override
+			public void onCompleted() {
+			}
+
+		};
+
+		handleRequestAsFlux(request, responseObserver, methodDescriptor);
+
+		return responseSink.asMono();
+	}
+
+	@SuppressWarnings({"NullAway", "unchecked"})
+	private void handleRequestAsFlux(Object request, StreamObserver<Object> responseObserver,
+			MethodDescriptor<?, ?> methodDescriptor) {
+
+		Flux<Object> typedRequestFlux = requestToFlux(request);
+		StreamObserver<Object> requestObserver =
+				invokeStreamingCall(methodDescriptor, responseObserver);
+
+		typedRequestFlux.subscribe(
+				requestObserver::onNext,
+				ex -> {
+					requestObserver.onError(ex);
+					responseObserver.onError(ex);
+				},
+				requestObserver::onCompleted
+		);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Flux<Object> requestToFlux(Object request) {
+		Flux<Object> typedRequestFlux;
+		if (request instanceof Flux<?> requestFlux) {
+			typedRequestFlux = (Flux<Object>) requestFlux;
 		}
-
-		throw new IllegalArgumentException("Method '" + methodName +
-				"' not found in service class: " + grpcServiceClass.getName());
+		else if (request instanceof Mono<?> requestMono) {
+			typedRequestFlux = Flux.from(requestMono);
+		}
+		else if (request instanceof Stream<?> requestStream) {
+			typedRequestFlux = Flux.fromStream(requestStream);
+		}
+		else if (request instanceof Collection<?> requestCollection) {
+			typedRequestFlux = Flux.fromIterable(requestCollection);
+		}
+		else if (ObjectUtils.isArray(request)) {
+			typedRequestFlux = Flux.fromIterable(CollectionUtils.arrayToList(request));
+		}
+		else {
+			typedRequestFlux = Flux.just(request);
+		}
+		return typedRequestFlux;
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private void invoke(MethodDescriptor method, Object request,
-			StreamObserver responseObserver) {
-
-		ClientCall call = this.channel.newCall(method, CallOptions.DEFAULT);
-		ClientCalls.asyncServerStreamingCall(call, request, responseObserver);
-
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private StreamObserver invokeBiDirectional(MethodDescriptor method,
+	private StreamObserver invokeStreamingCall(MethodDescriptor method,
 			StreamObserver responseObserver) {
 
 		ClientCall call = this.channel.newCall(method, CallOptions.DEFAULT);
@@ -371,7 +367,8 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		};
 	}
 
-	private <ReqT, RespT> RespT invokeBlocking(MethodDescriptor<ReqT, RespT> method, ReqT request) {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private Object invokeBlocking(MethodDescriptor method, Object request) {
 		return ClientCalls.blockingUnaryCall(this.channel, method, CallOptions.DEFAULT, request);
 	}
 

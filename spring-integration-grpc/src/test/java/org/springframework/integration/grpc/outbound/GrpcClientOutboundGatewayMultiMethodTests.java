@@ -20,8 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.grpc.ManagedChannel;
-import io.grpc.Server;
-import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
@@ -30,8 +28,11 @@ import reactor.core.publisher.Flux;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.grpc.GrpcHeaders;
+import org.springframework.integration.grpc.TestInProcessConfiguration;
 import org.springframework.integration.grpc.proto.HelloReply;
 import org.springframework.integration.grpc.proto.HelloRequest;
 import org.springframework.integration.grpc.proto.TestHelloWorldGrpc;
@@ -213,6 +214,19 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	}
 
 	@Test
+	void testClientStreamingArrayWithAsyncStub() {
+		GrpcOutboundGateway gateway = setupGateway("HelloToEveryOne");
+
+		HelloRequest request1 = HelloRequest.newBuilder().setName("Alice").build();
+		HelloRequest request2 = HelloRequest.newBuilder().setName("Bob").build();
+		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
+		HelloRequest[] requests = { request1, request2, request3 };
+		Message<?> requestMessage = MessageBuilder.withPayload(requests).build();
+
+		verifyClientStreamingWithAsyncStub(gateway.handleRequestMessage(requestMessage));
+	}
+
+	@Test
 	void testClientStreamingPOJOWithAsyncStub() {
 		GrpcOutboundGateway gateway = setupGateway("HelloToEveryOne");
 
@@ -371,24 +385,13 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	@Import(TestInProcessConfiguration.class)
+	@EnableIntegration
 	static class TestConfig {
 
 		@Bean
-		Server server() throws Exception {
-			return InProcessServerBuilder
-					.forName(serverName)
-					.directExecutor()
-					.addService(new SimpleServiceImpl())
-					.build()
-					.start();
-		}
-
-		@Bean
-		ManagedChannel channel() {
-			return InProcessChannelBuilder
-					.forName(serverName)
-					.directExecutor()
-					.build();
+		SimpleServiceImpl simpleService() {
+			return new SimpleServiceImpl();
 		}
 
 		@Bean
