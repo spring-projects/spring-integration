@@ -79,6 +79,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
 
+	@SuppressWarnings("NullAway.Init")
+	private RetryTemplate connectionRetryTemplate;
+
 	public Mqttv5PahoMessageHandler(String url, String clientId) {
 		super(url, clientId);
 		Assert.hasText(url, "'url' cannot be null or empty");
@@ -127,13 +130,23 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	/**
 	 * Set the number of connection retries when {@code MqttClientException} is thrown with reason
 	 * codes of {@code MqttClientException.REASON_CODE_CONNECT_IN_PROGRESS} or
-	 * {@code MqttClientException.REASON_CODE_CLIENT_CONNECTED}.
+	 * {@code MqttClientException.REASON_CODE_CLIENT_CONNECTED}.  This feature is disabled if
+	 * the {@code connectionRetryTemplate} has been set.
 	 * @param retryConnectionCount the retry count.
 	 * @since 7.1
 	 */
 	public void setRetryConnectionCount(int retryConnectionCount) {
 		Assert.isTrue(retryConnectionCount >= 0, "'retryConnectionCount' must be >= 0");
 		this.retryConnectionCount = retryConnectionCount;
+	}
+
+	/**
+	 * Set the {@link RetryTemplate} to use for retrying connections to the MQTT broker.
+	 *
+	 * @param connectionRetryTemplate the {@link RetryTemplate} used for retrying failed connection attempts
+	 */
+	public void setConnectionRetryTemplate(RetryTemplate connectionRetryTemplate) {
+		this.connectionRetryTemplate = connectionRetryTemplate;
 	}
 
 	@Override
@@ -157,6 +170,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		else {
 			Assert.state(!(getConverter() instanceof MqttMessageConverter),
 					"MessageConverter must not be an MqttMessageConverter");
+		}
+		if (this.connectionRetryTemplate == null) {
+			this.connectionRetryTemplate = getDefaultConnectionRetryTemplate();
 		}
 	}
 
@@ -266,8 +282,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			if (!this.mqttClient.isConnected()) {
 				this.lock.lock();
 				try {
-					RetryTemplate retryTemplate = getRetryTemplate();
-					retryTemplate.<@Nullable Object>execute(() -> {
+					this.connectionRetryTemplate.<@Nullable Object>execute(() -> {
 						if (!this.mqttClient.isConnected()) {
 							this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
 						}
@@ -285,7 +300,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			IMqttToken token =
 					this.mqttClient.publish(topic, (MqttMessage) mqttMessage, null, this.mqttPublishActionListener);
 			if (!isAsync()) {
-				token.waitForCompletion(completionTimeout); // NOSONAR (sync)
+				token.waitForCompletion(completionTimeout);
 			}
 			else {
 				messageSentEvent(message, topic, token.getMessageId());
@@ -327,7 +342,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	}
 
-	private RetryTemplate getRetryTemplate() {
+	private RetryTemplate getDefaultConnectionRetryTemplate() {
 		return new RetryTemplate(RetryPolicy.builder()
 				.maxRetries(this.retryConnectionCount)
 				.predicate(new MqttExceptionMatcher())
