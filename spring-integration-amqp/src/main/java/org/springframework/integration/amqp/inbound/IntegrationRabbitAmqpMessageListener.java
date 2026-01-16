@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.amqp.core.AmqpAcknowledgment;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpUtils;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.amqp.support.converter.MessageConverter;
