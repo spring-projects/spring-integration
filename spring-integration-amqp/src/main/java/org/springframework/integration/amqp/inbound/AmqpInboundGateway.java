@@ -28,14 +28,14 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListenerContainer;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -351,7 +351,6 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		protected Listener() {
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, @Nullable Channel channel) {
 			try {

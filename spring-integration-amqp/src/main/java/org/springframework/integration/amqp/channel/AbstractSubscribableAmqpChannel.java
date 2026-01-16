@@ -25,11 +25,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.MessageDispatchingException;
@@ -296,10 +296,11 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 		@Override
 		public void onMessage(org.springframework.amqp.core.Message message) {
-			Message<?> messageToSend = null;
 			try {
 				Object converted = this.converter.fromMessage(message);
-				messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
+				Message<?> messageToSend =
+						converted instanceof Message<?>
+								? (Message<?>) converted
 						: buildMessage(message, converted);
 				this.dispatcher.dispatch(messageToSend);
 			}

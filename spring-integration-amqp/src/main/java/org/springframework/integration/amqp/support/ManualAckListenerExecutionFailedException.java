@@ -21,7 +21,7 @@ import java.io.Serial;
 import com.rabbitmq.client.Channel;
 
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 
 /**
  * A {@link ListenerExecutionFailedException} enhanced with the channel and delivery tag.

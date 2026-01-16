@@ -16,7 +16,7 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 
 /**

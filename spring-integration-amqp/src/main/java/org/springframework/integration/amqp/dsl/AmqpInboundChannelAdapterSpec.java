@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.dsl.ComponentsRegistration;
 

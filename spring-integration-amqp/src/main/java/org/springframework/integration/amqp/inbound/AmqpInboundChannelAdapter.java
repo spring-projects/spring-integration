@@ -27,15 +27,15 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListenerContainer;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;

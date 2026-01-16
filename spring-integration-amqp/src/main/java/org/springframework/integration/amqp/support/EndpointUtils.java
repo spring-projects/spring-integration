@@ -23,7 +23,7 @@ import com.rabbitmq.client.Channel;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 
 /**
  * Utility methods for messaging endpoints.

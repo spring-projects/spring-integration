@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.beans.factory.BeanFactory;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

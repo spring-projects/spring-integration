@@ -31,6 +31,7 @@ import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.batch.MessageBatch;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -41,7 +42,6 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareBatchMessageListener;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.retry.MessageBatchRecoverer;
-import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
