@@ -52,14 +52,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GrpcClientOutboundGatewayMultiMethodTests {
 
 	@Autowired
-	private ManagedChannel channel;
-
-	@Autowired
 	private GrpcOutboundGateway grpcOutboundGateway;
 
-	// ==================== SimpleBlockingStub Tests ====================
-
-	@SuppressWarnings("unchecked")
 	@Test
 	void testGrpcClientOutboundGatewayNoExpressionSet() {
 		HelloRequest request = HelloRequest.newBuilder()
@@ -69,21 +63,37 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				setHeader(GrpcHeaders.SERVICE_METHOD, "SayHello").
 				build();
-
-		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-		HelloReply response = monoResponse.block();
+		this.grpcOutboundGateway.setAsync(false);
+		HelloReply response = (HelloReply) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 		assertThat(response.getMessage()).isEqualTo("Hello, Jane!");
 	}
 
 	@Test
 	void testSayHelloWithBlockingStub() {
 		GrpcOutboundGateway gateway = setupGateway("SayHello");
+		gateway.setAsync(false);
 		validateBlockingStub(gateway, "SayHello");
+	}
+
+	@Test
+	void testSayHelloWithMono() {
+		GrpcOutboundGateway gateway = setupGateway("SayHello");
+		HelloRequest request = HelloRequest.newBuilder()
+				.setName("Jim")
+				.build();
+
+		Message<?> requestMessage = MessageBuilder.withPayload(request).
+				build();
+
+		Mono<HelloReply> monoResponse = (Mono<HelloReply>) gateway.handleRequestMessage(requestMessage);
+		HelloReply response = monoResponse.block();
+		assertThat(response.getMessage()).isEqualTo("Hello, Jim!");
 	}
 
 	@Test
 	void testSayHelloMixedCapitalizationWithBlockingStub() {
 		GrpcOutboundGateway gateway = setupGateway("SaYHellO");
+		gateway.setAsync(false);
 		validateBlockingStub(gateway, "SayHello");
 	}
 
@@ -109,8 +119,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		assertThat(replies).isNotNull().hasSize(3);
 		assertThat(replies.get(0).getMessage()).contains("Stream");
 	}
-
-	// ==================== SimpleStub (Async) Tests ====================
 
 	@Test
 	void testBidirectionalWithAsyncStub() {
@@ -259,9 +267,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		assertThat(reply.getMessage()).isEqualTo(expectedResult);
 	}
 
-	/**
-	 * Create and configure a GrpcOutboundGateway.
-	 */
 	private GrpcOutboundGateway setupGateway(String methodName) {
 		this.grpcOutboundGateway.setMethodName(methodName);
 		return this.grpcOutboundGateway;
@@ -276,9 +281,11 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				build();
 
-		Mono<HelloReply> monoResponse = (Mono<HelloReply>) gateway.handleRequestMessage(requestMessage);
-		HelloReply response = monoResponse.block();
-		assertThat(response.getMessage()).isEqualTo("Hello, " + name + "!");
+		Object response = gateway.handleRequestMessage(requestMessage);
+
+		assertThat(response).isInstanceOf(HelloReply.class);
+		HelloReply reply = (HelloReply) response;
+		assertThat(reply.getMessage()).isEqualTo("Hello, " + name + "!");
 	}
 
 	private static class SimpleServiceImpl extends TestHelloWorldGrpc.TestHelloWorldImplBase {
@@ -303,7 +310,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 				return;
 			}
 
-			// Normal case: return multiple responses
 			for (int i = 1; i <= 3; i++) {
 				HelloReply reply = HelloReply.newBuilder()
 						.setMessage("Hello, " + request.getName() + "! (" + i + "/3)")
@@ -318,7 +324,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 			return new StreamObserver<>() {
 				@Override
 				public void onNext(HelloRequest value) {
-					// Echo back each request
 					HelloReply reply = HelloReply.newBuilder()
 							.setMessage("Hello " + value.getName())
 							.build();
@@ -344,7 +349,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 
 				@Override
 				public void onNext(HelloRequest value) {
-					// Collect all names from the stream
 					names.add(value.getName());
 				}
 
@@ -355,7 +359,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 
 				@Override
 				public void onCompleted() {
-					// Send single aggregated response with all names
 					String allNames = String.join(", ", names);
 					HelloReply reply = HelloReply.newBuilder()
 							.setMessage("Hello to " + allNames + "!")

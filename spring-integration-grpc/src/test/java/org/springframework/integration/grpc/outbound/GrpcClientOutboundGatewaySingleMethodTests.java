@@ -51,16 +51,28 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	void testSingleMethodProto() {
+	void testSingleMethodAsyncProto() {
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("Jane")
 				.build();
 
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				build();
-
 		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 		HelloReply response = monoResponse.block();
+		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
+	}
+
+	@Test
+	void testSingleMethodBlockingProto() {
+		HelloRequest request = HelloRequest.newBuilder()
+				.setName("Jane")
+				.build();
+
+		Message<?> requestMessage = MessageBuilder.withPayload(request).
+				build();
+		this.grpcOutboundGateway.setAsync(false);
+		HelloReply response = (HelloReply) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
 	}
 
