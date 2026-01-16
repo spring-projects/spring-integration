@@ -21,7 +21,7 @@ plugins {
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.6' apply false
-    id 'io.freefair.aggregate-javadoc' version '9.1.0'
+    id 'io.freefair.aggregate-javadoc' version '9.2.0'
     id 'io.spring.nullability' version '0.0.9' apply false
 }
 
@@ -51,22 +51,22 @@ ext {
     assertkVersion = '0.28.1'
     avroVersion = '1.12.1'
     awaitilityVersion = '4.3.0'
-    camelVersion = '4.16.0'
+    camelVersion = '4.17.0'
     cloudEventsVersion = '4.0.1'
-    commonsDbcp2Version = '2.13.0'
+    commonsDbcp2Version = '2.14.0'
     commonsIoVersion = '2.21.0'
     commonsNetVersion = '3.12.0'
     curatorVersion = '5.9.0'
-    debeziumVersion = '3.3.2.Final'
-    derbyVersion = '10.16.1.1'
+    debeziumVersion = '3.4.0.Final'
+    derbyVersion = '10.17.1.0'
     ftpServerVersion = '1.2.1'
     graalvmVersion = '25.0.1'
     greenmailVersion = '2.1.8'
     groovyVersion = '5.0.3'
-	grpcVersion = '1.77.1'
+	grpcVersion = '1.78.0'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
-    hibernateVersion = '7.1.14.Final'
+    hibernateVersion = '7.2.1.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.4.240'
     jacksonVersion = '2.20.1'
@@ -87,7 +87,7 @@ ext {
     mailVersion = '2.0.5'
     micrometerTracingVersion = '1.6.1'
     micrometerVersion = '1.16.1'
-    mockitoVersion = '5.20.0'
+    mockitoVersion = '5.21.0'
     mongoDriverVersion = '5.6.2'
     mysqlVersion = '9.5.0'
     oracleVersion = '23.26.0.0.0'
@@ -232,8 +232,8 @@ configure(javaProjects) { subproject ->
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask).configureEach {
         compilerOptions {
-            apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
-            languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
+            apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
+            languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
             jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
             javaParameters = true
             allWarningsAsErrors = true
@@ -327,7 +327,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '12.3.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '13.0.0'
     }
 
     jar {

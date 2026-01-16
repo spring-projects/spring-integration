@@ -724,12 +724,13 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 	@SuppressWarnings("unchecked")
 	@Test
 	void testTxNonTx() {
-		KafkaTemplate<String, String> template = mock(KafkaTemplate.class);
+		KafkaTemplate<String, String> template = mock();
 		given(template.isTransactional()).willReturn(true);
 		given(template.inTransaction()).willReturn(false);
 		given(template.isAllowNonTransactional()).willReturn(true);
-		given(template.getProducerFactory()).willReturn(mock(ProducerFactory.class));
+		given(template.getProducerFactory()).willReturn(mock());
 		KafkaProducerMessageHandler<String, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		handler.handleMessage(new GenericMessage<>("foo"));
 		verify(template, never()).executeInTransaction(any());
