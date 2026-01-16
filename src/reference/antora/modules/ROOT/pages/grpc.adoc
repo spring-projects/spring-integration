@@ -209,7 +209,7 @@ public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 }
 ----
 +
-4. **Default method resolution** if method name or method name expression is configured and there are multiple methods offered by the service then, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
+4. **Default method resolution** if neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
 +
 [source, java]
 ----
