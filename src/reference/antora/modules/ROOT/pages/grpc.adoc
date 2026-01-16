@@ -169,7 +169,7 @@ It supports the following gRPC communication patterns:
 
 NOTE: GrpcOutboundGateway is asynchronous by default.
 However, to set the gateway to synchronous mode (specifically for the Unary gRPC communication pattern) use the `setAsync` method.
-More can read about asynchronous service activators https://docs.spring.io/spring-integration/reference/service-activator.html#async-service-activator[here].
+More can read about asynchronous service activators xref:service-activator.adoc#async-service-activator[here].
 
 === Method Name Configuration
 
@@ -197,7 +197,7 @@ public GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
 }
 ----
 
-3. **Dynamic resolution** from message headers using `setMethodNameExpression()`:
+3. **Dynamic resolution** establish expression to determine method name `setMethodNameExpression()`:
 +
 [source, java]
 ----
@@ -209,15 +209,24 @@ public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 }
 ----
 +
-If no `methodName` or  `methodNameExpression` is configured and there is only one method offered by the service then, that method's name will be used.
-If no `methodName` or  `methodNameExpression` is configured and the service has more than one method, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
+4. **Default method resolution** if method name or method name expression is configured and there are multiple methods offered by the service then, the gateway uses the `GrpcHeaders.SERVICE_METHOD` header to determine which method to invoke.
++
+[source, java]
+----
+@Bean
+public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
+    return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
+}
+----
+
 
 === Request Payload Handling
 
 The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
 
-* **Unary** methods accept a single gRPC request message , returning a `Mono<ResponseType>` by default containing the response object.
-If `async` is set to `true` then the response object is returned.
+* **Unary** methods accept a single gRPC request message, returning a `Mono<ResponseType>` by default containing the response object.
+The default `async` mode of the gateway is `true`.
+If `async` is set to `false` then the response object is returned.
 
 * **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>` containing all streamed responses.
 
@@ -226,6 +235,7 @@ If `async` is set to `true` then the response object is returned.
 ** `Mono<RequestType>`
 ** `Stream<RequestType>`
 ** `Collection<RequestType>`
+** `Array of RequestTypes`
 ** Single `RequestType` object
 
 Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>` containing the response.

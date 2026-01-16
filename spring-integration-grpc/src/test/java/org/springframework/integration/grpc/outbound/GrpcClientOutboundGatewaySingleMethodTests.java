@@ -51,7 +51,7 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	void testSingleMethodAsyncProto() {
+	void testSingleMethodAsync() {
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("Jane")
 				.build();
@@ -64,7 +64,7 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 	}
 
 	@Test
-	void testSingleMethodBlockingProto() {
+	void testSingleMethodBlocking() {
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("Jane")
 				.build();
@@ -74,18 +74,6 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 		this.grpcOutboundGateway.setAsync(false);
 		HelloReply response = (HelloReply) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
-	}
-
-	private static class SimpleServiceImpl extends TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase {
-
-		@Override
-		public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
-			HelloReply reply = HelloReply.newBuilder()
-					.setMessage("Hello, " + request.getName() + "!")
-					.build();
-			responseObserver.onNext(reply);
-			responseObserver.onCompleted();
-		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -101,6 +89,18 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 		@Bean
 		GrpcOutboundGateway grpcOutboundGateway(ManagedChannel channel) {
 			return new GrpcOutboundGateway(channel, TestSingleHelloWorldGrpc.class);
+		}
+
+		private static class SimpleServiceImpl extends TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase {
+
+			@Override
+			public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
+				HelloReply reply = HelloReply.newBuilder()
+						.setMessage("Hello, " + request.getName() + "!")
+						.build();
+				responseObserver.onNext(reply);
+				responseObserver.onCompleted();
+			}
 		}
 	}
 }

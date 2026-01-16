@@ -94,8 +94,11 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	private CallOptions callOptions = CallOptions.DEFAULT;
+
 	/**
 	 * Create a new {@code GrpcOutboundGateway} with the specified configuration.
+	 * The default async for the gateway is set to `true`.
 	 * @param channel the gRPC channel to use for communication
 	 * @param grpcServiceClass the gRPC service class (e.g., {@code SimpleGrpc.class})
 	 */
@@ -105,7 +108,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.grpcServiceClass = grpcServiceClass;
 		Method getServiceDescriptor = ClassUtils.getMethod(this.grpcServiceClass, "getServiceDescriptor");
 		this.serviceDescriptor = (ServiceDescriptor) Objects.requireNonNull(ReflectionUtils.invokeMethod(getServiceDescriptor, null));
-		this.setAsync(true);
+		setAsync(true);
 	}
 
 	/**
@@ -130,6 +133,15 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setMethodName(String methodName) {
 		setMethodNameExpression(new LiteralExpression(methodName));
+	}
+
+	/**
+	 * Set the {@link CallOptions} the RPC call.
+	 * Default is {@link CallOptions#DEFAULT}
+	 * @param callOptions the {@link CallOptions} for the gateway.
+	 */
+	public void setCallOptions(CallOptions callOptions) {
+		this.callOptions = callOptions;
 	}
 
 	@Override
@@ -157,8 +169,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		Object request = requestMessage.getPayload();
 
-		this.logger.debug(() -> "Invoking gRPC method '" + methodDescriptor.getBareMethodName() +
-				"' from service '" + methodDescriptor.getServiceName() + "' with payload: " + request);
+		this.logger.debug(() -> "Invoking gRPC method '" + methodDescriptor + "' for request: " + request);
 
 		return switch (methodType) {
 			case BIDI_STREAMING -> invokeBidirectionalStreaming(request, methodDescriptor);
@@ -217,7 +228,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return responseSink.asFlux();
 	}
 
-	@SuppressWarnings({"NullAway", "unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private Object invokeServerStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
 		Sinks.Many<Object> responseSink = Sinks.many().unicast().onBackpressureBuffer();
 
@@ -249,7 +260,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		};
 
-		ClientCall call = this.channel.newCall(methodDescriptor, CallOptions.DEFAULT);
+		ClientCall call = this.channel.newCall(methodDescriptor, this.callOptions);
 		ClientCalls.asyncServerStreamingCall(call, request, responseObserver);
 
 		return responseSink.asFlux();
@@ -265,7 +276,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return responseSink.asMono();
 	}
 
-	@SuppressWarnings({"NullAway", "unchecked"})
+	@SuppressWarnings("unchecked")
 	private void handleRequestAsFlux(Object request, StreamObserver<Object> responseObserver,
 			MethodDescriptor<?, ?> methodDescriptor) {
 
@@ -307,11 +318,11 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return typedRequestFlux;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private StreamObserver invokeStreamingCall(MethodDescriptor method,
-			StreamObserver responseObserver) {
+	@SuppressWarnings("unchecked")
+	private StreamObserver<Object> invokeStreamingCall(MethodDescriptor<?, ?> method,
+			StreamObserver<Object> responseObserver) {
 
-		ClientCall call = this.channel.newCall(method, CallOptions.DEFAULT);
+		ClientCall<Object, Object> call = (ClientCall<Object, Object>) this.channel.newCall(method, this.callOptions);
 
 		if (MethodDescriptor.MethodType.CLIENT_STREAMING.equals(method.getType())) {
 			return  ClientCalls.asyncClientStreamingCall(call, responseObserver);
@@ -330,7 +341,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private Mono<?> invokeAsyncUnary(MethodDescriptor<?, ?> method, Object request) {
-		ClientCall call = this.channel.newCall(method, CallOptions.DEFAULT);
+		ClientCall call = this.channel.newCall(method, this.callOptions);
 		Sinks.One<Object> responseSink = Sinks.one();
 
 		StreamObserver<Object> responseObserver = createSingleSinkResponseObserver(responseSink);
@@ -341,7 +352,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private Object invokeBlockingUnary(MethodDescriptor<Object, Object> method, Object request) {
-		return ClientCalls.blockingUnaryCall(this.channel, method, CallOptions.DEFAULT, request);
+		return ClientCalls.blockingUnaryCall(this.channel, method, this.callOptions, request);
 
 	}
 
