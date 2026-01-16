@@ -309,36 +309,10 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 	 * Information for building an AmqpAckCallback.
 	 * @param connection the {@link Connection} to use
 	 * @param channel the {@link Channel} to use
-	 * @param transacted if channel is transacted
+	 * @param transacted if the channel is transacted
 	 * @param getResponse the {@link GetResponse} to use
 	 */
 	public record AmqpAckInfo(Connection connection, Channel channel, boolean transacted, GetResponse getResponse) {
-
-		@Deprecated(since = "7.0", forRemoval = true)
-		public Connection getConnection() {
-			return this.connection;
-		}
-
-		@Deprecated(since = "7.0", forRemoval = true)
-		public Channel getChannel() {
-			return this.channel;
-		}
-
-		@Deprecated(since = "7.0", forRemoval = true)
-		public boolean isTransacted() {
-			return this.transacted;
-		}
-
-		@Deprecated(since = "7.0", forRemoval = true)
-		public GetResponse getGetResponse() {
-			return this.getResponse;
-		}
-
-		@Override
-		public String toString() {
-			return "AmqpAckInfo [connection=" + this.connection + ", channel=" + this.channel + ", transacted="
-					+ this.transacted + ", getResponse=" + this.getResponse + "]";
-		}
 
 	}
 

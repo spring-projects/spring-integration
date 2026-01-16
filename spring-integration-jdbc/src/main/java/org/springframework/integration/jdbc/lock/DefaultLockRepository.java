@@ -77,18 +77,11 @@ public class DefaultLockRepository
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	/**
-	 * Default value for the time-to-live property.
-	 */
-	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
-
 	private final String id;
 
 	private final JdbcTemplate template;
 
 	private final AtomicBoolean started = new AtomicBoolean();
-
-	private Duration ttl = DEFAULT_TTL;
 
 	private String prefix = DEFAULT_TABLE_PREFIX;
 
@@ -404,12 +397,6 @@ public class DefaultLockRepository
 	}
 
 	@Override
-	@Deprecated(since = "7.0")
-	public boolean acquire(String lock) {
-		return acquire(lock, this.ttl);
-	}
-
-	@Override
 	public boolean acquire(String lock, Duration ttlDuration) {
 		return this.readCommittedTransactionTemplate.<Boolean>execute(
 				transactionStatus -> {
@@ -441,12 +428,6 @@ public class DefaultLockRepository
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
 						this.template.update(this.deleteExpiredQuery, this.region, epochMillis()));
-	}
-
-	@Override
-	@Deprecated(since = "7.0")
-	public boolean renew(String lock) {
-		return this.renew(lock, this.ttl);
 	}
 
 	@Override

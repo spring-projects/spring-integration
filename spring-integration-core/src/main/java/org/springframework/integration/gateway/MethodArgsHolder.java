@@ -36,24 +36,4 @@ import java.lang.reflect.Method;
  */
 public record MethodArgsHolder(Method method, Object[] args) {
 
-	/**
-	 * Return the method being invoked.
-	 * @return the method being invoked.
-	 * @deprecated since 7.0 in favor of {@link #method()}.
-	 */
-	@Deprecated(since = "7.0", forRemoval = true)
-	public Method getMethod() {
-		return this.method;
-	}
-
-	/**
-	 * Return the arguments for the method invocation.
-	 * @return the arguments for the method invocation.
-	 * @deprecated since 7.0 in favor of {@link #method()}.
-	 */
-	@Deprecated(since = "7.0", forRemoval = true)
-	public Object[] getArgs() {
-		return this.args;
-	}
-
 }
