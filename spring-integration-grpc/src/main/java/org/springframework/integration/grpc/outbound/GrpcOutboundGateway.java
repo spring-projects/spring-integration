@@ -228,7 +228,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return responseSink.asFlux();
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked"})
 	private Object invokeServerStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
 		Sinks.Many<Object> responseSink = Sinks.many().unicast().onBackpressureBuffer();
 
@@ -260,7 +260,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		};
 
-		ClientCall call = this.channel.newCall(methodDescriptor, this.callOptions);
+		ClientCall<Object, Object> call = (ClientCall<Object, Object>) this.channel.newCall(methodDescriptor, this.callOptions);
 		ClientCalls.asyncServerStreamingCall(call, request, responseObserver);
 
 		return responseSink.asFlux();
@@ -339,9 +339,9 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return invokeBlockingUnary((MethodDescriptor<Object, Object>) methodDescriptor, request);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked"})
 	private Mono<?> invokeAsyncUnary(MethodDescriptor<?, ?> method, Object request) {
-		ClientCall call = this.channel.newCall(method, this.callOptions);
+		ClientCall<Object, Object> call = (ClientCall<Object, Object>) this.channel.newCall(method, this.callOptions);
 		Sinks.One<Object> responseSink = Sinks.one();
 
 		StreamObserver<Object> responseObserver = createSingleSinkResponseObserver(responseSink);

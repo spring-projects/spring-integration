@@ -235,7 +235,7 @@ If `async` is set to `false` then the response object is returned.
 ** `Mono<RequestType>`
 ** `Stream<RequestType>`
 ** `Collection<RequestType>`
-** `Array of RequestTypes`
+** `RequestTypes[]`
 ** Single `RequestType` object
 
 Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>` containing the response.
