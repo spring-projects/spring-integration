@@ -20,16 +20,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.grpc.ManagedChannel;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.grpc.GrpcHeaders;
 import org.springframework.integration.grpc.TestInProcessConfiguration;
@@ -51,7 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class GrpcClientOutboundGatewayMultiMethodTests {
-	private static final String serverName = InProcessServerBuilder.generateName();
 
 	@Autowired
 	private ManagedChannel channel;
@@ -61,6 +59,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 
 	// ==================== SimpleBlockingStub Tests ====================
 
+	@SuppressWarnings("unchecked")
 	@Test
 	void testGrpcClientOutboundGatewayNoExpressionSet() {
 		HelloRequest request = HelloRequest.newBuilder()
@@ -71,11 +70,9 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 				setHeader(GrpcHeaders.SERVICE_METHOD, "SayHello").
 				build();
 
-		Object response = this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-
-		assertThat(response).isInstanceOf(HelloReply.class);
-		HelloReply reply = (HelloReply) response;
-		assertThat(reply.getMessage()).isEqualTo("Hello, Jane!");
+		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
+		HelloReply response = monoResponse.block();
+		assertThat(response.getMessage()).isEqualTo("Hello, Jane!");
 	}
 
 	@Test
@@ -94,7 +91,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	void testStreamHelloWithAsyncStub() {
 		GrpcOutboundGateway gateway = setupGateway("StreamSayHello");
 
-		// Create request
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("Stream")
 				.build();
@@ -102,10 +98,8 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				build();
 
-		// Invoke gateway - async stub returns a Flux
 		Object response = gateway.handleRequestMessage(requestMessage);
 
-		// Verify response is a Flux
 		assertThat(response).isInstanceOf(Flux.class);
 
 		@SuppressWarnings("unchecked")
@@ -177,7 +171,6 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	void testServerStreamingWithAsyncStub() {
 		GrpcOutboundGateway gateway = setupGateway("StreamSayHello");
 
-		// Create request
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("StreamAsync")
 				.build();
@@ -270,12 +263,12 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	 * Create and configure a GrpcOutboundGateway.
 	 */
 	private GrpcOutboundGateway setupGateway(String methodName) {
-		this.grpcOutboundGateway.setMethodNameExpression(new LiteralExpression(methodName));
+		this.grpcOutboundGateway.setMethodName(methodName);
 		return this.grpcOutboundGateway;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void validateBlockingStub(GrpcOutboundGateway gateway, String name) {
-		// Create request
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName(name)
 				.build();
@@ -283,20 +276,11 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				build();
 
-		// Invoke gateway
-		Object response = gateway.handleRequestMessage(requestMessage);
-
-		// Verify response
-		assertThat(response).isInstanceOf(HelloReply.class);
-		HelloReply reply = (HelloReply) response;
-		assertThat(reply.getMessage()).isEqualTo("Hello, " + name + "!");
+		Mono<HelloReply> monoResponse = (Mono<HelloReply>) gateway.handleRequestMessage(requestMessage);
+		HelloReply response = monoResponse.block();
+		assertThat(response.getMessage()).isEqualTo("Hello, " + name + "!");
 	}
 
-	// ==================== Mock gRPC Service Implementation ====================
-
-	/**
-	 * Simple implementation of the gRPC service for testing.
-	 */
 	private static class SimpleServiceImpl extends TestHelloWorldGrpc.TestHelloWorldImplBase {
 
 		@Override

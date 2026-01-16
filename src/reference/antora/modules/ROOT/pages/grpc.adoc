@@ -162,7 +162,7 @@ For initialization, the instance of this gateway requires a gRPC `Channel` and t
 The gateway dynamically invokes gRPC methods using ``MethodDescriptor``s obtained from the service's `ServiceDescriptor`.
 It supports the following gRPC communication patterns:
 
-* **Unary**: Single request → single response (blocking call returns the message directly)
+* **Unary**: Single request → `Mono` with single response
 * **Server streaming**: Single request → `Flux` of multiple responses
 * **Client streaming**: Multiple requests → `Mono` with single response
 * **Bidirectional streaming**: Multiple requests → `Flux` of multiple responses
@@ -212,7 +212,7 @@ If no `methodName` or  `methodNameExpression` is configured and the service has 
 
 The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
 
-* **Unary** methods accept a single gRPC request message and perform a blocking call, returning the gRPC response message directly.
+* **Unary** methods accept a single gRPC request message , returning a `Mono<ResponseType>` containing the response.
 
 * **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>` containing all streamed responses.
 
@@ -223,4 +223,4 @@ The `GrpcOutboundGateway` automatically detects the method type from the `Method
 ** `Collection<RequestType>`
 ** Single `RequestType` object
 +
-Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>`.
+Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Mono<ResponseType>` containing the response.

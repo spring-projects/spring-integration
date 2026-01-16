@@ -17,9 +17,9 @@
 package org.springframework.integration.grpc.outbound;
 
 import io.grpc.ManagedChannel;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,44 +46,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class GrpcClientOutboundGatewaySingleMethodTests {
 
-	private static final String serverName = InProcessServerBuilder.generateName();
-
-	@Autowired
-	private ManagedChannel channel;
-
 	@Autowired
 	private GrpcOutboundGateway grpcOutboundGateway;
 
-	// ==================== SimpleBlockingStub Tests ====================
-
+	@SuppressWarnings("unchecked")
 	@Test
 	void testSingleMethodProto() {
-		validateBlockingStub(this.grpcOutboundGateway, "SayHello");
-	}
-
-	private void validateBlockingStub(GrpcOutboundGateway gateway, String name) {
-		// Create request
 		HelloRequest request = HelloRequest.newBuilder()
-				.setName(name)
+				.setName("Jane")
 				.build();
 
 		Message<?> requestMessage = MessageBuilder.withPayload(request).
 				build();
 
-		// Invoke gateway
-		Object response = gateway.handleRequestMessage(requestMessage);
-
-		// Verify response
-		assertThat(response).isInstanceOf(HelloReply.class);
-		HelloReply reply = (HelloReply) response;
-		assertThat(reply.getMessage()).isEqualTo("Hello, " + name + "!");
+		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
+		HelloReply response = monoResponse.block();
+		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
 	}
 
-	// ==================== Mock gRPC Service Implementation ====================
-
-	/**
-	 * Simple implementation of the gRPC service for testing.
-	 */
 	private static class SimpleServiceImpl extends TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase {
 
 		@Override
