@@ -84,7 +84,7 @@ ext {
     log4jVersion = '2.24.3'
     mailVersion = '2.0.5'
     micrometerTracingVersion = '1.5.7'
-    micrometerVersion = '1.15.7'
+    micrometerVersion = '1.15.8'
     mockitoVersion = '5.17.0'
     mongoDriverVersion = '5.5.2'
     mysqlVersion = '9.3.0'
