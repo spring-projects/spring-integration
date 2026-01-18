@@ -29,7 +29,7 @@ implementation "org.springframework.integration:spring-integration-cloudevents:{
 [[to-cloud-event-transformer]]
 == `ToCloudEventTransformer`
 
-Use the `ToCloudEventTransformer` to convert Spring Integration messages into CloudEvents compliant messages.
+Use the `ToCloudEventTransformer` to convert Spring Integration messages into CloudEvents-compliant messages.
 This transformer supports the CloudEvents specification v1.0 and serializes CloudEvents if an `EventFormat` or `eventFormatContentTypeExpression` is specified.
 When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the CloudEvent in the payload.
 If neither is specified, the transformer writes the event data message payload as-is and adds attributes as well as extensions to the message headers.
@@ -57,14 +57,14 @@ The following table lists the attribute names and the values the default express
 
 | `dataContentType`
 | The contentType of the message, defaults to `application/octet-stream`.
-Some other examples are but not limited to: `application/json`, `application/x-avro`, and `application/xml`.
+Some other examples include, but are not limited to: `application/json`, `application/x-avro`, and `application/xml`.
 
 | `dataSchema`
 | The URI to the specified schema.
-The default for `dataSchema` is `null`
+The default for `dataSchema` is `null`.
 
 | `subject`
-| Identify the subject of the event in the context of the event producer with this attribute.
+| This attribute identifies the subject of the event in the context of the event producer.
 The default for `subject` is `null`.
 
 | `time`
@@ -78,7 +78,7 @@ Note that you cannot configure this value.
 Use the `extensionPatterns` constructor parameter (a vararg of strings) to specify pattern matching with wildcards (`*`).
 The transformer includes message headers with keys matching any pattern as CloudEvent extensions.
 Use a `!` prefix to explicitly exclude headers through negation.
-Note that the first matching pattern wins (positive or negative).
+Note that the first matching pattern wins (whether positive or negative).
 
 For example, configure patterns `"trace*", "span-id", "user-id"` to:
 - Include headers starting with `trace` (e.g., `trace-id`, `traceparent`)
@@ -88,7 +88,7 @@ For example, configure patterns `"trace*", "span-id", "user-id"` to:
 To exclude specific headers, use negated patterns: `"custom-*", "!custom-internal"` includes all headers starting with `custom-` except `custom-internal`.
 
 [[configuration-with-dsl]]
-=== Configuration With DSL
+=== Configuration with DSL
 
 Add the CloudEvent transformer to flows using the DSL:
 
@@ -114,9 +114,9 @@ public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEv
 
 Understand the transformation process:
 
-1. **CloudEvent Building**: Build CloudEvent attributes.
+1. **CloudEvent Building**: Build the CloudEvent attributes.
 2. **Extension Extraction**: Build the CloudEvent extensions using the array of extensionPatterns passed into the constructor.
-3. **Format Conversion**: Apply the specified `EventFormat` or, if not set, handle conversion via Binary Format Mode.
+3. **Format Conversion**: Apply the specified `EventFormat` or, if not set, handle the conversion via Binary Format Mode.
 
 A basic transformation may have the following pattern:
 
@@ -143,7 +143,7 @@ Set the `EventFormat` in one of two ways:
 1. Set the desired `EventFormat`.
 2. Set the `eventFormatContentTypeExpression` with an expression that resolves to a content type that `EventFormatProvider` can use to provide the required `EventFormat`.
 When the `eventFormatContentTypeExpression` is set and the `EventFormatProvider` returns null because it cannot find the `EventFormat` for the content type, the transformer throws a `MessageTransformationException`.
-Examples of content type that the `eventFormatContentTypeExpression` can be resolved to that are accepted by the `EventFormatProvider` are:
+Examples of content types that the `eventFormatContentTypeExpression` can resolve to that are accepted by the `EventFormatProvider` are:
    - `application/cloudevents+json`
    - `application/cloudevents+xml`
 
