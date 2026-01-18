@@ -77,18 +77,11 @@ public class DefaultLockRepository
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	/**
-	 * Default value for the time-to-live property.
-	 */
-	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
-
 	private final String id;
 
 	private final JdbcTemplate template;
 
 	private final AtomicBoolean started = new AtomicBoolean();
-
-	private Duration ttl = DEFAULT_TTL;
 
 	private String prefix = DEFAULT_TABLE_PREFIX;
 
@@ -164,7 +157,7 @@ public class DefaultLockRepository
 
 	/**
 	 * Constructor that allows the user to specify a client id that will
-	 * be associated for all the locks persisted by the store instance.
+	 * be associated with all the locks persisted by the store instance.
 	 * @param dataSource the {@link DataSource} used to maintain the lock repository.
 	 * @param id the client id to be associated with locks handled by the repository.
 	 * @since 4.3.13
@@ -187,21 +180,11 @@ public class DefaultLockRepository
 	}
 
 	/**
-	 * Specify the prefix for target database table used from queries.
+	 * Specify the prefix for the target database table used from queries.
 	 * @param prefix the prefix to set (default {@code INT_}).
 	 */
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
-	}
-
-	/**
-	 * Specify the time (in milliseconds) to expire deadlocks.
-	 * @param timeToLive the time to expire deadlocks.
-	 * @deprecated since 7.0, the default time-to-live can be set by the constructor of {@link JdbcLockRegistry}
-	 */
-	@Deprecated(since = "7.0")
-	public void setTimeToLive(int timeToLive) {
-		this.ttl = Duration.ofMillis(timeToLive);
 	}
 
 	/**
@@ -256,7 +239,7 @@ public class DefaultLockRepository
 	 * The {@link #getInsertQuery()} can be used as a template for customization.
 	 * The default query is
 	 * {@code INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE, EXPIRED_AFTER) VALUES (?, ?, ?, ?, ?)}.
-	 * For example a PostgreSQL {@code ON CONFLICT DO NOTHING} hint can be provided like this:
+	 * For example, a PostgreSQL {@code ON CONFLICT DO NOTHING} hint can be provided like this:
 	 * <pre class="code">
 	 * {@code
 	 *  lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
@@ -303,9 +286,9 @@ public class DefaultLockRepository
 	}
 
 	/**
-	 * Return the current renew query.
+	 * Return the current renewal query.
 	 * Can be used in a setter as a concatenation of a default query and some extra hint.
-	 * @return the current renew query.
+	 * @return the current renewal query.
 	 * @since 6.1
 	 * @see #setRenewQuery(String)
 	 */
@@ -404,12 +387,6 @@ public class DefaultLockRepository
 	}
 
 	@Override
-	@Deprecated(since = "7.0")
-	public boolean acquire(String lock) {
-		return acquire(lock, this.ttl);
-	}
-
-	@Override
 	public boolean acquire(String lock, Duration ttlDuration) {
 		return this.readCommittedTransactionTemplate.<Boolean>execute(
 				transactionStatus -> {
@@ -441,12 +418,6 @@ public class DefaultLockRepository
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
 						this.template.update(this.deleteExpiredQuery, this.region, epochMillis()));
-	}
-
-	@Override
-	@Deprecated(since = "7.0")
-	public boolean renew(String lock) {
-		return this.renew(lock, this.ttl);
 	}
 
 	@Override

@@ -454,17 +454,6 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		private final long lineCount;
 
-		/*
-		 * Provided solely to allow deserialization from JSON
-		 */
-		@Deprecated(since = "7.0", forRemoval = true)
-		@SuppressWarnings("NullAway")
-		public FileMarker() {
-			this.filePath = null;
-			this.mark = null;
-			this.lineCount = 0;
-		}
-
 		@JsonCreator
 		public FileMarker(String filePath, Mark mark, long lineCount) {
 			this.filePath = filePath;

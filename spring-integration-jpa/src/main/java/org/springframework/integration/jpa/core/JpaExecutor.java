@@ -47,9 +47,9 @@ import org.springframework.util.CollectionUtils;
  * <ul>
  *     <li>entityClass</li>
  *     <li>JpQl Select Query</li>
- *     <li>Sql Native Query</li>
+ *     <li>SQL Native Query</li>
  *     <li>JpQl Named Query</li>
- *     <li>Sql Native Named Query</li>
+ *     <li>SQL Native Named Query</li>
  * </ul>.
  * When objects are being retrieved, it also possibly to:
  *
@@ -107,7 +107,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * Indicates that whether only the payload of the passed in {@link Message}
-	 * will be used as a source of parameters. The is 'true' by default because as a
+	 * will be used as a source of parameters. The 'true' is by default because as a
 	 * default a {@link BeanPropertyParameterSourceFactory} implementation is
 	 * used for the sqlParameterSourceFactory property.
 	 */
@@ -160,14 +160,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * @deprecated in favor of the one obtained from the application context.
-	 */
-	@Deprecated(since = "7.0", forRemoval = true)
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
-	/**
 	 * Set the class type which is being used for retrieving entities from the
 	 * database.
 	 * @param entityClass Must not be null.
@@ -188,9 +180,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * You can also use native Sql queries to poll data from the database. If set
-	 * this property will allow you to use native SQL. Optionally you can also set
-	 * the entityClass property at the same time. If specified the entityClass will
+	 * You can also use native SQL queries to poll data from the database. If set,
+	 * this property will allow you to use native SQL. Optionally, you can also set
+	 * the entityClass property at the same time. If specified, the entityClass will
 	 * be used as the result class for the native query.
 	 * @param nativeQuery The provided SQL query must neither be null nor empty.
 	 */
@@ -202,8 +194,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * A named query can either refer to a named JPQL based query or a native SQL
-	 * query.
+	 * A named query can either refer to a named JPQL-based query or a native SQL query.
 	 * @param namedQuery Must neither be null nor empty
 	 */
 	public void setNamedQuery(String namedQuery) {
@@ -265,7 +256,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * If not set, this property defaults to <code>false</code>, which means that
 	 * deletion occurs on a per-object basis if a collection of entities is being
 	 * deleted.
-	 *<p>If set to 'true' the elements of the payload are deleted as a batch
+	 *<p>If set to 'true', the elements of the payload are deleted as a batch
 	 * operation. Be aware that this exhibits issues in regard to cascaded deletes.
 	 *<p>The specification 'JSR 317: Java Persistence API, Version 2.0' does not
 	 * support cascaded deletes in batch operations. The specification states in
@@ -307,7 +298,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * This parameter indicates that only one result object shall be returned as
-	 * a result from the executed JPA operation. If set to <code>true</code> and
+	 * a result of the executed JPA operation. If set to <code>true</code> and
 	 * the result list from the JPA operations contains only 1 element, then that
 	 * 1 element is extracted and returned as payload.
 	 * <p>If the result map contains more than 1 element and
@@ -342,7 +333,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * Set the expression for maximum number of results expression. It has to be a non-null value
+	 * Set the expression for the maximum number of results. It has to be a non-null value
 	 * Not setting one will default to the behavior of fetching all the records
 	 * @param maxResultsExpression The maximum results expression.
 	 */
@@ -367,8 +358,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * Verify and sets the parameters. E.g. initializes the to be used
-	 * {@link ParameterSourceFactory}.
+	 * Verify and sets the parameters. E.g. initializes the a {@link ParameterSourceFactory}.
 	 */
 	@Override
 	public void afterPropertiesSet() {
@@ -408,14 +398,14 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * Execute the actual Jpa Operation. Call this method, if you need access to
+	 * Execute the actual Jpa Operation. Call this method if you need access to
 	 * process return values. These methods return a Map that contains either
 	 * the number of affected entities or the affected entity itself.
 	 *<p>Keep in mind that the number of entities effected by the operation may
 	 * not necessarily correlate with the number of rows effected in the database.
 	 * @param message The message.
 	 * @return Either the number of affected entities when using a JPQL query.
-	 * When using a merge/persist the updated/inserted itself is returned.
+	 * When using a merge/persist, the updated/inserted itself is returned.
 	 */
 	public @Nullable Object executeOutboundJpaOperation(Message<?> message) {
 		ParameterSource paramSource = null;
@@ -444,7 +434,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				return payload;
 			}
 			case MERGE -> {
-				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush); // NOSONAR
+				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush);
 			}
 			case DELETE -> {
 				if (payload instanceof Iterable) {
@@ -477,7 +467,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * {@link JpaExecutor#parameterSourceFactory}. If the
 	 * <i>requestMessage</i> parameter is null then
 	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
-	 * @param requestMessage May be null.
+	 * @param requestMessage can be null.
 	 * @return The payload object, which may be null.
 	 */
 	@Nullable
@@ -485,7 +475,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		final Object payload;
 
 		if (this.idExpression != null) {
-			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage); // NOSONAR It can be null
+			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage);
 			Assert.state(id != null, "The 'idExpression' cannot evaluate to null.");
 			Class<?> entityClazz = this.entityClass;
 			if (entityClazz == null && requestMessage != null) {
