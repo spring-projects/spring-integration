@@ -43,7 +43,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
@@ -53,7 +52,6 @@ import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
@@ -369,15 +367,6 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 						? (AsyncTaskExecutor) executor
 						: new TaskExecutorAdapter(executor);
 		this.asyncExecutorExplicitlySet = true;
-	}
-
-	/**
-	 * Set the {@link TypeConverter}.
-	 * @param typeConverter the {@link TypeConverter}
-	 * @deprecated since 7.0 in favor of {@link ConversionService} from the application context.
-	 */
-	@Deprecated(since = "7.0", forRemoval = true)
-	public void setTypeConverter(TypeConverter typeConverter) {
 	}
 
 	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
@@ -1072,7 +1061,8 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 			this.receiveTimeoutExpression = receiveTimeoutExpression;
 		}
 
-		@SuppressWarnings("NullAway") // Dataflow analysis limitation
+		@SuppressWarnings("NullAway")
+			// Dataflow analysis limitation
 		void setupReturnType(Class<?> serviceInterface, Method method) {
 			ResolvableType resolvableType;
 			if (Function.class.isAssignableFrom(serviceInterface) && "apply".equals(method.getName())) {

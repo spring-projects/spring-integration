@@ -58,24 +58,6 @@ public interface RotationPolicy {
 	 */
 	record KeyDirectory(Object key, String directory) {
 
-		/**
-		 * @return the key
-		 * @deprecated if favor of {@link #key()}
-		 */
-		@Deprecated(forRemoval = true, since = "7.0")
-		public Object getKey() {
-			return this.key;
-		}
-
-		/**
-		 * @return the directory
-		 * @deprecated if favor of {@link #directory()} ()}
-		 */
-		@Deprecated(forRemoval = true, since = "7.0")
-		public String getDirectory() {
-			return this.directory;
-		}
-
 	}
 
 }
