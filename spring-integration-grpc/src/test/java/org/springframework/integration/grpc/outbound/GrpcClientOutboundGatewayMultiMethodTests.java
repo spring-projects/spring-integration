@@ -16,7 +16,6 @@
 
 package org.springframework.integration.grpc.outbound;
 
-import java.util.Arrays;
 import java.util.List;
 
 import io.grpc.ManagedChannel;
@@ -24,6 +23,7 @@ import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,13 +37,16 @@ import org.springframework.integration.grpc.proto.HelloRequest;
 import org.springframework.integration.grpc.proto.TestHelloWorldGrpc;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 /**
  * @author Glenn Renfro
+ * @author Artem Bilan
  *
  * @since 7.1
  */
@@ -56,24 +59,19 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 
 	@Test
 	void testGrpcClientOutboundGatewayNoExpressionSet() {
+		this.grpcOutboundGateway.setAsync(false);
+
 		HelloRequest request = HelloRequest.newBuilder()
 				.setName("Jane")
 				.build();
 
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				setHeader(GrpcHeaders.SERVICE_METHOD, "SayHello").
-				build();
-		this.grpcOutboundGateway.setAsync(false);
+		Message<?> requestMessage = MessageBuilder.withPayload(request)
+				.setHeader(GrpcHeaders.SERVICE_METHOD, "SayHello")
+				.build();
+
 		HelloReply response = (HelloReply) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
+
 		assertThat(response.getMessage()).isEqualTo("Hello, Jane!");
-	}
-
-	@Test
-	void testSayHelloWithBlockingStub() {
-		this.grpcOutboundGateway.setMethodName("SayHello");
-
-		this.grpcOutboundGateway.setAsync(false);
-		validateBlockingStub(this.grpcOutboundGateway, "SayHello");
 	}
 
 	@Test
@@ -83,20 +81,33 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 				.setName("Jim")
 				.build();
 
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
+		Message<?> requestMessage = new GenericMessage<>(request);
 
 		@SuppressWarnings("unchecked")
 		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-		HelloReply response = monoResponse.block();
-		assertThat(response.getMessage()).isEqualTo("Hello, Jim!");
+
+		StepVerifier.create(monoResponse.map(HelloReply::getMessage))
+				.expectNext("Hello, Jim!")
+				.verifyComplete();
 	}
 
 	@Test
 	void testSayHelloMixedCapitalizationWithBlockingStub() {
 		this.grpcOutboundGateway.setMethodName("SaYHellO");
 		this.grpcOutboundGateway.setAsync(false);
-		validateBlockingStub(this.grpcOutboundGateway, "SayHello");
+
+		HelloRequest request = HelloRequest.newBuilder()
+				.setName("SayHello")
+				.build();
+
+		Message<?> requestMessage = new GenericMessage<>(request);
+
+		Object response = this.grpcOutboundGateway.handleRequestMessage(requestMessage);
+
+		assertThat(response)
+				.asInstanceOf(type(HelloReply.class))
+				.extracting(HelloReply::getMessage)
+				.isEqualTo("Hello, SayHello!");
 	}
 
 	@Test
@@ -107,8 +118,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 				.setName("Stream")
 				.build();
 
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
+		Message<?> requestMessage = new GenericMessage<>(request);
 
 		Object response = this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 
@@ -116,10 +126,10 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 
 		@SuppressWarnings("unchecked")
 		Flux<HelloReply> fluxResponse = (Flux<HelloReply>) response;
-		List<HelloReply> replies = fluxResponse.collectList().block();
 
-		assertThat(replies).isNotNull().hasSize(3);
-		assertThat(replies.get(0).getMessage()).contains("Stream");
+		StepVerifier.create(fluxResponse.map(HelloReply::getMessage))
+				.expectNext("Hello, Stream! (1/3)", "Hello, Stream! (2/3)", "Hello, Stream! (3/3)")
+				.verifyComplete();
 	}
 
 	@Test
@@ -131,7 +141,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
 		Flux<HelloRequest> requestFlux = Flux.just(request1, request2, request3);
 
-		verifyBiDirectional(MessageBuilder.withPayload(requestFlux).build());
+		verifyBiDirectional(new GenericMessage<>(requestFlux));
 	}
 
 	@Test
@@ -141,40 +151,36 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		HelloRequest request1 = HelloRequest.newBuilder().setName("Alice").build();
 		HelloRequest request2 = HelloRequest.newBuilder().setName("Bob").build();
 		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
-		List<HelloRequest> requests = Arrays.asList(request1, request2, request3);
+		List<HelloRequest> requests = List.of(request1, request2, request3);
 
-		verifyBiDirectional(MessageBuilder.withPayload(requests).build());
+		verifyBiDirectional(new GenericMessage<>(requests));
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void testBidirectionalPojoWithAsyncStub() {
 		this.grpcOutboundGateway.setMethodName("BidiStreamHello");
 
 		HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
 
-		Object response = this.grpcOutboundGateway.handleRequestMessage(MessageBuilder.withPayload(request).build());
+		Object response = this.grpcOutboundGateway.handleRequestMessage(new GenericMessage<>(request));
+
 		assertThat(response).isInstanceOf(Flux.class);
-
-		@SuppressWarnings("unchecked")
-		Flux<HelloReply> fluxResponse = (Flux<HelloReply>) response;
-		List<HelloReply> replies = fluxResponse.collectList().block();
-
-		assertThat(replies).isNotNull().hasSize(1);
-		assertThat(replies.get(0).getMessage()).isEqualTo("Hello Alice");
+		StepVerifier.create(((Flux<HelloReply>) response).map(HelloReply::getMessage))
+				.expectNext("Hello Alice")
+				.verifyComplete();
 	}
 
 	private void verifyBiDirectional(Message<?> requestMessage) {
 		Object response = this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-		assertThat(response).isInstanceOf(Flux.class);
 
+		assertThat(response).isInstanceOf(Flux.class);
 		@SuppressWarnings("unchecked")
 		Flux<HelloReply> fluxResponse = (Flux<HelloReply>) response;
-		List<HelloReply> replies = fluxResponse.collectList().block();
 
-		assertThat(replies).isNotNull().hasSize(3);
-		assertThat(replies.get(0).getMessage()).isEqualTo("Hello Alice");
-		assertThat(replies.get(1).getMessage()).isEqualTo("Hello Bob");
-		assertThat(replies.get(2).getMessage()).isEqualTo("Hello Charlie");
+		StepVerifier.create(fluxResponse.map(HelloReply::getMessage))
+				.expectNext("Hello Alice", "Hello Bob", "Hello Charlie")
+				.verifyComplete();
 	}
 
 	@Test
@@ -185,20 +191,17 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 				.setName("StreamAsync")
 				.build();
 
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
+		Message<?> requestMessage = new GenericMessage<>(request);
 
 		Object response = this.grpcOutboundGateway.handleRequestMessage(requestMessage);
 		assertThat(response).isInstanceOf(Flux.class);
 
 		@SuppressWarnings("unchecked")
 		Flux<HelloReply> fluxResponse = (Flux<HelloReply>) response;
-		List<HelloReply> replies = fluxResponse.collectList().block();
 
-		assertThat(replies).isNotNull().hasSize(3);
-		assertThat(replies.get(0).getMessage()).isEqualTo("Hello, StreamAsync! (1/3)");
-		assertThat(replies.get(1).getMessage()).isEqualTo("Hello, StreamAsync! (2/3)");
-		assertThat(replies.get(2).getMessage()).isEqualTo("Hello, StreamAsync! (3/3)");
+		StepVerifier.create(fluxResponse.map(HelloReply::getMessage))
+				.expectNext("Hello, StreamAsync! (1/3)", "Hello, StreamAsync! (2/3)", "Hello, StreamAsync! (3/3)")
+				.verifyComplete();
 	}
 
 	@Test
@@ -210,7 +213,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
 
 		Flux<HelloRequest> requestFlux = Flux.just(request1, request2, request3);
-		Message<?> requestMessage = MessageBuilder.withPayload(requestFlux).build();
+		Message<?> requestMessage = new GenericMessage<>(requestFlux);
 
 		verifyClientStreamingWithAsyncStub(this.grpcOutboundGateway.handleRequestMessage(requestMessage));
 
@@ -223,8 +226,8 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		HelloRequest request1 = HelloRequest.newBuilder().setName("Alice").build();
 		HelloRequest request2 = HelloRequest.newBuilder().setName("Bob").build();
 		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
-		HelloRequest[] requests = { request1, request2, request3 };
-		Message<?> requestMessage = MessageBuilder.withPayload(requests).build();
+		HelloRequest[] requests = {request1, request2, request3};
+		Message<?> requestMessage = new GenericMessage<>(requests);
 
 		verifyClientStreamingWithAsyncStub(this.grpcOutboundGateway.handleRequestMessage(requestMessage));
 	}
@@ -234,9 +237,10 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		this.grpcOutboundGateway.setMethodName("HelloToEveryOne");
 
 		HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
-		Message<?> requestMessage = MessageBuilder.withPayload(request).build();
+		Message<?> requestMessage = new GenericMessage<>(request);
 
-		verifyClientStreamingWithAsyncStub(this.grpcOutboundGateway.handleRequestMessage(requestMessage), "Hello to Alice!");
+		verifyClientStreamingWithAsyncStub(this.grpcOutboundGateway.handleRequestMessage(requestMessage),
+				"Hello to Alice!");
 
 	}
 
@@ -248,8 +252,8 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 		HelloRequest request2 = HelloRequest.newBuilder().setName("Bob").build();
 		HelloRequest request3 = HelloRequest.newBuilder().setName("Charlie").build();
 
-		List<HelloRequest> requestList = Arrays.asList(request1, request2, request3);
-		Message<?> requestMessage = MessageBuilder.withPayload(requestList).build();
+		List<HelloRequest> requestList = List.of(request1, request2, request3);
+		Message<?> requestMessage = new GenericMessage<>(requestList);
 
 		verifyClientStreamingWithAsyncStub(this.grpcOutboundGateway.handleRequestMessage(requestMessage));
 	}
@@ -259,30 +263,13 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 	}
 
 	private static void verifyClientStreamingWithAsyncStub(Object response, String expectedResult) {
-		assertThat(response).isInstanceOf(reactor.core.publisher.Mono.class);
+		assertThat(response).isInstanceOf(Mono.class);
 
 		@SuppressWarnings("unchecked")
-		Mono<HelloReply> monoResponse = (reactor.core.publisher.Mono<HelloReply>) response;
-		HelloReply reply = monoResponse.block();
-
-		assertThat(reply).isNotNull();
-		assertThat(reply.getMessage()).isEqualTo(expectedResult);
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void validateBlockingStub(GrpcOutboundGateway gateway, String name) {
-		HelloRequest request = HelloRequest.newBuilder()
-				.setName(name)
-				.build();
-
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
-
-		Object response = gateway.handleRequestMessage(requestMessage);
-
-		assertThat(response).isInstanceOf(HelloReply.class);
-		HelloReply reply = (HelloReply) response;
-		assertThat(reply.getMessage()).isEqualTo("Hello, " + name + "!");
+		Mono<HelloReply> monoResponse = (Mono<HelloReply>) response;
+		StepVerifier.create(monoResponse.map(HelloReply::getMessage))
+				.expectNext(expectedResult)
+				.verifyComplete();
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -352,6 +339,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 					public void onCompleted() {
 						responseObserver.onCompleted();
 					}
+
 				};
 			}
 
@@ -380,6 +368,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 						responseObserver.onNext(reply);
 						responseObserver.onCompleted();
 					}
+
 				};
 			}
 

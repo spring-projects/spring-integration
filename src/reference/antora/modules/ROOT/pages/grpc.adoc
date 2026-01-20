@@ -156,20 +156,20 @@ All the downstream transformer business methods are type-safe in regard to gRPC 
 [[grpc-outbound-gateway]]
 == Outbound Gateway for gRPC
 
-The `GrpcOutboundGateway` is an `AbstractReplyProducingMessageHandler` implementation to send gRPC requests to a remote gRPC server and receive responses.
+The `GrpcOutboundGateway` is an `AbstractReplyProducingMessageHandler` implementation to send gRPC requests to a remote gRPC server and receive responses acting as a gRPC stub.
 For initialization, the instance of this gateway requires a gRPC `Channel` and the gRPC service class (e.g., `TestHelloWorldGrpc.class`).
 
-The gateway dynamically invokes gRPC methods using ``MethodDescriptor``s obtained from the service's `ServiceDescriptor`.
+The gateway dynamically invokes gRPC methods obtained from the service's `ServiceDescriptor`.
 It supports the following gRPC communication patterns:
 
-* **Unary**: Single request → if `async` is true then `Mono` is returned else it is the response object
-* **Server streaming**: Single request → `Flux` of multiple responses
-* **Client streaming**: Multiple requests → `Mono` with single response
-* **Bidirectional streaming**: Multiple requests → `Flux` of multiple responses
+* **Unary**: Single request -> if `async` is true then `Mono` is returned else it is the response object
+* **Server streaming**: Single request -> `Flux` of multiple responses
+* **Client streaming**: Multiple requests -> `Mono` with single response
+* **Bidirectional streaming**: Multiple requests -> `Flux` of multiple responses
 
-NOTE: GrpcOutboundGateway is asynchronous by default.
-However, to set the gateway to synchronous mode (specifically for the Unary gRPC communication pattern) use the `setAsync` method.
-See more information in the xref:service-activator.adoc#async-service-activator[service activator reference documentation].
+NOTE: The `GrpcOutboundGateway` is asynchronous by default.
+Can be turned off by `setAsync(false)` at the gateway configuration.
+See more information in the xref:service-activator.adoc#async-service-activator[Asynchronous Service Activator].
 
 === Method Name Configuration
 
@@ -209,26 +209,26 @@ public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 }
 ----
 +
-4. **Default method resolution** if neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway will look for the `GrpcHeaders.SERVICE_METHOD` key in the headers of the message (if present) to determine which method to invoke.
-If the `GrpcHeaders.SERVICE_METHOD` key in the headers is not found, then an `IllegalStateException` will be thrown.
+4. **Default method resolution** if neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway will look for the `GrpcHeaders.SERVICE_METHOD` header in the input message to determine which method to invoke.
+If the `GrpcHeaders.SERVICE_METHOD` header is missing, an `IllegalStateException` is thrown.
 +
 [source, java]
 ----
 @Bean
 public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
+	 // Looks for GrpcHeaders.SERVICE_METHOD header in the input message
     return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
 }
 ----
-
 
 === Request Payload Handling
 
 The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
 
-* **Unary** methods accept a single gRPC request message, returning a `Mono<ResponseType>` by default containing the response object in async mode (by default).
-If `async` is set to `false` then the response object is returned.
+* **Unary** methods accept a single gRPC request message, returning a `Mono<ResponseType>` in the async mode (by default).
+If `async` is set to `false`, then the response object is returned into a reply message payload as is.
 
-* **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>` containing all streamed responses.
+* **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>`.
 
 * **Client streaming** and **Bidirectional streaming** methods accept flexible input types:
 ** `Flux<RequestType>`

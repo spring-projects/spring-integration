@@ -20,6 +20,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +31,8 @@ import org.springframework.integration.grpc.TestInProcessConfiguration;
 import org.springframework.integration.grpc.proto.HelloReply;
 import org.springframework.integration.grpc.proto.HelloRequest;
 import org.springframework.integration.grpc.proto.TestSingleHelloWorldGrpc;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Glenn Renfro
+ * @author Artem Bilan
  *
  * @since 7.1
  */
@@ -52,28 +54,27 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	void testSingleMethodAsync() {
-		HelloRequest request = HelloRequest.newBuilder()
-				.setName("Jane")
-				.build();
+		HelloRequest request = HelloRequest.newBuilder().setName("Jane").build();
+		Message<?> requestMessage = new GenericMessage<>(request);
 
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
 		Mono<HelloReply> monoResponse = (Mono<HelloReply>) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-		HelloReply response = monoResponse.block();
-		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
+
+		StepVerifier.create(monoResponse
+						.map(HelloReply::getMessage))
+				.expectNext("Hello, Jane!")
+				.verifyComplete();
 	}
 
 	@Test
 	void testSingleMethodBlocking() {
-		HelloRequest request = HelloRequest.newBuilder()
-				.setName("Jane")
-				.build();
-
-		Message<?> requestMessage = MessageBuilder.withPayload(request).
-				build();
 		this.grpcOutboundGateway.setAsync(false);
+
+		HelloRequest request = HelloRequest.newBuilder().setName("Jane").build();
+		Message<?> requestMessage = new GenericMessage<>(request);
+
 		HelloReply response = (HelloReply) this.grpcOutboundGateway.handleRequestMessage(requestMessage);
-		assertThat(response.getMessage()).isEqualTo("Hello, " + "Jane" + "!");
+
+		assertThat(response.getMessage()).isEqualTo("Hello, Jane!");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -101,6 +102,9 @@ public class GrpcClientOutboundGatewaySingleMethodTests {
 				responseObserver.onNext(reply);
 				responseObserver.onCompleted();
 			}
+
 		}
+
 	}
+
 }
