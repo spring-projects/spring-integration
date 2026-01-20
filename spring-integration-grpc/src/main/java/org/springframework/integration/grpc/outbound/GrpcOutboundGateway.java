@@ -195,33 +195,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private Object invokeBidirectionalStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
 		Sinks.Many<Object> responseSink = Sinks.many().unicast().onBackpressureBuffer();
 
-		StreamObserver<Object> responseObserver = new StreamObserver<>() {
-
-			@Override
-			public void onNext(Object value) {
-				Sinks.EmitResult result = responseSink.tryEmitNext(value);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit value to sink: " + result);
-				}
-			}
-
-			@Override
-			public void onError(Throwable ex) {
-				Sinks.EmitResult result = responseSink.tryEmitError(ex);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.error(ex, () -> "Failed to emit error to sink: " + result);
-				}
-			}
-
-			@Override
-			public void onCompleted() {
-				Sinks.EmitResult result = responseSink.tryEmitComplete();
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit completion to sink: " + result);
-				}
-			}
-
-		};
+		StreamObserver<Object> responseObserver = createStreamSinkResponseObserver(responseSink);
 
 		handleRequestAsFlux(request, responseObserver, methodDescriptor);
 
@@ -232,33 +206,7 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private Object invokeServerStreaming(Object request, MethodDescriptor<?, ?> methodDescriptor) {
 		Sinks.Many<Object> responseSink = Sinks.many().unicast().onBackpressureBuffer();
 
-		StreamObserver<Object> responseObserver = new StreamObserver<>() {
-
-			@Override
-			public void onNext(Object value) {
-				Sinks.EmitResult result = responseSink.tryEmitNext(value);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit value to sink: " + result);
-				}
-			}
-
-			@Override
-			public void onError(Throwable ex) {
-				Sinks.EmitResult result = responseSink.tryEmitError(ex);
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.error(ex, () -> "Failed to emit error to sink: " + result);
-				}
-			}
-
-			@Override
-			public void onCompleted() {
-				Sinks.EmitResult result = responseSink.tryEmitComplete();
-				if (result.isFailure()) {
-					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit completion to sink: " + result);
-				}
-			}
-
-		};
+		StreamObserver<Object> responseObserver = createStreamSinkResponseObserver(responseSink);
 
 		ClientCall<Object, Object> call = (ClientCall<Object, Object>) this.channel.newCall(methodDescriptor, this.callOptions);
 		ClientCalls.asyncServerStreamingCall(call, request, responseObserver);
@@ -336,7 +284,8 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		if (isAsync()) {
 			return invokeAsyncUnary(methodDescriptor, request);
 		}
-		return invokeBlockingUnary((MethodDescriptor<Object, Object>) methodDescriptor, request);
+		return ClientCalls.blockingUnaryCall(this.channel, (MethodDescriptor<Object, Object>) methodDescriptor,
+				this.callOptions, request);
 	}
 
 	@SuppressWarnings({"unchecked"})
@@ -345,15 +294,9 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		Sinks.One<Object> responseSink = Sinks.one();
 
 		StreamObserver<Object> responseObserver = createSingleSinkResponseObserver(responseSink);
-		handleRequestAsFlux(request, responseObserver, method);
 
 		ClientCalls.asyncUnaryCall(call, request, responseObserver);
 		return responseSink.asMono();
-	}
-
-	private Object invokeBlockingUnary(MethodDescriptor<Object, Object> method, Object request) {
-		return ClientCalls.blockingUnaryCall(this.channel, method, this.callOptions, request);
-
 	}
 
 	private StreamObserver<Object> createSingleSinkResponseObserver(Sinks.One<Object> responseSink) {
@@ -378,6 +321,36 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 			@Override
 			public void onCompleted() {
 				responseSink.tryEmitEmpty();
+			}
+
+		};
+	}
+
+	private StreamObserver<Object> createStreamSinkResponseObserver(Sinks.Many<Object> responseSink) {
+		return new StreamObserver<>() {
+
+			@Override
+			public void onNext(Object value) {
+				Sinks.EmitResult result = responseSink.tryEmitNext(value);
+				if (result.isFailure()) {
+					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit value to sink: " + result);
+				}
+			}
+
+			@Override
+			public void onError(Throwable ex) {
+				Sinks.EmitResult result = responseSink.tryEmitError(ex);
+				if (result.isFailure()) {
+					GrpcOutboundGateway.this.logger.error(ex, () -> "Failed to emit error to sink: " + result);
+				}
+			}
+
+			@Override
+			public void onCompleted() {
+				Sinks.EmitResult result = responseSink.tryEmitComplete();
+				if (result.isFailure()) {
+					GrpcOutboundGateway.this.logger.warn(() -> "Failed to emit completion to sink: " + result);
+				}
 			}
 
 		};
