@@ -209,7 +209,7 @@ public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 }
 ----
 +
-4. **Default method resolution** if neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway will look for the `GrpcHeaders.SERVICE_METHOD` key in the headers of the message (if present) to determine which method to invoke.
+4. **Default method resolution** if neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway will look for the `GrpcHeaders.SERVICE_METHOD` key in the headers of the message to determine which method to invoke.
 If the `GrpcHeaders.SERVICE_METHOD` key in the headers is not found, then an `IllegalStateException` will be thrown.
 +
 [source, java]
@@ -225,7 +225,7 @@ public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 
 The `GrpcOutboundGateway` automatically detects the method type from the `MethodDescriptor` and handles the invocation appropriately:
 
-* **Unary** methods accept a single gRPC request message, returning a `Mono<ResponseType>` by default containing the response object in async mode (by default).
+* **Unary** methods accept a single gRPC request message, returning a `Mono<ResponseType>` containing the response object in async mode (by default).
 If `async` is set to `false` then the response object is returned.
 
 * **Server streaming** methods accept a single gRPC request message and return a `Flux<ResponseType>` containing all streamed responses.
