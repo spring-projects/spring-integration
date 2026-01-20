@@ -59,7 +59,7 @@ ext {
     debeziumVersion = '3.3.2.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.1'
-    graalvmVersion = '25.0.1'
+    graalvmVersion = '25.0.2'
     greenmailVersion = '2.1.8'
     groovyVersion = '5.0.3'
     hamcrestVersion = '3.0'
