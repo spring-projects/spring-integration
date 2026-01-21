@@ -80,6 +80,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	 * Overridden to throw an {@link UnsupportedOperationException} since transformer must never return null
 	 * and {@code requiresReply == true} by default.
 	 * @param requiresReply never used.
+	 * @since 7.1
 	 */
 	@Override
 	public void setRequiresReply(boolean requiresReply) {
