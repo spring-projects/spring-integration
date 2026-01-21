@@ -16,12 +16,16 @@
 
 package org.springframework.integration.grpc.dsl;
 
+import java.util.function.Function;
+
 import io.grpc.CallOptions;
+import io.grpc.Channel;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
-import org.springframework.integration.grpc.GrpcHeaders;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.grpc.outbound.GrpcOutboundGateway;
+import org.springframework.messaging.Message;
 
 /**
  * A {@link MessageHandlerSpec} for a {@link GrpcOutboundGateway}.
@@ -34,14 +38,14 @@ import org.springframework.integration.grpc.outbound.GrpcOutboundGateway;
  */
 public class GrpcOutboundGatewaySpec extends MessageHandlerSpec<GrpcOutboundGatewaySpec, GrpcOutboundGateway> {
 
-	protected GrpcOutboundGatewaySpec(GrpcOutboundGateway gateway) {
-		this.target = gateway;
+	protected GrpcOutboundGatewaySpec(Channel channel, Class<?> grpcServiceClass) {
+		this.target = new GrpcOutboundGateway(channel, grpcServiceClass);
 	}
 
 	/**
 	 * Set the name of the gRPC method to call.
 	 * If method name is not provided, the default expression checks the
-	 * {@link org.springframework.messaging.MessageHeaders} for {@link GrpcHeaders#SERVICE_METHOD} or, in case a single
+	 * {@link org.springframework.messaging.MessageHeaders} for {@link org.springframework.integration.grpc.GrpcHeaders#SERVICE_METHOD} or, in case a single
 	 * service method, the name of that method is used.
 	 * @param methodName the name of the gRPC method to call
 	 * @return the spec
@@ -53,16 +57,24 @@ public class GrpcOutboundGatewaySpec extends MessageHandlerSpec<GrpcOutboundGate
 	}
 
 	/**
-	 * Set the {@link org.springframework.expression.spel.standard.SpelExpression} to resolve the gRPC method name at
-	 * runtime. If not provided, the default expression checks the {@link org.springframework.messaging.MessageHeaders}
-	 * for a {@link GrpcHeaders#SERVICE_METHOD}. If the expression is not set and the service has only one method,
-	 * then the gateway will set the expression to use the name of that method.
+	 * Set the Spel expression for resolving the method name.
 	 * @param methodNameSpelExpression the expression string
 	 * @return the spec
 	 * @see GrpcOutboundGateway#setMethodNameExpression(Expression)
 	 */
 	public GrpcOutboundGatewaySpec methodNameExpression(String methodNameSpelExpression) {
 		this.target.setMethodNameExpression(PARSER.parseExpression(methodNameSpelExpression));
+		return this;
+	}
+
+	/**
+	 * Set the FunctionExpression for resolving the method name.
+	 * @param methodNameFunction the function for a {@link FunctionExpression}
+	 * @return the spec
+	 * @see GrpcOutboundGateway#setMethodNameExpression(Expression)
+	 */
+	public GrpcOutboundGatewaySpec methodNameFunction(Function<Message<?>, String> methodNameFunction) {
+		this.target.setMethodNameExpression(new FunctionExpression<>(methodNameFunction));
 		return this;
 	}
 

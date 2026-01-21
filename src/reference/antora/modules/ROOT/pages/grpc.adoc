@@ -153,10 +153,10 @@ private static HelloReply newHelloReply(String message) {
 The routing is done on the `GrpcHeaders.SERVICE_METHOD` header populated by the `GrpcInboundGateway`.
 All the downstream transformer business methods are type-safe in regard to gRPC messages for the `TestHelloWorldGrpc.TestHelloWorldImplBase` service.
 
-[[configuration-with-dsl]]
+[[configuration-grpc-inbound-gateway-with-dsl]]
 === Configuration with DSL
 
-Add the `GrpcInboundGateway` to flows using the DSL:
+Use the `Grpc` factory to add the `GrpcInboundGateway` to flows using the xref:changes-5.0-5.1.adoc#x5.1-java-dsl[DSL]:
 
 [source,java]
 ----
@@ -256,7 +256,7 @@ If `async` is set to `false`, then the response object is returned into a reply 
 
 Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>` containing the response.
 
-[[configuration-with-dsl]]
+[[configuration-grpc-outbound-gateway-with-dsl]]
 === Configuration with DSL
 
 Add the `GrpcOutboundGateway` to flows using the DSL:
@@ -266,7 +266,13 @@ Add the `GrpcOutboundGateway` to flows using the DSL:
 @Bean
 IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
     return f -> f
-            .handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
-            .methodName("SayHello"));
+        .handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
+            .methodName("SayHello"))
+        .transform(this::requestReply)
+        .get();
+}
+
+private HelloReply requestReply(HelloRequest helloRequest) {
+    return HelloReply.newBuilder().setMessage("Hello " + helloRequest.getName()).build();
 }
 ----

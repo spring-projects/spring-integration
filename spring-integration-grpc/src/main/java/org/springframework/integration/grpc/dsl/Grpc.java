@@ -19,8 +19,6 @@ package org.springframework.integration.grpc.dsl;
 import io.grpc.BindableService;
 import io.grpc.Channel;
 
-import org.springframework.integration.grpc.outbound.GrpcOutboundGateway;
-
 /**
  * Factory class for gRPC components.
  * <p>
@@ -39,22 +37,7 @@ public final class Grpc {
 	 * @return the {@link GrpcOutboundGatewaySpec}
 	 */
 	public static GrpcOutboundGatewaySpec outboundGateway(Channel channel, Class<?> grpcServiceClass) {
-		return new GrpcOutboundGatewaySpec(new GrpcOutboundGateway(channel, grpcServiceClass));
-	}
-
-	/**
-	 * Create a {@link GrpcOutboundGatewaySpec} for an outbound gateway with a specific method name.
-	 * @param channel the gRPC channel to use for communication
-	 * @param grpcServiceClass the gRPC service class
-	 * @param methodName the name of the gRPC method to call
-	 * @return the {@link GrpcOutboundGatewaySpec}
-	 */
-	public static GrpcOutboundGatewaySpec outboundGateway(Channel channel, Class<?> grpcServiceClass,
-			String methodName) {
-
-		GrpcOutboundGateway gateway = new GrpcOutboundGateway(channel, grpcServiceClass);
-		gateway.setMethodName(methodName);
-		return new GrpcOutboundGatewaySpec(gateway);
+		return new GrpcOutboundGatewaySpec(channel, grpcServiceClass);
 	}
 
 	/**
