@@ -52,7 +52,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	 */
 	@SuppressWarnings("this-escape")
 	public MessageTransformingHandler() {
-		setRequiresReply(true);
+		super.setRequiresReply(true);
 	}
 
 	/**
@@ -74,6 +74,17 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	public void setTransformer(Transformer transformer) {
 		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
+	}
+
+	/**
+	 * Overridden to throw an {@link UnsupportedOperationException} since transformer must never return null
+	 * and {@code requiresReply == true} by default.
+	 * @param requiresReply never used.
+	 * @since 7.1
+	 */
+	@Override
+	public void setRequiresReply(boolean requiresReply) {
+		throw new UnsupportedOperationException("Transformer always requires a non-null reply payload.");
 	}
 
 	@Override
