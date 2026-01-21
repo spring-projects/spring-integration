@@ -14,7 +14,13 @@ For more details, see the https://github.com/spring-projects/spring-integration/
 In general, the project has been moved to the latest dependency versions.
 Java 17 is still the baseline, but Java 25 is supported.
 
-[[x7.0-web-services-changes]]
+[[x7.1-general-changes]]
+=== General Changes
+
+The `MessageTransformingHandler.requiresReply` flag cannot be modified: an `UnsupportedOperationException` is thrown from the overridden `setRequiresReply()` method to indicate the transformer pattern cannot produce nulls for replies.
+See xref:transformer.adoc[] for more information.
+
+[[x7.1-web-services-changes]]
 === Web Services Support Changes
 
 The Web Services Outbound Gateway now can rely on the provided `WebServiceTemplate.defaultUri`.

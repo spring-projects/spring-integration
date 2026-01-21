@@ -39,20 +39,15 @@ import org.springframework.util.StringUtils;
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	@SuppressWarnings("this-escape")
-	public TransformerFactoryBean() {
-		setRequiresReply(true);
-	}
-
 	@Override
 	protected MessageHandler createMethodInvokingHandler(Object targetObject, @Nullable String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
-		Transformer transformer = null;
+		Transformer transformer;
 		if (targetObject instanceof Transformer castTransformer) {
 			transformer = castTransformer;
 		}
 		else {
-			this.checkForIllegalTarget(targetObject, targetMethodName);
+			checkForIllegalTarget(targetObject, targetMethodName);
 			if (StringUtils.hasText(targetMethodName)) {
 				transformer = new MethodInvokingTransformer(targetObject, targetMethodName);
 			}
@@ -60,20 +55,20 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 				transformer = new MethodInvokingTransformer(targetObject);
 			}
 		}
-		return this.createHandler(transformer);
+		return createHandler(transformer);
 	}
 
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
-		MessageTransformingHandler handler = this.createHandler(transformer);
+		MessageTransformingHandler handler = createHandler(transformer);
 		handler.setPrimaryExpression(expression);
 		return handler;
 	}
 
 	protected MessageTransformingHandler createHandler(Transformer transformer) {
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		this.postProcessReplyProducer(handler);
+		postProcessReplyProducer(handler);
 		return handler;
 	}
 
