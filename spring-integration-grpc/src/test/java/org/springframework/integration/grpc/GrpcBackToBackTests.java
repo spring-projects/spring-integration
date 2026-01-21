@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.grpc.dsl.Grpc;
 import org.springframework.integration.grpc.inbound.GrpcInboundGateway;
 import org.springframework.integration.grpc.outbound.GrpcOutboundGateway;
 import org.springframework.integration.grpc.proto.HelloReply;
@@ -45,6 +46,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.type;
  * Verify gRPC exchange via {@link GrpcInboundGateway} and {@link GrpcOutboundGateway}.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.1
  */
@@ -77,13 +79,13 @@ public class GrpcBackToBackTests {
 		@Bean
 		IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
 			return f -> f
-					.handle(new GrpcOutboundGateway(channel, TestSingleHelloWorldGrpc.class));
+					.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class));
 		}
 
 		@Bean
 		IntegrationFlow grpcInboundFlow() {
 			return IntegrationFlow.from(
-							new GrpcInboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class))
+							Grpc.inboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class))
 					.transform(this::requestReply)
 					.get();
 		}
