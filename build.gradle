@@ -22,7 +22,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.6' apply false
     id 'io.freefair.aggregate-javadoc' version '9.2.0'
-    id 'io.spring.nullability' version '0.0.9' apply false
+    id 'io.spring.nullability' version '0.0.10' apply false
 }
 
 if (isCI) {
@@ -103,7 +103,7 @@ ext {
     smackVersion = '4.4.8'
     springAmqpVersion = '4.1.0-M1'
     springDataVersion = '2025.1.2'
-    springGraphqlVersion = '2.0.1'
+    springGraphqlVersion = '2.0.2'
     springKafkaVersion = '4.0.2'
     springSecurityVersion = '7.1.0-M1'
     springVersion = '7.0.3'
