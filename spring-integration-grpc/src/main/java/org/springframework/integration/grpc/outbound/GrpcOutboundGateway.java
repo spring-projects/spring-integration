@@ -111,7 +111,8 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.grpcServiceClass = grpcServiceClass;
 		Method getServiceDescriptor = ClassUtils.getMethod(this.grpcServiceClass, "getServiceDescriptor");
 		this.serviceDescriptor =
-				(ServiceDescriptor) Objects.requireNonNull(ReflectionUtils.invokeMethod(getServiceDescriptor, null));
+				(ServiceDescriptor) Objects.requireNonNull(ReflectionUtils.invokeMethod(getServiceDescriptor,
+						null));
 		setAsync(true);
 	}
 
@@ -129,8 +130,9 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 * Set the name of the gRPC method to call.
-	 * If method name is not provided, the default expression checks the {@link org.springframework.messaging.MessageHeaders}
-	 * for {@link GrpcHeaders#SERVICE_METHOD} or, in case a single service method, the name of that method is used.
+	 * If method name is not provided, the default expression checks the
+	 * {@link org.springframework.messaging.MessageHeaders} for {@link GrpcHeaders#SERVICE_METHOD} or, in case a
+	 * single service method, the name of that method is used.
 	 * @param methodName the name of the gRPC method to call
 	 */
 	public void setMethodName(String methodName) {
@@ -162,7 +164,8 @@ public class GrpcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String methodName = this.methodNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		Assert.state(StringUtils.hasText(methodName), "The 'methodNameExpression' must not resolve to an empty string");
+		Assert.state(StringUtils.hasText(methodName),
+				"The 'methodNameExpression' must not resolve to an empty string");
 
 		MethodDescriptor<Object, Object> methodDescriptor = getMethodDescriptor(methodName, this.grpcServiceClass);
 		MethodDescriptor.MethodType methodType = methodDescriptor.getType();

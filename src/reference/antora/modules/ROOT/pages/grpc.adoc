@@ -153,6 +153,28 @@ private static HelloReply newHelloReply(String message) {
 The routing is done on the `GrpcHeaders.SERVICE_METHOD` header populated by the `GrpcInboundGateway`.
 All the downstream transformer business methods are type-safe in regard to gRPC messages for the `TestHelloWorldGrpc.TestHelloWorldImplBase` service.
 
+[[configuration-grpc-inbound-gateway-with-dsl]]
+=== Configuration with DSL
+
+Use the `Grpc` factory to add the `GrpcInboundGateway` to flows using the xref:dsl.adoc[].
+[source,java]
+----
+@Bean
+IntegrationFlow grpcInboundFlow() {
+    return IntegrationFlow.from(
+                    Grpc.inboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class)
+                        .requestTimeout(3000L))
+            .transform(this::requestReply)
+            .get();
+}
+
+private HelloReply requestReply(HelloRequest helloRequest) {
+    return HelloReply.newBuilder().setMessage("Hello " + helloRequest.getName()).build();
+}
+
+----
+
+
 [[grpc-outbound-gateway]]
 == Outbound Gateway for gRPC
 
@@ -171,9 +193,10 @@ NOTE: The `GrpcOutboundGateway` is asynchronous by default.
 Can be turned off by `setAsync(false)` at the gateway configuration.
 See more information in the xref:service-activator.adoc#async-service-activator[Asynchronous Service Activator].
 
+[[grpc-outbound-method-name-configuration]]
 === Method Name Configuration
 
-The method name to invoke can be configured in three ways:
+The method name to invoke can be configured in four ways:
 
 1. **Auto-detection** for services with a single method:
 +
@@ -217,7 +240,7 @@ If the `GrpcHeaders.SERVICE_METHOD` header is missing, an `IllegalStateException
 @Bean
 public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 	 // Looks for GrpcHeaders.SERVICE_METHOD header in the input message
-    return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
+    return new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
 }
 ----
 
@@ -239,3 +262,28 @@ If `async` is set to `false`, then the response object is returned into a reply 
 ** Single `RequestType` object
 
 Client streaming methods return a `Mono<ResponseType>`, while bidirectional streaming methods return a `Flux<ResponseType>` containing the response.
+
+[[configuration-grpc-outbound-gateway-with-dsl]]
+=== Configuration with DSL
+
+Use the `Grpc` factory to add the `GrpcOutboundGateway` to flows using the xref:dsl.adoc[].
+The simplest configuration for a service with a single method:
+
+[source,java]
+----
+@Bean
+IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
+	return f -> f
+            .handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class))
+            .transform(this::upperCase);
+}
+
+private HelloReply upperCase(HelloReply helloReply) {
+    return HelloReply.newBuilder().setMessage(helloReply.getMessage().toUpperCase()).build();
+}
+----
+
+When the gRPC service has only one method, it will be auto-detected.
+
+For services with multiple methods, use the DSL's `.methodName()`,`.methodNameExpression()`, or `.methodNameFunction()` methods.
+See <<grpc-outbound-method-name-configuration>>.
