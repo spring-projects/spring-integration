@@ -74,8 +74,7 @@ public class GrpcOutboundGatewaySpec extends MessageHandlerSpec<GrpcOutboundGate
 	 * @see GrpcOutboundGateway#setMethodNameExpression(Expression)
 	 */
 	public GrpcOutboundGatewaySpec methodNameFunction(Function<Message<?>, String> methodNameFunction) {
-		this.target.setMethodNameExpression(new FunctionExpression<>(methodNameFunction));
-		return this;
+		return methodNameExpression(new FunctionExpression<>(methodNameFunction));
 	}
 
 	/**
