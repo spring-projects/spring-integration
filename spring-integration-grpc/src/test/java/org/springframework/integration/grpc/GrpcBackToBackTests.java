@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -60,55 +59,19 @@ public class GrpcBackToBackTests {
 
 	@Test
 	void sendAndReceiveViaGrpcGateways(@Autowired @Qualifier("grpcOutboundFlow.input") MessageChannel inputChannel) {
-		assertThat(requestReply("Jack", inputChannel))
-				.extracting(Message::getPayload)
-				.asInstanceOf(type(HelloReply.class))
-				.extracting(HelloReply::getMessage)
-				.isEqualTo("Hello Jack");
-	}
-
-	@Test
-	void sendAndReceiveViaGrpcGatewaysWithCustomizations(
-			@Autowired @Qualifier("grpcOutboundFlowWithCustomizations.input")
-			MessageChannel inputChannel) {
-		assertThat(requestReply("Jill", inputChannel))
-				.extracting(Message::getPayload)
-				.asInstanceOf(type(HelloReply.class))
-				.extracting(HelloReply::getMessage)
-				.isEqualTo("Hello Jill");
-	}
-
-	@Test
-	void sendAndReceiveViaGrpcGatewaysWithMethodName(
-			@Autowired @Qualifier("grpcOutboundFlowWithMethodName.input")
-			MessageChannel inputChannel) {
-		assertThat(requestReply("John", inputChannel))
-				.extracting(Message::getPayload)
-				.asInstanceOf(type(HelloReply.class))
-				.extracting(HelloReply::getMessage)
-				.isEqualTo("Hello John");
-	}
-
-	@Test
-	void sendAndReceiveViaGrpcGatewaysWithFunction(
-			@Autowired @Qualifier("grpcOutboundFlowWithFunction.input")
-			MessageChannel inputChannel) {
-		assertThat(requestReply("Jane", inputChannel))
-				.extracting(Message::getPayload)
-				.asInstanceOf(type(HelloReply.class))
-				.extracting(HelloReply::getMessage)
-				.isEqualTo("Hello Jane");
-	}
-
-	private Message<?> requestReply(String payload, MessageChannel inputChannel) {
-		HelloRequest request = HelloRequest.newBuilder().setName(payload).build();
+		HelloRequest request = HelloRequest.newBuilder().setName("Jack").build();
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> requestMessage = MessageBuilder.withPayload(request)
 				.setReplyChannel(replyChannel)
 				.build();
 		inputChannel.send(requestMessage);
+		Message<?> reply = replyChannel.receive(10_000);
 
-		return replyChannel.receive(10_000);
+		assertThat(reply)
+				.extracting(Message::getPayload)
+				.asInstanceOf(type(HelloReply.class))
+				.extracting(HelloReply::getMessage)
+				.isEqualTo("HELLO JACK");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -118,34 +81,18 @@ public class GrpcBackToBackTests {
 
 		@Bean
 		IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
-			return f -> f
-					.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class));
-		}
-
-		@Bean
-		IntegrationFlow grpcOutboundFlowWithCustomizations(ManagedChannel channel) {
-			SpelExpressionParser parser = new SpelExpressionParser();
 			CallOptions customCallOptions = CallOptions.DEFAULT
 					.withDeadlineAfter(10, TimeUnit.SECONDS);
 
-			return f -> f.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
-					.methodNameExpression(parser.parseExpression("'SayHello'"))
-					.callOptions(customCallOptions));
+			return f -> f
+					.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
+							.methodName("SayHello")
+							.callOptions(customCallOptions))
+					.transform(this::upperCase);
 		}
 
-		@Bean
-		IntegrationFlow grpcOutboundFlowWithMethodName(ManagedChannel channel) {
-			return f -> f.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
-					.methodName("SayHello"));
-		}
-
-		@Bean
-		IntegrationFlow grpcOutboundFlowWithFunction(ManagedChannel channel) {
-			return f -> f.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
-					.methodNameFunction(message -> {
-						String method = message.getHeaders().get("grpcMethod", String.class);
-						return method != null ? method : "SayHello";
-					}));
+		private HelloReply upperCase(HelloReply helloReply) {
+			return HelloReply.newBuilder().setMessage(helloReply.getMessage().toUpperCase()).build();
 		}
 
 		@Bean

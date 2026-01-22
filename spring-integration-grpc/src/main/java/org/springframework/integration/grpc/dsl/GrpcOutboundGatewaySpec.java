@@ -45,8 +45,9 @@ public class GrpcOutboundGatewaySpec extends MessageHandlerSpec<GrpcOutboundGate
 	/**
 	 * Set the name of the gRPC method to call.
 	 * If method name is not provided, the default expression checks the
-	 * {@link org.springframework.messaging.MessageHeaders} for {@link org.springframework.integration.grpc.GrpcHeaders#SERVICE_METHOD} or, in case a single
-	 * service method, the name of that method is used.
+	 * {@link org.springframework.messaging.MessageHeaders} for
+	 * {@link org.springframework.integration.grpc.GrpcHeaders#SERVICE_METHOD} or, in case a single service method,
+	 * the name of that method is used.
 	 * @param methodName the name of the gRPC method to call
 	 * @return the spec
 	 * @see GrpcOutboundGateway#setMethodName(String)
@@ -63,8 +64,7 @@ public class GrpcOutboundGatewaySpec extends MessageHandlerSpec<GrpcOutboundGate
 	 * @see GrpcOutboundGateway#setMethodNameExpression(Expression)
 	 */
 	public GrpcOutboundGatewaySpec methodNameExpression(String methodNameSpelExpression) {
-		this.target.setMethodNameExpression(PARSER.parseExpression(methodNameSpelExpression));
-		return this;
+		return methodNameExpression(PARSER.parseExpression(methodNameSpelExpression));
 	}
 
 	/**

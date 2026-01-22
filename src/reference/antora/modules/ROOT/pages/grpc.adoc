@@ -156,7 +156,9 @@ All the downstream transformer business methods are type-safe in regard to gRPC 
 [[configuration-grpc-inbound-gateway-with-dsl]]
 === Configuration with DSL
 
-Use the `Grpc` factory to add the `GrpcInboundGateway` to flows using the xref:changes-5.0-5.1.adoc#x5.1-java-dsl[DSL]:
+Use the `Grpc` factory to add the `GrpcInboundGateway` to flows using the xref:dsl.adoc[DSL].
+The DSL provides a fluent API that simplifies configuration and improves readability.
+The inbound gateway acts as a server-side endpoint that exposes your integration flow as a gRPC service.
 
 [source,java]
 ----
@@ -165,9 +167,16 @@ IntegrationFlow grpcInboundFlow() {
     return IntegrationFlow.from(
                     Grpc.inboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class)
                         .requestTimeout(3000L))
+            .transform(this::requestReply)
             .get();
 }
+
+private HelloReply requestReply(HelloRequest helloRequest) {
+    return HelloReply.newBuilder().setMessage("Hello " + helloRequest.getName()).build();
+}
+
 ----
+
 
 [[grpc-outbound-gateway]]
 == Outbound Gateway for gRPC
@@ -189,7 +198,7 @@ See more information in the xref:service-activator.adoc#async-service-activator[
 
 === Method Name Configuration
 
-The method name to invoke can be configured in three ways:
+The method name to invoke can be configured in four ways:
 
 1. **Auto-detection** for services with a single method:
 +
@@ -233,7 +242,7 @@ If the `GrpcHeaders.SERVICE_METHOD` header is missing, an `IllegalStateException
 @Bean
 public GrpcOutboundGateway dynamicMethodGateway(ManagedChannel channel) {
 	 // Looks for GrpcHeaders.SERVICE_METHOD header in the input message
-    return new GrpcOutboundGateway(channel, TestSingleMethodGrpc.class);
+    return new GrpcOutboundGateway(channel, TestHelloWorldGrpc.class);
 }
 ----
 
@@ -259,20 +268,40 @@ Client streaming methods return a `Mono<ResponseType>`, while bidirectional stre
 [[configuration-grpc-outbound-gateway-with-dsl]]
 === Configuration with DSL
 
-Add the `GrpcOutboundGateway` to flows using the DSL:
+Use the `Grpc` factory to add the `GrpcOutboundGateway` to flows using the xref:dsl.adoc[DSL].
+The DSL provides a fluent API that simplifies configuration and improves readability.
+The simplest configuration for a service with a single method:
 
 [source,java]
 ----
 @Bean
 IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
-    return f -> f
-        .handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
-            .methodName("SayHello"))
-        .transform(this::requestReply)
-        .get();
+	return f -> f
+            .handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class))
+            .transform(this::upperCase);
 }
 
-private HelloReply requestReply(HelloRequest helloRequest) {
-    return HelloReply.newBuilder().setMessage("Hello " + helloRequest.getName()).build();
+private HelloReply upperCase(HelloReply helloReply) {
+    return HelloReply.newBuilder().setMessage(helloReply.getMessage().toUpperCase()).build();
 }
 ----
+
+When the gRPC service has only one method, it will be auto-detected.
+
+For services with multiple methods, specify the method name expression or method name explicitly as shown below:
+
+[source,java]
+----
+@Bean
+IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
+	return f -> f
+            .handle(Grpc.outboundGateway(channel, TestHelloWorldGrpc.class)
+                    .methodName("SayHello"))
+            .transform(this::upperCase);
+}
+
+private HelloReply upperCase(HelloReply helloReply) {
+    return HelloReply.newBuilder().setMessage(helloReply.getMessage().toUpperCase()).build();
+}
+----
+NOTE: If neither a method name nor a method name expression is configured, and the service offers multiple methods, the gateway will look for the `GrpcHeaders.SERVICE_METHOD` header in the input message to determine which method to invoke.
