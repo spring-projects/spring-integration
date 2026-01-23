@@ -71,6 +71,7 @@ import static org.mockito.Mockito.mock;
  * @author Anton Gabov
  * @author Eddie Cho
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -1020,7 +1021,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
 		StringRedisTemplate template = createTemplate();
-		String registryKey = TestUtils.getPropertyValue(registry, "registryKey", String.class);
+		String registryKey = TestUtils.getPropertyValue(registry, "registryKey");
 		return template.getExpire(registryKey + ":" + lockKey);
 	}
 
@@ -1033,9 +1034,8 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
-		return TestUtils.getPropertyValue(registry, "locks", Map.class);
+		return TestUtils.getPropertyValue(registry, "locks");
 	}
 
 }

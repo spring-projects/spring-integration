@@ -49,6 +49,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Florian Schmaus
+ * @author Glenn Renfro
  */
 public class ChatMessageSendingMessageHandlerTests {
 
@@ -204,7 +205,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(handler, "xmppConnection")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "xmppConnection")).isNotNull();
 	}
 
 	@Test

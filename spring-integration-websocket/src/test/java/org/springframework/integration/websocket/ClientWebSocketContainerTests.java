@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 /**
  * @author Artem Bilan
  * @author Julian Koch
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -217,8 +218,7 @@ public class ClientWebSocketContainerTests {
 			this.sendTimeLimit = sessionDecorator.getSendTimeLimit();
 			this.sendBufferSizeLimit = sessionDecorator.getBufferSizeLimit();
 			this.sendBufferOverflowStrategy =
-					TestUtils.getPropertyValue(sessionDecorator, "overflowStrategy",
-							ConcurrentWebSocketSessionDecorator.OverflowStrategy.class);
+					TestUtils.getPropertyValue(sessionDecorator, "overflowStrategy");
 
 			this.sessionStartedLatch.countDown();
 		}

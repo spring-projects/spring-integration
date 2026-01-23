@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -62,8 +63,7 @@ public class WebFluxOutboundChannelAdapterParserTests {
 	@Test
 	public void reactiveMinimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
-		WebClient webClient =
-				TestUtils.getPropertyValue(this.reactiveMinimalConfig, "handler.webClient", WebClient.class);
+		WebClient webClient = TestUtils.getPropertyValue(this.reactiveMinimalConfig, "handler.webClient");
 		assertThat(webClient).isNotSameAs(this.webClient);
 		Object handler = endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -73,21 +73,21 @@ public class WebFluxOutboundChannelAdapterParserTests {
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 		assertThat(
-				TestUtils.getPropertyValue(handler, "webClient.uriBuilderFactory.encodingMode",
-						DefaultUriBuilderFactory.EncodingMode.class))
+				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(handler,
+						"webClient.uriBuilderFactory.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
 	@Test
 	public void reactiveWebClientConfig() {
-		assertThat(TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"))
 				.isSameAs(this.webClient);
-		assertThat(TestUtils.getPropertyValue(this.reactiveWebClientConfig,
+		assertThat(TestUtils.<Object>getPropertyValue(this.reactiveWebClientConfig,
 				"handler.publisherElementTypeExpression.value"))
 				.isSameAs(Date.class);
 	}

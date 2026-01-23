@@ -71,6 +71,7 @@ import static org.mockito.Mockito.when;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -113,10 +114,10 @@ public class GatewayParserTests {
 		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 		assertThat(result.getHeaders().get("baz")).isEqualTo("qux");
 		GatewayProxyFactoryBean<?> fb = context.getBean("&methodOverride", GatewayProxyFactoryBean.class);
-		assertThat(TestUtils.getPropertyValue(fb, "defaultRequestTimeout", Expression.class).getValue())
+		assertThat(TestUtils.<Expression>getPropertyValue(fb, "defaultRequestTimeout").getValue())
 				.isEqualTo(1000L);
-		assertThat(TestUtils.getPropertyValue(fb, "defaultReplyTimeout", Expression.class).getValue()).isEqualTo(2000L);
-		Map<?, ?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap", Map.class);
+		assertThat(TestUtils.<Expression>getPropertyValue(fb, "defaultReplyTimeout").getValue()).isEqualTo(2000L);
+		Map<?, ?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap");
 		GatewayMethodMetadata meta = (GatewayMethodMetadata) methods.get("oneWay");
 		assertThat(meta).isNotNull();
 		assertThat(meta.getRequestTimeout()).isEqualTo("456");
@@ -180,7 +181,7 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply.getPayload()).isEqualTo("foo");
 		assertThat(reply.getHeaders().get("executor")).isEqualTo("testExecutor");
-		assertThat(TestUtils.getPropertyValue(context.getBean("&async"), "asyncExecutor")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&async"), "asyncExecutor")).isNotNull();
 	}
 
 	@Test
@@ -193,7 +194,7 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply.getPayload()).isEqualTo("futureSync");
 		Object serviceBean = context.getBean("&asyncOff");
-		assertThat(TestUtils.getPropertyValue(serviceBean, "asyncExecutor")).isNull();
+		assertThat(TestUtils.<PollableChannel>getPropertyValue(serviceBean, "asyncExecutor")).isNull();
 	}
 
 	@Test
@@ -221,7 +222,8 @@ public class GatewayParserTests {
 		Mono<Message<?>> result = service.promise("foo");
 		Message<?> reply = result.block(Duration.ofSeconds(10));
 		assertThat(reply.getPayload()).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&promise"), "asyncExecutor"))
+				.isNotNull();
 	}
 
 	@Test
@@ -244,7 +246,8 @@ public class GatewayParserTests {
 		String reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply).isEqualTo("FOO");
 		assertThat(thread.get().getName()).startsWith("testExec-");
-		assertThat(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&asyncCompletable"),
+				"asyncExecutor")).isNotNull();
 	}
 
 	@Test
@@ -267,7 +270,8 @@ public class GatewayParserTests {
 		String reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply).isEqualTo("SYNC_COMPLETABLE");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
-		assertThat(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&completableNoAsync"),
+				"asyncExecutor")).isNull();
 	}
 
 	@Test
@@ -290,13 +294,14 @@ public class GatewayParserTests {
 		String reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply).isEqualTo("SYNC_CUSTOM_COMPLETABLE");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
-		assertThat(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&completableNoAsync"),
+				"asyncExecutor")).isNull();
 	}
 
 	@Test
 	public void testCustomCompletableNoAsyncAttemptAsync() throws Exception {
 		Object gateway = context.getBean("&customCompletableAttemptAsync");
-		LogAccessor logger = spy(TestUtils.getPropertyValue(gateway, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(gateway, "logger"));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
@@ -317,7 +322,7 @@ public class GatewayParserTests {
 		String reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply).isEqualTo("SYNC_CUSTOM_COMPLETABLE");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
-		assertThat(TestUtils.getPropertyValue(gateway, "asyncExecutor")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "asyncExecutor")).isNotNull();
 		verify(logger).debug(ArgumentMatchers.<Supplier<String>>argThat(logMessage ->
 				logMessage.get()
 						.equals("AsyncTaskExecutor submit*() return types are incompatible "
@@ -346,7 +351,8 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply.getPayload()).isEqualTo("foo");
 		assertThat(thread.get().getName()).startsWith("testExec-");
-		assertThat(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&asyncCompletable"),
+				"asyncExecutor")).isNotNull();
 	}
 
 	@Test
@@ -369,7 +375,8 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply.getPayload()).isEqualTo("flowCompletableM");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
-		assertThat(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&completableNoAsync"),
+				"asyncExecutor")).isNull();
 	}
 
 	@Test
@@ -392,7 +399,8 @@ public class GatewayParserTests {
 		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertThat(reply.getPayload()).isEqualTo("flowCustomCompletableM");
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
-		assertThat(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("&completableNoAsync"),
+				"asyncExecutor")).isNull();
 	}
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {

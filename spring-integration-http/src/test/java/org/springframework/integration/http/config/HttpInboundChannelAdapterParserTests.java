@@ -64,6 +64,7 @@ import static org.mockito.BDDMockito.willReturn;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -121,8 +122,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getRequestOk() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "phase")).isEqualTo(1001);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.defaultAdapter, "phase")).isEqualTo(1001);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
@@ -143,14 +144,15 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		assertThat(map.keySet().iterator().next()).isEqualTo("foo");
 		assertThat(map.get("foo").size()).isEqualTo(1);
 		assertThat(map.getFirst("foo")).isEqualTo("bar");
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "validator")).isSameAs(this.validator);
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultAdapter, "errorChannel")).isNotNull();
+		assertThat(TestUtils.<Validator>getPropertyValue(this.defaultAdapter, "validator"))
+				.isSameAs(this.validator);
 	}
 
 	@Test
 	public void getRequestWithHeaders() {
 		DefaultHttpHeaderMapper headerMapper =
-				TestUtils.getPropertyValue(withMappedHeaders, "headerMapper", DefaultHttpHeaderMapper.class);
+				TestUtils.<DefaultHttpHeaderMapper>getPropertyValue(withMappedHeaders, "headerMapper");
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
@@ -250,16 +252,16 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	public void putOrDeleteMethodsSupported() {
 		HttpMethod[] supportedMethods =
-				TestUtils.getPropertyValue(putOrDeleteAdapter, "requestMapping.methods", HttpMethod[].class);
+				TestUtils.<HttpMethod[]>getPropertyValue(putOrDeleteAdapter, "requestMapping.methods");
 		assertThat(supportedMethods.length).isEqualTo(2);
 		assertThat(supportedMethods).containsExactly(HttpMethod.PUT, HttpMethod.DELETE);
 	}
 
 	@Test
 	public void testController() {
-		String errorCode = TestUtils.getPropertyValue(inboundController, "errorCode", String.class);
+		String errorCode = TestUtils.getPropertyValue(inboundController, "errorCode");
 		assertThat(errorCode).isEqualTo("oops");
-		Expression viewExpression = TestUtils.getPropertyValue(inboundController, "viewExpression", Expression.class);
+		Expression viewExpression = TestUtils.getPropertyValue(inboundController, "viewExpression");
 		assertThat(viewExpression.getExpressionString()).isEqualTo("foo");
 
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -274,21 +276,20 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 	@Test
 	public void testInt2717ControllerWithViewExpression() {
-		Expression viewExpression = TestUtils
-				.getPropertyValue(inboundControllerViewExp, "viewExpression", Expression.class);
+		Expression viewExpression = TestUtils.getPropertyValue(inboundControllerViewExp, "viewExpression");
 		assertThat(viewExpression.getExpressionString()).isEqualTo("'foo'");
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "requestChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "requestChannel"))
+				.isSameAs(autoChannel);
 	}
 
 	@Test
 	public void testInboundAdapterWithMessageConverterDefaults() {
-		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils
-				.getPropertyValue(adapterWithCustomConverterWithDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(
+				adapterWithCustomConverterWithDefaults, "messageConverters");
 		assertThat(messageConverters.size() > 1)
 				.as("There should be more than 1 message converter. The customized one and the defaults.").isTrue();
 
@@ -298,9 +299,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 	@Test
 	public void testInboundAdapterWithNoMessageConverterDefaults() {
-		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils
-				.getPropertyValue(adapterWithCustomConverterNoDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(
+				adapterWithCustomConverterNoDefaults, "messageConverters");
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 		assertThat(messageConverters).as("There should be only the customized MessageConverter registered.")
@@ -309,9 +309,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 	@Test
 	public void testInboundAdapterWithNoMessageConverterNoDefaults() {
-		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils
-				.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters =
+				TestUtils.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters");
 		assertThat(messageConverters.size() > 1).as("There should be more than 1 message converter. The defaults.")
 				.isTrue();
 	}

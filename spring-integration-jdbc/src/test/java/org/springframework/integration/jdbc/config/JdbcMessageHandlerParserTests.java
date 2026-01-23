@@ -46,6 +46,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
+ *
  * @since 2.0
  *
  */
@@ -68,7 +70,7 @@ public class JdbcMessageHandlerParserTests {
 		assertThat(map.get("ID")).as("Wrong id").isEqualTo("FOO");
 		assertThat(map.get("name")).as("Wrong id").isEqualTo("foo");
 		JdbcMessageHandler handler = context.getBean(JdbcMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
+		assertThat(TestUtils.<Integer>getPropertyValue(handler, "order")).isEqualTo(23);
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 

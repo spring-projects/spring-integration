@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -79,16 +80,16 @@ public class BarrierParserTests {
 
 	@Test
 	public void parserFieldPopulationTests() {
-		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
-				BarrierMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "requestTimeout")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(handler, "triggerTimeout")).isEqualTo(5000L);
-		assertThat(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"))
+		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler");
+		assertThat(TestUtils.<Long>getPropertyValue(handler, "requestTimeout")).isEqualTo(10000L);
+		assertThat(TestUtils.<Long>getPropertyValue(handler, "triggerTimeout")).isEqualTo(5000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "requiresReply")).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(this.barrier2, "handler.correlationStrategy"))
 				.isInstanceOf(HeaderAttributeCorrelationStrategy.class);
-		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.messageGroupProcessor"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.barrier3, "handler.messageGroupProcessor"))
 				.isInstanceOf(TestMGP.class);
-		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy")).isInstanceOf(TestCS.class);
+		assertThat(TestUtils.<Object>getPropertyValue(this.barrier3, "handler.correlationStrategy"))
+				.isInstanceOf(TestCS.class);
 		assertThat(this.discards).isSameAs(handler.getDiscardChannel());
 	}
 

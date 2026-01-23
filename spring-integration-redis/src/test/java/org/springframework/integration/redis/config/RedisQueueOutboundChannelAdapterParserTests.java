@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -70,12 +71,12 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt3017DefaultConfig() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "template.connectionFactory"))
-				.isSameAs(this.connectionFactory);
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "queueNameExpression", Expression.class)
+		assertThat(TestUtils.<RedisConnectionFactory>getPropertyValue(this.defaultAdapter,
+				"template.connectionFactory")).isSameAs(this.connectionFactory);
+		assertThat(TestUtils.<Expression>getPropertyValue(this.defaultAdapter, "queueNameExpression")
 				.getExpressionString()).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "extractPayload", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializerExplicitlySet", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultAdapter, "extractPayload")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultAdapter, "serializerExplicitlySet")).isFalse();
 
 		Object handler = TestUtils.getPropertyValue(this.defaultEndpoint, "handler");
 
@@ -84,19 +85,20 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 		assertThat(this.defaultAdapter).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
 		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
-		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "leftPush", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultAdapter, "leftPush")).isTrue();
 	}
 
 	@Test
 	public void testInt3017CustomConfig() {
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "template.connectionFactory"))
-				.isSameAs(this.customRedisConnectionFactory);
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "queueNameExpression.expression"))
+		assertThat(TestUtils.<RedisConnectionFactory>getPropertyValue(this.customAdapter,
+				"template.connectionFactory")).isSameAs(this.customRedisConnectionFactory);
+		assertThat(TestUtils.<String>getPropertyValue(this.customAdapter, "queueNameExpression.expression"))
 				.isEqualTo("headers['redis_queue']");
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "extractPayload", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "serializerExplicitlySet", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "serializer")).isSameAs(this.serializer);
-		assertThat(TestUtils.getPropertyValue(this.customAdapter, "leftPush", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.customAdapter, "extractPayload")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.customAdapter, "serializerExplicitlySet")).isTrue();
+		assertThat(TestUtils.<RedisSerializer<?>>getPropertyValue(this.customAdapter, "serializer"))
+				.isSameAs(this.serializer);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.customAdapter, "leftPush")).isFalse();
 	}
 
 }

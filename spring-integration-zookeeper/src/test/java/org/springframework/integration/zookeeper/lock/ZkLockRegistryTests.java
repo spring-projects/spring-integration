@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Unseok Kim
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -53,7 +54,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks").size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -62,7 +63,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		Thread.sleep(10);
 		registry.expireUnusedOlderThan(0);
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks")).isEmpty();
 		registry.destroy();
 	}
 
@@ -73,7 +74,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks").size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -279,7 +280,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks").size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -290,7 +291,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> registry.expireUnusedOlderThan(0))
 				.withMessageContaining("expiry is not supported");
-		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks").size()).isEqualTo(1);
 		registry.destroy();
 	}
 
@@ -509,9 +510,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		registry.destroy();
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
-		return TestUtils.getPropertyValue(registry, "locks", Map.class);
+		return TestUtils.getPropertyValue(registry, "locks");
 	}
 
 	private static String toKey(String path) {

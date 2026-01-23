@@ -96,6 +96,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Shiliang Li
  * @author Gary Russell
  * @author Oleksii Komlyk
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -126,8 +127,7 @@ public class HttpDslTests {
 	public void testHttpProxyFlow() throws Exception {
 		RestTestClient restTestClient = RestTestClient.bindTo(this.mockMvc).build();
 		ClientHttpRequestFactory mockRequestFactory =
-				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory",
-						ClientHttpRequestFactory.class);
+				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory");
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
 
 		this.mockMvc.perform(

@@ -104,6 +104,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author John Anderson
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  *
@@ -232,7 +233,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		assertThat(connections).hasSize(1);
 		connection.close();
 		assertThat(!connection.isOpen()).isTrue();
-		TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
+		TestUtils.<Selector>getPropertyValue(factory, "selector").wakeup();
 		await().atMost(Duration.ofSeconds(10)).until(connections::isEmpty);
 		factory.stop();
 		serverSocket.get().close();
@@ -291,7 +292,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		factory.processNioSelections(1, selector, null, connections);
 		assertThat(connections).isEmpty(); // third is closed
 
-		assertThat(TestUtils.getPropertyValue(factory, "connections", Map.class)).isEmpty();
+		assertThat(TestUtils.<Map<SocketChannel, TcpNioConnection>>getPropertyValue(factory, "connections"))
+				.isEmpty();
 	}
 
 	@Test
@@ -380,7 +382,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[2];
 		int n = stream.read(out);
@@ -399,7 +401,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		stream.write(ByteBuffer.wrap("bar".getBytes()));
 		byte[] out = new byte[6];
@@ -415,7 +417,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 		int n = stream.read(out, 1, 4);
@@ -430,7 +432,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 
@@ -451,7 +453,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		final TcpNioConnection.ChannelInputStream stream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final byte[] out = new byte[4];
 		this.executor.execute(() -> {
@@ -579,8 +581,8 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 	}
 
 	private static void cleanupCompositeExecutor(CompositeExecutor compositeExec) throws Exception {
-		TestUtils.getPropertyValue(compositeExec, "primaryTaskExecutor", DisposableBean.class).destroy();
-		TestUtils.getPropertyValue(compositeExec, "secondaryTaskExecutor", DisposableBean.class).destroy();
+		TestUtils.<DisposableBean>getPropertyValue(compositeExec, "primaryTaskExecutor").destroy();
+		TestUtils.<DisposableBean>getPropertyValue(compositeExec, "secondaryTaskExecutor").destroy();
 	}
 
 	@Test
@@ -707,9 +709,10 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
 
-		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", Map.class)
+		TcpNioConnection connection =
+				TestUtils.<Map<SocketChannel, TcpNioConnection>>getPropertyValue(factory, "connections")
 				.values().iterator().next();
-		Log logger = spy(TestUtils.getPropertyValue(connection, "logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(connection, "logger"));
 		doReturn(true).when(logger).isTraceEnabled();
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
@@ -727,7 +730,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 		final CountDownLatch readerFinishedLatch = new CountDownLatch(1);
 		ChannelInputStream cis =
-				spy(TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
+				spy(TestUtils.<ChannelInputStream>getPropertyValue(connection, "channelInputStream"));
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
 			// delay the reader thread resetting writingToPipe
@@ -811,7 +814,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
 
 		ChannelInputStream originalStream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", TcpNioConnection.ChannelInputStream.class);
+				TestUtils.<TcpNioConnection.ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		assertThat(originalStream).isNotNull();
 
 		ChannelInputStream streamSpy = spy(originalStream);

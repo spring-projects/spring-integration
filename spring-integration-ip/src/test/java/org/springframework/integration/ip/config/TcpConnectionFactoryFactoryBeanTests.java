@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.1.1
  */
@@ -39,7 +40,7 @@ public class TcpConnectionFactoryFactoryBeanTests implements TestApplicationCont
 		fb.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		fb.afterPropertiesSet();
 		// INT-3578 IllegalArgumentException on 'readDelay'
-		assertThat(TestUtils.getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(100L);
+		assertThat(TestUtils.<Long>getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(100L);
 	}
 
 	@Test
@@ -50,7 +51,7 @@ public class TcpConnectionFactoryFactoryBeanTests implements TestApplicationCont
 		fb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fb.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		fb.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(1000L);
+		assertThat(TestUtils.<Long>getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(1000L);
 	}
 
 }

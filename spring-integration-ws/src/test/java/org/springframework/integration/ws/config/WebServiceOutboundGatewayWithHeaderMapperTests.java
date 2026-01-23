@@ -68,6 +68,7 @@ import static org.mockito.Mockito.mock;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -94,14 +95,12 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	@Test
 	public void headerMapperParserTest() {
 		SimpleWebServiceOutboundGateway gateway =
-				TestUtils.getPropertyValue(this.context.getBean("withHeaderMapper"),
-						"handler", SimpleWebServiceOutboundGateway.class);
-		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper",
-				DefaultSoapHeaderMapper.class);
+				TestUtils.<SimpleWebServiceOutboundGateway>getPropertyValue(this.context.getBean("withHeaderMapper"), "handler");
+		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper");
 		assertThat(headerMapper).isNotNull();
 
-		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
-				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher =
+				TestUtils.getPropertyValue(headerMapper, "requestHeaderMatcher");
 		assertThat(requestHeaderMatcher.matchHeader("foo")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("foo123")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("baz")).isTrue();
@@ -109,8 +108,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertThat(requestHeaderMatcher.matchHeader("bar")).isFalse();
 		assertThat(requestHeaderMatcher.matchHeader("bar123")).isFalse();
 
-		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
-				"replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher =
+				TestUtils.getPropertyValue(headerMapper, "replyHeaderMatcher");
 		assertThat(replyHeaderMatcher.matchHeader("foo")).isFalse();
 		assertThat(replyHeaderMatcher.matchHeader("foo123")).isFalse();
 		assertThat(replyHeaderMatcher.matchHeader("baz")).isFalse();
@@ -206,12 +205,11 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 			throws Exception {
 
 		AbstractWebServiceOutboundGateway gateway =
-				TestUtils.getPropertyValue(this.context.getBean(gatewayName), "handler",
-						AbstractWebServiceOutboundGateway.class);
+				TestUtils.<AbstractWebServiceOutboundGateway>getPropertyValue(this.context.getBean(gatewayName), "handler");
 
 		if (!soap) {
 			WebServiceTemplate template =
-					TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
+					TestUtils.<WebServiceTemplate>getPropertyValue(gateway, "webServiceTemplate");
 			template.setMessageFactory(new DomPoxMessageFactory());
 		}
 

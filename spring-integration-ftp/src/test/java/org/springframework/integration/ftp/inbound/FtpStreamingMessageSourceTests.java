@@ -60,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3
  *
@@ -124,10 +125,10 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
-		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(TestUtils.<BlockingQueue<?>>getPropertyValue(source, "toBeReceived")).hasSize(1);
 		assertThat(this.metadataMap).hasSize(1);
 		this.adapter.stop();
-		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).isEmpty();
+		assertThat(TestUtils.<BlockingQueue<?>>getPropertyValue(source, "toBeReceived")).isEmpty();
 	}
 
 	@Test

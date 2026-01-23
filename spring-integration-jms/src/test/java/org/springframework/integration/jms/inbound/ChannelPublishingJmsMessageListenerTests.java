@@ -49,6 +49,7 @@ import static org.mockito.Mockito.spy;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class ChannelPublishingJmsMessageListenerTests implements TestApplicationContextAware {
 
@@ -73,7 +74,7 @@ public class ChannelPublishingJmsMessageListenerTests implements TestApplication
 	public void testBadConversion() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(listener, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(listener, "logger"));
 		doNothing().when(logger).error(any(Throwable.class), anyString());
 		new DirectFieldAccessor(listener).setPropertyValue("logger", logger);
 		listener.setRequestChannel(requestChannel);

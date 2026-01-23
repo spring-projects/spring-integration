@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -71,14 +72,14 @@ public class XsltPayloadTransformerParserTests {
 	@Test
 	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) applicationContext.getBean("parseOnly");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		SmartLifecycleRoleController roleController = applicationContext.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
-		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
-				MultiValueMap.class).get("foo");
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(
+				roleController, "lifecycles").get("foo");
 		assertThat(list).containsExactly(consumer);
 	}
 
@@ -91,7 +92,7 @@ public class XsltPayloadTransformerParserTests {
 		assertThat(result.getPayload()).as("Payload was not a DOMResult").isInstanceOf(DOMResult.class);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertThat(doc.getDocumentElement().getTextContent()).as("Wrong payload").isEqualTo("test");
-		assertThat(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
+		assertThat(TestUtils.<Object>getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
 				"transformer.evaluationContext.beanResolver")).isNotNull();
 	}
 

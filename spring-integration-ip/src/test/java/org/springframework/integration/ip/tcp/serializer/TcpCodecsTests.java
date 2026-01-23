@@ -24,6 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 5.0
  *
  */
@@ -41,25 +43,25 @@ public class TcpCodecsTests {
 		assertThat(codec).isInstanceOf(ByteArrayStxEtxSerializer.class);
 		codec = TcpCodecs.singleTerminator((byte) 23);
 		assertThat(codec).isInstanceOf(ByteArraySingleTerminatorSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "terminator")).isEqualTo((byte) 23);
+		assertThat(TestUtils.<Byte>getPropertyValue(codec, "terminator")).isEqualTo((byte) 23);
 		codec = TcpCodecs.lengthHeader1();
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(1);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(1);
 		codec = TcpCodecs.lengthHeader2();
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(2);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(2);
 		codec = TcpCodecs.lengthHeader4();
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(4);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(4);
 		codec = TcpCodecs.lengthHeader(1);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(1);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(1);
 		codec = TcpCodecs.lengthHeader(2);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(2);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(2);
 		codec = TcpCodecs.lengthHeader(4);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(4);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(4);
 	}
 
 	@Test
@@ -79,19 +81,19 @@ public class TcpCodecsTests {
 		codec = TcpCodecs.singleTerminator((byte) 23, 123);
 		assertThat(codec).isInstanceOf(ByteArraySingleTerminatorSerializer.class);
 		assertThat(codec.getMaxMessageSize()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(codec, "terminator")).isEqualTo((byte) 23);
+		assertThat(TestUtils.<Byte>getPropertyValue(codec, "terminator")).isEqualTo((byte) 23);
 		codec = TcpCodecs.lengthHeader1(123);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
 		assertThat(codec.getMaxMessageSize()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(1);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(1);
 		codec = TcpCodecs.lengthHeader2(123);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
 		assertThat(codec.getMaxMessageSize()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(2);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(2);
 		codec = TcpCodecs.lengthHeader4(123);
 		assertThat(codec).isInstanceOf(ByteArrayLengthHeaderSerializer.class);
 		assertThat(codec.getMaxMessageSize()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(codec, "headerSize")).isEqualTo(4);
+		assertThat(TestUtils.<Integer>getPropertyValue(codec, "headerSize")).isEqualTo(4);
 	}
 
 }

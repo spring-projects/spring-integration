@@ -46,26 +46,26 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Florian Schmaus
+ * @author Glenn Renfro
  */
 public class PresenceListeningEndpointTests {
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testEndpointLifecycle() {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = Roster.getInstanceFor(connection);
 
-		Set<RosterListener> rosterSet = TestUtils.getPropertyValue(roster, "rosterListeners", Set.class);
+		Set<RosterListener> rosterSet = TestUtils.getPropertyValue(roster, "rosterListeners");
 
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		rosterEndpoint.setOutputChannel(new QueueChannel());
 		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
 		rosterEndpoint.afterPropertiesSet();
-		assertThat(rosterSet.size()).isEqualTo(0);
+		assertThat(rosterSet).isEmpty();
 		rosterEndpoint.start();
 		assertThat(rosterSet.size()).isEqualTo(1);
 		rosterEndpoint.stop();
-		assertThat(rosterSet.size()).isEqualTo(0);
+		assertThat(rosterSet).isEmpty();
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class PresenceListeningEndpointTests {
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
 	@Test

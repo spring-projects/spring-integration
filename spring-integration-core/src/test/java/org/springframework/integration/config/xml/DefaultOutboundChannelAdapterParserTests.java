@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -63,17 +64,17 @@ public class DefaultOutboundChannelAdapterParserTests {
 	@Test
 	public void checkConfig() {
 		Object adapter = context.getBean("adapter");
-		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertThat(handler.getClass()).isEqualTo(MethodInvokingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(99);
+		assertThat(TestUtils.<Integer>getPropertyValue(handler, "order")).isEqualTo(99);
 	}
 
 	@Test
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
-		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
-		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
+		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 
@@ -91,7 +92,7 @@ public class DefaultOutboundChannelAdapterParserTests {
 		Object adapter = context.getBean("adapterC");
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertThat(handler.getClass()).isEqualTo(MethodInvokingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(99);
+		assertThat(TestUtils.<Integer>getPropertyValue(handler, "order")).isEqualTo(99);
 		Object targetObject = TestUtils.getPropertyValue(handler, "processor.delegate.targetObject");
 		assertThat(targetObject.getClass()).isEqualTo(TestConsumer.class);
 	}

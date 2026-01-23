@@ -46,6 +46,7 @@ import static org.mockito.Mockito.verify;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class RoundRobinDispatcherTests {
 
@@ -94,7 +95,7 @@ public class RoundRobinDispatcherTests {
 	public void currentHandlerIndexOverFlow() {
 		this.dispatcher.addHandler(this.handler);
 		this.dispatcher.addHandler(this.differentHandler);
-		TestUtils.getPropertyValue(this.dispatcher, "loadBalancingStrategy.currentHandlerIndex", AtomicInteger.class)
+		TestUtils.<AtomicInteger>getPropertyValue(this.dispatcher, "loadBalancingStrategy.currentHandlerIndex")
 				.set(Integer.MAX_VALUE - 5);
 		for (int i = 0; i < 40; i++) {
 			this.dispatcher.dispatch(this.message);

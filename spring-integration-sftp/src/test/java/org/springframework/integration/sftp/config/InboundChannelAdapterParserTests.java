@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class InboundChannelAdapterParserTests {
 
@@ -73,26 +74,24 @@ public class InboundChannelAdapterParserTests {
 
 		Object adapter = context.getBean("sftpAdapterAutoCreate");
 		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
-		SftpInboundFileSynchronizingMessageSource source =
-				(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		SftpInboundFileSynchronizingMessageSource source = TestUtils.getPropertyValue(adapter, "source");
 		assertThat(source).isNotNull();
 
 		PriorityBlockingQueue<?> blockingQueue =
-				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived");
 		Comparator<?> comparator = blockingQueue.comparator();
 
 		assertThat(comparator).isNotNull();
-		SftpInboundFileSynchronizer synchronizer =
-				TestUtils.getPropertyValue(source, "synchronizer", SftpInboundFileSynchronizer.class);
-		assertThat(TestUtils.getPropertyValue(synchronizer, "remoteDirectoryExpression", Expression.class)
+		SftpInboundFileSynchronizer synchronizer = TestUtils.getPropertyValue(source, "synchronizer");
+		assertThat(TestUtils.<Expression>getPropertyValue(synchronizer, "remoteDirectoryExpression")
 				.getExpressionString()).isEqualTo("'/foo'");
-		assertThat(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(synchronizer, "preserveTimestamp", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(synchronizer, "localFilenameGeneratorExpression")).isNotNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(synchronizer, "preserveTimestamp")).isTrue();
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
-		assertThat(TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class)).isEqualTo(".bar");
-		assertThat(TestUtils.getPropertyValue(synchronizer, "remoteFileMetadataStore"))
+		assertThat(TestUtils.<String>getPropertyValue(synchronizer, "temporaryFileSuffix")).isEqualTo(".bar");
+		assertThat(TestUtils.<Object>getPropertyValue(synchronizer, "remoteFileMetadataStore"))
 				.isSameAs(context.getBean(MetadataStore.class));
-		assertThat(TestUtils.getPropertyValue(synchronizer, "metadataStorePrefix", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(synchronizer, "metadataStorePrefix"))
 				.isEqualTo("testPrefix");
 		assertThat(remoteFileSeparator).isNotNull();
 		assertThat(remoteFileSeparator).isEqualTo(".");
@@ -100,9 +99,8 @@ public class InboundChannelAdapterParserTests {
 		((Lifecycle) adapter).start();
 		assertThat(requestChannel.receive(10000)).isNotNull();
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
-		@SuppressWarnings("unchecked")
 		Collection<FileListFilter<?>> filters =
-				TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class);
+				TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters");
 		assertThat(filters).contains(acceptAllFilter);
 		assertThat(source.getMaxFetchSize()).isEqualTo(42);
 		context.close();
@@ -117,11 +115,13 @@ public class InboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter",
 				SourcePollingChannelAdapter.class);
 		assertThat(TestUtils
-				.getPropertyValue(autoChannelAdapter, "source.synchronizer.remoteDirectoryExpression",
-						Expression.class)
-				.getExpressionString()).isEqualTo("/foo");
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "source.maxFetchSize")).isEqualTo(Integer.MIN_VALUE);
+				.<Expression>getPropertyValue(autoChannelAdapter,
+						"source.synchronizer.remoteDirectoryExpression").getExpressionString())
+				.isEqualTo("/foo");
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "outputChannel"))
+				.isSameAs(autoChannel);
+		assertThat(TestUtils.<Integer>getPropertyValue(autoChannelAdapter, "source.maxFetchSize"))
+				.isEqualTo(Integer.MIN_VALUE);
 		context.close();
 	}
 

@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Iwein Fuld
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @see org.springframework.integration.file.config.FileInboundChannelAdapterWithPatternParserTests
  */
@@ -53,7 +54,7 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
 		Pattern pattern = null;
 		for (FileListFilter<?> filter : filters) {
 			if (filter instanceof RegexPatternFileListFilter) {
-				pattern = TestUtils.getPropertyValue(filter, "pattern", Pattern.class);
+				pattern = TestUtils.<Pattern>getPropertyValue(filter, "pattern");
 				break;
 			}
 		}

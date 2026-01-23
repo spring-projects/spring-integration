@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -140,11 +141,11 @@ public class OperationInvokingOutboundGatewayTests {
 
 	@Test //INT-1029, INT-2822
 	public void testOutboundGatewayInsideChain() throws Exception {
-		List<?> handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers", List.class);
+		List<?> handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers");
 		assertThat(handlers.size()).isEqualTo(1);
 		Object handler = handlers.get(0);
 		assertThat(handler instanceof OperationInvokingMessageHandler).isTrue();
-		assertThat(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "requiresReply")).isTrue();
 
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("1").build());
 		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(1);

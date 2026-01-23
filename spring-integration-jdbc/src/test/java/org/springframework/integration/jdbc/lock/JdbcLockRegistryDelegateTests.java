@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
  * @author Olivier Hubaut
  * @author Fran Aranda
  * @author Eddie Cho
+ * @author Glenn Renfro
  *
  * @since 5.2.11
  */
@@ -69,7 +70,7 @@ class JdbcLockRegistryDelegateTests {
 			lock.unlock();
 		}
 
-		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isTrue();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isTrue();
 	}
 
 	@Test
@@ -87,7 +88,7 @@ class JdbcLockRegistryDelegateTests {
 			lock.unlock();
 		}
 
-		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 
 	@Test
@@ -101,7 +102,7 @@ class JdbcLockRegistryDelegateTests {
 
 		lock.unlock();
 
-		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 
 	@Test
@@ -115,7 +116,7 @@ class JdbcLockRegistryDelegateTests {
 
 		lock.unlock();
 
-		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 
 	@Test
@@ -129,7 +130,7 @@ class JdbcLockRegistryDelegateTests {
 
 		lock.unlock();
 
-		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 
 }

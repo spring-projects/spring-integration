@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -69,8 +70,7 @@ public class GroovyHeaderEnricherTests {
 	@Test
 	public void inlineScript() {
 		Map<String, HeaderValueMessageProcessor<?>> headers =
-				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript,
-						"handler.transformer.headersToAdd", Map.class);
+				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd");
 		assertThat(headers.size()).isEqualTo(1);
 		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
 		assertThat(headerValueMessageProcessor.getClass().getName())

@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 public class MBeanExporterIntegrationTests {
@@ -252,8 +253,10 @@ public class MBeanExporterIntegrationTests {
 	public void testSingleMBeanServer() {
 		AnnotationConfigApplicationContext ctx1 = new AnnotationConfigApplicationContext(Config1.class);
 		AnnotationConfigApplicationContext ctx2 = new AnnotationConfigApplicationContext(Config2.class);
-		assertThat(TestUtils.getPropertyValue(ctx2.getBean(IntegrationMBeanExporter.class), "server"))
-				.isSameAs(TestUtils.getPropertyValue(ctx1.getBean(IntegrationMBeanExporter.class), "server"));
+		assertThat(TestUtils.<Object>getPropertyValue(
+				ctx2.getBean(IntegrationMBeanExporter.class), "server"))
+				.isSameAs(TestUtils.getPropertyValue(
+						ctx1.getBean(IntegrationMBeanExporter.class), "server"));
 		ctx1.close();
 		ctx2.close();
 	}

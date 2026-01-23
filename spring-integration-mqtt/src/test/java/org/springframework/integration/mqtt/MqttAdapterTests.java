@@ -402,17 +402,17 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 		MqttPahoMessageHandler handler = ctx.getBean("handler", MqttPahoMessageHandler.class);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		handler.setApplicationContext(ctx);
-		assertThat(TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(handler, "topicProcessor")
 				.processMessage(message)).isEqualTo("fooTopic");
-		assertThat(TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(handler, "converter.qosProcessor")
 				.processMessage(message)).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(handler, "converter.retainedProcessor")
 				.processMessage(message)).isEqualTo(Boolean.TRUE);
 
 		handler = ctx.getBean("handlerWithNullExpressions", MqttPahoMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+		assertThat(TestUtils.<DefaultPahoMessageConverter>getPropertyValue(handler, "converter")
 				.fromMessage(message, null).getQos()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+		assertThat(TestUtils.<DefaultPahoMessageConverter>getPropertyValue(handler, "converter")
 				.fromMessage(message, null).isRetained()).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
@@ -506,7 +506,7 @@ public class MqttAdapterTests implements TestApplicationContextAware {
 			method.set(m);
 		}, m -> m.getName().equals("subscribe"));
 		assertThat(method.get()).isNotNull();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(adapter, "logger"));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		given(logger.isWarnEnabled()).willReturn(true);
 		method.get().invoke(adapter);

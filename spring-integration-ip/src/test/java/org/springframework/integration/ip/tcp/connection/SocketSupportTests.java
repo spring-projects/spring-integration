@@ -65,6 +65,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -536,16 +537,18 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		client.start();
 
 		TcpConnection connection = client.getConnection();
-		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(34);
+		assertThat(TestUtils.<Integer>getPropertyValue(connection, "handshakeTimeout"))
+				.isEqualTo(34);
 		connection.send(new GenericMessage<>("Hello, world!"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		assertThat(messages.get(0).getHeaders().get("cipher")).isNotNull();
 
-		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
+		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections");
 		Object serverConnection = connections.get(serverConnectionId.get());
 		assertThat(serverConnection).isNotNull();
-		assertThat(TestUtils.getPropertyValue(serverConnection, "handshakeTimeout")).isEqualTo(43);
+		assertThat(TestUtils.<Integer>getPropertyValue(serverConnection, "handshakeTimeout"))
+				.isEqualTo(43);
 
 		client.stop();
 		server.stop();
@@ -663,7 +666,8 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		client.start();
 
 		TcpConnection connection = client.getConnection();
-		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(30);
+		assertThat(TestUtils.<Integer>getPropertyValue(connection, "handshakeTimeout"))
+				.isEqualTo(30);
 		byte[] bytes = new byte[100000];
 		connection.send(new GenericMessage<>("Hello, world!" + new String(bytes)));
 		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
@@ -674,10 +678,11 @@ public class SocketSupportTests implements TestApplicationContextAware {
 		assertThat(payload.length).isEqualTo(13 + bytes.length);
 		assertThat(new String(payload).substring(0, 13)).isEqualTo("Hello, world!");
 
-		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
+		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections");
 		Object serverConnection = connections.get(serverConnectionId.get());
 		assertThat(serverConnection).isNotNull();
-		assertThat(TestUtils.getPropertyValue(serverConnection, "handshakeTimeout")).isEqualTo(30);
+		assertThat(TestUtils.<Integer>getPropertyValue(serverConnection, "handshakeTimeout"))
+				.isEqualTo(30);
 
 		client.stop();
 		server.stop();
@@ -698,7 +703,7 @@ public class SocketSupportTests implements TestApplicationContextAware {
 
 		public void send(Message<?> message) throws Exception {
 			// force a renegotiation from the server side
-			SSLEngine sslEngine = TestUtils.getPropertyValue(this.connection, "sslEngine", SSLEngine.class);
+			SSLEngine sslEngine = TestUtils.getPropertyValue(this.connection, "sslEngine");
 			sslEngine.getSession().invalidate();
 			sslEngine.beginHandshake();
 			this.connection.send(message);

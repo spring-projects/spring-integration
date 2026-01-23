@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Andriy Kryvtsun
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -103,11 +104,11 @@ public class LoggingHandlerTests implements TestApplicationContextAware {
 		loggingHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		loggingHandler.afterPropertiesSet();
 
-		LogAccessor logAccessor = TestUtils.getPropertyValue(loggingHandler, "messageLogger", LogAccessor.class);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(loggingHandler, "messageLogger");
 		Log log = spy(logAccessor.getLog());
 		when(log.isInfoEnabled()).thenReturn(false, true);
 		new DirectFieldAccessor(logAccessor).setPropertyValue("log", log);
-		Expression expression = spy(TestUtils.getPropertyValue(loggingHandler, "expression", Expression.class));
+		Expression expression = spy(TestUtils.<Expression>getPropertyValue(loggingHandler, "expression"));
 		loggingHandler.setLogExpression(expression);
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
 		verify(expression, never()).getValue(any(EvaluationContext.class), any(Message.class));

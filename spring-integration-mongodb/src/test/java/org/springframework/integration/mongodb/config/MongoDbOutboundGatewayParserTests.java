@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Xavier Padro
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -63,78 +64,82 @@ public class MongoDbOutboundGatewayParserTests {
 	@Test
 	public void minimalConfig() {
 		AbstractEndpoint endpoint = this.context.getBean("minimalConfig", AbstractEndpoint.class);
-		MongoDbOutboundGateway gateway =
-				TestUtils.getPropertyValue(endpoint, "handler", MongoDbOutboundGateway.class);
+		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler");
 
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
-		assertThat(TestUtils.getPropertyValue(gateway, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionNameExpression"))
 				.isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "collectionNameExpression.literalValue"))
+				.isEqualTo("foo");
+		assertThat(TestUtils.<Long>getPropertyValue(gateway, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
 
 		assertThat(endpoint).isInstanceOf(PollingConsumer.class);
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		List<?> advices = TestUtils.getPropertyValue(handler, "adviceChain", List.class);
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler");
+		List<?> advices = TestUtils.getPropertyValue(handler, "adviceChain");
 		assertThat(advices.get(0)).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 	@Test
 	public void fullConfigWithCollectionExpression() {
-		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
-				context.getBean("fullConfigWithCollectionExpression"), "handler", MongoDbOutboundGateway.class);
+		MongoDbOutboundGateway gateway =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression"), "handler");
 
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoConverter")).isSameAs(this.mongoConverter);
-		assertThat(TestUtils.getPropertyValue(gateway, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression")).isInstanceOf(SpelExpression.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression.expression"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoConverter")).isSameAs(this.mongoConverter);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionNameExpression")).isInstanceOf(SpelExpression.class);
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "collectionNameExpression.expression"))
 				.isEqualTo("headers.collectionName");
 	}
 
 	@Test
 	public void fullConfigWithCollection() {
-		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
-				context.getBean("fullConfigWithCollection"), "handler", MongoDbOutboundGateway.class);
+		MongoDbOutboundGateway gateway =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection"), "handler");
 
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoConverter")).isSameAs(this.mongoConverter);
-		assertThat(TestUtils.getPropertyValue(gateway, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoDbFactory")).isSameAs(this.mongoDbFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoConverter")).isSameAs(this.mongoConverter);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionNameExpression"))
 				.isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue")).isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "collectionNameExpression.literalValue"))
+				.isEqualTo("foo");
 	}
 
 	@Test
 	public void fullConfigWithMongoTemplate() {
-		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
-				context.getBean("fullConfigWithTemplate"), "handler", MongoDbOutboundGateway.class);
+		MongoDbOutboundGateway gateway =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithTemplate"), "handler");
 
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoTemplate")).isSameAs(context.getBean("mongoDbTemplate"));
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoDbFactory")).isNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoConverter")).isNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoTemplate"))
+				.isSameAs(context.getBean("mongoDbTemplate"));
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoDbFactory")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoConverter")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionNameExpression"))
 				.isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue")).isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "collectionNameExpression.literalValue")).isEqualTo("foo");
 	}
 
 	@Test
 	public void fullConfigWithMongoDbCollectionCallback() {
-		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
-				context.getBean("fullConfigWithMongoDbCollectionCallback"), "handler", MongoDbOutboundGateway.class);
+		MongoDbOutboundGateway gateway =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoDbCollectionCallback"), "handler");
 
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoTemplate")).isSameAs(context.getBean("mongoDbTemplate"));
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoDbFactory")).isNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "mongoConverter")).isNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoTemplate"))
+				.isSameAs(context.getBean("mongoDbTemplate"));
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoDbFactory")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "mongoConverter")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionNameExpression"))
 				.isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(gateway, "collectionCallback"))
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "collectionNameExpression.literalValue"))
+				.isEqualTo("foo");
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "collectionCallback"))
 				.isInstanceOf(MessageCollectionCallback.class);
 	}
 

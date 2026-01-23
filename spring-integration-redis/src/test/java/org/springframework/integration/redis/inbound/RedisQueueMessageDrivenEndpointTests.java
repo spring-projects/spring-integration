@@ -72,6 +72,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Rainer Frey
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -259,7 +260,7 @@ class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(TEST_QUEUE,
 				this.connectionFactory);
 		BoundListOperations<String, byte[]> boundListOperations =
-				TestUtils.getPropertyValue(endpoint, "boundListOperations", BoundListOperations.class);
+				TestUtils.getPropertyValue(endpoint, "boundListOperations");
 		boundListOperations = Mockito.spy(boundListOperations);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(endpoint);
 		dfa.setPropertyValue("boundListOperations", boundListOperations);

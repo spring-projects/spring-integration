@@ -70,6 +70,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -91,20 +92,18 @@ public class WebServiceOutboundGatewayParserTests {
 		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(expected);
 		assertThat(accessor.getPropertyValue("requiresReply")).isEqualTo(Boolean.FALSE);
 
-		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(endpoint,
-				"handler.headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderMatcher");
 		assertThat(requestHeaderMatcher.matchHeader("testRequest")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("testReply")).isFalse();
 
-		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(endpoint,
-				"handler.headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.replyHeaderMatcher");
 		assertThat(replyHeaderMatcher.matchHeader("testRequest")).isFalse();
 		assertThat(replyHeaderMatcher.matchHeader("testReply")).isTrue();
 
-		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
 
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate"))
 				.isSameAs(this.context.getBean("webServiceTemplate"));
 	}
 
@@ -294,9 +293,9 @@ public class WebServiceOutboundGatewayParserTests {
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+		assertThat(TestUtils.<Marshaller>getPropertyValue(gateway, "webServiceTemplate.marshaller"))
 				.isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+		assertThat(TestUtils.<Unmarshaller>getPropertyValue(gateway, "webServiceTemplate.unmarshaller"))
 				.isSameAs(marshaller);
 		context.close();
 	}
@@ -310,9 +309,9 @@ public class WebServiceOutboundGatewayParserTests {
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
 		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+		assertThat(TestUtils.<Marshaller>getPropertyValue(gateway, "webServiceTemplate.marshaller"))
 				.isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+		assertThat(TestUtils.<Unmarshaller>getPropertyValue(gateway, "webServiceTemplate.unmarshaller"))
 				.isSameAs(unmarshaller);
 		context.close();
 	}
@@ -340,13 +339,14 @@ public class WebServiceOutboundGatewayParserTests {
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+		assertThat(TestUtils.<Marshaller>getPropertyValue(gateway, "webServiceTemplate.marshaller"))
 				.isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+		assertThat(TestUtils.<Unmarshaller>getPropertyValue(gateway, "webServiceTemplate.unmarshaller"))
 				.isSameAs(marshaller);
 
 		WebServiceMessageFactory messageFactory = (WebServiceMessageFactory) context.getBean("messageFactory");
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isEqualTo(messageFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.messageFactory"))
+				.isEqualTo(messageFactory);
 		context.close();
 	}
 
@@ -363,13 +363,14 @@ public class WebServiceOutboundGatewayParserTests {
 		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
 		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
 
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+		assertThat(TestUtils.<Marshaller>getPropertyValue(gateway, "webServiceTemplate.marshaller"))
 				.isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+		assertThat(TestUtils.<Unmarshaller>getPropertyValue(gateway, "webServiceTemplate.unmarshaller"))
 				.isSameAs(unmarshaller);
 
 		WebServiceMessageFactory messageFactory = context.getBean("messageFactory", WebServiceMessageFactory.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isEqualTo(messageFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.messageFactory"))
+				.isEqualTo(messageFactory);
 		context.close();
 	}
 
@@ -394,7 +395,7 @@ public class WebServiceOutboundGatewayParserTests {
 		adviceCalled = 0;
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithAdvice", AbstractEndpoint.class);
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -411,15 +412,13 @@ public class WebServiceOutboundGatewayParserTests {
 	public void jmsUri() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithJmsUri", AbstractEndpoint.class);
 		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "destinationProvider")).isNull();
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "destinationProvider")).isNull();
 		assertThat(
-				TestUtils.getPropertyValue(handler, "uriFactory.encodingMode",
-						DefaultUriBuilderFactory.EncodingMode.class))
+				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(handler, "uriFactory.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.NONE);
 
-		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(handler, "webServiceTemplate",
-				WebServiceTemplate.class);
+		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(handler, "webServiceTemplate");
 		webServiceTemplate = spy(webServiceTemplate);
 
 		doReturn(null).when(webServiceTemplate).sendAndReceive(anyString(),

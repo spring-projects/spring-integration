@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gregory Bragg
  * @author Artem Bilan
  * @author Daniel Frey
+ * @author Glenn Renfro
  *
  */
 public class SmbSessionTests extends SmbTestSupport {
@@ -105,7 +106,7 @@ public class SmbSessionTests extends SmbTestSupport {
 				.withStackTraceContaining("The system cannot find the file specified");
 
 		Session<SmbFile> newSession = cachingSessionFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+		assertThat(TestUtils.<Object>getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
 
 		newSession.close();

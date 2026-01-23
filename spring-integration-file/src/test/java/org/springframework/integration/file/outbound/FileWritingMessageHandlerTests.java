@@ -80,6 +80,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Alen Turkovic
+ * @author Glenn Renfro
  */
 public class FileWritingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -117,23 +118,22 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void permissions() {
 		if (FileUtils.IS_POSIX) {
 			FileWritingMessageHandler handler = new FileWritingMessageHandler(mock(Expression.class));
 			handler.setChmod(0421);
-			Set<PosixFilePermission> permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+			Set<PosixFilePermission> permissions = TestUtils.getPropertyValue(handler, "permissions");
 			assertThat(permissions).hasSize(3)
 					.contains(PosixFilePermission.OWNER_READ,
 							PosixFilePermission.GROUP_WRITE,
 							PosixFilePermission.OTHERS_EXECUTE);
 			handler.setChmod(0600);
-			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+			permissions = TestUtils.getPropertyValue(handler, "permissions");
 			assertThat(permissions).hasSize(2)
 					.contains(PosixFilePermission.OWNER_READ,
 							PosixFilePermission.OWNER_WRITE);
 			handler.setChmod(0777);
-			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+			permissions = TestUtils.getPropertyValue(handler, "permissions");
 			assertThat(permissions).hasSize(9);
 		}
 	}
@@ -522,7 +522,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
 		handler.trigger(new GenericMessage<>(Matcher.quoteReplacement(file.getAbsolutePath())));
 		assertThat(file).hasSize(18);
-		assertThat(TestUtils.getPropertyValue(handler, "fileStates", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "fileStates")).isEmpty();
 
 		handler.setFlushInterval(30000);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -545,7 +545,7 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		assertThat(called.get()).isTrue();
 
 		handler.stop();
-		Log logger = spy(TestUtils.getPropertyValue(handler, "logger.log", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(handler, "logger.log"));
 		new DirectFieldAccessor(handler).setPropertyValue("logger.log", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final AtomicInteger flushes = new AtomicInteger();

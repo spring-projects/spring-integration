@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -68,14 +69,14 @@ public class XPathHeaderEnricherParserTests {
 	@Test
 	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
-		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
-				MultiValueMap.class).get("foo");
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(
+				roleController, "lifecycles").get("foo");
 		assertThat(list).containsExactly(consumer);
 	}
 
@@ -136,11 +137,11 @@ public class XPathHeaderEnricherParserTests {
 		assertThat(getEnricherProperty("customHeaderEnricher", "shouldSkipNulls")).isFalse();
 		Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd =
 				TestUtils.getPropertyValue(this.context.getBean("customHeaderEnricher"),
-						"handler.transformer.headersToAdd", Map.class);
+						"handler.transformer.headersToAdd");
 		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headersToAdd.get("foo");
 		assertThat(headerValueMessageProcessor)
 				.isInstanceOf(XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
-		assertThat(TestUtils.getPropertyValue(headerValueMessageProcessor, "converter"))
+		assertThat(TestUtils.<Object>getPropertyValue(headerValueMessageProcessor, "converter"))
 				.isSameAs(this.context.getBean("xmlPayloadConverter"));
 	}
 

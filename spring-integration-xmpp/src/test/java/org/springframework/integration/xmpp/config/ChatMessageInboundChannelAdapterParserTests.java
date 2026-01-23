@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Florian Schmaus
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
@@ -70,21 +71,21 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public void testInboundAdapter() {
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
-		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");
+		MessageChannel errorChannel = TestUtils.getPropertyValue(adapter, "errorChannel");
 		assertThat(errorChannel).isEqualTo(context.getBean("errorChannel"));
 		assertThat(adapter.isAutoStartup()).isFalse();
-		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(adapter, "outputChannel");
+		QueueChannel channel = TestUtils.getPropertyValue(adapter, "outputChannel");
 		assertThat(channel.getComponentName()).isEqualTo("xmppInbound");
-		XMPPConnection connection = (XMPPConnection) TestUtils.getPropertyValue(adapter, "xmppConnection");
+		XMPPConnection connection = TestUtils.getPropertyValue(adapter, "xmppConnection");
 		assertThat(context.getBean("testConnection")).isSameAs(connection);
 		Object stanzaFilter = context.getBean("stanzaFilter");
-		assertThat(TestUtils.getPropertyValue(adapter, "stanzaFilter")).isSameAs(stanzaFilter);
-		assertThat(TestUtils.getPropertyValue(adapter, "payloadExpression.expression")).isEqualTo("#root");
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "stanzaFilter")).isSameAs(stanzaFilter);
+		assertThat(TestUtils.<String>getPropertyValue(adapter, "payloadExpression.expression")).isEqualTo("#root");
 		adapter.start();
-		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
+		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners");
 		assertThat(asyncRecvListeners.size()).isEqualTo(5);
 		Object lastListener = asyncRecvListeners.values().stream().reduce((first, second) -> second).get();
-		assertThat(TestUtils.getPropertyValue(lastListener, "packetFilter")).isSameAs(stanzaFilter);
+		assertThat(TestUtils.<Object>getPropertyValue(lastListener, "packetFilter")).isSameAs(stanzaFilter);
 		adapter.stop();
 	}
 
@@ -98,7 +99,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		xmppConnectionField.setAccessible(true);
 		ReflectionUtils.setField(xmppConnectionField, adapter, xmppConnection);
 
-		StanzaListener stanzaListener = TestUtils.getPropertyValue(adapter, "stanzaListener", StanzaListener.class);
+		StanzaListener stanzaListener = TestUtils.getPropertyValue(adapter, "stanzaListener");
 
 		MessageBuilder message = StanzaBuilder.buildMessage();
 		message.setBody("hello");
@@ -113,7 +114,8 @@ public class ChatMessageInboundChannelAdapterParserTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "outputChannel"))
+				.isSameAs(autoChannel);
 	}
 
 }

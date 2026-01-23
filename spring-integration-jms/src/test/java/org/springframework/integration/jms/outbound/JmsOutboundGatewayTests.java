@@ -61,6 +61,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2.4
  */
@@ -77,7 +78,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		gateway.setReplyContainerProperties(new ReplyContainerProperties());
 		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.beanName"))
+		assertThat(TestUtils.<String>getPropertyValue(gateway, "replyContainer.beanName"))
 				.isEqualTo("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
 						".replyListener");
 	}
@@ -145,7 +146,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 				Thread.sleep(100);
 			}
 			assertThat(count.get() > 4).isTrue();
-			assertThat(errors.size()).isEqualTo(0);
+			assertThat(errors).isEmpty();
 		}
 		finally {
 			gateway.stop();

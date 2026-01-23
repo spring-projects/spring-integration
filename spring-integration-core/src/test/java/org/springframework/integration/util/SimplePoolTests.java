@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  * @author Gary Russell
  * @author Sergey Bogatyrev
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -140,7 +141,7 @@ public class SimplePoolTests {
 		final Set<String> strings = new HashSet<>();
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
-		Semaphore permits = TestUtils.getPropertyValue(pool, "permits", Semaphore.class);
+		Semaphore permits = TestUtils.getPropertyValue(pool, "permits");
 		assertThat(permits.availablePermits()).isEqualTo(2);
 		String s1 = pool.getItem();
 		assertThat(permits.availablePermits()).isEqualTo(1);

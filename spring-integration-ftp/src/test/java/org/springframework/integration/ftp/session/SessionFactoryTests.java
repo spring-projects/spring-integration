@@ -51,6 +51,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 class SessionFactoryTests {
@@ -93,14 +94,14 @@ class SessionFactoryTests {
 	void testWithControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setControlEncoding("UTF-8");
-		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
+		assertThat(TestUtils.<String>getPropertyValue(sessionFactory, "controlEncoding"))
 				.as("Expected controlEncoding value of 'UTF-8'").isEqualTo("UTF-8");
 	}
 
 	@Test
 	void testWithoutControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
+		assertThat(TestUtils.<String>getPropertyValue(sessionFactory, "controlEncoding"))
 				.as("Expected controlEncoding value of 'ISO-8859-1'").isEqualTo("ISO-8859-1");
 	}
 
@@ -157,7 +158,7 @@ class SessionFactoryTests {
 		Session<FTPFile> secondSession = cachingFactory.getSession();
 		secondSession.close();
 		Session<FTPFile> nonStaleSession = cachingFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(nonStaleSession, "targetSession"))
+		assertThat(TestUtils.<Object>getPropertyValue(nonStaleSession, "targetSession"))
 				.isEqualTo(TestUtils.getPropertyValue(firstSession, "targetSession"));
 	}
 
@@ -174,7 +175,7 @@ class SessionFactoryTests {
 		s1.close();
 		Session<FTPFile> s2 = cachingFactory.getSession();
 		s2.close();
-		assertThat(TestUtils.getPropertyValue(s2, "targetSession"))
+		assertThat(TestUtils.<Object>getPropertyValue(s2, "targetSession"))
 				.isEqualTo(TestUtils.getPropertyValue(s1, "targetSession"));
 		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
 	}

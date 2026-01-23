@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
@@ -46,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Venil Noronha
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -85,15 +85,14 @@ class RedisInboundChannelAdapterParserTests implements RedisContainerTest {
 
 		Object bean = context.getBean("withoutSerializer.adapter");
 		assertThat(bean).isNotNull();
-		assertThat(TestUtils.getPropertyValue(bean, "serializer")).isNull();
+		assertThat(TestUtils.<RedisInboundChannelAdapter>getPropertyValue(bean, "serializer")).isNull();
 	}
 
 	@Test
 	void testInboundChannelAdapterMessaging() throws Exception {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		adapter.start();
-		RedisContainerTest.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container",
-				RedisMessageListenerContainer.class));
+		RedisContainerTest.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container"));
 
 		redisConnectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
 		redisConnectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
@@ -110,7 +109,8 @@ class RedisInboundChannelAdapterParserTests implements RedisContainerTest {
 
 	@Test
 	void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "outputChannel"))
+				.isSameAs(autoChannel);
 	}
 
 	@SuppressWarnings("unused")

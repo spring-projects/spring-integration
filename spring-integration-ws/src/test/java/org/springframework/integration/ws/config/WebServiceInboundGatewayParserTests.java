@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Stephane Nicoll
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -103,7 +104,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void extractPayloadSet() {
-		assertThat(TestUtils.getPropertyValue(this.payloadExtractingGateway, "extractPayload", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.payloadExtractingGateway, "extractPayload")).isFalse();
 	}
 
 	@Test
@@ -117,13 +118,11 @@ public class WebServiceInboundGatewayParserTests {
 
 		assertThat(this.marshallingGateway.getErrorChannel()).isSameAs(this.customErrorChannel);
 
-		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
-				"headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.requestHeaderMatcher");
 		assertThat(requestHeaderMatcher.matchHeader("testRequest")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("testReply")).isFalse();
 
-		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
-				"headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.replyHeaderMatcher");
 		assertThat(replyHeaderMatcher.matchHeader("testRequest")).isFalse();
 		assertThat(replyHeaderMatcher.matchHeader("testReply")).isTrue();
 	}
@@ -163,7 +162,8 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void testHeaderMapperReference() {
-		assertThat(TestUtils.getPropertyValue(this.headerMappingGateway, "headerMapper")).isSameAs(testHeaderMapper);
+		assertThat(TestUtils.<Object>getPropertyValue(this.headerMappingGateway, "headerMapper"))
+				.isSameAs(testHeaderMapper);
 	}
 
 	@Autowired
@@ -172,7 +172,8 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void testReplyTimeout() {
-		assertThat(TestUtils.getPropertyValue(replyTimeoutGateway, "messagingTemplate.receiveTimeout")).isEqualTo(1234L);
+		assertThat(TestUtils.<Long>getPropertyValue(replyTimeoutGateway, "messagingTemplate.receiveTimeout"))
+				.isEqualTo(1234L);
 	}
 
 	@SuppressWarnings("unused")

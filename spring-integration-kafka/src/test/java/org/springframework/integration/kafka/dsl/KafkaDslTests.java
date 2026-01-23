@@ -96,6 +96,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Anshul Mehra
  * @author Jooyoung Pyoung
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -176,7 +177,8 @@ public class KafkaDslTests {
 	void testKafkaAdapters() throws Exception {
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
-		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper);
+		assertThat(TestUtils.<JsonKafkaHeaderMapper>getPropertyValue(this.kafkaProducer1, "headerMapper"))
+				.isSameAs(this.mapper);
 
 		for (int i = 0; i < 200; i++) {
 			Message<?> future = this.futuresChannel.receive(10000);

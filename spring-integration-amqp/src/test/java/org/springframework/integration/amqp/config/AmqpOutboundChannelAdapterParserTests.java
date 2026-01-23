@@ -50,6 +50,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.test.util.TestUtils;
@@ -80,6 +81,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -102,30 +104,28 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Object adapter = context.getBean("rabbitOutbound.adapter");
 		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
 		assertThat(adapter.getClass()).isEqualTo(EventDrivenConsumer.class);
-		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertThat(handler instanceof NamedComponent).isTrue();
 		assertThat(((NamedComponent) handler).getComponentType()).isEqualTo("amqp:outbound-channel-adapter");
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(handler, "lazyConnect", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "lazyConnect")).isTrue();
 	}
 
 	@Test
 	public void withHeaderMapperCustomHeaders() {
 		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomHeaders");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
-		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class)).isFalse();
-		assertThat(TestUtils
-				.getPropertyValue(endpoint, "delayExpression", org.springframework.expression.Expression.class)
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "lazyConnect")).isFalse();
+		assertThat(TestUtils.<org.springframework.expression.Expression>getPropertyValue(endpoint, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
-		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "headersMappedLast")).isFalse();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
@@ -168,43 +168,42 @@ public class AmqpOutboundChannelAdapterParserTests {
 	@Test
 	public void parseWithPublisherConfirms() {
 		Object eventDrivenConsumer = context.getBean("withPublisherConfirms");
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
 		NullChannel nullChannel = context.getBean(NullChannel.class);
 		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
-		assertThat(TestUtils.getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
-		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nullChannel);
-		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
-		assertThat(TestUtils.getPropertyValue(endpoint, "waitForConfirm", Boolean.class)).isFalse();
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nullChannel);
+		assertThat(TestUtils.<ErrorMessageStrategy>getPropertyValue(endpoint, "errorMessageStrategy"))
+				.isSameAs(context.getBean("ems"));
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "waitForConfirm")).isFalse();
 	}
 
 	@Test
 	public void parseWithPublisherConfirms2() {
 		Object eventDrivenConsumer = context.getBean("withPublisherConfirms2");
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
 		MessageChannel nackChannel = context.getBean("nackChannel", MessageChannel.class);
 		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
-		assertThat(TestUtils.getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
-		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nackChannel);
-		assertThat(TestUtils.getPropertyValue(endpoint, "confirmTimeout")).isEqualTo(Duration.ofMillis(2000));
-		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
-		assertThat(TestUtils.getPropertyValue(endpoint, "waitForConfirm", Boolean.class)).isTrue();
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nackChannel);
+		assertThat(TestUtils.<Duration>getPropertyValue(endpoint, "confirmTimeout")).isEqualTo(Duration.ofMillis(2000));
+		assertThat(TestUtils.<ErrorMessageStrategy>getPropertyValue(endpoint, "errorMessageStrategy"))
+				.isSameAs(context.getBean("ems"));
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "waitForConfirm")).isTrue();
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void amqpOutboundChannelAdapterWithinChain() {
 		Object eventDrivenConsumer = context.getBean("chainWithRabbitOutbound");
 
-		List chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
+		List<?> chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers");
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
-		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -308,11 +307,11 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt2971AmqpOutboundChannelAdapterWithCustomHeaderMapper() {
-		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
-				"headerMapper", AmqpHeaderMapper.class);
+		AmqpHeaderMapper headerMapper =
+				TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper, "headerMapper");
 		assertThat(headerMapper).isSameAs(this.context.getBean("customHeaderMapper"));
-		assertThat(TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
-				"headersMappedLast", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper, "headersMappedLast"))
+				.isTrue();
 	}
 
 	@Test
@@ -323,7 +322,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		doThrow(toBeThrown).when(connectionFactory).createConnection();
 		when(amqpTemplate.getConnectionFactory()).thenReturn(connectionFactory);
 		AmqpOutboundEndpoint handler = new AmqpOutboundEndpoint(amqpTemplate);
-		LogAccessor logger = spy(TestUtils.getPropertyValue(handler, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(handler, "logger"));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		doNothing().when(logger).error(toBeThrown, "Failed to eagerly establish the connection.");
 		ApplicationContext context = mock(ApplicationContext.class);

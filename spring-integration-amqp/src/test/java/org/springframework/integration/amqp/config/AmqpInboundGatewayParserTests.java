@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.amqp.core.Address;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -66,29 +68,29 @@ public class AmqpInboundGatewayParserTests {
 	public void customMessageConverter() {
 		Object gateway = context.getBean("gateway");
 		MessageConverter gatewayConverter =
-				TestUtils.getPropertyValue(gateway, "amqpMessageConverter", MessageConverter.class);
+				TestUtils.<MessageConverter>getPropertyValue(gateway, "amqpMessageConverter");
 		MessageConverter templateConverter =
-				TestUtils.getPropertyValue(gateway, "amqpTemplate.messageConverter", MessageConverter.class);
+				TestUtils.<MessageConverter>getPropertyValue(gateway, "amqpTemplate.messageConverter");
 		TestConverter testConverter = context.getBean("testConverter", TestConverter.class);
 		assertThat(gatewayConverter).isSameAs(testConverter);
 		assertThat(templateConverter).isSameAs(testConverter);
-		assertThat(TestUtils.getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.TRUE);
-		assertThat(TestUtils.getPropertyValue(gateway, "phase")).isEqualTo(0);
-		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout")).isEqualTo(1234L);
-		assertThat(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Integer>getPropertyValue(gateway, "phase")).isEqualTo(0);
+		assertThat(TestUtils.<Long>getPropertyValue(gateway, "messagingTemplate.receiveTimeout")).isEqualTo(1234L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal"))
 				.isTrue();
 	}
 
 	@Test
 	public void verifyLifeCycle() {
 		Object gateway = context.getBean("autoStartFalseGateway");
-		assertThat(TestUtils.getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.FALSE);
-		assertThat(TestUtils.getPropertyValue(gateway, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<Integer>getPropertyValue(gateway, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal"))
 				.isFalse();
 		Object amqpTemplate = context.getBean("amqpTemplate");
-		assertThat(TestUtils.getPropertyValue(gateway, "amqpTemplate")).isSameAs(amqpTemplate);
-		Address defaultReplyTo = TestUtils.getPropertyValue(gateway, "defaultReplyTo", Address.class);
+		assertThat(TestUtils.<AmqpTemplate>getPropertyValue(gateway, "amqpTemplate")).isSameAs(amqpTemplate);
+		Address defaultReplyTo = TestUtils.getPropertyValue(gateway, "defaultReplyTo");
 		Address expected = new Address("fooExchange/barRoutingKey");
 		assertThat(defaultReplyTo.getExchangeName()).isEqualTo(expected.getExchangeName());
 		assertThat(defaultReplyTo.getRoutingKey()).isEqualTo(expected.getRoutingKey());
@@ -106,10 +108,10 @@ public class AmqpInboundGatewayParserTests {
 		});
 
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "replyHeadersMappedLast", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "replyHeadersMappedLast")).isTrue();
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -123,9 +125,8 @@ public class AmqpInboundGatewayParserTests {
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
 
 		AbstractMessageListenerContainer mlc =
-				TestUtils.getPropertyValue(gateway, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
-				ChannelAwareMessageListener.class);
+				TestUtils.<AbstractMessageListenerContainer>getPropertyValue(gateway, "messageListenerContainer");
+		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener");
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");

@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -73,8 +74,10 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParser() {
 		Object adapter = context.getBean("eventAdapterSimple");
 		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isEqualTo(context.getBean("input"));
-		assertThat(TestUtils.getPropertyValue(adapter, "errorChannel")).isSameAs(errorChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "outputChannel"))
+				.isEqualTo(context.getBean("input"));
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "errorChannel"))
+				.isSameAs(errorChannel);
 	}
 
 	@Test
@@ -82,14 +85,15 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParserWithEventTypes() {
 		Object adapter = context.getBean("eventAdapterFiltered");
 		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isEqualTo(context.getBean("inputFiltered"));
-		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes", Set.class);
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "outputChannel")).
+				isEqualTo(context.getBean("inputFiltered"));
+		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes");
 		assertThat(eventTypes)
 				.hasSize(3)
 				.contains(ResolvableType.forClass(SampleEvent.class),
 						ResolvableType.forClass(AnotherSampleEvent.class),
 						ResolvableType.forClass(Date.class));
-		assertThat(TestUtils.getPropertyValue(adapter, "errorChannel")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "errorChannel")).isNull();
 	}
 
 	@Test
@@ -97,12 +101,13 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParserWithEventTypesAndPlaceholder() {
 		Object adapter = context.getBean("eventAdapterFilteredPlaceHolder");
 		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "outputChannel"))
 				.isEqualTo(context.getBean("inputFilteredPlaceHolder"));
-		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes", Set.class);
+		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes");
 		assertThat(eventTypes)
 				.hasSize(2)
-				.contains(ResolvableType.forClass(SampleEvent.class), ResolvableType.forClass(AnotherSampleEvent.class));
+				.contains(ResolvableType.forClass(SampleEvent.class),
+						ResolvableType.forClass(AnotherSampleEvent.class));
 
 	}
 
@@ -126,13 +131,13 @@ public class EventInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("eventAdapterSpel");
 		assertThat(adapter).isNotNull();
 		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
-		Expression expression = TestUtils.getPropertyValue(adapter, "payloadExpression", Expression.class);
+		Expression expression = TestUtils.getPropertyValue(adapter, "payloadExpression");
 		assertThat(expression.getExpressionString()).isEqualTo("source + '-test'");
 	}
 
 	@Test
 	public void testAutoCreateChannel() {
-		assertThat(TestUtils.getPropertyValue(eventListener, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(eventListener, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@SuppressWarnings("serial")

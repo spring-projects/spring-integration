@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Tony Falabella
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -124,18 +126,19 @@ public class FileOutboundChannelAdapterParserTests {
 		Expression destinationDirectoryExpression =
 				(Expression) handlerAccessor.getPropertyValue("destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
-		assertThat(TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class)).isEqualTo(".foo");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "temporaryFileSuffix")).isEqualTo(".foo");
 		assertThat(actual).isEqualTo(expected);
 		DefaultFileNameGenerator fileNameGenerator =
 				(DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertThat(fileNameGenerator).isNotNull();
-		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
+		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'foo.txt'");
 		assertThat(handlerAccessor.getPropertyValue("deleteSourceFiles")).isEqualTo(Boolean.FALSE);
 		assertThat(handlerAccessor.getPropertyValue("flushWhenIdle")).isEqualTo(Boolean.TRUE);
 		if (FileUtils.IS_POSIX) {
-			assertThat(TestUtils.getPropertyValue(handler, "permissions", Set.class).size()).isEqualTo(9);
+			assertThat(TestUtils.<Set<PosixFilePermission>>getPropertyValue(handler, "permissions").size())
+					.isEqualTo(9);
 		}
 		assertThat(handlerAccessor.getPropertyValue("preserveTimestamp")).isEqualTo(Boolean.TRUE);
 	}
@@ -160,13 +163,13 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithDeleteFlag() {
-		assertThat(TestUtils.getPropertyValue(adapterWithDeleteFlag, "handler.deleteSourceFiles"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapterWithDeleteFlag, "handler.deleteSourceFiles"))
 				.isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void adapterWithOrder() {
-		assertThat(TestUtils.getPropertyValue(adapterWithOrder, "handler.order")).isEqualTo(555);
+		assertThat(TestUtils.<Integer>getPropertyValue(adapterWithOrder, "handler.order")).isEqualTo(555);
 	}
 
 	@Test
@@ -183,24 +186,26 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithAutoStartupFalse() {
-		assertThat(TestUtils.getPropertyValue(adapterWithOrder, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapterWithOrder, "autoStartup"))
+				.isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	public void adapterWithCharset() {
-		assertThat(TestUtils.getPropertyValue(adapterWithCharset, "handler.charset")).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(TestUtils.<Object>getPropertyValue(adapterWithCharset, "handler.charset")).
+				isEqualTo(StandardCharsets.UTF_8);
 	}
 
 	@Test
 	public void adapterWithDirectoryExpression() {
 		FileWritingMessageHandler handler =
-				TestUtils.getPropertyValue(adapterWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
+				TestUtils.<FileWritingMessageHandler>getPropertyValue(adapterWithDirectoryExpression, "handler");
 		Method m = ReflectionUtils.findMethod(FileWritingMessageHandler.class, "getTemporaryFileSuffix");
 		ReflectionUtils.makeAccessible(m);
 		assertThat(ReflectionUtils.invokeMethod(m, handler)).isEqualTo(".writing");
 		String expectedExpressionString = "'foo/bar'";
 		String actualExpressionString =
-				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
+				TestUtils.<Expression>getPropertyValue(handler, "destinationDirectoryExpression")
 						.getExpressionString();
 		assertThat(actualExpressionString).isEqualTo(expectedExpressionString);
 
@@ -227,7 +232,7 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Test
 	public void adapterUsageWithAppendAndAppendNewLineTrue() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.adapterWithAppendNewLine, "handler.appendNewLine"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.adapterWithAppendNewLine, "handler.appendNewLine"))
 				.isEqualTo(Boolean.TRUE);
 		String newLine = System.getProperty("line.separator");
 		String expectedFileContent = "Initial File Content:" + newLine + "String content:" + newLine +

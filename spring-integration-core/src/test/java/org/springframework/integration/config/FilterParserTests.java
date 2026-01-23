@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -93,8 +94,8 @@ public class FilterParserTests {
 
 	@Test
 	public void adviseDiscard() {
-		assertThat(TestUtils.getPropertyValue(this.advised, "postProcessWithinAdvice", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.notAdvised, "postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.advised, "postProcessWithinAdvice")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.notAdvised, "postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test

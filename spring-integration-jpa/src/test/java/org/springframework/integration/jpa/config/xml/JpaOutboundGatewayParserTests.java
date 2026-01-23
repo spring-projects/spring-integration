@@ -52,6 +52,7 @@ import static org.mockito.Mockito.verify;
  * @author Amol Nayak
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -69,69 +70,67 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 	public void testRetrievingJpaOutboundGatewayParser() {
 		setUp("retrievingJpaOutboundGateway");
 		final AbstractMessageChannel inputChannel =
-				TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
+				TestUtils.<AbstractMessageChannel>getPropertyValue(this.consumer, "inputChannel");
 		assertThat(inputChannel.getComponentName()).isEqualTo("in");
-		final JpaOutboundGateway jpaOutboundGateway =
-				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler");
 		final OutboundGatewayType gatewayType =
-				TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType", OutboundGatewayType.class);
+				TestUtils.<OutboundGatewayType>getPropertyValue(jpaOutboundGateway, "gatewayType");
 		assertThat(gatewayType).isEqualTo(OutboundGatewayType.RETRIEVING);
-		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
+		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(100);
-		assertThat(TestUtils.getPropertyValue(jpaOutboundGateway, "requiresReply", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaOutboundGateway, "requiresReply")).isFalse();
 		final JpaExecutor jpaExecutor =
-				TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
+				TestUtils.<JpaExecutor>getPropertyValue(this.consumer, "handler.jpaExecutor");
 		assertThat(jpaExecutor).isNotNull();
-		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass");
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 		final JpaOperations jpaOperations =
-				TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+				TestUtils.<JpaOperations>getPropertyValue(jpaExecutor, "jpaOperations");
 		assertThat(jpaOperations).isNotNull();
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "expectSingleResult")).isTrue();
 		final LiteralExpression maxResultsExpression =
-				TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", LiteralExpression.class);
+				TestUtils.<LiteralExpression>getPropertyValue(jpaExecutor, "maxResultsExpression");
 		assertThat(maxResultsExpression).isNotNull();
-		assertThat(TestUtils.getPropertyValue(maxResultsExpression, "literalValue")).isEqualTo("55");
+		assertThat(TestUtils.<String>getPropertyValue(maxResultsExpression, "literalValue")).isEqualTo("55");
 
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "deleteAfterPoll", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "flush", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "deleteAfterPoll")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "flush")).isTrue();
 	}
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithFirstResult() {
 		setUp("retrievingJpaOutboundGatewayWithFirstResult");
 		final JpaOutboundGateway jpaOutboundGateway =
-				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+				TestUtils.<JpaOutboundGateway>getPropertyValue(this.consumer, "handler");
 		Expression firstResultExpression =
-				TestUtils.getPropertyValue(jpaOutboundGateway, "jpaExecutor.firstResultExpression", Expression.class);
+				TestUtils.<Expression>getPropertyValue(jpaOutboundGateway, "jpaExecutor.firstResultExpression");
 		assertThat(firstResultExpression).isNotNull();
 		assertThat(firstResultExpression.getClass()).isEqualTo(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(firstResultExpression, "literalValue", String.class)).isEqualTo("1");
+		assertThat(TestUtils.<String>getPropertyValue(firstResultExpression, "literalValue")).isEqualTo("1");
 	}
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithFirstResultExpression() {
 		setUp("retrievingJpaOutboundGatewayWithFirstResultExpression");
 		final JpaOutboundGateway jpaOutboundGateway =
-				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+				TestUtils.<JpaOutboundGateway>getPropertyValue(this.consumer, "handler");
 		Expression firstResultExpression =
-				TestUtils.getPropertyValue(jpaOutboundGateway, "jpaExecutor.firstResultExpression", Expression.class);
+				TestUtils.<Expression>getPropertyValue(jpaOutboundGateway, "jpaExecutor.firstResultExpression");
 		assertThat(firstResultExpression).isNotNull();
 		assertThat(firstResultExpression.getClass()).isEqualTo(SpelExpression.class);
-		assertThat(TestUtils.getPropertyValue(firstResultExpression, "expression", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(firstResultExpression, "expression"))
 				.isEqualTo("header['firstResult']");
 	}
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParserWithMaxResultExpression() {
 		setUp("retrievingJpaOutboundGatewayWithMaxResultExpression");
-		final JpaOutboundGateway jpaOutboundGateway =
-				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler");
 		Expression maxNumberOfResultExpression =
-				TestUtils.getPropertyValue(jpaOutboundGateway, "jpaExecutor.maxResultsExpression", Expression.class);
+				TestUtils.getPropertyValue(jpaOutboundGateway, "jpaExecutor.maxResultsExpression");
 		assertThat(maxNumberOfResultExpression).isNotNull();
 		assertThat(maxNumberOfResultExpression.getClass()).isEqualTo(SpelExpression.class);
-		assertThat(TestUtils.getPropertyValue(maxNumberOfResultExpression, "expression", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(maxNumberOfResultExpression, "expression"))
 				.isEqualTo("header['maxResults']");
 	}
 
@@ -139,53 +138,48 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 	public void testUpdatingJpaOutboundGatewayParser() {
 		setUp("updatingJpaOutboundGateway");
 
-		AbstractMessageChannel inputChannel =
-				TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
+		AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel");
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("in");
 
-		final JpaOutboundGateway jpaOutboundGateway =
-				TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler");
 
-		final OutboundGatewayType gatewayType =
-				TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType", OutboundGatewayType.class);
+		final OutboundGatewayType gatewayType = TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType");
 
 		assertThat(gatewayType).isEqualTo(OutboundGatewayType.UPDATING);
 
-		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
+		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout");
 
 		assertThat(sendTimeout).isEqualTo(100);
 
-		assertThat(TestUtils.getPropertyValue(jpaOutboundGateway, "requiresReply", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaOutboundGateway, "requiresReply")).isFalse();
 
-		final JpaExecutor jpaExecutor =
-				TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
+		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass");
 
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 
-		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		Boolean usePayloadAsParameterSource =
-				TestUtils.getPropertyValue(jpaExecutor, "usePayloadAsParameterSource", Boolean.class);
+		Boolean usePayloadAsParameterSource = TestUtils.getPropertyValue(jpaExecutor, "usePayloadAsParameterSource");
 
 		assertThat(usePayloadAsParameterSource).isTrue();
 
-		final Integer order = TestUtils.getPropertyValue(jpaOutboundGateway, "order", Integer.class);
+		final Integer order = TestUtils.getPropertyValue(jpaOutboundGateway, "order");
 
 		assertThat(order).isEqualTo(Integer.valueOf(2));
 
-		final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode", PersistMode.class);
+		final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode");
 
 		assertThat(persistMode).isEqualTo(PersistMode.PERSIST);
 
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class)).isEqualTo(Integer.valueOf(100));
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "clearOnFlush", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(jpaExecutor, "flushSize")).isEqualTo(Integer.valueOf(100));
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "clearOnFlush")).isTrue();
 	}
 
 	@Test
@@ -193,7 +187,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		setUp("advised");
 		EventDrivenConsumer jpaOutboundGatewayEndpoint = context.getBean("advised", EventDrivenConsumer.class);
 		MessageHandler jpaOutboundGateway =
-				TestUtils.getPropertyValue(jpaOutboundGatewayEndpoint, "handler", MessageHandler.class);
+				TestUtils.<MessageHandler>getPropertyValue(jpaOutboundGatewayEndpoint, "handler");
 		FooAdvice advice = context.getBean("jpaFooAdvice", FooAdvice.class);
 		assertThat(AopUtils.isAopProxy(jpaOutboundGateway)).isTrue();
 

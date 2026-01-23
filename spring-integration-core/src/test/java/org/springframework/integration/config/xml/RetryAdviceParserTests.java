@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -75,44 +76,51 @@ public class RetryAdviceParserTests {
 	private MessageHandler defaultRetryHandler;
 
 	@Autowired
-	private MessageChannel foo;
+	private MessageChannel inputChannel;
 
 	@Test
 	public void testAll() {
-		assertThat(TestUtils.getPropertyValue(a1, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(3L);
-		assertThat(TestUtils.getPropertyValue(a2, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(4L);
-		assertThat(TestUtils.getPropertyValue(a3, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(5L);
-		assertThat(TestUtils.getPropertyValue(a4, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(6L);
-		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(7L);
-		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(8L);
-		assertThat(TestUtils.getPropertyValue(a7, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(3L);
+		assertThat(TestUtils.<Long>getPropertyValue(a1, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(3L);
+		assertThat(TestUtils.<Long>getPropertyValue(a2, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(4L);
+		assertThat(TestUtils.<Long>getPropertyValue(a3, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(5L);
+		assertThat(TestUtils.<Long>getPropertyValue(a4, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(6L);
+		assertThat(TestUtils.<Long>getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(7L);
+		assertThat(TestUtils.<Long>getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(8L);
+		assertThat(TestUtils.<Long>getPropertyValue(a7, "retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(3L);
 
 		assertThat(
-				TestUtils.getPropertyValue(a3, "retryTemplate.retryPolicy.backOff", FixedBackOff.class).getInterval())
+				TestUtils.<FixedBackOff>getPropertyValue(a3, "retryTemplate.retryPolicy.backOff").getInterval())
 				.isEqualTo(1000L);
 		assertThat(
-				TestUtils.getPropertyValue(a4, "retryTemplate.retryPolicy.backOff", FixedBackOff.class).getInterval())
+				TestUtils.<FixedBackOff>getPropertyValue(a4, "retryTemplate.retryPolicy.backOff").getInterval())
 				.isEqualTo(1234L);
 
-		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.initialInterval")).isEqualTo(100L);
-		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.multiplier")).isEqualTo(2.0);
-		assertThat(TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.maxInterval")).isEqualTo(30000L);
-		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.initialInterval")).isEqualTo(1000L);
-		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.multiplier")).isEqualTo(3.0);
-		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.maxInterval")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.jitter")).isEqualTo(6L);
+		assertThat(TestUtils.<Long>getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.initialInterval"))
+				.isEqualTo(100L);
+		assertThat(TestUtils.<Double>getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.multiplier"))
+				.isEqualTo(2.0);
+		assertThat(TestUtils.<Long>getPropertyValue(a5, "retryTemplate.retryPolicy.backOff.maxInterval"))
+				.isEqualTo(30000L);
+		assertThat(TestUtils.<Long>getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.initialInterval"))
+				.isEqualTo(1000L);
+		assertThat(TestUtils.<Double>getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.multiplier"))
+				.isEqualTo(3.0);
+		assertThat(TestUtils.<Long>getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.maxInterval"))
+				.isEqualTo(10000L);
+		assertThat(TestUtils.<Long>getPropertyValue(a6, "retryTemplate.retryPolicy.backOff.jitter")).isEqualTo(6L);
 
-		assertThat(TestUtils.getPropertyValue(a1, "recoveryCallback")).isNull();
-		assertThat(TestUtils.getPropertyValue(a7, "recoveryCallback")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(a7, "recoveryCallback.channel")).isSameAs(this.foo);
-		assertThat(TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout")).isEqualTo(4567L);
+		assertThat(TestUtils.<Object>getPropertyValue(a1, "recoveryCallback")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(a7, "recoveryCallback")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(a7, "recoveryCallback.channel")).isSameAs(this.inputChannel);
+		assertThat(TestUtils.<Long>getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"))
+				.isEqualTo(4567L);
 
-		assertThat(TestUtils.getPropertyValue(this.handler1, "adviceChain", List.class).get(0)).isSameAs(this.a1);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(this.handler2, "adviceChain", List.class).get(0),
+		assertThat(TestUtils.<List<?>>getPropertyValue(this.handler1, "adviceChain").get(0)).isSameAs(this.a1);
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<List<?>>getPropertyValue(this.handler2, "adviceChain").get(0),
 				"retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(9L);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(this.defaultRetryHandler, "adviceChain", List.class).get(0),
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<List<?>>getPropertyValue(this.defaultRetryHandler, "adviceChain").get(0),
 				"retryTemplate.retryPolicy.backOff.maxAttempts")).isEqualTo(3L);
 	}
 

@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -94,13 +95,14 @@ public class XPathTransformerParserTests {
 
 	@Test
 	public void testParse() {
-		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(this.parseOnly, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(this.parseOnly, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.parseOnly, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout"))
+				.isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(this.parseOnly, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.parseOnly, "autoStartup")).isFalse();
 		@SuppressWarnings("unchecked")
-		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
-				MultiValueMap.class).get("foo");
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(
+				roleController, "lifecycles").get("foo");
 		assertThat(list).containsExactly(this.parseOnly);
 	}
 

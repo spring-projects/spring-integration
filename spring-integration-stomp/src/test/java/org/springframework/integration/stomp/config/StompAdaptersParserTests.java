@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  */
@@ -98,65 +99,66 @@ public class StompAdaptersParserTests {
 
 	@Test
 	public void testParsers() {
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "outputChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultInboundAdapter, "outputChannel"))
 				.isSameAs(this.defaultInboundAdapterChannel);
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "stompSessionManager"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultInboundAdapter, "stompSessionManager"))
 				.isSameAs(this.stompSessionManager);
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "errorChannel")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultInboundAdapter, "errorChannel")).isNull();
 		Object headerMapper = TestUtils.getPropertyValue(this.defaultInboundAdapter, "headerMapper");
 		assertThat(headerMapper).isNotNull();
 		assertThat(headerMapper).isNotSameAs(this.headerMapper);
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", Class.class))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultInboundAdapter, "payloadType"))
 				.isEqualTo(String.class);
-		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "autoStartup", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultInboundAdapter, "autoStartup")).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "outputChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customInboundAdapter, "outputChannel"))
 				.isSameAs(this.inboundChannel);
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "stompSessionManager"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customInboundAdapter, "stompSessionManager"))
 				.isSameAs(this.stompSessionManager);
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "errorChannel")).isSameAs(this.errorChannel);
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "destinations"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customInboundAdapter, "errorChannel"))
+				.isSameAs(this.errorChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(this.customInboundAdapter, "destinations"))
 				.isEqualTo(Collections.singleton("foo"));
 		headerMapper = TestUtils.getPropertyValue(this.customInboundAdapter, "headerMapper");
 		assertThat(headerMapper).isNotNull();
 		assertThat(headerMapper).isNotSameAs(this.headerMapper);
-		assertThat(TestUtils.getPropertyValue(headerMapper, "inboundHeaderNames", String[].class))
+		assertThat(TestUtils.<String[]>getPropertyValue(headerMapper, "inboundHeaderNames"))
 				.isEqualTo(new String[] {"bar", "foo"});
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", Class.class))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customInboundAdapter, "payloadType"))
 				.isEqualTo(Integer.class);
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "phase")).isEqualTo(200);
-		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "messagingTemplate.sendTimeout"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.customInboundAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.customInboundAdapter, "phase")).isEqualTo(200);
+		assertThat(TestUtils.<Long>getPropertyValue(this.customInboundAdapter, "messagingTemplate.sendTimeout"))
 				.isEqualTo(2000L);
 
-		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapterHandler, "stompSessionManager"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultOutboundAdapterHandler, "stompSessionManager"))
 				.isSameAs(this.stompSessionManager);
 		headerMapper = TestUtils.getPropertyValue(this.defaultOutboundAdapterHandler, "headerMapper");
 		assertThat(headerMapper).isNotNull();
 		assertThat(headerMapper).isNotSameAs(this.headerMapper);
-		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapterHandler, "destinationExpression")).isNull();
-		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "handler"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultOutboundAdapterHandler, "destinationExpression"))
+				.isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultOutboundAdapter, "handler"))
 				.isSameAs(this.defaultOutboundAdapterHandler);
-		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "inputChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultOutboundAdapter, "inputChannel"))
 				.isSameAs(this.defaultOutboundAdapterChannel);
-		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "autoStartup", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultOutboundAdapter, "autoStartup")).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapterHandler, "stompSessionManager"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customOutboundAdapterHandler, "stompSessionManager"))
 				.isSameAs(this.stompSessionManager);
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapterHandler, "headerMapper"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customOutboundAdapterHandler, "headerMapper"))
 				.isSameAs(this.headerMapper);
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapterHandler, "destinationExpression.literalValue"))
-				.isEqualTo("baz");
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "handler"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customOutboundAdapterHandler,
+				"destinationExpression.literalValue")).isEqualTo("baz");
+		assertThat(TestUtils.<Object>getPropertyValue(this.customOutboundAdapter, "handler"))
 				.isSameAs(this.customOutboundAdapterHandler);
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "inputChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customOutboundAdapter, "inputChannel"))
 				.isSameAs(this.outboundChannel);
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "phase")).isEqualTo(100);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.customOutboundAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.customOutboundAdapter, "phase")).isEqualTo(100);
 
-		@SuppressWarnings("unchecked")
-		MultiValueMap<String, SmartLifecycle> lifecycles = (MultiValueMap<String, SmartLifecycle>)
-				TestUtils.getPropertyValue(this.roleController, "lifecycles", MultiValueMap.class);
+		MultiValueMap<String, SmartLifecycle> lifecycles =
+				TestUtils.getPropertyValue(this.roleController, "lifecycles");
 		assertThat(lifecycles.containsKey("bar")).isTrue();
 		List<SmartLifecycle> bars = lifecycles.get("bar");
 		bars.contains(this.customInboundAdapter);

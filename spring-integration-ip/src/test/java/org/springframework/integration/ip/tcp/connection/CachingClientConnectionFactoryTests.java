@@ -91,6 +91,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gengwu Zhao
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -142,7 +143,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpConnection conn1 = cachingFactory.getConnection();
 		// INT-3652
 		TcpConnectionInterceptorSupport cachedConn1 = (TcpConnectionInterceptorSupport) conn1;
-		Log logger = spy(TestUtils.getPropertyValue(cachedConn1, "logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(cachedConn1, "logger"));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(cachedConn1).setPropertyValue("logger", logger);
 		cachedConn1.onMessage(new ErrorMessage(new RuntimeException()));
@@ -204,7 +205,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		when(mockConn1.isOpen()).thenReturn(false);
 		TcpConnection conn2a = cachingFactory.getConnection();
 		assertThat(conn2a.toString()).isEqualTo("Cached:" + mockConn2.toString());
-		assertThat(TestUtils.getPropertyValue(conn2a, "theConnection"))
+		assertThat(TestUtils.<Object>getPropertyValue(conn2a, "theConnection"))
 				.isSameAs(TestUtils.getPropertyValue(conn2, "theConnection"));
 		conn2a.close();
 	}
@@ -262,9 +263,9 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		when(mockConn2.isOpen()).thenReturn(false);
 		when(factory.isRunning()).thenReturn(true);
 		TcpConnection conn3 = cachingFactory.getConnection();
-		assertThat(TestUtils.getPropertyValue(conn3, "theConnection"))
+		assertThat(TestUtils.<Object>getPropertyValue(conn3, "theConnection"))
 				.isNotSameAs(TestUtils.getPropertyValue(conn1, "theConnection"));
-		assertThat(TestUtils.getPropertyValue(conn3, "theConnection"))
+		assertThat(TestUtils.<Object>getPropertyValue(conn3, "theConnection"))
 				.isNotSameAs(TestUtils.getPropertyValue(conn2, "theConnection"));
 	}
 
@@ -283,7 +284,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpConnection conn2 = cachingFactory.getConnection();
 		assertThat(conn2).isNotSameAs(conn1);
 		Semaphore semaphore = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits", Semaphore.class);
+				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits");
 		assertThat(semaphore.availablePermits()).isEqualTo(0);
 		cachingFactory.setPoolSize(4);
 		TcpConnection conn3 = cachingFactory.getConnection();
@@ -315,7 +316,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		TcpConnection conn3 = cachingFactory.getConnection();
 		TcpConnection conn4 = cachingFactory.getConnection();
 		Semaphore semaphore = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits", Semaphore.class);
+				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits");
 		assertThat(semaphore.availablePermits()).isEqualTo(0);
 		conn1.close();
 		assertThat(semaphore.availablePermits()).isEqualTo(1);
@@ -459,8 +460,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		assertThat(m).isNotNull();
 		assertThat(new String((byte[]) m.getPayload())).isEqualTo("foo:" + "Hello, world!");
 
-		BlockingQueue<?> connections = TestUtils
-				.getPropertyValue(this.gatewayCF, "pool.available", BlockingQueue.class);
+		BlockingQueue<?> connections = TestUtils.getPropertyValue(this.gatewayCF, "pool.available");
 		// wait until the connection is returned to the pool
 		await().atMost(Duration.ofSeconds(10)).until(() -> connections.size() > 0);
 
@@ -590,7 +590,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		conn1.close();
 		conn2.close();
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory, "pool", SimplePool.class);
+		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory, "pool");
 		assertThat(pool.getIdleCount()).isEqualTo(2);
 		cachingFactory.stop();
 		cachingFactory.destroy();
@@ -749,7 +749,7 @@ public class CachingClientConnectionFactoryTests implements TestApplicationConte
 		gate.setRemoteTimeout(20_000);
 		gate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gate.afterPropertiesSet();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(gate, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(gate, "logger"));
 		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 		doAnswer(new Answer<Void>() {

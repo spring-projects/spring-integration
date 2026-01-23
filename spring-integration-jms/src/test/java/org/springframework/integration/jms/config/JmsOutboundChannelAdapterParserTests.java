@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JmsOutboundChannelAdapterParserTests {
 
@@ -52,7 +53,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertThat(accessor.getPropertyValue("jmsTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted"))
 				.isTrue();
 		context.close();
 	}
@@ -62,7 +63,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithConnectionFactoryAndDestination.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler");
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 		context.close();
@@ -76,7 +77,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertThat(accessor.getPropertyValue("jmsTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted"))
 				.isFalse();
 		context.close();
 	}
@@ -142,9 +143,9 @@ public class JmsOutboundChannelAdapterParserTests {
 		assertThat(jmsTemplate.isExplicitQosEnabled()).isTrue();
 		assertThat(jmsTemplate.getPriority()).isEqualTo(7);
 		assertThat(jmsTemplate.getTimeToLive()).isEqualTo(12345);
-		assertThat(TestUtils.getPropertyValue(handler, "deliveryModeExpression.expression", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(handler, "deliveryModeExpression.expression"))
 				.isEqualTo("1");
-		assertThat(TestUtils.getPropertyValue(handler, "timeToLiveExpression.expression", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(handler, "timeToLiveExpression.expression"))
 				.isEqualTo("100");
 		context.close();
 	}

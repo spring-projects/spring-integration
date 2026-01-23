@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Artem Bilan
  * @author Jatin Saxena
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -81,7 +82,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertThat(handlerAccessor.getPropertyValue("webClient")).isSameAs(this.webClient);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
@@ -104,11 +105,11 @@ public class WebFluxOutboundGatewayParserTests {
 		assertThat(replyChannel).isNotNull();
 		assertThat(replyChannel).isEqualTo(this.applicationContext.getBean("replies"));
 
-		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "expectedResponseTypeExpression").getValue())
 				.isEqualTo(String.class.getName());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.PUT.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);

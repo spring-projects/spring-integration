@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -54,9 +55,9 @@ public class ZookeeperParserTests extends ZookeeperTestSupport {
 	public void test() throws Exception {
 		assertThat(this.initiator.isAutoStartup()).isFalse();
 		assertThat(this.initiator.getPhase()).isEqualTo(1234);
-		assertThat(TestUtils.getPropertyValue(this.initiator, "namespace")).isEqualTo("/siNamespaceTest");
-		assertThat(TestUtils.getPropertyValue(this.initiator, "candidate.role")).isEqualTo("cluster");
-		assertThat(TestUtils.getPropertyValue(this.initiator, "client")).isSameAs(this.client);
+		assertThat(TestUtils.<String>getPropertyValue(this.initiator, "namespace")).isEqualTo("/siNamespaceTest");
+		assertThat(TestUtils.<String>getPropertyValue(this.initiator, "candidate.role")).isEqualTo("cluster");
+		assertThat(TestUtils.<CuratorFramework>getPropertyValue(this.initiator, "client")).isSameAs(this.client);
 
 		this.initiator.start();
 		int n = 0;

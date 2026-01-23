@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author David Liu
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -51,8 +52,8 @@ public class ResequencerIntegrationTests {
 		MessageChannel inputChannel = context.getBean("resequencerLightInput", MessageChannel.class);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerLight", EventDrivenConsumer.class);
-		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler", ResequencingMessageHandler.class);
-		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler");
+		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore");
 
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
 		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2)
@@ -116,8 +117,8 @@ public class ResequencerIntegrationTests {
 		MessageChannel inputChannel = context.getBean("resequencerDeepInput", MessageChannel.class);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerDeep", EventDrivenConsumer.class);
-		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler", ResequencingMessageHandler.class);
-		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler");
+		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore");
 
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
 		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2).build();

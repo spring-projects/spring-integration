@@ -51,6 +51,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -66,10 +67,12 @@ public class FeedInboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
-		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		assertThat(TestUtils.getPropertyValue(source, "metadataKey")).isEqualTo("feedAdapter");
-		assertThat(TestUtils.getPropertyValue(source, "metadataStore")).isSameAs(context.getBean(MetadataStore.class));
-		SyndFeedInput syndFeedInput = TestUtils.getPropertyValue(source, "syndFeedInput", SyndFeedInput.class);
+		FeedEntryMessageSource source = TestUtils.getPropertyValue(adapter, "source");
+		assertThat(TestUtils.<String>getPropertyValue(source, "metadataKey"))
+				.isEqualTo("feedAdapter");
+		assertThat(TestUtils.<Object>getPropertyValue(source, "metadataStore"))
+				.isSameAs(context.getBean(MetadataStore.class));
+		SyndFeedInput syndFeedInput = TestUtils.getPropertyValue(source, "syndFeedInput");
 		assertThat(syndFeedInput).isSameAs(context.getBean(SyndFeedInput.class));
 		assertThat(syndFeedInput.isPreserveWireFeed()).isFalse();
 		context.close();
@@ -81,7 +84,7 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		assertThat(TestUtils.getPropertyValue(source, "metadataStore")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(source, "metadataStore")).isNotNull();
 		context.close();
 	}
 
@@ -104,7 +107,7 @@ public class FeedInboundChannelAdapterParserTests {
 		assertThat(latch.getCount()).isEqualTo(3);
 
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapterUsage", SourcePollingChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed"))
 				.isTrue();
 
 		context.close();
@@ -131,7 +134,7 @@ public class FeedInboundChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter adapter = context.getBean("autoChannel.adapter",
 				SourcePollingChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "outputChannel")).isSameAs(autoChannel);
 		context.close();
 	}
 

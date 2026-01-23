@@ -41,6 +41,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Gavin Gray
  * @author Ali Shahbour
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -73,62 +74,65 @@ public class FileTailInboundChannelAdapterParserTests {
 
 	@Test
 	public void testDefault() {
-		String fileName = TestUtils.getPropertyValue(defaultAdapter, "file", File.class).getAbsolutePath();
+		String fileName = TestUtils.<File>getPropertyValue(defaultAdapter, "file").getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertThat(normalizedName).isEqualTo("/tmp/baz");
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "command")).isEqualTo("tail -F -n 0 " + fileName);
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "taskExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "enableStatusReader", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "errorChannel")).isSameAs(this.tailErrorChannel);
+		assertThat(TestUtils.<String>getPropertyValue(defaultAdapter, "command")).isEqualTo("tail -F -n 0 " + fileName);
+		assertThat(TestUtils.<TaskExecutor>getPropertyValue(defaultAdapter, "taskExecutor")).isSameAs(exec);
+		assertThat(TestUtils.<Boolean>getPropertyValue(defaultAdapter, "autoStartup")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(defaultAdapter, "enableStatusReader")).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(defaultAdapter, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(defaultAdapter, "errorChannel"))
+				.isSameAs(this.tailErrorChannel);
 		this.defaultAdapter.stop();
 		this.defaultAdapter.setOptions("-F -n 6");
 		this.defaultAdapter.start();
-		assertThat(TestUtils.getPropertyValue(defaultAdapter, "command")).isEqualTo("tail -F -n 6 " + fileName);
+		assertThat(TestUtils.<String>getPropertyValue(defaultAdapter, "command")).isEqualTo("tail -F -n 6 " + fileName);
 	}
 
 	@Test
 	public void testNative() {
-		String fileName = TestUtils.getPropertyValue(nativeAdapter, "file", File.class).getAbsolutePath();
+		String fileName = TestUtils.<File>getPropertyValue(nativeAdapter, "file").getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertThat(normalizedName).isEqualTo("/tmp/foo");
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "command")).isEqualTo("tail -F -n 6 " + fileName);
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "taskExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "taskScheduler")).isSameAs(scheduler);
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "enableStatusReader", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "tailAttemptsDelay")).isEqualTo(456L);
+		assertThat(TestUtils.<String>getPropertyValue(nativeAdapter, "command")).isEqualTo("tail -F -n 6 " + fileName);
+		assertThat(TestUtils.<TaskExecutor>getPropertyValue(nativeAdapter, "taskExecutor")).isSameAs(exec);
+		assertThat(TestUtils.<TaskScheduler>getPropertyValue(nativeAdapter, "taskScheduler")).isSameAs(scheduler);
+		assertThat(TestUtils.<Boolean>getPropertyValue(nativeAdapter, "autoStartup")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(nativeAdapter, "enableStatusReader")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(nativeAdapter, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<Long>getPropertyValue(nativeAdapter, "tailAttemptsDelay")).isEqualTo(456L);
 	}
 
 	@Test
 	public void testApacheDefault() {
-		String fileName = TestUtils.getPropertyValue(apacheDefault, "file", File.class).getAbsolutePath();
+		String fileName = TestUtils.<File>getPropertyValue(apacheDefault, "file").getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertThat(normalizedName).isEqualTo("/tmp/bar");
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "taskExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "pollingDelay")).isEqualTo(Duration.ofSeconds(2));
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "tailAttemptsDelay")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "idleEventInterval")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "end")).isEqualTo(Boolean.TRUE);
-		assertThat(TestUtils.getPropertyValue(apacheDefault, "reopen")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<TaskExecutor>getPropertyValue(apacheDefault, "taskExecutor")).isSameAs(exec);
+		assertThat(TestUtils.<Duration>getPropertyValue(apacheDefault, "pollingDelay"))
+				.isEqualTo(Duration.ofSeconds(2));
+		assertThat(TestUtils.<Long>getPropertyValue(apacheDefault, "tailAttemptsDelay")).isEqualTo(10000L);
+		assertThat(TestUtils.<Long>getPropertyValue(apacheDefault, "idleEventInterval")).isEqualTo(10000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheDefault, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(apacheDefault, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheDefault, "end")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheDefault, "reopen")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	public void testApacheEndReopen() {
-		String fileName = TestUtils.getPropertyValue(apacheEndReopen, "file", File.class).getAbsolutePath();
+		String fileName = TestUtils.<File>getPropertyValue(apacheEndReopen, "file").getAbsolutePath();
 		String normalizedName = getNormalizedPath(fileName);
 		assertThat(normalizedName).isEqualTo("/tmp/qux");
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "taskExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "pollingDelay")).isEqualTo(Duration.ofSeconds(2));
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "tailAttemptsDelay")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "end")).isEqualTo(Boolean.FALSE);
-		assertThat(TestUtils.getPropertyValue(apacheEndReopen, "reopen")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<TaskExecutor>getPropertyValue(apacheEndReopen, "taskExecutor")).isSameAs(exec);
+		assertThat(TestUtils.<Duration>getPropertyValue(apacheEndReopen, "pollingDelay"))
+				.isEqualTo(Duration.ofSeconds(2));
+		assertThat(TestUtils.<Long>getPropertyValue(apacheEndReopen, "tailAttemptsDelay")).isEqualTo(10000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheEndReopen, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(apacheEndReopen, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheEndReopen, "end")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(apacheEndReopen, "reopen")).isEqualTo(Boolean.TRUE);
 	}
 
 	/**

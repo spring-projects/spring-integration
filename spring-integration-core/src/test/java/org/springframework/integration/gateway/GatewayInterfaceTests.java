@@ -109,6 +109,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig(classes = GatewayInterfaceTests.TestConfig.class)
 @DirtiesContext
@@ -189,7 +190,7 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.foo("hello");
 		assertThat(called.get()).isTrue();
-		Map<?, ?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
+		Map<?, ?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap");
 		assertThat(gateways.size()).isEqualTo(5);
 		ac.close();
 	}
@@ -343,7 +344,8 @@ public class GatewayInterfaceTests {
 		bf.registerSingleton("requestChannelBaz", channel);
 		bf.registerSingleton("requestChannelFoo", channel);
 		bf.registerSingleton("taskScheduler", mock(TaskScheduler.class));
-		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
+		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new StandardEvaluationContext());
 		fb.setBeanFactory(bf);
 		fb.afterPropertiesSet();
 		assertThat(fb.getObject()).isNotSameAs(bar);
@@ -424,8 +426,8 @@ public class GatewayInterfaceTests {
 	@Test
 	@SuppressWarnings("deprecation")
 	public void testExecs() throws Exception {
-		assertThat(TestUtils.getPropertyValue(execGatewayFB, "asyncExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(noExecGatewayFB, "asyncExecutor")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(execGatewayFB, "asyncExecutor")).isSameAs(exec);
+		assertThat(TestUtils.<Object>getPropertyValue(noExecGatewayFB, "asyncExecutor")).isNull();
 
 		Future<Thread> result = this.int2634Gateway.test3(Thread.currentThread());
 		assertThat(result.get()).isNotEqualTo(Thread.currentThread());
@@ -468,10 +470,10 @@ public class GatewayInterfaceTests {
 		assertThat(this.notActivatedByProfileGateway).isNull();
 
 		assertThat(this.annotationGatewayProxyFactoryBean.getAsyncExecutor()).isSameAs(this.exec);
-		assertThat(TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
-				"defaultRequestTimeout", Expression.class).getValue()).isEqualTo(1111L);
-		assertThat(TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
-				"defaultReplyTimeout", Expression.class).getValue()).isEqualTo(0L);
+		assertThat(TestUtils.<Expression>getPropertyValue(this.annotationGatewayProxyFactoryBean,
+				"defaultRequestTimeout").getValue()).isEqualTo(1111L);
+		assertThat(TestUtils.<Expression>getPropertyValue(this.annotationGatewayProxyFactoryBean,
+				"defaultReplyTimeout").getValue()).isEqualTo(0L);
 
 		Collection<MessagingGatewaySupport> messagingGateways =
 				this.annotationGatewayProxyFactoryBean.getGateways().values();
@@ -483,9 +485,10 @@ public class GatewayInterfaceTests {
 		assertThat(gateway.getErrorChannel()).isSameAs(this.errorChannel);
 		Object requestMapper = TestUtils.getPropertyValue(gateway, "requestMapper");
 
-		assertThat(TestUtils.getPropertyValue(requestMapper, "payloadExpression.expression")).isEqualTo("args[0]");
+		assertThat(TestUtils.<String>getPropertyValue(requestMapper, "payloadExpression.expression"))
+				.isEqualTo("args[0]");
 
-		Map globalHeaderExpressions = TestUtils.getPropertyValue(requestMapper, "globalHeaderExpressions", Map.class);
+		Map globalHeaderExpressions = TestUtils.getPropertyValue(requestMapper, "globalHeaderExpressions");
 		assertThat(globalHeaderExpressions.size()).isEqualTo(1);
 
 		Object barHeaderExpression = globalHeaderExpressions.get("bar");

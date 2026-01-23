@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -145,8 +146,7 @@ public class AggregatorIntegrationTests {
 			this.groupTimeoutAggregatorInput.send(new GenericMessage<>(i, headers));
 
 			//Wait until 'group-timeout' does its stuff.
-			MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
-					MessageGroupStore.class);
+			MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore");
 			int n = 0;
 			while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
 				Thread.sleep(100);
@@ -167,13 +167,12 @@ public class AggregatorIntegrationTests {
 		this.groupTimeoutAggregatorInput.send(new GenericMessage<>(1, headers));
 
 		//Wait until 'group-timeout' does its stuff.
-		MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
-				MessageGroupStore.class);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore");
 		int n = 0;
 		while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
 			Thread.sleep(100);
 			if (n == 10) {
-				TestUtils.getPropertyValue(this.output, "queue", Queue.class).clear();
+				TestUtils.<Queue<?>>getPropertyValue(this.output, "queue").clear();
 			}
 		}
 		assertThat(n < 100).as("Group did not complete").isTrue();

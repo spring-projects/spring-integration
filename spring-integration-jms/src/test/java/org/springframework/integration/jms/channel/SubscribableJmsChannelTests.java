@@ -59,6 +59,8 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 2.0
  */
 public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
@@ -259,8 +261,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.afterPropertiesSet();
 
 		AbstractMessageListenerContainer container = TestUtils
-				.getPropertyValue(channel, "container",
-						AbstractMessageListenerContainer.class);
+				.getPropertyValue(channel, "container");
 		MessageListener listener = (MessageListener) container.getMessageListener();
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
@@ -281,8 +282,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.afterPropertiesSet();
 
 		AbstractMessageListenerContainer container = TestUtils
-				.getPropertyValue(channel, "container",
-						AbstractMessageListenerContainer.class);
+				.getPropertyValue(channel, "container");
 		MessageListener listener = (MessageListener) container.getMessageListener();
 		List<String> logList = insertMockLoggerInListener(channel);
 		listener.onMessage(new StubTextMessage("Hello, world!"));
@@ -290,8 +290,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	}
 
 	private static List<String> insertMockLoggerInListener(SubscribableJmsChannel channel) {
-		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(
-				channel, "container", AbstractMessageListenerContainer.class);
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<>();
 		doAnswer(invocation -> {

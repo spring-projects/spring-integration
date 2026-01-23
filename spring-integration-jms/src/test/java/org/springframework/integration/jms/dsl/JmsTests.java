@@ -91,6 +91,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Nasko Vasilev
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -187,7 +188,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	@Test
 	public void testJmsOutboundInboundFlow() {
 		JmsTemplate jmsTemplate =
-				TestUtils.getPropertyValue(this.jmsDestinationPollingSource, "jmsTemplate", JmsTemplate.class);
+				TestUtils.<JmsTemplate>getPropertyValue(this.jmsDestinationPollingSource, "jmsTemplate");
 
 		assertThat(jmsTemplate.getReceiveTimeout()).isEqualTo(1000);
 
@@ -202,8 +203,8 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.extracting(Message::getPayload)
 				.isEqualTo("HELLO THROUGH THE JMS");
 
-		assertThat(TestUtils.getPropertyValue(this.containerWithObservation, "listenerContainer.observationRegistry"))
-				.isSameAs(this.observationRegistry);
+		assertThat(TestUtils.<Object>getPropertyValue(this.containerWithObservation,
+				"listenerContainer.observationRegistry")).isSameAs(this.observationRegistry);
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("hello THROUGH the JMS")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDriven")
@@ -244,7 +245,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testJmsPipelineFlow() {
-		assertThat(TestUtils.getPropertyValue(this.jmsOutboundGatewayHandler, "idleReplyContainerTimeout", Long.class))
+		assertThat(TestUtils.<Long>getPropertyValue(this.jmsOutboundGatewayHandler, "idleReplyContainerTimeout"))
 				.isEqualTo(10000L);
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("hello through the jms pipeline")

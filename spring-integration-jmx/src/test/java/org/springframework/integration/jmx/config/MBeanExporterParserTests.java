@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -51,13 +52,14 @@ public class MBeanExporterParserTests {
 	public void testMBeanExporterExists() {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
-		Properties properties = TestUtils.getPropertyValue(exporter, "objectNameStaticProperties", Properties.class);
+		Properties properties = TestUtils.getPropertyValue(exporter, "objectNameStaticProperties");
 		assertThat(properties).isNotNull();
 		assertThat(properties.size()).isEqualTo(2);
 		assertThat(properties.containsKey("foo")).isTrue();
 		assertThat(properties.containsKey("bar")).isTrue();
 		assertThat(exporter.getServer()).isEqualTo(server);
-		assertThat(TestUtils.getPropertyValue(exporter, "namingStrategy")).isSameAs(context.getBean("keyNamer"));
+		assertThat(TestUtils.<Object>getPropertyValue(exporter, "namingStrategy"))
+				.isSameAs(context.getBean("keyNamer"));
 		exporter.destroy();
 	}
 

@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -47,7 +48,7 @@ public class CronTriggerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
 		assertThat(trigger.getClass()).isEqualTo(CronTrigger.class);
-		String expression = TestUtils.getPropertyValue(trigger, "expression.expression", String.class);
+		String expression = TestUtils.getPropertyValue(trigger, "expression.expression");
 		assertThat(expression).isEqualTo("*/10 * 9-17 * * MON-FRI");
 	}
 

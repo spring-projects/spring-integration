@@ -104,15 +104,17 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings("unchecked")
 public class MethodInvokingMessageProcessorTests implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
 
 	@Test
 	public void testMessageHandlerMethodFactoryOverride() {
-		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfiguration.class)) {
+		try (AnnotationConfigApplicationContext context =
+				new AnnotationConfigApplicationContext(MyConfiguration.class)) {
 			MessageChannel channel = context.getBean("foo", MessageChannel.class);
 			channel.send(MessageBuilder.withPayload("Bob Smith").build());
 			PollableChannel out = context.getBean("out", PollableChannel.class);
@@ -192,7 +194,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		}
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new B(), "myMethod");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("A")).isEqualTo("A");
@@ -223,7 +225,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		}
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new B(), "myMethod");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("B")).isEqualTo("B");
@@ -258,7 +260,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		}
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new C(), "myMethod");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("C")).isEqualTo("C");
@@ -288,7 +290,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		}
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new C(), "myMethod");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("C")).isEqualTo("C");
@@ -296,7 +298,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptPayloadAndReturnObject");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("testing"));
@@ -305,7 +307,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void testPayloadCoercedToString() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptPayloadAndReturnObject");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>(123456789));
@@ -314,7 +316,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptPayloadAndReturnMessage");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
@@ -323,7 +325,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptMessageAndReturnObject");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("testing"));
@@ -332,7 +334,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptMessageAndReturnMessage");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
@@ -341,7 +343,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptMessageSubclassAndReturnMessage");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
@@ -350,7 +352,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptMessageSubclassAndReturnMessageSubclass");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
@@ -359,7 +361,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new TestBean(),
 				"acceptPayloadAndHeaderAndReturnObject");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> request = MessageBuilder.withPayload("testing").setHeader("number", 123).build();
@@ -369,8 +371,8 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	public void testVoidMethodsIncludedByDefault() {
-		MethodInvokingMessageProcessor processor =
-				new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods");
+		MethodInvokingMessageProcessor<?> processor =
+				new MethodInvokingMessageProcessor<>(new TestBean(), "testVoidReturningMethods");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(processor.processMessage(MessageBuilder.withPayload("Something").build())).isNull();
 		assertThat(processor.processMessage(MessageBuilder.withPayload(12).build())).isEqualTo(12);
@@ -380,7 +382,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("foo"));
 		assertThat(result).isEqualTo("foo");
@@ -390,7 +392,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void payloadWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>(123));
 		assertThat(result).isEqualTo(123);
@@ -400,7 +402,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void convertedPayloadWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("456"));
 		assertThat(result).isEqualTo(456);
@@ -410,7 +412,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")));
@@ -419,7 +421,8 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	@Test
 	public void filterSelectsAnnotationMethodsOnly() {
 		OverloadedMethodBean bean = new OverloadedMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
+		MethodInvokingMessageProcessor<?> processor =
+				new MethodInvokingMessageProcessor<>(bean, ServiceActivator.class);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		processor.processMessage(MessageBuilder.withPayload(123).build());
 		assertThat(bean.lastArg).isNotNull();
@@ -431,7 +434,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void testProcessMessageBadExpression() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
@@ -442,7 +445,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void testProcessMessageRuntimeException() throws Exception {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("error", String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
@@ -453,7 +456,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void testProcessMessageCheckedException() throws Exception {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("checked", String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
@@ -465,7 +468,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void testProcessMessageMethodNotFound() throws Exception {
 		TestDifferentErrorService service = new TestDifferentErrorService();
 		Method method = TestErrorService.class.getMethod("checked", String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatExceptionOfType(MessageHandlingException.class)
@@ -477,7 +480,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
 		Object result = processor.processMessage(message);
@@ -488,7 +491,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void multipleHeadersWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message =
 				MessageBuilder.withPayload("foo")
@@ -503,7 +506,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void optionalAndRequiredWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		optionalAndRequiredWithAnnotatedMethodGuts(processor);
 	}
@@ -512,16 +515,17 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	public void compiledOptionalAndRequiredWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
 		optionalAndRequiredWithAnnotatedMethodGuts(processor);
-		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst"))
+				.isNotNull();
 		optionalAndRequiredWithAnnotatedMethodGuts(processor);
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
 	}
 
-	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor) {
+	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor<?> processor) {
 
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo")
@@ -550,7 +554,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class,
 				String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
 	}
@@ -560,16 +564,17 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class,
 				String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
 		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
-		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(processor,
+				"delegate.handlerMethod.expression.compiledAst")).isNotNull();
 		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
 	}
 
-	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor) {
+	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor<?> processor) {
 
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("hello")
@@ -599,7 +604,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	@Test
 	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
 		AmbiguousMethodBean bean = new AmbiguousMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(bean, "foo");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		processor.processMessage(MessageBuilder.withPayload("true").build());
 		assertThat(bean.lastArg).isNotNull();
@@ -771,7 +776,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 	@Test
 	public void testIneligible() {
 		IneligibleMethodBean bean = new IneligibleMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(bean, "foo");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		processor.processMessage(MessageBuilder.withPayload("true").build());
 		assertThat(bean.lastArg).isNotNull();
@@ -835,7 +840,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
@@ -851,7 +856,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		}
 		stopWatch.stop();
 
-		processor = new MethodInvokingMessageProcessor(service, method);
+		processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		stopWatch.start("Invocable");
@@ -862,7 +867,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
 
-		processor = new MethodInvokingMessageProcessor(service, method);
+		processor = new MethodInvokingMessageProcessor<>(service, method);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
@@ -887,7 +892,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		}
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new A(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new A(), "myMethod");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			processor.processMessage(new GenericMessage<>("foo"));
@@ -897,7 +902,8 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 			assertThat(e.getCause().getStackTrace()[0].getClassName()).isEqualTo(A.class.getName());
 		}
 
-		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.failedAttempts")).isEqualTo(0);
+		assertThat(TestUtils.<Integer>getPropertyValue(processor, "delegate.handlerMethod.failedAttempts"))
+				.isEqualTo(0);
 
 	}
 
@@ -923,7 +929,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		});
 		service = (MessageHandler) proxyFactory.getProxy(getClass().getClassLoader());
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handleMessage");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, "handleMessage");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		processor.processMessage(new GenericMessage<>("foo"));
@@ -958,7 +964,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handle");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		processor.processMessage(testMessage);
@@ -977,28 +983,32 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Message<?> message = new GenericMessage<>("Test");
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.OFF);
 
 		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("bar", String.class), false);
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.IMMEDIATE);
 
 		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("baz", String.class), false);
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.MIXED);
 
 		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("qux", String.class), false);
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.OFF);
 
 		helper = new MessagingMethodInvokerHelper(bean,
@@ -1035,13 +1045,15 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		helper = new MessagingMethodInvokerHelper(bean, "bar", false);
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.IMMEDIATE);
 
 		helper = new MessagingMethodInvokerHelper(bean, ServiceActivator.class, false);
 		helper.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		helper.process(message);
-		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
+		assertThat(TestUtils.<SpelCompilerMode>getPropertyValue(helper, "handlerMethod.expression.configuration" +
+				".compilerMode"))
 				.isEqualTo(SpelCompilerMode.MIXED);
 	}
 
@@ -1138,13 +1150,13 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(TestConfiguration.class);
 
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new A(), "myMethod");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(new A(), "myMethod");
 		processor.setBeanFactory(applicationContext);
 
 		List<Employee<Person>> testData =
 				Arrays.asList(
 						new Employee<>(new Person("Foo")),
-						new Employee<>(new Person("Bar")));
+						new Employee<>(new Person("ReleaseStrategyTest")));
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		byte[] value = objectMapper.writeValueAsBytes(testData);
@@ -1156,20 +1168,20 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 		String result = (String) processor.processMessage(testMessage);
 
-		assertThat(result).isEqualTo("Foo,Bar");
+		assertThat(result).isEqualTo("Foo,ReleaseStrategyTest");
 	}
 
 	@Test
 	void lifecycleOnly() {
 		assertThatIllegalStateException().isThrownBy(() ->
-						new MethodInvokingMessageProcessor(new LifecycleBean(), (String) null))
+						new MethodInvokingMessageProcessor<>(new LifecycleBean(), (String) null))
 				.withMessageContaining("no eligible methods");
 	}
 
 	@Test
 	void lifecycleOnlyExplicitMethod() {
 		LifecycleBean targetObject = new LifecycleBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(targetObject, "start");
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(targetObject, "start");
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("testing"));
 		assertThat(targetObject.startCalled).isTrue();
@@ -1177,8 +1189,8 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	@Test
 	void lifecycleWithValidStartMethod() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new LifeCycleWithCustomStart(),
-				(String) null);
+		MethodInvokingMessageProcessor<?> processor = new MethodInvokingMessageProcessor<>(
+				new LifeCycleWithCustomStart(), (String) null);
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object result = processor.processMessage(new GenericMessage<>("testing"));
 		assertThat(result).isEqualTo("TESTING");
@@ -1247,10 +1259,10 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 
 	}
 
-	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
+	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor<?> processor) {
 		// Update the parser configuration compiler mode
-		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
-				"delegate.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
+		SpelParserConfiguration config =
+				TestUtils.getPropertyValue(processor, "delegate.EXPRESSION_PARSER.configuration");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(config);
 		accessor.setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
 		return accessor;
@@ -1380,7 +1392,7 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 			return properties;
 		}
 
-		public Map mapMethod(Map map) {
+		public Map<?, ?> mapMethod(Map<?, ?> map) {
 			return map;
 		}
 

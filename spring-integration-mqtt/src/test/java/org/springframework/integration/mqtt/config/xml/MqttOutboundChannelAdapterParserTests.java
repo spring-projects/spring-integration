@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -68,20 +69,20 @@ public class MqttOutboundChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithConverter() throws Exception {
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "defaultTopic")).isEqualTo("bar");
+		assertThat(TestUtils.<String>getPropertyValue(withConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<String>getPropertyValue(withConverterHandler, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(withConverterHandler, "defaultTopic")).isEqualTo("bar");
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "topicProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(withConverterHandler, "topicProcessor")
 				.processMessage(message)).isEqualTo("bar");
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "qosProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(withConverterHandler, "qosProcessor")
 				.processMessage(message)).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "retainedProcessor", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(withConverterHandler, "retainedProcessor")
 				.processMessage(message)).isEqualTo(Boolean.TRUE);
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "converter")).isSameAs(converter);
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "clientFactory")).isSameAs(clientFactory);
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(withConverterHandler, "asyncEvents", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(withConverterHandler, "converter")).isSameAs(converter);
+		assertThat(TestUtils.<Object>getPropertyValue(withConverterHandler, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.<Boolean>getPropertyValue(withConverterHandler, "async")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(withConverterHandler, "asyncEvents")).isFalse();
 
 		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
 
@@ -95,19 +96,19 @@ public class MqttOutboundChannelAdapterParserTests {
 	@Test
 	public void testWithDefaultConverter() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic")).isEqualTo("bar");
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos")).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class))
+		assertThat(TestUtils.<String>getPropertyValue(withDefaultConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<String>getPropertyValue(withDefaultConverterHandler, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(withDefaultConverterHandler, "defaultTopic")).isEqualTo("bar");
+		assertThat(TestUtils.<Integer>getPropertyValue(withDefaultConverterHandler, "defaultQos")).isEqualTo(1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(withDefaultConverterHandler, "defaultRetained"))
 				.isEqualTo(Boolean.TRUE);
-		DefaultPahoMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler,
-				"converter", DefaultPahoMessageConverter.class);
+		DefaultPahoMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler, "converter");
 		assertThat(defaultConverter.fromMessage(message, null).getQos()).isEqualTo(1);
 		assertThat(defaultConverter.fromMessage(message, null).isRetained()).isTrue();
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory")).isSameAs(clientFactory);
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(withDefaultConverterHandler, "clientFactory"))
+				.isSameAs(clientFactory);
+		assertThat(TestUtils.<Boolean>getPropertyValue(withDefaultConverterHandler, "async")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(withDefaultConverterHandler, "asyncEvents")).isTrue();
 	}
 
 }

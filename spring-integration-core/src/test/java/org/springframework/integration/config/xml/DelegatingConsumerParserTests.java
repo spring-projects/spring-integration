@@ -50,6 +50,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -171,7 +172,7 @@ public class DelegatingConsumerParserTests {
 		assertThat(splitterWithARPMH).isInstanceOf(MySplitterThatIsAnARPMH.class);
 		testHandler(splitterWithARPMH);
 		assertThat(splitterWithARPMHWithAtts).isInstanceOf(MySplitterThatIsAnARPMH.class);
-		assertThat(TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class))
+		assertThat(TestUtils.<Long>getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout"))
 				.isEqualTo(Long.valueOf(123));
 		testHandler(splitterWithARPMHWithAtts);
 

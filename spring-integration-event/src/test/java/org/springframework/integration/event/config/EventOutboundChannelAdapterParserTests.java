@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -79,7 +80,7 @@ public class EventOutboundChannelAdapterParserTests {
 		MessageHandler handler = (MessageHandler) adapterAccessor.getPropertyValue("handler");
 		assertThat(handler instanceof ApplicationEventPublishingMessageHandler).isTrue();
 		assertThat(adapterAccessor.getPropertyValue("inputChannel")).isEqualTo(this.context.getBean("input"));
-		assertThat(TestUtils.getPropertyValue(handler, "publishPayload", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "publishPayload")).isTrue();
 	}
 
 	@Test

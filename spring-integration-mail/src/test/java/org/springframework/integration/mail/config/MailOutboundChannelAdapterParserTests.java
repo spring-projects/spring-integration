@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class MailOutboundChannelAdapterParserTests {
 
@@ -89,7 +90,7 @@ public class MailOutboundChannelAdapterParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
-		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel", QueueChannel.class);
+		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel");
 		assertThat(pollableChannel.getComponentName()).isEqualTo("pollableChannel");
 		context.close();
 	}

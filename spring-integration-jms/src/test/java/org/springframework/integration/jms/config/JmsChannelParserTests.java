@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -127,12 +128,12 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 				(AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(queue);
 		assertThat(container.getDestination()).isEqualTo(queue);
-		assertThat(TestUtils.getPropertyValue(jmsTemplate, "explicitQosEnabled")).isEqualTo(true);
-		assertThat(TestUtils.getPropertyValue(jmsTemplate, "deliveryMode")).isEqualTo(DeliveryMode.PERSISTENT);
-		assertThat(TestUtils.getPropertyValue(jmsTemplate, "timeToLive")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(jmsTemplate, "priority")).isEqualTo(12);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
+		assertThat(TestUtils.<Boolean>getPropertyValue(jmsTemplate, "explicitQosEnabled")).isEqualTo(true);
+		assertThat(TestUtils.<Integer>getPropertyValue(jmsTemplate, "deliveryMode")).isEqualTo(DeliveryMode.PERSISTENT);
+		assertThat(TestUtils.<Long>getPropertyValue(jmsTemplate, "timeToLive")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(jmsTemplate, "priority")).isEqualTo(12);
+		assertThat(TestUtils.<Integer>getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
 				.isEqualTo(Integer.MAX_VALUE);
 	}
 
@@ -146,10 +147,10 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 				"container");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("test.queue");
 		assertThat(container.getDestinationName()).isEqualTo("test.queue");
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
+		assertThat(TestUtils.<Integer>getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
 				.isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(container, "taskExecutor.threadNamePrefix"))
+		assertThat(TestUtils.<String>getPropertyValue(container, "taskExecutor.threadNamePrefix"))
 				.isEqualTo("queueNameChannel.container-");
 	}
 
@@ -175,7 +176,7 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 				"container");
 		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(topic);
 		assertThat(container.getDestination()).isEqualTo(topic);
-		assertThat(TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"))
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "container.messageListener.messageBuilderFactory"))
 				.isSameAs(this.messageBuilderFactory);
 	}
 
@@ -272,8 +273,7 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void withPlaceholders() {
-		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withPlaceholders, "container",
-				DefaultMessageListenerContainer.class);
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withPlaceholders, "container");
 		assertThat(container.getDestination().toString()).isEqualTo("ActiveMQQueue[test.queue]");
 		assertThat(container.getConcurrentConsumers()).isEqualTo(5);
 		assertThat(container.getMaxConcurrentConsumers()).isEqualTo(25);
@@ -281,41 +281,32 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void withDefaultContainer() {
-		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(
-				withDefaultContainer, "container",
-				DefaultMessageListenerContainer.class);
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withDefaultContainer, "container");
 		assertThat(container.getDestinationName()).isEqualTo("default.container.queue");
 	}
 
 	@Test
 	public void withExplicitDefaultContainer() {
-		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(
-				withExplicitDefaultContainer, "container",
-				DefaultMessageListenerContainer.class);
+		DefaultMessageListenerContainer container =
+				TestUtils.getPropertyValue(withExplicitDefaultContainer, "container");
 		assertThat(container.getDestinationName()).isEqualTo("explicit.default.container.queue");
 	}
 
 	@Test
 	public void withSimpleContainer() {
-		SimpleMessageListenerContainer container = TestUtils.getPropertyValue(
-				withSimpleContainer, "container",
-				SimpleMessageListenerContainer.class);
+		SimpleMessageListenerContainer container = TestUtils.getPropertyValue(withSimpleContainer, "container");
 		assertThat(container.getDestinationName()).isEqualTo("simple.container.queue");
 	}
 
 	@Test
 	public void withContainerClass() {
-		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(
-				withContainerClass, "container",
-				CustomTestMessageListenerContainer.class);
+		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(withContainerClass, "container");
 		assertThat(container.getDestinationName()).isEqualTo("custom.container.queue");
 	}
 
 	@Test
 	public void withContainerClassSpEL() {
-		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(
-				withContainerClassSpEL, "container",
-				CustomTestMessageListenerContainer.class);
+		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(withContainerClassSpEL, "container");
 		assertThat(container.getDestinationName()).isEqualTo("custom.container.queue");
 	}
 

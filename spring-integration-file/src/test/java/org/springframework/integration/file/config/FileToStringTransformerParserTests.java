@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -42,7 +43,7 @@ public class FileToStringTransformerParserTests {
 
 	@Test
 	public void checkDeleteFilesValue() {
-		assertThat(TestUtils.getPropertyValue(this.endpoint, "handler.transformer.deleteFiles", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.endpoint, "handler.transformer.deleteFiles")).isTrue();
 	}
 
 }

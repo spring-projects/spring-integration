@@ -70,6 +70,7 @@ import static org.mockito.Mockito.doAnswer;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Andy Wilkinson
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -111,8 +112,8 @@ public class UriVariableTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testHttpUriVariables() {
-		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway,
-				"webServiceTemplate", WebServiceTemplate.class);
+		WebServiceTemplate webServiceTemplate =
+				TestUtils.getPropertyValue(this.httpOutboundGateway, "webServiceTemplate");
 		webServiceTemplate = Mockito.spy(webServiceTemplate);
 		final AtomicReference<String> uri = new AtomicReference<>();
 		doAnswer(invocation -> {
@@ -199,7 +200,7 @@ public class UriVariableTests {
 		}
 		WebServiceConnection webServiceConnection = this.emailInterceptor.getLastWebServiceConnection();
 		assertThat(TestUtils.getPropertyValue(webServiceConnection, "to").toString()).isEqualTo(testEmailTo);
-		assertThat(TestUtils.getPropertyValue(webServiceConnection, "subject")).isEqualTo(testEmailSubject);
+		assertThat(TestUtils.<Object>getPropertyValue(webServiceConnection, "subject")).isEqualTo(testEmailSubject);
 		assertThat(this.emailInterceptor.getLastUri().toString())
 				.isEqualTo("mailto:user@example.com?subject=Test%20subject");
 	}

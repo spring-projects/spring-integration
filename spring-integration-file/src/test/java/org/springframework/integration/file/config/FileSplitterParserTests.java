@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -55,15 +56,19 @@ public class FileSplitterParserTests {
 
 	@Test
 	public void testComplete() {
-		assertThat(TestUtils.getPropertyValue(this.splitter, "returnIterator", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.splitter, "markers", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.splitter, "markersJson", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.splitter, "requiresReply", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.splitter, "applySequence", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.splitter, "charset")).isEqualTo(StandardCharsets.UTF_8);
-		assertThat(TestUtils.getPropertyValue(this.splitter, "messagingTemplate.sendTimeout")).isEqualTo(5L);
-		assertThat(TestUtils.getPropertyValue(this.splitter, "firstLineHeaderName")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(this.splitter, "discardChannelName")).isEqualTo("nullChannel");
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.splitter, "returnIterator")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.splitter, "markers")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.splitter, "markersJson")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.splitter, "requiresReply")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.splitter, "applySequence")).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(this.splitter, "charset"))
+				.isEqualTo(StandardCharsets.UTF_8);
+		assertThat(TestUtils.<Long>getPropertyValue(this.splitter, "messagingTemplate.sendTimeout"))
+				.isEqualTo(5L);
+		assertThat(TestUtils.<String>getPropertyValue(this.splitter, "firstLineHeaderName"))
+				.isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(this.splitter, "discardChannelName"))
+				.isEqualTo("nullChannel");
 		assertThat(this.splitter.getOutputChannel()).isSameAs(this.out);
 		assertThat(this.splitter.getOrder()).isEqualTo(2);
 		assertThat(this.fullBoat.getInputChannel()).isSameAs(this.in);

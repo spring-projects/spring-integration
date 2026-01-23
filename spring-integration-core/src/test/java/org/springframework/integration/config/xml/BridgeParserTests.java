@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -105,7 +106,8 @@ public class BridgeParserTests {
 
 	@Test
 	public void bridgeWithSendTimeout() {
-		assertThat(TestUtils.getPropertyValue(bridgeWithSendTimeout, "handler.messagingTemplate.sendTimeout"))
+		assertThat(TestUtils.<Long>getPropertyValue(bridgeWithSendTimeout,
+				"handler.messagingTemplate.sendTimeout"))
 				.isEqualTo(1234L);
 	}
 

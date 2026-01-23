@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -79,7 +80,6 @@ public class OutboundGatewayTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testExpressionsBeanResolver() {
 		ApplicationContext context = mock(ApplicationContext.class);
 		doAnswer(invocation -> invocation.getArguments()[0] + "bar").when(context).getBean(anyString());
@@ -102,12 +102,12 @@ public class OutboundGatewayTests {
 		endpoint.setConfirmCorrelationExpressionString("@baz");
 		endpoint.setBeanFactory(context);
 		endpoint.afterPropertiesSet();
-		Message<?> message = new GenericMessage<String>("Hello, world!");
-		assertThat(TestUtils.getPropertyValue(endpoint, "routingKeyGenerator", MessageProcessor.class)
+		Message<?> message = new GenericMessage<>("Hello, world!");
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(endpoint, "routingKeyGenerator")
 				.processMessage(message)).isEqualTo("foobar");
-		assertThat(TestUtils.getPropertyValue(endpoint, "exchangeNameGenerator", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(endpoint, "exchangeNameGenerator")
 				.processMessage(message)).isEqualTo("barbar");
-		assertThat(TestUtils.getPropertyValue(endpoint, "correlationDataGenerator", MessageProcessor.class)
+		assertThat(TestUtils.<MessageProcessor<?>>getPropertyValue(endpoint, "correlationDataGenerator")
 				.processMessage(message)).isEqualTo("bazbar");
 	}
 

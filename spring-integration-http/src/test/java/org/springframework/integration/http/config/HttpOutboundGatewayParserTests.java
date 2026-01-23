@@ -56,6 +56,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -98,13 +99,13 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(replyChannel).isNull();
 		Object requestFactory = TestUtils.getPropertyValue(handler, "restTemplate.requestFactory");
 		assertThat(requestFactory).isInstanceOf(SimpleClientHttpRequestFactory.class);
-		Expression uriExpression = TestUtils.getPropertyValue(handler, "uriExpression", Expression.class);
+		Expression uriExpression = TestUtils.getPropertyValue(handler, "uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(TestUtils.getPropertyValue(handler, "charset")).isEqualTo(StandardCharsets.UTF_8);
-		assertThat(TestUtils.getPropertyValue(handler, "extractPayload")).isEqualTo(true);
-		assertThat(TestUtils.getPropertyValue(handler, "transferCookies")).isEqualTo(false);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "charset")).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "extractPayload")).isEqualTo(true);
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "transferCookies")).isEqualTo(false);
 	}
 
 	@Test
@@ -124,20 +125,22 @@ public class HttpOutboundGatewayParserTests {
 		Object requestFactory = TestUtils.getPropertyValue(handler, "restTemplate.requestFactory");
 		assertThat(requestFactory).isInstanceOf(SimpleClientHttpRequestFactory.class);
 		Object converterListBean = this.applicationContext.getBean("converterList");
-		assertThat(TestUtils.getPropertyValue(handler, "restTemplate.messageConverters")).isEqualTo(converterListBean);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "restTemplate.messageConverters"))
+				.isEqualTo(converterListBean);
 
-		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "expectedResponseTypeExpression").getValue())
 				.isEqualTo(String.class.getName());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.PUT.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertThat(requestFactory).isEqualTo(requestFactoryBean);
 		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
-		assertThat(TestUtils.getPropertyValue(handler, "restTemplate.errorHandler")).isEqualTo(errorHandlerBean);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "restTemplate.errorHandler"))
+				.isEqualTo(errorHandlerBean);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertThat(sendTimeout).isEqualTo(1234L);
@@ -173,7 +176,7 @@ public class HttpOutboundGatewayParserTests {
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);

@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.5
  */
@@ -138,7 +139,7 @@ public class InboundChannelAdapterParserTests {
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
 		assertThat(value).isTrue();
-		assertThat(TestUtils.getPropertyValue(receiver, "evaluationContext.beanResolver")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(receiver, "evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test
@@ -308,7 +309,7 @@ public class InboundChannelAdapterParserTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 }

@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -64,31 +65,29 @@ public class SftpStreamingInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.sftpInbound, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.sftpInbound, "autoStartup")).isFalse();
 		assertThat(this.sftpInbound.getComponentName()).isEqualTo("sftpInbound");
 		assertThat(this.sftpInbound.getComponentType()).isEqualTo("sftp:inbound-streaming-channel-adapter");
-		assertThat(TestUtils.getPropertyValue(this.sftpInbound, "outputChannel")).isSameAs(this.sftpChannel);
-		SftpStreamingMessageSource source = TestUtils.getPropertyValue(sftpInbound, "source",
-				SftpStreamingMessageSource.class);
+		assertThat(TestUtils.<Object>getPropertyValue(this.sftpInbound, "outputChannel")).isSameAs(this.sftpChannel);
+		SftpStreamingMessageSource source = TestUtils.getPropertyValue(sftpInbound, "source");
 
-		assertThat(TestUtils.getPropertyValue(source, "comparator")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class)).isEqualTo("X");
+		assertThat(TestUtils.<Object>getPropertyValue(source, "comparator")).isNotNull();
+		assertThat(TestUtils.<String>getPropertyValue(source, "remoteFileSeparator")).isEqualTo("X");
 
-		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter", FileListFilter.class);
+		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter");
 		assertThat(filter).isNotNull();
 		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
-		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters");
 
 		Iterator<?> filtersIterator = fileFilters.iterator();
 		assertThat(filtersIterator.next()).isInstanceOf(SftpSimplePatternFileListFilter.class);
 		assertThat(filtersIterator.next()).isInstanceOf(SftpPersistentAcceptOnceFileListFilter.class);
 
-		assertThat(TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory")).isSameAs(this.csf);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(31);
+		assertThat(TestUtils.<Object>getPropertyValue(source, "remoteFileTemplate.sessionFactory")).isSameAs(this.csf);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(31);
 
-		source = TestUtils.getPropertyValue(this.contextLoadsWithNoComparator, "source",
-				SftpStreamingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "filter")).isInstanceOf(ExpressionFileListFilter.class);
+		source = TestUtils.getPropertyValue(this.contextLoadsWithNoComparator, "source");
+		assertThat(TestUtils.<Object>getPropertyValue(source, "filter")).isInstanceOf(ExpressionFileListFilter.class);
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultSftpSessionFactory> {

@@ -40,6 +40,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -51,6 +52,7 @@ import static org.springframework.integration.test.util.TestUtils.getPropertyVal
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -92,13 +94,13 @@ public class IdempotentReceiverParserTests {
 
 	@Test
 	public void testSelectorInterceptor() {
-		assertThat(getPropertyValue(this.selectorInterceptor, "messageSelector")).isSameAs(this.selector);
-		assertThat(getPropertyValue(this.selectorInterceptor, "discardChannel")).isNull();
-		assertThat(getPropertyValue(this.selectorInterceptor, "throwExceptionOnRejection", Boolean.class)).isFalse();
-		@SuppressWarnings("unchecked")
+		assertThat(TestUtils.<Object>getPropertyValue(this.selectorInterceptor, "messageSelector")).
+				isSameAs(this.selector);
+		assertThat(TestUtils.<Object>getPropertyValue(this.selectorInterceptor, "discardChannel")).isNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.selectorInterceptor, "throwExceptionOnRejection"))
+				.isFalse();
 		Map<String, List<String>> idempotentEndpoints =
-				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+				TestUtils.getPropertyValue(this.idempotentReceiverAutoProxyCreator, "idempotentEndpoints");
 		List<String> endpoints = idempotentEndpoints.get("selectorInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();
@@ -107,17 +109,19 @@ public class IdempotentReceiverParserTests {
 
 	@Test
 	public void testStrategyInterceptor() {
-		assertThat(getPropertyValue(this.strategyInterceptor, "discardChannel")).isSameAs(this.nullChannel);
-		assertThat(getPropertyValue(this.strategyInterceptor, "throwExceptionOnRejection", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(this.strategyInterceptor, "discardChannel"))
+				.isSameAs(this.nullChannel);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.strategyInterceptor, "throwExceptionOnRejection")).isTrue();
 		Object messageSelector = getPropertyValue(this.strategyInterceptor, "messageSelector");
 		assertThat(messageSelector).isInstanceOf(MetadataStoreSelector.class);
-		assertThat(getPropertyValue(messageSelector, "keyStrategy")).isSameAs(this.keyStrategy);
-		assertThat(getPropertyValue(messageSelector, "valueStrategy")).isSameAs(this.valueStrategy);
-		assertThat(getPropertyValue(messageSelector, "compareValues")).isSameAs(this.alwaysAccept);
-		@SuppressWarnings("unchecked")
+		assertThat(TestUtils.<Object>getPropertyValue(messageSelector, "keyStrategy"))
+				.isSameAs(this.keyStrategy);
+		assertThat(TestUtils.<Object>getPropertyValue(messageSelector, "valueStrategy"))
+				.isSameAs(this.valueStrategy);
+		assertThat(TestUtils.<Object>getPropertyValue(messageSelector, "compareValues"))
+				.isSameAs(this.alwaysAccept);
 		Map<String, List<String>> idempotentEndpoints =
-				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+				TestUtils.getPropertyValue(this.idempotentReceiverAutoProxyCreator, "idempotentEndpoints");
 		List<String> endpoints = idempotentEndpoints.get("strategyInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();
@@ -128,14 +132,14 @@ public class IdempotentReceiverParserTests {
 	public void testExpressionInterceptor() {
 		Object messageSelector = getPropertyValue(this.expressionInterceptor, "messageSelector");
 		assertThat(messageSelector).isInstanceOf(MetadataStoreSelector.class);
-		assertThat(getPropertyValue(messageSelector, "metadataStore")).isSameAs(this.store);
+		assertThat(TestUtils.<Object>getPropertyValue(messageSelector, "metadataStore"))
+				.isSameAs(this.store);
 		Object keyStrategy = getPropertyValue(messageSelector, "keyStrategy");
 		assertThat(keyStrategy).isInstanceOf(ExpressionEvaluatingMessageProcessor.class);
 		assertThat(keyStrategy.toString()).contains("headers.foo");
 		@SuppressWarnings("unchecked")
-		Map<String, List<String>> idempotentEndpoints =
-				getPropertyValue(this.idempotentReceiverAutoProxyCreator,
-						"idempotentEndpoints", Map.class);
+		Map<String, List<String>> idempotentEndpoints = TestUtils.getPropertyValue(
+				this.idempotentReceiverAutoProxyCreator, "idempotentEndpoints");
 		List<String> endpoints = idempotentEndpoints.get("expressionInterceptor");
 		assertThat(endpoints).isNotNull();
 		assertThat(endpoints.isEmpty()).isFalse();

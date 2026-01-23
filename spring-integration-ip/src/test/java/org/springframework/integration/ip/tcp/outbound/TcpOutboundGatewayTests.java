@@ -97,6 +97,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -148,12 +149,14 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		// check the default remote timeout
-		assertThat(TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.value")).isEqualTo(10000L);
+		assertThat(TestUtils.<Long>getPropertyValue(gateway, "remoteTimeoutExpression.value"))
+				.isEqualTo(10000L);
 		gateway.setSendTimeout(123);
 		gateway.setRemoteTimeout(60000);
 		gateway.setSendTimeout(61000);
 		// ensure this did NOT change the remote timeout
-		assertThat(TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.value")).isEqualTo(60000L);
+		assertThat(TestUtils.<Long>getPropertyValue(gateway, "remoteTimeoutExpression.value"))
+				.isEqualTo(60000L);
 		gateway.setRequestTimeout(60000);
 		for (int i = 100; i < 200; i++) {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
@@ -444,7 +447,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(replies.size()).isEqualTo(1);
 		assertThat(replies.get(0)).isEqualTo(lastReceived.get().replace("Test", "Reply"));
 		done.set(true);
-		assertThat(TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(gateway, "pendingReplies")).isEmpty();
 		gateway.stop();
 		ccf.stop();
 	}
@@ -740,7 +743,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(thrown).isInstanceOf(MessageHandlingException.class);
 		assertThat(thrown.getCause()).isInstanceOf(MessagingException.class);
 		assertThat(thrown.getCause().getCause()).isInstanceOf(EOFException.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(gateway, "pendingReplies")).isEmpty();
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply).isNull();
 		done.set(true);
@@ -847,7 +850,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(thrown).isInstanceOf(MessageHandlingException.class);
 		assertThat(thrown.getCause()).isInstanceOf(MessagingException.class);
 		assertThat(thrown.getCause().getCause()).isInstanceOf(SocketTimeoutException.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(gateway, "pendingReplies")).isEmpty();
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply).isNull();
 		done.set(true);
@@ -896,7 +899,7 @@ public class TcpOutboundGatewayTests {
 		this.executor.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
 		int n = 0;
 		@SuppressWarnings("unchecked")
-		Map<String, ?> pending = TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class);
+		Map<String, ?> pending = TestUtils.getPropertyValue(gateway, "pendingReplies");
 		await().atMost(Duration.ofSeconds(10)).until(() -> pending.size() > 0);
 		String connectionId = pending.keySet().iterator().next();
 		this.executor.execute(() -> gateway.onMessage(new ErrorMessage(new RuntimeException(),

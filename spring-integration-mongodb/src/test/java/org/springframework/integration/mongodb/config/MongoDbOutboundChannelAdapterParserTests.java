@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 public class MongoDbOutboundChannelAdapterParserTests {
@@ -51,59 +52,66 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	@Test
 	public void minimalConfig() {
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("minimalConfig.adapter"), "handler",
-						MongoDbStoringMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "componentName")).isEqualTo("minimalConfig.adapter");
-		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
-		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
-		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("data");
+				TestUtils.getPropertyValue(context.getBean("minimalConfig.adapter"), "handler");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "componentName")).isEqualTo("minimalConfig.adapter");
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoDbFactory"))
+				.isEqualTo(context.getBean("mongoDbFactory"));
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "collectionNameExpression"))
+				.isInstanceOf(LiteralExpression.class);
+		assertThat(TestUtils.<String>getPropertyValue(handler, "collectionNameExpression.literalValue"))
+				.isEqualTo("data");
 	}
 
 	@Test
 	public void fullConfigWithCollectionExpression() {
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression.adapter"), "handler",
-						MongoDbStoringMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "componentName"))
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression.adapter"), "handler");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "componentName"))
 				.isEqualTo("fullConfigWithCollectionExpression.adapter");
-		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
-		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
-		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(SpelExpression.class);
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.expression"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoDbFactory"))
+				.isEqualTo(context.getBean("mongoDbFactory"));
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "collectionNameExpression"))
+				.isInstanceOf(SpelExpression.class);
+		assertThat(TestUtils.<String>getPropertyValue(handler, "collectionNameExpression.expression"))
 				.isEqualTo("headers.collectionName");
 	}
 
 	@Test
 	public void fullConfigWithCollection() {
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection.adapter"), "handler",
-						MongoDbStoringMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "componentName")).isEqualTo("fullConfigWithCollection.adapter");
-		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
-		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "mongoDbFactory")).isEqualTo(context.getBean("mongoDbFactory"));
-		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("foo");
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection.adapter"), "handler");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "componentName"))
+				.isEqualTo("fullConfigWithCollection.adapter");
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoDbFactory"))
+				.isEqualTo(context.getBean("mongoDbFactory"));
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "collectionNameExpression"))
+				.isInstanceOf(LiteralExpression.class);
+		assertThat(TestUtils.<String>getPropertyValue(handler, "collectionNameExpression.literalValue"))
+				.isEqualTo("foo");
 	}
 
 	@Test
 	public void fullConfigWithMongoTemplate() {
 		MongoDbStoringMessageHandler handler =
-				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoTemplate.adapter"), "handler",
-						MongoDbStoringMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "componentName"))
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoTemplate.adapter"), "handler");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "componentName"))
 				.isEqualTo("fullConfigWithMongoTemplate.adapter");
-		assertThat(TestUtils.getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
-		assertThat(TestUtils.getPropertyValue(handler, "mongoTemplate")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "evaluationContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression")).isInstanceOf(LiteralExpression.class);
-		assertThat(TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue")).isEqualTo("foo");
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "collectionNameExpression"))
+				.isInstanceOf(LiteralExpression.class);
+		assertThat(TestUtils.<String>getPropertyValue(handler, "collectionNameExpression.literalValue"))
+				.isEqualTo("foo");
 	}
 
 	@Test
@@ -126,7 +134,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	public void testInt3024PollerAndRequestHandlerAdviceChain() {
 		AbstractEndpoint endpoint = context.getBean("pollableAdapter", AbstractEndpoint.class);
 		assertThat(endpoint).isInstanceOf(PollingConsumer.class);
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler");
 		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 	}

@@ -23,9 +23,9 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.AfterEach;
@@ -62,6 +62,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Joaquin Santana
  * @author Darryl Smith
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -130,7 +131,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests implements TestApplica
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> remoteFileMetadataStore =
-				TestUtils.getPropertyValue(synchronizer, "remoteFileMetadataStore.metadata", Map.class);
+				TestUtils.getPropertyValue(synchronizer, "remoteFileMetadataStore.metadata");
 
 		String next = remoteFileMetadataStore.values().iterator().next();
 		assertThat(URI.create(next).getHost()).isEqualTo("mock.sftp.host");
@@ -150,7 +151,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests implements TestApplica
 		assertThat(new File("test/a.test").exists()).isTrue();
 		assertThat(new File("test/b.test").exists()).isTrue();
 
-		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
+		TestUtils.<Set<?>>getPropertyValue(localAcceptOnceFilter, "seenSet").clear();
 
 		new File("test/a.test").delete();
 		new File("test/b.test").delete();

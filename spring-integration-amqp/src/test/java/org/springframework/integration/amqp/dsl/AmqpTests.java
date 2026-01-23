@@ -89,6 +89,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -166,7 +167,8 @@ public class AmqpTests implements RabbitTestContainer {
 	@Test
 	public void testAmqpInboundGatewayFlow() {
 		assertThat(this.amqpInboundGatewayContainer).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate")).isSameAs(this.amqpTemplate);
+		assertThat(TestUtils.<AmqpTemplate>getPropertyValue(this.amqpInboundGateway, "amqpTemplate"))
+				.isSameAs(this.amqpTemplate);
 
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
 		assertThat(result).isEqualTo("HELLO WORLD");
@@ -210,8 +212,7 @@ public class AmqpTests implements RabbitTestContainer {
 						this.rabbitConnectionFactory)
 				.autoStartup(false)
 				.templateChannelTransacted(true));
-		assertThat(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
-				Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional")).isTrue();
 	}
 
 	@Autowired
@@ -269,11 +270,13 @@ public class AmqpTests implements RabbitTestContainer {
 
 	@Test
 	void unitTestChannel() {
-		assertThat(TestUtils.getPropertyValue(this.unitChannel, "defaultDeliveryMode"))
+		assertThat(TestUtils.<MessageDeliveryMode>getPropertyValue(this.unitChannel, "defaultDeliveryMode"))
 				.isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
-		assertThat(TestUtils.getPropertyValue(this.unitChannel, "inboundHeaderMapper")).isSameAs(this.mapperIn);
-		assertThat(TestUtils.getPropertyValue(this.unitChannel, "outboundHeaderMapper")).isSameAs(this.mapperOut);
-		assertThat(TestUtils.getPropertyValue(this.unitChannel, "extractPayload", Boolean.class)).isTrue();
+		assertThat(TestUtils.<AmqpHeaderMapper>getPropertyValue(this.unitChannel, "inboundHeaderMapper"))
+				.isSameAs(this.mapperIn);
+		assertThat(TestUtils.<AmqpHeaderMapper>getPropertyValue(this.unitChannel, "outboundHeaderMapper"))
+				.isSameAs(this.mapperOut);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.unitChannel, "extractPayload")).isTrue();
 	}
 
 	@Test

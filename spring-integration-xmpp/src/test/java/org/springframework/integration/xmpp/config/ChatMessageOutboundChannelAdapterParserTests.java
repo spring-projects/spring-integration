@@ -53,6 +53,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Florian Schmaus
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -72,7 +73,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 	@Test
 	public void testPollingConsumer() {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
-		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
+		QueueChannel channel = TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
 		assertThat(channel.getComponentName()).isEqualTo("outboundPollingChannel");
 		assertThat(pollingConsumer).isInstanceOf(PollingConsumer.class);
 	}
@@ -85,8 +86,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 	@Test
 	public void advised() {
-		MessageHandler handler = TestUtils.getPropertyValue(context.getBean("advised"),
-				"handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(context.getBean("advised"), "handler");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -94,11 +94,10 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 	@Test
 	public void testEventConsumer() {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
-		DefaultXmppHeaderMapper headerMapper =
-				TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper", DefaultXmppHeaderMapper.class);
+		DefaultXmppHeaderMapper headerMapper = TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper");
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
-				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
+				"requestHeaderMatcher");
 		assertThat(requestHeaderMatcher.matchHeader("foo")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("foo123")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("bar")).isTrue();
@@ -109,7 +108,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 		MessageHandler outboundEventAdapterHandle =
 				context.getBean("outboundEventAdapter.handler", MessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(outboundEventAdapterHandle, "extensionProvider"))
+		assertThat(TestUtils.<Object>getPropertyValue(outboundEventAdapterHandle, "extensionProvider"))
 				.isSameAs(this.extensionElementProvider);
 	}
 
@@ -117,7 +116,8 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 	public void withHeaderMapper() throws Exception {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
 		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
-		assertThat(TestUtils.getPropertyValue(pollingConsumer, "handler.headerMapper")).isEqualTo(headerMapper);
+		assertThat(TestUtils.<DefaultXmppHeaderMapper>getPropertyValue(pollingConsumer, "handler.headerMapper"))
+				.isEqualTo(headerMapper);
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "oleg").
 				setHeader("foobar", "foobar").build();

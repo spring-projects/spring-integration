@@ -74,6 +74,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -224,7 +225,7 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 		factory.setBeanName("foo");
 		factory.registerListener(mock(TcpListener.class));
-		LogAccessor logAccessor = TestUtils.getPropertyValue(factory, "logger", LogAccessor.class);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(factory, "logger");
 		Log logger = spy(logAccessor.getLog());
 		new DirectFieldAccessor(logAccessor).setPropertyValue("log", logger);
 		final CountDownLatch latch1 = new CountDownLatch(1);

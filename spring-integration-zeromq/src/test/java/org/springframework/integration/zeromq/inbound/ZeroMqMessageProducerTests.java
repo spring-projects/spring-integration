@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Artem Bilan
  * @author Alessio Matricardi
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -75,7 +76,7 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.start();
 
 		@SuppressWarnings("unchecked")
-		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageProducer, "socketMono", Mono.class);
+		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageProducer, "socketMono");
 		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
 		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
 

@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -49,46 +50,42 @@ class HeaderEnricherParserTests {
 	@Test
 	void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
-		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
+		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(45000L);
 	}
 
 	@Test
 	void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
-		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
+		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(1234L);
 	}
 
 	@Test
 	void shouldSkipNullsDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
-		Boolean shouldSkipNulls = TestUtils
-				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls");
 		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	void shouldSkipNullsFalseConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
-		Boolean shouldSkipNulls = TestUtils
-				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls");
 		assertThat(shouldSkipNulls).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	void shouldSkipNullsTrueConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
-		Boolean shouldSkipNulls = TestUtils
-				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls");
 		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	void testStringPriorityHeader() {
 		MessageHandler messageHandler =
-				TestUtils.getPropertyValue(this.context.getBean("headerEnricherWithPriorityAsString"),
-						"handler", MessageHandler.class);
+				TestUtils.getPropertyValue(this.context.getBean("headerEnricherWithPriorityAsString"), "handler");
 		Message<?> message = new GenericMessage<>("hello");
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> messageHandler.handleMessage(message))
@@ -100,8 +97,7 @@ class HeaderEnricherParserTests {
 	@Test
 	void testStringPriorityHeaderWithType() {
 		MessageHandler messageHandler =
-				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"),
-						"handler", MessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"), "handler");
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 		messageHandler.handleMessage(message);

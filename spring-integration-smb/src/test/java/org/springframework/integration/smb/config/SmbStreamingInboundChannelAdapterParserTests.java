@@ -49,6 +49,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gregory Bragg
+ * @author Glenn Renfro
  *
  * @since 6.0
  */
@@ -70,31 +71,29 @@ public class SmbStreamingInboundChannelAdapterParserTests {
 
 	@Test
 	public void testSmbInboundChannelAdapterComplete() {
-		assertThat(TestUtils.getPropertyValue(this.smbInbound, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.smbInbound, "autoStartup")).isFalse();
 		assertThat(this.smbInbound.getComponentName()).isEqualTo("smbInbound");
 		assertThat(this.smbInbound.getComponentType()).isEqualTo("smb:inbound-streaming-channel-adapter");
-		assertThat(TestUtils.getPropertyValue(this.smbInbound, "outputChannel")).isSameAs(this.smbChannel);
-		SmbStreamingMessageSource source = TestUtils.getPropertyValue(smbInbound, "source",
-				SmbStreamingMessageSource.class);
+		assertThat(TestUtils.<Object>getPropertyValue(this.smbInbound, "outputChannel")).isSameAs(this.smbChannel);
+		SmbStreamingMessageSource source = TestUtils.getPropertyValue(smbInbound, "source");
 
-		assertThat(TestUtils.getPropertyValue(source, "comparator")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class)).isEqualTo("X");
+		assertThat(TestUtils.<Object>getPropertyValue(source, "comparator")).isNotNull();
+		assertThat(TestUtils.<String>getPropertyValue(source, "remoteFileSeparator")).isEqualTo("X");
 
-		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter", FileListFilter.class);
+		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter");
 		assertThat(filter).isNotNull();
 		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
-		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters");
 
 		Iterator<?> filtersIterator = fileFilters.iterator();
 		assertThat(filtersIterator.next()).isInstanceOf(SmbSimplePatternFileListFilter.class);
 		assertThat(filtersIterator.next()).isInstanceOf(SmbPersistentAcceptOnceFileListFilter.class);
 
-		assertThat(TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory")).isSameAs(this.csf);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(31);
+		assertThat(TestUtils.<Object>getPropertyValue(source, "remoteFileTemplate.sessionFactory")).isSameAs(this.csf);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(31);
 
-		source = TestUtils.getPropertyValue(this.contextLoadsWithNoComparator, "source",
-				SmbStreamingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "filter")).isInstanceOf(ExpressionFileListFilter.class);
+		source = TestUtils.getPropertyValue(this.contextLoadsWithNoComparator, "source");
+		assertThat(TestUtils.<Object>getPropertyValue(source, "filter")).isInstanceOf(ExpressionFileListFilter.class);
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<SmbSessionFactory> {

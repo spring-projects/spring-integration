@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -62,14 +63,14 @@ public class DelayerParserTests {
 		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
 		assertThat(delayHandler.getOrder()).isEqualTo(99);
 		assertThat(delayHandler.getOutputChannel()).isSameAs(this.context.getBean("output"));
-		assertThat(TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class)).isEqualTo(1234L);
+		assertThat(TestUtils.<Long>getPropertyValue(delayHandler, "defaultDelay")).isEqualTo(1234L);
 		//INT-2243
-		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Object>getPropertyValue(delayHandler, "delayExpression")).isNotNull();
+		assertThat(TestUtils.<Expression>getPropertyValue(delayHandler, "delayExpression").getExpressionString())
 				.isEqualTo("headers.foo");
-		assertThat(TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class))
+		assertThat(TestUtils.<Long>getPropertyValue(delayHandler, "messagingTemplate.sendTimeout"))
 				.isEqualTo(987L);
-		assertThat(TestUtils.getPropertyValue(delayHandler, "taskScheduler")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(delayHandler, "taskScheduler")).isNotNull();
 	}
 
 	@Test
@@ -104,8 +105,8 @@ public class DelayerParserTests {
 	@Test //INT-2649
 	public void transactionalSubElement() throws Exception {
 		Object endpoint = context.getBean("delayerWithTransactional");
-		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
-		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
+		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler");
+		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain");
 		assertThat(adviceChain.size()).isEqualTo(1);
 		Object advice = adviceChain.get(0);
 		assertThat(advice instanceof TransactionInterceptor).isTrue();
@@ -123,8 +124,8 @@ public class DelayerParserTests {
 	@Test //INT-2649
 	public void adviceChainSubElement() {
 		Object endpoint = context.getBean("delayerWithAdviceChain");
-		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
-		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
+		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler");
+		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain");
 		assertThat(adviceChain.size()).isEqualTo(2);
 		assertThat(adviceChain.get(0)).isSameAs(context.getBean("testAdviceBean"));
 
@@ -133,22 +134,22 @@ public class DelayerParserTests {
 		TransactionAttributeSource transactionAttributeSource =
 				((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
 		assertThat(transactionAttributeSource.getClass()).isEqualTo(NameMatchTransactionAttributeSource.class);
-		HashMap<?, ?> nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
+		HashMap<?, ?> nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap");
 		assertThat(nameMap.toString()).isEqualTo("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}");
 	}
 
 	@Test
 	public void testInt2243Expression() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpression.handler", DelayHandler.class);
-		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(delayHandler, "delayExpression").getExpressionString())
 				.isEqualTo("100");
-		assertThat(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(delayHandler, "ignoreExpressionFailures")).isFalse();
 	}
 
 	@Test
 	public void testInt2243ExpressionSubElement() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpressionSubElement.handler", DelayHandler.class);
-		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(delayHandler, "delayExpression").getExpressionString())
 				.isEqualTo("headers.timestamp + 1000");
 	}
 

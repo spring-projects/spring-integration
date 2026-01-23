@@ -68,6 +68,7 @@ import java.util.stream.Stream
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -134,7 +135,7 @@ class KafkaDslKotlinTests {
 	fun testKafkaAdapters() {
 		this.sendToKafkaFlowInput.send(GenericMessage("foo", hashMapOf<String, Any>("foo" to "bar")))
 
-		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameInstanceAs(this.mapper)
+		assertThat(TestUtils.getPropertyValue<Any>(this.kafkaProducer1, "headerMapper")).isSameInstanceAs(this.mapper)
 
 		for (i in 0..99) {
 			val receive = this.listeningFromKafkaResults1.receive(20000)

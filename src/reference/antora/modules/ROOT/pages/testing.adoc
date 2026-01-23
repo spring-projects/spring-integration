@@ -56,7 +56,7 @@ The `TestUtils` class is mostly used for properties assertions in JUnit tests, a
 public void loadBalancerRef() {
     MessageChannel channel = channels.get("lbRefChannel");
     LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel,
-                 "dispatcher.loadBalancingStrategy", LoadBalancingStrategy.class);
+                 "dispatcher.loadBalancingStrategy");
     assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
 }
 ----

@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Amol Nayak
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -58,85 +59,82 @@ public class JpaInboundChannelAdapterParserTests {
 	private SourcePollingChannelAdapter jpaInboundChannelAdapter3;
 
 	@Test
-	public void testJpaInboundChannelAdapterParser() throws Exception {
+	public void testJpaInboundChannelAdapterParser() {
 		AbstractMessageChannel outputChannel =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter1, "outputChannel", AbstractMessageChannel.class);
+				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter1, "outputChannel");
 
 		assertThat(outputChannel.getComponentName()).isEqualTo("out");
 
-		JpaExecutor jpaExecutor =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter1, "source.jpaExecutor", JpaExecutor.class);
+		JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.jpaInboundChannelAdapter1, "source.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass");
 
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 
-		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "expectSingleResult")).isTrue();
 		ParameterSource parameterSource = this.context.getBean(ParameterSource.class);
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "parameterSource")).isSameAs(parameterSource);
+		assertThat(TestUtils.<Object>getPropertyValue(jpaExecutor, "parameterSource")).isSameAs(parameterSource);
 	}
 
 	@Test
 	public void testJpaInboundChannelAdapterParserWithMaxResults() {
 		AbstractMessageChannel outputChannel =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter2, "outputChannel", AbstractMessageChannel.class);
+				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter2, "outputChannel");
 
 		assertThat(outputChannel.getComponentName()).isEqualTo("out");
 
-		JpaExecutor jpaExecutor =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter2, "source.jpaExecutor", JpaExecutor.class);
+		JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.jpaInboundChannelAdapter2, "source.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass");
 
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 
-		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", LiteralExpression.class);
+		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression");
 
 		assertThat(expression).isNotNull();
 
-		assertThat(TestUtils.getPropertyValue(expression, "literalValue")).isEqualTo("13");
+		assertThat(TestUtils.<String>getPropertyValue(expression, "literalValue")).isEqualTo("13");
 
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "deleteAfterPoll", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "flush", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "deleteAfterPoll")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "flush")).isTrue();
 	}
 
 	@Test
 	public void testJpaInboundChannelAdapterParserWithMaxResultsExpression() {
 		AbstractMessageChannel outputChannel =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter3, "outputChannel", AbstractMessageChannel.class);
+				TestUtils.<AbstractMessageChannel>getPropertyValue(this.jpaInboundChannelAdapter3, "outputChannel");
 
 		assertThat(outputChannel.getComponentName()).isEqualTo("out");
 
-		JpaExecutor jpaExecutor =
-				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter3, "source.jpaExecutor", JpaExecutor.class);
+		JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.jpaInboundChannelAdapter3, "source.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+		Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass");
 
 		assertThat(entityClass.getName()).isEqualTo("org.springframework.integration.jpa.test.entity.StudentDomain");
 
-		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", SpelExpression.class);
+		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression");
 
 		assertThat(expression).isNotNull();
 
-		assertThat(TestUtils.getPropertyValue(expression, "expression")).isEqualTo("@maxNumberOfResults");
+		assertThat(TestUtils.<String>getPropertyValue(expression, "expression")).isEqualTo("@maxNumberOfResults");
 	}
 
 	@Test

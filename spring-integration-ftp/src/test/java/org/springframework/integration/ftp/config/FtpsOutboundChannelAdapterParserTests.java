@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -56,18 +58,20 @@ public class FtpsOutboundChannelAdapterParserTests {
 	@Test
 	public void testFtpsOutboundChannelAdapterComplete() {
 		assertThat(ftpOutbound).isInstanceOf(EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(ftpOutbound, "inputChannel")).isEqualTo(this.ftpChannel);
+		assertThat(TestUtils.<DirectChannel>getPropertyValue(ftpOutbound, "inputChannel"))
+				.isEqualTo(this.ftpChannel);
 		assertThat(ftpOutbound.getComponentName()).isEqualTo("ftpOutbound");
 		FileTransferringMessageHandler<?> handler =
-				TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
+				TestUtils.getPropertyValue(ftpOutbound, "handler");
+		assertThat(TestUtils.<FileNameGenerator>getPropertyValue(handler,
+				"remoteFileTemplate.fileNameGenerator"))
 				.isEqualTo(this.fileNameGenerator);
-		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "remoteFileTemplate.charset"))
+				.isEqualTo(StandardCharsets.UTF_8);
 		DefaultFtpsSessionFactory sf =
-				TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory",
-						DefaultFtpsSessionFactory.class);
-		assertThat(TestUtils.getPropertyValue(sf, "host")).isEqualTo("localhost");
-		assertThat(TestUtils.getPropertyValue(sf, "port")).isEqualTo(22);
+				TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
+		assertThat(TestUtils.<String>getPropertyValue(sf, "host")).isEqualTo("localhost");
+		assertThat(TestUtils.<Integer>getPropertyValue(sf, "port")).isEqualTo(22);
 	}
 
 }

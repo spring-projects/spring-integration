@@ -74,6 +74,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gengwu Zhao
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -138,7 +139,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		failoverFactory.setCloseOnRefresh(closeOnRefresh);
 		failoverFactory.start();
 		TcpConnectionSupport connection = failoverFactory.getConnection();
-		assertThat(TestUtils.getPropertyValue(failoverFactory, "theConnection")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(failoverFactory, "theConnection")).isNotNull();
 		failoverFactory.setRefreshSharedInterval(interval);
 		InOrder inOrder = inOrder(factory1, factory2, conn1, conn2);
 		inOrder.verify(factory1).getConnection();
@@ -432,15 +433,15 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		conn1.send(new GenericMessage<>("foo1"));
 		conn1.close();
 		TcpConnection conn2 = failoverFactory.getConnection();
-		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn2, "delegate"))
 				.getTheConnection())
-				.isSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
+				.isSameAs((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn1, "delegate"))
 						.getTheConnection());
 		conn2.send(new GenericMessage<>("foo2"));
 		conn1 = failoverFactory.getConnection();
-		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn2, "delegate"))
 				.getTheConnection())
-				.isNotSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
+				.isNotSameAs((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn1, "delegate"))
 						.getTheConnection());
 		conn1.send(new GenericMessage<>("foo3"));
 		conn1.close();
@@ -456,7 +457,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		conn1.close();
 		conn2.close();
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory2, "pool", SimplePool.class);
+		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory2, "pool");
 		assertThat(pool.getIdleCount()).isEqualTo(2);
 		server2.stop();
 	}
@@ -581,15 +582,15 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		conn1.send(message);
 		conn1.close();
 		TcpConnection conn2 = failoverFactory.getConnection();
-		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn2, "delegate"))
 				.getTheConnection())
-				.isSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
+				.isSameAs((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn1, "delegate"))
 						.getTheConnection());
 		conn2.send(message);
 		conn1 = failoverFactory.getConnection();
-		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn2, "delegate"))
 				.getTheConnection())
-				.isNotSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
+				.isNotSameAs((TestUtils.<TcpConnectionInterceptorSupport>getPropertyValue(conn1, "delegate"))
 						.getTheConnection());
 		conn1.send(message);
 		conn1.close();
@@ -700,10 +701,10 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 
 	private Socket getSocket(AbstractClientConnectionFactory client) throws Exception {
 		if (client instanceof TcpNetClientConnectionFactory) {
-			return TestUtils.getPropertyValue(client.getConnection(), "socket", Socket.class);
+			return TestUtils.<Socket>getPropertyValue(client.getConnection(), "socket");
 		}
 		else {
-			return TestUtils.getPropertyValue(client.getConnection(), "socketChannel", SocketChannel.class).socket();
+			return TestUtils.<SocketChannel>getPropertyValue(client.getConnection(), "socketChannel").socket();
 		}
 	}
 

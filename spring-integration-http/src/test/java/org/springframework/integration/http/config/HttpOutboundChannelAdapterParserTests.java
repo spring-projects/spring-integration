@@ -59,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Biju Kunjummen
  * @author Shiliang Li
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -109,7 +110,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void minimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfig);
 		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
+				TestUtils.<RestTemplate>getPropertyValue(this.minimalConfig, "handler.restTemplate");
 		assertThat(restTemplate).isNotSameAs(customRestTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
@@ -125,7 +126,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
@@ -148,7 +149,7 @@ public class HttpOutboundChannelAdapterParserTests {
 				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "expectedResponseTypeExpression").getValue())
 				.isEqualTo(Boolean.class.getName());
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Object converterListBean = this.applicationContext.getBean("converterList");
@@ -159,7 +160,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(templateAccessor.getPropertyValue("errorHandler")).isEqualTo(errorHandlerBean);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2/{foo}");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.GET.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
@@ -175,15 +176,15 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1")).isTrue();
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
 		assertThat(
-				TestUtils.getPropertyValue(handler,
-						"restTemplate.uriTemplateHandler.encodingMode", DefaultUriBuilderFactory.EncodingMode.class))
+				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(
+						handler, "restTemplate.uriTemplateHandler.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
 	@Test
 	public void restTemplateConfig() {
 		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate");
 		assertThat(restTemplate).isEqualTo(customRestTemplate);
 	}
 
@@ -198,8 +199,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void withUrlAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
-		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate", RestTemplate.class);
+		RestTemplate restTemplate = TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate");
 		assertThat(restTemplate).isSameAs(customRestTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
@@ -215,7 +215,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
@@ -232,8 +232,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void withUrlExpression() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpression);
-		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate", RestTemplate.class);
+		RestTemplate restTemplate = TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate");
 		assertThat(restTemplate).isNotSameAs(customRestTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
@@ -250,7 +249,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
@@ -258,7 +257,7 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void withAdvice() {
-		MessageHandler handler = TestUtils.getPropertyValue(this.withAdvice, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(this.withAdvice, "handler");
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -267,8 +266,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void withUrlExpressionAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpressionAndTemplate);
 		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate",
-						RestTemplate.class);
+				TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate");
 		assertThat(restTemplate).isSameAs(customRestTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
@@ -285,7 +283,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
-		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
 		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);

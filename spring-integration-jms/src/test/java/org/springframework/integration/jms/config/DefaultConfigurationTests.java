@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -64,14 +65,13 @@ public class DefaultConfigurationTests {
 	public void verifyTaskScheduler() {
 		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
 		assertThat(taskScheduler.getClass()).isEqualTo(ThreadPoolTaskScheduler.class);
-		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);
+		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler");
 		assertThat(errorHandler.getClass()).isEqualTo(MessagePublishingErrorHandler.class);
-		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler,
-				"messagingTemplate.defaultDestination", MessageChannel.class);
+		MessageChannel defaultErrorChannel =
+				TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination");
 		assertThat(defaultErrorChannel).isNull();
 		errorHandler.handleError(new Throwable());
-		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination",
-				MessageChannel.class);
+		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination");
 		assertThat(defaultErrorChannel).isNotNull();
 		assertThat(defaultErrorChannel).isEqualTo(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
 	}

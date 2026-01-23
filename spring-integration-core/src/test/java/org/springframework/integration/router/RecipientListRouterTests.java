@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class RecipientListRouterTests {
 
@@ -429,7 +430,8 @@ public class RecipientListRouterTests {
 
 		router.handleMessage(new GenericMessage<String>("foo"));
 
-		assertThat(TestUtils.getPropertyValue(router, "defaultOutputChannel")).isSameAs(defaultChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(router, "defaultOutputChannel"))
+				.isSameAs(defaultChannel);
 		Mockito.verify(beanFactory).getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class));
 	}
 

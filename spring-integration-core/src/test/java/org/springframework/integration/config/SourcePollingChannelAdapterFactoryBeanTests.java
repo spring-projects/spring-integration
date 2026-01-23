@@ -67,6 +67,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class SourcePollingChannelAdapterFactoryBeanTests {
 
@@ -166,7 +167,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.setTaskScheduler(taskScheduler);
 
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
-		Log errorHandlerLogger = TestUtils.getPropertyValue(errorHandler, "logger", Log.class);
+		Log errorHandlerLogger = TestUtils.getPropertyValue(errorHandler, "logger");
 		errorHandlerLogger = spy(errorHandlerLogger);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(errorHandler);
 		dfa.setPropertyValue("logger", errorHandlerLogger);
@@ -177,7 +178,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.setBeanFactory(mock(BeanFactory.class));
 		pollingChannelAdapter.afterPropertiesSet();
 
-		LogAccessor adapterLogger = TestUtils.getPropertyValue(pollingChannelAdapter, "logger", LogAccessor.class);
+		LogAccessor adapterLogger = TestUtils.getPropertyValue(pollingChannelAdapter, "logger");
 		adapterLogger = spy(adapterLogger);
 		when(adapterLogger.isDebugEnabled()).thenReturn(true);
 
@@ -239,7 +240,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.setOutputChannel(outputChannel);
 		pollingChannelAdapter.setBeanFactory(mock(BeanFactory.class));
 
-		LogAccessor logger = spy(TestUtils.getPropertyValue(pollingChannelAdapter, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(pollingChannelAdapter, "logger"));
 		new DirectFieldAccessor(pollingChannelAdapter).setPropertyValue("logger", logger);
 
 		CountDownLatch logCalledLatch = new CountDownLatch(1);

@@ -37,7 +37,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Marius Bogoevici
@@ -47,6 +46,7 @@ import static org.springframework.integration.test.util.TestUtils.getPropertyVal
  * @author Stefan Ferstl
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -58,17 +58,16 @@ public class ResequencerParserTests {
 	@Test
 	void testDefaultResequencerProperties() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultResequencer");
-		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		assertThat(getPropertyValue(resequencer, "outputChannel")).isNull();
-		assertThat(getPropertyValue(resequencer, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
-		assertThat(getPropertyValue(resequencer, "sendPartialResultOnExpiry"))
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(resequencer, "outputChannel")).isNull();
+		assertThat(TestUtils.<Long>getPropertyValue(resequencer, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(resequencer, "sendPartialResultOnExpiry"))
 				.as("The ResequencerEndpoint is not configured with the appropriate 'send partial results on " +
 						"timeout'" +
 						" " +
 						"flag")
 				.isEqualTo(false);
-		assertThat(getPropertyValue(resequencer, "releasePartialSequences"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(resequencer, "releasePartialSequences"))
 				.as("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag")
 				.isEqualTo(false);
 	}
@@ -76,24 +75,24 @@ public class ResequencerParserTests {
 	@Test
 	void testPropertyAssignment() {
 		EventDrivenConsumer endpoint = this.context.getBean("completelyDefinedResequencer", EventDrivenConsumer.class);
-		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		assertThat(getPropertyValue(resequencer, "outputChannelName"))
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<String>getPropertyValue(resequencer, "outputChannelName"))
 				.as("The ResequencerEndpoint is not injected with the appropriate output channel")
 				.isEqualTo("outputChannel");
-		assertThat(getPropertyValue(resequencer, "discardChannelName"))
+		assertThat(TestUtils.<String>getPropertyValue(resequencer, "discardChannelName"))
 				.as("The ResequencerEndpoint is not injected with the appropriate discard channel")
 				.isEqualTo("discardChannel");
-		assertThat(getPropertyValue(resequencer, "messagingTemplate.sendTimeout"))
+		assertThat(TestUtils.<Long>getPropertyValue(resequencer, "messagingTemplate.sendTimeout"))
 				.as("The ResequencerEndpoint is not set with the appropriate timeout value").isEqualTo(86420000L);
-		assertThat(getPropertyValue(resequencer, "sendPartialResultOnExpiry"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(resequencer, "sendPartialResultOnExpiry"))
 				.as("The ResequencerEndpoint is not configured with the appropriate " +
 						"'send partial results on timeout' flag")
 				.isEqualTo(true);
-		assertThat(getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(
+				TestUtils.getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"))
 				.as("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag")
 				.isEqualTo(true);
-		assertThat(getPropertyValue(resequencer, "minimumTimeoutForEmptyGroups", Long.class).longValue())
+		assertThat(TestUtils.<Long>getPropertyValue(resequencer, "minimumTimeoutForEmptyGroups").longValue())
 				.isEqualTo(60000L);
 	}
 
@@ -101,54 +100,50 @@ public class ResequencerParserTests {
 	void testCorrelationStrategyRefOnly() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context
 				.getBean("resequencerWithCorrelationStrategyRefOnly");
-		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		assertThat(getPropertyValue(resequencer, "correlationStrategy"))
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(resequencer, "correlationStrategy"))
 				.as("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy")
-				.isEqualTo(context
-						.getBean("testCorrelationStrategy"));
+				.isEqualTo(context.getBean("testCorrelationStrategy"));
 	}
 
 	@Test
 	void testReleaseStrategyRefOnly() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithReleaseStrategyRefOnly");
-		ResequencingMessageHandler resequencer = getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		assertThat(getPropertyValue(resequencer, "releaseStrategy"))
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(resequencer, "releaseStrategy"))
 				.as("The ResequencerEndpoint is not configured with the appropriate ReleaseStrategy")
 				.isEqualTo(context.getBean("testReleaseStrategy"));
-		assertThat(TestUtils.getPropertyValue(resequencer, "expireGroupsUponTimeout", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(resequencer, "expireGroupsUponTimeout")).isFalse();
 	}
 
 	@Test
 	void testReleaseStrategyRefAndMethod() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context
 				.getBean("resequencerWithReleaseStrategyRefAndMethod");
-		ResequencingMessageHandler resequencer = getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
 
 		Object releaseStrategyBean = context.getBean("testReleaseStrategyPojo");
 		assertThat(releaseStrategyBean instanceof TestReleaseStrategyPojo)
-				.as("Release strategy is not of the expected type").isTrue();
+				.as("ReleaseStrategyTest strategy is not of the expected type").isTrue();
 		TestReleaseStrategyPojo expectedReleaseStrategy = (TestReleaseStrategyPojo) releaseStrategyBean;
 
 		int currentInvocationCount = expectedReleaseStrategy.invocationCount;
-		ReleaseStrategy effectiveReleaseStrategy = (ReleaseStrategy) getPropertyValue(resequencer, "releaseStrategy");
+		ReleaseStrategy effectiveReleaseStrategy = TestUtils.getPropertyValue(resequencer, "releaseStrategy");
 		assertThat(effectiveReleaseStrategy instanceof MethodInvokingReleaseStrategy)
 				.as("The release strategy is expected to be a MethodInvokingReleaseStrategy").isTrue();
 		effectiveReleaseStrategy.canRelease(new SimpleMessageGroup("test"));
 		assertThat(expectedReleaseStrategy.invocationCount)
 				.as("The ResequencerEndpoint was not invoked the expected number of times;")
 				.isEqualTo(currentInvocationCount + 1);
-		assertThat(TestUtils.getPropertyValue(resequencer, "expireGroupsUponTimeout", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(resequencer, "expireGroupsUponTimeout")).isTrue();
 	}
 
 	@Test
 	void shouldSetReleasePartialSequencesFlag() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
-		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		assertThat(getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"))
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		assertThat(TestUtils.<Boolean>getPropertyValue(
+				TestUtils.getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"))
 				.as("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag")
 				.isEqualTo(true);
 	}
@@ -157,9 +152,8 @@ public class ResequencerParserTests {
 	void testCorrelationStrategyRefAndMethod() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context
 				.getBean("resequencerWithCorrelationStrategyRefAndMethod");
-		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		Object correlationStrategy = getPropertyValue(resequencer, "correlationStrategy");
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler");
+		Object correlationStrategy = TestUtils.getPropertyValue(resequencer, "correlationStrategy");
 		assertThat(correlationStrategy.getClass())
 				.as("The ResequencerEndpoint is not configured with a CorrelationStrategy adapter")
 				.isEqualTo(MethodInvokingCorrelationStrategy.class);

@@ -43,6 +43,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author Artem Bilan
  * @author Alessio Matricardi
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -68,7 +69,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 		messageHandler.start();
 
 		@SuppressWarnings("unchecked")
-		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono", Mono.class);
+		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono");
 		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
 		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
 

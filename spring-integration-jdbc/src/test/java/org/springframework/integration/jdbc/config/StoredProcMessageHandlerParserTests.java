@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  *
@@ -166,7 +167,7 @@ public class StoredProcMessageHandlerParserTests {
 	public void adviceCalled() {
 		setUp("advisedStoredProcOutboundChannelAdapterTest.xml", getClass());
 
-		MessageHandler handler = TestUtils.getPropertyValue(this.consumer, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(this.consumer, "handler");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}

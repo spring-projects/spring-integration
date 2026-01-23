@@ -76,6 +76,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -329,7 +330,6 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 	}
 
 	@Test
-	@SuppressWarnings("rawtypes")
 	public void circuitBreakerTests() {
 		final AtomicBoolean doFail = new AtomicBoolean();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
@@ -375,7 +375,7 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 				.withMessage("Circuit Breaker is Open for bean 'baz'")
 				.extracting("failedMessage").isSameAs(message);
 
-		Map metadataMap = TestUtils.getPropertyValue(advice, "metadataMap", Map.class);
+		Map<?, ?> metadataMap = TestUtils.getPropertyValue(advice, "metadataMap");
 		Object metadata = metadataMap.values().iterator().next();
 
 		DirectFieldAccessor metadataDfa = new DirectFieldAccessor(metadata);
@@ -819,9 +819,9 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
 		consumer.start();
 
-		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "pollingTask", Callable.class);
+		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "pollingTask");
 		assertThat(AopUtils.isAopProxy(pollingTask)).isTrue();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(advice, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(advice, "logger"));
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
 		final AtomicReference<String> logMessage = new AtomicReference<>();
 		doAnswer(invocation -> {

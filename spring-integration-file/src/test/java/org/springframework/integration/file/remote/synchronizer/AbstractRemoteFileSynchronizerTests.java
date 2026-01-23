@@ -54,6 +54,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Venil Noronha
+ * @author Glenn Renfro
  *
  * @since 4.0.4
  *
@@ -123,7 +124,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		assertThat(count.get()).isEqualTo(1);
 
 		@SuppressWarnings("unchecked")
-		Map<String, List<String>> fetchCache = TestUtils.getPropertyValue(sync, "fetchCache", Map.class);
+		Map<String, List<String>> fetchCache = TestUtils.getPropertyValue(sync, "fetchCache");
 		List<String> cachedFiles = fetchCache.get("testRemoteDirectory");
 		assertThat(cachedFiles).containsExactly("testFile2", "testFile3");
 
@@ -140,7 +141,7 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 		assertThat(cachedFiles).isNull();
 
 		StringSession stringSession =
-				TestUtils.getPropertyValue(sync, "remoteFileTemplate.sessionFactory.session", StringSession.class);
+				TestUtils.<StringSession>getPropertyValue(sync, "remoteFileTemplate.sessionFactory.session");
 		assertThat(stringSession.listCallCount).isEqualTo(1);
 
 		sync.close();

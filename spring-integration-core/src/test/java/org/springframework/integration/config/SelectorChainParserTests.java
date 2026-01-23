@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -93,13 +94,12 @@ public class SelectorChainParserTests {
 		assertThat(chain4.accept(new GenericMessage<>("test4"))).isTrue();
 	}
 
-	@SuppressWarnings("unchecked")
 	private List<MessageSelector> getSelectors(MessageSelectorChain chain) {
-		return (List<MessageSelector>) TestUtils.getPropertyValue(chain, "selectors", List.class);
+		return TestUtils.getPropertyValue(chain, "selectors");
 	}
 
 	private VotingStrategy getStrategy(MessageSelectorChain chain) {
-		return TestUtils.getPropertyValue(chain, "votingStrategy", VotingStrategy.class);
+		return TestUtils.getPropertyValue(chain, "votingStrategy");
 	}
 
 	public static class StubPojoSelector {

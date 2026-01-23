@@ -45,6 +45,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -107,7 +108,7 @@ public class JsonToObjectTransformerParserTests {
 	@Test
 	public void testInt2831CustomJsonObjectMapper() {
 		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.customJsonMapperTransformer, "transformer");
-		assertThat(TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class))
+		assertThat(TestUtils.<JsonObjectMapper<?, ?>>getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper"))
 				.isSameAs(this.jsonObjectMapper);
 
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";

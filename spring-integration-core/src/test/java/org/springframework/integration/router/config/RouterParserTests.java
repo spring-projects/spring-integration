@@ -54,6 +54,7 @@ import static org.mockito.Mockito.verify;
  * @author Jonas Partner
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -175,8 +176,8 @@ public class RouterParserTests {
 	public void timeoutValueConfigured() {
 		assertThat(this.routerWithTimeout instanceof MethodInvokingRouter).isTrue();
 		MessagingTemplate template =
-				TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
-		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
+				TestUtils.<MessagingTemplate>getPropertyValue(this.routerWithTimeout, "messagingTemplate");
+		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout");
 		assertThat(timeout).isEqualTo(1234L);
 	}
 

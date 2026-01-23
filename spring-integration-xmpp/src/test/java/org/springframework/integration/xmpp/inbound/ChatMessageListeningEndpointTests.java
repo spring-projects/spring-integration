@@ -68,6 +68,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Florian Schmaus
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class ChatMessageListeningEndpointTests implements TestApplicationContextAware {
 
@@ -92,14 +93,14 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 		}).given(connection)
 				.removeAsyncStanzaListener(any(StanzaListener.class));
 
-		assertThat(packetListSet.size()).isEqualTo(0);
+		assertThat(packetListSet).isEmpty();
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		assertThat(packetListSet.size()).isEqualTo(1);
 		endpoint.stop();
-		assertThat(packetListSet.size()).isEqualTo(0);
+		assertThat(packetListSet).isEmpty();
 	}
 
 	@Test
@@ -116,7 +117,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
 	@Test
@@ -182,7 +183,7 @@ public class ChatMessageListeningEndpointTests implements TestApplicationContext
 		assertThat(((Message) payload).getStanzaId()).isEqualTo(smackMessage.getStanzaId());
 		assertThat(((Message) payload).getBody()).isEqualTo(smackMessage.getBody());
 
-		LogAccessor logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", LogAccessor.class));
+		LogAccessor logger = Mockito.spy(TestUtils.<LogAccessor>getPropertyValue(endpoint, "logger"));
 		given(logger.isInfoEnabled()).willReturn(true);
 		final CountDownLatch logLatch = new CountDownLatch(1);
 		willAnswer(invocation -> {

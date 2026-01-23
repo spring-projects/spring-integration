@@ -79,6 +79,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -243,7 +244,7 @@ public class IpIntegrationTests implements TestApplicationContextAware {
 
 	@Test
 	void async() {
-		assertThat(TestUtils.getPropertyValue(this.tcpOutAsync, "async", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.tcpOutAsync, "async")).isTrue();
 	}
 
 	@Autowired

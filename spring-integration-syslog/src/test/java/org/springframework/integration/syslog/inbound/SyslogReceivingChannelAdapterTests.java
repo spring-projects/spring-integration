@@ -63,6 +63,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author David Liu
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -80,8 +81,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
-				UnicastReceivingChannelAdapter.class);
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter");
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
 		adapter.setBeanFactory(mock());
@@ -115,11 +115,10 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setBeanFactory(getBeanFactory());
 		factory.afterPropertiesSet();
 		factory.start();
-		AbstractServerConnectionFactory server = TestUtils.getPropertyValue(factory, "syslogAdapter.connectionFactory",
-				AbstractServerConnectionFactory.class);
+		AbstractServerConnectionFactory server = TestUtils.getPropertyValue(factory, "syslogAdapter.connectionFactory");
 		TestingUtilities.waitListening(server, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(adapter, "logger"));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -154,8 +153,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
-				UnicastReceivingChannelAdapter.class);
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter");
 		server.setBeanFactory(mock());
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
@@ -206,7 +204,7 @@ public class SyslogReceivingChannelAdapterTests {
 		TestingUtilities.waitListening(connectionFactory, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
 		adapter.setBeanFactory(getBeanFactory());
-		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(adapter, "logger"));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -247,8 +245,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setApplicationEventPublisher(mock());
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
-				UnicastReceivingChannelAdapter.class);
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter");
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
 		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +

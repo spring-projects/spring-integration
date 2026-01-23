@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class ApplicationEventListeningMessageProducerTests {
 
@@ -227,7 +228,6 @@ public class ApplicationEventListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testInt2935CheckRetrieverCache() {
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
 		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
@@ -247,7 +247,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		ApplicationEventMulticaster multicaster =
 				ctx.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
 						ApplicationEventMulticaster.class);
-		Map<?, ?> retrieverCache = TestUtils.getPropertyValue(multicaster, "retrieverCache", Map.class);
+		Map<?, ?> retrieverCache = TestUtils.getPropertyValue(multicaster, "retrieverCache");
 
 		ctx.publishEvent(new TestApplicationEvent1());
 
@@ -257,10 +257,9 @@ public class ApplicationEventListeningMessageProducerTests {
 		 */
 		assertThat(retrieverCache.size()).isEqualTo(2);
 		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
-			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved",
-					Class.class);
+			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved");
 			assertThat(event).isIn(ContextRefreshedEvent.class, TestApplicationEvent1.class);
-			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
+			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners");
 			assertThat(listeners.size()).isEqualTo(1);
 			assertThat(listeners.iterator().next()).isSameAs(ctx.getBean("testListener"));
 		}
@@ -269,9 +268,9 @@ public class ApplicationEventListeningMessageProducerTests {
 		ctx.publishEvent(event2);
 		assertThat(retrieverCache.size()).isEqualTo(3);
 		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
-			Class<?> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved", Class.class);
+			Class<?> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved");
 			if (TestApplicationEvent2.class.isAssignableFrom(event)) {
-				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
+				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners");
 				assertThat(listeners.size()).isEqualTo(2);
 				for (Object listener : listeners) {
 					assertThat(listener)
@@ -297,7 +296,8 @@ public class ApplicationEventListeningMessageProducerTests {
 	private static void populateBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		beanFactory.registerSingleton(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
 				new SimpleApplicationEventMulticaster(beanFactory));
-		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new StandardEvaluationContext());
 	}
 
 	@Test

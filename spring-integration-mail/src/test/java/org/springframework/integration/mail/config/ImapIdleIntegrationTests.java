@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class ImapIdleIntegrationTests {
 
@@ -53,8 +54,8 @@ public class ImapIdleIntegrationTests {
 				new ClassPathXmlApplicationContext("imap-idle-mock-integration-config.xml", this.getClass());
 		PostTransactionProcessor processor = context.getBean("syncProcessor", PostTransactionProcessor.class);
 		ImapIdleChannelAdapter adapter = context.getBean("customAdapter", ImapIdleChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "applicationEventPublisher")).isNotNull();
-		ImapMailReceiver receiver = TestUtils.getPropertyValue(adapter, "mailReceiver", ImapMailReceiver.class);
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "applicationEventPublisher")).isNotNull();
+		ImapMailReceiver receiver = TestUtils.getPropertyValue(adapter, "mailReceiver");
 
 		// setup mock scenario
 		receiver = spy(receiver);

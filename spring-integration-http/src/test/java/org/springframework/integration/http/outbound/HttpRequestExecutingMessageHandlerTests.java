@@ -82,6 +82,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Florian Schöffl
+ * @author Glenn Renfro
  */
 public class HttpRequestExecutingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -451,7 +452,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		assertThat(aValue.get(1)).isEqualTo("2");
 
 		List<?> bValue = map.get("b");
-		assertThat(bValue.size()).isEqualTo(0);
+		assertThat(bValue).isEmpty();
 
 		List<?> cValue = map.get("c");
 		assertThat(cValue.size()).isEqualTo(1);
@@ -493,7 +494,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		assertThat(aValue.get(1).toString()).isEqualTo("Ambler");
 
 		List<?> bValue = map.get("b");
-		assertThat(bValue.size()).isEqualTo(0);
+		assertThat(bValue).isEmpty();
 
 		List<?> cValue = map.get("c");
 		assertThat(cValue.size()).isEqualTo(1);
@@ -674,7 +675,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = ctx.getBean("chain$child.adapter.handler",
 				HttpRequestExecutingMessageHandler.class);
 
-		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "trustedSpel")).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
 
@@ -787,7 +788,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
-		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
+		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate");
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
 
@@ -818,7 +819,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
-		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
+		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate");
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
 
@@ -922,7 +923,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 				throws RestClientException {
 
 			this.actualUrl.set(url.toString());
-			this.lastRequestEntity.set(TestUtils.getPropertyValue(requestCallback, "requestEntity", HttpEntity.class));
+			this.lastRequestEntity.set(TestUtils.getPropertyValue(requestCallback, "requestEntity"));
 			throw new RuntimeException("intentional");
 		}
 

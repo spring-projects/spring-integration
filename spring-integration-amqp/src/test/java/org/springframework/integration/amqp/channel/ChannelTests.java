@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.channel;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
@@ -61,6 +62,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -126,8 +128,9 @@ public class ChannelTests implements RabbitTestContainer {
 		this.channel.send(new GenericMessage<>("foo"));
 		latch.await(10, TimeUnit.SECONDS);
 		latch.reset();
-		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(this.channel,
-				"container.consumers", Set.class).iterator().next();
+		Iterator<BlockingQueueConsumer> blockingQueueConsumerIterator =
+				TestUtils.<Set<BlockingQueueConsumer>>getPropertyValue(this.channel, "container.consumers").iterator();
+		BlockingQueueConsumer consumer = blockingQueueConsumerIterator.next();
 		connectionFactory.destroy();
 		waitForNewConsumer(this.channel, consumer);
 		this.channel.send(new GenericMessage<>("bar"));
@@ -136,19 +139,18 @@ public class ChannelTests implements RabbitTestContainer {
 		this.pubSubWithEP.destroy();
 		this.withEP.destroy();
 		this.pollableWithEP.destroy();
-		assertThat(TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class)
-				.size()).isEqualTo(0);
+		assertThat(TestUtils.<Collection<?>>getPropertyValue(connectionFactory, "connectionListener.delegates"))
+				.isEmpty();
 	}
 
-	@SuppressWarnings("unchecked")
 	private void waitForNewConsumer(PublishSubscribeAmqpChannel channel, BlockingQueueConsumer consumer)
 			throws Exception {
 
-		Lock consumersLock = TestUtils.getPropertyValue(channel, "container.consumersLock", Lock.class);
+		Lock consumersLock = TestUtils.getPropertyValue(channel, "container.consumersLock");
 		int n = 0;
 		while (n++ < 100) {
 			Set<BlockingQueueConsumer> consumers = TestUtils
-					.getPropertyValue(channel, "container.consumers", Set.class);
+					.getPropertyValue(channel, "container.consumers");
 			consumersLock.lock();
 			try {
 				if (!consumers.isEmpty()) {
@@ -246,8 +248,10 @@ public class ChannelTests implements RabbitTestContainer {
 		assertThat(received.getPayload()).isEqualTo(foo);
 		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
 
-		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper")).isSameAs(this.mapperIn);
-		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper")).isSameAs(this.mapperOut);
+		assertThat(TestUtils.<AmqpHeaderMapper>getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"))
+				.isSameAs(this.mapperIn);
+		assertThat(TestUtils.<AmqpHeaderMapper>getPropertyValue(this.pollableWithEP, "outboundHeaderMapper"))
+				.isSameAs(this.mapperOut);
 	}
 
 	@Test
@@ -259,8 +263,7 @@ public class ChannelTests implements RabbitTestContainer {
 				new SimpleMessageListenerContainer(this.connectionFactory), amqpTemplate);
 		channel.setBeanFactory(mock());
 		channel.afterPropertiesSet();
-		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener",
-				MessageListener.class);
+		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener");
 		willThrow(new MessageConversionException("foo", new IllegalStateException("bar")))
 				.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
 		assertThatExceptionOfType(MessageConversionException.class)

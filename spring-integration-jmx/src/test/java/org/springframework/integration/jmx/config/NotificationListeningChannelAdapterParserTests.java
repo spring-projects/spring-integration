@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 2.0
  */
 @SpringJUnitConfig
@@ -94,7 +96,8 @@ public class NotificationListeningChannelAdapterParserTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(autoChannelAdapter, "outputChannel"))
+				.isSameAs(autoChannel);
 	}
 
 }

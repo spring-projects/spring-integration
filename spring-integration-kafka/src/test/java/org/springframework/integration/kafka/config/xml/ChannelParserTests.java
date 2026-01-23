@@ -40,6 +40,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  *
@@ -68,17 +69,17 @@ public class ChannelParserTests {
 
 	@Test
 	void testParser() {
-		assertThat(TestUtils.getPropertyValue(this.ptp, "topic")).isEqualTo("ptpTopic");
-		assertThat(TestUtils.getPropertyValue(this.pubSub, "topic")).isEqualTo("pubSubTopic");
-		assertThat(TestUtils.getPropertyValue(this.ptp, "container")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.pubSub, "container")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.ptp, "template")).isSameAs(this.template);
-		assertThat(TestUtils.getPropertyValue(this.pubSub, "template")).isSameAs(this.template);
-		assertThat(TestUtils.getPropertyValue(this.pollable, "template")).isSameAs(this.template);
-		assertThat(TestUtils.getPropertyValue(this.pollable, "source")).isSameAs(this.source);
-		assertThat(TestUtils.getPropertyValue(this.ptp, "groupId")).isEqualTo("ptpGroup");
-		assertThat(TestUtils.getPropertyValue(this.pubSub, "groupId")).isEqualTo("pubSubGroup");
-		assertThat(TestUtils.getPropertyValue(this.pollable, "groupId")).isEqualTo("pollableGroup");
+		assertThat(TestUtils.<String>getPropertyValue(this.ptp, "topic")).isEqualTo("ptpTopic");
+		assertThat(TestUtils.<String>getPropertyValue(this.pubSub, "topic")).isEqualTo("pubSubTopic");
+		assertThat(TestUtils.<Object>getPropertyValue(this.ptp, "container")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(this.pubSub, "container")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(this.ptp, "template")).isSameAs(this.template);
+		assertThat(TestUtils.<Object>getPropertyValue(this.pubSub, "template")).isSameAs(this.template);
+		assertThat(TestUtils.<Object>getPropertyValue(this.pollable, "template")).isSameAs(this.template);
+		assertThat(TestUtils.<Object>getPropertyValue(this.pollable, "source")).isSameAs(this.source);
+		assertThat(TestUtils.<String>getPropertyValue(this.ptp, "groupId")).isEqualTo("ptpGroup");
+		assertThat(TestUtils.<String>getPropertyValue(this.pubSub, "groupId")).isEqualTo("pubSubGroup");
+		assertThat(TestUtils.<String>getPropertyValue(this.pollable, "groupId")).isEqualTo("pollableGroup");
 	}
 
 	@Configuration

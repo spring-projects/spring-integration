@@ -97,6 +97,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -186,7 +187,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			assertThat(messageHistory).isNotNull();
 			String messageHistoryString = messageHistory.toString();
 			assertThat(messageHistoryString)
-					.contains("routerChannel", "filterChannel", "aggregatorChannel", "splitterChannel", "serviceChannel")
+					.contains("routerChannel", "filterChannel", "aggregatorChannel",
+							"splitterChannel", "serviceChannel")
 					.doesNotContain("discardChannel");
 		}
 
@@ -262,10 +264,10 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 	@Test
 	public void outputChannelIsLazyLoaded() {
-		assertThat(TestUtils.getPropertyValue(this.objectToMapTransformerHandler, "outputChannelName"))
+		assertThat(TestUtils.<String>getPropertyValue(this.objectToMapTransformerHandler, "outputChannelName"))
 				.isEqualTo("lazilyCreatedChannel");
 
-		assertThat(TestUtils.getPropertyValue(this.objectToMapTransformerHandler, "outputChannel")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(this.objectToMapTransformerHandler, "outputChannel")).isNull();
 
 		assertThat(this.objectToMapTransformerHandler.getOutputChannel())
 				.isInstanceOf(DirectChannel.class)

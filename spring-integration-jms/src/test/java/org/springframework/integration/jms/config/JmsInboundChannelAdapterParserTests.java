@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JmsInboundChannelAdapterParserTests {
 
@@ -66,8 +67,8 @@ public class JmsInboundChannelAdapterParserTests {
 				"jmsInboundWithJmsTemplate.xml", this.getClass())) {
 
 			JmsTemplate jmsTemplate =
-					TestUtils.getPropertyValue(context.getBean("inboundAdapterWithoutJmsTemplate"),
-							"source.jmsTemplate", JmsTemplate.class);
+					TestUtils.getPropertyValue(
+							context.getBean("inboundAdapterWithoutJmsTemplate"), "source.jmsTemplate");
 			assertThat(jmsTemplate.isSessionTransacted()).isTrue();
 		}
 	}
@@ -81,7 +82,7 @@ public class JmsInboundChannelAdapterParserTests {
 			Message<?> message = output.receive(timeoutOnReceive);
 			assertThat(message).as("message should not be null").isNotNull();
 			assertThat(message.getPayload()).isEqualTo("polling-test");
-			assertThat(TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class)
+			assertThat(TestUtils.<JmsTemplate>getPropertyValue(context.getBean("adapter"), "source.jmsTemplate")
 					.isSessionTransacted()).isFalse();
 		}
 	}
@@ -98,7 +99,7 @@ public class JmsInboundChannelAdapterParserTests {
 			JmsDestinationPollingSource jmsDestinationPollingSource = context
 					.getBean(JmsDestinationPollingSource.class);
 			JmsTemplate jmsTemplate =
-					TestUtils.getPropertyValue(jmsDestinationPollingSource, "jmsTemplate", JmsTemplate.class);
+					TestUtils.<JmsTemplate>getPropertyValue(jmsDestinationPollingSource, "jmsTemplate");
 			assertThat(jmsTemplate.getReceiveTimeout()).isEqualTo(1000);
 		}
 	}
@@ -179,7 +180,7 @@ public class JmsInboundChannelAdapterParserTests {
 				"jmsInboundWithReceiveTimeout.xml", this.getClass())) {
 
 			JmsTemplate jmsTemplate =
-					TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class);
+					TestUtils.<JmsTemplate>getPropertyValue(context.getBean("adapter"), "source.jmsTemplate");
 			assertThat(jmsTemplate.getReceiveTimeout()).isEqualTo(99);
 		}
 	}

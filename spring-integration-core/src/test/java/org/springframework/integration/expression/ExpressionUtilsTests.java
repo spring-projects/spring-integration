@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -55,7 +56,8 @@ public class ExpressionUtilsTests {
 		IntegrationEvaluationContextFactoryBean factory =
 				context.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 						IntegrationEvaluationContextFactoryBean.class);
-		assertThat(TestUtils.getPropertyValue(factory, "typeConverter")).isSameAs(evalContext.getTypeConverter());
+		assertThat(TestUtils.<Object>getPropertyValue(factory, "typeConverter"))
+				.isSameAs(evalContext.getTypeConverter());
 	}
 
 	@Test
@@ -68,7 +70,7 @@ public class ExpressionUtilsTests {
 		assertThat(evalContext.getBeanResolver()).isNotNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
+		assertThat(TestUtils.<Supplier<?>>getPropertyValue(typeConverter, "conversionService").get())
 				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
 
@@ -90,7 +92,7 @@ public class ExpressionUtilsTests {
 		assertThat(evalContext.getBeanResolver()).isNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
+		assertThat(TestUtils.<Supplier<?>>getPropertyValue(typeConverter, "conversionService").get())
 				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
 

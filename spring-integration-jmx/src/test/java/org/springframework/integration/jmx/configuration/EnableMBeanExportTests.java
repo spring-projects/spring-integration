@@ -50,6 +50,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 4.0
  */
 @SpringJUnitConfig(initializers = EnableMBeanExportTests.EnvironmentApplicationContextInitializer.class)
@@ -68,26 +70,25 @@ public class EnableMBeanExportTests {
 	@Autowired
 	private IntegrationManagementConfigurer configurer;
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
 		assertThat(beanFactory.containsBean("jsonPath")).isFalse(); // GH-3541
 		assertThat(beanFactory.containsBean("xPath")).isFalse(); // GH-3541
 
 		assertThat(this.exporter.getServer()).isSameAs(this.mBeanServer);
-		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
+		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns");
 		assertThat(componentNamePatterns).containsExactly("input", "inputX", "in*");
-		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.configurer, "defaultLoggingEnabled")).isFalse();
 
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
 		assertThat(names.size()).isEqualTo(1);
 		assertThat(names.iterator().next().getKeyProperty("name")).isEqualTo("input");
 		names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageHandler,*"), null);
-		assertThat(names.size()).isEqualTo(0);
+		assertThat(names).isEmpty();
 
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
-		List<Object> beanPostProcessors = TestUtils.getPropertyValue(beanFactory, "beanPostProcessors", List.class);
+		List<Object> beanPostProcessors = TestUtils.getPropertyValue(beanFactory, "beanPostProcessors");
 		Object mBeanExporterHelper = null;
 		for (Object beanPostProcessor : beanPostProcessors) {
 			if (clazz.isAssignableFrom(beanPostProcessor.getClass())) {
@@ -96,10 +97,10 @@ public class EnableMBeanExportTests {
 			}
 		}
 		assertThat(mBeanExporterHelper).isNotNull();
-		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("input"))
-				.isTrue();
-		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("output"))
-				.isTrue();
+		assertThat(TestUtils.<Set<?>>getPropertyValue(mBeanExporterHelper, "siBeanNames")
+				.contains("input"));
+		assertThat(TestUtils.<Set<?>>getPropertyValue(mBeanExporterHelper, "siBeanNames")
+				.contains("output"));
 	}
 
 	@Configuration

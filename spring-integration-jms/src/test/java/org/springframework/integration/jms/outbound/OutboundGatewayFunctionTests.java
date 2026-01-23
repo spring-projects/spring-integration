@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gengwu Zhao
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -362,8 +363,7 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		});
 
 		assertThat(gateway.handleRequestMessage(new GenericMessage<>("test"))).isNotNull();
-		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
-				DefaultMessageListenerContainer.class);
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer");
 		int n = 0;
 		while (n++ < 100 && container.isRunning()) {
 			Thread.sleep(100);

@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author David Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  *
@@ -173,7 +174,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("autoChannelJdbcPollingChannelAdapterParserTests-context.xml", getClass());
 		MessageChannel autoChannel = appCtx.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = appCtx.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@AfterEach

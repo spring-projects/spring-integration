@@ -44,6 +44,8 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
+ *
  * @since 2.0
  */
 class SubscribableRedisChannelTests implements RedisContainerTest {
@@ -63,8 +65,7 @@ class SubscribableRedisChannelTests implements RedisContainerTest {
 		channel.afterPropertiesSet();
 		channel.start();
 
-		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container",
-				RedisMessageListenerContainer.class));
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container"));
 
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = message -> latch.countDown();
@@ -84,8 +85,7 @@ class SubscribableRedisChannelTests implements RedisContainerTest {
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
 
-		RedisMessageListenerContainer container = TestUtils.getPropertyValue(
-				channel, "container", RedisMessageListenerContainer.class);
+		RedisMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
 		@SuppressWarnings("unchecked")
 		Map<?, Set<MessageListenerAdapter>> channelMapping = (Map<?, Set<MessageListenerAdapter>>) TestUtils
 				.getPropertyValue(container, "channelMapping");

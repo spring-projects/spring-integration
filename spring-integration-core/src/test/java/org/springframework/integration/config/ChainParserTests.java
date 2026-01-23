@@ -70,6 +70,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -220,12 +221,11 @@ public class ChainParserTests {
 		assertThat(reply).matches(new MessagePredicate(successMessage));
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void chainNestingAndAggregation() {
 		Message<?> message = MessageBuilder.withPayload("test").setCorrelationId(1).setSequenceSize(1).build();
 		this.aggregatorInput.send(message);
-		Message reply = this.output.receive(3000);
+		Message<?> reply = this.output.receive(3000);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
@@ -274,8 +274,7 @@ public class ChainParserTests {
 
 	@Test // INT-1165
 	public void chainWithSendTimeout() {
-		long sendTimeout = TestUtils.getPropertyValue(this.chainWithSendTimeout, "messagingTemplate.sendTimeout",
-				Long.class);
+		long sendTimeout = TestUtils.<Long>getPropertyValue(this.chainWithSendTimeout, "messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(9876);
 	}
 
@@ -304,8 +303,7 @@ public class ChainParserTests {
 			return null;
 		}).when(logger).warn(any(Supplier.class));
 
-		@SuppressWarnings("unchecked")
-		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers", List.class);
+		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers");
 		MessageHandler handler = handlers.get(2);
 		assertThat(handler instanceof LoggingHandler).isTrue();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
@@ -336,11 +334,12 @@ public class ChainParserTests {
 		assertThat(chainEndpoint.getPhase()).isEqualTo(256);
 
 		MessageHandlerChain handlerChain = ctx.getBean("chain.handler", MessageHandlerChain.class);
-		assertThat(TestUtils.getPropertyValue(handlerChain, "messagingTemplate.sendTimeout")).isEqualTo(3000L);
-		assertThat(TestUtils.getPropertyValue(handlerChain, "running")).isEqualTo(false);
+		assertThat(TestUtils.<Long>getPropertyValue(handlerChain, "messagingTemplate.sendTimeout"))
+				.isEqualTo(3000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(handlerChain, "running")).isEqualTo(false);
 		//INT-3108
 		MessageHandler serviceActivator = ctx.getBean("chain$child.sa-within-chain.handler", MessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(serviceActivator, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(serviceActivator, "requiresReply")).isTrue();
 		ctx.close();
 	}
 
@@ -394,15 +393,13 @@ public class ChainParserTests {
 		GatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
 				this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
 						GatewayProxyFactoryBean.class);
-		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"))
+		assertThat(TestUtils.<String>getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"))
 				.isEqualTo("strings");
-		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName")).isEqualTo(
-				"numbers");
-		assertThat(TestUtils
-				.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class).getValue())
+		assertThat(TestUtils.<String>getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName"))
+				.isEqualTo("numbers");
+		assertThat(TestUtils.<Expression>getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout").getValue())
 				.isEqualTo(1000L);
-		assertThat(TestUtils
-				.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class).getValue())
+		assertThat(TestUtils.<Expression>getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout").getValue())
 				.isEqualTo(100L);
 
 		assertThat(this.beanFactory
@@ -416,8 +413,8 @@ public class ChainParserTests {
 		Object transformer = TestUtils.getPropertyValue(transformerHandler, "transformer");
 
 		assertThat(transformer).isInstanceOf(ObjectToMapTransformer.class);
-		assertThat(TestUtils.getPropertyValue(transformer, "shouldFlattenKeys", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(transformer, "jsonObjectMapper"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(transformer, "shouldFlattenKeys")).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(transformer, "jsonObjectMapper"))
 				.isSameAs(this.beanFactory.getBean(JsonObjectMapper.class));
 
 		assertThat(this.beanFactory
@@ -430,21 +427,22 @@ public class ChainParserTests {
 		assertThat(this.beanFactory
 				.containsBean("recipientListRouterChain$child.recipientListRouterWithinChain.handler")).isTrue();
 
-		MessageHandlerChain chain = this.beanFactory.getBean("headerEnricherChain.handler", MessageHandlerChain.class);
-		List<?> handlers = TestUtils.getPropertyValue(chain, "handlers", List.class);
+		MessageHandlerChain chain = this.beanFactory.getBean("headerEnricherChain.handler",
+				MessageHandlerChain.class);
+		List<?> handlers = TestUtils.getPropertyValue(chain, "handlers");
 
 		assertThat(handlers.get(0) instanceof MessageTransformingHandler).isTrue();
-		assertThat(TestUtils.getPropertyValue(handlers.get(0), "componentName"))
+		assertThat(TestUtils.<String>getPropertyValue(handlers.get(0), "componentName"))
 				.isEqualTo("headerEnricherChain$child.headerEnricherWithinChain");
-		assertThat(TestUtils.getPropertyValue(handlers.get(0), "beanName"))
+		assertThat(TestUtils.<String>getPropertyValue(handlers.get(0), "beanName"))
 				.isEqualTo("headerEnricherChain$child.headerEnricherWithinChain.handler");
 		assertThat(this.beanFactory.containsBean("headerEnricherChain$child.headerEnricherWithinChain.handler"))
 				.isTrue();
 
 		assertThat(handlers.get(1) instanceof ServiceActivatingHandler).isTrue();
-		assertThat(TestUtils.getPropertyValue(handlers.get(1), "componentName"))
+		assertThat(TestUtils.<String>getPropertyValue(handlers.get(1), "componentName"))
 				.isEqualTo("headerEnricherChain$child#1");
-		assertThat(TestUtils.getPropertyValue(handlers.get(1), "beanName"))
+		assertThat(TestUtils.<String>getPropertyValue(handlers.get(1), "beanName"))
 				.isEqualTo("headerEnricherChain$child#1.handler");
 		assertThat(this.beanFactory.containsBean("headerEnricherChain$child#1.handler")).isFalse();
 

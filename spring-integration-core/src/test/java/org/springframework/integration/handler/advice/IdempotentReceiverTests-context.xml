@@ -7,7 +7,7 @@
 	   http://www.springframework.org/schema/integration
 	   https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<beans:bean id="advice" class="org.springframework.integration.handler.advice.IdempotentReceiverTests$FooAdvice"/>
+	<beans:bean id="advice" class="org.springframework.integration.handler.advice.IdempotentReceiverTests$TestAdvice"/>
 
 	<beans:bean id="store" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 

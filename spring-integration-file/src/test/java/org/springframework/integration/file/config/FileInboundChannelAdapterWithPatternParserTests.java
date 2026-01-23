@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -72,13 +73,13 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = TestUtils.getPropertyValue(this.source, "directoryExpression.value", File.class);
+		File actual = TestUtils.getPropertyValue(this.source, "directoryExpression.value");
 		assertThat(actual).isEqualTo(expected);
 	}
 
 	@Test
 	public void compositeFilterType() {
-		FileListFilter<?> filter = TestUtils.getPropertyValue(this.source, "scanner.filter", FileListFilter.class);
+		FileListFilter<?> filter = TestUtils.getPropertyValue(this.source, "scanner.filter");
 		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
 	}
 

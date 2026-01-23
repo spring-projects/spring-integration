@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -75,9 +76,9 @@ public class ObjectToJsonTransformerParserTests {
 	@Test
 	public void testContentType() {
 		ObjectToJsonTransformer transformer =
-				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer",
-						ObjectToJsonTransformer.class);
-		assertThat(TestUtils.getPropertyValue(transformer, "contentType")).isEqualTo("application/json");
+				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer");
+		assertThat(TestUtils.<String>getPropertyValue(transformer, "contentType"))
+				.isEqualTo("application/json");
 
 		assertThat(TestUtils.getPropertyValue(transformer, "jsonObjectMapper").getClass())
 				.isEqualTo(JacksonJsonObjectMapper.class);
@@ -90,10 +91,9 @@ public class ObjectToJsonTransformerParserTests {
 		// Reset readOnlyHeaders to defaults. Therefore the 'contentType' should be presented in subsequent tests
 		this.defaultMessageBuilderFactory.setReadOnlyHeaders();
 
-		transformer =
-				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer",
-						ObjectToJsonTransformer.class);
-		assertThat(TestUtils.getPropertyValue(transformer, "contentType")).isEqualTo("");
+		transformer = TestUtils.<ObjectToJsonTransformer>getPropertyValue(
+				context.getBean("emptyContentTypeTransformer"), "handler.transformer");
+		assertThat(TestUtils.<String>getPropertyValue(transformer, "contentType")).isEmpty();
 
 		transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
 		assertThat(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE)).isFalse();
@@ -104,9 +104,9 @@ public class ObjectToJsonTransformerParserTests {
 		assertThat(transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isEqualTo("foo");
 
 		transformer =
-				TestUtils.getPropertyValue(context.getBean("overriddenContentTypeTransformer"), "handler.transformer",
-						ObjectToJsonTransformer.class);
-		assertThat(TestUtils.getPropertyValue(transformer, "contentType")).isEqualTo("text/xml");
+				TestUtils.getPropertyValue(context.getBean("overriddenContentTypeTransformer"), "handler.transformer");
+		assertThat(TestUtils.<String>getPropertyValue(transformer, "contentType"))
+				.isEqualTo("text/xml");
 	}
 
 	@Test

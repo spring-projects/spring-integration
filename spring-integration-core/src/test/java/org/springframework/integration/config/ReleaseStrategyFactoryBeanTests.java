@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0.2
  */
@@ -57,27 +58,29 @@ public class ReleaseStrategyFactoryBeanTests {
 
 	@Test
 	public void testRefWithMethodWithDifferentAnnotatedMethod() throws Exception {
-		Bar bar = new Bar();
+		ReleaseStrategyTest bar = new ReleaseStrategyTest();
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.setTarget(bar);
 		factory.setMethodName("doRelease2");
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class)).isEqualTo(bar);
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
+		assertThat(TestUtils.<ReleaseStrategyTest>getPropertyValue(delegate, "adapter.delegate.targetObject"))
+				.isEqualTo(bar);
+		assertThat(TestUtils.<String>getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
 				.isEqualTo("#target.doRelease2(messages)");
 	}
 
 	@Test
 	public void testRefWithNoMethodWithAnnotation() throws Exception {
-		Bar bar = new Bar();
+		ReleaseStrategyTest bar = new ReleaseStrategyTest();
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.setTarget(bar);
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class)).isEqualTo(bar);
+		assertThat(TestUtils.<ReleaseStrategyTest>getPropertyValue(delegate, "adapter.delegate.targetObject"))
+				.isEqualTo(bar);
 	}
 
 	@Test
@@ -117,8 +120,8 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Baz.class)).isEqualTo(baz);
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
+		assertThat(TestUtils.<Baz>getPropertyValue(delegate, "adapter.delegate.targetObject")).isEqualTo(baz);
+		assertThat(TestUtils.<String>getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
 				.isEqualTo("#target.doRelease2(messages)");
 	}
 
@@ -130,7 +133,7 @@ public class ReleaseStrategyFactoryBeanTests {
 
 	}
 
-	public class Bar {
+	public class ReleaseStrategyTest {
 
 		@org.springframework.integration.annotation.ReleaseStrategy
 		public boolean doRelease(Collection<?> bar) {

@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Tim Ysewyn
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -111,9 +112,9 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				.connectionSupport(conSupp)
 				.socketFactorySupport(factSupp)
 				.getObject();
-		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
-		assertThat(TestUtils.getPropertyValue(server, "tcpNetConnectionSupport")).isSameAs(conSupp);
-		assertThat(TestUtils.getPropertyValue(server, "tcpSocketFactorySupport")).isSameAs(factSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(server, "tcpNetConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(server, "tcpSocketFactorySupport")).isSameAs(factSupp);
 	}
 
 	@Test
@@ -125,9 +126,9 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				.directBuffers(true)
 				.connectionSupport(conSupp)
 				.getObject();
-		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
-		assertThat(TestUtils.getPropertyValue(server, "usingDirectBuffers", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(server, "tcpNioConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.<Boolean>getPropertyValue(server, "usingDirectBuffers")).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(server, "tcpNioConnectionSupport")).isSameAs(conSupp);
 	}
 
 	@Test
@@ -140,9 +141,9 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				.connectionSupport(conSupp)
 				.socketFactorySupport(factSupp)
 				.getObject();
-		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
-		assertThat(TestUtils.getPropertyValue(client, "tcpNetConnectionSupport")).isSameAs(conSupp);
-		assertThat(TestUtils.getPropertyValue(client, "tcpSocketFactorySupport")).isSameAs(factSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(client, "tcpNetConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(client, "tcpSocketFactorySupport")).isSameAs(factSupp);
 	}
 
 	@Test
@@ -154,9 +155,9 @@ public class ConnectionFactoryTests implements TestApplicationContextAware {
 				.directBuffers(true)
 				.connectionSupport(conSupp)
 				.getObject();
-		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
-		assertThat(TestUtils.getPropertyValue(client, "usingDirectBuffers", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(client, "tcpNioConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.<Object>getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.<Boolean>getPropertyValue(client, "usingDirectBuffers")).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(client, "tcpNioConnectionSupport")).isSameAs(conSupp);
 	}
 
 }

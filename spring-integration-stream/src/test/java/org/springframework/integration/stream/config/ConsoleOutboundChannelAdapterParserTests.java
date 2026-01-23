@@ -52,6 +52,7 @@ import static org.mockito.Mockito.verify;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 
 @SpringJUnitConfig
@@ -84,8 +85,8 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	@Test
 	public void stdoutAdapterWithDefaultCharset() throws IOException {
 		BufferedWriter bufferedWriter =
-				TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer", BufferedWriter.class);
-		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+				TestUtils.<BufferedWriter>getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer");
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out");
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
@@ -101,14 +102,15 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		this.stdoutAdapterWithDefaultCharsetHandler.handleMessage(new GenericMessage<>("foo"));
 
 		verify(bufferedWriter, times(1)).write(eq("foo"));
-		assertThat(TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order")).isEqualTo(23);
+		assertThat(TestUtils.<Integer>getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order"))
+				.isEqualTo(23);
 	}
 
 	@Test
 	public void stdoutAdapterWithProvidedCharset() throws IOException {
 		BufferedWriter bufferedWriter =
-				TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer", BufferedWriter.class);
-		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+				TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer");
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out");
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertThat(writerCharset).isEqualTo(StandardCharsets.UTF_8);
@@ -137,8 +139,8 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	@Test
 	public void stderrAdapter() throws IOException {
 		BufferedWriter bufferedWriter =
-				TestUtils.getPropertyValue(this.stderrAdapterHandler, "writer", BufferedWriter.class);
-		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+				TestUtils.<BufferedWriter>getPropertyValue(this.stderrAdapterHandler, "writer");
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out");
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
@@ -155,14 +157,14 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 		verify(bufferedWriter, times(1)).write(eq("bar"));
 
-		assertThat(TestUtils.getPropertyValue(this.stderrAdapterHandler, "order")).isEqualTo(34);
+		assertThat(TestUtils.<Integer>getPropertyValue(this.stderrAdapterHandler, "order")).isEqualTo(34);
 	}
 
 	@Test
 	public void stdoutAdatperWithAppendNewLine() throws IOException {
 		BufferedWriter bufferedWriter =
-				TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
-		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+				TestUtils.<BufferedWriter>getPropertyValue(this.newlineAdapterHandler, "writer");
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out");
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
@@ -184,17 +186,17 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 	@Test //INT-2275
 	public void stdoutInsideNestedChain() throws IOException {
-		List<?> handlers = TestUtils.getPropertyValue(this.stdoutChainHandler, "handlers", List.class);
+		List<?> handlers = TestUtils.getPropertyValue(this.stdoutChainHandler, "handlers");
 		assertThat(handlers.size()).isEqualTo(2);
 		Object chainHandler = handlers.get(1);
 		assertThat(chainHandler instanceof MessageHandlerChain).isTrue();
-		List<?> nestedChainHandlers = TestUtils.getPropertyValue(chainHandler, "handlers", List.class);
+		List<?> nestedChainHandlers = TestUtils.getPropertyValue(chainHandler, "handlers");
 		assertThat(nestedChainHandlers.size()).isEqualTo(1);
 		Object stdoutHandler = nestedChainHandlers.get(0);
 		assertThat(stdoutHandler instanceof CharacterStreamWritingMessageHandler).isTrue();
 
-		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(stdoutHandler, "writer", BufferedWriter.class);
-		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(stdoutHandler, "writer");
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out");
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());

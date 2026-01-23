@@ -65,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alexander Pinske
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -114,10 +115,10 @@ public class MailTests {
 
 	@Test
 	public void testSmtp() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.sendMailHandler, "mailSender.host")).isEqualTo("localhost");
+		assertThat(TestUtils.<String>getPropertyValue(this.sendMailHandler, "mailSender.host")).isEqualTo("localhost");
 
-		Properties javaMailProperties = TestUtils.getPropertyValue(this.sendMailHandler,
-				"mailSender.javaMailProperties", Properties.class);
+		Properties javaMailProperties =
+				TestUtils.getPropertyValue(this.sendMailHandler, "mailSender.javaMailProperties");
 		assertThat(javaMailProperties.getProperty("mail.debug")).isEqualTo("false");
 
 		this.sendMailChannel.send(MessageBuilder.withPayload("foo").build());
@@ -190,7 +191,7 @@ public class MailTests {
 		assertThat(message.getPayload()).isEqualTo("foo\r\n");
 		assertThat(message.getHeaders()).containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		this.imapIdleAdapter.stop();
-		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically"))
 				.isFalse();
 	}
 

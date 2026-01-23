@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -106,8 +107,8 @@ public class GroovyRouterTests {
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertThat(this.groovyRouterMessageHandler).isInstanceOf(MethodInvokingRouter.class);
 		@SuppressWarnings("rawtypes")
-		MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovyRouterMessageHandler,
-				"messageProcessor", MessageProcessor.class);
+		MessageProcessor messageProcessor =
+				TestUtils.getPropertyValue(this.groovyRouterMessageHandler, "messageProcessor");
 		//before it was MethodInvokingMessageProcessor
 		assertThat(messageProcessor).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}

@@ -36,6 +36,8 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 2.1
  *
  */
@@ -71,7 +73,7 @@ public class ClientModeControlBusTests {
 		await("Connection never established").atMost(Duration.ofSeconds(10))
 				.until(() -> controlBus.boolResult("@tcpIn.isClientModeConnected()"));
 		assertThat(controlBus.boolResult("@tcpIn.isRunning()")).isTrue();
-		assertThat(TestUtils.getPropertyValue(tcpIn, "taskScheduler")).isSameAs(taskScheduler);
+		assertThat(TestUtils.<Object>getPropertyValue(tcpIn, "taskScheduler")).isSameAs(taskScheduler);
 		controlBus.voidResult("@tcpIn.retryConnection()");
 	}
 

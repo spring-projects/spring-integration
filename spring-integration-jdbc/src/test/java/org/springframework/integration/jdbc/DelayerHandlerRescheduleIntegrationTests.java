@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class DelayerHandlerRescheduleIntegrationTests {
 
@@ -80,8 +81,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
 		ClassLoader messageStoreDeserializerClassLoader =
-				TestUtils.getPropertyValue(messageStore, "deserializer.defaultDeserializerClassLoader",
-						ClassLoader.class);
+				TestUtils.<ClassLoader>getPropertyValue(messageStore, "deserializer.defaultDeserializerClassLoader");
 		assertThat(messageStoreDeserializerClassLoader).isSameAs(context.getClassLoader());
 		assertThat(messageStore.getMessageGroupCount()).isEqualTo(0);
 		Message<String> message1 = MessageBuilder.withPayload("test1").build();

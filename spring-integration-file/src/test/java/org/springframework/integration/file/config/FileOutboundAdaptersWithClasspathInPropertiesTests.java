@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -58,7 +59,7 @@ public class FileOutboundAdaptersWithClasspathInPropertiesTests {
 		File expected = new ClassPathResource("").getFile();
 
 		var destinationDirectoryExpression =
-				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class);
+				TestUtils.<Expression>getPropertyValue(handler, "destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
 
 		assertThat(actual).as("'destinationDirectory' should be set").isEqualTo(expected);
@@ -70,7 +71,7 @@ public class FileOutboundAdaptersWithClasspathInPropertiesTests {
 		File expected = new ClassPathResource("").getFile();
 
 		var destinationDirectoryExpression =
-				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class);
+				TestUtils.<Expression>getPropertyValue(handler, "destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
 
 		assertThat(actual).as("'destinationDirectory' should be set").isEqualTo(expected);

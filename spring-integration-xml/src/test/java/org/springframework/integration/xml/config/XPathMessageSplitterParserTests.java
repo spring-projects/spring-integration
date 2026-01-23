@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @ContextConfiguration
 @DirtiesContext
@@ -82,10 +83,10 @@ public class XPathMessageSplitterParserTests {
 						</si-xml:xpath-splitter>
 						""");
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		consumer.start();
 		ctx.getAutowireCapableBeanFactory()
 				.autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);

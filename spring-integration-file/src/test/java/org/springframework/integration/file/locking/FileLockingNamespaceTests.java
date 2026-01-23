@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Iwein Fuld
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -70,17 +71,17 @@ public class FileLockingNamespaceTests {
 
 	@Test
 	public void shouldSetCustomLockerProperly() {
-		assertThat(TestUtils.getPropertyValue(this.customLockingSource, "scanner.locker"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customLockingSource, "scanner.locker"))
 				.isInstanceOf(StubLocker.class);
-		assertThat(TestUtils.getPropertyValue(this.customLockingSource, "scanner.filter"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.customLockingSource, "scanner.filter"))
 				.isInstanceOf(CompositeFileListFilter.class);
 	}
 
 	@Test
 	public void shouldSetNioLockerProperly() {
-		assertThat(TestUtils.getPropertyValue(this.nioLockingSource, "scanner.locker"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.nioLockingSource, "scanner.locker"))
 				.isInstanceOf(NioFileLocker.class);
-		assertThat(TestUtils.getPropertyValue(this.nioLockingSource, "scanner.filter"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.nioLockingSource, "scanner.filter"))
 				.isInstanceOf(CompositeFileListFilter.class);
 	}
 

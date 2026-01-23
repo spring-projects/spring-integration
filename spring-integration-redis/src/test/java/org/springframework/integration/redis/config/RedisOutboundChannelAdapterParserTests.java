@@ -25,7 +25,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -50,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -101,8 +101,7 @@ class RedisOutboundChannelAdapterParserTests implements RedisContainerTest {
 	@Test
 	void testOutboundChannelAdapterMessaging() throws Exception {
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
-		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
-				RedisMessageListenerContainer.class));
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container"));
 		sendChannel.send(new GenericMessage<>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(10000);
@@ -121,8 +120,7 @@ class RedisOutboundChannelAdapterParserTests implements RedisContainerTest {
 		//INT-2275
 	void testOutboundChannelAdapterWithinChain() throws Exception {
 		MessageChannel sendChannel = context.getBean("redisOutboundChain", MessageChannel.class);
-		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
-				RedisMessageListenerContainer.class));
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container"));
 		sendChannel.send(new GenericMessage<>("Hello Redis from chain"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(10000);

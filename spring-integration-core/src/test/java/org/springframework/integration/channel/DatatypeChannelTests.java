@@ -52,6 +52,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 2.0
  */
 public class DatatypeChannelTests {
@@ -135,7 +137,7 @@ public class DatatypeChannelTests {
 		context.refresh();
 
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"))
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter.conversionService"))
 				.isSameAs(context.getBean(ConversionService.class));
 		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
 		assertThat(channel.receive().getPayload()).isEqualTo(1);

@@ -39,7 +39,6 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.listener.adapter.ReplyingMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.log.LogAccessor;
@@ -51,6 +50,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -67,6 +67,7 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3
  *
@@ -125,7 +126,7 @@ class AsyncAmqpGatewayTests implements RabbitTestContainer, TestApplicationConte
 		receiver.start();
 
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(asyncTemplate);
-		LogAccessor logger = spy(TestUtils.getPropertyValue(gateway, "logger", LogAccessor.class));
+		LogAccessor logger = spy((LogAccessor) TestUtils.getPropertyValue(gateway, "logger"));
 		given(logger.isDebugEnabled()).willReturn(true);
 		final CountDownLatch replyTimeoutLatch = new CountDownLatch(1);
 		willAnswer(invocation -> {

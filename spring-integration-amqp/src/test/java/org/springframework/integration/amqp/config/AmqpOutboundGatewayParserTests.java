@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -52,6 +54,7 @@ import static org.mockito.ArgumentMatchers.isNull;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.1
  *
@@ -68,31 +71,33 @@ public class AmqpOutboundGatewayParserTests {
 	@Test
 	public void testGatewayConfig() {
 		Object edc = this.context.getBean("rabbitGateway");
-		assertThat(TestUtils.getPropertyValue(edc, "autoStartup", Boolean.class)).isFalse();
-		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
+		assertThat(TestUtils.<Boolean>getPropertyValue(edc, "autoStartup")).isFalse();
+		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler");
 		assertThat(gateway.getComponentType()).isEqualTo("amqp:outbound-gateway");
-		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "requiresReply")).isTrue();
 		checkGWProps(this.context, gateway);
 
 		AsyncAmqpOutboundGateway async = this.context.getBean("asyncGateway.handler", AsyncAmqpOutboundGateway.class);
 		assertThat(async.getComponentType()).isEqualTo("amqp:outbound-async-gateway");
 		checkGWProps(this.context, async);
-		assertThat(TestUtils.getPropertyValue(async, "template")).isSameAs(this.context.getBean("asyncTemplate"));
-		assertThat(TestUtils.getPropertyValue(gateway, "errorMessageStrategy")).isSameAs(this.context.getBean("ems"));
+		assertThat(TestUtils.<AsyncRabbitTemplate>getPropertyValue(async, "template"))
+				.isSameAs(this.context.getBean("asyncTemplate"));
+		assertThat(TestUtils.<ErrorMessageStrategy>getPropertyValue(gateway, "errorMessageStrategy"))
+				.isSameAs(this.context.getBean("ems"));
 	}
 
 	protected void checkGWProps(ApplicationContext context, Orderable gateway) {
 		assertThat(gateway.getOrder()).isEqualTo(5);
-		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isEqualTo(context.getBean("fromRabbit"));
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(gateway, "outputChannel"))
+				.isEqualTo(context.getBean("fromRabbit"));
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "returnChannel")).isSameAs(returnChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(gateway, "returnChannel")).isSameAs(returnChannel);
 
-		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout");
 
 		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
-		assertThat(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class)).isTrue();
-		assertThat(TestUtils
-				.getPropertyValue(gateway, "delayExpression", org.springframework.expression.Expression.class)
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "lazyConnect")).isTrue();
+		assertThat(TestUtils.<org.springframework.expression.Expression>getPropertyValue(gateway, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
 	}
 
@@ -100,17 +105,16 @@ public class AmqpOutboundGatewayParserTests {
 	public void withHeaderMapperCustomRequestResponse() {
 		Object eventDrivenConsumer = this.context.getBean("withHeaderMapperCustomRequestResponse");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
-		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class)).isFalse();
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "lazyConnect")).isFalse();
 
-		assertThat(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "requiresReply")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "headersMappedLast")).isTrue();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
@@ -166,14 +170,13 @@ public class AmqpOutboundGatewayParserTests {
 	public void withHeaderMapperCustomAndStandardResponse() {
 		Object eventDrivenConsumer = this.context.getBean("withHeaderMapperCustomAndStandardResponse");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
-		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
-		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
+		assertThat(TestUtils.<MessageDeliveryMode>getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "headersMappedLast")).isFalse();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -217,12 +220,11 @@ public class AmqpOutboundGatewayParserTests {
 	public void withHeaderMapperNothingToMap() {
 		Object eventDrivenConsumer = this.context.getBean("withHeaderMapperNothingToMap");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
-				AmqpOutboundEndpoint.class);
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -265,13 +267,13 @@ public class AmqpOutboundGatewayParserTests {
 	public void amqpOutboundGatewayWithinChain() {
 		Object eventDrivenConsumer = this.context.getBean("chainWithRabbitOutboundGateway");
 
-		List<?> chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
+		List<?> chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers");
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate");
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {

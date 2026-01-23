@@ -92,6 +92,7 @@ import static org.mockito.Mockito.times;
  * @author Gary Russell
  * @author Anshul Mehra
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  *
@@ -571,14 +572,14 @@ class MessageSourceTests {
 		Message<?> received2 = source.receive(); // inflight
 		assertThat(received1.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		AcknowledgmentCallback ack1 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received1);
-		Log log1 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger.log", Log.class));
+		Log log1 = (Log) spy(KafkaTestUtils.getPropertyValue(ack1, "logger.log"));
 		new DirectFieldAccessor(ack1).setPropertyValue("logger.log", log1);
 		given(log1.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log1).warn(any());
 		ack1.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		assertThat(received2.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		AcknowledgmentCallback ack2 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2);
-		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack2, "logger.log", Log.class));
+		Log log2 = (Log) spy(KafkaTestUtils.getPropertyValue(ack2, "logger.log"));
 		new DirectFieldAccessor(ack2).setPropertyValue("logger.log", log2);
 		given(log2.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log2).warn(any());
@@ -625,11 +626,11 @@ class MessageSourceTests {
 	void testMaxPollRecords() {
 		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
 				new ConsumerProperties("topic"));
-		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
+		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
 				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
-		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
+		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 
 		assertThatIllegalArgumentException()

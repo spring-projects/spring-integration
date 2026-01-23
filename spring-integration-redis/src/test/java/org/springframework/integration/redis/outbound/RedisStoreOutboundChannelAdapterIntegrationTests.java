@@ -65,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -289,7 +290,8 @@ class RedisStoreOutboundChannelAdapterIntegrationTests implements RedisContainer
 
 		RedisStoreWritingMessageHandler handler =
 				this.beanFactory.getBean("mapToZset.handler", RedisStoreWritingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "keyExpression.expression")).isEqualTo("'presidents'");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "keyExpression.expression"))
+				.isEqualTo("'presidents'");
 
 		this.mapToZsetChannel.send(message);
 
@@ -331,9 +333,9 @@ class RedisStoreOutboundChannelAdapterIntegrationTests implements RedisContainer
 
 		RedisStoreWritingMessageHandler handler = this.beanFactory.getBean("mapToMapA.handler",
 				RedisStoreWritingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "keyExpression", LiteralExpression.class).getExpressionString())
+		assertThat(TestUtils.<LiteralExpression>getPropertyValue(handler, "keyExpression").getExpressionString())
 				.isEqualTo("pepboys");
-		assertThat(TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString())
+		assertThat(TestUtils.<SpelExpression>getPropertyValue(handler, "mapKeyExpression").getExpressionString())
 				.isEqualTo("'foo'");
 	}
 

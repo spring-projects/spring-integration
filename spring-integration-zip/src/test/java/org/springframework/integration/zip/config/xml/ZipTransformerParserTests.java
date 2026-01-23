@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -57,21 +58,21 @@ public class ZipTransformerParserTests {
 	public void testZipTransformerParserWithDefaults() {
 		EventDrivenConsumer consumer = this.context.getBean("zipTransformerWithDefaults", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
 		assertThat(inputChannel.getComponentName()).isEqualTo("input");
 
-		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageTransformingHandler.class);
+		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler");
 
-		assertThat(TestUtils.getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
 
-		final ZipTransformer zipTransformer = TestUtils.getPropertyValue(handler, "transformer", ZipTransformer.class);
+		final ZipTransformer zipTransformer = TestUtils.getPropertyValue(handler, "transformer");
 
-		final Charset charset = TestUtils.getPropertyValue(zipTransformer, "charset", Charset.class);
-		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(zipTransformer, "fileNameGenerator", FileNameGenerator.class);
-		final ZipResultType zipResultType = TestUtils.getPropertyValue(zipTransformer, "zipResultType", ZipResultType.class);
-		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory", File.class);
-		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel", Integer.class);
-		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles", Boolean.class);
+		final Charset charset = TestUtils.getPropertyValue(zipTransformer, "charset");
+		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(zipTransformer, "fileNameGenerator");
+		final ZipResultType zipResultType = TestUtils.getPropertyValue(zipTransformer, "zipResultType");
+		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory");
+		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel");
+		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles");
 
 		assertThat(charset).isNotNull();
 		assertThat(fileNameGenerator).isNotNull();
@@ -95,21 +96,21 @@ public class ZipTransformerParserTests {
 	public void testZipTransformerParserWithExplicitSettings() {
 		EventDrivenConsumer consumer = this.context.getBean("zipTransformer", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
 		assertThat(inputChannel.getComponentName()).isEqualTo("input");
 
-		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageTransformingHandler.class);
+		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler");
 
-		assertThat(TestUtils.getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
 
-		final ZipTransformer zipTransformer = TestUtils.getPropertyValue(handler, "transformer", ZipTransformer.class);
+		final ZipTransformer zipTransformer = TestUtils.getPropertyValue(handler, "transformer");
 
-		final Charset charset = TestUtils.getPropertyValue(zipTransformer, "charset", Charset.class);
-		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(zipTransformer, "fileNameGenerator", FileNameGenerator.class);
-		final ZipResultType zipResultType = TestUtils.getPropertyValue(zipTransformer, "zipResultType", ZipResultType.class);
-		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory", File.class);
-		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel", Integer.class);
-		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles", Boolean.class);
+		final Charset charset = TestUtils.getPropertyValue(zipTransformer, "charset");
+		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(zipTransformer, "fileNameGenerator");
+		final ZipResultType zipResultType = TestUtils.getPropertyValue(zipTransformer, "zipResultType");
+		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory");
+		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel");
+		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles");
 
 		assertThat(charset).isNotNull();
 		assertThat(fileNameGenerator).isNotNull();

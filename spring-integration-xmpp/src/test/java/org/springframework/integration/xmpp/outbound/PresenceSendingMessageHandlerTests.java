@@ -37,6 +37,7 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Florian Schmaus
+ * @author Glenn Renfro
  */
 public class PresenceSendingMessageHandlerTests {
 
@@ -64,7 +65,7 @@ public class PresenceSendingMessageHandlerTests {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
-		assertThat(TestUtils.getPropertyValue(handler, "xmppConnection")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "xmppConnection")).isNotNull();
 	}
 
 	@Test

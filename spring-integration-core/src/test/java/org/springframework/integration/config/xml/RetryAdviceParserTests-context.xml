@@ -25,23 +25,23 @@
 		<int:exponential-back-off initial="1000" multiplier="3.0" maximum="10000" jitter="6"/>
 	</int:handler-retry-advice>
 
-	<int:handler-retry-advice id="a7" recovery-channel="foo" send-timeout="4567" />
+	<int:handler-retry-advice id="a7" recovery-channel="inputChannel" send-timeout="4567" />
 
-	<int:channel id="foo" />
+	<int:channel id="inputChannel" />
 
-	<int:service-activator id="sa1" input-channel="foo" expression="'foo'">
+	<int:service-activator id="sa1" input-channel="inputChannel" expression="'expression'">
 		<int:request-handler-advice-chain>
 			<ref bean="a1"/>
 		</int:request-handler-advice-chain>
 	</int:service-activator>
 
-	<int:service-activator id="sa2" input-channel="foo" expression="'foo'">
+	<int:service-activator id="sa2" input-channel="inputChannel" expression="'expression'">
 		<int:request-handler-advice-chain>
 			<int:retry-advice max-retries="9" />
 		</int:request-handler-advice-chain>
 	</int:service-activator>
 
-	<int:service-activator id="saDefaultRetry" input-channel="foo" expression="'foo'">
+	<int:service-activator id="saDefaultRetry" input-channel="inputChannel" expression="'expression'">
 		<int:request-handler-advice-chain>
 			<int:retry-advice />
 		</int:request-handler-advice-chain>

@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -59,20 +60,22 @@ public class XPathSplitterParserTests {
 
 	@Test
 	public void testXpathSplitterConfig() {
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "returnIterator", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties")).isSameAs(this.outputProperties);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.xpathSplitter, "createDocuments")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.xpathSplitter, "applySequence")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.xpathSplitter, "returnIterator")).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(this.xpathSplitter, "outputProperties"))
+				.isSameAs(this.outputProperties);
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "xpathExpression").toString())
 				.isEqualTo("/orders/order");
-		assertThat(TestUtils.getPropertyValue(xpathSplitter, "order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "discardChannelName")).isEqualTo("nullChannel");
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(xpathSplitter, "order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<String>getPropertyValue(this.xpathSplitter, "discardChannelName"))
+				.isEqualTo("nullChannel");
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		@SuppressWarnings("unchecked")
-		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
-				MultiValueMap.class).get("foo");
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(
+				roleController, "lifecycles").get("foo");
 		assertThat(list).containsExactly(consumer);
 	}
 

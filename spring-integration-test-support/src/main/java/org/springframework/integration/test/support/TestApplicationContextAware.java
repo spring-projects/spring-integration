@@ -63,7 +63,7 @@ public interface TestApplicationContextAware {
 			}
 		}
 		Object nullChannel = TEST_INTEGRATION_CONTEXT.getBean("nullChannel");
-		TestUtils.getPropertyValue(nullChannel, "queue", LinkedBlockingQueue.class).clear();
+		TestUtils.<LinkedBlockingQueue<?>>getPropertyValue(nullChannel, "queue").clear();
 	}
 
 	@AfterAll

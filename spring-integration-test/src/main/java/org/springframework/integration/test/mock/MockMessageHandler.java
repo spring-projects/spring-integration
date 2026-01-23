@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -71,11 +72,9 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 	protected boolean hasReplies;
 
-	@SuppressWarnings("unchecked")
 	protected MockMessageHandler(@Nullable ArgumentCaptor<Message<?>> messageArgumentCaptor) {
 		if (messageArgumentCaptor != null) {
-			this.capturingMatcher = TestUtils.getPropertyValue(messageArgumentCaptor,
-					"capturingMatcher", CapturingMatcher.class);
+			this.capturingMatcher = TestUtils.getPropertyValue(messageArgumentCaptor, "capturingMatcher");
 		}
 		else {
 			this.capturingMatcher = null;

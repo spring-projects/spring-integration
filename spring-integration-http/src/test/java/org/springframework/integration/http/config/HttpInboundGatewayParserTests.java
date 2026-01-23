@@ -49,7 +49,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Mark Fisher
@@ -59,6 +58,7 @@ import static org.springframework.integration.test.util.TestUtils.getPropertyVal
  * @author Gunnar Hillert
  * @author Biju Kunjummen
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -103,29 +103,32 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void checkConfig() {
 		assertThat(this.gateway).isNotNull();
-		assertThat(getPropertyValue(this.gateway, "expectReply", Boolean.class)).isTrue();
-		assertThat(getPropertyValue(this.gateway, "convertExceptions", Boolean.class)).isTrue();
-		assertThat(getPropertyValue(this.gateway, "replyChannel")).isSameAs(this.responses);
-		assertThat(TestUtils.getPropertyValue(this.gateway, "errorChannel")).isNotNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gateway, "expectReply")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gateway, "convertExceptions")).isTrue();
+		assertThat(TestUtils.<PollableChannel>getPropertyValue(this.gateway, "replyChannel"))
+				.isSameAs(this.responses);
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway, "errorChannel")).isNotNull();
 		MessagingTemplate messagingTemplate =
-				TestUtils.getPropertyValue(this.gateway, "messagingTemplate", MessagingTemplate.class);
-		assertThat(TestUtils.getPropertyValue(messagingTemplate, "sendTimeout")).isEqualTo(1234L);
-		assertThat(TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout")).isEqualTo(4567L);
+				TestUtils.<MessagingTemplate>getPropertyValue(this.gateway, "messagingTemplate");
+		assertThat(TestUtils.<Long>getPropertyValue(messagingTemplate, "sendTimeout"))
+				.isEqualTo(1234L);
+		assertThat(TestUtils.<Long>getPropertyValue(messagingTemplate, "receiveTimeout"))
+				.isEqualTo(4567L);
 
 		boolean registerDefaultConverters =
-				TestUtils.getPropertyValue(this.gateway, "mergeWithDefaultConverters", Boolean.class);
+				TestUtils.<Boolean>getPropertyValue(this.gateway, "mergeWithDefaultConverters");
 		assertThat(registerDefaultConverters).as("By default the register-default-converters flag should be false")
 				.isFalse();
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(this.gateway, "messageConverters", List.class);
+				TestUtils.getPropertyValue(this.gateway, "messageConverters");
 
 		assertThat(messageConverters.size() > 0)
 				.as("The default converters should have been registered, given there are no custom converters")
 				.isTrue();
 
-		assertThat(TestUtils.getPropertyValue(this.gateway, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.gateway, "phase")).isEqualTo(1001);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gateway, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.gateway, "phase")).isEqualTo(1001);
 	}
 
 	@Test
@@ -176,7 +179,7 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void requestWithHeaders() {
 		DefaultHttpHeaderMapper headerMapper =
-				TestUtils.getPropertyValue(this.withMappedHeaders, "headerMapper", DefaultHttpHeaderMapper.class);
+				TestUtils.<DefaultHttpHeaderMapper>getPropertyValue(this.withMappedHeaders, "headerMapper");
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
@@ -200,8 +203,7 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void requestWithHeadersWithConversionService() {
 		DefaultHttpHeaderMapper headerMapper =
-				TestUtils.getPropertyValue(this.withMappedHeadersAndConverter,
-						"headerMapper", DefaultHttpHeaderMapper.class);
+				TestUtils.<DefaultHttpHeaderMapper>getPropertyValue(this.withMappedHeadersAndConverter, "headerMapper");
 
 		headerMapper.setUserDefinedHeaderPrefix("X-");
 
@@ -231,9 +233,8 @@ public class HttpInboundGatewayParserTests {
 
 	@Test
 	public void testInboundGatewayWithMessageConverterDefaults() {
-		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(this.gatewayWithOneCustomConverter, "messageConverters", List.class);
+				TestUtils.getPropertyValue(this.gatewayWithOneCustomConverter, "messageConverters");
 		assertThat(messageConverters.size())
 				.as("There should be only 1 message converter, by default register-default-converters is off")
 				.isEqualTo(1);
@@ -244,9 +245,8 @@ public class HttpInboundGatewayParserTests {
 
 	@Test
 	public void testInboundGatewayWithNoMessageConverterDefaults() {
-		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(this.gatewayNoDefaultConverters, "messageConverters", List.class);
+				TestUtils.getPropertyValue(this.gatewayNoDefaultConverters, "messageConverters");
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 
@@ -256,10 +256,8 @@ public class HttpInboundGatewayParserTests {
 
 	@Test
 	public void testInboundGatewayWithCustomAndDefaultMessageConverters() {
-		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(this.gatewayWithCustomAndDefaultConverters, "messageConverters",
-						List.class);
+				TestUtils.getPropertyValue(this.gatewayWithCustomAndDefaultConverters, "messageConverters");
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 

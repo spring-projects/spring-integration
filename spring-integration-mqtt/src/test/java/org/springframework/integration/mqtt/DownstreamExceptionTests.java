@@ -46,6 +46,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -70,7 +71,7 @@ public class DownstreamExceptionTests implements MosquittoContainerTest {
 	@SuppressWarnings("unchecked")
 	public void testNoErrorChannel() throws Exception {
 		service.n = 0;
-		LogAccessor logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(noErrorChannel, "logger"));
 		final CountDownLatch latch = new CountDownLatch(1);
 		doAnswer(invocation -> {
 			if (((Supplier<String>) invocation.getArgument(1)).get().contains("Unhandled")) {
@@ -99,7 +100,7 @@ public class DownstreamExceptionTests implements MosquittoContainerTest {
 
 	@Test
 	public void testWithErrorChannel() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.withErrorChannel, "errorChannel")).isSameAs(this.errors);
+		assertThat(TestUtils.<Object>getPropertyValue(this.withErrorChannel, "errorChannel")).isSameAs(this.errors);
 		service.n = 0;
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler(MosquittoContainerTest.mqttUrl(), "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx2");

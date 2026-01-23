@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -47,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -103,11 +103,10 @@ public class GroovyFilterTests {
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertThat(this.groovyFilterMessageHandler).isInstanceOf(MessageFilter.class);
-		MessageSelector selector = TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector",
-				MethodInvokingSelector.class);
+		MessageSelector selector = TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector");
 		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor =
-				TestUtils.getPropertyValue(selector, "messageProcessor", MessageProcessor.class);
+				TestUtils.<MessageProcessor>getPropertyValue(selector, "messageProcessor");
 		//before it was MethodInvokingMessageProcessor
 		assertThat(messageProcessor).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}

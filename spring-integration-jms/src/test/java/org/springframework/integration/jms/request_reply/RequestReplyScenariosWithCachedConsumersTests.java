@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @LongRunningTest
 public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMultiContextTests {
@@ -210,7 +211,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 			latch.await();
 
-			TestUtils.getPropertyValue(context.getBean("fastGateway"), "handler", JmsOutboundGateway.class)
+			TestUtils.<JmsOutboundGateway>getPropertyValue(context.getBean("fastGateway"), "handler")
 					.setReceiveTimeout(10000);
 			Thread.sleep(1000);
 			assertThat(gateway.exchange(new GenericMessage<>("test")).getPayload()).isEqualTo("test");

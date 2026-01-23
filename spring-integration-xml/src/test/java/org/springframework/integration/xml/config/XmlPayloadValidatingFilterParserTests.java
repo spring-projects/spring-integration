@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Jooyoung Pyoung
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -91,14 +92,15 @@ public class XmlPayloadValidatingFilterParserTests {
 	@Test
 	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ac.getBean("parseOnly");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		SmartLifecycleRoleController roleController = ac.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
-		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
-				MultiValueMap.class).get("foo");
+		List<SmartLifecycle> list =
+				(List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(roleController,
+						"lifecycles").get("foo");
 		assertThat(list).containsExactly(consumer);
 	}
 

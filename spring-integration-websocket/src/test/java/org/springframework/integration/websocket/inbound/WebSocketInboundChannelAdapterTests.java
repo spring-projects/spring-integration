@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -87,7 +88,7 @@ public class WebSocketInboundChannelAdapterTests {
 		assertThat(session.getAcceptedProtocol()).isEqualTo("v10.stomp");
 
 		Map<String, WebSocketSession> sessions =
-				TestUtils.getPropertyValue(this.subProtocolWebSocketHandler, "sessions", Map.class);
+				TestUtils.getPropertyValue(this.subProtocolWebSocketHandler, "sessions");
 
 		assertThat(sessions.size()).isEqualTo(1);
 
