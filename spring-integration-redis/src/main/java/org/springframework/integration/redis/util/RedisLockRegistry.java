@@ -677,7 +677,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private static final String DELETE_UNLOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
 				if (lockClientId == ARGV[1] and redis.call('DEL', KEYS[1]) == 1) then
-					redis.call('PUBLISH', KEYS[2], KEYS[1])
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
 					return true
 				end
 				return false
