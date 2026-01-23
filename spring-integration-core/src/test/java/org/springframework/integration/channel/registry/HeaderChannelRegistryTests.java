@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -93,9 +94,9 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:foo");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(registry, "channels", Map.class)
-						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<Map<?, ?>>getPropertyValue(registry, "channels")
+						.get(stringReplyChannel), "expireAt") - System.currentTimeMillis())
 				.isLessThan(61000L);
 	}
 
@@ -108,9 +109,9 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(registry, "channels", Map.class)
-						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<Map<?, ?>>getPropertyValue(registry, "channels")
+						.get(stringReplyChannel), "expireAt") - System.currentTimeMillis())
 				.isGreaterThan(100000L);
 	}
 
@@ -126,18 +127,18 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(registry, "channels", Map.class)
-						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<Map<?, ?>>getPropertyValue(registry, "channels")
+						.get(stringReplyChannel), "expireAt") - System.currentTimeMillis())
 				.isGreaterThan(160000L).isLessThan(181000L);
 		// Now for Elvis...
 		reply = template.sendAndReceive(new GenericMessage<>("ttl"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(registry, "channels", Map.class)
-						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+		assertThat(TestUtils.<Long>getPropertyValue(
+				TestUtils.<Map<?, ?>>getPropertyValue(registry, "channels")
+						.get(stringReplyChannel), "expireAt") - System.currentTimeMillis())
 				.isGreaterThan(220000L);
 	}
 
@@ -235,7 +236,7 @@ public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 		registry.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
-		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);
+		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels");
 		assertThat(map).hasSize(1);
 		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
 		assertThat(map).hasSize(1);

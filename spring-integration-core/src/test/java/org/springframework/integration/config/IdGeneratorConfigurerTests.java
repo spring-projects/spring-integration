@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -59,7 +60,7 @@ public class IdGeneratorConfigurerTests {
 		UUID id = headers.getId();
 		assertThat(id.getMostSignificantBits()).isNotEqualTo(1);
 		assertThat(id.getLeastSignificantBits()).isNotEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -73,7 +74,7 @@ public class IdGeneratorConfigurerTests {
 
 			// multiple beans are ignored with warning
 			MessageHeaders headers = new MessageHeaders(null);
-			assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
+			assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator")).isNull();
 		}
 	}
 
@@ -85,7 +86,7 @@ public class IdGeneratorConfigurerTests {
 			context.refresh();
 
 			MessageHeaders headers = new MessageHeaders(null);
-			assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
+			assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator")).isNull();
 		}
 	}
 
@@ -115,7 +116,7 @@ public class IdGeneratorConfigurerTests {
 		assertThat(id.getMostSignificantBits()).isNotEqualTo(1);
 		assertThat(id.getLeastSignificantBits()).isNotEqualTo(2);
 
-		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -150,7 +151,7 @@ public class IdGeneratorConfigurerTests {
 		assertThat(id.getMostSignificantBits()).isNotEqualTo(1);
 		assertThat(id.getLeastSignificantBits()).isNotEqualTo(2);
 
-		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -183,7 +184,8 @@ public class IdGeneratorConfigurerTests {
 			context.registerBeanDefinition("foo", new RootBeanDefinition(JdkIdGenerator.class));
 			context.refresh();
 			MessageHeaders headers = new MessageHeaders(null);
-			assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isSameAs(context.getBean(IdGenerator.class));
+			assertThat(TestUtils.<Object>getPropertyValue(headers, "idGenerator"))
+					.isSameAs(context.getBean(IdGenerator.class));
 		}
 	}
 
@@ -201,7 +203,7 @@ public class IdGeneratorConfigurerTests {
 			headers = new MessageHeaders(null);
 			assertThat(headers.getId().getMostSignificantBits()).isEqualTo(0);
 			assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
-			AtomicLong bottomBits = TestUtils.getPropertyValue(idGenerator, "bottomBits", AtomicLong.class);
+			AtomicLong bottomBits = TestUtils.getPropertyValue(idGenerator, "bottomBits");
 			bottomBits.set(0xffffffff);
 			headers = new MessageHeaders(null);
 			assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);

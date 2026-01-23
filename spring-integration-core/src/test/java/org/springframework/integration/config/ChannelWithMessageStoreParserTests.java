@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -86,7 +87,7 @@ public class ChannelWithMessageStoreParserTests {
 
 	@Test
 	public void testPriorityMessageStore() {
-		assertThat(TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.priorityChannel, "queue.messageGroupStore"))
 				.isSameAs(this.priorityMessageStore);
 		assertThat(this.priorityChannel).isInstanceOf(PriorityChannel.class);
 	}

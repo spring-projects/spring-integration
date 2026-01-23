@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -52,24 +53,29 @@ public class LoggingChannelAdapterParserTests {
 
 	@Test
 	public void verifyConfig() {
-		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler", LoggingHandler.class);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
+		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler");
+		assertThat(TestUtils.<String>getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
 				.isEqualTo("org.springframework.integration.test.logger");
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.WARN);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression")).isInstanceOf(FunctionExpression.class);
+		assertThat(TestUtils.<Integer>getPropertyValue(loggingHandler, "order")).isEqualTo(1);
+		assertThat(TestUtils.<LoggingHandler.Level>getPropertyValue(loggingHandler, "level"))
+				.isEqualTo(LoggingHandler.Level.WARN);
+		assertThat(TestUtils.<Object>getPropertyValue(loggingHandler, "expression"))
+				.isInstanceOf(FunctionExpression.class);
 	}
 
 	@Test
 	public void verifyExpressionAndOtherDefaultConfig() {
 		LoggingHandler loggingHandler =
-				TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
+				TestUtils.<LoggingHandler>getPropertyValue(loggerWithExpression, "handler");
+		assertThat(TestUtils.<String>getPropertyValue(loggingHandler, "messageLogger.log.logger.name"))
 				.isEqualTo("org.springframework.integration.handler.LoggingHandler");
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(Ordered.LOWEST_PRECEDENCE);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.INFO);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression.expression")).isEqualTo("payload.foo");
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "evaluationContext.beanResolver")).isNotNull();
+		assertThat(TestUtils.<Integer>getPropertyValue(loggingHandler, "order"))
+				.isEqualTo(Ordered.LOWEST_PRECEDENCE);
+		assertThat(TestUtils.<LoggingHandler.Level>getPropertyValue(loggingHandler, "level"))
+				.isEqualTo(LoggingHandler.Level.INFO);
+		assertThat(TestUtils.<String>getPropertyValue(loggingHandler, "expression.expression"))
+				.isEqualTo("payload.foo");
+		assertThat(TestUtils.<Object>getPropertyValue(loggingHandler, "evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test

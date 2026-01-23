@@ -43,6 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 2.2
  *
  */
@@ -58,34 +60,34 @@ public class JpaMessageHandlerParserTests {
 	public void testJpaMessageHandlerParser() throws Exception {
 		setUp("JpaMessageHandlerParserTests.xml", getClass());
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.<AbstractMessageChannel>getPropertyValue(this.consumer, "inputChannel");
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("target");
 
-		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
+		final JpaExecutor jpaExecutor = TestUtils.<JpaExecutor>getPropertyValue(this.consumer, "handler.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		final String query = TestUtils.getPropertyValue(jpaExecutor, "jpaQuery", String.class);
+		final String query = TestUtils.<String>getPropertyValue(jpaExecutor, "jpaQuery");
 
 		assertThat(query).isEqualTo("from Student");
 
-		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		final JpaOperations jpaOperations = TestUtils.<JpaOperations>getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode", PersistMode.class);
+		final PersistMode persistMode = TestUtils.<PersistMode>getPropertyValue(jpaExecutor, "persistMode");
 
 		assertThat(persistMode).isEqualTo(PersistMode.PERSIST);
 
 		@SuppressWarnings("unchecked")
-		List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters", List.class);
+		List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters");
 
 		assertThat(jpaParameters).isNotNull();
 		assertThat(jpaParameters.size() == 3).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class)).isEqualTo(Integer.valueOf(10));
-		assertThat(TestUtils.getPropertyValue(jpaExecutor, "clearOnFlush", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(jpaExecutor, "flushSize")).isEqualTo(Integer.valueOf(10));
+		assertThat(TestUtils.<Boolean>getPropertyValue(jpaExecutor, "clearOnFlush")).isTrue();
 	}
 
 	@Test
@@ -94,11 +96,11 @@ public class JpaMessageHandlerParserTests {
 
 		EventDrivenConsumer consumer = this.context.getBean("advised", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.<AbstractMessageChannel>getPropertyValue(consumer, "inputChannel");
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("target");
 
-		final MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
+		final MessageHandler handler = TestUtils.<MessageHandler>getPropertyValue(consumer, "handler");
 
 		adviceCalled = 0;
 
@@ -116,11 +118,11 @@ public class JpaMessageHandlerParserTests {
 
 		EventDrivenConsumer consumer = this.context.getBean("advisedAndTransactional", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.<AbstractMessageChannel>getPropertyValue(consumer, "inputChannel");
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("target");
 
-		final MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
+		final MessageHandler handler = TestUtils.<MessageHandler>getPropertyValue(consumer, "handler");
 
 		adviceCalled = 0;
 
@@ -133,28 +135,28 @@ public class JpaMessageHandlerParserTests {
 	public void testJpaMessageHandlerParserWithEntityManagerFactory() throws Exception {
 		setUp("JpaMessageHandlerParserTestsWithEmFactory.xml", getClass());
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.<AbstractMessageChannel>getPropertyValue(this.consumer, "inputChannel");
 
 		assertThat(inputChannel.getComponentName()).isEqualTo("target");
 
-		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
+		final JpaExecutor jpaExecutor = TestUtils.<JpaExecutor>getPropertyValue(this.consumer, "handler.jpaExecutor");
 
 		assertThat(jpaExecutor).isNotNull();
 
-		final String query = TestUtils.getPropertyValue(jpaExecutor, "jpaQuery", String.class);
+		final String query = TestUtils.<String>getPropertyValue(jpaExecutor, "jpaQuery");
 
 		assertThat(query).isEqualTo("select student from Student student");
 
-		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+		final JpaOperations jpaOperations = TestUtils.<JpaOperations>getPropertyValue(jpaExecutor, "jpaOperations");
 
 		assertThat(jpaOperations).isNotNull();
 
-		final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode", PersistMode.class);
+		final PersistMode persistMode = TestUtils.<PersistMode>getPropertyValue(jpaExecutor, "persistMode");
 
 		assertThat(persistMode).isEqualTo(PersistMode.PERSIST);
 
 		@SuppressWarnings("unchecked")
-		List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters", List.class);
+		List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters");
 
 		assertThat(jpaParameters).isNotNull();
 		assertThat(jpaParameters.size() == 3).isTrue();
@@ -166,8 +168,8 @@ public class JpaMessageHandlerParserTests {
 	public void testProcedureParametersAreSet() throws Exception {
 		setUp("JpaMessageHandlerParserTestsWithEmFactory.xml", getClass());
 
-		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
-		final List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters", List.class);
+		final JpaExecutor jpaExecutor = TestUtils.<JpaExecutor>getPropertyValue(this.consumer, "handler.jpaExecutor");
+		final List<JpaParameter> jpaParameters = TestUtils.getPropertyValue(jpaExecutor, "jpaParameters");
 
 		assertThat(jpaParameters.size() == 3).isTrue();
 
@@ -195,8 +197,7 @@ public class JpaMessageHandlerParserTests {
 		setUp("JpaMessageHandlerTransactionalParserTests.xml", getClass());
 
 		AbstractReplyProducingMessageHandler.RequestHandler handler =
-				TestUtils.getPropertyValue(this.consumer, "handler.advisedRequestHandler",
-						AbstractReplyProducingMessageHandler.RequestHandler.class);
+				TestUtils.getPropertyValue(this.consumer, "handler.advisedRequestHandler");
 		assertThat(handler).isNotNull();
 		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 	}

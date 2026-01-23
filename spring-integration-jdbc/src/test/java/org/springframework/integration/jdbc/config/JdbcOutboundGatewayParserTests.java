@@ -55,6 +55,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.0
  *
@@ -89,8 +90,8 @@ public class JdbcOutboundGatewayParserTests {
 		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 
 		JdbcOutboundGateway gateway = context.getBean("jdbcGateway.handler", JdbcOutboundGateway.class);
-		assertThat(TestUtils.getPropertyValue(gateway, "order")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(gateway, "order")).isEqualTo(23);
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "requiresReply")).isTrue();
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
@@ -118,10 +119,9 @@ public class JdbcOutboundGatewayParserTests {
 
 		Object insertGateway = this.context.getBean("insertGatewayWithSetter.handler");
 		JdbcTemplate handlerJdbcTemplate =
-				TestUtils.getPropertyValue(insertGateway,
-						"handler.jdbcOperations.classicJdbcTemplate", JdbcTemplate.class);
+				TestUtils.getPropertyValue(insertGateway, "handler.jdbcOperations.classicJdbcTemplate");
 
-		Log logger = spy(TestUtils.getPropertyValue(handlerJdbcTemplate, "logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(handlerJdbcTemplate, "logger"));
 
 		given(logger.isDebugEnabled()).willReturn(true);
 
@@ -162,10 +162,9 @@ public class JdbcOutboundGatewayParserTests {
 
 		Object insertGateway = this.context.getBean("jdbcOutboundGateway.handler");
 		JdbcTemplate pollerJdbcTemplate =
-				TestUtils.getPropertyValue(insertGateway,
-						"poller.jdbcOperations.classicJdbcTemplate", JdbcTemplate.class);
+				TestUtils.getPropertyValue(insertGateway, "poller.jdbcOperations.classicJdbcTemplate");
 
-		Log logger = spy(TestUtils.getPropertyValue(pollerJdbcTemplate, "logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(pollerJdbcTemplate, "logger"));
 
 		given(logger.isDebugEnabled()).willReturn(true);
 
@@ -269,7 +268,7 @@ public class JdbcOutboundGatewayParserTests {
 
 		MessageChannel channel = this.context.getBean("jdbcOutboundGatewayInsideChain", MessageChannel.class);
 
-		assertThat(TestUtils.getPropertyValue(jdbcMessageHandler, "requiresReply", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(jdbcMessageHandler, "requiresReply")).isFalse();
 
 		channel.send(MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build());
 

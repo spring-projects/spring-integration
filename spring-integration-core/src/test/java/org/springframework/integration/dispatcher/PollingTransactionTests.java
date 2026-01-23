@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Andreas Baer
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PollingTransactionTests {
 
@@ -75,16 +76,15 @@ public class PollingTransactionTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void transactionWithCommitAndAdvices() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advisedPoller = context.getBean("advisedSa", PollingConsumer.class);
 
-		List<Advice> adviceChain = TestUtils.getPropertyValue(advisedPoller, "adviceChain", List.class);
+		List<Advice> adviceChain = TestUtils.getPropertyValue(advisedPoller, "adviceChain");
 		assertThat(adviceChain.size()).isEqualTo(4);
 		advisedPoller.start();
-		Callable<?> pollingTask = TestUtils.getPropertyValue(advisedPoller, "pollingTask", Callable.class);
+		Callable<?> pollingTask = TestUtils.getPropertyValue(advisedPoller, "pollingTask");
 		assertThat(pollingTask instanceof Advised).as("Poller is not Advised").isTrue();
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
 		assertThat(advisors.length).isEqualTo(4);

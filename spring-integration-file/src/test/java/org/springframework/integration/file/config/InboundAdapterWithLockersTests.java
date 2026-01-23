@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -42,14 +43,14 @@ public class InboundAdapterWithLockersTests {
 
 	@Test
 	public void testAdaptersWithLockers() {
-		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerA"), "source.scanner.locker"))
-				.isEqualTo(context.getBean("locker"));
-		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerB"), "source.scanner.locker"))
-				.isEqualTo(context.getBean("locker"));
-		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerC"), "source.scanner.locker"))
-				.isInstanceOf(NioFileLocker.class);
-		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerD"), "source.scanner.locker"))
-				.isInstanceOf(NioFileLocker.class);
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("inputWithLockerA"),
+				"source.scanner.locker")).isEqualTo(context.getBean("locker"));
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("inputWithLockerB"),
+				"source.scanner.locker")).isEqualTo(context.getBean("locker"));
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("inputWithLockerC"),
+				"source.scanner.locker")).isInstanceOf(NioFileLocker.class);
+		assertThat(TestUtils.<Object>getPropertyValue(context.getBean("inputWithLockerD"),
+				"source.scanner.locker")).isInstanceOf(NioFileLocker.class);
 	}
 
 }

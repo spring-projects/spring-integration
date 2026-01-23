@@ -37,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
+ *
  * @since 2.2
  */
 @SpringJUnitConfig
@@ -52,24 +54,25 @@ class RedisStoreInboundChannelAdapterParserTests {
 	@Test
 	void validateWithStringTemplate() {
 		RedisStoreMessageSource withStringTemplate =
-				TestUtils.getPropertyValue(context.getBean("withStringTemplate"), "source", RedisStoreMessageSource.class);
+				TestUtils.<RedisStoreMessageSource>getPropertyValue(context.getBean("withStringTemplate"), "source");
 		assertThat(((SpelExpression) TestUtils.getPropertyValue(withStringTemplate, "keyExpression"))
 				.getExpressionString()).isEqualTo("'presidents'");
-		assertThat(TestUtils.getPropertyValue(withStringTemplate, "collectionType"))
+		assertThat(TestUtils.<Object>getPropertyValue(withStringTemplate, "collectionType"))
 				.hasToString("LIST");
-		assertThat(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate"))
+		assertThat(TestUtils.<Object>getPropertyValue(withStringTemplate, "redisTemplate"))
 				.isInstanceOf(StringRedisTemplate.class);
 	}
 
 	@Test
 	void validateWithExternalTemplate() {
 		RedisStoreMessageSource withExternalTemplate =
-				TestUtils.getPropertyValue(context.getBean("withExternalTemplate"), "source", RedisStoreMessageSource.class);
+				TestUtils.getPropertyValue(context.getBean("withExternalTemplate"), "source");
 		assertThat(((SpelExpression) TestUtils.getPropertyValue(withExternalTemplate, "keyExpression"))
 				.getExpressionString()).isEqualTo("'presidents'");
-		assertThat((TestUtils.getPropertyValue(withExternalTemplate, "collectionType")))
-				.hasToString("LIST");
-		assertThat(TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate")).isSameAs(redisTemplate);
+		assertThat((TestUtils.<Object>getPropertyValue(withExternalTemplate,
+				"collectionType"))).hasToString("LIST");
+		assertThat(TestUtils.<Object>getPropertyValue(withExternalTemplate, "redisTemplate"))
+				.isSameAs(redisTemplate);
 	}
 
 	@Test

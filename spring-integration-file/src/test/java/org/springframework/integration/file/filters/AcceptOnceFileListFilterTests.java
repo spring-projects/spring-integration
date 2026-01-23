@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0.4
  *
@@ -52,7 +53,6 @@ public class AcceptOnceFileListFilterTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testCapacity() {
 		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>(2);
 		assertThat(filter.accept("foo")).isTrue();
@@ -60,9 +60,9 @@ public class AcceptOnceFileListFilterTests {
 		assertThat(filter.accept("foo")).isFalse();
 		assertThat(filter.accept("baz")).isTrue();
 		assertThat(filter.accept("foo")).isTrue();
-		Queue<String> seen = TestUtils.getPropertyValue(filter, "seen", Queue.class);
+		Queue<String> seen = TestUtils.getPropertyValue(filter, "seen");
 		assertThat(seen.size()).isEqualTo(2);
-		Set<String> seenSet = TestUtils.getPropertyValue(filter, "seenSet", Set.class);
+		Set<String> seenSet = TestUtils.getPropertyValue(filter, "seenSet");
 		assertThat(seenSet.size()).isEqualTo(2);
 		assertThat(seen).containsExactly("baz", "foo");
 		assertThat(seenSet).contains("foo", "baz");
@@ -86,14 +86,14 @@ public class AcceptOnceFileListFilterTests {
 		List<String> passed = filter.filterFiles(files);
 		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<String> now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(0);
+		assertThat(now).isEmpty();
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
 		assertThat(now.size()).isEqualTo(2);
 		assertThat(now.get(0)).isEqualTo("bar");
 		assertThat(now.get(1)).isEqualTo("baz");
 		now = filter.filterFiles(files);
-		assertThat(now.size()).isEqualTo(0);
+		assertThat(now).isEmpty();
 	}
 
 }

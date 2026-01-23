@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  */
 public class FileListFilterFactoryBeanTests {
 
@@ -116,7 +117,7 @@ public class FileListFilterFactoryBeanTests {
 		assertThat(iterator.next() instanceof AcceptOnceFileListFilter).isTrue();
 		FileListFilter<?> patternFilter = iterator.next();
 		assertThat(patternFilter).isInstanceOf(SimplePatternFileListFilter.class);
-		assertThat(TestUtils.getPropertyValue(patternFilter, "alwaysAcceptDirectories", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(patternFilter, "alwaysAcceptDirectories")).isFalse();
 	}
 
 	@Test
@@ -129,7 +130,7 @@ public class FileListFilterFactoryBeanTests {
 		FileListFilter<File> result = factory.getObject();
 		assertThat(result instanceof CompositeFileListFilter).isFalse();
 		assertThat(result).isInstanceOf(SimplePatternFileListFilter.class);
-		assertThat(TestUtils.getPropertyValue(result, "alwaysAcceptDirectories", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(result, "alwaysAcceptDirectories")).isTrue();
 	}
 
 	private static class TestFilter extends AbstractFileListFilter<File> {

@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -167,12 +168,13 @@ public class ImapIdleChannelAdapterParserTests {
 		assertThat(properties.getProperty("foo")).isEqualTo("bar");
 		assertThat(receiverAccessor.getPropertyValue("shouldDeleteMessages")).isEqualTo(Boolean.FALSE);
 		SearchTermStrategy stStrategy = context.getBean("searchTermStrategy", SearchTermStrategy.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "mailReceiver.searchTermStrategy")).isEqualTo(stStrategy);
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "mailReceiver.searchTermStrategy"))
+				.isEqualTo(stStrategy);
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@Test

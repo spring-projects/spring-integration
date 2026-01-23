@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -86,11 +87,10 @@ public class GroovyTransformerTests {
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertThat(this.groovyTransformerMessageHandler instanceof MessageTransformingHandler).isTrue();
-		Transformer transformer =
-				TestUtils.getPropertyValue(this.groovyTransformerMessageHandler, "transformer", Transformer.class);
+		Transformer transformer = TestUtils.getPropertyValue(this.groovyTransformerMessageHandler, "transformer");
 		assertThat(transformer).isInstanceOf(AbstractMessageProcessingTransformer.class);
 		//before it was MethodInvokingMessageProcessor
-		assertThat(TestUtils.getPropertyValue(transformer, "messageProcessor"))
+		assertThat(TestUtils.<Object>getPropertyValue(transformer, "messageProcessor"))
 				.isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}
 

@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.0
  */
@@ -100,7 +101,7 @@ public interface RedisContainerTest {
 		int n = 0;
 		while (n++ < 300 &&
 				(connection =
-						TestUtils.getPropertyValue(container, "subscriber.connection", RedisConnection.class))
+						TestUtils.<RedisConnection>getPropertyValue(container, "subscriber.connection"))
 						== null) {
 
 			Thread.sleep(100);
@@ -116,8 +117,7 @@ public interface RedisContainerTest {
 
 	static void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
 		awaitContainerSubscribed(container);
-		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection",
-				RedisConnection.class);
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection");
 
 		int n = 0;
 		while (n++ < 300 && connection.getSubscription().getPatterns().size() == 0) {

@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.1
  *
@@ -68,12 +69,12 @@ public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
 		template.convertAndSend("stop.start", "foo");
 		assertThat(out.receive(10_000).getPayload()).isEqualTo("foo");
 		endpoint.stop();
-		assertThat(TestUtils.getPropertyValue(endpoint, "listenerContainer.sharedConnection")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "listenerContainer.sharedConnection")).isNull();
 		endpoint.start();
 		template.convertAndSend("stop.start", "bar");
 		assertThat(out.receive(10_000).getPayload()).isEqualTo("bar");
 
-		assertThat(TestUtils.getPropertyValue(endpoint, "listener.gatewayDelegate.errorMessageStrategy"))
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "listener.gatewayDelegate.errorMessageStrategy"))
 				.isSameAs(mockErrorMessageStrategy);
 	}
 

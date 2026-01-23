@@ -47,6 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 2.1
  */
 public class StoredProcPollingChannelAdapterParserTests {
@@ -73,9 +75,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
 
 		Expression storedProcedureNameExpression =
-				TestUtils.getPropertyValue(this.pollingAdapter,
-						"source.executor.storedProcedureNameExpression",
-						Expression.class);
+				TestUtils.getPropertyValue(this.pollingAdapter, "source.executor.storedProcedureNameExpression");
 
 		assertThat(storedProcedureNameExpression.getExpressionString()).as("Wrong stored procedure name")
 				.isEqualTo("'GET_PRIME_NUMBERS'");
@@ -86,9 +86,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
 		Integer cacheSize =
-				TestUtils.getPropertyValue(this.pollingAdapter,
-						"source.executor.jdbcCallOperationsCacheSize",
-						Integer.class);
+				TestUtils.getPropertyValue(this.pollingAdapter, "source.executor.jdbcCallOperationsCacheSize");
 
 		assertThat(cacheSize).as("Wrong Default JdbcCallOperations Cache Size").isEqualTo(Integer.valueOf(10));
 	}
@@ -97,9 +95,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 	public void testJdbcCallOperationsCacheSizeIsSet() {
 		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
 
-		Integer cacheSize = TestUtils.getPropertyValue(this.pollingAdapter,
-				"source.executor.jdbcCallOperationsCacheSize",
-				Integer.class);
+		Integer cacheSize = TestUtils.getPropertyValue(this.pollingAdapter, "source.executor.jdbcCallOperationsCacheSize");
 
 		assertThat(cacheSize).as("Wrong JdbcCallOperations Cache Size").isEqualTo(Integer.valueOf(77));
 	}
@@ -263,10 +259,10 @@ public class StoredProcPollingChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter =
 				context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.returnValueRequired", Boolean.class))
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.<Boolean>getPropertyValue(autoChannelAdapter, "source.executor.returnValueRequired"))
 				.isFalse();
-		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.isFunction", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(autoChannelAdapter, "source.executor.isFunction"))
 				.isFalse();
 		autoChannelAdapter.stop();
 	}

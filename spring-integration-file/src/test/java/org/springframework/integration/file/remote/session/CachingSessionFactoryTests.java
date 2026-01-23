@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -50,22 +51,26 @@ public class CachingSessionFactoryTests implements TestApplicationContextAware {
 		CachingSessionFactory<String> cache = new CachingSessionFactory<>(factory);
 		cache.setTestSession(true);
 		Session<String> sess1 = cache.getSession();
-		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:1");
+		assertThat(TestUtils.<String>getPropertyValue(sess1, "targetSession.id"))
+				.isEqualTo("session:1");
 		Session<String> sess2 = cache.getSession();
-		assertThat(TestUtils.getPropertyValue(sess2, "targetSession.id")).isEqualTo("session:2");
+		assertThat(TestUtils.<String>getPropertyValue(sess2, "targetSession.id"))
+				.isEqualTo("session:2");
 		sess1.close();
 		// session back to pool; should be open and reused.
 		assertThat(sess1.isOpen()).isTrue();
 		sess1 = cache.getSession();
-		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:1");
-		assertThat((TestUtils.getPropertyValue(sess1, "targetSession.testCalled", Boolean.class))).isTrue();
+		assertThat(TestUtils.<String>getPropertyValue(sess1, "targetSession.id"))
+				.isEqualTo("session:1");
+		assertThat((TestUtils.<Boolean>getPropertyValue(sess1, "targetSession.testCalled"))).isTrue();
 		sess1.close();
 		assertThat(sess1.isOpen()).isTrue();
 		// reset the cache; should close idle (sess1); sess2 should closed later
 		cache.resetCache();
 		assertThat(sess1.isOpen()).isFalse();
 		sess1 = cache.getSession();
-		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:3");
+		assertThat(TestUtils.<String>getPropertyValue(sess1, "targetSession.id"))
+				.isEqualTo("session:3");
 		sess1.close();
 		assertThat(sess1.isOpen()).isTrue();
 		// session from previous epoch is closed on return

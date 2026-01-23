@@ -54,6 +54,8 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 4.1
  */
 @SpringJUnitConfig
@@ -137,7 +139,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport implements TestAp
 		file.delete();
 		newFile.delete();
 
-		SimplePool<?> pool = TestUtils.getPropertyValue(this.sessionFactory, "pool", SimplePool.class);
+		SimplePool<?> pool = TestUtils.getPropertyValue(this.sessionFactory, "pool");
 		assertThat(pool.getActiveCount()).isEqualTo(0);
 	}
 
@@ -154,7 +156,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport implements TestAp
 				.withStackTraceContaining("553 : No such file or directory");
 
 		Session<FTPFile> newSession = this.sessionFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+		assertThat(TestUtils.<Object>getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
 
 		newSession.close();

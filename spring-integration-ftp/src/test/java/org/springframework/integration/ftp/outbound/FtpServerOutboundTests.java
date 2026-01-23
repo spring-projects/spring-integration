@@ -93,6 +93,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -249,7 +250,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		result = this.output.receive(1000);
 		assertThat(result).isNotNull();
 		localFiles = (List<File>) result.getPayload();
-		assertThat(localFiles.size()).isEqualTo(0);
+		assertThat(localFiles).isEmpty();
 	}
 
 	@Test
@@ -392,8 +393,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	public void testInt3088MPutNotRecursive() throws IOException {
 		Session<?> session = sessionFactory.getSession();
 		session.close();
-		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
-		FTPClient client = spy(TestUtils.getPropertyValue(session, "client", FTPClient.class));
+		session = TestUtils.getPropertyValue(session, "targetSession");
+		FTPClient client = spy(TestUtils.<FTPClient>getPropertyValue(session, "client"));
 		new DirectFieldAccessor(session).setPropertyValue("client", client);
 		// The FileHeaders.FILENAME is removed by the AbstractRemoteFileOutboundGateway
 		// when MPUT item is prepared for its specific PUT
@@ -454,8 +455,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	public void testInt3412FileMode() throws IOException {
 		Session<?> session = sessionFactory.getSession();
 		session.close();
-		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
-		FTPClient client = spy(TestUtils.getPropertyValue(session, "client", FTPClient.class));
+		session = TestUtils.getPropertyValue(session, "targetSession");
+		FTPClient client = spy(TestUtils.<FTPClient>getPropertyValue(session, "client"));
 		new DirectFieldAccessor(session).setPropertyValue("client", client);
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
 		assertThat(template.exists("ftpTarget/appending.txt")).isFalse();
@@ -493,7 +494,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		// Returned to cache
 		assertThat(session.isOpen()).isTrue();
 		// Raw reading is finished
-		assertThat(TestUtils.getPropertyValue(session, "targetSession.readingRaw", AtomicBoolean.class).get())
+		assertThat(TestUtils.<AtomicBoolean>getPropertyValue(session, "targetSession.readingRaw").get())
 				.isFalse();
 
 		// Check that we can use the same session from cache to read another remote InputStream
@@ -505,8 +506,9 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 				.containsEntry(FileHeaders.REMOTE_DIRECTORY, "ftpSource/")
 				.containsEntry(FileHeaders.REMOTE_FILE, "ftpSource2.txt");
 		assertThat(TestUtils
-				.getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
-						"targetSession")).isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+				.<Object>getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
+						"targetSession")).isSameAs(
+								TestUtils.getPropertyValue(session, "targetSession"));
 	}
 
 	@Test
@@ -610,14 +612,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	private Session<FTPFile> spyOnSession() {
 		Session<FTPFile> session = spy(this.ftpSessionFactory.getSession());
 		session.close();
-		@SuppressWarnings("unchecked")
-		BlockingQueue<Session<FTPFile>> cache = TestUtils.getPropertyValue(ftpSessionFactory, "pool.available",
-				BlockingQueue.class);
+		BlockingQueue<Session<FTPFile>> cache = TestUtils.getPropertyValue(ftpSessionFactory, "pool.available");
 		assertThat(cache.poll()).isNotNull();
 		cache.offer(session);
-		@SuppressWarnings("unchecked")
-		Set<Session<FTPFile>> allocated = TestUtils.getPropertyValue(ftpSessionFactory, "pool.allocated",
-				Set.class);
+		Set<Session<FTPFile>> allocated = TestUtils.getPropertyValue(ftpSessionFactory, "pool.allocated");
 		allocated.clear();
 		allocated.add(session);
 		return session;

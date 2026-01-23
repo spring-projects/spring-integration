@@ -76,6 +76,7 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -126,13 +127,13 @@ public class IdempotentReceiverIntegrationTests {
 	@SuppressWarnings("unchecked")
 	public void testIdempotentReceiver() {
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
-		TestUtils.getPropertyValue(this.store, "metadata", Map.class).clear();
+		TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata").clear();
 		Message<String> message = new GenericMessage<>("foo");
 		this.input.send(message);
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(this.adviceCalled.get()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class)).hasSize(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata")).hasSize(1);
 		String foo = this.store.get("foo");
 		assertThat(foo).isEqualTo("FOO");
 
@@ -145,14 +146,14 @@ public class IdempotentReceiverIntegrationTests {
 		assertThat(receive).isNotNull();
 		assertThat(this.adviceCalled.get()).isEqualTo(2);
 		assertThat(receive.getHeaders()).containsEntry(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true);
-		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class)).hasSize(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(store, "metadata")).hasSize(1);
 
 		assertThat(this.txSupplied.get()).isTrue();
 	}
 
 	@Test
 	public void testIdempotentReceiverOnMethod() {
-		TestUtils.getPropertyValue(this.store, "metadata", Map.class).clear();
+		TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata").clear();
 		Message<String> message = new GenericMessage<>("foo");
 		this.annotatedMethodChannel.send(message);
 		this.annotatedMethodChannel.send(message);

@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.2
  */
@@ -48,18 +49,18 @@ class RSocketOutboundGatewayParserTests {
 
 	@Test
 	void testOutboundGatewayParser() {
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "clientRSocketConnector"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.outboundGateway, "clientRSocketConnector"))
 				.isSameAs(this.clientRSocketConnector);
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "interactionModelExpression.literalValue"))
+		assertThat(TestUtils.<String>getPropertyValue(this.outboundGateway, "interactionModelExpression.literalValue"))
 				.isEqualTo("fireAndForget");
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "routeExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(this.outboundGateway, "routeExpression.expression"))
 				.isEqualTo("'testRoute'");
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "publisherElementTypeExpression.literalValue"))
+		assertThat(TestUtils.<String>getPropertyValue(this.outboundGateway, "publisherElementTypeExpression.literalValue"))
 				.isEqualTo("byte[]");
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "expectedResponseTypeExpression.literalValue"))
+		assertThat(TestUtils.<String>getPropertyValue(this.outboundGateway, "expectedResponseTypeExpression.literalValue"))
 				.isEqualTo("java.util.Date");
 		Expression metadataExpression =
-				TestUtils.getPropertyValue(this.outboundGateway, "metadataExpression", Expression.class);
+				TestUtils.<Expression>getPropertyValue(this.outboundGateway, "metadataExpression");
 		assertThat(metadataExpression.getValue())
 				.isEqualTo(Collections.singletonMap("metadata", new MimeType("*")));
 	}

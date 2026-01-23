@@ -61,6 +61,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Yicheng Feng
  * @author Alexander Hain
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -236,8 +237,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 			}
 			else {
 				if (mockMessageHandler instanceof MockMessageHandler) {
-					if (Boolean.TRUE.equals(TestUtils.getPropertyValue(
-							mockMessageHandler, "hasReplies", Boolean.class))) {
+					if (Boolean.TRUE.equals(TestUtils.<Boolean>getPropertyValue(mockMessageHandler, "hasReplies"))) {
 						throw new IllegalStateException("The [" + mockMessageHandler + "] " +
 								"with replies can't replace simple MessageHandler [" + targetMessageHandler + "]");
 					}

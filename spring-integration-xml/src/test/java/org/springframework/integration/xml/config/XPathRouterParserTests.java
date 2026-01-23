@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @ContextConfiguration
 @DirtiesContext
@@ -103,14 +104,14 @@ public class XPathRouterParserTests {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list =
-				(List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles", MultiValueMap.class)
+				(List<SmartLifecycle>) TestUtils.<MultiValueMap<?, ?>>getPropertyValue(roleController, "lifecycles")
 						.get("foo");
 		assertThat(list).containsExactly(consumer);
 		context.close();
@@ -249,7 +250,7 @@ public class XPathRouterParserTests {
 		assertThat(channelB.receive(10)).isNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterEmpty", EventDrivenConsumer.class);
-		var xpathRouter = TestUtils.getPropertyValue(routerEndpoint, "handler", AbstractMappingMessageRouter.class);
+		var xpathRouter = TestUtils.<AbstractMappingMessageRouter>getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.setChannelMapping("channelA", "channelB");
 		inputChannel.send(docMessage);
 		assertThat(channelB.receive(10)).isNotNull();
@@ -271,7 +272,7 @@ public class XPathRouterParserTests {
 		assertThat(channelB.receive(10)).isNotNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMapping", EventDrivenConsumer.class);
-		var xpathRouter = TestUtils.getPropertyValue(routerEndpoint, "handler", AbstractMappingMessageRouter.class);
+		var xpathRouter = TestUtils.<AbstractMappingMessageRouter>getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		inputChannel.send(docMessage);
 		assertThat(channelA.receive(10)).isNotNull();
@@ -299,7 +300,7 @@ public class XPathRouterParserTests {
 		assertThat(channelB.receive(10)).isNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMappingMultiChannel", EventDrivenConsumer.class);
-		var xpathRouter = TestUtils.getPropertyValue(routerEndpoint, "handler", AbstractMappingMessageRouter.class);
+		var xpathRouter = TestUtils.<AbstractMappingMessageRouter>getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		xpathRouter.removeChannelMapping("channelB");
 		inputChannel.send(docMessage);

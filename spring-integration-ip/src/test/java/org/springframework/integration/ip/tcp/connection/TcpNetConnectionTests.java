@@ -59,6 +59,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2.2
  *
@@ -100,7 +101,7 @@ public class TcpNetConnectionTests implements TestApplicationContextAware {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, e -> {
 		}, null);
 		ChannelInputStream inputStream =
-				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
+				TestUtils.<ChannelInputStream>getPropertyValue(connection, "channelInputStream");
 		inputStream.write(ByteBuffer.wrap(new byte[] {(byte) 0x80}));
 		assertThat(inputStream.read()).isEqualTo(0x80);
 	}

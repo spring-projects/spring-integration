@@ -57,6 +57,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  * @author Meherzad Lahewala
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -175,10 +176,10 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 
 		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(1);
 		groupStore.expireMessageGroups(0);
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(0);
 	}
 
@@ -206,10 +207,10 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 
 		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(1);
 		groupStore.expireMessageGroups(0);
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(1);
 
 		handler.setMinimumTimeoutForEmptyGroups(10);
@@ -218,7 +219,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 
 		while (n++ < 200) {
 			groupStore.expireMessageGroups(0);
-			if (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0) {
+			if (!TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").isEmpty()) {
 				Thread.sleep(50);
 			}
 			else {
@@ -227,7 +228,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		}
 
 		assertThat(n < 200).isTrue();
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(0);
 	}
 
@@ -238,7 +239,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore");
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
@@ -264,7 +265,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore");
 		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
@@ -272,7 +273,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup group = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+		MessageGroup group = (MessageGroup) TestUtils.<Map<?, ?>>getPropertyValue(mgs, "groupIdToMessageGroup")
 				.get("foo");
 		assertThat(group.isComplete()).isTrue();
 		forceComplete.invoke(handler, group);
@@ -290,7 +291,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore");
 		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs.completeGroup("foo");
@@ -299,7 +300,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+		MessageGroup groupInStore = (MessageGroup) TestUtils.<Map<?, ?>>getPropertyValue(mgs, "groupIdToMessageGroup")
 				.get("foo");
 		assertThat(groupInStore.isComplete()).isTrue();
 		assertThat(group.isComplete()).isFalse();
@@ -319,7 +320,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore");
 		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs = spy(mgs);
@@ -327,7 +328,7 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
+		MessageGroup groupInStore = (MessageGroup) TestUtils.<Map<?, ?>>getPropertyValue(mgs, "groupIdToMessageGroup")
 				.get("foo");
 		assertThat(groupInStore.isComplete()).isFalse();
 		assertThat(group.isComplete()).isFalse();
@@ -418,20 +419,20 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 
 		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(1);
 
 		Thread.sleep(100);
 
 		int n = 0;
 
-		while (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
+		while (!TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").isEmpty()
 				&& n++ < 200) {
 			Thread.sleep(50);
 		}
 
 		assertThat(n < 200).isTrue();
-		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "messageStore.groupIdToMessageGroup").size())
 				.isEqualTo(0);
 	}
 

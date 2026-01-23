@@ -116,6 +116,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Tim Feuerbach
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -203,7 +204,7 @@ public class IntegrationFlowTests {
 	public void testWithSupplierMessageSourceImpliedPoller() {
 		assertThat(this.stringSupplierEndpoint.isAutoStartup()).isFalse();
 		assertThat(this.stringSupplierEndpoint.isRunning()).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.stringSupplierEndpoint, "taskScheduler"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.stringSupplierEndpoint, "taskScheduler"))
 				.isSameAs(this.customScheduler);
 		this.stringSupplierEndpoint.start();
 		assertThat(this.suppliedChannel.receive(10000).getPayload()).isEqualTo("FOO");
@@ -274,7 +275,8 @@ public class IntegrationFlowTests {
 		assertThat(reply.getPayload()).isEqualTo("test");
 		assertThat(this.delayedAdvice.getInvoked()).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(this.delayHandler, "taskScheduler")).isSameAs(this.customScheduler);
+		assertThat(TestUtils.<Object>getPropertyValue(this.delayHandler, "taskScheduler"))
+				.isSameAs(this.customScheduler);
 	}
 
 	@Test

@@ -56,6 +56,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Biju Kunjummen
  * @author Tom van den Berge
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -72,32 +73,39 @@ class KafkaOutboundAdapterParserTests implements TestApplicationContextAware {
 				= this.appContext.getBean("kafkaOutboundChannelAdapter.handler", KafkaProducerMessageHandler.class);
 		assertThat(messageHandler).isNotNull();
 		assertThat(messageHandler.getOrder()).isEqualTo(3);
-		assertThat(TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression")).isEqualTo("'bar'");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression")).isEqualTo("'2'");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.expression")).isEqualTo("1000");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "timestampExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "topicExpression.literalValue"))
+				.isEqualTo("foo");
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "messageKeyExpression.expression"))
+				.isEqualTo("'bar'");
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "partitionIdExpression.expression"))
+				.isEqualTo("'2'");
+		assertThat(TestUtils.<Boolean>getPropertyValue(messageHandler, "sync")).isTrue();
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "sendTimeoutExpression.expression"))
+				.isEqualTo("1000");
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "timestampExpression.expression"))
 				.isEqualTo("T(System).currentTimeMillis()");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "flushExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "flushExpression.expression"))
 				.isEqualTo("headers['foo']");
 
-		assertThat(TestUtils.getPropertyValue(messageHandler, "errorMessageStrategy"))
+		assertThat(TestUtils.<Object>getPropertyValue(messageHandler, "errorMessageStrategy"))
 				.isSameAs(this.appContext.getBean("ems"));
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sendFailureChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(messageHandler, "sendFailureChannel"))
 				.isSameAs(this.appContext.getBean("failures"));
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sendSuccessChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(messageHandler, "sendSuccessChannel"))
 				.isSameAs(this.appContext.getBean("successes"));
-		assertThat(TestUtils.getPropertyValue(messageHandler, "headerMapper"))
+		assertThat(TestUtils.<Object>getPropertyValue(messageHandler, "headerMapper"))
 				.isSameAs(this.appContext.getBean("customHeaderMapper"));
 
 		messageHandler
-				= this.appContext.getBean("kafkaOutboundChannelAdapter2.handler", KafkaProducerMessageHandler.class);
+				= this.appContext.getBean(
+						"kafkaOutboundChannelAdapter2.handler", KafkaProducerMessageHandler.class);
 		assertThat(messageHandler).isNotNull();
-		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.literalValue")).isEqualTo("0");
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isFalse();
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "partitionIdExpression.literalValue"))
+				.isEqualTo("0");
+		assertThat(TestUtils.<Boolean>getPropertyValue(messageHandler, "sync")).isFalse();
 
-		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.literalValue")).isEqualTo("500");
+		assertThat(TestUtils.<String>getPropertyValue(messageHandler, "sendTimeoutExpression.literalValue"))
+				.isEqualTo("500");
 	}
 
 	@Test

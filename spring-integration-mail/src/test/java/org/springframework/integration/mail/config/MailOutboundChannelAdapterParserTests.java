@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class MailOutboundChannelAdapterParserTests {
 
@@ -86,29 +87,31 @@ public class MailOutboundChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithPollableChannel() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
-		PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
-		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel", QueueChannel.class);
-		assertThat(pollableChannel.getComponentName()).isEqualTo("pollableChannel");
-		context.close();
+		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailOutboundChannelAdapterParserTests.xml", getClass())) {
+
+			PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
+			QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel");
+			assertThat(pollableChannel.getComponentName()).isEqualTo("pollableChannel");
+		}
 	}
 
 	@Test
 	public void adapterWithJavaMailProperties() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"MailOutboundWithJavamailProperties-context.xml", this.getClass());
-		Object adapter = context.getBean("adapterWithHostProperty.adapter");
-		MailSendingMessageHandler handler = (MailSendingMessageHandler)
-				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
-		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
-		assertThat(mailSender).isNotNull();
-		Properties javaMailProperties = (Properties) TestUtils.getPropertyValue(mailSender, "javaMailProperties");
-		assertThat(javaMailProperties.size()).isEqualTo(9);
-		assertThat(javaMailProperties).isNotNull();
-		assertThat(javaMailProperties.get("mail.smtps.auth")).isEqualTo("true");
-		context.close();
+		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"MailOutboundWithJavamailProperties-context.xml", getClass())) {
+
+			Object adapter = context.getBean("adapterWithHostProperty.adapter");
+			MailSendingMessageHandler handler = (MailSendingMessageHandler)
+					new DirectFieldAccessor(adapter).getPropertyValue("handler");
+			DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
+			MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
+			assertThat(mailSender).isNotNull();
+			Properties javaMailProperties = TestUtils.getPropertyValue(mailSender, "javaMailProperties");
+			assertThat(javaMailProperties)
+					.hasSize(9)
+					.containsEntry("mail.smtps.auth", "true");
+		}
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -41,6 +41,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Tom van den Berge
+ * @author Glenn Renfro
  *
  * @since 5.4
  *
@@ -58,28 +59,32 @@ public class KafkaOutboundGatewayParserTests {
 
 	@Test
 	public void testProps() {
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "errorMessageStrategy")).isInstanceOf(EMS.class);
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "kafkaTemplate"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "errorMessageStrategy"))
+				.isInstanceOf(EMS.class);
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "kafkaTemplate"))
 				.isSameAs(this.context.getBean("template"));
 		assertThat(this.messageHandler.getOrder()).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "topicExpression.expression")).isEqualTo("'topic'");
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "messageKeyExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "topicExpression.expression"))
+				.isEqualTo("'topic'");
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "messageKeyExpression.expression"))
 				.isEqualTo("'key'");
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "partitionIdExpression.expression")).isEqualTo("2");
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sync", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sendTimeoutExpression.expression")).isEqualTo("44");
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "timestampExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "partitionIdExpression.expression"))
+				.isEqualTo("2");
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.messageHandler, "sync")).isTrue();
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "sendTimeoutExpression.expression"))
+				.isEqualTo("44");
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "timestampExpression.expression"))
 				.isEqualTo("T(System).currentTimeMillis()");
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "flushExpression.expression"))
+		assertThat(TestUtils.<String>getPropertyValue(this.messageHandler, "flushExpression.expression"))
 				.isEqualTo("headers['foo']");
 
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "errorMessageStrategy"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "errorMessageStrategy"))
 				.isSameAs(this.context.getBean("ems"));
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sendFailureChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "sendFailureChannel"))
 				.isSameAs(this.context.getBean("failures"));
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sendSuccessChannel"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "sendSuccessChannel"))
 				.isSameAs(this.context.getBean("successes"));
-		assertThat(TestUtils.getPropertyValue(this.messageHandler, "headerMapper"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.messageHandler, "headerMapper"))
 				.isSameAs(this.context.getBean("customHeaderMapper"));
 	}
 

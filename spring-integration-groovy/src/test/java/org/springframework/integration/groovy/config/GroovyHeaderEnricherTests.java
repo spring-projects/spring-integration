@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -69,16 +70,15 @@ public class GroovyHeaderEnricherTests {
 	@Test
 	public void inlineScript() {
 		Map<String, HeaderValueMessageProcessor<?>> headers =
-				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript,
-						"handler.transformer.headersToAdd", Map.class);
-		assertThat(headers.size()).isEqualTo(1);
+				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd");
+		assertThat(headers).hasSize(1);
 		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
 		assertThat(headerValueMessageProcessor.getClass().getName())
 				.contains("MessageProcessingHeaderValueMessageProcessor");
 		Object targetProcessor = TestUtils.getPropertyValue(headerValueMessageProcessor, "targetProcessor");
-		assertThat(targetProcessor.getClass()).isEqualTo(GroovyScriptExecutingMessageProcessor.class);
+		assertThat(targetProcessor).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 
-		inputB.send(new GenericMessage<String>("Hello"));
+		inputB.send(new GenericMessage<>("Hello"));
 		assertThat(outputB.receive(1000).getHeaders().get("TEST_HEADER")).isEqualTo("groovy");
 	}
 

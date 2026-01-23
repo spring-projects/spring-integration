@@ -53,6 +53,7 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3
  *
@@ -104,7 +105,7 @@ public class AsyncHandlerTests implements TestApplicationContextAware {
 		this.handler.setOutputChannel(this.output);
 		this.handler.setBeanFactory(mock(BeanFactory.class));
 		this.latch = new CountDownLatch(1);
-		LogAccessor logAccessor = TestUtils.getPropertyValue(this.handler, "logger", LogAccessor.class);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(this.handler, "logger");
 		Log log = spy(logAccessor.getLog());
 		new DirectFieldAccessor(logAccessor).setPropertyValue("log", log);
 		doAnswer(invocation -> {

@@ -44,6 +44,7 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -76,13 +77,11 @@ public class ZeroMqChannelTests implements TestApplicationContextAware {
 		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
-		@SuppressWarnings("unchecked")
-		Mono<ZMQ.Socket> sendSocketMono = TestUtils.getPropertyValue(channel, "sendSocket", Mono.class);
+		Mono<ZMQ.Socket> sendSocketMono = TestUtils.getPropertyValue(channel, "sendSocket");
 		ZMQ.Socket sendSocket = sendSocketMono.block(Duration.ofSeconds(10));
 		assertThat(sendSocket.getZapDomain()).isEqualTo("global");
 
-		@SuppressWarnings("unchecked")
-		Mono<ZMQ.Socket> subscribeSocketMono = TestUtils.getPropertyValue(channel, "subscribeSocket", Mono.class);
+		Mono<ZMQ.Socket> subscribeSocketMono = TestUtils.getPropertyValue(channel, "subscribeSocket");
 		ZMQ.Socket subscribeSocket = subscribeSocketMono.block(Duration.ofSeconds(10));
 		assertThat(subscribeSocket.getZapDomain()).isEqualTo("local");
 

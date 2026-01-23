@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -70,7 +71,7 @@ public class EnricherParserTests {
 		assertThat(accessor.getPropertyValue("outputChannelName")).isEqualTo("output");
 		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(true);
 		assertThat(accessor.getPropertyValue("requestPayloadExpression")).isNull();
-		assertThat(TestUtils.getPropertyValue(enricher, "gateway.beanFactory")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(enricher, "gateway.beanFactory")).isNotNull();
 
 		Map<Expression, Expression> propertyExpressions =
 				(Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
@@ -99,8 +100,8 @@ public class EnricherParserTests {
 	public void configurationCheckTimeoutParameters() {
 		Object endpoint = context.getBean("enricher");
 
-		Long requestTimeout = TestUtils.getPropertyValue(endpoint, "handler.requestTimeout", Long.class);
-		Long replyTimeout = TestUtils.getPropertyValue(endpoint, "handler.replyTimeout", Long.class);
+		Long requestTimeout = TestUtils.getPropertyValue(endpoint, "handler.requestTimeout");
+		Long replyTimeout = TestUtils.getPropertyValue(endpoint, "handler.replyTimeout");
 
 		assertThat(requestTimeout).isEqualTo(Long.valueOf(1234L));
 		assertThat(replyTimeout).isEqualTo(Long.valueOf(9876L));
@@ -110,7 +111,7 @@ public class EnricherParserTests {
 	public void configurationCheckRequiresReply() {
 		Object endpoint = context.getBean("enricher");
 
-		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
+		boolean requiresReply = TestUtils.<Boolean>getPropertyValue(endpoint, "handler.requiresReply");
 
 		assertThat(requiresReply).as("Was expecting requiresReply to be 'false'").isTrue();
 	}

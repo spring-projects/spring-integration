@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JmsInboundGatewayParserTests extends ActiveMQMultiContextTests {
 
@@ -250,7 +251,7 @@ public class JmsInboundGatewayParserTests extends ActiveMQMultiContextTests {
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		MultiValueMap<String, SmartLifecycle> lifecycles =
-				TestUtils.getPropertyValue(roleController, "lifecycles", MultiValueMap.class);
+				TestUtils.getPropertyValue(roleController, "lifecycles");
 		assertThat(lifecycles.containsKey("foo")).isTrue();
 		assertThat(lifecycles.getFirst("foo")).isSameAs(gateway);
 		gateway.start();

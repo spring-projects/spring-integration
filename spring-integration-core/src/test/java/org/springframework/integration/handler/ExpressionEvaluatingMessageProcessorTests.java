@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -83,7 +84,7 @@ public class ExpressionEvaluatingMessageProcessorTests implements TestApplicatio
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext =
-				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+				TestUtils.<EvaluationContext>getPropertyValue(processor, "evaluationContext");
 		evaluationContext.setVariable("target", new TestTarget());
 		assertThat(processor.processMessage(new GenericMessage<>("2"))).isEqualTo("2");
 	}
@@ -104,7 +105,7 @@ public class ExpressionEvaluatingMessageProcessorTests implements TestApplicatio
 		processor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext =
-				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+				TestUtils.<EvaluationContext>getPropertyValue(processor, "evaluationContext");
 		evaluationContext.setVariable("target", new TestTarget());
 		assertThat(processor.processMessage(new GenericMessage<>("2"))).isEqualTo(null);
 	}
@@ -134,7 +135,7 @@ public class ExpressionEvaluatingMessageProcessorTests implements TestApplicatio
 
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext =
-				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+				TestUtils.<EvaluationContext>getPropertyValue(processor, "evaluationContext");
 		evaluationContext.setVariable("target", new TestTarget());
 		String result = processor.processMessage(new GenericMessage<>("classpath*:*-test.xml"));
 		assertThat(result).contains("log4j2-test.xml");

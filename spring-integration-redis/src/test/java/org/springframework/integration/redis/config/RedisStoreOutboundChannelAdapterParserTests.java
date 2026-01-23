@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -71,15 +72,14 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 
 		assertThat(((Advised) handler).getAdvisors()[0].getAdvice()).isInstanceOf(RequestHandlerRetryAdvice.class);
 
-		assertThat(TestUtils.getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression",
-				Expression.class).getExpressionString()).isEqualTo("true");
+		assertThat(TestUtils.<Expression>getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression")
+				.getExpressionString()).isEqualTo("true");
 	}
 
 	@Test
 	public void validateWithStringObjectTemplate() {
 		RedisStoreWritingMessageHandler withStringObjectTemplate =
-				TestUtils.getPropertyValue(context.getBean("withStringObjectTemplate.adapter"), "handler",
-						RedisStoreWritingMessageHandler.class);
+				TestUtils.<RedisStoreWritingMessageHandler>getPropertyValue(context.getBean("withStringObjectTemplate.adapter"), "handler");
 		assertThat(((LiteralExpression) TestUtils.getPropertyValue(withStringObjectTemplate,
 				"keyExpression")).getExpressionString()).isEqualTo("pepboys");
 		assertThat((TestUtils.getPropertyValue(withStringObjectTemplate, "collectionType")).toString())
@@ -99,13 +99,13 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	@Test
 	public void validateWithExternalTemplate() {
 		RedisStoreWritingMessageHandler withExternalTemplate =
-				TestUtils.getPropertyValue(context.getBean("withExternalTemplate.adapter"), "handler",
-						RedisStoreWritingMessageHandler.class);
+				TestUtils.getPropertyValue(context.getBean("withExternalTemplate.adapter"), "handler");
 		assertThat(((LiteralExpression) TestUtils.getPropertyValue(withExternalTemplate,
 				"keyExpression")).getExpressionString()).isEqualTo("pepboys");
 		assertThat((TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString())
 				.isEqualTo("PROPERTIES");
-		assertThat(TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate")).isSameAs(redisTemplate);
+		assertThat(TestUtils.<Object>getPropertyValue(withExternalTemplate, "redisTemplate"))
+				.isSameAs(redisTemplate);
 	}
 
 }

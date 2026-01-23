@@ -16,8 +16,8 @@
 
 package org.springframework.integration.smb.config;
 
-import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -50,6 +50,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -59,31 +60,27 @@ public class SmbInboundChannelAdapterParserTests {
 	ApplicationContext applicationContext;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testSmbInboundChannelAdapterComplete() {
 
 		final SourcePollingChannelAdapter adapter =
 				this.applicationContext.getBean("smbInbound", SourcePollingChannelAdapter.class);
-		final PriorityBlockingQueue<?> queue =
-				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		final PriorityBlockingQueue<?> queue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived");
 		assertThat(queue.comparator()).isNotNull();
 		assertThat("smbInbound").isEqualTo(adapter.getComponentName());
 		assertThat("smb:inbound-channel-adapter").isEqualTo(adapter.getComponentType());
 		assertThat(applicationContext.getBean("smbChannel"))
 				.isEqualTo(TestUtils.getPropertyValue(adapter, "outputChannel"));
-		SmbInboundFileSynchronizingMessageSource inbound =
-				(SmbInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		SmbInboundFileSynchronizingMessageSource inbound = TestUtils.getPropertyValue(adapter, "source");
 
-		SmbInboundFileSynchronizer fisync =
-				(SmbInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-		assertThat(".working.tmp").isEqualTo(TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
+		SmbInboundFileSynchronizer fisync = TestUtils.getPropertyValue(inbound, "synchronizer");
+		assertThat(".working.tmp").isEqualTo(TestUtils.getPropertyValue(fisync, "temporaryFileSuffix"));
+		String remoteFileSeparator = TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertThat(remoteFileSeparator).isNotNull();
 		assertThat(remoteFileSeparator).isEqualTo("");
-		FileListFilter<?> filter = TestUtils.getPropertyValue(fisync, "filter", FileListFilter.class);
+		FileListFilter<?> filter = TestUtils.getPropertyValue(fisync, "filter");
 		assertThat(filter).isNotNull();
 		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
-		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters");
 
 		Iterator<?> filtersIterator = fileFilters.iterator();
 		assertThat(filtersIterator.next()).isInstanceOf(SmbSimplePatternFileListFilter.class);
@@ -93,8 +90,8 @@ public class SmbInboundChannelAdapterParserTests {
 
 		FileListFilter<?> acceptAllFilter = this.applicationContext.getBean("acceptAllFilter", FileListFilter.class);
 
-		assertThat(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class))
-				.contains(acceptAllFilter);
+		assertThat(TestUtils.<LinkedHashSet<FileListFilter<?>>>getPropertyValue(inbound,
+				"fileSource.scanner.filter.fileFilters")).contains(acceptAllFilter);
 	}
 
 	@Test
@@ -104,9 +101,8 @@ public class SmbInboundChannelAdapterParserTests {
 		Object sessionFactory =
 				TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertThat(sessionFactory).isInstanceOf(SmbSessionFactory.class);
-		SmbInboundFileSynchronizer fisync =
-				TestUtils.getPropertyValue(adapter, "source.synchronizer", SmbInboundFileSynchronizer.class);
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
+		SmbInboundFileSynchronizer fisync = TestUtils.getPropertyValue(adapter, "source.synchronizer");
+		String remoteFileSeparator = TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertThat(remoteFileSeparator).isNotNull();
 		assertThat(remoteFileSeparator).isEqualTo("/");
 	}

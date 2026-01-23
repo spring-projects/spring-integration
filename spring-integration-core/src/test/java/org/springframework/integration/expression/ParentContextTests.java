@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author Gary Russell
  * @author Artem Bilan
  * @author Pierre Lakreb
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -83,8 +84,7 @@ public class ParentContextTests {
 				this.getClass());
 
 		Object parentEvaluationContextFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
-		Map<?, ?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions",
-				Map.class);
+		Map<?, ?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions");
 		assertThat(parentFunctions.size()).isEqualTo(4);
 		Object jsonPath = parentFunctions.get("jsonPath");
 		assertThat(jsonPath).isNotNull();
@@ -95,8 +95,7 @@ public class ParentContextTests {
 		child.refresh();
 
 		Object childEvaluationContextFactoryBean = child.getBean(IntegrationEvaluationContextFactoryBean.class);
-		Map<?, ?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions",
-				Map.class);
+		Map<?, ?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions");
 		assertThat(childFunctions.size()).isEqualTo(5);
 		assertThat(childFunctions.containsKey("barParent")).isTrue();
 		assertThat(childFunctions.containsKey("fooFunc")).isTrue();

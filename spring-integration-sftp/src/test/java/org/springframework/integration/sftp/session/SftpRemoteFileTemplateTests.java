@@ -54,6 +54,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Darryl Smith
+ * @author Glenn Renfro
+ *
  * @since 4.1
  */
 @SpringJUnitConfig
@@ -179,7 +181,7 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport implements Test
 				.withStackTraceContaining("(SSH_FX_NO_SUCH_FILE): No such file or directory");
 
 		Session<SftpClient.DirEntry> newSession = this.sessionFactory.getSession();
-		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+		assertThat(TestUtils.<Object>getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
 
 		newSession.close();

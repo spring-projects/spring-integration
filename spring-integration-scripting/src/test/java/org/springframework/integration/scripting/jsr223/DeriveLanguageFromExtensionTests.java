@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author David Turanski
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -60,9 +61,9 @@ public class DeriveLanguageFromExtensionTests {
 								(argumentsAccessor.getInvocationIndex() - 1),
 						ScriptExecutingMessageProcessor.class);
 
-		ScriptExecutor executor = TestUtils.getPropertyValue(processor, "scriptExecutor", ScriptExecutor.class);
+		ScriptExecutor executor = TestUtils.getPropertyValue(processor, "scriptExecutor");
 		if (executor instanceof PolyglotScriptExecutor) {
-			assertThat(TestUtils.getPropertyValue(executor, "language")).isEqualTo(language);
+			assertThat(TestUtils.<Object>getPropertyValue(executor, "language")).isEqualTo(language);
 		}
 		else {
 			AbstractScriptExecutor abstractScriptExecutor = (AbstractScriptExecutor) executor;

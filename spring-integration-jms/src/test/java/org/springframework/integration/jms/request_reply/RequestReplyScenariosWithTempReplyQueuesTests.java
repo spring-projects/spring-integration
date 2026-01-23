@@ -195,8 +195,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				timeoutCounter++;
 			}
 			if (i == 0 || i == 20 || i == 40) {
-				Object replyDestination = TestUtils
-						.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
+				Object replyDestination = TestUtils.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
 				if (replyDestination != null) {
 					broker.getActiveMQServer().destroyQueue(((ActiveMQDestination) replyDestination).getSimpleAddress());
 				}

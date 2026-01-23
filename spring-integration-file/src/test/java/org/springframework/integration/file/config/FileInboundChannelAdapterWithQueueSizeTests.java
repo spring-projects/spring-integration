@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -62,8 +63,8 @@ public class FileInboundChannelAdapterWithQueueSizeTests {
 
 	@Test
 	public void queueSize() {
-		HeadDirectoryScanner scanner1 = TestUtils.getPropertyValue(source1, "scanner", HeadDirectoryScanner.class);
-		HeadDirectoryScanner scanner2 = TestUtils.getPropertyValue(source2, "scanner", HeadDirectoryScanner.class);
+		HeadDirectoryScanner scanner1 = TestUtils.getPropertyValue(source1, "scanner");
+		HeadDirectoryScanner scanner2 = TestUtils.getPropertyValue(source2, "scanner");
 		List<File> files = scanner1.listFiles(inputDir);
 		assertThat(files).hasSize(2);
 		files = scanner2.listFiles(inputDir);

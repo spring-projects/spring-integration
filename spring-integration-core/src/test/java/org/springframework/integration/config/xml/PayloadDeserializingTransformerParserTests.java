@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -77,7 +78,7 @@ public class PayloadDeserializingTransformerParserTests {
 		assertThat(result.getPayload() instanceof String).isTrue();
 		assertThat(result.getPayload()).isEqualTo("foo");
 		Set<?> patterns =
-				TestUtils.getPropertyValue(this.handler, "transformer.converter.allowedPatterns", Set.class);
+				TestUtils.getPropertyValue(this.handler, "transformer.converter.allowedPatterns");
 		assertThat(patterns.size()).isEqualTo(1);
 		assertThat(patterns.iterator().next()).isEqualTo("*");
 	}

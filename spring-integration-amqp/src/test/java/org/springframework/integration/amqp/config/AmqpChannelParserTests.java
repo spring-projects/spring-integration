@@ -41,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 2.1
  */
 @SpringJUnitConfig
@@ -62,34 +64,36 @@ public class AmqpChannelParserTests {
 	@Test
 	public void interceptor() {
 		MessageChannel channel = context.getBean("channelWithInterceptor", MessageChannel.class);
-		List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
-		assertThat(interceptorList.size()).isEqualTo(1);
+		List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors");
+		assertThat(interceptorList).hasSize(1);
 		assertThat(interceptorList.get(0).getClass()).isEqualTo(TestInterceptor.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
+		assertThat(TestUtils.<Integer>getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
 				.isEqualTo(Integer.MAX_VALUE);
 		channel = context.getBean("pubSub", MessageChannel.class);
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertThat(TestUtils.getPropertyValue(channel, "container.messageListener.messageBuilderFactory"))
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "container.messageListener.messageBuilderFactory"))
 				.isSameAs(mbf);
-		assertThat(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(channel, "container")).isInstanceOf(SimpleMessageListenerContainer.class);
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "container.missingQueuesFatal")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "container.transactional")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "amqpTemplate.transactional")).isFalse();
+		assertThat(TestUtils.<SimpleMessageListenerContainer>getPropertyValue(channel, "container"))
+				.isInstanceOf(SimpleMessageListenerContainer.class);
 	}
 
 	@Test
 	public void subscriberLimit() {
 		MessageChannel channel = context.getBean("channelWithSubscriberLimit", MessageChannel.class);
-		assertThat(TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue())
+		assertThat(TestUtils.<Integer>getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
 				.isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(channel, "extractPayload", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(channel, "container")).isInstanceOf(DirectMessageListenerContainer.class);
-		assertThat(TestUtils.getPropertyValue(channel, "container.consumersPerQueue")).isEqualTo(2);
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "container.missingQueuesFatal")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "container.transactional")).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "amqpTemplate.transactional")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "extractPayload")).isFalse();
+		assertThat(TestUtils.<DirectMessageListenerContainer>getPropertyValue(channel, "container"))
+				.isInstanceOf(DirectMessageListenerContainer.class);
+		assertThat(TestUtils.<Integer>getPropertyValue(channel, "container.consumersPerQueue")).isEqualTo(2);
 	}
 
 	@Test
@@ -97,11 +101,11 @@ public class AmqpChannelParserTests {
 		checkExtract(this.pollableWithEP);
 		checkExtract(this.withEP);
 		checkExtract(this.pubSubWithEP);
-		assertThat(TestUtils.getPropertyValue(this.withEP, "defaultDeliveryMode"))
+		assertThat(TestUtils.<MessageDeliveryMode>getPropertyValue(this.withEP, "defaultDeliveryMode"))
 				.isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
-		assertThat(TestUtils.getPropertyValue(this.withEP, "headersMappedLast", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "defaultDeliveryMode")).isNull();
-		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "headersMappedLast", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.withEP, "headersMappedLast")).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(this.pollableWithEP, "defaultDeliveryMode")).isNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.pollableWithEP, "headersMappedLast")).isTrue();
 	}
 
 	private void checkExtract(AbstractAmqpChannel channel) {
@@ -109,7 +113,7 @@ public class AmqpChannelParserTests {
 				.contains("Mock for AmqpHeaderMapper");
 		assertThat(TestUtils.getPropertyValue(channel, "inboundHeaderMapper").toString())
 				.contains("Mock for AmqpHeaderMapper");
-		assertThat(TestUtils.getPropertyValue(channel, "extractPayload", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(channel, "extractPayload")).isTrue();
 	}
 
 	private static class TestInterceptor implements ChannelInterceptor {

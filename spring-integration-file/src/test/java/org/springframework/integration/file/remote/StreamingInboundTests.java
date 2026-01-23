@@ -60,6 +60,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3
  *
@@ -241,10 +242,10 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 		streamer.afterPropertiesSet();
 		streamer.start();
 		assertThat(streamer.receive()).isNotNull();
-		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(TestUtils.<BlockingQueue<AbstractFileInfo<?>>>getPropertyValue(streamer, "toBeReceived")).hasSize(1);
 		assertThat(streamer.metadataMap).hasSize(1);
 		streamer.stop();
-		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
+		assertThat(TestUtils.<BlockingQueue<AbstractFileInfo<?>>>getPropertyValue(streamer, "toBeReceived")).hasSize(0);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -257,12 +258,14 @@ public class StreamingInboundTests implements TestApplicationContextAware {
 		streamer.start();
 		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
-		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(TestUtils.<BlockingQueue<AbstractFileInfo<?>>>getPropertyValue(streamer, "toBeReceived"))
+				.hasSize(1);
 		assertThat(streamer.metadataMap).hasSize(0);
 		streamer.setStrictOrder(true);
 		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
-		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
+		assertThat(TestUtils.<BlockingQueue<AbstractFileInfo<?>>>getPropertyValue(streamer, "toBeReceived"))
+				.hasSize(0);
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {

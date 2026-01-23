@@ -40,12 +40,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -82,76 +83,73 @@ public class OperationInvokingOutboundGatewayTests {
 	}
 
 	@Test
-	public void gatewayWithReplyChannel() throws Exception {
-		withReplyChannel.send(new GenericMessage<String>("1"));
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(1);
-		withReplyChannel.send(new GenericMessage<String>("2"));
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(2);
-		withReplyChannel.send(new GenericMessage<String>("3"));
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(3);
+	public void gatewayWithReplyChannel() {
+		withReplyChannel.send(new GenericMessage<>("1"));
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(1);
+		withReplyChannel.send(new GenericMessage<>("2"));
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(2);
+		withReplyChannel.send(new GenericMessage<>("3"));
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(3);
 		assertThat(adviceCalled).isEqualTo(3);
 	}
 
 	@Test
-	public void gatewayWithPrimitiveArgs() throws Exception {
-		primitiveChannel.send(new GenericMessage<Object[]>(new Object[] {true, 0L, 1}));
-		assertThat(testBean.messages.size()).isEqualTo(1);
-		List<Object> argList = new ArrayList<Object>();
+	public void gatewayWithPrimitiveArgs() {
+		primitiveChannel.send(new GenericMessage<>(new Object[] {true, 0L, 1}));
+		assertThat(testBean.messages).hasSize(1);
+		List<Object> argList = new ArrayList<>();
 		argList.add(false);
 		argList.add(123L);
 		argList.add(42);
-		primitiveChannel.send(new GenericMessage<List<Object>>(argList));
-		assertThat(testBean.messages.size()).isEqualTo(2);
-		Map<String, Object> argMap = new HashMap<String, Object>();
+		primitiveChannel.send(new GenericMessage<>(argList));
+		assertThat(testBean.messages).hasSize(2);
+		Map<String, Object> argMap = new HashMap<>();
 		argMap.put("p1", true);
 		argMap.put("p2", 0L);
 		argMap.put("p3", 42);
-		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
-		assertThat(testBean.messages.size()).isEqualTo(3);
+		primitiveChannel.send(new GenericMessage<>(argMap));
+		assertThat(testBean.messages).hasSize(3);
 		argMap.put("p2", true);
 		argMap.put("p1", 0L);
 		argMap.put("p3", 42);
-		try {
-			primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
-			fail("Expected Exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("failed to find JMX operation");
-		}
+
+		Map<String, Object> argMapCopy = new HashMap<>(argMap);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> primitiveChannel.send(new GenericMessage<>(argMapCopy)))
+				.withMessageContaining("failed to find JMX operation");
 		// Args are named starting with Spring 3.2.3
-		argMap = new HashMap<String, Object>();
+		argMap = new HashMap<>();
 		argMap.put("bool", true);
 		argMap.put("time", 0L);
 		argMap.put("foo", 42);
-		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
-		assertThat(testBean.messages.size()).isEqualTo(4);
+		primitiveChannel.send(new GenericMessage<>(argMap));
+		assertThat(testBean.messages).hasSize(4);
 	}
 
 	@Test
-	public void gatewayWithNoReplyChannel() throws Exception {
-		withNoReplyChannel.send(new GenericMessage<String>("1"));
+	public void gatewayWithNoReplyChannel() {
+		withNoReplyChannel.send(new GenericMessage<>("1"));
 		assertThat(testBean.messages.size()).isEqualTo(1);
-		withNoReplyChannel.send(new GenericMessage<String>("2"));
+		withNoReplyChannel.send(new GenericMessage<>("2"));
 		assertThat(testBean.messages.size()).isEqualTo(2);
-		withNoReplyChannel.send(new GenericMessage<String>("3"));
+		withNoReplyChannel.send(new GenericMessage<>("3"));
 		assertThat(testBean.messages.size()).isEqualTo(3);
 	}
 
 	@Test //INT-1029, INT-2822
-	public void testOutboundGatewayInsideChain() throws Exception {
-		List<?> handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers", List.class);
-		assertThat(handlers.size()).isEqualTo(1);
+	public void testOutboundGatewayInsideChain() {
+		List<?> handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers");
+		assertThat(handlers).hasSize(1);
 		Object handler = handlers.get(0);
 		assertThat(handler instanceof OperationInvokingMessageHandler).isTrue();
-		assertThat(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "requiresReply")).isTrue();
 
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("1").build());
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(1);
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(1);
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("2").build());
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(2);
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(2);
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("3").build());
-		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload()).size()).isEqualTo(3);
+		assertThat(((List<?>) withReplyChannelOutput.receive().getPayload())).hasSize(3);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

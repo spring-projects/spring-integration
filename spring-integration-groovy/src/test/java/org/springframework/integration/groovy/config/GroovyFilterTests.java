@@ -25,9 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -47,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -103,11 +102,8 @@ public class GroovyFilterTests {
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertThat(this.groovyFilterMessageHandler).isInstanceOf(MessageFilter.class);
-		MessageSelector selector = TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector",
-				MethodInvokingSelector.class);
-		@SuppressWarnings("rawtypes")
-		MessageProcessor messageProcessor =
-				TestUtils.getPropertyValue(selector, "messageProcessor", MessageProcessor.class);
+		MessageProcessor<?> messageProcessor =
+				TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector.messageProcessor");
 		//before it was MethodInvokingMessageProcessor
 		assertThat(messageProcessor).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}
@@ -115,7 +111,7 @@ public class GroovyFilterTests {
 	@Test
 	public void testCompileStaticIsApplied() {
 		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> this.compileStaticFailScriptInput.send(new GenericMessage<Object>("foo")))
+				.isThrownBy(() -> this.compileStaticFailScriptInput.send(new GenericMessage<Object>("fail")))
 				.withRootCauseExactlyInstanceOf(MultipleCompilationErrorsException.class)
 				.withStackTraceContaining("[Static type checking] - The variable [payload] is undeclared.");
 	}

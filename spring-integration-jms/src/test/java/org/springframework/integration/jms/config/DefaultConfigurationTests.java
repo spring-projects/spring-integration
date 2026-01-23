@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -49,29 +50,26 @@ public class DefaultConfigurationTests {
 	@Test
 	public void verifyErrorChannel() {
 		Object errorChannel = context.getBean("errorChannel");
-		assertThat(errorChannel).isNotNull();
-		assertThat(errorChannel.getClass()).isEqualTo(PublishSubscribeChannel.class);
+		assertThat(errorChannel).isInstanceOf(PublishSubscribeChannel.class);
 	}
 
 	@Test
 	public void verifyNullChannel() {
 		Object nullChannel = context.getBean("nullChannel");
-		assertThat(nullChannel).isNotNull();
-		assertThat(nullChannel.getClass()).isEqualTo(NullChannel.class);
+		assertThat(nullChannel).isInstanceOf(NullChannel.class);
 	}
 
 	@Test
 	public void verifyTaskScheduler() {
 		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
-		assertThat(taskScheduler.getClass()).isEqualTo(ThreadPoolTaskScheduler.class);
-		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);
-		assertThat(errorHandler.getClass()).isEqualTo(MessagePublishingErrorHandler.class);
-		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler,
-				"messagingTemplate.defaultDestination", MessageChannel.class);
+		assertThat(taskScheduler).isInstanceOf(ThreadPoolTaskScheduler.class);
+		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler");
+		assertThat(errorHandler).isInstanceOf(MessagePublishingErrorHandler.class);
+		MessageChannel defaultErrorChannel =
+				TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination");
 		assertThat(defaultErrorChannel).isNull();
 		errorHandler.handleError(new Throwable());
-		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination",
-				MessageChannel.class);
+		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination");
 		assertThat(defaultErrorChannel).isNotNull();
 		assertThat(defaultErrorChannel).isEqualTo(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
 	}

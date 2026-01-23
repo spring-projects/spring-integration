@@ -86,6 +86,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -266,7 +267,8 @@ public class FileTests {
 		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.END
 		assertThat(this.fileSplittingResultChannel.receive(1)).isNull();
 
-		assertThat(TestUtils.getPropertyValue(this.fileSplitter, "charset")).isEqualTo(StandardCharsets.US_ASCII);
+		assertThat(TestUtils.<Object>getPropertyValue(this.fileSplitter, "charset"))
+				.isEqualTo(StandardCharsets.US_ASCII);
 	}
 
 	@Autowired
@@ -302,7 +304,7 @@ public class FileTests {
 
 		assertThat(payloads.toArray()).isEqualTo(new String[] {"test1", "test2"});
 
-		assertThat(TestUtils.getPropertyValue(
+		assertThat(TestUtils.<RecursiveDirectoryScanner>getPropertyValue(
 				this.beanFactory.getBean("dynamicFile.adapter.source"), "scanner"))
 				.isInstanceOf(RecursiveDirectoryScanner.class);
 	}

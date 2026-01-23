@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -73,7 +74,7 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 	private IdempotentReceiverInterceptor idempotentReceiverInterceptor;
 
 	@Autowired
-	private FooAdvice fooAdvice;
+	private TestAdvice testAdvice;
 
 	@Test
 	public void testIdempotentReceiverInterceptor() {
@@ -94,12 +95,12 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 		proxyFactory.addAdvice(idempotentReceiverInterceptor);
 		idempotentReceiver = (MessageHandler) proxyFactory.getProxy();
 
-		idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
-		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
-		assertThat(store.get("foo")).isNotNull();
+		idempotentReceiver.handleMessage(new GenericMessage<>("testData"));
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(store, "metadata").size()).isEqualTo(1);
+		assertThat(store.get("testData")).isNotNull();
 
 		try {
-			idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
+			idempotentReceiver.handleMessage(new GenericMessage<>("testData"));
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
@@ -107,21 +108,21 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 		}
 
 		idempotentReceiverInterceptor.setThrowExceptionOnRejection(false);
-		idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
+		idempotentReceiver.handleMessage(new GenericMessage<>("testData"));
 		assertThat(handled.get().getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE,
 				Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(store, "metadata").size()).isEqualTo(1);
 	}
 
 	@Test
 	public void testIdempotentReceiver() {
-		Message<String> message = new GenericMessage<>("foo");
+		Message<String> message = new GenericMessage<>("testData");
 		this.input.send(message);
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(this.fooAdvice.adviceCalled).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
-		assertThat(this.store.get("foo")).isNotNull();
+		assertThat(this.testAdvice.adviceCalled).isEqualTo(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata").size()).isEqualTo(1);
+		assertThat(this.store.get("testData")).isNotNull();
 
 		try {
 			this.input.send(message);
@@ -134,10 +135,10 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 		this.input.send(message);
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
-		assertThat(this.fooAdvice.adviceCalled).isEqualTo(2);
+		assertThat(this.testAdvice.adviceCalled).isEqualTo(2);
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
 				.isTrue();
-		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata").size()).isEqualTo(1);
 
 		message = new GenericMessage<>("bar");
 		for (int i = 0; i < 2; i++) {
@@ -148,13 +149,13 @@ public class IdempotentReceiverTests implements TestApplicationContextAware {
 
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
 				.isTrue();
-		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(2);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.store, "metadata").size()).isEqualTo(2);
 		assertThat(this.store.get("bar")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.store2, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.store2, "metadata").size()).isEqualTo(1);
 		assertThat(this.store2.get("BAR")).isNotNull();
 	}
 
-	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+	public static class TestAdvice extends AbstractRequestHandlerAdvice {
 
 		private int adviceCalled;
 

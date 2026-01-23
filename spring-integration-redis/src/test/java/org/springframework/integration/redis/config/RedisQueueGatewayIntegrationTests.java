@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author David Liu
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -91,7 +92,7 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Test
 	void testInboundGatewayStop() {
-		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
+		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
 		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.stop();
 		try {
@@ -107,7 +108,7 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Test
 	void testNullSerializer() {
-		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
+		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
 		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.setSerializer(null);
 		try {

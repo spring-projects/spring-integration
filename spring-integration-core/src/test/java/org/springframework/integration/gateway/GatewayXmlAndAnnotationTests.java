@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -50,31 +51,30 @@ public class GatewayXmlAndAnnotationTests {
 
 	@Test
 	public void test() {
-		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
+		assertThat(TestUtils.<Expression>getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout")
 				.getValue()).isEqualTo(123L);
-		@SuppressWarnings("unchecked")
-		Map<Method, MessagingGatewaySupport> gatewayMap = TestUtils.getPropertyValue(gatewayProxyFactoryBean,
-				"gatewayMap", Map.class);
+		Map<Method, MessagingGatewaySupport> gatewayMap =
+				TestUtils.getPropertyValue(gatewayProxyFactoryBean, "gatewayMap");
 		int assertions = 0;
 		for (Entry<Method, MessagingGatewaySupport> entry : gatewayMap.entrySet()) {
 			switch (entry.getKey().getName()) {
 				case "annotationShouldNotOverrideDefault" -> {
-					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+					assertThat(TestUtils.<Long>getPropertyValue(entry.getValue(),
 							"messagingTemplate.receiveTimeout")).isEqualTo(123L);
 					assertions++;
 				}
 				case "annotationShouldOverrideDefault" -> {
-					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+					assertThat(TestUtils.<Long>getPropertyValue(entry.getValue(),
 							"messagingTemplate.receiveTimeout")).isEqualTo(234L);
 					assertions++;
 				}
 				case "annotationShouldOverrideDefaultToInfinity" -> {
-					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+					assertThat(TestUtils.<Long>getPropertyValue(entry.getValue(),
 							"messagingTemplate.receiveTimeout")).isEqualTo(-1L);
 					assertions++;
 				}
 				case "explicitTimeoutShouldOverrideDefault" -> {
-					assertThat(TestUtils.getPropertyValue(entry.getValue(),
+					assertThat(TestUtils.<Long>getPropertyValue(entry.getValue(),
 							"messagingTemplate.receiveTimeout")).isEqualTo(456L);
 					assertions++;
 				}

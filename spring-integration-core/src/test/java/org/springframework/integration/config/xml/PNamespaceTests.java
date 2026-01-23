@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -99,8 +100,7 @@ public class PNamespaceTests {
 	}
 
 	private TestBean prepare(EventDrivenConsumer edc) {
-		return TestUtils.getPropertyValue(serviceActivator,
-				"handler.processor.delegate.targetObject", TestBean.class);
+		return TestUtils.<TestBean>getPropertyValue(serviceActivator, "handler.processor.delegate.targetObject");
 	}
 
 	public interface InboundGateway {

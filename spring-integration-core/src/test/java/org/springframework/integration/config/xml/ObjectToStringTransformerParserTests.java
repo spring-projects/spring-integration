@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -88,7 +89,8 @@ public class ObjectToStringTransformerParserTests {
 
 	@Test
 	public void charset() {
-		assertThat(TestUtils.getPropertyValue(this.withCharset, "handler.transformer.charset")).isEqualTo("FOO");
+		assertThat(TestUtils.<String>getPropertyValue(this.withCharset, "handler.transformer.charset"))
+				.isEqualTo("FOO");
 	}
 
 	private static class TestBean {

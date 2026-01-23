@@ -70,6 +70,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Joaquin Santana
  * @author Deepak Gunasekaran
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -102,11 +103,12 @@ public class FtpTests extends FtpTestSupport {
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
-		Map<?, ?> components = TestUtils.getPropertyValue(registration, "integrationFlow.integrationComponents", Map.class);
+		Map<?, ?> components = TestUtils.getPropertyValue(registration, "integrationFlow.integrationComponents");
 		Iterator<?> iterator = components.keySet().iterator();
 		iterator.next();
 		Object spcafb = iterator.next();
-		assertThat(TestUtils.getPropertyValue(spcafb, "source.fileSource.scanner")).isSameAs(scanner);
+		assertThat(TestUtils.<Object>getPropertyValue(spcafb, "source.fileSource.scanner"))
+				.isSameAs(scanner);
 		Message<?> message = out.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders())
@@ -141,7 +143,7 @@ public class FtpTests extends FtpTestSupport {
 		assertThat(FileCopyUtils.copyToString(new FileReader(file))).isEqualTo("New content");
 
 		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
 
 		registration.destroy();
 	}
@@ -172,7 +174,7 @@ public class FtpTests extends FtpTestSupport {
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		MessageSource<?> source = context.getBean(FtpStreamingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(11);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(11);
 		registration.destroy();
 	}
 

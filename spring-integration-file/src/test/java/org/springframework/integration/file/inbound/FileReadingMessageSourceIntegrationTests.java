@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -66,7 +67,8 @@ public class FileReadingMessageSourceIntegrationTests {
 
 	@Test
 	public void configured() {
-		assertThat(TestUtils.getPropertyValue(this.pollableFileSource, "directoryExpression.value")).isEqualTo(inputDir);
+		assertThat(TestUtils.<File>getPropertyValue(this.pollableFileSource,
+				"directoryExpression.value")).isEqualTo(inputDir);
 	}
 
 	@Test

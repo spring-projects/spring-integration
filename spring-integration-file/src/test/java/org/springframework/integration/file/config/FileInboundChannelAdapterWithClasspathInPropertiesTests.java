@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -65,19 +66,18 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 		File actual = (File) accessor.getPropertyValue("directoryExpression.value");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 
-		FileListFilter<File> fileListFilter =
-				TestUtils.getPropertyValue(this.source, "scanner.filter", FileListFilter.class);
+		FileListFilter<File> fileListFilter = TestUtils.getPropertyValue(this.source, "scanner.filter");
 		assertThat(fileListFilter).isInstanceOf(CompositeFileListFilter.class);
-		Set<FileListFilter<File>> fileFilters =
-				TestUtils.getPropertyValue(fileListFilter, "fileFilters", Set.class);
+		Set<FileListFilter<File>> fileFilters = TestUtils.getPropertyValue(fileListFilter, "fileFilters");
 		assertThat(fileFilters).hasSize(2);
 		Iterator<FileListFilter<File>> iterator = fileFilters.iterator();
 		iterator.next();
 		FileListFilter<File> expressionFilter = iterator.next();
 		assertThat(expressionFilter).isInstanceOf(ExpressionFileListFilter.class);
-		assertThat(TestUtils.getPropertyValue(expressionFilter, "expression.expression", String.class))
+		assertThat(TestUtils.<String>getPropertyValue(expressionFilter, "expression.expression"))
 				.isEqualTo("true");
-		assertThat(TestUtils.getPropertyValue(expressionFilter, "beanFactory")).isSameAs(this.beanFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(expressionFilter, "beanFactory"))
+				.isSameAs(this.beanFactory);
 	}
 
 }

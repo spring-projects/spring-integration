@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -91,7 +92,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		assertThat(message.getPayload()).isEqualTo("foo");
 		adapter = context.getBean("pipedAdapterNoCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertThat(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(source, "blockToDetectEOF")).isTrue();
 	}
 
 	@Test
@@ -113,7 +114,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		assertThat(message.getPayload()).isEqualTo("foo");
 		adapter = context.getBean("pipedAdapterWithCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertThat(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(source, "blockToDetectEOF")).isTrue();
 		bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertThat(bufferedReader.getClass()).isEqualTo(BufferedReader.class);
 		bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);

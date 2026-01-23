@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -84,26 +85,27 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaListener.isRunning()).isFalse();
 		assertThat(this.kafkaListener.getPhase()).isEqualTo(100);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "outputChannel")).isSameAs(this.nullChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "outputChannel")).isSameAs(this.nullChannel);
 		KafkaMessageListenerContainer<?, ?> container =
-				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
-						KafkaMessageListenerContainer.class);
+				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer");
 		assertThat(container).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "mode", ListenerMode.class))
+		assertThat(TestUtils.<ListenerMode>getPropertyValue(this.kafkaListener, "mode"))
 				.isEqualTo(ListenerMode.record);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recordListener.fallbackType"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "recordListener.fallbackType"))
 				.isEqualTo(String.class);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "batchListener.fallbackType"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "batchListener.fallbackType"))
 				.isEqualTo(String.class);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "retryTemplate")).isSameAs(this.retryTemplate);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "onPartitionsAssignedSeekCallback"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "retryTemplate"))
+				.isSameAs(this.retryTemplate);
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "recoveryCallback"))
+				.isSameAs(this.recoveryCallback);
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "bindSourceRecord", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "filterInRetry", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "ackDiscarded", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recordFilterStrategy"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.kafkaListener, "bindSourceRecord")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.kafkaListener, "filterInRetry")).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.kafkaListener, "ackDiscarded")).isTrue();
+		assertThat(TestUtils.<Object>getPropertyValue(this.kafkaListener, "recordFilterStrategy"))
 				.isSameAs(this.context.getBean("recordFilterStrategy"));
 	}
 
@@ -112,13 +114,14 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		assertThat(this.kafkaBatchListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaBatchListener.isRunning()).isFalse();
 		assertThat(this.kafkaBatchListener.getPhase()).isEqualTo(100);
-		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "outputChannel")).isSameAs(this.nullChannel);
-		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "errorChannel")).isSameAs(this.errorChannel);
-		KafkaMessageListenerContainer<?, ?> container =
-				TestUtils.getPropertyValue(this.kafkaBatchListener, "messageListenerContainer",
-						KafkaMessageListenerContainer.class);
+		assertThat(TestUtils.<NullChannel>getPropertyValue(this.kafkaBatchListener, "outputChannel"))
+				.isSameAs(this.nullChannel);
+		assertThat(TestUtils.<PublishSubscribeChannel>getPropertyValue(this.kafkaBatchListener, "errorChannel"))
+				.isSameAs(this.errorChannel);
+		KafkaMessageListenerContainer<?, ?> container = TestUtils.getPropertyValue(this.kafkaBatchListener,
+						"messageListenerContainer");
 		assertThat(container).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "mode", ListenerMode.class))
+		assertThat(TestUtils.<ListenerMode>getPropertyValue(this.kafkaBatchListener, "mode"))
 				.isEqualTo(ListenerMode.batch);
 	}
 
@@ -137,7 +140,7 @@ class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationCont
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
-		containerProps = TestUtils.getPropertyValue(container, "containerProperties", ContainerProperties.class);
+		containerProps = TestUtils.<ContainerProperties>getPropertyValue(container, "containerProperties");
 
 		Object messageListener = containerProps.getMessageListener();
 		assertThat(messageListener).isInstanceOf(FilteringMessageListenerAdapter.class);

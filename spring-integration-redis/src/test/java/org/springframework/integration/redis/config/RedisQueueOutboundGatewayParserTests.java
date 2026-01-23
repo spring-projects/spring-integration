@@ -33,7 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author David Liu
  * @author Gary Russell
- * since 4.1
+ * @author Glenn Renfro
+ *
+ * @since 4.1
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -60,16 +62,20 @@ public class RedisQueueOutboundGatewayParserTests {
 
 	@Test
 	public void testDefaultConfig() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializer")).isSameAs(this.serializer);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "order")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "outputChannel")).isSameAs(this.receiveChannel);
-		assertThat(TestUtils.getPropertyValue(this.consumer, "inputChannel")).isSameAs(this.requestChannel);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "requiresReply", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "receiveTimeout")).isEqualTo(2000);
-		assertThat(TestUtils.getPropertyValue(this.consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.consumer, "phase")).isEqualTo(3);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "extractPayload")).isFalse();
+		assertThat(TestUtils.<RedisSerializer<?>>getPropertyValue(this.defaultGateway, "serializer"))
+				.isSameAs(this.serializer);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "serializerExplicitlySet")).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.defaultGateway, "order")).isEqualTo(2);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(this.defaultGateway, "outputChannel"))
+				.isSameAs(this.receiveChannel);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(this.consumer, "inputChannel"))
+				.isSameAs(this.requestChannel);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "requiresReply")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.defaultGateway, "receiveTimeout"))
+				.isEqualTo(2000);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.consumer, "phase")).isEqualTo(3);
 	}
 
 }

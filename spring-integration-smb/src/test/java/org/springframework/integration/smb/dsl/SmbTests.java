@@ -73,6 +73,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Vozhdayenko
  * @author Artem Bilan
  * @author Daniel Frey
+ * @author Glenn Renfro
  *
  * @since 6.0
  */
@@ -103,12 +104,11 @@ public class SmbTests extends SmbTestSupport {
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
-		Map<?, ?> components =
-				TestUtils.getPropertyValue(registration, "integrationFlow.integrationComponents", Map.class);
+		Map<?, ?> components = TestUtils.getPropertyValue(registration, "integrationFlow.integrationComponents");
 		Iterator<?> iterator = components.keySet().iterator();
 		iterator.next();
 		Object spcafb = iterator.next();
-		assertThat(TestUtils.getPropertyValue(spcafb, "source.fileSource.scanner")).isSameAs(scanner);
+		assertThat(TestUtils.<Object>getPropertyValue(spcafb, "source.fileSource.scanner")).isSameAs(scanner);
 		Message<?> message = out.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders())
@@ -128,7 +128,7 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(out.receive(10)).isNull();
 
 		MessageSource<?> source = context.getBean(SmbInboundFileSynchronizingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
 
 		registration.destroy();
 	}
@@ -160,7 +160,7 @@ public class SmbTests extends SmbTestSupport {
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		MessageSource<?> source = context.getBean(SmbStreamingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(11);
+		assertThat(TestUtils.<Integer>getPropertyValue(source, "maxFetchSize")).isEqualTo(11);
 		registration.destroy();
 	}
 

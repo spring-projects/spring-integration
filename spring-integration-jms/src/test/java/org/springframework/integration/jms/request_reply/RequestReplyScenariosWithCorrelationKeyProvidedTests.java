@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @LongRunningTest
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends ActiveMQMultiContextTests {
@@ -94,8 +95,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 			}
 		}
 
-		JmsOutboundGateway outGateway =
-				TestUtils.getPropertyValue(context.getBean("outGateway"), "handler", JmsOutboundGateway.class);
+		JmsOutboundGateway outGateway = TestUtils.getPropertyValue(context.getBean("outGateway"), "handler");
 		outGateway.setReceiveTimeout(5000);
 		assertThat(gateway.exchange(MessageBuilder.withPayload("test").build()).getPayload()).isEqualTo("test");
 		context.close();

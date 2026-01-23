@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -74,27 +75,25 @@ class RedisChannelParserTests implements RedisContainerTest {
 	@Test
 	void testPubSubChannelConfig() {
 		RedisConnectionFactory connectionFactory =
-				TestUtils.getPropertyValue(this.redisChannel, "connectionFactory", RedisConnectionFactory.class);
-		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer",
-				RedisSerializer.class);
+				TestUtils.<RedisConnectionFactory>getPropertyValue(this.redisChannel, "connectionFactory");
+		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer");
 		assertThat(this.context.getBean("redisConnectionFactory")).isEqualTo(connectionFactory);
 		assertThat(this.context.getBean("redisSerializer")).isEqualTo(redisSerializer);
-		assertThat(TestUtils.getPropertyValue(redisChannel, "topicName")).isEqualTo("si.test.topic.parser");
-		assertThat(TestUtils.getPropertyValue(
-						TestUtils.getPropertyValue(this.redisChannel, "dispatcher"), "maxSubscribers", Integer.class)
+		assertThat(TestUtils.<String>getPropertyValue(redisChannel, "topicName")).isEqualTo("si.test.topic.parser");
+		assertThat(TestUtils.<Integer>getPropertyValue(
+						TestUtils.getPropertyValue(this.redisChannel, "dispatcher"), "maxSubscribers")
 				.intValue()).isEqualTo(Integer.MAX_VALUE);
 
-		assertThat(TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "dispatcher.maxSubscribers",
-						Integer.class)
+		assertThat(TestUtils.<Integer>getPropertyValue(this.redisChannelWithSubLimit, "dispatcher.maxSubscribers")
 				.intValue()).isEqualTo(1);
 		Object mbf = this.context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertThat(TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "messageBuilderFactory")).isSameAs(mbf);
+		assertThat(TestUtils.<Object>getPropertyValue(this.redisChannelWithSubLimit, "messageBuilderFactory"))
+				.isSameAs(mbf);
 	}
 
 	@Test
 	void testPubSubChannelUsage() throws Exception {
-		RedisContainerTest.awaitContainerSubscribed(TestUtils.getPropertyValue(this.redisChannel, "container",
-				RedisMessageListenerContainer.class));
+		RedisContainerTest.awaitContainerSubscribed(TestUtils.<RedisMessageListenerContainer>getPropertyValue(this.redisChannel, "container"));
 
 		final Message<?> m = new GenericMessage<>("Hello Redis");
 

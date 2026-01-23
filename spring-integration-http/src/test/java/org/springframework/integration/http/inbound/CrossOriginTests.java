@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  */
@@ -176,14 +177,14 @@ public class CrossOriginTests {
 		if (isPreFlightRequest) {
 			Object handler = chain.getHandler();
 			assertThat(handler.getClass().getSimpleName().equals("PreFlightHttpRequestHandler")).isTrue();
-			return TestUtils.getPropertyValue(handler, "config", CorsConfiguration.class);
+			return TestUtils.getPropertyValue(handler, "config");
 		}
 		else {
 			HandlerInterceptor[] interceptors = chain.getInterceptors();
 			if (interceptors != null) {
 				for (HandlerInterceptor interceptor : interceptors) {
 					if (interceptor.getClass().getSimpleName().equals("CorsInterceptor")) {
-						return TestUtils.getPropertyValue(interceptor, "config", CorsConfiguration.class);
+						return TestUtils.getPropertyValue(interceptor, "config");
 					}
 				}
 			}

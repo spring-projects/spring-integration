@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 public class InboundChannelAdapterWithDefaultPollerTests {
@@ -41,7 +42,7 @@ public class InboundChannelAdapterWithDefaultPollerTests {
 
 	@Test
 	public void verifyDefaultPollerInUse() {
-		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		PeriodicTrigger periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(12345));

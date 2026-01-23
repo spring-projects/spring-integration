@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -63,8 +64,8 @@ public class SendTimeoutConfigurationTests {
 	}
 
 	private long getTimeout(String endpointName) {
-		return TestUtils.getPropertyValue(this.context.getBean(endpointName),
-				"handler.messagingTemplate.sendTimeout", Long.class);
+		return TestUtils.<Long>getPropertyValue(
+				this.context.getBean(endpointName), "handler.messagingTemplate.sendTimeout");
 	}
 
 }

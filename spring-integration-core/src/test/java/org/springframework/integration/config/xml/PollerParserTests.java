@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PollerParserTests {
 
@@ -96,7 +97,7 @@ public class PollerParserTests {
 				((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
 		assertThat(transactionAttributeSource).isInstanceOf(NameMatchTransactionAttributeSource.class);
 		@SuppressWarnings("rawtypes")
-		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
+		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap");
 		assertThat(nameMap.size()).isEqualTo(1);
 		assertThat(nameMap.toString()).isEqualTo("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}");
 		context.close();

@@ -50,6 +50,7 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.1
  *
@@ -79,7 +80,7 @@ public class BoundRabbitChannelAdviceIntegrationTests implements RabbitTestConta
 	@Test
 	void testAdvice() throws Exception {
 		BoundRabbitChannelAdvice advice = this.config.advice(this.config.template());
-		Log logger = spy(TestUtils.getPropertyValue(advice, "logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(advice, "logger"));
 		new DirectFieldAccessor(advice).setPropertyValue("logger", logger);
 		willReturn(true).given(logger).isDebugEnabled();
 		final CountDownLatch latch = new CountDownLatch(1);

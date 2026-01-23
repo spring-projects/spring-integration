@@ -44,6 +44,7 @@ import static org.mockito.Mockito.mock;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -78,12 +79,11 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain", advice, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<List<?>>getPropertyValue(endpoint, "handler.adviceChain").get(0)).isSameAs(advice);
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceDiscardWithinTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
@@ -91,10 +91,10 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain2", advice2, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain");
 		assertThat(adviceList).hasSize(2)
 				.containsExactly(advice1, advice2);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test
@@ -103,8 +103,8 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain", advice, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithout());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isFalse();
+		assertThat(TestUtils.<List<?>>getPropertyValue(endpoint, "handler.adviceChain").get(0)).isSameAs(advice);
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isFalse();
 	}
 
 	@Test
@@ -113,12 +113,11 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain", new TestAdvice[] {advice}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<List<?>>getPropertyValue(endpoint, "handler.adviceChain").get(0)).isSameAs(advice);
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceArrayTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
@@ -128,10 +127,10 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain");
 		assertThat(adviceList).hasSize(4)
 				.containsExactly(advice1, advice2, advice3, advice4);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test
@@ -140,12 +139,11 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain", Collections.singletonList(advice), this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<List<?>>getPropertyValue(endpoint, "handler.adviceChain").get(0)).isSameAs(advice);
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void filterAnnotationWithAdviceCollectionTwice() {
 		TestAdvice advice1 = new TestAdvice();
 		TestAdvice advice2 = new TestAdvice();
@@ -155,10 +153,10 @@ public class FilterAnnotationPostProcessorTests {
 		TestUtils.registerBean("adviceChain2", new TestAdvice[] {advice3, advice4}, this.context);
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
+		List<TestAdvice> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain");
 		assertThat(adviceList).hasSize(4)
 				.containsExactly(advice1, advice2, advice3, advice4);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.postProcessWithinAdvice")).isTrue();
 	}
 
 	@Test

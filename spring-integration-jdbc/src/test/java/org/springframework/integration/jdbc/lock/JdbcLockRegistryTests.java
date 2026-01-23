@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Alexandre Strubel
  * @author Unseok Kim
  * @author Eddie Cho
+ * @author Glenn Renfro
  *
  * @since 4.3
  */
@@ -94,7 +95,7 @@ class JdbcLockRegistryTests {
 			Lock lock = this.registry.obtain("foo");
 			lock.lock();
 			try {
-				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(this.registry, "locks").size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -103,7 +104,7 @@ class JdbcLockRegistryTests {
 
 		Thread.sleep(10);
 		this.registry.expireUnusedOlderThan(0);
-		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(this.registry, "locks")).isEmpty();
 	}
 
 	@Test
@@ -112,7 +113,7 @@ class JdbcLockRegistryTests {
 			Lock lock = this.registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+				assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(this.registry, "locks").size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -129,7 +130,7 @@ class JdbcLockRegistryTests {
 			DistributedLock lock = lockRegistry.obtain("foo");
 			lock.lock(Duration.ofMillis(200));
 			try {
-				assertThat(TestUtils.getPropertyValue(lockRegistry, "locks", Map.class)).hasSize(1);
+				assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
 			}
 			finally {
@@ -138,7 +139,7 @@ class JdbcLockRegistryTests {
 		}
 
 		lockRegistry.expireUnusedOlderThan(0);
-		assertThat(TestUtils.getPropertyValue(lockRegistry, "locks", Map.class)).isEmpty();
+		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).isEmpty();
 	}
 
 	@Test
@@ -150,7 +151,7 @@ class JdbcLockRegistryTests {
 			DistributedLock lock = lockRegistry.obtain("foo");
 			lock.tryLock(Duration.ofMillis(100), Duration.ofMillis(200));
 			try {
-				assertThat(TestUtils.getPropertyValue(lockRegistry, "locks", Map.class)).hasSize(1);
+				assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
 			}
 			finally {
@@ -159,7 +160,7 @@ class JdbcLockRegistryTests {
 		}
 
 		lockRegistry.expireUnusedOlderThan(0);
-		assertThat(TestUtils.getPropertyValue(lockRegistry, "locks", Map.class)).isEmpty();
+		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).isEmpty();
 	}
 
 	@Test
@@ -628,14 +629,13 @@ class JdbcLockRegistryTests {
 
 		final String lockKey = "foo";
 		Lock lock = registry.obtain(lockKey);
-		String lockPath = TestUtils.getPropertyValue(lock, "path", String.class);
+		String lockPath = TestUtils.getPropertyValue(lock, "path");
 
 		assertThat(lockPath).isEqualTo(lockKey);
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
-		return TestUtils.getPropertyValue(registry, "locks", Map.class);
+		return TestUtils.getPropertyValue(registry, "locks");
 	}
 
 	private static String toUUID(String key) {

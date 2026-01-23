@@ -29,6 +29,8 @@ import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 4.3
  *
  */
@@ -51,8 +53,9 @@ public class PooledDeserializationTests {
 		catch (SoftEndOfStreamException e) {
 			// expected
 		}
-		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size()).isEqualTo(0);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(deser, "pool.allocated").size())
+				.isEqualTo(1);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(deser, "pool.inUse")).isEmpty();
 	}
 
 	@Test
@@ -63,9 +66,11 @@ public class PooledDeserializationTests {
 		ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
 		byte[] bytes = deser.deserialize(bais);
 		assertThat(new String(bytes)).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size()).isEqualTo(0);
-		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).iterator().next()).isNotSameAs(bytes);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(deser, "pool.allocated").size())
+				.isEqualTo(1);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(deser, "pool.inUse")).isEmpty();
+		assertThat(TestUtils.<Set<?>>getPropertyValue(deser, "pool.allocated").iterator().next())
+				.isNotSameAs(bytes);
 	}
 
 }

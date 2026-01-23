@@ -83,6 +83,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -298,7 +299,7 @@ public class ParserUnitTests {
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isFalse();
-		assertThat(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(udpIn, "autoStartup")).isFalse();
 		assertThat(dfa.getPropertyValue("phase")).isEqualTo(1234);
 		assertThat(dfa.getPropertyValue("socketCustomizer")).isSameAs(this.socketCustomizer);
 	}
@@ -330,27 +331,30 @@ public class ParserUnitTests {
 		assertThat(cfS1.isLookupHost()).isFalse();
 		assertThat(tcpIn.isAutoStartup()).isFalse();
 		assertThat(tcpIn.getPhase()).isEqualTo(124);
-		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper", TcpMessageMapper.class);
+		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper");
 		assertThat(cfS1Mapper).isSameAs(mapper);
-		assertThat(TestUtils.getPropertyValue(cfS1Mapper, "applySequence", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(cfS1Mapper, "applySequence")).isTrue();
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
 		assertThat(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport).isTrue();
-		assertThat(TestUtils.getPropertyValue(socketSupport, "sslContext")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(socketSupport, "sslContext")).isNotNull();
 
 		TcpSSLContextSupport tcpSSLContextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
-		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore")).isInstanceOf(UrlResource.class);
-		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore")).isInstanceOf(UrlResource.class);
+		assertThat(TestUtils.<Object>getPropertyValue(tcpSSLContextSupport, "keyStore"))
+				.isInstanceOf(UrlResource.class);
+		assertThat(TestUtils.<Object>getPropertyValue(tcpSSLContextSupport, "trustStore"))
+				.isInstanceOf(UrlResource.class);
 	}
 
 	@Test
 	public void testInTcpNioSSLDefaultConfig() {
 		assertThat(cfS1Nio.isLookupHost()).isFalse();
-		assertThat(TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(cfS1Nio, "mapper.applySequence")).isTrue();
 		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
 		assertThat(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport).isTrue();
-		assertThat(TestUtils.getPropertyValue(connectionSupport, "sslContext")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout")).isEqualTo(43);
-		assertThat(TestUtils.getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"))
+		assertThat(TestUtils.<Object>getPropertyValue(connectionSupport, "sslContext")).isNotNull();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout"))
+				.isEqualTo(43);
+		assertThat(TestUtils.<Object>getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"))
 				.isSameAs(this.ctx.getBean(DefaultTcpNioSSLConnectionSupport.class));
 	}
 
@@ -439,15 +443,17 @@ public class ParserUnitTests {
 		assertThat(tcpOutEndpoint.getPhase()).isEqualTo(125);
 		assertThat((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence")).isFalse();
-		assertThat(TestUtils.getPropertyValue(cfC1, "readDelay")).isEqualTo(10000L);
-		assertThat(TestUtils.getPropertyValue(cfC1, "connectTimeout")).isEqualTo(Duration.ofSeconds(70));
+		assertThat(TestUtils.<Long>getPropertyValue(cfC1, "readDelay")).isEqualTo(10000L);
+		assertThat(TestUtils.<Duration>getPropertyValue(cfC1, "connectTimeout"))
+				.isEqualTo(Duration.ofSeconds(70));
 	}
 
 	@Test
 	public void testInGateway1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway1);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS2);
-		assertThat(TestUtils.getPropertyValue(tcpInboundGateway1, "messagingTemplate.receiveTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.<Long>getPropertyValue(tcpInboundGateway1, "messagingTemplate.receiveTimeout"))
+				.isEqualTo(456L);
 		assertThat(tcpInboundGateway1.getComponentName()).isEqualTo("inGateway1");
 		assertThat(tcpInboundGateway1.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
 		assertThat(tcpInboundGateway1.getErrorChannel()).isEqualTo(errorChannel);
@@ -456,14 +462,15 @@ public class ParserUnitTests {
 		assertThat(tcpInboundGateway1.getPhase()).isEqualTo(126);
 		assertThat((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfS2, "mapper"), "applySequence")).isFalse();
-		assertThat(TestUtils.getPropertyValue(cfS2, "readDelay")).isEqualTo(100L);
+		assertThat(TestUtils.<Long>getPropertyValue(cfS2, "readDelay")).isEqualTo(100L);
 	}
 
 	@Test
 	public void testInGateway2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway2);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS3);
-		assertThat(TestUtils.getPropertyValue(tcpInboundGateway2, "messagingTemplate.receiveTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.<Long>getPropertyValue(tcpInboundGateway2, "messagingTemplate.receiveTimeout"))
+				.isEqualTo(456L);
 		assertThat(tcpInboundGateway2.getComponentName()).isEqualTo("inGateway2");
 		assertThat(tcpInboundGateway2.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
 		assertThat(dfa.getPropertyValue("errorChannel")).isNull();
@@ -477,22 +484,22 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutboundGateway);
 		assertThat(dfa.getPropertyValue("connectionFactory")).isSameAs(cfC2);
 		assertThat(dfa.getPropertyValue("requestTimeout")).isEqualTo(234L);
-		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
-				MessagingTemplate.class);
-		assertThat(TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class))
+		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate");
+		assertThat(TestUtils.<Long>getPropertyValue(messagingTemplate, "sendTimeout"))
 				.isEqualTo(Long.valueOf(567));
-		assertThat(TestUtils.getPropertyValue(tcpOutboundGateway, "remoteTimeoutExpression.literalValue"))
-				.isEqualTo("789");
+		assertThat(TestUtils.<String>getPropertyValue(tcpOutboundGateway,
+				"remoteTimeoutExpression.literalValue")).isEqualTo("789");
 		assertThat(tcpOutboundGateway.getComponentName()).isEqualTo("outGateway");
 		assertThat(tcpOutboundGateway.getComponentType()).isEqualTo("ip:tcp-outbound-gateway");
 		assertThat(cfC2.isLookupHost()).isTrue();
 		assertThat(dfa.getPropertyValue("order")).isEqualTo(24);
 		assertThat(dfa.getPropertyValue("async")).isEqualTo(Boolean.TRUE);
 
-		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "remoteTimeoutExpression.expression"))
-				.isEqualTo("4000");
-		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "closeStreamAfterSend")).isEqualTo(Boolean.TRUE);
-		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "async")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<String>getPropertyValue(outAdviceGateway,
+				"remoteTimeoutExpression.expression")).isEqualTo("4000");
+		assertThat(TestUtils.<Boolean>getPropertyValue(outAdviceGateway, "closeStreamAfterSend"))
+				.isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(outAdviceGateway, "async")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -648,12 +655,14 @@ public class ParserUnitTests {
 
 	@Test
 	public void testAutoTcp() {
-		assertThat(TestUtils.getPropertyValue(tcpAutoAdapter, "outputChannel")).isSameAs(tcpAutoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(tcpAutoAdapter, "outputChannel"))
+				.isSameAs(tcpAutoChannel);
 	}
 
 	@Test
 	public void testAutoUdp() {
-		assertThat(TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel")).isSameAs(udpAutoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(udpAutoAdapter, "outputChannel"))
+				.isSameAs(udpAutoChannel);
 	}
 
 	@Test
@@ -661,7 +670,8 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
 		assertThat(dfa.getPropertyValue("tcpSocketFactorySupport")).isSameAs(socketFactorySupport);
 		assertThat(dfa.getPropertyValue("tcpSocketSupport")).isSameAs(socketSupport);
-		assertThat(TestUtils.getPropertyValue(this.secureServerNio, "sslHandshakeTimeout")).isEqualTo(34);
+		assertThat(TestUtils.<Integer>getPropertyValue(this.secureServerNio, "sslHandshakeTimeout"))
+				.isEqualTo(34);
 		assertThat(dfa.getPropertyValue("tcpNetConnectionSupport")).isSameAs(this.netConnectionSupport);
 	}
 

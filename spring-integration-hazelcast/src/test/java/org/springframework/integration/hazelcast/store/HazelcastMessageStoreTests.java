@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Vinicius Carvalho
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class HazelcastMessageStoreTests {
 
@@ -114,9 +115,9 @@ public class HazelcastMessageStoreTests {
 
 	@Test
 	public void customMap() {
-		assertThat(TestUtils.getPropertyValue(store, "map")).isSameAs(map);
+		assertThat(TestUtils.<Object>getPropertyValue(store, "map")).isSameAs(map);
 		HazelcastMessageStore store2 = new HazelcastMessageStore(instance);
-		assertThat(TestUtils.getPropertyValue(store2, "map")).isNotSameAs(map);
+		assertThat(TestUtils.<Object>getPropertyValue(store2, "map")).isNotSameAs(map);
 	}
 
 	@Test

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -65,6 +66,7 @@ import static org.awaitility.Awaitility.await;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -137,7 +139,6 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void errorFlowAndRetries() throws Exception {
 		delayHandler.setDefaultDelay(10);
 		delayHandler.setRetryDelay(15);
@@ -173,7 +174,7 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		Thread.sleep(50);
 		assertThat(count.get()).isEqualTo(4);
-		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class)).hasSize(0);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.delayHandler, "deliveries")).hasSize(0);
 	}
 
 	@Test
@@ -435,7 +436,8 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
 		assertThat(payload.getClass().getSimpleName()).isEqualTo("DelayedMessageWrapper");
-		assertThat(TestUtils.getPropertyValue(payload, "original.payload")).isEqualTo(message.getPayload());
+		assertThat(Objects.requireNonNull(TestUtils.<Object>getPropertyValue(payload, "original.payload")))
+				.isEqualTo(message.getPayload());
 
 		this.taskScheduler.afterPropertiesSet();
 		this.delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, this.taskScheduler);
@@ -508,8 +510,7 @@ public class DelayHandlerTests implements TestApplicationContextAware {
 
 		// emulate restart
 		this.taskScheduler.destroy();
-		MessageGroupStore messageStore = TestUtils.getPropertyValue(this.delayHandler, "messageStore",
-				MessageGroupStore.class);
+		MessageGroupStore messageStore = TestUtils.getPropertyValue(this.delayHandler, "messageStore");
 		MessageGroup messageGroup = messageStore.getMessageGroup(DELAYER_MESSAGE_GROUP_ID);
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();

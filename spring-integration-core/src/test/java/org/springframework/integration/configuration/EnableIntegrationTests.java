@@ -156,6 +156,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Michael Wiles
  * @author Chris Bono
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -321,16 +322,17 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		this.serviceActivatorEndpoint.start();
 		assertThat(this.inputReceiveLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll")).isEqualTo(10L);
+		assertThat(TestUtils.<Long>getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"))
+				.isEqualTo(10L);
 
-		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		PeriodicTrigger periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(100));
 		assertThat(periodicTrigger.isFixedRate()).isFalse();
 
 		assertThat(this.annotationTestService.isRunning()).isTrue();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(this.serviceActivatorEndpoint, "logger"));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final CountDownLatch pollerInterruptedLatch = new CountDownLatch(1);
 		doAnswer(invocation -> {
@@ -348,30 +350,30 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		this.serviceActivatorEndpoint.start();
 		assertThat(this.annotationTestService.isRunning()).isTrue();
 
-		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint1, "trigger", Trigger.class);
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint1, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(100));
 		assertThat(periodicTrigger.isFixedRate()).isTrue();
 
-		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint2, "trigger", Trigger.class);
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint2, "trigger");
 		assertThat(trigger).isInstanceOf(CronTrigger.class);
-		assertThat(TestUtils.getPropertyValue(trigger, "expression.expression")).isEqualTo("0 5 7 * * *");
+		assertThat(TestUtils.<String>getPropertyValue(trigger, "expression.expression")).isEqualTo("0 5 7 * * *");
 
-		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint3, "trigger", Trigger.class);
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint3, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(11));
 		assertThat(periodicTrigger.isFixedRate()).isFalse();
 
-		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint4, "trigger", Trigger.class);
+		trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint4, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(1));
 		assertThat(periodicTrigger.isFixedRate()).isFalse();
 		assertThat(trigger).isSameAs(this.myTrigger);
 
-		trigger = TestUtils.getPropertyValue(this.transformer, "trigger", Trigger.class);
+		trigger = TestUtils.getPropertyValue(this.transformer, "trigger");
 		assertThat(trigger).isInstanceOf(PeriodicTrigger.class);
 		periodicTrigger = (PeriodicTrigger) trigger;
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofMillis(10));
@@ -464,9 +466,9 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(false);
 		this.controlBusChannel.send(new GenericMessage<>("pausable.pause"));
 		Object pausable = this.context.getBean("pausable");
-		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(pausable, "paused")).isTrue();
 		this.controlBusChannel.send(new GenericMessage<>("pausable.resume"));
-		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(pausable, "paused")).isFalse();
 
 		Map<String, ServiceActivatingHandler> beansOfType =
 				this.context.getBeansOfType(ServiceActivatingHandler.class);
@@ -490,7 +492,7 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 				.withMessageContaining("cannot be changed");
 		this.configurer.stop();
 		this.configurer.setComponentNamePatterns(new String[] {"*"});
-		assertThat(TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0])
+		assertThat(TestUtils.<String[]>getPropertyValue(this.configurer, "componentNamePatterns")[0])
 				.isEqualTo("*");
 	}
 
@@ -601,64 +603,66 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 
 		PollingConsumer consumer = this.context.getBean("annotationTestService.annCount.serviceActivator",
 				PollingConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer,
-				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<List<?>>getPropertyValue(consumer, "handler.adviceChain").get(0))
+				.isSameAs(context.getBean("annAdvice"));
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		consumer = this.context.getBean("annotationTestService.annCount1.serviceActivator",
 				PollingConsumer.class);
 		consumer.stop();
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput1"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannel.beanName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer,
-				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice1"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(2));
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isTrue();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput1"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannel.beanName"))
+				.isEqualTo("annOutput");
+		assertThat(TestUtils.<List<?>>getPropertyValue(consumer, "handler.adviceChain").get(0))
+				.isSameAs(context.getBean("annAdvice1"));
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(2));
 
 		consumer = this.context.getBean("annotationTestService.annCount2.serviceActivator",
 				PollingConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer,
-				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<List<?>>getPropertyValue(consumer, "handler.adviceChain").get(0))
+				.isSameAs(context.getBean("annAdvice"));
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		// Tests when the channel is in a "middle" annotation
 		consumer = this.context.getBean("annotationTestService.annCount5.serviceActivator", PollingConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput3"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer,
-				"handler.adviceChain", List.class).get(0)).isSameAs(context.getBean("annAdvice"));
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput3"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<List<?>>getPropertyValue(consumer, "handler.adviceChain").get(0))
+				.isSameAs(context.getBean("annAdvice"));
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
 
 		consumer = this.context.getBean("annotationTestService.annAgg1.aggregator", PollingConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(45000L);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"))
+				.isEqualTo(45000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "handler.sendPartialResultOnExpiry")).isFalse();
 
 		consumer = this.context.getBean("annotationTestService.annAgg2.aggregator", PollingConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(23);
-		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
-		assertThat(TestUtils.getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(75L);
-		assertThat(TestUtils.getPropertyValue(consumer, "handler.sendPartialResultOnExpiry", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(consumer, "phase")).isEqualTo(23);
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "inputChannel")).isSameAs(context.getBean("annInput"));
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.outputChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<String>getPropertyValue(consumer, "handler.discardChannelName")).isEqualTo("annOutput");
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "trigger.period")).isEqualTo(Duration.ofSeconds(1));
+		assertThat(TestUtils.<Long>getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(75L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(consumer, "handler.sendPartialResultOnExpiry")).isTrue();
 	}
 
 	@Test
@@ -671,7 +675,7 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		assertThat(this.bridgeOutput.receive(10)).isNull();
 
 		PollingConsumer pollableBridge = this.context.getBean("pollableBridge", PollingConsumer.class);
-		PeriodicTrigger periodicTrigger = TestUtils.getPropertyValue(pollableBridge, "trigger", PeriodicTrigger.class);
+		PeriodicTrigger periodicTrigger = TestUtils.getPropertyValue(pollableBridge, "trigger");
 		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(1));
 
 		this.pollableBridgeInput.send(testMessage);
@@ -760,9 +764,8 @@ public class EnableIntegrationTests implements TestApplicationContextAware {
 		assertThat(this.roleController.allEndpointsRunning("foo")).isFalse();
 		assertThat(this.roleController.noEndpointsRunning("foo")).isTrue();
 
-		@SuppressWarnings("unchecked")
-		MultiValueMap<String, SmartLifecycle> lifecycles = TestUtils.getPropertyValue(this.roleController,
-				"lifecycles", MultiValueMap.class);
+		MultiValueMap<String, SmartLifecycle> lifecycles =
+				TestUtils.getPropertyValue(this.roleController, "lifecycles");
 		assertThat(lifecycles.size()).isEqualTo(2);
 		assertThat(lifecycles.get("foo").size()).isEqualTo(2);
 		assertThat(lifecycles.get("bar").size()).isEqualTo(1);

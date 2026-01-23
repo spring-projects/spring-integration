@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -46,14 +47,14 @@ public class ErrorChannelAutoCreationTests {
 	@Test
 	public void testErrorChannelIsPubSub() {
 		assertThat(this.errorChannel).isInstanceOf(PublishSubscribeChannel.class);
-		assertThat(TestUtils.getPropertyValue(this.errorChannel, "dispatcher.requireSubscribers", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.errorChannel, "dispatcher.requireSubscribers"))
 				.isTrue();
-		assertThat(TestUtils.getPropertyValue(this.errorChannel, "dispatcher.ignoreFailures", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.errorChannel, "dispatcher.ignoreFailures"))
 				.isTrue();
 
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers =
-				TestUtils.getPropertyValue(this.errorChannel, "dispatcher.handlers", Set.class);
+				TestUtils.getPropertyValue(this.errorChannel, "dispatcher.handlers");
 
 		assertThat(handlers).first()
 				.isInstanceOf(LoggingHandler.class)

@@ -9,11 +9,12 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int-syslog:inbound-channel-adapter id="foo" port="0" />
+	<int-syslog:inbound-channel-adapter id="outputChannel" port="0" />
 
-	<int-syslog:inbound-channel-adapter id="foobar" channel="foo" port="1514" auto-startup="false" />
+	<int-syslog:inbound-channel-adapter id="udpSyslogReceivingChannelAdapter" channel="outputChannel"
+										port="1514" auto-startup="false" />
 
-	<int:channel id="foo">
+	<int:channel id="outputChannel">
 		<int:queue/>
 	</int:channel>
 
@@ -28,7 +29,7 @@
 	</int:channel>
 
 	<int-syslog:inbound-channel-adapter id="fullBoatUdp"
-		channel="foo"
+		channel="outputChannel"
 		auto-startup="false"
 		phase="123"
 		converter="converter"
@@ -40,15 +41,15 @@
 	<bean id="converter"
 		class="org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterParserTests$PassThruConverter" />
 
-	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="0" />
+	<int-syslog:inbound-channel-adapter id="outputChannelAlternate" protocol="tcp" port="0" />
 
-	<int:channel id="bar">
+	<int:channel id="outputChannelAlternate">
 		<int:queue/>
 	</int:channel>
 
 	<int-syslog:inbound-channel-adapter id="fullBoatTcp"
 		protocol="tcp"
-		channel="bar"
+		channel="outputChannelAlternate"
 		connection-factory="cf"
 		auto-startup="false"
 		phase="123"

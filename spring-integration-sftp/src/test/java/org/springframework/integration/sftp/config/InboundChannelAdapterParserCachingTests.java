@@ -46,14 +46,14 @@ public class InboundChannelAdapterParserCachingTests {
 	public void cachingAdapter() {
 		Object sessionFactory =
 				TestUtils.getPropertyValue(cachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
-		assertThat(sessionFactory.getClass()).isEqualTo(CachingSessionFactory.class);
+		assertThat(sessionFactory).isInstanceOf(CachingSessionFactory.class);
 	}
 
 	@Test
 	public void nonCachingAdapter() {
 		Object sessionFactory =
 				TestUtils.getPropertyValue(nonCachingAdapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
-		assertThat(sessionFactory.getClass()).isEqualTo(DefaultSftpSessionFactory.class);
+		assertThat(sessionFactory).isInstanceOf(DefaultSftpSessionFactory.class);
 	}
 
 }

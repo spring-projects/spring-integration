@@ -62,6 +62,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -103,12 +104,12 @@ public class BarrierMessageHandlerTests {
 		ExecutorService exec = Executors.newCachedThreadPool();
 		exec.execute(runnable);
 		exec.execute(runnable);
-		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
+		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions");
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
 		}
-		Map<?, ?> inProcess = TestUtils.getPropertyValue(handler, "inProcess", Map.class);
+		Map<?, ?> inProcess = TestUtils.getPropertyValue(handler, "inProcess");
 		assertThat(inProcess.size()).isEqualTo(1);
 		assertThat(n < 100).as("suspension did not appear in time").isTrue();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -120,8 +121,8 @@ public class BarrierMessageHandlerTests {
 		List<?> result = (List<?>) received.getPayload();
 		assertThat(result.get(0)).isEqualTo("foo");
 		assertThat(result.get(1)).isEqualTo("bar");
-		assertThat(suspensions.size()).isEqualTo(0);
-		assertThat(inProcess.size()).isEqualTo(0);
+		assertThat(suspensions).isEmpty();
+		assertThat(inProcess).isEmpty();
 		exec.shutdownNow();
 	}
 
@@ -134,7 +135,7 @@ public class BarrierMessageHandlerTests {
 		handler.afterPropertiesSet();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build()));
-		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
+		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions");
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
@@ -146,7 +147,7 @@ public class BarrierMessageHandlerTests {
 		List<?> result = (ArrayList<?>) received.getPayload();
 		assertThat(result.get(0)).isEqualTo("foo");
 		assertThat(result.get(1)).isEqualTo("bar");
-		assertThat(suspensions.size()).isEqualTo(0);
+		assertThat(suspensions).isEmpty();
 		exec.shutdownNow();
 	}
 
@@ -166,10 +167,10 @@ public class BarrierMessageHandlerTests {
 			handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 			latch.countDown();
 		});
-		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
+		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions");
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(suspensions.size()).as("suspension not removed").isEqualTo(0);
-		LogAccessor logger = spy(TestUtils.getPropertyValue(handler, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(handler, "logger"));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		final Message<String> triggerMessage = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
 		handler.trigger(triggerMessage);
@@ -177,11 +178,11 @@ public class BarrierMessageHandlerTests {
 		verify(logger).error(captor.capture());
 		assertThat(captor.getValue()).contains("Suspending thread timed out or did not arrive within timeout for:")
 				.contains("payload=bar");
-		assertThat(suspensions.size()).isEqualTo(0);
+		assertThat(suspensions).isEmpty();
 		Message<?> discard = discardChannel.receive(0);
 		assertThat(triggerMessage).isSameAs(discard);
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
-		assertThat(suspensions.size()).isEqualTo(0);
+		assertThat(suspensions).isEmpty();
 		exec.shutdownNow();
 	}
 
@@ -221,7 +222,7 @@ public class BarrierMessageHandlerTests {
 				latch.countDown();
 			}
 		});
-		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
+		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions");
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
@@ -231,7 +232,7 @@ public class BarrierMessageHandlerTests {
 		handler.trigger(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(exception.get().getCause()).isSameAs(exc);
-		assertThat(suspensions.size()).isEqualTo(0);
+		assertThat(suspensions).isEmpty();
 		exec.shutdownNow();
 	}
 

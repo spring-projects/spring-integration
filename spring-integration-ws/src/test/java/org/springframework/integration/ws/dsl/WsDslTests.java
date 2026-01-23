@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.3
  *
@@ -61,13 +62,13 @@ public class WsDslTests {
 		MarshallingWebServiceInboundGateway gateway = Ws.marshallingInboundGateway(marshaller)
 				.unmarshaller(unmarshaller)
 				.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "unmarshaller")).isSameAs(unmarshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "unmarshaller")).isSameAs(unmarshaller);
 
 		marshaller = mock(Both.class);
 		gateway = Ws.marshallingInboundGateway(marshaller).getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "unmarshaller")).isSameAs(marshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "unmarshaller")).isSameAs(marshaller);
 	}
 
 	@Test
@@ -79,9 +80,9 @@ public class WsDslTests {
 						.headerMapper(testHeaderMapper)
 						.errorChannel("myErrorChannel")
 						.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(testHeaderMapper);
-		assertThat(TestUtils.getPropertyValue(gateway, "errorChannelName")).isEqualTo("myErrorChannel");
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "extractPayload")).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "headerMapper")).isSameAs(testHeaderMapper);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "errorChannelName")).isEqualTo("myErrorChannel");
 	}
 
 	@Test
@@ -112,19 +113,21 @@ public class WsDslTests {
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
 						.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller")).isSameAs(marshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller")).isSameAs(unmarshaller);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isSameAs(messageFactory);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.faultMessageResolver"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.marshaller")).isSameAs(marshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.unmarshaller"))
+				.isSameAs(unmarshaller);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.messageFactory"))
+				.isSameAs(messageFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.faultMessageResolver"))
 				.isSameAs(faultMessageResolver);
-		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.interceptors", ClientInterceptor[].class)[0])
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.<ClientInterceptor[]>getPropertyValue(gateway, "webServiceTemplate.interceptors")[0])
 				.isSameAs(interceptor);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageSenders",
-				WebServiceMessageSender[].class)[0])
+		assertThat(TestUtils.<WebServiceMessageSender[]>getPropertyValue(gateway, "webServiceTemplate.messageSenders")[0])
 				.isSameAs(messageSender);
-		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
-		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "uriVariableExpressions"))
+				.isEqualTo(uriVariableExpressions);
 	}
 
 	@Test
@@ -155,18 +158,19 @@ public class WsDslTests {
 						.uriVariableExpressions(uriVariableExpressions)
 						.extractPayload(false)
 						.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isSameAs(messageFactory);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.faultMessageResolver"))
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.messageFactory"))
+				.isSameAs(messageFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "webServiceTemplate.faultMessageResolver"))
 				.isSameAs(faultMessageResolver);
-		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.interceptors", ClientInterceptor[].class)[0])
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.<ClientInterceptor[]>getPropertyValue(gateway, "webServiceTemplate.interceptors")[0])
 				.isSameAs(interceptor);
-		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageSenders",
-				WebServiceMessageSender[].class)[0])
+		assertThat(TestUtils.<WebServiceMessageSender[]>getPropertyValue(gateway, "webServiceTemplate.messageSenders")[0])
 				.isSameAs(messageSender);
-		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
-		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
-		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "uriVariableExpressions"))
+				.isEqualTo(uriVariableExpressions);
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "extractPayload")).isFalse();
 	}
 
 	@Test
@@ -187,13 +191,13 @@ public class WsDslTests {
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
 						.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "uri")).isSameAs(uri);
-		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
-		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
-		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "uri")).isSameAs(uri);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "uriVariableExpressions"))
+				.isEqualTo(uriVariableExpressions);
 		assertThat(
-				TestUtils.getPropertyValue(gateway, "uriFactory.encodingMode",
-						DefaultUriBuilderFactory.EncodingMode.class))
+				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(gateway, "uriFactory.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
 	}
 
@@ -217,13 +221,13 @@ public class WsDslTests {
 						.uriVariableExpressions(uriVariableExpressions)
 						.extractPayload(false)
 						.getObject();
-		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
-		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
-		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
-		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
+		assertThat(TestUtils.<Object>getPropertyValue(gateway, "uriVariableExpressions"))
+				.isEqualTo(uriVariableExpressions);
+		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "extractPayload")).isFalse();
 		assertThat(
-				TestUtils.getPropertyValue(gateway, "uriFactory.encodingMode",
-						DefaultUriBuilderFactory.EncodingMode.class))
+				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(gateway, "uriFactory.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 

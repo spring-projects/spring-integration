@@ -19,6 +19,7 @@ package org.springframework.integration.ftp.config;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -49,14 +51,13 @@ public class FtpsInboundChannelAdapterParserTests {
 	public void testFtpsInboundChannelAdapterComplete() {
 		assertThat(ftpInbound.getComponentName()).isEqualTo("ftpInbound");
 		assertThat(ftpInbound.getComponentType()).isEqualTo("ftp:inbound-channel-adapter");
-		assertThat(TestUtils.getPropertyValue(ftpInbound, "pollingTask")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(ftpInbound, "outputChannel")).isEqualTo(this.ftpChannel);
-		FtpInboundFileSynchronizingMessageSource inbound =
-				(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
+		assertThat(TestUtils.<Object>getPropertyValue(ftpInbound, "pollingTask")).isNotNull();
+		assertThat(TestUtils.<DirectChannel>getPropertyValue(ftpInbound, "outputChannel"))
+				.isEqualTo(this.ftpChannel);
+		FtpInboundFileSynchronizingMessageSource inbound = TestUtils.getPropertyValue(ftpInbound, "source");
 
-		FtpInboundFileSynchronizer fisync =
-				(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-		assertThat(TestUtils.getPropertyValue(fisync, "filter")).isNotNull();
+		FtpInboundFileSynchronizer fisync = TestUtils.getPropertyValue(inbound, "synchronizer");
+		assertThat(TestUtils.<Object>getPropertyValue(fisync, "filter")).isNotNull();
 
 	}
 

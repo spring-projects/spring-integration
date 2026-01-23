@@ -50,6 +50,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -101,7 +102,7 @@ public class DelegatingSessionFactoryTests {
 		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		verify(foo.mockSession).list("foo/");
-		assertThat(TestUtils.getPropertyValue(dsf, "threadKey", ThreadLocal.class).get()).isNull();
+		assertThat(TestUtils.<ThreadLocal<Object>>getPropertyValue(dsf, "threadKey").get()).isNull();
 	}
 
 	@Configuration

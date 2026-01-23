@@ -37,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 2.0
  */
 @SpringJUnitConfig
@@ -80,9 +82,8 @@ public class GroovySplitterTests {
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertThat(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter).isTrue();
-		@SuppressWarnings("rawtypes")
-		MessageProcessor messageProcessor =
-				TestUtils.getPropertyValue(this.groovySplitterMessageHandler, "processor", MessageProcessor.class);
+		MessageProcessor<?> messageProcessor =
+				TestUtils.getPropertyValue(this.groovySplitterMessageHandler, "processor");
 		//before it was MethodInvokingMessageProcessor
 		assertThat(messageProcessor).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}

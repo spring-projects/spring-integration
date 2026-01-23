@@ -38,6 +38,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -74,7 +75,7 @@ class RedisInboundChannelAdapterTests implements RedisContainerTest {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisContainerTest.awaitFullySubscribed(TestUtils.<RedisMessageListenerContainer>getPropertyValue(adapter, "container"),
 				redisTemplate, redisChannelName, channel, "foo");
 
 		for (int i = 0; i < numToTest; i++) {
@@ -108,7 +109,7 @@ class RedisInboundChannelAdapterTests implements RedisContainerTest {
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
 
-		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class),
+		RedisContainerTest.awaitFullySubscribed(TestUtils.<RedisMessageListenerContainer>getPropertyValue(adapter, "container"),
 				template, redisChannelName, channel, "foo".getBytes());
 
 		for (int i = 0; i < numToTest; i++) {

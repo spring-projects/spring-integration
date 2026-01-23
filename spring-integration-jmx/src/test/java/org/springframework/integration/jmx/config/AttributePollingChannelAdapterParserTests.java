@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -67,7 +68,8 @@ public class AttributePollingChannelAdapterParserTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertThat(TestUtils.getPropertyValue(this.autoChannelAdapter, "outputChannel")).isSameAs(this.autoChannel);
+		assertThat(TestUtils.<Object>getPropertyValue(this.autoChannelAdapter, "outputChannel"))
+				.isSameAs(this.autoChannel);
 	}
 
 }

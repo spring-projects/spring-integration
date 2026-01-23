@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -52,20 +53,20 @@ public class UnZipTransformerParserTests {
 	public void testUnZipTransformerParserWithDefaults() {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformerWithDefaults", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
 		assertThat(inputChannel.getComponentName()).isEqualTo("input");
 
-		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageTransformingHandler.class);
+		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler");
 
-		assertThat(TestUtils.getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
 
-		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer", UnZipTransformer.class);
+		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer");
 
-		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset", Charset.class);
-		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType", ZipResultType.class);
-		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory", File.class);
-		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles", Boolean.class);
-		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult", Boolean.class);
+		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset");
+		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType");
+		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory");
+		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles");
+		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult");
 
 		assertThat(charset).isNotNull();
 		assertThat(zipResultType).isNotNull();
@@ -87,20 +88,20 @@ public class UnZipTransformerParserTests {
 	public void testUnZipTransformerParserWithExplicitSettings() {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformer", EventDrivenConsumer.class);
 
-		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
 		assertThat(inputChannel.getComponentName()).isEqualTo("input");
 
-		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageTransformingHandler.class);
+		final MessageTransformingHandler handler = TestUtils.getPropertyValue(consumer, "handler");
 
-		assertThat(TestUtils.getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
+		assertThat(TestUtils.<String>getPropertyValue(handler, "outputChannelName")).isEqualTo("output");
 
-		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer", UnZipTransformer.class);
+		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer");
 
-		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset", Charset.class);
-		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType", ZipResultType.class);
-		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory", File.class);
-		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles", Boolean.class);
-		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult", Boolean.class);
+		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset");
+		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType");
+		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory");
+		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles");
+		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult");
 
 		assertThat(charset).isNotNull();
 		assertThat(zipResultType).isNotNull();

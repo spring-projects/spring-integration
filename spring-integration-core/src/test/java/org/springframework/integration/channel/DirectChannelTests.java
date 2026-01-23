@@ -50,13 +50,14 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 class DirectChannelTests {
 
 	@Test
 	void testSend() {
 		DirectChannel channel = new DirectChannel();
-		LogAccessor logger = spy(TestUtils.getPropertyValue(channel, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(channel, "logger"));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();
@@ -179,26 +180,35 @@ class DirectChannelTests {
 		assertThat(context.containsBean("channelC")).isTrue();
 		assertThat(context.containsBean("channelD")).isTrue();
 		EventDrivenConsumer consumerA = context.getBean("serviceA", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerA, "inputChannel")).isEqualTo(context.getBean("channelA"));
-		assertThat(TestUtils.getPropertyValue(consumerA, "handler.outputChannelName")).isEqualTo("channelB");
+		assertThat(TestUtils.<Object>getPropertyValue(consumerA, "inputChannel"))
+				.isEqualTo(context.getBean("channelA"));
+		assertThat(TestUtils.<String>getPropertyValue(consumerA, "handler.outputChannelName"))
+				.isEqualTo("channelB");
 
 		EventDrivenConsumer consumerB = context.getBean("serviceB", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerB, "inputChannel")).isEqualTo(context.getBean("channelB"));
-		assertThat(TestUtils.getPropertyValue(consumerB, "handler.outputChannelName")).isEqualTo("channelC");
+		assertThat(TestUtils.<Object>getPropertyValue(consumerB, "inputChannel"))
+				.isEqualTo(context.getBean("channelB"));
+		assertThat(TestUtils.<String>getPropertyValue(consumerB, "handler.outputChannelName"))
+				.isEqualTo("channelC");
 
 		EventDrivenConsumer consumerC = context.getBean("serviceC", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerC, "inputChannel")).isEqualTo(context.getBean("channelC"));
-		assertThat(TestUtils.getPropertyValue(consumerC, "handler.outputChannelName")).isEqualTo("channelD");
+		assertThat(TestUtils.<Object>getPropertyValue(consumerC, "inputChannel"))
+				.isEqualTo(context.getBean("channelC"));
+		assertThat(TestUtils.<String>getPropertyValue(consumerC, "handler.outputChannelName"))
+				.isEqualTo("channelD");
 
 		EventDrivenConsumer consumerD = context.getBean("serviceD", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerD, "inputChannel")).isEqualTo(parentChannelA);
-		assertThat(TestUtils.getPropertyValue(consumerD, "handler.outputChannelName")).isEqualTo("parentChannelB");
+		assertThat(TestUtils.<Object>getPropertyValue(consumerD, "inputChannel"))
+				.isEqualTo(parentChannelA);
+		assertThat(TestUtils.<String>getPropertyValue(consumerD, "handler.outputChannelName"))
+				.isEqualTo("parentChannelB");
 
 		EventDrivenConsumer consumerE = context.getBean("serviceE", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerE, "inputChannel")).isEqualTo(parentChannelB);
+		assertThat(TestUtils.<Object>getPropertyValue(consumerE, "inputChannel"))
+				.isEqualTo(parentChannelB);
 
 		EventDrivenConsumer consumerF = context.getBean("serviceF", EventDrivenConsumer.class);
-		assertThat(TestUtils.getPropertyValue(consumerF, "inputChannel")).isEqualTo(channelEarly);
+		assertThat(TestUtils.<Object>getPropertyValue(consumerF, "inputChannel")).isEqualTo(channelEarly);
 
 		context.close();
 		parentContext.close();

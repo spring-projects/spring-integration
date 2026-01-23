@@ -93,6 +93,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -139,7 +140,7 @@ public class ManualFlowTests {
 		assertThat(started.get()).isTrue();
 
 		Set<MessageProducer> replyProducers =
-				TestUtils.getPropertyValue(flowBuilder, "REFERENCED_REPLY_PRODUCERS", Set.class);
+				TestUtils.getPropertyValue(flowBuilder, "REFERENCED_REPLY_PRODUCERS");
 
 		assertThat(replyProducers.contains(bridgeHandler)).isTrue();
 
@@ -491,7 +492,7 @@ public class ManualFlowTests {
 	@Test
 	public void testBeanDefinitionInfoInTheException() {
 		Map<?, ?> mergedBeanDefinitions =
-				TestUtils.getPropertyValue(this.beanFactory, "mergedBeanDefinitions", Map.class);
+				TestUtils.getPropertyValue(this.beanFactory, "mergedBeanDefinitions");
 
 		int mergedBeanDefinitionsSizeBeforeRandomFlow = mergedBeanDefinitions.size();
 

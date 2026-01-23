@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -72,61 +73,65 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testNoTopics() {
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "topics", Map.class)).hasSize(0);
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel")).isSameAs(out);
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
-		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapter, "manualAcks", Boolean.class)).isTrue();
+		assertThat(TestUtils.<String>getPropertyValue(noTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<Boolean>getPropertyValue(noTopicsAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<String>getPropertyValue(noTopicsAdapter, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(noTopicsAdapter, "topics")).hasSize(0);
+		assertThat(TestUtils.<Object>getPropertyValue(noTopicsAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.<Object>getPropertyValue(noTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.noTopicsAdapter, "manualAcks")).isTrue();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testNoTopicsDefaultCF() {
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "topics", Map.class)).hasSize(0);
-		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel")).isSameAs(out);
-		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapterDefaultCF, "manualAcks", Boolean.class)).isFalse();
+		assertThat(TestUtils.<String>getPropertyValue(noTopicsAdapterDefaultCF, "url"))
+				.isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<Boolean>getPropertyValue(noTopicsAdapterDefaultCF, "autoStartup")).isFalse();
+		assertThat(TestUtils.<String>getPropertyValue(noTopicsAdapterDefaultCF, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(noTopicsAdapterDefaultCF, "topics")).hasSize(0);
+		assertThat(TestUtils.<Object>getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.noTopicsAdapterDefaultCF, "manualAcks")).isFalse();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testOneTopic() {
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "phase")).isEqualTo(25);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "topics", Map.class)).containsEntry("bar", 1);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "converter")).isSameAs(converter);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel")).isSameAs(out);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "clientFactory")).isSameAs(clientFactory);
-		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "errorChannel")).isSameAs(errors);
+		assertThat(TestUtils.<String>getPropertyValue(oneTopicAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<Boolean>getPropertyValue(oneTopicAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(oneTopicAdapter, "phase")).isEqualTo(25);
+		assertThat(TestUtils.<String>getPropertyValue(oneTopicAdapter, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<Map<String, Integer>>getPropertyValue(oneTopicAdapter, "topics")).containsEntry("bar", 1);
+		assertThat(TestUtils.<MqttMessageConverter>getPropertyValue(oneTopicAdapter, "converter")).isSameAs(converter);
+		assertThat(TestUtils.<Long>getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout")).
+				isEqualTo(123L);
+		assertThat(TestUtils.<Object>getPropertyValue(oneTopicAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.<DefaultMqttPahoClientFactory>getPropertyValue(oneTopicAdapter, "clientFactory"))
+				.isSameAs(clientFactory);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(oneTopicAdapter, "errorChannel")).isSameAs(errors);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testTwoTopics() {
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "phase")).isEqualTo(25);
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "clientId")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "topics", Map.class))
+		assertThat(TestUtils.<String>getPropertyValue(twoTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.<Boolean>getPropertyValue(twoTopicsAdapter, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(twoTopicsAdapter, "phase")).isEqualTo(25);
+		assertThat(TestUtils.<String>getPropertyValue(twoTopicsAdapter, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.<Map<String, Integer>>getPropertyValue(twoTopicsAdapter, "topics"))
 				.containsEntry("bar", 0)
 				.containsEntry("baz", 2);
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "converter")).isSameAs(converter);
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "outputChannel")).isSameAs(out);
-		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.<Object>getPropertyValue(twoTopicsAdapter, "converter")).isSameAs(converter);
+		assertThat(TestUtils.<Long>getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.<MessageChannel>getPropertyValue(twoTopicsAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.<DefaultMqttPahoClientFactory>getPropertyValue(twoTopicsAdapter, "clientFactory"))
+				.isSameAs(clientFactory);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testTwoTopicsSingleQos() {
-		assertThat(TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topics", Map.class))
+		assertThat(TestUtils.<Map<String, Integer>>getPropertyValue(twoTopicsSingleQosAdapter, "topics"))
 				.containsEntry("bar", 0)
 				.containsEntry("baz", 0);
 	}

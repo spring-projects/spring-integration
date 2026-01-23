@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -223,7 +224,7 @@ public class ChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter =
 				this.applicationContext.getBean("methodInvokingSourceWithTimeout", SourcePollingChannelAdapter.class);
 		assertThat(adapter).isNotNull();
-		long sendTimeout = TestUtils.getPropertyValue(adapter, "messagingTemplate.sendTimeout", Long.class);
+		long sendTimeout = TestUtils.<Long>getPropertyValue(adapter, "messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(999);
 	}
 
@@ -262,7 +263,7 @@ public class ChannelAdapterParserTests {
 		MessageSource<?> testMessageSource = this.applicationContext.getBean("testMessageSource", MessageSource.class);
 		SourcePollingChannelAdapter adapterWithMessageSourceRef =
 				this.applicationContext.getBean("adapterWithMessageSourceRef", SourcePollingChannelAdapter.class);
-		MessageSource<?> source = TestUtils.getPropertyValue(adapterWithMessageSourceRef, "source", MessageSource.class);
+		MessageSource<?> source = TestUtils.getPropertyValue(adapterWithMessageSourceRef, "source");
 		assertThat(source).isSameAs(testMessageSource);
 	}
 

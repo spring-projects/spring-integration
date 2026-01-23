@@ -62,23 +62,26 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public abstract class TestUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(TestUtils.class);
 
 	/**
-	 * Obtain a value for the property from the provide object
+	 * Obtain a value for the property from the provided object
 	 * and try to cast it to the provided type.
 	 * Supports nested properties via period delimiter.
 	 * @param root the object to obtain the property value
 	 * @param propertyPath the property name to obtain a value.
 	 * @param type the expected value type.
 	 * @param <T> the expected value type.
-	 * Can be nested path defined by the period.
+	 * Can be a nested path defined by the period.
 	 * @return the value of the property or null
 	 * @see DirectFieldAccessor
+	 * @deprecated since 7.1 in favor of {@link #getPropertyValue(Object, String)}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("unchecked")
 	public static <T>  @Nullable T getPropertyValue(Object root, String propertyPath, Class<T> type) {
 		Object value = getPropertyValue(root, propertyPath);
@@ -89,22 +92,25 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Obtain a value for the property from the provide object.
+	 * Obtain a value for the property from the provided object.
 	 * Supports nested properties via period delimiter.
 	 * @param root the object to obtain the property value
 	 * @param propertyPath the property name to obtain a value.
-	 * Can be nested path defined by the period.
+	 * Can be a nested path defined by the period.
 	 * @return the value of the property or null
 	 * @see DirectFieldAccessor
 	 */
-	public static @Nullable Object getPropertyValue(Object root, String propertyPath) {
+	@SuppressWarnings("unchecked")
+	public static <T> @Nullable T getPropertyValue(Object root, String propertyPath) {
 		Object value = null;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(root);
 		String[] tokens = propertyPath.split("\\.");
 		for (int i = 0; i < tokens.length; i++) {
 			value = accessor.getPropertyValue(tokens[i]);
 			if (value != null) {
-				accessor = new DirectFieldAccessor(value);
+				if (i < tokens.length - 1) {
+					accessor = new DirectFieldAccessor(value);
+				}
 			}
 			else if (i == tokens.length - 1) {
 				return null;
@@ -114,7 +120,7 @@ public abstract class TestUtils {
 						"intermediate property '" + tokens[i] + "' is null");
 			}
 		}
-		return value;
+		return (T) value;
 	}
 
 	/**

@@ -267,8 +267,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicati
 		Object result = gateway.handleRequestMessage(message);
 
 		assertThat(result).isNull();
-		LiteralExpression collectionNameExpression =
-				(LiteralExpression) TestUtils.getPropertyValue(gateway, "collectionNameExpression");
+		LiteralExpression collectionNameExpression = TestUtils.getPropertyValue(gateway, "collectionNameExpression");
 		assertThat(collectionNameExpression).isNotNull();
 		assertThat(collectionNameExpression.getValue()).isEqualTo("anotherCollection");
 	}

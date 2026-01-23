@@ -76,6 +76,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.1
  *
@@ -378,7 +379,7 @@ public class PollerAdviceTests {
 		Source source = ctx.getBean(Source.class);
 		adapter.start();
 		assertThat(source.latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(TestUtils.getPropertyValue(adapter, "trigger.override")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(adapter, "trigger.override")).isNotNull();
 		adapter.stop();
 		OtherAdvice sourceAdvice = ctx.getBean(OtherAdvice.class);
 		int count = sourceAdvice.calls;

@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -53,7 +54,7 @@ public class ConnectionTimeoutTests {
 		setupClientCallback(client);
 		client.start();
 		TcpConnection connection = client.getConnection();
-		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
+		Socket socket = TestUtils.getPropertyValue(connection, "socket");
 		// should default to 0 (infinite) timeout
 		assertThat(socket.getSoTimeout()).isEqualTo(0);
 		connection.close();
@@ -75,7 +76,7 @@ public class ConnectionTimeoutTests {
 		setupClientCallback(client);
 		client.start();
 		TcpConnection connection = client.getConnection();
-		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
+		Socket socket = TestUtils.getPropertyValue(connection, "socket");
 		assertThat(socket.getSoTimeout()).isEqualTo(1000);
 		assertThat(clientCloseLatch.await(3, TimeUnit.SECONDS)).isTrue();
 		assertThat(connection.isOpen()).isFalse();
@@ -163,7 +164,7 @@ public class ConnectionTimeoutTests {
 		setupClientCallback(client);
 		client.start();
 		TcpConnection connection = client.getConnection();
-		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
+		Socket socket = TestUtils.getPropertyValue(connection, "socket");
 		assertThat(socket.getSoTimeout()).isEqualTo(2000);
 		Thread.sleep(1000);
 		connection.send(MessageBuilder.withPayload("foo").build());

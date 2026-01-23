@@ -67,6 +67,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class FtpOutboundTests implements TestApplicationContextAware {
 
@@ -156,7 +157,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 
 		File srcFile = new File(UUID.randomUUID() + ".txt");
 
-		Log logger = spy(TestUtils.getPropertyValue(handler, "remoteFileTemplate.logger", Log.class));
+		Log logger = spy(TestUtils.<Log>getPropertyValue(handler, "remoteFileTemplate.logger"));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		final AtomicReference<String> logged = new AtomicReference<>();
 		doAnswer(invocation -> {
@@ -164,8 +165,7 @@ public class FtpOutboundTests implements TestApplicationContextAware {
 			invocation.callRealMethod();
 			return null;
 		}).when(logger).warn(Mockito.anyString());
-		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate",
-				RemoteFileTemplate.class);
+		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate");
 		new DirectFieldAccessor(template).setPropertyValue("logger", logger);
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>(srcFile)))

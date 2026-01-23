@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class AggregatorTests  implements TestApplicationContextAware {
 
@@ -557,7 +558,7 @@ public class AggregatorTests  implements TestApplicationContextAware {
 	}
 
 	private void checkLock(AbstractCorrelatingMessageHandler handler, String group, boolean expectedHeld) {
-		ReentrantLock lock = (ReentrantLock) TestUtils.getPropertyValue(handler, "lockRegistry", LockRegistry.class)
+		ReentrantLock lock = (ReentrantLock) TestUtils.<LockRegistry<?>>getPropertyValue(handler, "lockRegistry")
 				.obtain(UUIDConverter.getUUID(group).toString());
 		assertThat(lock.isHeldByCurrentThread()).isEqualTo(expectedHeld);
 	}
@@ -570,7 +571,7 @@ public class AggregatorTests  implements TestApplicationContextAware {
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
-			Integer product = 1;
+			int product = 1;
 			for (Message<?> message : group.getMessages()) {
 				product *= (Integer) message.getPayload();
 			}

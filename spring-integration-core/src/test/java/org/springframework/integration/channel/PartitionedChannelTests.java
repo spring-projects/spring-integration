@@ -59,6 +59,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -135,7 +136,7 @@ public class PartitionedChannelTests {
 		String partitionForLastMessage = partitionedMessages.keySet().iterator().next();
 		assertThat(partitionForLastMessage).isIn(allocatedPartitions);
 
-		List<?> partitionExecutors = TestUtils.getPropertyValue(partitionedChannel, "dispatcher.executors", List.class);
+		List<?> partitionExecutors = TestUtils.getPropertyValue(partitionedChannel, "dispatcher.executors");
 		BlockingQueue<?> workQueue = ((ThreadPoolExecutor) partitionExecutors.get(0)).getQueue();
 
 		assertThat(workQueue).isInstanceOf(SynchronousQueue.class);
@@ -169,7 +170,7 @@ public class PartitionedChannelTests {
 		assertThat(strings).hasSize(1)
 				.allMatch(value -> value.startsWith("testChannel-partition-thread-"));
 
-		List<?> partitionExecutors = TestUtils.getPropertyValue(this.testChannel, "dispatcher.executors", List.class);
+		List<?> partitionExecutors = TestUtils.<List>getPropertyValue(this.testChannel, "dispatcher.executors");
 		BlockingQueue<?> workQueue = ((ThreadPoolExecutor) partitionExecutors.get(0)).getQueue();
 
 		assertThat(workQueue)

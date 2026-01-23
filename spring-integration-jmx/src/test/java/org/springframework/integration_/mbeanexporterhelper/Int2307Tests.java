@@ -34,10 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class Int2307Tests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testInt2307_DefaultMBeanExporter() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("single-config.xml", getClass());
@@ -47,12 +47,14 @@ public class Int2307Tests {
 		int count = 0;
 		for (ObjectInstance mbean : mbeans) {
 			if (mbean.toString()
-					.startsWith("org.springframework.integration.router.RecipientListRouter[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+					.startsWith(
+							"org.springframework.integration.router.RecipientListRouter[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
 				bits |= 2;
 				count++;
 			}
 			else if (mbean.toString()
-					.startsWith("org.springframework.integration.router.HeaderValueRouter[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+					.startsWith(
+							"org.springframework.integration.router.HeaderValueRouter[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
 				bits |= 8;
 				count++;
 			}
@@ -62,7 +64,7 @@ public class Int2307Tests {
 
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
 		List<Object> beanPostProcessors =
-				TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors", List.class);
+				TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors");
 		Object mBeanExporterHelper = null;
 		for (Object beanPostProcessor : beanPostProcessors) {
 			if (clazz.isAssignableFrom(beanPostProcessor.getClass())) {
@@ -71,24 +73,20 @@ public class Int2307Tests {
 			}
 		}
 		assertThat(mBeanExporterHelper).isNotNull();
-		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("z")).isTrue();
-		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("zz")).isTrue();
+		assertThat(TestUtils.<Set<String>>getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z", "zz");
 		context.close();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testInt2307_CustomMBeanExporter() throws Exception {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("single-config-custom-exporter.xml", getClass());
 		MBeanExporter exporter = context.getBean("myExporter", MBeanExporter.class);
-		Set<String> excludedBeanNames = TestUtils.getPropertyValue(exporter, "excludedBeans", Set.class);
-		assertThat(excludedBeanNames.contains("x")).isTrue();
-		assertThat(excludedBeanNames.contains("y")).isTrue();
-		assertThat(excludedBeanNames.contains("foo")).isTrue(); // non SI bean
+		Set<String> excludedBeanNames = TestUtils.getPropertyValue(exporter, "excludedBeans");
+		assertThat(excludedBeanNames).contains("x", "y", "foo");
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
 		List<Object> beanPostProcessors =
-				TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors", List.class);
+				TestUtils.getPropertyValue(context, "beanFactory.beanPostProcessors");
 		Object mBeanExporterHelper = null;
 		for (Object beanPostProcessor : beanPostProcessors) {
 			if (clazz.isAssignableFrom(beanPostProcessor.getClass())) {
@@ -97,7 +95,7 @@ public class Int2307Tests {
 			}
 		}
 		assertThat(mBeanExporterHelper).isNotNull();
-		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("z")).isTrue();
+		assertThat(TestUtils.<Set<String>>getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z");
 		context.close();
 	}
 

@@ -32,13 +32,13 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class AggregatorAnnotationTests {
 
@@ -48,11 +48,11 @@ public class AggregatorAnnotationTests {
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
-				.isTrue();
-		assertThat(getPropertyValue(aggregator, "outputChannel")).isNull();
-		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
-		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
+		assertThat(TestUtils.<SimpleSequenceSizeReleaseStrategy>getPropertyValue(aggregator,
+				"releaseStrategy")).isInstanceOf(SimpleSequenceSizeReleaseStrategy.class);
+		assertThat(TestUtils.<Object>getPropertyValue(aggregator, "outputChannel")).isNull();
+		assertThat(TestUtils.<Long>getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
 		context.close();
 	}
 
@@ -62,12 +62,12 @@ public class AggregatorAnnotationTests {
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
-				.isTrue();
-		assertThat(getPropertyValue(aggregator, "outputChannelName")).isEqualTo("outputChannel");
-		assertThat(getPropertyValue(aggregator, "discardChannelName")).isEqualTo("discardChannel");
-		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(98765432L);
-		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(true);
+		assertThat(TestUtils.<SimpleSequenceSizeReleaseStrategy>getPropertyValue(aggregator, "releaseStrategy"))
+				.isInstanceOf(SimpleSequenceSizeReleaseStrategy.class);
+		assertThat(TestUtils.<String>getPropertyValue(aggregator, "outputChannelName")).isEqualTo("outputChannel");
+		assertThat(TestUtils.<String>getPropertyValue(aggregator, "discardChannelName")).isEqualTo("discardChannel");
+		assertThat(TestUtils.<Long>getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(98765432L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(true);
 		context.close();
 	}
 
@@ -77,7 +77,7 @@ public class AggregatorAnnotationTests {
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
+		Object releaseStrategy = TestUtils.getPropertyValue(aggregator, "releaseStrategy");
 		assertThat(releaseStrategy instanceof MethodInvokingReleaseStrategy).isTrue();
 		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) releaseStrategy;
 		Object handlerMethods = new DirectFieldAccessor(releaseStrategyAdapter)
@@ -95,7 +95,7 @@ public class AggregatorAnnotationTests {
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithCorrelationStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
+		Object correlationStrategy = TestUtils.getPropertyValue(aggregator, "correlationStrategy");
 		assertThat(correlationStrategy instanceof MethodInvokingCorrelationStrategy).isTrue();
 		MethodInvokingCorrelationStrategy releaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
 		DirectFieldAccessor processorAccessor =
@@ -114,7 +114,7 @@ public class AggregatorAnnotationTests {
 	private MessageHandler getAggregator(ApplicationContext context, final String endpointName) {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean(endpointName
 				+ ".aggregatingMethod.aggregator");
-		return TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		return TestUtils.<MessageHandler>getPropertyValue(endpoint, "handler");
 	}
 
 }

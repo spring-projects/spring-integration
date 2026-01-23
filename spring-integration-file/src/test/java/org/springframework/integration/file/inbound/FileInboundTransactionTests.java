@@ -46,6 +46,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  *
@@ -86,7 +87,7 @@ public class FileInboundTransactionTests {
 
 		@SuppressWarnings("unchecked")
 		ResettableFileListFilter<File> fileListFilter =
-				spy(TestUtils.getPropertyValue(scanner, "filter", ResettableFileListFilter.class));
+				spy(TestUtils.<ResettableFileListFilter<File>>getPropertyValue(scanner, "filter"));
 
 		new DirectFieldAccessor(scanner).setPropertyValue("filter", fileListFilter);
 

@@ -22,7 +22,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.reactivestreams.Subscriber;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +67,7 @@ import static org.springframework.integration.test.mock.MockIntegration.mockMess
 /**
  * @author Artem Bilan
  * @author Yicheng Feng
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -195,7 +195,7 @@ public class MockMessageHandlerTests {
 		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
 
 		Object endpoint = this.context.getBean(endpointId);
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class)).isSameAs(mockMessageHandler);
+		assertThat(TestUtils.<MessageHandler>getPropertyValue(endpoint, "handler")).isSameAs(mockMessageHandler);
 
 		GenericMessage<String> message = new GenericMessage<>("foo");
 
@@ -219,9 +219,9 @@ public class MockMessageHandlerTests {
 
 		this.mockIntegrationContext.resetBeans();
 
-		assertThat(TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class))
+		assertThat(TestUtils.<MessageHandler>getPropertyValue(endpoint, "handler"))
 				.isNotSameAs(mockMessageHandler2);
-		assertThat(TestUtils.getPropertyValue(endpoint, "subscriber", Subscriber.class))
+		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "subscriber"))
 				.isNotSameAs(mockMessageHandler2);
 	}
 
@@ -264,10 +264,10 @@ public class MockMessageHandlerTests {
 
 		verify(mockMessageHandler).handleMessage(any(Message.class));
 
-		assertThat(TestUtils.getPropertyValue(this.mockIntegrationContext, "beans", Map.class)).hasSize(1);
+		assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.mockIntegrationContext, "beans")).hasSize(1);
 
 		assertThat(
-				TestUtils.getPropertyValue(
+				TestUtils.<Object>getPropertyValue(
 						this.context.getBean("mockMessageHandlerTests.Config.myService.serviceActivator"), "handler"))
 				.isSameAs(mockMessageHandler);
 	}

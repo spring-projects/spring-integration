@@ -60,6 +60,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3.8
  */
@@ -78,7 +79,7 @@ public class CustomMessagingAnnotationTests {
 	public void testLogAnnotation() {
 		assertThat(this.loggingHandler).isNotNull();
 
-		LogAccessor log = spy(TestUtils.getPropertyValue(this.loggingHandler, "messageLogger", LogAccessor.class));
+		LogAccessor log = spy(TestUtils.<LogAccessor>getPropertyValue(this.loggingHandler, "messageLogger"));
 
 		given(log.isWarnEnabled())
 				.willReturn(true);

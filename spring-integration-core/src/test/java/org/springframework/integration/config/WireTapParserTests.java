@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -76,7 +77,8 @@ public class WireTapParserTests {
 
 	@Test
 	public void simpleWireTapWithIdAndSelectorExpression() {
-		assertThat(TestUtils.getPropertyValue(wireTap, "selector")).isInstanceOf(ExpressionEvaluatingSelector.class);
+		assertThat(TestUtils.<Object>getPropertyValue(wireTap, "selector"))
+				.isInstanceOf(ExpressionEvaluatingSelector.class);
 		Message<?> original = new GenericMessage<>("test");
 		withId.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
@@ -109,7 +111,7 @@ public class WireTapParserTests {
 		int expectedTimeoutCount = 0;
 		int otherTimeoutCount = 0;
 		for (WireTap wireTap : wireTaps) {
-			long timeout = TestUtils.getPropertyValue(wireTap, "timeout", Long.class);
+			long timeout = TestUtils.<Long>getPropertyValue(wireTap, "timeout");
 			if (timeout == 0) {
 				defaultTimeoutCount++;
 			}

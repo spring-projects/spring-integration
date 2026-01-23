@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.2
  */
@@ -45,16 +46,16 @@ class RSocketInboundGatewayParserTests {
 
 	@Test
 	void testInboundGatewayParser() {
-		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "rsocketConnector"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.inboundGateway, "rsocketConnector"))
 				.isSameAs(this.clientRSocketConnector);
-		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "rsocketStrategies"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.inboundGateway, "rsocketStrategies"))
 				.isSameAs(this.clientRSocketConnector.getRSocketStrategies());
 		assertThat(this.inboundGateway.getPath()).containsExactly("testPath");
-		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "requestElementType.resolved"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.inboundGateway, "requestElementType.resolved"))
 				.isEqualTo(byte[].class);
 		assertThat(this.inboundGateway.getInteractionModels())
 				.containsExactly(RSocketInteractionModel.fireAndForget, RSocketInteractionModel.requestChannel);
-		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "decodeFluxAsUnit", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.inboundGateway, "decodeFluxAsUnit")).isTrue();
 	}
 
 }

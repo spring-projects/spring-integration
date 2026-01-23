@@ -37,3 +37,11 @@ See xref:cloudevents.adoc[] for more information.
 
 The new `spring-integration-grpc` module has been introduced to support gRPC framework.
 See xref:grpc.adoc[] for more information.
+
+
+[[x7.1-testing-changes]]
+=== Testing Support Changes
+
+The `TestUtils.getPropertyValue()` with a `Class<?>` argument has been deprecated in favor of the change on the overloaded method from an `Object` return type to the generic argument.
+This gives a flexible casting of the extracted value to the expected type in tests logic.
+See xref:testing.adoc[] for more information.

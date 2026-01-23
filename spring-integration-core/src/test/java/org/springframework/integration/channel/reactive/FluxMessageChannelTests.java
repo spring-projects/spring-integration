@@ -57,6 +57,7 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -145,7 +146,7 @@ public class FluxMessageChannelTests {
 
 		await()
 				.atMost(Duration.ofSeconds(30))
-				.until(() -> TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class));
+				.until(() -> TestUtils.<Boolean>getPropertyValue(flux, "sink.sink.done"));
 	}
 
 	@Test
@@ -163,7 +164,7 @@ public class FluxMessageChannelTests {
 		stepVerifier.verify();
 
 		Disposable.Composite upstreamSubscriptions =
-				TestUtils.getPropertyValue(messageChannel, "upstreamSubscriptions", Disposable.Composite.class);
+				TestUtils.<Disposable.Composite>getPropertyValue(messageChannel, "upstreamSubscriptions");
 		await().untilAsserted(() -> assertThat(upstreamSubscriptions.size()).isEqualTo(0));
 	}
 

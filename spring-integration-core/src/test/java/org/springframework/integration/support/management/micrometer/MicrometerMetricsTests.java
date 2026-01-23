@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0.2
  *
@@ -106,7 +107,6 @@ public class MicrometerMetricsTests {
 	@Qualifier("gatesFlow.gateway")
 	private Gate gatesFlow;
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMicrometerMetrics() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
@@ -119,7 +119,7 @@ public class MicrometerMetricsTests {
 				.isThrownBy(() -> this.channel.send(new GenericMessage<>("bar")))
 				.withStackTraceContaining("testErrorCount");
 
-		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(2);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(this.channel, "meters")).hasSize(2);
 		this.channel2.send(message);
 		this.queue.send(message);
 		this.queue.send(message);
@@ -263,7 +263,7 @@ public class MicrometerMetricsTests {
 				.withStackTraceContaining("No meter with name 'spring.integration.receive' was found");
 
 		this.channel.destroy();
-		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(0);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(this.channel, "meters")).hasSize(0);
 	}
 
 	@Configuration

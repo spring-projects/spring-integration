@@ -77,6 +77,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Darryl Smith
+ * @author Glenn Renfro
  */
 public class SftpOutboundTests implements TestApplicationContextAware {
 
@@ -253,11 +254,11 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 			Session<SftpClient.DirEntry> s1 = f.getSession();
 			Session<SftpClient.DirEntry> s2 = f.getSession();
 			if (sharedSession) {
-				assertThat(TestUtils.getPropertyValue(s2, "sftpClient"))
+				assertThat(TestUtils.<Object>getPropertyValue(s2, "sftpClient"))
 						.isSameAs(TestUtils.getPropertyValue(s1, "sftpClient"));
 			}
 			else {
-				assertThat(TestUtils.getPropertyValue(s2, "sftpClient"))
+				assertThat(TestUtils.<Object>getPropertyValue(s2, "sftpClient"))
 						.isNotSameAs(TestUtils.getPropertyValue(s1, "sftpClient"));
 			}
 

@@ -68,6 +68,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -285,7 +286,7 @@ public class ConnectionEventTests implements TestApplicationContextAware {
 		factory.setBeanName("sf");
 		factory.registerListener(message -> {
 		});
-		LogAccessor logger = spy(TestUtils.getPropertyValue(factory, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(factory, "logger"));
 		doNothing().when(logger).error(any(Throwable.class), anyString());
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);
 

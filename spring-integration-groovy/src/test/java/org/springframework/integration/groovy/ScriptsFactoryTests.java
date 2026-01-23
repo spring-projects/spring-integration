@@ -41,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
+ *
  * @since 5.0
  */
 @SpringJUnitConfig
@@ -71,8 +73,7 @@ public class ScriptsFactoryTests {
 		assertThat(this.discardChannel.receive(10000).getPayload()).isEqualTo("bad");
 		assertThat(this.discardChannel.receive(0)).isNull();
 
-		MessageProcessor<?> delegate = TestUtils.getPropertyValue(this.scriptMessageProcessor, "delegate",
-				MessageProcessor.class);
+		MessageProcessor<?> delegate = TestUtils.getPropertyValue(this.scriptMessageProcessor, "delegate");
 
 		assertThat(delegate).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}

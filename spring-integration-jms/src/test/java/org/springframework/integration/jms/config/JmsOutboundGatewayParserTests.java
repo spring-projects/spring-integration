@@ -25,7 +25,6 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
@@ -48,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 
@@ -60,21 +60,20 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 
 			var endpoint = context.getBean("jmsGateway");
 			var gateway = TestUtils.getPropertyValue(endpoint, "handler");
-			assertThat(TestUtils.getPropertyValue(gateway, "deliveryMode")).isEqualTo(DeliveryMode.PERSISTENT);
-			assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isTrue();
-			var container = TestUtils.getPropertyValue(gateway, "replyContainer",
-					DefaultMessageListenerContainer.class);
-			assertThat(TestUtils.getPropertyValue(container, "concurrentConsumers")).isEqualTo(4);
-			assertThat(TestUtils.getPropertyValue(container, "maxConcurrentConsumers")).isEqualTo(5);
-			assertThat(TestUtils.getPropertyValue(container, "maxMessagesPerTask")).isEqualTo(10);
-			assertThat(TestUtils.getPropertyValue(container, "receiveTimeout")).isEqualTo(2000L);
-			assertThat(TestUtils.getPropertyValue(container, "backOff.interval")).isEqualTo(10000L);
-			assertThat(TestUtils.getPropertyValue(container, "idleConsumerLimit")).isEqualTo(7);
-			assertThat(TestUtils.getPropertyValue(container, "idleTaskExecutionLimit")).isEqualTo(2);
-			assertThat(TestUtils.getPropertyValue(container, "cacheLevel")).isEqualTo(3);
+			assertThat(TestUtils.<Integer>getPropertyValue(gateway, "deliveryMode")).isEqualTo(DeliveryMode.PERSISTENT);
+			assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "async")).isTrue();
+			var container = TestUtils.<DefaultMessageListenerContainer>getPropertyValue(gateway, "replyContainer");
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "concurrentConsumers")).isEqualTo(4);
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "maxConcurrentConsumers")).isEqualTo(5);
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "maxMessagesPerTask")).isEqualTo(10);
+			assertThat(TestUtils.<Long>getPropertyValue(container, "receiveTimeout")).isEqualTo(2000L);
+			assertThat(TestUtils.<Long>getPropertyValue(container, "backOff.interval")).isEqualTo(10000L);
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "idleConsumerLimit")).isEqualTo(7);
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "idleTaskExecutionLimit")).isEqualTo(2);
+			assertThat(TestUtils.<Integer>getPropertyValue(container, "cacheLevel")).isEqualTo(3);
 			assertThat(container.isSessionTransacted()).isTrue();
-			assertThat(TestUtils.getPropertyValue(container, "taskExecutor")).isSameAs(context.getBean("exec"));
-			assertThat(TestUtils.getPropertyValue(gateway, "idleReplyContainerTimeout")).isEqualTo(1234000L);
+			assertThat(TestUtils.<Object>getPropertyValue(container, "taskExecutor")).isSameAs(context.getBean("exec"));
+			assertThat(TestUtils.<Long>getPropertyValue(gateway, "idleReplyContainerTimeout")).isEqualTo(1234000L);
 		}
 	}
 
@@ -84,11 +83,12 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", getClass())) {
 
 			var endpoint = context.getBean("advised");
-			JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
-			assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isFalse();
+			JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler");
+			assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "async")).isFalse();
 			gateway.handleMessage(new GenericMessage<>("test"));
 			assertThat(adviceCalled).isEqualTo(1);
-			assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode")).isEqualTo(3);
+			assertThat(TestUtils.<Integer>getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode"))
+					.isEqualTo(3);
 		}
 	}
 
@@ -96,7 +96,7 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void testDefault() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayWithConverter.xml", getClass())) {
 			var endpoint = context.getBean("jmsGateway");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.messageConverter"))
+			assertThat(TestUtils.<Object>getPropertyValue(endpoint, "handler.messageConverter"))
 					.isInstanceOf(StubMessageConverter.class);
 		}
 	}
@@ -105,8 +105,8 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithOrder() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayWithOrder.xml", getClass())) {
 			var endpoint = context.getBean("jmsGateway");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.requiresReply")).isEqualTo(Boolean.TRUE);
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.order")).isEqualTo(99);
+			assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.requiresReply")).isEqualTo(Boolean.TRUE);
+			assertThat(TestUtils.<Integer>getPropertyValue(endpoint, "handler.order")).isEqualTo(99);
 		}
 	}
 
@@ -114,7 +114,7 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithDest() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayReplyDestOptions.xml", getClass())) {
 			var endpoint = context.getBean("jmsGatewayDest");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.replyDestination"))
+			assertThat(TestUtils.<Object>getPropertyValue(endpoint, "handler.replyDestination"))
 					.isSameAs(context.getBean("replyQueue"));
 		}
 	}
@@ -123,7 +123,8 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithDestName() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayReplyDestOptions.xml", getClass())) {
 			var endpoint = context.getBean("jmsGatewayDestName");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.replyDestinationName")).isEqualTo("replyQueueName");
+			assertThat(TestUtils.<String>getPropertyValue(endpoint, "handler.replyDestinationName"))
+					.isEqualTo("replyQueueName");
 		}
 	}
 
@@ -132,10 +133,9 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayReplyDestOptions.xml", getClass())) {
 			var endpoint = context.getBean("jmsGatewayDestExpressionBeanRef");
 			MessageProcessor<?> processor =
-					TestUtils.getPropertyValue(endpoint, "handler.replyDestinationExpressionProcessor",
-							ExpressionEvaluatingMessageProcessor.class);
-			var expression = TestUtils.getPropertyValue(endpoint,
-					"handler.replyDestinationExpressionProcessor.expression", Expression.class);
+					TestUtils.getPropertyValue(endpoint, "handler.replyDestinationExpressionProcessor");
+			var expression = TestUtils.<Expression>getPropertyValue(
+					endpoint, "handler.replyDestinationExpressionProcessor.expression");
 			assertThat(expression.getExpressionString()).isEqualTo("@replyQueue");
 			assertThat(processor.processMessage(null)).isSameAs(context.getBean("replyQueue"));
 		}
@@ -160,7 +160,8 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 				message -> {
 					MessageHistory history = MessageHistory.read(message);
 					assertThat(history).isNotNull();
-					Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
+					Properties componentHistoryRecord =
+							TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
 					assertThat(componentHistoryRecord).isNotNull();
 					assertThat(componentHistoryRecord.get("type")).isEqualTo("jms:inbound-gateway");
 					MessagingTemplate messagingTemplate = new MessagingTemplate();
@@ -171,10 +172,10 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 		String result = gateway.echo("hello");
 		assertThat(result).isEqualTo("hello");
 		JmsOutboundGateway gw1 = context.getBean("chain1$child.gateway.handler", JmsOutboundGateway.class);
-		MessageChannel out = TestUtils.getPropertyValue(gw1, "outputChannel", MessageChannel.class);
+		MessageChannel out = TestUtils.getPropertyValue(gw1, "outputChannel");
 		assertThat(out.getClass().getSimpleName()).isEqualTo("ReplyForwardingMessageChannel");
 		JmsOutboundGateway gw2 = context.getBean("chain2$child.gateway.handler", JmsOutboundGateway.class);
-		out = TestUtils.getPropertyValue(gw2, "outputChannel", MessageChannel.class);
+		out = TestUtils.<MessageChannel>getPropertyValue(gw2, "outputChannel");
 		assertThat(out.getClass().getName()).contains("MessageHandlerChain$");
 		context.close();
 	}
@@ -183,8 +184,8 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithDefaultPubSubDomain() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayWithPubSubSettings.xml", getClass())) {
 			var endpoint = context.getBean("defaultGateway");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.requestPubSubDomain", Boolean.class)).isFalse();
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.replyPubSubDomain", Boolean.class)).isFalse();
+			assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.requestPubSubDomain")).isFalse();
+			assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.replyPubSubDomain")).isFalse();
 		}
 	}
 
@@ -192,8 +193,8 @@ public class JmsOutboundGatewayParserTests extends ActiveMQMultiContextTests {
 	public void gatewayWithExplicitPubSubDomainTrue() {
 		try (var context = new ClassPathXmlApplicationContext("jmsOutboundGatewayWithPubSubSettings.xml", getClass())) {
 			var endpoint = context.getBean("pubSubDomainGateway");
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.requestPubSubDomain", Boolean.class)).isTrue();
-			assertThat(TestUtils.getPropertyValue(endpoint, "handler.replyPubSubDomain", Boolean.class)).isTrue();
+			assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.requestPubSubDomain")).isTrue();
+			assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "handler.replyPubSubDomain")).isTrue();
 		}
 	}
 

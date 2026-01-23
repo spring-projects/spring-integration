@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -74,7 +75,8 @@ public class RecipientListRouterParserTests {
 		assertThat(handler.getClass()).isEqualTo(RecipientListRouter.class);
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertThat(TestUtils.getPropertyValue(router, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
+		assertThat(TestUtils.<Long>getPropertyValue(router, "messagingTemplate.sendTimeout"))
+				.isEqualTo(45000L);
 		assertThat(accessor.getPropertyValue("applySequence")).isEqualTo(Boolean.FALSE);
 		assertThat(accessor.getPropertyValue("ignoreSendFailures")).isEqualTo(Boolean.FALSE);
 	}

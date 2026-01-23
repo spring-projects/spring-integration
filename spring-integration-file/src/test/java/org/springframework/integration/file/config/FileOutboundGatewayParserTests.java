@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Tony Falabella
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -108,11 +109,11 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 		DefaultFileNameGenerator fileNameGenerator =
 				(DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertThat(fileNameGenerator).isNotNull();
-		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
+		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'foo.txt'");
 
-		Long sendTimeout = TestUtils.getPropertyValue(handler, "messagingTemplate.sendTimeout", Long.class);
+		Long sendTimeout = TestUtils.getPropertyValue(handler, "messagingTemplate.sendTimeout");
 		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
 
 	}
@@ -120,8 +121,8 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	@Test
 	public void testOutboundGatewayWithDirectoryExpression() {
 		FileWritingMessageHandler handler =
-				TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
+				TestUtils.<FileWritingMessageHandler>getPropertyValue(gatewayWithDirectoryExpression, "handler");
+		assertThat(TestUtils.<Expression>getPropertyValue(handler, "destinationDirectoryExpression")
 				.getExpressionString()).isEqualTo("temporaryFolder");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
@@ -252,7 +253,7 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 */
 	@Test
 	public void gatewayWithReplaceMode() throws Exception {
-		assertThat(TestUtils.getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply"))
 				.isFalse();
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
@@ -282,8 +283,8 @@ public class FileOutboundGatewayParserTests implements TestApplicationContextAwa
 	 */
 	@Test
 	public void gatewayWithAppendNewLine() {
-		assertThat(TestUtils.getPropertyValue(this.gatewayWithAppendNewLine, "handler.appendNewLine"))
-				.isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gatewayWithAppendNewLine,
+				"handler.appendNewLine")).isEqualTo(Boolean.TRUE);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

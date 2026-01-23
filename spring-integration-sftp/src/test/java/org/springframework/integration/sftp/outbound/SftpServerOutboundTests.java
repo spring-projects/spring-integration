@@ -86,6 +86,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Darryl Smith
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -476,8 +477,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		this.config.latch = new CountDownLatch(1);
 		Session<?> session = sessionFactory.getSession();
 		session.close();
-		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
-		SftpClient sftpClient = spy(TestUtils.getPropertyValue(session, "sftpClient", SftpClient.class));
+		session = TestUtils.getPropertyValue(session, "targetSession");
+		SftpClient sftpClient = spy(TestUtils.<SftpClient>getPropertyValue(session, "sftpClient"));
 		doNothing().when(sftpClient).setStat(anyString(), any(SftpClient.Attributes.class));
 		new DirectFieldAccessor(session).setPropertyValue("sftpClient", sftpClient);
 

@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  *
@@ -59,14 +60,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SyslogReceivingChannelAdapterParserTests {
 
 	@Autowired
-	@Qualifier("foo.adapter")
+	@Qualifier("outputChannel.adapter")
 	private UdpSyslogReceivingChannelAdapter adapter1;
 
 	@Autowired
-	private UdpSyslogReceivingChannelAdapter foobar;
+	private UdpSyslogReceivingChannelAdapter udpSyslogReceivingChannelAdapter;
 
 	@Autowired
-	private PollableChannel foo;
+	private PollableChannel outputChannel;
 
 	@Autowired
 	@Qualifier("explicitUdp.adapter")
@@ -88,11 +89,11 @@ public class SyslogReceivingChannelAdapterParserTests {
 	private RFC5424MessageConverter rfc5424;
 
 	@Autowired
-	@Qualifier("bar.adapter")
+	@Qualifier("outputChannelAlternate.adapter")
 	private TcpSyslogReceivingChannelAdapter adapter2;
 
 	@Autowired
-	private PollableChannel bar;
+	private PollableChannel outputChannelAlternate;
 
 	@Autowired
 	private TcpSyslogReceivingChannelAdapter fullBoatTcp;
@@ -111,59 +112,62 @@ public class SyslogReceivingChannelAdapterParserTests {
 		Thread.sleep(1000);
 		socket.send(packet);
 		socket.close();
-		Message<?> message = foo.receive(10000);
+		Message<?> message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		adapter1.stop();
 	}
 
 	@Test
 	public void testExplicitChannelUdp() {
-		assertThat(TestUtils.getPropertyValue(foobar, "udpAdapter.port")).isEqualTo(1514);
-		assertThat(TestUtils.getPropertyValue(foobar, "outputChannel")).isSameAs(foo);
+		assertThat(TestUtils.<Integer>getPropertyValue(udpSyslogReceivingChannelAdapter, "udpAdapter.port"))
+				.isEqualTo(1514);
+		assertThat(TestUtils.<Object>getPropertyValue(udpSyslogReceivingChannelAdapter, "outputChannel"))
+				.isSameAs(outputChannel);
 	}
 
 	@Test
 	public void testExplicitUdp() {
-		assertThat(TestUtils.getPropertyValue(explicitUdpAdapter, "outputChannel")).isSameAs(explicitUdp);
+		assertThat(TestUtils.<Object>getPropertyValue(explicitUdpAdapter, "outputChannel")).isSameAs(explicitUdp);
 	}
 
 	@Test
 	public void testFullBoatUdp() {
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "outputChannel")).isSameAs(foo);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatUdp, "outputChannel")).isSameAs(outputChannel);
 		assertThat(fullBoatUdp.isAutoStartup()).isFalse();
 		assertThat(fullBoatUdp.getPhase()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "converter")).isSameAs(converter);
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "errorChannel")).isSameAs(errors);
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "udpAdapter.mapper.lookupHost", Boolean.class)).isFalse();
+		assertThat(TestUtils.<Long>getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatUdp, "converter")).isSameAs(converter);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatUdp, "errorChannel")).isSameAs(errors);
+		assertThat(TestUtils.<Boolean>getPropertyValue(fullBoatUdp, "udpAdapter.mapper.lookupHost")).isFalse();
 	}
 
 	@Test
 	public void testSimplestTcp() throws Exception {
-		AbstractServerConnectionFactory connectionFactory = TestUtils.getPropertyValue(adapter2, "connectionFactory",
-				AbstractServerConnectionFactory.class);
+		AbstractServerConnectionFactory connectionFactory = TestUtils.getPropertyValue(adapter2, "connectionFactory");
 		waitListening(connectionFactory, 10000L);
-		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes(StandardCharsets.UTF_8);
+		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n"
+				.getBytes(StandardCharsets.UTF_8);
 		int port = connectionFactory.getPort();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		Thread.sleep(1000);
 		socket.getOutputStream().write(buf);
 		socket.close();
-		Message<?> message = bar.receive(10000);
+		Message<?> message = outputChannelAlternate.receive(10000);
 		assertThat(message).isNotNull();
 		adapter2.stop();
-		assertThat(TestUtils.getPropertyValue(adapter2, "connectionFactory.applicationEventPublisher")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(adapter2, "connectionFactory.applicationEventPublisher"))
+				.isNotNull();
 	}
 
 	@Test
 	public void testFullBoatTcp() {
-		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "outputChannel")).isSameAs(bar);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatTcp, "outputChannel")).isSameAs(outputChannelAlternate);
 		assertThat(fullBoatTcp.isAutoStartup()).isFalse();
 		assertThat(fullBoatTcp.getPhase()).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
-		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "converter")).isSameAs(rfc5424);
-		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "errorChannel")).isSameAs(errors);
-		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "connectionFactory")).isSameAs(cf);
+		assertThat(TestUtils.<Long>getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatTcp, "converter")).isSameAs(rfc5424);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatTcp, "errorChannel")).isSameAs(errors);
+		assertThat(TestUtils.<Object>getPropertyValue(fullBoatTcp, "connectionFactory")).isSameAs(cf);
 	}
 
 	@Test

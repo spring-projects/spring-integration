@@ -31,7 +31,6 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,6 +40,7 @@ import org.springframework.integration.amqp.support.ReturnedAmqpMessageException
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -64,6 +64,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  *
  * @since 2.1
  *
@@ -202,7 +203,7 @@ public class AmqpOutboundEndpointTests implements RabbitTestContainer {
 		verify(template).send(isNull(), isNull(), any(), correlationCaptor.capture());
 		CorrelationData correlation = correlationCaptor.getValue();
 		correlationList.add(correlation);
-		assertThat(TestUtils.getPropertyValue(correlation, "message", Message.class)).isSameAs(message);
+		assertThat(TestUtils.<Object>getPropertyValue(correlation, "message")).isSameAs(message);
 		Message<?> nack = nacks.receive(10_000);
 		assertThat(nack).isNotNull();
 		assertThat(nack.getPayload()).isInstanceOf(NackedAmqpMessageException.class);

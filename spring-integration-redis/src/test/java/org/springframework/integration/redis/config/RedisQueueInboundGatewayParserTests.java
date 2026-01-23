@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author David Liu
  * @author Artem Bilan
  * @author Matthias Jeschke
+ * @author Glenn Renfro
  *
  * since 4.1
  */
@@ -61,20 +62,23 @@ public class RedisQueueInboundGatewayParserTests {
 
 	@Test
 	public void testDefaultConfig() {
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializer")).isSameAs(this.serializer);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "extractPayload")).isFalse();
+		assertThat(TestUtils.<RedisSerializer<?>>getPropertyValue(this.defaultGateway, "serializer"))
+				.isSameAs(this.serializer);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "serializerExplicitlySet")).isTrue();
 		assertThat(this.defaultGateway.getReplyChannel()).isSameAs(this.receiveChannel);
 		assertThat(this.defaultGateway.getRequestChannel()).isSameAs(this.requestChannel);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "messagingTemplate.receiveTimeout")).isEqualTo(2000L);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "phase")).isEqualTo(3);
+		assertThat(TestUtils.<Long>getPropertyValue(this.defaultGateway, "messagingTemplate.receiveTimeout"))
+				.isEqualTo(2000L);
+		assertThat(TestUtils.<Object>getPropertyValue(this.defaultGateway, "taskExecutor")).isNotNull();
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "autoStartup")).isFalse();
+		assertThat(TestUtils.<Integer>getPropertyValue(this.defaultGateway, "phase")).isEqualTo(3);
 	}
 
 	@Test
 	public void testZeroReceiveTimeoutConfig() {
-		assertThat(TestUtils.getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout")).isEqualTo(0L);
+		assertThat(TestUtils.<Long>getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout"))
+				.isEqualTo(0L);
 	}
 
 }

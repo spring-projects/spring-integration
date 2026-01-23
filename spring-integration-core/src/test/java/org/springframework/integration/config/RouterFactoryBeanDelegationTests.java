@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -56,7 +57,7 @@ public class RouterFactoryBeanDelegationTests {
 
 	@Test
 	public void checkResolutionRequiredConfiguredOnTargetRouter() {
-		boolean resolutionRequired = TestUtils.getPropertyValue(router, "resolutionRequired", Boolean.class);
+		boolean resolutionRequired = TestUtils.<Boolean>getPropertyValue(router, "resolutionRequired");
 		assertThat(resolutionRequired).as("The 'resolutionRequired' property should be 'true'").isTrue();
 	}
 

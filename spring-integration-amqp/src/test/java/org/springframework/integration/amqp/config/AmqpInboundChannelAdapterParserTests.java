@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -46,6 +45,7 @@ import static org.mockito.Mockito.mock;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -62,15 +62,15 @@ public class AmqpInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("rabbitInbound.adapter");
 		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
 		assertThat(adapter.getClass()).isEqualTo(AmqpInboundChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.TRUE);
-		assertThat(TestUtils.getPropertyValue(adapter, "phase")).isEqualTo(Integer.MAX_VALUE / 2);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.<Integer>getPropertyValue(adapter, "phase")).isEqualTo(Integer.MAX_VALUE / 2);
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal"))
 				.isTrue();
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
+		assertThat(TestUtils.<SimpleMessageListenerContainer>getPropertyValue(adapter, "messageListenerContainer"))
 				.isInstanceOf(SimpleMessageListenerContainer.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "batchMode", BatchMode.class))
+		assertThat(TestUtils.<BatchMode>getPropertyValue(adapter, "batchMode"))
 				.isEqualTo(BatchMode.EXTRACT_PAYLOADS);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.batchSize", Integer.class))
+		assertThat(TestUtils.<Integer>getPropertyValue(adapter, "messageListenerContainer.batchSize"))
 				.isEqualTo(2);
 	}
 
@@ -78,25 +78,25 @@ public class AmqpInboundChannelAdapterParserTests {
 	public void verifyDMCC() {
 		Object adapter = context.getBean("dmlc.adapter");
 		assertThat(adapter.getClass()).isEqualTo(AmqpInboundChannelAdapter.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal"))
 				.isFalse();
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
+		assertThat(TestUtils.<DirectMessageListenerContainer>getPropertyValue(adapter, "messageListenerContainer"))
 				.isInstanceOf(DirectMessageListenerContainer.class);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue")).isEqualTo(2);
-		assertThat(TestUtils.getPropertyValue(adapter, "batchMode", BatchMode.class))
+		assertThat(TestUtils.<Integer>getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue")).isEqualTo(2);
+		assertThat(TestUtils.<BatchMode>getPropertyValue(adapter, "batchMode"))
 				.isEqualTo(BatchMode.MESSAGES);
 	}
 
 	@Test
 	public void verifyLifeCycle() {
 		Object adapter = context.getBean("autoStartFalse.adapter");
-		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
-		assertThat(TestUtils.getPropertyValue(adapter, "phase")).isEqualTo(123);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.<Integer>getPropertyValue(adapter, "phase")).isEqualTo(123);
+		assertThat(TestUtils.<AcknowledgeMode>getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"))
 				.isEqualTo(AcknowledgeMode.NONE);
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+		assertThat(TestUtils.<Boolean>getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal"))
 				.isFalse();
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.batchSize", Integer.class))
+		assertThat(TestUtils.<Integer>getPropertyValue(adapter, "messageListenerContainer.batchSize"))
 				.isEqualTo(3);
 	}
 
@@ -105,10 +105,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperStandardAndCustomHeaders",
 				AmqpInboundChannelAdapter.class);
 
-		AbstractMessageListenerContainer mlc =
-				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
-				ChannelAwareMessageListener.class);
+		ChannelAwareMessageListener listener =
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer.messageListener");
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -134,10 +132,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperOnlyCustomHeaders",
 				AmqpInboundChannelAdapter.class);
 
-		AbstractMessageListenerContainer mlc =
-				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
-				ChannelAwareMessageListener.class);
+		ChannelAwareMessageListener listener =
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer.messageListener");
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -163,10 +159,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperNothingToMap",
 				AmqpInboundChannelAdapter.class);
 
-		AbstractMessageListenerContainer mlc =
-				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
-				ChannelAwareMessageListener.class);
+		ChannelAwareMessageListener listener =
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer.messageListener");
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -193,10 +187,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperDefaultMapping",
 				AmqpInboundChannelAdapter.class);
 
-		AbstractMessageListenerContainer mlc =
-				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
-		ChannelAwareMessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener",
-				ChannelAwareMessageListener.class);
+		ChannelAwareMessageListener listener =
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer.messageListener");
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");

@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -65,6 +66,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -149,7 +151,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		assertThat(new File("test/subdir/A.TEST.a").exists()).isTrue();
 		assertThat(new File("test/subdir/B.TEST.a").exists()).isTrue();
 
-		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
+		TestUtils.<HashSet<?>>getPropertyValue(localAcceptOnceFilter, "seenSet").clear();
 
 		File aFile = new File("test/subdir/A.TEST.a");
 		aFile.delete();
@@ -165,10 +167,10 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		verify(synchronizer).close();
 		verify(store).close();
 
-		Map<?, ?> metadata = TestUtils.getPropertyValue(remoteFileMetadataStore, "metadata", Map.class);
+		Map<?, ?> metadata = TestUtils.getPropertyValue(remoteFileMetadataStore, "metadata");
 		assertThat(metadata).isEmpty();
 
-		Properties metadataProperties = TestUtils.getPropertyValue(store, "metadata", Properties.class);
+		Properties metadataProperties = TestUtils.getPropertyValue(store, "metadata");
 		metadataProperties.stringPropertyNames()
 				.forEach(name -> assertThat(name).startsWith("someKey/remote-test-dir/"));
 	}

@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  *
@@ -54,25 +55,24 @@ public class KafkaInboundGatewayTests {
 		assertThat(this.gateway1.isAutoStartup()).isFalse();
 		assertThat(this.gateway1.isRunning()).isFalse();
 		assertThat(this.gateway1.getPhase()).isEqualTo(100);
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "requestChannelName")).isEqualTo("nullChannel");
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "replyChannelName")).isEqualTo("errorChannel");
+		assertThat(TestUtils.<String>getPropertyValue(this.gateway1, "requestChannelName")).isEqualTo("nullChannel");
+		assertThat(TestUtils.<String>getPropertyValue(this.gateway1, "replyChannelName")).isEqualTo("errorChannel");
 		KafkaMessageListenerContainer<?, ?> container =
-				TestUtils.getPropertyValue(this.gateway1, "messageListenerContainer",
-						KafkaMessageListenerContainer.class);
+				TestUtils.getPropertyValue(this.gateway1, "messageListenerContainer");
 		assertThat(container).isNotNull();
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "listener.fallbackType"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway1, "listener.fallbackType"))
 				.isEqualTo(String.class);
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "errorMessageStrategy"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway1, "errorMessageStrategy"))
 				.isSameAs(this.context.getBean("ems"));
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "retryTemplate"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway1, "retryTemplate"))
 				.isSameAs(this.context.getBean("retryTemplate"));
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway1, "recoveryCallback"))
 				.isSameAs(this.context.getBean("recoveryCallback"));
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
+		assertThat(TestUtils.<Object>getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.receiveTimeout")).isEqualTo(43L);
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "bindSourceRecord", Boolean.class)).isTrue();
+		assertThat(TestUtils.<Long>getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
+		assertThat(TestUtils.<Long>getPropertyValue(this.gateway1, "messagingTemplate.receiveTimeout")).isEqualTo(43L);
+		assertThat(TestUtils.<Boolean>getPropertyValue(this.gateway1, "bindSourceRecord")).isTrue();
 		assertThat(this.roleController.getRoles()).contains("testRole");
 		assertThat(this.roleController.getEndpointsRunningStatus("testRole")).containsEntry("gateway1", false);
 	}

@@ -111,6 +111,7 @@ import static org.mockito.Mockito.when;
  * @author Alexander Pinske
  * @author Dominik Simmen
  * @author Filip Hrisafov
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -373,7 +374,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 	public void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 
-		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(receiver, "logger"));
 		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
 		when(logger.isDebugEnabled()).thenReturn(false);
 
@@ -394,7 +395,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 	public void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 
-		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(receiver, "logger"));
 		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
 		when(logger.isDebugEnabled()).thenReturn(true);
 
@@ -956,7 +957,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		storeField.set(receiver, store);
 
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
-		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(adapter, "logger"));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		willDoNothing().given(logger).warn(any(Throwable.class), anyString());
 		willAnswer(i -> {

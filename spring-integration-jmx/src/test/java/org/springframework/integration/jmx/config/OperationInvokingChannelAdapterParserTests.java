@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -86,7 +87,7 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithDefaults() {
-		assertThat(testBean.messages.size()).isEqualTo(0);
+		assertThat(testBean.messages).isEmpty();
 		input.send(new GenericMessage<>("test1"));
 		input.send(new GenericMessage<>("test2"));
 		input.send(new GenericMessage<>("test3"));
@@ -96,9 +97,7 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Test
 	public void testOutboundAdapterWithNonNullReturn() {
-		LogAccessor logger = spy(TestUtils.getPropertyValue(this.operationWithNonNullReturnHandler, "logger",
-
-				LogAccessor.class));
+		LogAccessor logger = spy(TestUtils.<LogAccessor>getPropertyValue(this.operationWithNonNullReturnHandler, "logger"));
 
 		willReturn(true)
 				.given(logger)
@@ -117,7 +116,7 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Test
 	// Headers should be ignored
 	public void adapterWitJmxHeaders() {
-		assertThat(testBean.messages.size()).isEqualTo(0);
+		assertThat(testBean.messages).isEmpty();
 		this.input2.send(createMessage("1"));
 		this.input2.send(createMessage("2"));
 		this.input2.send(createMessage("3"));
@@ -133,8 +132,7 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Test
 	public void testOperationWithinChainWithNonNullReturn() {
 		LogAccessor logger =
-				spy(TestUtils.getPropertyValue(this.operationWithinChainWithNonNullReturnHandler, "logger",
-						LogAccessor.class));
+				spy(TestUtils.<LogAccessor>getPropertyValue(this.operationWithinChainWithNonNullReturnHandler, "logger"));
 
 		willReturn(true)
 				.given(logger)

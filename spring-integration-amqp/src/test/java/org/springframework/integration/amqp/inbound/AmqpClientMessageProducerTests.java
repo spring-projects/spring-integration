@@ -57,6 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -137,8 +138,7 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 	@Test
 	void failureAfterReceiving() {
 		RabbitAmqpListenerContainer listenerContainer =
-				TestUtils.getPropertyValue(this.failureAmqpClientMessageProducer, "listenerContainer",
-						RabbitAmqpListenerContainer.class);
+				TestUtils.getPropertyValue(this.failureAmqpClientMessageProducer, "listenerContainer");
 
 		AtomicReference<Throwable> listenerError = new AtomicReference<>();
 

@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  * @author Amol Nayak
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -89,29 +90,29 @@ public class JpaExecutorTests implements TestApplicationContextAware {
 	public void testSetMultipleQueryTypes() {
 		final JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setJpaQuery("select s from Student s");
-		assertThat(TestUtils.getPropertyValue(executor, "jpaQuery", String.class)).isNotNull();
+		assertThat(TestUtils.<String>getPropertyValue(executor, "jpaQuery")).isNotNull();
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.setNamedQuery("NamedQuery"))
 				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
-		assertThat(TestUtils.getPropertyValue(executor, "namedQuery")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(executor, "namedQuery")).isNull();
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.setNativeQuery("select * from Student"))
 				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
-		assertThat(TestUtils.getPropertyValue(executor, "nativeQuery")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(executor, "nativeQuery")).isNull();
 
 		final JpaExecutor executor2 = new JpaExecutor(mock(EntityManager.class));
 		executor2.setNamedQuery("NamedQuery");
-		assertThat(TestUtils.getPropertyValue(executor2, "namedQuery", String.class)).isNotNull();
+		assertThat(TestUtils.<String>getPropertyValue(executor2, "namedQuery")).isNotNull();
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor2.setJpaQuery("select s from Student s"))
 				.withMessage("Only one of the properties 'jpaQuery', 'nativeQuery', 'namedQuery' can be defined");
 
-		assertThat(TestUtils.getPropertyValue(executor2, "jpaQuery")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(executor2, "jpaQuery")).isNull();
 	}
 
 	@Test

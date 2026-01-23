@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.3
  */
@@ -140,8 +141,7 @@ public class DispatchingChannelParserTests {
 	@Test
 	public void loadBalancerRef() {
 		MessageChannel channel = channels.get("lbRefChannel");
-		LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy",
-				LoadBalancingStrategy.class);
+		LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy");
 		assertThat(lbStrategy).isInstanceOf(SampleLoadBalancingStrategy.class);
 	}
 

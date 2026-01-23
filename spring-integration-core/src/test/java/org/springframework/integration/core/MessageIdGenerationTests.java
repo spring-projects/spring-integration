@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class MessageIdGenerationTests {
 
@@ -138,7 +139,7 @@ public class MessageIdGenerationTests {
 	}
 
 	private void assertDestroy() {
-		assertThat(TestUtils.getPropertyValue(new MessageHeaders(null), "idGenerator")).isNull();
+		assertThat(TestUtils.<Object>getPropertyValue(new MessageHeaders(null), "idGenerator")).isNull();
 	}
 
 	public static class SampleIdGenerator implements IdGenerator {

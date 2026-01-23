@@ -67,6 +67,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -126,7 +127,8 @@ public class ReactiveStreamsTests {
 
 		disposable.dispose();
 		assertThat(this.messageSource.isRunning()).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.messageSource, "messagingTemplate.sendTimeout")).isEqualTo(256L);
+		assertThat(TestUtils.<Long>getPropertyValue(this.messageSource, "messagingTemplate.sendTimeout"))
+				.isEqualTo(256L);
 	}
 
 	@RetryingTest(10)

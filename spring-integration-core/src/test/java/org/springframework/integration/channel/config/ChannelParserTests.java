@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @see ChannelWithCustomQueueParserTests
  */
@@ -101,8 +102,9 @@ public class ChannelParserTests {
 	public void testExecutorChannel() {
 		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
 		assertThat(channel).isInstanceOf(ExecutorChannel.class);
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter.conversionService"))
+				.isNotNull();
 	}
 
 	@Test
@@ -111,8 +113,9 @@ public class ChannelParserTests {
 				"ChannelParserTests-no-converter-context.xml", this.getClass());
 		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
 		assertThat(channel).isInstanceOf(ExecutorChannel.class);
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter")).isNotNull();
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter.conversionService"))
+				.isNotNull();
 		context.close();
 	}
 
@@ -185,9 +188,10 @@ public class ChannelParserTests {
 		assertThat(channel.send(new GenericMessage<>(123))).isTrue();
 		assertThat(channel.send(new GenericMessage<>(123.45))).isTrue();
 		assertThat(channel.send(new GenericMessage<>(Boolean.TRUE))).isTrue();
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter"))
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter"))
 				.isInstanceOf(DefaultDatatypeChannelMessageConverter.class);
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
+		assertThat(TestUtils.<Object>getPropertyValue(channel, "messageConverter.conversionService"))
+				.isNotNull();
 	}
 
 	@Test

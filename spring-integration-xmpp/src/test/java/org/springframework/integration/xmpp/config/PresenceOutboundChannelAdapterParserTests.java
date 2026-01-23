@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -57,25 +58,23 @@ public class PresenceOutboundChannelAdapterParserTests {
 	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer() {
 		Object pollingConsumer = context.getBean("pollingOutboundRosterAdapter");
 		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
-		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
-				.getPropertyValue(pollingConsumer, "handler");
-		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
+		AbstractXmppConnectionAwareMessageHandler handler = TestUtils.getPropertyValue(pollingConsumer, "handler");
+		assertThat(TestUtils.<Integer>getPropertyValue(handler, "order")).isEqualTo(23);
 	}
 
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer() {
 		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
 		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
-		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
-				.getPropertyValue(eventConsumer, "handler");
-		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(34);
+		AbstractXmppConnectionAwareMessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler");
+		assertThat(TestUtils.<Integer>getPropertyValue(handler, "order")).isEqualTo(34);
 	}
 
 	@Test
 	public void advised() {
 		Object eventConsumer = context.getBean("advised");
 		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
-		MessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler", MessageHandler.class);
+		MessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -84,12 +83,9 @@ public class PresenceOutboundChannelAdapterParserTests {
 	public void testRosterEventOutboundChannel() {
 		Object channel = context.getBean("eventOutboundRosterChannel");
 		assertThat(channel instanceof SubscribableChannel).isTrue();
-		UnicastingDispatcher dispatcher = (UnicastingDispatcher) TestUtils
-				.getPropertyValue(channel, "dispatcher");
-		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
-				.getPropertyValue(dispatcher, "handlers");
-		assertThat(TestUtils.getPropertyValue(handlers.toArray()[0], "order")).isEqualTo(45);
+		UnicastingDispatcher dispatcher = TestUtils.getPropertyValue(channel, "dispatcher");
+		Set<MessageHandler> handlers = TestUtils.getPropertyValue(dispatcher, "handlers");
+		assertThat(TestUtils.<Integer>getPropertyValue(handlers.toArray()[0], "order")).isEqualTo(45);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

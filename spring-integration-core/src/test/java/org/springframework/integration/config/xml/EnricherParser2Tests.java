@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -44,7 +45,7 @@ public class EnricherParser2Tests {
 	public void configurationCheckRequiresReply() {
 		Object endpoint = context.getBean("enricher");
 
-		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
+		boolean requiresReply = TestUtils.<Boolean>getPropertyValue(endpoint, "handler.requiresReply");
 
 		assertThat(requiresReply).as("Was expecting requiresReply to be 'false'").isFalse();
 	}

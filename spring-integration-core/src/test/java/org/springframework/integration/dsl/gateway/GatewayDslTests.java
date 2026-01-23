@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.1.3
  */
@@ -147,7 +148,7 @@ public class GatewayDslTests {
 
 		MessagingGatewaySupport methodGateway = gateways.values().iterator().next();
 		MessagingTemplate messagingTemplate =
-				TestUtils.getPropertyValue(methodGateway, "messagingTemplate", MessagingTemplate.class);
+				TestUtils.<MessagingTemplate>getPropertyValue(methodGateway, "messagingTemplate");
 
 		assertThat(messagingTemplate.getReceiveTimeout()).isEqualTo(10);
 		assertThat(messagingTemplate.getSendTimeout()).isEqualTo(20);

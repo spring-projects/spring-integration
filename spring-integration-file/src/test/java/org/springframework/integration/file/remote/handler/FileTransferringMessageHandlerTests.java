@@ -53,6 +53,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class FileTransferringMessageHandlerTests implements TestApplicationContextAware {
 
@@ -181,10 +182,10 @@ public class FileTransferringMessageHandlerTests implements TestApplicationConte
 		verify(session1, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 		verify(session2, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 		verify(session3, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
-		SimplePool<?> pool = TestUtils.getPropertyValue(csf, "pool", SimplePool.class);
+		SimplePool<?> pool = TestUtils.getPropertyValue(csf, "pool");
 		assertThat(pool.getAllocatedCount()).isEqualTo(1);
 		assertThat(pool.getIdleCount()).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(pool, "allocated", Set.class).iterator().next()).isSameAs(session3);
+		assertThat(TestUtils.<Set<?>>getPropertyValue(pool, "allocated").iterator().next()).isSameAs(session3);
 	}
 
 	private <F> Session<F> newSession() throws IOException {

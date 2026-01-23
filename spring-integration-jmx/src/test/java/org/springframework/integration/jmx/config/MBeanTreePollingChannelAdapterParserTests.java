@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Stuart Williams
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  */
 @SpringJUnitConfig
@@ -141,10 +142,10 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	public void pollQueryNameAdapter() throws Exception {
 		adapterQueryName.start();
 
-		ObjectName queryName = TestUtils.getPropertyValue(adapterQueryName, "source.queryName", ObjectName.class);
+		ObjectName queryName = TestUtils.getPropertyValue(adapterQueryName, "source.queryName");
 		assertThat(queryName.getCanonicalName()).isEqualTo("java.lang:type=Runtime");
 
-		QueryExp queryExp = TestUtils.getPropertyValue(adapterQueryName, "source.queryExpression", QueryExp.class);
+		QueryExp queryExp = TestUtils.getPropertyValue(adapterQueryName, "source.queryExpression");
 		assertThat(queryExp.apply(new ObjectName("java.lang:type=Runtime"))).isTrue();
 
 		Message<?> result = channel3.receive(testTimeout);
@@ -224,7 +225,8 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		// test for a couple of MBeans
 		assertThat(beans).containsKeys("java.lang:type=OperatingSystem", "java.lang:type=Runtime");
 
-		assertThat(TestUtils.getPropertyValue(adapterConverter, "source.converter")).isSameAs(converter);
+		assertThat(TestUtils.<Object>getPropertyValue(adapterConverter, "source.converter"))
+				.isSameAs(converter);
 	}
 
 }

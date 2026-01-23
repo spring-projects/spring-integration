@@ -44,6 +44,8 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 5.2
  *
  */
@@ -56,7 +58,7 @@ public class AvroTests {
 	@LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
 	void testTransformers(@Autowired Config config) {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
-		LogAccessor spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", LogAccessor.class));
+		LogAccessor spied = spy(TestUtils.<LogAccessor>getPropertyValue(config.in1(), "logger"));
 		new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
 		config.in1().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))

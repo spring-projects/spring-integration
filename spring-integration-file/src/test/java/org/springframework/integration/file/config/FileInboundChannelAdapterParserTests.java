@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -81,8 +82,8 @@ public class FileInboundChannelAdapterParserTests {
 
 	@Test
 	public void justFilter() {
-		Iterator<?> filterIterator = TestUtils
-				.getPropertyValue(this.inboundWithJustFilterSource, "scanner.filter.fileFilters", Set.class).iterator();
+		Iterator<?> filterIterator = TestUtils.<Set<IgnoreHiddenFileListFilter>>getPropertyValue(
+				this.inboundWithJustFilterSource, "scanner.filter.fileFilters").iterator();
 		assertThat(filterIterator.next()).isInstanceOf(IgnoreHiddenFileListFilter.class);
 		assertThat(filterIterator.next()).isSameAs(this.filter);
 	}

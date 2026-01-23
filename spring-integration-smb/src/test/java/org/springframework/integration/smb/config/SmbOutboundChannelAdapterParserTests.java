@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
+ * @author Glenn Renfro
  */
 public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 
@@ -54,7 +55,7 @@ public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 
 			Object messageHandler = TestUtils.getPropertyValue(consumer, "handler");
 			String remoteFileSeparator =
-					TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.remoteFileSeparator", String.class);
+					TestUtils.<String>getPropertyValue(messageHandler, "remoteFileTemplate.remoteFileSeparator");
 			assertThat(remoteFileSeparator).isNotNull();
 			assertThat(".working.tmp")
 					.isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.temporaryFileSuffix"));
@@ -62,7 +63,7 @@ public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 			assertThat(ac.getBean("fileNameGenerator"))
 					.isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.fileNameGenerator"));
 			assertThat(StandardCharsets.UTF_8)
-					.isEqualTo(TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.charset", Charset.class));
+					.isEqualTo(TestUtils.<Charset>getPropertyValue(messageHandler, "remoteFileTemplate.charset"));
 
 			Object sessionFactoryProp = TestUtils.getPropertyValue(messageHandler, "remoteFileTemplate.sessionFactory");
 			assertThat(SmbSessionFactory.class).isEqualTo(sessionFactoryProp.getClass());
@@ -74,10 +75,10 @@ public class SmbOutboundChannelAdapterParserTests extends AbstractBaseTests {
 
 			// verify subscription order
 			@SuppressWarnings("unchecked")
-			Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils.getPropertyValue(
-					TestUtils.getPropertyValue(channel, "dispatcher"), "handlers");
+			Set<MessageHandler> handlers =
+					TestUtils.getPropertyValue(TestUtils.getPropertyValue(channel, "dispatcher"), "handlers");
 			Iterator<MessageHandler> iterator = handlers.iterator();
-			assertThat(TestUtils.getPropertyValue(ac.getBean("smbOutboundChannelAdapter2"), "handler"))
+			assertThat(TestUtils.<Object>getPropertyValue(ac.getBean("smbOutboundChannelAdapter2"), "handler"))
 					.isSameAs(iterator.next());
 			assertThat(messageHandler).isSameAs(iterator.next());
 		}
