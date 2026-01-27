@@ -38,6 +38,7 @@ import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.eclipse.paho.mqttv5.common.packet.MqttReturnCode;
+import org.eclipse.paho.mqttv5.common.util.MqttTopicValidator;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -96,7 +97,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	/**
 	 * Used as a fallback option for shared subscriptions unrouted messages
 	 */
-	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrived;
+	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrivedIfMatched;
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -402,12 +403,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		if (!isTopicSubscribed(topic)) {
-			logger.trace(() ->
-					"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
-			return;
-		}
-
 		Map<String, Object> headers = this.headerMapper.toHeaders(mqttMessage.getProperties());
 		headers.put(MqttHeaders.ID, mqttMessage.getId());
 		headers.put(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos());
@@ -440,17 +435,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Unhandled exception for " + message);
 			throw ex;
 		}
-	}
-
-	private boolean isTopicSubscribed(String receivedTopic) {
-		for (String subscribedTopic : getTopic()) {
-			if (subscribedTopic.equals(receivedTopic)
-					|| subscribedTopic.startsWith("$share/") && subscribedTopic.endsWith(receivedTopic)) {
-
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -544,6 +528,21 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
 
+	}
+
+	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
+		for (String subscribedTopic : getTopic()) {
+			String topicFilter = subscribedTopic;
+			if (topicFilter.startsWith("$share/")) {
+				topicFilter = topicFilter.split("/", 3)[2];
+			}
+			if (MqttTopicValidator.isMatched(topicFilter, topic)) {
+				messageArrived(topic, mqttMessage);
+				return;
+			}
+		}
+		logger.trace(() ->
+				"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
 	}
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {
