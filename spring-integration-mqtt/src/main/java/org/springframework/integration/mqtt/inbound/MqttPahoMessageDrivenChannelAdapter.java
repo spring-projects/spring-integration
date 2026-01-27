@@ -29,6 +29,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -74,7 +75,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 	 * Never invoked because MQTT v3 does not support shared subscriptions.
 	 * But it is here for consistency with the {@link ClientManager} requirements
 	 */
-	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrived;
+	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrivedIfMatched;
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -188,7 +189,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private void connect() throws MqttException {
 		this.lock.lock();
 		try {
@@ -368,14 +368,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		// Just simple check since MQTT v3 does not support shared subscriptions.
-		boolean subscribed = Arrays.asList(getTopic()).contains(topic);
-		if (!subscribed) {
-			logger.trace(() ->
-					"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
-			return;
-		}
-
 		AbstractIntegrationMessageBuilder<?> builder = toMessageBuilder(topic, mqttMessage);
 		if (builder != null) {
 			if (isManualAcks()) {
@@ -444,6 +436,17 @@ public class MqttPahoMessageDrivenChannelAdapter
 		else {
 			this.readyToSubscribeOnStart = true;
 		}
+	}
+
+	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
+		for (String subscribedTopic : getTopic()) {
+			if (MqttTopic.isMatched(subscribedTopic, topic)) {
+				messageArrived(topic, mqttMessage);
+				return;
+			}
+		}
+		logger.trace(() ->
+				"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
 	}
 
 	/**
