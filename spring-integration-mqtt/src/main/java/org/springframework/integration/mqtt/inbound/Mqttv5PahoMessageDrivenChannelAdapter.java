@@ -37,6 +37,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.eclipse.paho.mqttv5.common.util.MqttTopicValidator;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -94,7 +95,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	/**
 	 * Used as a fallback option for shared subscriptions unrouted messages
 	 */
-	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrived;
+	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrivedIfMatched;
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -301,11 +302,15 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					this.readyToSubscribeOnStart = true;
 
 				}
-				if (getClientManager() == null) {
+				ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager = getClientManager();
+				if (clientManager == null) {
 					this.mqttClient.disconnectForcibly(getDisconnectCompletionTimeout());
 					if (getConnectionInfo().isAutomaticReconnect()) {
 						MqttUtils.stopClientReconnectCycle(this.mqttClient);
 					}
+				}
+				else {
+					clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 				}
 			}
 		}
@@ -324,10 +329,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 		catch (ConcurrentModificationException ex) {
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
-		}
-		ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager = getClientManager();
-		if (clientManager != null) {
-			clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 		}
 	}
 
@@ -380,10 +381,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	public void removeTopic(String... topic) {
 		this.topicLock.lock();
 		try {
+			super.removeTopic(topic);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				unsubscribe(topic);
 			}
-			super.removeTopic(topic);
 			if (!CollectionUtils.isEmpty(this.subscriptions)) {
 				this.subscriptions.removeIf((sub) -> ObjectUtils.containsElement(topic, sub.getTopic()));
 			}
@@ -398,12 +399,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void messageArrived(String topic, MqttMessage mqttMessage) {
-		if (!isTopicSubscribed(topic)) {
-			logger.trace(() ->
-					"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
-			return;
-		}
-
 		Map<String, Object> headers = this.headerMapper.toHeaders(mqttMessage.getProperties());
 		headers.put(MqttHeaders.ID, mqttMessage.getId());
 		headers.put(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos());
@@ -436,17 +431,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Unhandled exception for " + message);
 			throw ex;
 		}
-	}
-
-	private boolean isTopicSubscribed(String receivedTopic) {
-		for (String subscribedTopic : getTopic()) {
-			if (subscribedTopic.equals(receivedTopic)
-					|| subscribedTopic.startsWith("$share/") && subscribedTopic.endsWith(receivedTopic)) {
-
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -548,6 +532,20 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
 
+	}
+
+	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
+		for (String subscribedTopic : getTopic()) {
+			if (subscribedTopic.startsWith("$share/")) {
+				subscribedTopic = subscribedTopic.split("/", 3)[2];
+			}
+			if (MqttTopicValidator.isMatched(subscribedTopic, topic)) {
+				messageArrived(topic, mqttMessage);
+				return;
+			}
+		}
+		logger.trace(() ->
+				"Arrived message on topic '" + topic + "' this channel adapter is not subscribed to. Ignoring...");
 	}
 
 	private static String obtainServerUrlFromOptions(MqttConnectionOptions connectionOptions) {

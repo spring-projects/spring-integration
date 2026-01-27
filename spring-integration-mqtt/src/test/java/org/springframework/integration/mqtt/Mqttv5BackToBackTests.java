@@ -139,7 +139,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Test
 	public void testSharedTopicMqttv5Interaction() {
-		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopic");
+		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/#");
 
 		String testPayload = "shared topic payload";
 		this.mqttOutFlowInput.send(
