@@ -189,7 +189,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private void connect() throws MqttException {
 		this.lock.lock();
 		try {

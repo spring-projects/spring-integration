@@ -305,12 +305,16 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					this.readyToSubscribeOnStart = true;
 
 				}
-				if (getClientManager() == null) {
+				ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager = getClientManager();
+				if (clientManager == null) {
 					this.mqttClient.disconnectForcibly(getQuiescentTimeout(), getDisconnectCompletionTimeout(),
 							MqttReturnCode.RETURN_CODE_SUCCESS, new MqttProperties());
 					if (getConnectionInfo().isAutomaticReconnect()) {
 						MqttUtils.stopClientReconnectCycle(this.mqttClient);
 					}
+				}
+				else {
+					clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 				}
 			}
 		}
@@ -329,10 +333,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 		catch (ConcurrentModificationException ex) {
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
-		}
-		ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager = getClientManager();
-		if (clientManager != null) {
-			clientManager.removeDefaultMessageHandler(this.defaultMessageHandler);
 		}
 	}
 
@@ -385,10 +385,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	public void removeTopic(String... topic) {
 		this.topicLock.lock();
 		try {
+			super.removeTopic(topic);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				unsubscribe(topic);
 			}
-			super.removeTopic(topic);
 			if (!CollectionUtils.isEmpty(this.subscriptions)) {
 				this.subscriptions.removeIf((sub) -> ObjectUtils.containsElement(topic, sub.getTopic()));
 			}
@@ -532,11 +532,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
 		for (String subscribedTopic : getTopic()) {
-			String topicFilter = subscribedTopic;
-			if (topicFilter.startsWith("$share/")) {
-				topicFilter = topicFilter.split("/", 3)[2];
+			if (subscribedTopic.startsWith("$share/")) {
+				subscribedTopic = subscribedTopic.split("/", 3)[2];
 			}
-			if (MqttTopicValidator.isMatched(topicFilter, topic)) {
+			if (MqttTopicValidator.isMatched(subscribedTopic, topic)) {
 				messageArrived(topic, mqttMessage);
 				return;
 			}
