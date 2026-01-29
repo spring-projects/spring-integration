@@ -155,3 +155,119 @@ See the https://cloudevents.github.io/sdk-java[CloudEvents Java Reference Docume
 
 NOTE: Ensure messages to be transformed to CloudEvents have a payload of type `byte[]`.
 The transformer throws an `IllegalArgumentException` if the payload is not a byte array.
+
+[[from-cloud-event-transformer]]
+== `FromCloudEventTransformer`
+
+Use the `FromCloudEventTransformer` to convert CloudEvents-compliant messages into Spring Integration messages.
+This transformer supports the CloudEvents specification v1.0 and deserializes CloudEvents from both serialized formats (structured content mode) and header-based representations (binary content mode).
+When the transformer detects a serialized CloudEvent format (such as`application/cloudevents+json`) via the `content-type` header, it deserializes the payload using the appropriate `EventFormat`. CloudEvent attributes and extensions are extracted from the deserialized CloudEvent object and mapped to the output message headers. The  CloudEvent data becomes the payload for the new message.
+If the `EventFormat` can't be resolved, the transformer extracts CloudEvent attributes and extensions from the headers and maps them to message headers using configurable keys.  The payload of the original message is used in the new message.
+
+=== Deserialization Modes
+
+The transformer operates in two modes based on the incoming message:
+
+==== Serialized CloudEvent Mode
+
+When the message `content-type` header can be resolved to a supported CloudEvent type, the transformer:
+
+1. Deserializes the payload
+2. Extracts CloudEvent attributes from the deserialized CloudEvent object
+3. Maps attributes to output message headers using configured message header keys
+4. Extracts the CloudEvent data as the message payload
+5. Preserves CloudEvent extensions as message headers with the configured prefix (default: `ce-`)
+
+==== Header-based CloudEvent Mode
+
+When the `content-type` header can't be resolved to a supported CloudEvent, the transformer:
+
+1. Reads CloudEvent attributes from message headers using configured CloudEvent header keys
+2. Uses the message payload as CloudEvent data
+3. Maps CloudEvent attributes to output message headers
+4. Preserves CloudEvent extensions with the configured prefix
+
+=== Header Key Configuration
+
+The transformer provides separate configuration for input and output header keys:
+
+**CloudEvent Header Keys** (`ceHeader*Key` setters): Used when reading CloudEvent attributes from incoming message headers in header-based mode.
+These keys determine where the transformer looks for CloudEvent attributes in the input message.
+
+**Message Header Keys** (`messageHeader*Key` setters): Used when writing CloudEvent attributes to the output message headers.
+These keys determine the message header key names where CloudEvent attributes will be set in the transformed message.
+
+By default, both sets of keys are initialized to the same CloudEvents standard header names (e.g., `ce-id`, `ce-source`, `ce-type`).
+Configure different keys when integrating with systems using custom header naming conventions.
+
+The following table lists the configurable header keys and their default values:
+
+|===
+| Attribute | Default CloudEvent Header Key | Default Message Header Key
+
+| `id`
+| `ce-id`
+| `ce-id`
+
+| `source`
+| `ce-source`
+| `ce-source`
+
+| `type`
+| `ce-type`
+| `ce-type`
+
+| `time`
+| `ce-time`
+| `ce-time`
+
+| `datacontenttype`
+| `ce-datacontenttype`
+| `ce-datacontenttype`
+
+| `subject`
+| `ce-subject`
+| `ce-subject`
+
+| `dataschema`
+| `ce-dataschema`
+| `ce-dataschema`
+
+| extensions
+| `ce-*`
+| `ce-*`
+|===
+
+=== Configuration with DSL
+
+Add the CloudEvent transformer to flows using the DSL:
+
+[source,java]
+----
+@Bean
+public FromCloudEventTransformer fromCloudEventTransformer() {
+    return new FromCloudEventTransformer();
+}
+
+@Bean
+public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEventTransformer) {
+    return IntegrationFlows
+        .from("cloudEventInputChannel")
+        .transform(fromCloudEventTransformer)
+        .channel("messageOutputChannel")
+        .get();
+}
+----
+
+You can also configure the transformer with extension patterns to extract specific headers as CloudEvent extensions when operating in header-based mode:
+
+[source,java]
+----
+@Bean
+public FromCloudEventTransformer fromCloudEventTransformer() {
+    return new FromCloudEventTransformer("trace*", "correlation-id");
+}
+----
+
+NOTE: The transformer requires messages to have a payload of type `byte[]`  and a non-empty `content-type` header.
+The transformer throws an `IllegalStateException` if the payload is not a byte array.
