@@ -23,7 +23,7 @@ import org.aopalliance.aop.Advice;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.rabbit.listener.adapter.ReplyPostProcessor;
+import org.springframework.amqp.listener.adapter.ReplyPostProcessor;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.inbound.AmqpClientInboundGateway;
@@ -175,7 +175,7 @@ public class AmqpClientInboundGatewaySpec
 	}
 
 	/**
-	 * Set an {@link ReplyPostProcessor} to modify reply AMQP message before producing.
+	 * Set an {@link ReplyPostProcessor} to modify the reply AMQP message before producing.
 	 * @param replyPostProcessor the {@link ReplyPostProcessor} to use.
 	 * @return the spec
 	 */
