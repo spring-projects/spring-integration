@@ -24,7 +24,8 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,15 +34,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer
+ * @author Jiandong Ma
+ *
  * @since 2.0
  */
+@ParameterizedClass
+@MethodSource("contexts")
 public class RouterMBeanTests {
 
-	private MBeanServer server;
+	private final MBeanServer server;
 
-	private ClassPathXmlApplicationContext context;
+	private final ClassPathXmlApplicationContext context;
 
-	public void initContext(String configLocation) {
+	public RouterMBeanTests(String configLocation) {
 		context = new ClassPathXmlApplicationContext(configLocation, getClass());
 		server = context.getBean(MBeanServer.class);
 	}
@@ -61,39 +66,31 @@ public class RouterMBeanTests {
 		}
 	}
 
-	@ParameterizedTest
-	@MethodSource("contexts")
-	public void testRouterMBeanExists(String context) throws Exception {
-		initContext(context);
+	@Test
+	public void testRouterMBeanExists() throws Exception {
 		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertThat(names.size()).isEqualTo(1);
 	}
 
-	@ParameterizedTest
-	@MethodSource("contexts")
-	public void testInputChannelMBeanExists(String context) throws Exception {
-		initContext(context);
+	@Test
+	public void testInputChannelMBeanExists() throws Exception {
 		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:type=MessageChannel,*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageChannel,name=testChannel,*"), null);
 		assertThat(names.size()).isEqualTo(1);
 	}
 
-	@ParameterizedTest
-	@MethodSource("contexts")
-	public void testErrorChannelMBeanExists(String context) throws Exception {
-		initContext(context);
+	@Test
+	public void testErrorChannelMBeanExists() throws Exception {
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageChannel,name=errorChannel,*"), null);
 		assertThat(names.size()).isEqualTo(1);
 	}
 
-	@ParameterizedTest
-	@MethodSource("contexts")
-	public void testRouterMBeanOnlyRegisteredOnce(String context) throws Exception {
-		initContext(context);
+	@Test
+	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
 		// System . err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertThat(names.size()).isEqualTo(1);
