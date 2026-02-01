@@ -93,7 +93,7 @@ ext {
     oracleVersion = '23.26.0.0.0'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.7.9'
-    protobufVersion = '4.33.4'
+    protobufVersion = '4.33.5'
     r2dbch2Version = '1.0.1.RELEASE'
     reactorVersion = '2025.0.2'
     resilience4jVersion = '2.3.0'
