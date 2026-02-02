@@ -31,7 +31,7 @@ implementation "org.springframework.integration:spring-integration-cassandra:{pr
 == Cassandra Outbound Components
 
 The `CassandraMessageHandler` is an `AbstractReplyProducingMessageHandler` implementation and can work in both one-way (default) and request-reply modes (a `producesReply` option).
-It is asynchronous by default (`setAsync(false)` to reset) and performs reactive `INSERT`, `UPDATE`, `DELETE` or `STATEMENT` operations against the provided `ReactiveCassandraOperations`.
+It is asynchronous by default (`setAsync(true)` to reset) and performs reactive `INSERT`, `UPDATE`, `DELETE` or `STATEMENT` operations against the provided `ReactiveCassandraOperations`.
 The type of operation can be configured via the `CassandraMessageHandler.Type` option.
 The `ingestQuery` sets the mode into an `INSERT`; the `query` or `statementExpression`, or `statementProcessor` sets the mode into a `STATEMENT`.
 

@@ -115,7 +115,7 @@ This component can connect to the remote socket or bind onto TCP protocol with t
 The actual port can be obtained via `getBoundPort()` after this component is started and ZeroMQ socket is bound.
 The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
 
-If the `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket, is sent as is in the payload of the produced `Message`: it's up to the downstream flow to parse and convert  the `ZMsg`.
+If the `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket, is sent as is in the payload of the produced `Message`: it is up to the downstream flow to parse and convert  the `ZMsg`.
 Otherwise, an `InboundMessageMapper` is used to convert the consumed data into a `Message`.
 If the received `ZMsg` is multi-frame, the first frame is treated as the `ZeroMqHeaders.TOPIC` header this ZeroMQ message was published to.
 

@@ -35,7 +35,7 @@ The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen 
 Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
 
 The SMB Channel Adapters and support classes implementations are fully similar to existing components for (S)FTP or AWS S3 protocols.
-So, if you are familiar with those components, it is pretty straightforward to use.
+So, if you are familiar with those components, it is straightforward to use.
 
 Spring Integration supports sending and receiving files over SMB by providing three client-side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
 It also provides convenient namespace-based configuration options for defining these client components.
@@ -425,7 +425,7 @@ The default is to retrieve a list of `FileInfo` objects
 
 In addition, filename filtering is provided in the same manner as the `inbound-channel-adapter`.
 
-The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects (depending on whether you usr the `-1` switch).
+The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects (depending on whether you use the `-1` switch).
 These objects provide information such as modified time, permissions, and others.
 
 The remote directory that the `ls` command acted on is provided in the `file_remoteDirectory` header.

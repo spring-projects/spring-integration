@@ -29,7 +29,7 @@ On the other hand, when some component in the messaging system does require acce
 == Message Headers
 
 Just as Spring Integration lets any `Object` be used as the payload of a `Message`, it also supports any `Object` types as header values.
-In fact, the `MessageHeaders` class implements the `java.util.Map_ interface`, as the following class definition shows:
+In fact, the `MessageHeaders` class implements the `java.util.Map interface`, as the following class definition shows:
 
 [source,java]
 ----
@@ -231,7 +231,7 @@ The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and
 Since version 4.3.2, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers that should not be copied from an upstream `Message`.
 Only the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only by default.
 The global `spring.integration.readOnly.headers` property (see xref:configuration/global-properties.adoc[Global Properties]) is provided to customize `DefaultMessageBuilderFactory` for framework components.
-This can be useful when you would like do not populate some out-of-the-box headers, such as `contentType` by the `ObjectToJsonTransformer` (see xref:transformer.adoc#json-transformers[JSON Transformers]).
+This can be useful when you would like to not populate some out-of-the-box headers, such as `contentType` by the `ObjectToJsonTransformer` (see xref:transformer.adoc#json-transformers[JSON Transformers]).
 
 When you try to build a new message using `MessageBuilder`, this kind of header is ignored and a particular `INFO` message is emitted to logs.
 

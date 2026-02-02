@@ -437,7 +437,7 @@ It is a mandatory attribute;
 * `iteration-type`: Specifies a result type.
 Distributed SQL can be run on `EntrySet`, `KeySet`, `LocalKeySet` or `Values`.
 It is an optional attribute with `VALUE` being the default.
-Supported values are `ENTRY, `KEY`, `LOCAL_KEY` and `VALUE`;
+Supported values are `ENTRY`, `KEY`, `LOCAL_KEY` and `VALUE`;
 * `distributed-sql`: Specifies the where clause of the SQL statement.
 It is a mandatory attribute.
 
