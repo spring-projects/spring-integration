@@ -398,7 +398,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 56);
+		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 60);
 		props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 2000);
 
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
