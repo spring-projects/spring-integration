@@ -125,7 +125,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	 * for the exception thrown.
 	 * Overrides {@link #setFailover(boolean)} option.
 	 * In other words: or this, or that option has to be set.
-	 * @param failoverStrategy The failover boolean.
+	 * @param failoverStrategy The failover strategy predicate.
 	 * @since 6.3
 	 */
 	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {

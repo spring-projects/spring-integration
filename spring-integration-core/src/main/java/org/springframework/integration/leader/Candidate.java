@@ -29,7 +29,7 @@ package org.springframework.integration.leader;
 public interface Candidate {
 
 	/**
-	 * Gets the role.
+	 * Get the role.
 	 *
 	 * @return a string indicating the name of the leadership role
 	 *         this candidate is participating in; other candidates
@@ -39,7 +39,7 @@ public interface Candidate {
 	String getRole();
 
 	/**
-	 * Gets the identifier.
+	 * Get the identifier.
 	 *
 	 * @return a unique ID for this candidate; no other candidate for
 	 *         leader election should return the same id

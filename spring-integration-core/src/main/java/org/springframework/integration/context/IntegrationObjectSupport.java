@@ -123,8 +123,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	/**
-	 * Will return the name of this component identified by {@link #componentName} field.
-	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
+	 * Return the name of this component identified by {@link #componentName} field.
+	 * If {@link #componentName} is not set, this method defaults to the 'beanName' of this component.
 	 */
 	@Override
 	public String getComponentName() {
@@ -300,7 +300,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	/**
-	 * Returns the {@link ApplicationContext#getId()} if the
+	 * Return the {@link ApplicationContext#getId()} if the
 	 * {@link ApplicationContext} is available.
 	 * @return The id, or null if there is no application context.
 	 */

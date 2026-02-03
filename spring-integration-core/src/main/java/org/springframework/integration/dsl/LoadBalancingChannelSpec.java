@@ -59,7 +59,7 @@ public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C
 	 * for the exception thrown.
 	 * Overrides {@link #failover(boolean)} option.
 	 * In other words: or this, or that option has to be set.
-	 * @param failoverStrategy The failover boolean.
+	 * @param failoverStrategy The failover strategy predicate.
 	 * @since 6.3
 	 */
 	public S failoverStrategy(Predicate<Exception> failoverStrategy) {

@@ -63,7 +63,6 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 * Instantiate based on a provided number of partitions and function resolving a partition key from
 	 * the {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} message header.
 	 * @param partitionCount the number of partitions in this channel.
-	 * sent to this channel.
 	 */
 	public PartitionedChannel(int partitionCount) {
 		this(partitionCount, (message) ->
@@ -108,7 +107,7 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 * for the exception thrown.
 	 * Overrides {@link #setFailover(boolean)} option.
 	 * In other words: or this, or that option has to be set.
-	 * @param failoverStrategy The failover boolean.
+	 * @param failoverStrategy The failover strategy predicate.
 	 * @since 6.3
 	 */
 	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {

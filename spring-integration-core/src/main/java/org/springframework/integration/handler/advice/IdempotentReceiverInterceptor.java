@@ -35,14 +35,14 @@ import org.springframework.util.Assert;
  * This {@link org.aopalliance.intercept.MethodInterceptor} works like a
  * {@code MessageFilter} if {@link #discardChannel}
  * is provided or {@link #throwExceptionOnRejection} is set to {@code true}.
- * However if those properties aren't provided, this interceptor will create an new {@link Message}
+ * However if those properties aren't provided, this interceptor will create a new {@link Message}
  * with a {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE} header when the
  * {@code requestMessage} isn't accepted by {@link MessageSelector}.
  * <p>
  * The {@code idempotent filtering} logic depends on the provided {@link MessageSelector}.
  * <p>
  * This class is designed to be used only for the
- * {@link org.springframework.messaging.MessageHandler#handleMessage},
+ * {@link org.springframework.messaging.MessageHandler#handleMessage}
  * method.
  *
  * @author Artem Bilan
