@@ -38,7 +38,7 @@ If a received event has a `Message` instance as its 'source', that `Message` is 
 Otherwise, if a SpEL-based `payloadExpression` has been provided, that is evaluated against the `ApplicationEvent` instance.
 If the event's source is not a `Message` instance and no `payloadExpression` has been provided, the `ApplicationEvent` itself is passed as the payload.
 
-Starting with version 4.2, the `ApplicationEventListeningMessageProducer` implements `GenericApplicationListener` and can be configured to accept not only `ApplicationEvent` types but any type for treating payload events.
+Starting with version 4.2, the `ApplicationEventListeningMessageProducer` implements `GenericApplicationListener` and can be configured to accept not only `ApplicationEvent` types but any type for treating payload events (which are also supported since Spring Framework 4.2).
 When the accepted event is an instance of `PayloadApplicationEvent`, its `payload` is used for the message to send.
 
 For convenience, namespace support is provided to configure an `ApplicationEventListeningMessageProducer` with the `inbound-channel-adapter` element, as the following example shows:
