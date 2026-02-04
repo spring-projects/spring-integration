@@ -35,7 +35,7 @@ public interface MessageSource<T> extends IntegrationPattern {
 
 	/**
 	 * Retrieve the next available message from this source.
-	 * Returns {@code null} if no message is available.
+	 * Return {@code null} if no message is available.
 	 * @return The message or null.
 	 */
 	@Nullable

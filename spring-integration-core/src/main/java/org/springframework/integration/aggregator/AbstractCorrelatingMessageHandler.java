@@ -315,7 +315,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	/**
 	 * Expire (completely remove) a group if it is completed due to timeout.
-	 * Default true
+	 * Default is {@code true}.
 	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
 	 * @since 4.1
 	 */
@@ -326,7 +326,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	/**
 	 * Perform a
 	 * {@link org.springframework.integration.support.MessageBuilder#popSequenceDetails()}
-	 * for output message or not. Default to true. This option removes the sequence
+	 * for output message or not. Default is {@code true}. This option removes the sequence
 	 * information added by the nearest upstream component with {@code applySequence=true}
 	 * (for example splitter).
 	 * @param popSequence the boolean flag to use.

@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * {@link Message} to at most one of its handlers. The handlers will be tried
  * as determined by the {@link LoadBalancingStrategy} if one is configured. As
  * soon as <em>one</em> of the handlers accepts the Message, the dispatcher will
- * return <code>true</code> and ignore the rest of its handlers.
+ * return {@code true} and ignore the rest of its handlers.
  * <p>
  * If the dispatcher has no handlers, a {@link MessageDispatchingException} will be
  * thrown. If all handlers throw Exceptions, the dispatcher will throw an
@@ -92,7 +92,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * for the exception thrown.
 	 * Overrides {@link #setFailover(boolean)} option.
 	 * In other words: or this, or that option has to be set.
-	 * @param failoverStrategy The failover boolean.
+	 * @param failoverStrategy The failover strategy predicate.
 	 * @since 6.3
 	 */
 	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {
