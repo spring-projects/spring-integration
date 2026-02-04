@@ -45,6 +45,6 @@ Spring AMQP provides similar semantics to (https://docs.spring.io/spring/docs/cu
 Whereas the provided AMQP Channel Adapters are intended for unidirectional messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP gateways for request-reply operations.
 
 TIP:
-You should familiarize yourself with the https://spring.io/projects/spring-amqp/[reference documentation of the Spring AMQP project].
+You should familiarize yourself with the https://docs.spring.io/spring-amqp/reference[reference documentation of the Spring AMQP project].
 It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
 
