@@ -64,7 +64,7 @@ The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEven
 
 [TIP]
 ====
-The https://github.com/spring-cloud/stream-applications/tree/main/functions/supplier/debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` Spring Boot auto-configuration with a handy https://github.com/spring-cloud/stream-applications/blob/main/functions/supplier/debezium-supplier/src/main/java/org/springframework/cloud/fn/supplier/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
+The https://github.com/spring-cloud/spring-functions-catalog/tree/main/supplier/spring-debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` Spring Boot auto-configuration with a handy https://github.com/spring-cloud/spring-functions-catalog/blob/main/common/spring-debezium-autoconfigure/src/main/java/org/springframework/cloud/fn/common/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
 ====
 
 [TIP]

@@ -39,12 +39,12 @@ The following adapters are available:
 
 Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
 
-To provide AMQP support, Spring Integration relies on (https://projects.spring.io/spring-amqp[Spring AMQP]), which applies core Spring concepts to the development of AMQP-based messaging solutions.
+To provide AMQP support, Spring Integration relies on (https://spring.io/spring-amqp[Spring AMQP]), which applies core Spring concepts to the development of AMQP-based messaging solutions.
 Spring AMQP provides similar semantics to (https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#jms[Spring JMS]).
 
 Whereas the provided AMQP Channel Adapters are intended for unidirectional messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP gateways for request-reply operations.
 
 TIP:
-You should familiarize yourself with the https://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
+You should familiarize yourself with the https://docs.spring.io/spring-amqp/reference[reference documentation of the Spring AMQP project].
 It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
 

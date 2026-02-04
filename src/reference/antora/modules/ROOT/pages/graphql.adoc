@@ -37,7 +37,7 @@ The `variablesExpression` is also optional and used for parametrized operations.
 The `locale` is optional and used for operation execution context in the https://www.graphql-java.com/[GraphQL Java] library.
 The `executionId` can be configured via SpEL expression and defaults to `id` header of the request message.
 
-If the payload of the request message is an instance of `ExecutionGraphQlRequest`, then there are no any setup actions are performed in the `GraphQlMessageHandler` and such an input is used as is for the `ExecutionGraphQlService.execute()`.
+If the payload of the request message is an instance of `ExecutionGraphQlRequest`, then no setup actions are performed in the `GraphQlMessageHandler` and such an input is used as is for the `ExecutionGraphQlService.execute()`.
 Otherwise, the `operation`, `operationName`, `variables` and `executionId` are determined against a request message using SpEL expressions mentioned above.
 
 The `GraphQlMessageHandler` is a reactive streams component and produces a `Mono<ExecutionGraphQlResponse>` reply as a result of the `ExecutionGraphQlService.execute(ExecutionGraphQlRequest)`.
