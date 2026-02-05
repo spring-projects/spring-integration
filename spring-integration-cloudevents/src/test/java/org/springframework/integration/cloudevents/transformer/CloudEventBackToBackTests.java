@@ -16,8 +16,12 @@
 
 package org.springframework.integration.cloudevents.transformer;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 
+import io.cloudevents.CloudEvent;
+import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.jackson.JsonFormat;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test {@link FromCloudEventTransformer} transformer.
+ * Integration test for {@link ToCloudEventTransformer} and {@link FromCloudEventTransformer}.
  *
  * @author Glenn Renfro
  *
@@ -50,49 +54,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class CloudEventBackToBackTests {
 
+	private static final String[] TEST_PATTERNS = {"extensionone", "extensiontwo"};
+
 	private static final byte[] JSON_PAYLOAD = "{\"message\":\"Hello, World!\"}".getBytes(StandardCharsets.UTF_8);
 
 	@Autowired
 	private PollableChannel outputChannel;
 
 	@Test
-	public void convertHeaderBasedCEToMessage(
-			@Autowired @Qualifier("defaultCaseInputChannel") MessageChannel inputChannel) {
-		Message<byte[]> message = MessageBuilder.withPayload("hello world".getBytes(StandardCharsets.UTF_8))
-				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.setHeader("ce-extension-one", "test-val-one")
-				.setHeader("ce-extension-two", "test-val-two")
-				.build();
-
-		inputChannel.send(message);
-
-		Message<?> result = outputChannel.receive(1000);
-
-		assertThat(result).isNotNull();
-
-		MessageHeaders headers = result.getHeaders();
-		assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents");
-		assertThat(headers.get("ce-datacontenttype")).isEqualTo("text/plain");
-		assertThat(headers.get("ce-id")).isEqualTo(message.getHeaders().getId().toString());
-		assertThat(headers.get("ce-time")).isNotNull();
-		assertThat(headers.get("ce-subject")).isNull();
-		assertThat(headers.get("ce-source").toString())
-				.isEqualTo("/spring/null.defaultCaseFlow.ce:to-cloudevent-transformer#0");
-		assertThat(headers.get("ce-extension-one")).isEqualTo("test-val-one");
-		assertThat(headers.get("ce-extension-two")).isEqualTo("test-val-two");
-		assertThat(result.getPayload()).isEqualTo("hello world".getBytes(StandardCharsets.UTF_8));
-	}
-
-	@Test
-	public void convertSerializedCEToMessage(
+	public void convertMessageToSerializedCEToMessage(
 			@Autowired @Qualifier("jsonCaseInputChannel") MessageChannel inputChannel) {
 
 		Message<?> message = MessageBuilder.withPayload(JSON_PAYLOAD)
 				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
 				.setHeader("customheader", "test-value")
 				.setHeader("otherheader", "other-value")
-				.setHeader("ce-extension-one", "test-val-one")
-				.setHeader("ce-extension-two", "test-val-two")
+				.setHeader("extensionone", "test-val-one")
+				.setHeader("extensiontwo", "test-val-two")
 				.build();
 		inputChannel.send(message);
 
@@ -101,7 +79,7 @@ public class CloudEventBackToBackTests {
 		assertThat(result).isNotNull();
 
 		MessageHeaders headers = result.getHeaders();
-		assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(JsonFormat.CONTENT_TYPE);
+		assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo("text/plain");
 		assertThat(headers.get("ce-datacontenttype")).isEqualTo("text/plain");
 		assertThat(headers.get("ce-id")).isEqualTo(message.getHeaders().get(MessageHeaders.ID).toString());
 		assertThat(headers.get("ce-time")).isNotNull();
@@ -110,9 +88,55 @@ public class CloudEventBackToBackTests {
 				.isEqualTo("/spring/null.jsonCaseFlow.ce:to-cloudevent-transformer#0");
 		assertThat(headers.get("customheader")).isEqualTo("test-value");
 		assertThat(headers.get("otherheader")).isEqualTo("other-value");
-		assertThat(headers.get("ce-extension-one")).isEqualTo("test-val-one");
-		assertThat(headers.get("ce-extension-two")).isEqualTo("test-val-two");
+		assertThat(headers.get("ce-extensionone")).isEqualTo("test-val-one");
+		assertThat(headers.get("ce-extensiontwo")).isEqualTo("test-val-two");
 		assertThat(result.getPayload()).isEqualTo(JSON_PAYLOAD);
+	}
+
+	@Test
+	public void convertCEToMessageToCE(
+			@Autowired @Qualifier("messageInputChannel") MessageChannel inputChannel) {
+
+		JsonFormat jsonFormat = new JsonFormat();
+		OffsetDateTime currentTime = OffsetDateTime.now();
+		CloudEvent payload = CloudEventBuilder.v1()
+				.withData(JSON_PAYLOAD)
+				.withType("text/plain")
+				.withDataContentType("text/plain")
+				.withId("123")
+				.withTime(currentTime)
+				.withSource(URI.create("/spring/null.jsonCaseFlow.ce:to-cloudevent-transformer#0"))
+				.withExtension("extensionone", "test-val-one")
+				.build();
+
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.setHeader(MessageHeaders.CONTENT_TYPE, "cloudevent")
+				.build();
+		inputChannel.send(message);
+
+		Message<?> result = outputChannel.receive(1000);
+
+		assertThat(result).isNotNull();
+		MessageHeaders headers = result.getHeaders();
+
+		assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
+		assertThat(headers.get("ce-datacontenttype")).isEqualTo("text/plain");
+		assertThat(headers.get("ce-id")).isEqualTo("123");
+		assertThat(headers.get("ce-time")).isEqualTo(currentTime);
+		assertThat(headers.get("ce-subject")).isNull();
+		assertThat(headers.get("ce-source").toString())
+				.isEqualTo("/spring/null.jsonCaseFlow.ce:to-cloudevent-transformer#0");
+		assertThat(headers.get("ce-extensionone")).isEqualTo("test-val-one");
+
+		CloudEvent cloudEvent = jsonFormat.deserialize((byte[]) result.getPayload());
+		assertThat(cloudEvent.getDataContentType()).isEqualTo("text/plain");
+		assertThat(cloudEvent.getId()).isNotNull(); //new ID created when new CloudEvent is created
+		assertThat(cloudEvent.getTime()).isNotNull(); //new time created when new CloudEvent is created
+		assertThat(cloudEvent.getSource().toString())
+				.isEqualTo("/spring/null.messageToCloudEvent.ce:to-cloudevent-transformer#0");
+		assertThat(cloudEvent.getData().toBytes()).isEqualTo(JSON_PAYLOAD);
+
+
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -120,17 +144,20 @@ public class CloudEventBackToBackTests {
 	static class ContextConfiguration {
 
 		@Bean
-		public IntegrationFlow defaultCaseFlow() {
-			return IntegrationFlow.from("defaultCaseInputChannel")
-					.transform(new ToCloudEventTransformer())
+		public IntegrationFlow messageToCloudEvent() {
+			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
+			toCloudEventsTransformer
+					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
+			return IntegrationFlow.from("messageInputChannel")
 					.transform(new FromCloudEventTransformer())
+					.transform(toCloudEventsTransformer)
 					.channel("outputChannel")
 					.get();
 		}
 
 		@Bean
 		public IntegrationFlow jsonCaseFlow() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
+			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer(TEST_PATTERNS);
 			toCloudEventsTransformer
 					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
 			return IntegrationFlow.from("jsonCaseInputChannel")

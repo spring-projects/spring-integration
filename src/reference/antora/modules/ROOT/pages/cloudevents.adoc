@@ -159,84 +159,120 @@ The transformer throws an `IllegalArgumentException` if the payload is not a byt
 [[from-cloud-event-transformer]]
 == `FromCloudEventTransformer`
 
-Use the `FromCloudEventTransformer` to convert CloudEvents-compliant messages into Spring Integration messages.
-This transformer supports the CloudEvents specification v1.0 and deserializes CloudEvents from both serialized formats (structured content mode) and header-based representations (binary content mode).
-When the transformer detects a serialized CloudEvent format (such as`application/cloudevents+json`) via the `content-type` header, it deserializes the payload using the appropriate `EventFormat`. CloudEvent attributes and extensions are extracted from the deserialized CloudEvent object and mapped to the output message headers. The  CloudEvent data becomes the payload for the new message.
-If the `EventFormat` can't be resolved, the transformer extracts CloudEvent attributes and extensions from the headers and maps them to message headers using configurable keys.  The payload of the original message is used in the new message.
+Use the `FromCloudEventTransformer` to convert CloudEvents into Spring Integration messages.
+This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: CloudEvent objects or serialized CloudEvent byte arrays.
 
-=== Deserialization Modes
+The transformer extracts CloudEvent data from the message payload and maps CloudEvent attributes to message headers.
+All CloudEvent extensions are automatically mapped to message headers with the `ce-` prefix.
 
-The transformer operates in two modes based on the incoming message:
+=== Supported Payload Types
 
-==== Serialized CloudEvent Mode
+The transformer accepts messages with the following payload types:
 
-When the message `content-type` header can be resolved to a supported CloudEvent type, the transformer:
+==== CloudEvent Object Type
 
-1. Deserializes the payload
-2. Extracts CloudEvent attributes from the deserialized CloudEvent object
-3. Maps attributes to output message headers using configured message header keys
-4. Extracts the CloudEvent data as the message payload
-5. Preserves CloudEvent extensions as message headers with the configured prefix (default: `ce-`)
+When the message payload is a `CloudEvent` instance, the transformer:
 
-==== Header-based CloudEvent Mode
+1. Extracts the CloudEvent data and uses it as the message payload
+2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers using the keys enumerated in the <<cloudevent-attribute-mapping>> section.
+3. Maps all CloudEvent extensions to message headers with the `ce-` prefix
+4. Preserves all original message headers
 
-When the `content-type` header can't be resolved to a supported CloudEvent, the transformer:
+Example:
 
-1. Reads CloudEvent attributes from message headers using configured CloudEvent header keys
-2. Uses the message payload as CloudEvent data
-3. Maps CloudEvent attributes to output message headers
-4. Preserves CloudEvent extensions with the configured prefix
+[source,java]
+----
+String orderJson = ...
 
-=== Header Key Configuration
+CloudEvent cloudEvent = CloudEventBuilder.v1()
+    .withId("event-123")
+    .withSource(URI.create("/myapp/orders"))
+    .withType("order.created")
+    .withData("application/json", orderJson.getBytes())
+    .withExtension("traceid", "trace-abc")
+    .build();
 
-The transformer provides separate configuration for input and output header keys:
+Message<CloudEvent> inputMessage = MessageBuilder
+    .withPayload(cloudEvent)
+    .build();
 
-**CloudEvent Header Keys** (`ceHeader*Key` setters): Used when reading CloudEvent attributes from incoming message headers in header-based mode.
-These keys determine where the transformer looks for CloudEvent attributes in the input message.
+FromCloudEventTransformer transformer = new FromCloudEventTransformer();
+Message<?> outputMessage = transformer.transform(inputMessage);
+----
 
-**Message Header Keys** (`messageHeader*Key` setters): Used when writing CloudEvent attributes to the output message headers.
-These keys determine the message header key names where CloudEvent attributes will be set in the transformed message.
+==== Serialized CloudEvent Type
 
-By default, both sets of keys are initialized to the same CloudEvents standard header names (e.g., `ce-id`, `ce-source`, `ce-type`).
-Configure different keys when integrating with systems using custom header naming conventions.
+When the message payload is a `byte[]` containing a serialized CloudEvent, the transformer:
 
-The following table lists the configurable header keys and their default values:
+1. Uses the `content-type` header to resolve the appropriate `EventFormat` via `EventFormatProvider`
+2. Deserializes the payload to a `CloudEvent` object using the resolved format
+3. Extracts the CloudEvent data and uses it as the message payload
+4. Maps CloudEvent attributes to message headers using the message header keys enumerated in the <<cloudevent-attribute-mapping>> section.
+5. Maps all CloudEvent extensions to message headers with the `ce-` prefix
+
+Supported content types include:
+
+- `application/cloudevents+json` (requires `io.cloudevents:cloudevents-json-jackson` dependency)
+- `application/cloudevents+xml` (requires `io.cloudevents:cloudevents-xml` dependency)
+
+Example:
+
+[source,java]
+----
+byte[] serializedCloudEvent = ... // JSON serialized CloudEvent
+
+Message<byte[]> inputMessage = MessageBuilder
+    .withPayload(serializedCloudEvent)
+    .setHeader(MessageHeaders.CONTENT_TYPE, "application/cloudevents+json")
+    .build();
+
+FromCloudEventTransformer transformer = new FromCloudEventTransformer();
+Message<?> outputMessage = transformer.transform(inputMessage);
+
+----
+
+[#cloudevent-attribute-mapping]
+=== CloudEvent Attribute Mapping
+
+The transformer maps CloudEvent attributes to message headers using the following `CloudEventHeaders` constants:
 
 |===
-| Attribute | Default CloudEvent Header Key | Default Message Header Key
+| CloudEvent Attribute | Message Header Key | Required
 
 | `id`
 | `ce-id`
-| `ce-id`
+| Yes
 
 | `source`
 | `ce-source`
-| `ce-source`
+| Yes
 
 | `type`
 | `ce-type`
-| `ce-type`
+| Yes
 
 | `time`
 | `ce-time`
-| `ce-time`
-
-| `datacontenttype`
-| `ce-datacontenttype`
-| `ce-datacontenttype`
+| No
 
 | `subject`
 | `ce-subject`
-| `ce-subject`
+| No
+
+| `datacontenttype`
+| `ce-datacontenttype`
+| No
 
 | `dataschema`
 | `ce-dataschema`
-| `ce-dataschema`
+| No
 
 | extensions
-| `ce-*`
-| `ce-*`
+| `ce-{extensionName}`
+| No
 |===
+
+NOTE: The `content-type` header in the output message is always set to the CloudEvent's `datacontenttype` value.
 
 === Configuration with DSL
 
@@ -259,15 +295,11 @@ public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEve
 }
 ----
 
-You can also configure the transformer with extension patterns to extract specific headers as CloudEvent extensions when operating in header-based mode:
+=== Requirements and Constraints
 
-[source,java]
-----
-@Bean
-public FromCloudEventTransformer fromCloudEventTransformer() {
-    return new FromCloudEventTransformer("trace*", "correlation-id");
-}
-----
+The transformer has the following requirements:
 
-NOTE: The transformer requires messages to have a payload of type `byte[]`  and a non-empty `content-type` header.
-The transformer throws an `IllegalStateException` if the payload is not a byte array.
+- **Payload Type**: Must be either a `CloudEvent` instance or `byte[]`
+- **Content-Type Header**: Required when the payload is of type `byte[]` (used to resolve the `EventFormat`)
+- **CloudEvent Data**: CloudEvent instances and CloudEvents serialized as byte[] must contain non-null data (empty byte arrays are acceptable)
+
