@@ -16,11 +16,13 @@
 
 package org.springframework.integration.cloudevents.transformer;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
+import io.cloudevents.CloudEvent;
+import io.cloudevents.core.builder.CloudEventBuilder;
+import io.cloudevents.core.format.EventDeserializationException;
 import io.cloudevents.jackson.JsonFormat;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +33,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -52,110 +55,182 @@ public class FromCloudEventTransformerTests {
 	@Autowired
 	FromCloudEventTransformer fromCloudEventTransformer;
 
-	@Autowired
-	FromCloudEventTransformer fromCloudEventTransformerWithExtensionPattern;
-
 	@Test
-	void ceMessageContainingNullSubject() {
-		Message<byte[]> message = getBaseMessageBuilder()
-				.build();
-		Message<?> result = this.fromCloudEventTransformer.transform(message);
-		verifyBaseHeadersAndPayload(result);
-		assertThat(result.getHeaders().get("ce-subject")).isNull();
-	}
-
-	private void verifyBaseHeadersAndPayload(Message<?> result) {
-		assertThat(result.getHeaders().get("ce-id")).isNotNull();
-		assertThat(result.getHeaders().get("ce-time")).isNotNull();
-		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("text/plain");
-		assertThat(result.getHeaders().get("ce-type")).isEqualTo("test.type");
-		assertThat(result.getPayload()).isEqualTo("hello world".getBytes(StandardCharsets.UTF_8));
-		assertThat(result.getHeaders().get("ce-source").toString())
-				.isEqualTo("/spring/null.toCloudEventTransformer.ce:to-cloudevent-transformer#0");
-		assertThat(result.getHeaders().get("ce-dataschema").toString()).isEqualTo("test-schema");
-	}
-
-	private MessageBuilder<byte[]> getBaseMessageBuilder() {
-		return MessageBuilder.withPayload("hello world".getBytes())
-				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.setHeader("ce-id", UUID.randomUUID())
-				.setHeader("ce-datacontenttype", "text/plain")
-				.setHeader("ce-type", "test.type")
-				.setHeader("ce-time", OffsetDateTime.parse("2026-02-05T15:30:00+01:00"))
-				.setHeader("ce-source", "/spring/null.toCloudEventTransformer.ce:to-cloudevent-transformer#0")
-				.setHeader("ce-dataschema", "test-schema");
-	}
-
-	@Test
-	void ceMessageContainingExtensionPattern() {
-		Message<byte[]> message = getBaseMessageBuilder()
-				.setHeader("cvextensionone", "test-val-one")
-				.setHeader("cvextensiontwo", "test-val-two")
-				.setHeader("ce-subject", "test-subject")
-				.build();
-		Message<?> result = this.fromCloudEventTransformerWithExtensionPattern.transform(message);
-
-		verifyBaseHeadersAndPayload(result);
-		assertThat(result.getHeaders().get("ce-subject")).isEqualTo("test-subject");
-		assertThat(result.getHeaders().get("cvextensionone")).isEqualTo("test-val-one");
-		assertThat(result.getHeaders().get("cvextensiontwo")).isEqualTo("test-val-two");
-	}
-
-	@Test
-	void ceMessageSerializeTransformToMessage() {
+	void serializeTransformToMessage() {
 		String payload = "{\"specversion\":\"1.0\"," +
 				"\"id\":\"316b0cf3-0c4d-5858-6bd2-863a2042f442\",\"source\":\"/spring/null" +
-				".jsonTransformerWithExtensions\",\"type\":\"spring.message\"," +
-				"\"datacontenttype\":\"application/cloudevents+json\",\"time\":\"2026-01-30T08:53:06" +
-				".099486-05:00\",\"traceid\":\"trace-123\",\"data\":{\"message\":\"Hello, World!\"}}";
+				".jsonTransformerWithExtensions\",\"type\":\"spring.message\"," + "\"subject\":\"test.subject\"," +
+				"\"datacontenttype\":\"text/plain\",\"time\":\"2026-01-30T08:53:06" +
+				".099486-05:00\",\"traceid\":\"trace-123\",\"data\":\"Hello, World!\"}";
 		Message<byte[]> message =
 				MessageBuilder.withPayload(payload.getBytes(StandardCharsets.UTF_8))
 						.setHeader(MessageHeaders.CONTENT_TYPE, JsonFormat.CONTENT_TYPE)
 						.build();
 		Message<?> result = this.fromCloudEventTransformer.transform(message);
-		assertThat(result.getHeaders().get("ce-id")).isNotNull();
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("316b0cf3-0c4d-5858-6bd2-863a2042f442");
 		assertThat(result.getHeaders().get("ce-time")).isNotNull();
 		assertThat(result.getHeaders().get("ce-type")).isEqualTo("spring.message");
-		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("application/cloudevents+json");
-		assertThat(result.getPayload()).isEqualTo("{\"message\":\"Hello, World!\"}".getBytes(StandardCharsets.UTF_8));
+		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("text/plain");
+		assertThat(result.getPayload()).isEqualTo("Hello, World!".getBytes(StandardCharsets.UTF_8));
 		assertThat(result.getHeaders().get("ce-source").toString())
 				.isEqualTo("/spring/null.jsonTransformerWithExtensions");
+		assertThat(result.getHeaders().get("ce-subject")).isEqualTo("test.subject");
+		assertThat(result.getHeaders().get("ce-traceid")).isEqualTo("trace-123");
+	}
+
+	@Test
+	void cloudEventTransformToMessage() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("123")
+				.withSource(URI.create("/spring/null.jsonTransformerWithExtensions"))
+				.withType("spring.event")
+				.withTime(OffsetDateTime.now())
+				.withDataContentType("text/plain")
+				.withDataSchema(URI.create("dataschema"))
+				.withSubject("test.subject")
+				.withData("Hello, World!".getBytes(StandardCharsets.UTF_8))
+				.build();
+		Message<?> message =
+				MessageBuilder.withPayload(payload)
+						.setHeader(MessageHeaders.CONTENT_TYPE, JsonFormat.CONTENT_TYPE)
+						.build();
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("123");
+		assertThat(result.getHeaders().get("ce-time")).isNotNull();
+		assertThat(result.getHeaders().get("ce-type")).isEqualTo("spring.event");
+		assertThat(result.getHeaders().get("ce-subject")).isEqualTo("test.subject");
+		assertThat(result.getHeaders().get("ce-datacontenttype")).isEqualTo("text/plain");
+		assertThat(result.getPayload()).isEqualTo("Hello, World!".getBytes(StandardCharsets.UTF_8));
+		assertThat(result.getHeaders().get("ce-source").toString())
+				.isEqualTo("/spring/null.jsonTransformerWithExtensions");
+		assertThat(result.getHeaders().get("ce-dataschema").toString())
+				.isEqualTo("dataschema");
+	}
+
+	@Test
+	void cloudEventWithMultipleExtensionsTransformToMessage() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("789")
+				.withSource(URI.create("/spring/extensions"))
+				.withType("extension.event")
+				.withDataContentType("text/plain")
+				.withExtension("traceid", "trace-456")
+				.withExtension("spanid", "span-789")
+				.withExtension("userid", "user-123")
+				.withData("Extension test".getBytes(StandardCharsets.UTF_8))
+				.build();
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("789");
+		assertThat(result.getHeaders().get("ce-traceid")).isEqualTo("trace-456");
+		assertThat(result.getHeaders().get("ce-spanid")).isEqualTo("span-789");
+		assertThat(result.getHeaders().get("ce-userid")).isEqualTo("user-123");
+		assertThat(result.getPayload()).isEqualTo("Extension test".getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	void cloudEventWithEmptyDataTransformToMessage() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("empty-data")
+				.withSource(URI.create("/spring/empty"))
+				.withType("empty.event")
+				.withDataContentType("text/plain")
+				.withData(new byte[0])
+				.build();
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("empty-data");
+		assertThat(result.getPayload()).isEqualTo(new byte[0]);
+	}
+
+	@Test
+	void cloudEventWithNullDataTransformToMessage() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("empty-data")
+				.withSource(URI.create("/spring/empty"))
+				.withType("empty.event")
+				.withDataContentType("text/plain")
+				.build();
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		assertThatThrownBy(() ->  this.fromCloudEventTransformer.transform(message))
+				.isInstanceOf(MessageTransformationException.class)
+				.cause()
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("CloudEvent data can not be null");
+	}
+
+	@Test
+	void cloudEventWithoutOptionalAttributesTransformToMessage() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("no-time")
+				.withSource(URI.create("/spring/notime"))
+				.withType("notime.event")
+				.withDataContentType("text/plain")
+				.withData("No time".getBytes(StandardCharsets.UTF_8))
+				.build();
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("no-time");
+		assertThat(result.getHeaders().get("ce-time")).isNull();
 		assertThat(result.getHeaders().get("ce-subject")).isNull();
+		assertThat(result.getHeaders().get("ce-dataschema")).isNull();
+		assertThat(result.getPayload()).isEqualTo("No time".getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Test
-	void ceMessageContainingNullSource() {
-		Message<byte[]> message = MessageBuilder.withPayload("hello world".getBytes())
-				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.setHeader("ce-id", UUID.randomUUID())
-				.setHeader("ce-datacontenttype", "text/plain")
-				.setHeader("ce-time", Instant.now().toEpochMilli())
-				.setHeader("ce-extension-one", "test-val-one")
-				.setHeader("ce-extension-two", "test-val-two")
-				.build();
-		assertThatThrownBy(() -> {
-			this.fromCloudEventTransformer.transform(message);
-		})
+	void invalidPayloadTypeThrowsException() {
+		Message<String> message = MessageBuilder.withPayload("Invalid payload type").build();
+
+		assertThatThrownBy(() -> this.fromCloudEventTransformer.transform(message))
 				.isInstanceOf(MessageTransformationException.class)
-				.hasCauseInstanceOf(IllegalStateException.class);
+				.cause()
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("Payload did not contain CloudEvent nor could it be deserialized to a CloudEvent");
 	}
 
 	@Test
-	void ceMessageContainingNullType() {
-		Message<byte[]> message = MessageBuilder.withPayload("hello world".getBytes())
-				.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.setHeader("ce-id", UUID.randomUUID())
-				.setHeader("ce-datacontenttype", "text/plain")
-				.setHeader("ce-time", Instant.now().toEpochMilli())
-				.setHeader("ce-source", "/spring/null.toCloudEventTransformer.ce:to-cloudevent-transformer#0")
-				.setHeader("ce-extension-one", "test-val-one")
-				.setHeader("ce-extension-two", "test-val-two")
-				.build();
-		assertThatThrownBy(() -> {
-			this.fromCloudEventTransformer.transform(message);
-		})
+	void byteArrayPayloadWithoutContentTypeThrowsException() {
+		Message<byte[]> message = MessageBuilder.withPayload("test".getBytes(StandardCharsets.UTF_8)).build();
+
+		assertThatThrownBy(() -> this.fromCloudEventTransformer.transform(message))
 				.isInstanceOf(MessageTransformationException.class)
-				.hasCauseInstanceOf(IllegalStateException.class);
+				.cause()
+				.isInstanceOf(MessageHandlingException.class)
+				.hasMessageContaining("No Content-Type header found");
+	}
+
+	@Test
+	void byteArrayPayloadWithInvalidJsonThrowsException() {
+		Message<byte[]> message =
+				MessageBuilder.withPayload("not valid json".getBytes(StandardCharsets.UTF_8))
+						.setHeader(MessageHeaders.CONTENT_TYPE, JsonFormat.CONTENT_TYPE)
+						.build();
+
+		assertThatThrownBy(() -> this.fromCloudEventTransformer.transform(message))
+				.isInstanceOf(MessageTransformationException.class)
+				.hasCauseInstanceOf(EventDeserializationException.class);
+	}
+
+	@Test
+	void cloudEventPreservesOriginalMessageHeaders() {
+		CloudEvent payload = CloudEventBuilder.v1().withId("preserve-headers")
+				.withSource(URI.create("/spring/headers"))
+				.withType("headers.event")
+				.withDataContentType("text/plain")
+				.withData("Test".getBytes(StandardCharsets.UTF_8))
+				.build();
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.setHeader("custom-header", "custom-value")
+				.setHeader("another-header", 123)
+				.build();
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+
+		assertThat(result.getHeaders().get("custom-header")).isEqualTo("custom-value");
+		assertThat(result.getHeaders().get("another-header")).isEqualTo(123);
+		assertThat(result.getHeaders().get("ce-id")).isEqualTo("preserve-headers");
+	}
+
+	@Test
+	void componentTypeReturnsCorrectValue() {
+		assertThat(this.fromCloudEventTransformer.getComponentType()).isEqualTo("from-cloudevent-transformer");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -165,12 +240,6 @@ public class FromCloudEventTransformerTests {
 		@Bean
 		public FromCloudEventTransformer fromCloudEventTransformer() {
 			return new FromCloudEventTransformer();
-		}
-
-		@Bean
-		public FromCloudEventTransformer fromCloudEventTransformerWithExtensionPattern() {
-			FromCloudEventTransformer fromCloudEventTransformer = new FromCloudEventTransformer("cv*");
-			return fromCloudEventTransformer;
 		}
 
 	}

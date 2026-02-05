@@ -44,10 +44,10 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.StaticMessageHeaderAccessor;
-import org.springframework.integration.cloudevents.transformer.util.CloudEventUtil;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
@@ -233,7 +233,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		MimeType mimeType = StaticMessageHeaderAccessor.getContentType(message);
 		String contentType = (mimeType == null) ? "application/octet-stream" : mimeType.toString();
 
-		Map<String, Object> cloudEventExtensions = CloudEventUtil.getCloudEventExtensions(
+		Map<String, Object> cloudEventExtensions = getCloudEventExtensions(
 				headers, this.extensionPatterns);
 		ToCloudEventTransformerExtension extensions = new ToCloudEventTransformerExtension(cloudEventExtensions);
 
@@ -285,6 +285,28 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	@Override
 	public String getComponentType() {
 		return "ce:to-cloudevent-transformer";
+	}
+
+	/**
+	 * Extract CloudEvent extensions from message headers based on pattern matching.
+	 * @param headers the message headers to extract extensions from
+	 * @param extensionPatterns the patterns that identify extensions
+	 * @return a map of header key-value pairs that match the extension patterns;
+	 * an empty map if no headers match the patterns
+	 */
+	private static Map<String, Object> getCloudEventExtensions(MessageHeaders headers, String[] extensionPatterns) {
+		if (extensionPatterns.length == 0) {
+			return Map.of();
+		}
+		Map<String, Object> cloudEventExtensions = new HashMap<>();
+		for (Map.Entry<String, Object> header : headers.entrySet()) {
+			String headerKey = header.getKey();
+			Boolean patternResult = PatternMatchUtils.smartMatch(headerKey, extensionPatterns);
+			if (Boolean.TRUE.equals(patternResult)) {
+				cloudEventExtensions.put(headerKey, header.getValue());
+			}
+		}
+		return cloudEventExtensions;
 	}
 
 	/**
