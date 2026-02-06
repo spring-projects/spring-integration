@@ -16,19 +16,18 @@
 
 package org.springframework.integration.cloudevents.transformer;
 
-import java.net.URI;
-import java.time.OffsetDateTime;
-
 import io.cloudevents.CloudEvent;
+import io.cloudevents.CloudEventData;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.provider.EventFormatProvider;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.StaticMessageHeaderAccessor;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.cloudevents.CloudEventHeaders;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -54,9 +53,29 @@ import org.springframework.util.MimeType;
  * @see ToCloudEventTransformer
  * @see CloudEventHeaders
  * @see io.cloudevents.CloudEvent
- * @see io.cloudevents.core.format.EventFormat
+ * @see EventFormat
  */
 public class FromCloudEventTransformer extends AbstractTransformer {
+
+	private final EventFormatProvider eventFormatProvider = EventFormatProvider.getInstance();
+
+	@Nullable
+	private EventFormat eventFormat;
+
+	/**
+	 * Establish the {@link EventFormat} that will be used if the {@link EventFormatProvider} can not identify the
+	 * {@link EventFormat} for the message's payload.
+	 * @param eventFormat The fallback {@link EventFormat} to use if {@link EventFormatProvider} can not identify the
+	 *                    {@link EventFormat} for the payload.
+	 */
+	public void setEventFormat(EventFormat eventFormat) {
+		this.eventFormat = eventFormat;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "ce:from-cloudevent-transformer";
+	}
 
 	@Override
 	protected Object doTransform(Message<?> message) {
@@ -68,58 +87,44 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 		if (message.getPayload() instanceof byte[] payload) {
 			MimeType mimeType = StaticMessageHeaderAccessor.getContentType(message);
 			if (mimeType == null) {
-				throw new MessageHandlingException(message, "No Content-Type header found");
+				throw new MessageTransformationException(message, "No Content-Type header found");
 			}
 			String contentType = mimeType.toString();
-			EventFormat format = EventFormatProvider.getInstance().resolveFormat(contentType);
 
+			EventFormat format = this.eventFormatProvider.resolveFormat(contentType);
 			if (format == null) {
-				throw new MessageHandlingException(message, "No event format found for specified content type: "
-						+ contentType);
+				format = this.eventFormat;
 			}
+			if (format == null) {
+				throw new MessageTransformationException(
+						message, "No event format found for specified content type: " + contentType);
+			}
+
 			cloudEvent = format.deserialize(payload);
 
 		}
 		else {
 			cloudEvent = (CloudEvent) message.getPayload();
 		}
+		CloudEventData cloudEventData = cloudEvent.getData();
+		byte[] payload = (cloudEventData == null) ? new byte[0] : cloudEventData.toBytes();
+		AbstractIntegrationMessageBuilder<byte[]> builder = getMessageBuilderFactory().withPayload(payload)
+				.copyHeaders(message.getHeaders())
+				.setHeader(CloudEventHeaders.EVENT_SOURCE, cloudEvent.getSource())
+				.setHeader(CloudEventHeaders.EVENT_TYPE, cloudEvent.getType())
+				.setHeader(CloudEventHeaders.EVENT_ID, cloudEvent.getId())
+				.setHeader(MessageHeaders.CONTENT_TYPE, cloudEvent.getDataContentType())
 
-		Assert.state(cloudEvent.getData() != null, "CloudEvent data can not be null");
-
-		MessageBuilder<?> builder = MessageBuilder.withPayload(cloudEvent.getData().toBytes());
-		builder.copyHeaders(message.getHeaders());
-
-		String subject = cloudEvent.getSubject();
-		OffsetDateTime time = cloudEvent.getTime();
-		String dataContentType = cloudEvent.getDataContentType();
-		URI dataSchema = cloudEvent.getDataSchema();
-
-		builder.setHeader(CloudEventHeaders.EVENT_SOURCE, cloudEvent.getSource());
-		builder.setHeader(CloudEventHeaders.EVENT_TYPE, cloudEvent.getType());
-		builder.setHeader(CloudEventHeaders.EVENT_ID, cloudEvent.getId());
-		builder.setHeader(MessageHeaders.CONTENT_TYPE, dataContentType);
-
-		setHeaderIfNotNull(builder, CloudEventHeaders.EVENT_SUBJECT, subject);
-		setHeaderIfNotNull(builder, CloudEventHeaders.EVENT_TIME, time);
-		setHeaderIfNotNull(builder, CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, dataContentType);
-		setHeaderIfNotNull(builder, CloudEventHeaders.EVENT_DATA_SCHEMA, dataSchema);
+				.setHeader(CloudEventHeaders.EVENT_SUBJECT, cloudEvent.getSubject())
+				.setHeader(CloudEventHeaders.EVENT_TIME, cloudEvent.getTime())
+				.setHeader(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, cloudEvent.getDataContentType())
+				.setHeader(CloudEventHeaders.EVENT_DATA_SCHEMA, cloudEvent.getDataSchema());
 
 		CloudEvent cloudEventInstance = cloudEvent;
 		cloudEvent.getExtensionNames().forEach(name ->
 				builder.setHeader(CloudEventHeaders.PREFIX + name, cloudEventInstance.getExtension(name)));
 
 		return builder.build();
-	}
-
-	private void setHeaderIfNotNull(MessageBuilder<?> builder, String key, @Nullable Object value) {
-		if (value != null) {
-			builder.setHeader(key, value);
-		}
-	}
-
-	@Override
-	public String getComponentType() {
-		return "from-cloudevent-transformer";
 	}
 
 }

@@ -162,21 +162,21 @@ The transformer throws an `IllegalArgumentException` if the payload is not a byt
 Use the `FromCloudEventTransformer` to convert CloudEvents into Spring Integration messages.
 This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: CloudEvent objects or serialized CloudEvent byte arrays.
 
-The transformer extracts CloudEvent data from the message payload and maps CloudEvent attributes to message headers.
-All CloudEvent extensions are automatically mapped to message headers with the `ce-` prefix.
+The transformer extracts CloudEvent data from the message payload and maps CloudEvent attributes along with CloudEvent extensions to message headers with a `ce-` prefix.
 
 === Supported Payload Types
 
 The transformer accepts messages with the following payload types:
 
+[#cloudeventobjectype]
 ==== CloudEvent Object Type
 
 When the message payload is a `CloudEvent` instance, the transformer:
 
 1. Extracts the CloudEvent data and uses it as the message payload
-2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers using the keys enumerated in the <<cloudevent-attribute-mapping>> section.
+2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers with a `ce-` prefix.
 3. Maps all CloudEvent extensions to message headers with the `ce-` prefix
-4. Preserves all original message headers
+4. Preserves all original message headers unless a header key matches a CloudEvent Attribute or extension, in which case the original value is overwritten.
 
 Example:
 
@@ -199,6 +199,20 @@ Message<CloudEvent> inputMessage = MessageBuilder
 FromCloudEventTransformer transformer = new FromCloudEventTransformer();
 Message<?> outputMessage = transformer.transform(inputMessage);
 ----
+The `outputMessage` from the example above should look something like:
+```
+GenericMessage [
+    payload = byte[13],
+    headers = {
+        ce-source  = /myapp/orders,
+        ce-traceid = trace-abc,
+        id         = 1004c34e-adc7-1c9a-35e7-a06c0aea6e25,
+        ce-type    = order.created,
+        ce-id      = event-123,
+        timestamp  = 1770391954099
+    }
+]
+```
 
 ==== Serialized CloudEvent Type
 
@@ -206,20 +220,30 @@ When the message payload is a `byte[]` containing a serialized CloudEvent, the t
 
 1. Uses the `content-type` header to resolve the appropriate `EventFormat` via `EventFormatProvider`
 2. Deserializes the payload to a `CloudEvent` object using the resolved format
-3. Extracts the CloudEvent data and uses it as the message payload
-4. Maps CloudEvent attributes to message headers using the message header keys enumerated in the <<cloudevent-attribute-mapping>> section.
-5. Maps all CloudEvent extensions to message headers with the `ce-` prefix
+3. Then follows the same steps enumerated in the <<cloudeventobjectype>> section.
 
-Supported content types include:
+Information on supported content types are discussed in the <<eventformats>> section.
 
-- `application/cloudevents+json` (requires `io.cloudevents:cloudevents-json-jackson` dependency)
-- `application/cloudevents+xml` (requires `io.cloudevents:cloudevents-xml` dependency)
+NOTE: `FromCloudEventTransformer` allows the user to set an `EventFormat` that will be used if the `EventFormatProvider` fails to find an `EventFormat`.
+If not set and an `EventFormat` is not found by the `EventFormatProvider` a `MessageTransformationException` will be thrown.
 
 Example:
 
 [source,java]
 ----
-byte[] serializedCloudEvent = ... // JSON serialized CloudEvent
+byte[] serializedCloudEvent = """
+				{
+					"specversion": "1.0",
+					"id": "316b0cf3-0c4d-5858-6bd2-863a2042f442",
+					"source": "/spring/testapp.jsonTransformerWithExtensions",
+					"type": "spring.message",
+					"subject": "test.subject",
+					"datacontenttype": "text/plain",
+					"time": "2026-01-30T08:53:06.099486-05:00",
+					"traceid": "trace-123",
+					"data": "Hello, World!"
+				}
+				""";
 
 Message<byte[]> inputMessage = MessageBuilder
     .withPayload(serializedCloudEvent)
@@ -228,8 +252,25 @@ Message<byte[]> inputMessage = MessageBuilder
 
 FromCloudEventTransformer transformer = new FromCloudEventTransformer();
 Message<?> outputMessage = transformer.transform(inputMessage);
-
 ----
+The outputMessage from the example above should look something like:
+```
+GenericMessage [
+    payload = byte[13],
+    headers = {
+        ce-source           = /spring/testapp.jsonTransformerWithExtensions,
+        ce-datacontenttype  = text/plain,
+        ce-subject          = test.subject,
+        ce-type             = spring.message,
+        ce-id               = 316b0cf3-0c4d-5858-6bd2-863a2042f442,
+        ce-traceid          = trace-123,
+        ce-time             = 2026-01-30T08:53:06.099486-05:00,
+        id                  = 463c0878-a9cb-7269-a503-b4224088cd42,
+        contentType         = text/plain,
+        timestamp           = 1770392214225
+    }
+]
+```
 
 [#cloudevent-attribute-mapping]
 === CloudEvent Attribute Mapping
@@ -301,5 +342,3 @@ The transformer has the following requirements:
 
 - **Payload Type**: Must be either a `CloudEvent` instance or `byte[]`
 - **Content-Type Header**: Required when the payload is of type `byte[]` (used to resolve the `EventFormat`)
-- **CloudEvent Data**: CloudEvent instances and CloudEvents serialized as byte[] must contain non-null data (empty byte arrays are acceptable)
-
