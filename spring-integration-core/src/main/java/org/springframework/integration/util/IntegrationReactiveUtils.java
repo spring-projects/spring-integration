@@ -115,7 +115,7 @@ public final class IntegrationReactiveUtils {
 	}
 
 	/**
-	 * Wrap a provided {@link MessageSource} into a {@link Flux} for pulling the on demand.
+	 * Wrap a provided {@link MessageSource} into a {@link Flux} for pulling messages on demand.
 	 * When {@link MessageSource#receive()} returns {@code null}, the source {@link Mono}
 	 * goes to the {@link Mono#repeatWhenEmpty} state and performs a {@code delay}
 	 * based on the {@link #DELAY_WHEN_EMPTY_KEY} {@link Duration} entry in the subscriber context
@@ -145,7 +145,7 @@ public final class IntegrationReactiveUtils {
 							}
 							LOGGER.error("Error from Flux for : " + messageSource, ex);
 						})
-				.subscribeOn(Schedulers.boundedElastic())
+				.subscribeOn(Schedulers.single())
 				.repeatWhenEmpty((repeat) ->
 						repeat.flatMap((increment) ->
 								Mono.deferContextual(ctx ->

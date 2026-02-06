@@ -48,7 +48,7 @@ public class TestInProcessConfiguration implements DisposableBean {
 
 	@Bean
 	ManagedChannel grpcChannel() {
-		return InProcessChannelBuilder.forName(this.serverName).build();
+		return InProcessChannelBuilder.forName(this.serverName).directExecutor().build();
 	}
 
 	@Bean

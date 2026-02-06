@@ -16,8 +16,6 @@
 
 package org.springframework.integration.grpc;
 
-import java.util.concurrent.TimeUnit;
-
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import org.junit.jupiter.api.Test;
@@ -81,8 +79,7 @@ public class GrpcBackToBackTests {
 
 		@Bean
 		IntegrationFlow grpcOutboundFlow(ManagedChannel channel) {
-			CallOptions customCallOptions = CallOptions.DEFAULT
-					.withDeadlineAfter(10, TimeUnit.SECONDS);
+			CallOptions customCallOptions = CallOptions.DEFAULT.withWaitForReady();
 
 			return f -> f
 					.handle(Grpc.outboundGateway(channel, TestSingleHelloWorldGrpc.class)
