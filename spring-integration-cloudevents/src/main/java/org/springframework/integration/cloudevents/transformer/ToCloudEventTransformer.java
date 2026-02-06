@@ -146,7 +146,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the {@link Expression} to create CloudEvent {@code id}.
-	 * Default extracts the {@code id} from the {@link MessageHeaders} of the message.
+	 * <p>Default is to extract the {@code id} from the {@link MessageHeaders} of the message.
 	 * @param eventIdExpression the expression to create the {@code id} for each CloudEvent
 	 */
 	public void setEventIdExpression(Expression eventIdExpression) {
@@ -155,7 +155,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the {@link Expression} to create CloudEvent {@code source}.
-	 * Default is {@code "/spring/" + appName + "." + getBeanName())}.
+	 * <p>Default is {@code "/spring/" + appName + "." + getBeanName())}.
 	 * @param sourceExpression the expression to create the {@code source} for each CloudEvent
 	 */
 	public void setSourceExpression(Expression sourceExpression) {
@@ -164,7 +164,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the {@link Expression} to extract the {@code type} for the CloudEvent.
-	 * The default is {@code spring.message}.
+	 * <p>Default is {@code spring.message}.
 	 * @param typeExpression the expression to create the {@code type} for each CloudEvent
 	 */
 	public void setTypeExpression(Expression typeExpression) {
@@ -189,8 +189,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the {@link EventFormat} to use for CloudEvent serialization.
-	 * If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
-	 * the {@code eventFormat} has a precedence.
+	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
+	 * the {@code eventFormat} has precedence.
 	 * @param eventFormat the event format for serializing CloudEvents
 	 */
 	public void setEventFormat(EventFormat eventFormat) {
@@ -201,8 +201,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * Set the {@link Expression} to produce a cloud event format content type
 	 * when {@link EventFormatProvider} is to be used to determine
 	 * {@link EventFormat}.
-	 * If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
-	 * the {@code eventFormat} has a precedence.
+	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
+	 * the {@code eventFormat} has precedence.
 	 * @param eventFormatContentTypeExpression the expression to create
 	 * content type for the {@link EventFormatProvider#resolveFormat(String)}
 	 * @see io.cloudevents.core.format.ContentType
@@ -213,7 +213,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Set the prefix for CloudEvent headers in binary content mode.
-	 * Defaults to {@code ce-}.
+	 * <p>Default is {@code ce-}.
 	 * @param cloudEventPrefix the prefix to use for CloudEvent headers
 	 */
 	public void setCloudEventPrefix(String cloudEventPrefix) {
@@ -233,8 +233,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		MimeType mimeType = StaticMessageHeaderAccessor.getContentType(message);
 		String contentType = (mimeType == null) ? "application/octet-stream" : mimeType.toString();
 
-		Map<String, Object> cloudEventExtensions = getCloudEventExtensions(
-				headers, this.extensionPatterns);
+		Map<String, Object> cloudEventExtensions = getCloudEventExtensions(headers, this.extensionPatterns);
 		ToCloudEventTransformerExtension extensions = new ToCloudEventTransformerExtension(cloudEventExtensions);
 
 		CloudEventBuilder cloudEventBuilder = CloudEventBuilder.v1()
@@ -272,7 +271,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		}
 
 		if (selectedEventFormat != null) {
-			return MessageBuilder.withPayload(selectedEventFormat.serialize(cloudEvent))
+			return getMessageBuilderFactory().withPayload(selectedEventFormat.serialize(cloudEvent))
 					.copyHeaders(headers)
 					.setHeader(MessageHeaders.CONTENT_TYPE, selectedEventFormat.serializedContentType())
 					.build();

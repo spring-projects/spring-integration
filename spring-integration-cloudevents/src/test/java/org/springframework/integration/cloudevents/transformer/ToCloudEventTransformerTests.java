@@ -126,8 +126,7 @@ class ToCloudEventTransformerTests {
 	@Test
 	void transformWithPayloadBasedOnJsonFormatContentType() {
 		Message<byte[]> message =
-				getTransformerNoExtensions(JSON_PAYLOAD, this.jsonTransformerWithNoExtensions,
-						JsonFormat.CONTENT_TYPE);
+				getTransformerNoExtensions(JSON_PAYLOAD, this.jsonTransformerWithNoExtensions, JsonFormat.CONTENT_TYPE);
 		CloudEvent cloudEvent = this.jsonFormat.deserialize(message.getPayload());
 		verifyCloudEvent(cloudEvent, "jsonTransformerWithNoExtensions", JsonFormat.CONTENT_TYPE);
 		assertThat(cloudEvent.getData())
