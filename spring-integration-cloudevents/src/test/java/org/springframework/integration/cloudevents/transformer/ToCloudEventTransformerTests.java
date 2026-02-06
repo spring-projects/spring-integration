@@ -156,7 +156,8 @@ class ToCloudEventTransformerTests {
 	@Test
 	void transformWithPayloadBasedOnContentXMLFormatType() {
 		Message<byte[]> message =
-				getTransformerNoExtensions(XML_PAYLOAD, this.xmlTransformerWithNoExtensions, XMLFormat.XML_CONTENT_TYPE);
+				getTransformerNoExtensions(XML_PAYLOAD, this.xmlTransformerWithNoExtensions,
+						XMLFormat.XML_CONTENT_TYPE);
 		CloudEvent cloudEvent = this.xmlFormat.deserialize(message.getPayload());
 		verifyCloudEvent(cloudEvent, "xmlTransformerWithNoExtensions", XMLFormat.XML_CONTENT_TYPE);
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(XML_PAYLOAD);
@@ -204,7 +205,8 @@ class ToCloudEventTransformerTests {
 						.setHeader(TRACE_HEADER, "test-value")
 						.setHeader(SPAN_HEADER, "other-value")
 						.build();
-		Message<byte[]> result = (Message<byte[]>) this.transformerWithExtensionsNoFormatWithPrefix.doTransform(message);
+		Message<byte[]> result =
+				(Message<byte[]>) this.transformerWithExtensionsNoFormatWithPrefix.doTransform(message);
 		assertThat(result.getHeaders())
 				.containsKeys(TRACE_HEADER, SPAN_HEADER, "CLOUDEVENTS-" + TRACE_HEADER,
 						"CLOUDEVENTS-" + SPAN_HEADER, "CLOUDEVENTS-id", "CLOUDEVENTS-specversion",
