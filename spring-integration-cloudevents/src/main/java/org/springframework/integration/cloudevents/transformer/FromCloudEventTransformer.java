@@ -86,18 +86,20 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 
 		if (message.getPayload() instanceof byte[] payload) {
 			MimeType mimeType = StaticMessageHeaderAccessor.getContentType(message);
-			if (mimeType == null) {
+			if (mimeType == null && this.eventFormat == null) {
 				throw new MessageTransformationException(message, "No Content-Type header found");
 			}
-			String contentType = mimeType.toString();
+			String contentType = (mimeType != null) ? mimeType.toString() : null;
+			EventFormat format = (contentType != null) ? this.eventFormatProvider.resolveFormat(contentType) : null;
 
-			EventFormat format = this.eventFormatProvider.resolveFormat(contentType);
 			if (format == null) {
 				format = this.eventFormat;
 			}
+
 			if (format == null) {
 				throw new MessageTransformationException(
-						message, "No event format found for specified content type: " + contentType);
+						message, "No event format found or specified for specified content type: " + contentType
+						+ " and no fallback format provided");
 			}
 
 			cloudEvent = format.deserialize(payload);
@@ -114,7 +116,6 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 				.setHeader(CloudEventHeaders.EVENT_TYPE, cloudEvent.getType())
 				.setHeader(CloudEventHeaders.EVENT_ID, cloudEvent.getId())
 				.setHeader(MessageHeaders.CONTENT_TYPE, cloudEvent.getDataContentType())
-
 				.setHeader(CloudEventHeaders.EVENT_SUBJECT, cloudEvent.getSubject())
 				.setHeader(CloudEventHeaders.EVENT_TIME, cloudEvent.getTime())
 				.setHeader(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, cloudEvent.getDataContentType())

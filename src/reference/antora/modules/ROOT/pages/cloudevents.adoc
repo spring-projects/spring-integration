@@ -162,7 +162,7 @@ The transformer throws an `IllegalArgumentException` if the payload is not a byt
 Use the `FromCloudEventTransformer` to convert CloudEvents into Spring Integration messages.
 This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: CloudEvent objects or serialized CloudEvent byte arrays.
 
-The transformer extracts CloudEvent data from the message payload and maps CloudEvent attributes along with CloudEvent extensions to message headers with a `ce-` prefix.
+The transformer extracts `CloudEvent` data from the message payload and maps `CloudEvent` attributes along with `CloudEvent` extensions to message headers with a `ce-` prefix.
 
 === Supported Payload Types
 
@@ -176,7 +176,7 @@ When the message payload is a `CloudEvent` instance, the transformer:
 1. Extracts the CloudEvent data and uses it as the message payload
 2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers with a `ce-` prefix.
 3. Maps all CloudEvent extensions to message headers with the `ce-` prefix
-4. Preserves all original message headers unless a header key matches a CloudEvent Attribute or extension, in which case the original value is overwritten.
+4. Preserves all original message headers unless a header key matches a `CloudEvent` attribute or extension, in which case the original value is overwritten.
 
 Example:
 

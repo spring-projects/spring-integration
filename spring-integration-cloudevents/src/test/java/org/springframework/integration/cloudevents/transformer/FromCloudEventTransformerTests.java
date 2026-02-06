@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.cloudevents.CloudEventHeaders;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -49,14 +50,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DirtiesContext
 @SpringJUnitConfig
 public class FromCloudEventTransformerTests {
+
 	private static final byte[] EXPECTED_RESULT = "Hello, World!".getBytes(StandardCharsets.UTF_8);
 
-	@Autowired
-	FromCloudEventTransformer fromCloudEventTransformer;
-
-	@Test
-	void serializeTransformToMessage() {
-		String payload = """
+	private static final byte[] JSON_PAYLOAD = """
 				{
 					"specversion": "1.0",
 					"id": "316b0cf3-0c4d-5858-6bd2-863a2042f442",
@@ -68,26 +65,44 @@ public class FromCloudEventTransformerTests {
 					"traceid": "trace-123",
 					"data": "Hello, World!"
 				}
-				""";
+				""".getBytes(StandardCharsets.UTF_8);
+
+	@Autowired
+	FromCloudEventTransformer fromCloudEventTransformer;
+
+	@Test
+	void serializeTransformToMessage() {
+
 		Message<byte[]> message =
-				MessageBuilder.withPayload(payload.getBytes(StandardCharsets.UTF_8))
+				MessageBuilder.withPayload(JSON_PAYLOAD)
 						.setHeader(MessageHeaders.CONTENT_TYPE, JsonFormat.CONTENT_TYPE)
 						.setHeader("custom-header", "custom-value")
 						.setHeader("another-header", 123)
 						.build();
 		Message<?> result = this.fromCloudEventTransformer.transform(message);
 		assertThat(result.getHeaders())
-				.containsEntry("ce-id", "316b0cf3-0c4d-5858-6bd2-863a2042f442")
-				.containsEntry("ce-type", "spring.message")
-				.containsEntry("ce-datacontenttype", "text/plain")
-				.containsEntry("ce-subject", "test.subject")
+				.containsEntry(CloudEventHeaders.EVENT_ID, "316b0cf3-0c4d-5858-6bd2-863a2042f442")
+				.containsEntry(CloudEventHeaders.EVENT_TYPE, "spring.message")
+				.containsEntry(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, "text/plain")
+				.containsEntry(CloudEventHeaders.EVENT_SUBJECT, "test.subject")
 				.containsEntry("ce-traceid", "trace-123")
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
 				.containsEntry("custom-header", "custom-value")
 				.containsEntry("another-header", 123)
-				.containsEntry("ce-source", URI.create("/spring/null.jsonTransformerWithExtensions"));
+				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("/spring/null.jsonTransformerWithExtensions"));
 
 		assertThat(result.getHeaders().get("ce-time")).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(EXPECTED_RESULT);
+	}
+
+	@Test
+	void serializeTransformToMessageNoContentType() {
+		Message<byte[]> message =
+				MessageBuilder.withPayload(JSON_PAYLOAD)
+						.build();
+		this.fromCloudEventTransformer.setEventFormat(new JsonFormat());
+		Message<?> result = this.fromCloudEventTransformer.transform(message);
+		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain");
 		assertThat(result.getPayload()).isEqualTo(EXPECTED_RESULT);
 	}
 
@@ -112,12 +127,12 @@ public class FromCloudEventTransformerTests {
 						.build();
 		Message<?> result = this.fromCloudEventTransformer.transform(message);
 		assertThat(result.getHeaders())
-				.containsEntry("ce-id", "123")
-				.containsEntry("ce-type", "spring.event")
-				.containsEntry("ce-subject", "test.subject")
-				.containsEntry("ce-datacontenttype", "text/plain")
-				.containsEntry("ce-source", URI.create("/spring/null.jsonTransformerWithExtensions"))
-				.containsEntry("ce-dataschema", URI.create("dataschema"))
+				.containsEntry(CloudEventHeaders.EVENT_ID, "123")
+				.containsEntry(CloudEventHeaders.EVENT_TYPE, "spring.event")
+				.containsEntry(CloudEventHeaders.EVENT_SUBJECT, "test.subject")
+				.containsEntry(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, "text/plain")
+				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("/spring/null.jsonTransformerWithExtensions"))
+				.containsEntry(CloudEventHeaders.EVENT_DATA_SCHEMA, URI.create("dataschema"))
 				.containsEntry("ce-traceid", "trace-456")
 				.containsEntry("ce-spanid", "span-789")
 				.containsEntry("ce-userid", "user-123")
@@ -138,7 +153,7 @@ public class FromCloudEventTransformerTests {
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		Message<?> result = this.fromCloudEventTransformer.transform(message);
 
-		assertThat(result.getHeaders()).containsEntry("ce-id", "empty-data");
+		assertThat(result.getHeaders()).containsEntry(CloudEventHeaders.EVENT_ID, "empty-data");
 		assertThat(result.getPayload()).isEqualTo(new byte[0]);
 	}
 

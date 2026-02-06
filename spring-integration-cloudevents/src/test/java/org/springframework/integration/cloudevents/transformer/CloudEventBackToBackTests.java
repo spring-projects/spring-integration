@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.cloudevents.CloudEventHeaders;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
@@ -94,11 +95,10 @@ public class CloudEventBackToBackTests {
 		MessageHeaders headers = result.getHeaders();
 
 		assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo("application/cloudevents+json");
-		assertThat(headers.get("ce-datacontenttype")).isEqualTo("text/plain");
-		assertThat(headers.get("ce-id")).isEqualTo("123");
-		assertThat(headers.get("ce-time")).isEqualTo(currentTime);
-		assertThat(headers.get("ce-subject")).isNull();
-		assertThat(headers.get("ce-source").toString())
+		assertThat(headers.get(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE)).isEqualTo("text/plain");
+		assertThat(headers.get(CloudEventHeaders.EVENT_ID)).isEqualTo("123");
+		assertThat(headers.get(CloudEventHeaders.EVENT_TIME)).isEqualTo(currentTime);
+		assertThat(headers.get(CloudEventHeaders.EVENT_SOURCE).toString())
 				.isEqualTo("/spring/null.jsonCaseFlow.ce:to-cloudevent-transformer#0");
 		assertThat(headers.get("ce-extensionone")).isEqualTo("test-val-one");
 
@@ -131,14 +131,15 @@ public class CloudEventBackToBackTests {
 		MessageHeaders headers = result.getHeaders();
 		assertThat(headers)
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.containsEntry("ce-datacontenttype", "text/plain")
-				.containsEntry("ce-id", message.getHeaders().get(MessageHeaders.ID).toString())
-				.containsEntry("ce-source", URI.create("/spring/test-app.jsonCaseFlow.ce:to-cloudevent-transformer#0"))
+				.containsEntry(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, "text/plain")
+				.containsEntry(CloudEventHeaders.EVENT_ID, message.getHeaders().get(MessageHeaders.ID).toString())
+				.containsEntry(CloudEventHeaders.EVENT_SOURCE,
+						URI.create("/spring/test-app.jsonCaseFlow" + ".ce:to-cloudevent-transformer#0"))
 				.containsEntry("customheader", "test-value")
 				.containsEntry("otherheader", "other-value")
 				.containsEntry("ce-extensionone", "test-val-one")
 				.containsEntry("ce-extensiontwo", "test-val-two")
-				.containsKey("ce-time");
+				.containsKey(CloudEventHeaders.EVENT_TIME);
 
 		assertThat(result.getPayload()).isEqualTo(JSON_PAYLOAD);
 	}
