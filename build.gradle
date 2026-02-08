@@ -74,7 +74,7 @@ ext {
     jeroMqVersion = '0.6.0'
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.2.0'
-    jrubyVersion = '10.0.2.0'
+    jrubyVersion = '10.0.3.0'
     jsonpathVersion = '2.10.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '6.0.2'
