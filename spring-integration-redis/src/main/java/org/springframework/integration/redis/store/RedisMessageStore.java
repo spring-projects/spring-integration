@@ -18,6 +18,7 @@ package org.springframework.integration.redis.store;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -38,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Michal Domagala
+ * @author Yordan Tsintsov
  *
  * @since 2.1
  */
@@ -48,6 +50,8 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	private final RedisTemplate<Object, Object> redisTemplate;
 
 	private boolean valueSerializerSet;
+
+	private volatile boolean supportsGetDel = true;
 
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
@@ -90,7 +94,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	}
 
 	@Override
-	protected Object doRetrieve(Object id) {
+	protected @Nullable Object doRetrieve(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		return ops.get();
@@ -128,8 +132,25 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	}
 
 	@Override
-	protected Object doRemove(Object id) {
+	protected @Nullable Object doRemove(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
+		Object removedObject;
+		if (supportsGetDel) {
+			try {
+				removedObject = this.redisTemplate.boundValueOps(id).getAndDelete();
+			} catch (Exception e) {
+				// GETDEL command is not supported before Redis 6.2
+				logger.debug("GETDEL not supported, falling back to GET + UNLINK", e);
+				removedObject = this.doRetrieveAndUnlink(id);
+				supportsGetDel = false;
+			}
+		} else {
+			removedObject = this.doRetrieveAndUnlink(id);
+		}
+		return removedObject;
+	}
+
+	private @Nullable Object doRetrieveAndUnlink(Object id) {
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
 			this.redisTemplate.unlink(id);
