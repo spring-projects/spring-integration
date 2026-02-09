@@ -47,11 +47,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Yordan Tsintsov
  *
  */
 class RedisMessageStoreTests implements RedisContainerTest {
 
 	private static RedisConnectionFactory redisConnectionFactory;
+
+	private static final String DEFAULT_PERSON_ADDRESS = "1600 Pennsylvania Av, Washington, DC";
+
+	private static final String DEFAULT_PERSON_NAME = "Barak Obama";
 
 	@BeforeAll
 	static void setupConnection() {
@@ -144,6 +149,61 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		assertThat(retrievedMessage).isNotNull();
 		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
 		assertThat(store.getMessage(stringMessage.getHeaders().getId())).isNull();
+	}
+
+	@Test
+	void testRemoveNonExistingMessage() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		Message<?> removedMessage = store.removeMessage(UUID.randomUUID());
+		assertThat(removedMessage).isNull();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void testAddAndRemoveSerializableObjectMessage() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		Address address = new Address();
+		address.setAddress(DEFAULT_PERSON_ADDRESS);
+		Person person = new Person(address, DEFAULT_PERSON_NAME);
+
+		Message<Person> objectMessage = new GenericMessage<>(person);
+		store.addMessage(objectMessage);
+		Message<Person> retrievedMessage = (Message<Person>) store.removeMessage(objectMessage.getHeaders().getId());
+		assertThat(retrievedMessage).isNotNull();
+		assertThat(retrievedMessage.getPayload().getName()).isEqualTo(DEFAULT_PERSON_NAME);
+		assertThat(retrievedMessage.getPayload().getAddress().getAddress()).isEqualTo(DEFAULT_PERSON_ADDRESS);
+		assertThat(store.getMessage(objectMessage.getHeaders().getId())).isNull();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void testRemoveMultipleMessagesSequentially() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+
+		Message<String> message1 = new GenericMessage<>("Message 1");
+		Message<String> message2 = new GenericMessage<>("Message 2");
+		Message<String> message3 = new GenericMessage<>("Message 3");
+
+		store.addMessage(message1);
+		store.addMessage(message2);
+		store.addMessage(message3);
+
+		assertThat(store.getMessageCount()).isEqualTo(3);
+
+		Message<String> removed1 = (Message<String>) store.removeMessage(message1.getHeaders().getId());
+		assertThat(removed1).isNotNull();
+		assertThat(removed1.getPayload()).isEqualTo("Message 1");
+		assertThat(store.getMessageCount()).isEqualTo(2);
+
+		Message<String> removed2 = (Message<String>) store.removeMessage(message2.getHeaders().getId());
+		assertThat(removed2).isNotNull();
+		assertThat(removed2.getPayload()).isEqualTo("Message 2");
+		assertThat(store.getMessageCount()).isEqualTo(1);
+
+		Message<String> removed3 = (Message<String>) store.removeMessage(message3.getHeaders().getId());
+		assertThat(removed3).isNotNull();
+		assertThat(removed3.getPayload()).isEqualTo("Message 3");
+		assertThat(store.getMessageCount()).isZero();
 	}
 
 	@Test
