@@ -26,8 +26,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -38,20 +40,33 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Yordan Tsintsov
  *
  */
 class RedisMessageStoreTests implements RedisContainerTest {
 
 	private static RedisConnectionFactory redisConnectionFactory;
+
+	private static final String DEFAULT_PERSON_ADDRESS = "1234 Main String, Somewhere, City, Province";
+
+	private static final String DEFAULT_PERSON_NAME = "John Doe";
 
 	@BeforeAll
 	static void setupConnection() {
@@ -144,6 +159,138 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		assertThat(retrievedMessage).isNotNull();
 		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
 		assertThat(store.getMessage(stringMessage.getHeaders().getId())).isNull();
+	}
+
+	@Test
+	void testRemoveNonExistingMessage() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		Message<?> removedMessage = store.removeMessage(UUID.randomUUID());
+		assertThat(removedMessage).isNull();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void testAddAndRemoveSerializableObjectMessage() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		Address address = new Address();
+		address.setAddress(DEFAULT_PERSON_ADDRESS);
+		Person person = new Person(address, DEFAULT_PERSON_NAME);
+
+		Message<Person> objectMessage = new GenericMessage<>(person);
+		store.addMessage(objectMessage);
+		Message<Person> retrievedMessage = (Message<Person>) store.removeMessage(objectMessage.getHeaders().getId());
+		assertThat(retrievedMessage).isNotNull();
+		assertThat(retrievedMessage.getPayload().getName()).isEqualTo(DEFAULT_PERSON_NAME);
+		assertThat(retrievedMessage.getPayload().getAddress().getAddress()).isEqualTo(DEFAULT_PERSON_ADDRESS);
+		assertThat(store.getMessage(objectMessage.getHeaders().getId())).isNull();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	void testRemoveMultipleMessagesSequentially() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+
+		Message<String> message1 = new GenericMessage<>("Message 1");
+		Message<String> message2 = new GenericMessage<>("Message 2");
+		Message<String> message3 = new GenericMessage<>("Message 3");
+
+		store.addMessage(message1);
+		store.addMessage(message2);
+		store.addMessage(message3);
+
+		assertThat(store.getMessageCount()).isEqualTo(3);
+
+		Message<String> removed1 = (Message<String>) store.removeMessage(message1.getHeaders().getId());
+		assertThat(removed1).isNotNull();
+		assertThat(removed1.getPayload()).isEqualTo("Message 1");
+		assertThat(store.getMessageCount()).isEqualTo(2);
+
+		Message<String> removed2 = (Message<String>) store.removeMessage(message2.getHeaders().getId());
+		assertThat(removed2).isNotNull();
+		assertThat(removed2.getPayload()).isEqualTo("Message 2");
+		assertThat(store.getMessageCount()).isEqualTo(1);
+
+		Message<String> removed3 = (Message<String>) store.removeMessage(message3.getHeaders().getId());
+		assertThat(removed3).isNotNull();
+		assertThat(removed3.getPayload()).isEqualTo("Message 3");
+		assertThat(store.getMessageCount()).isZero();
+	}
+
+	@Test
+	void testDoRemoveFallbackWhenGetDelNotSupported() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		RedisMessageStore spyStore = spy(store);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
+		ReflectionTestUtils.setField(spyStore, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock();
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+		when(mockValueOps.getAndDelete())
+				.thenThrow(new RedisSystemException("ERR unknown command `GETDEL`", new Throwable("ERR unknown command `GETDEL`")));
+
+		Message<String> expectedMessage = new GenericMessage<>("test");
+		UUID id = UUID.randomUUID();
+		String prefixedKey = "MESSAGE_" + id;
+		when(mockValueOps.get()).thenReturn(expectedMessage);
+		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
+
+		Message<?> removed1 = spyStore.removeMessage(id);
+		Message<?> removed2 = spyStore.removeMessage(id);
+
+		assertThat(removed1).isEqualTo(expectedMessage);
+		assertThat(removed2).isEqualTo(expectedMessage);
+		assertThat(ReflectionTestUtils.getField(spyStore, "supportsGetDel")).isEqualTo(false);
+		verify(mockValueOps, times(1)).getAndDelete();
+		verify(mockValueOps, times(2)).get();
+		verify(mockRedisTemplate, times(2)).unlink(prefixedKey);
+	}
+
+	@Test
+	void testDoRemoveUsesUnlinkWhenConfigured() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		store.setUseUnlink(true);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
+		ReflectionTestUtils.setField(store, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock();
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+
+		Message<String> expectedMessage = new GenericMessage<>("Hello, Redis");
+		UUID id = UUID.randomUUID();
+		String prefixedKey = "MESSAGE_" + id;
+		when(mockValueOps.get()).thenReturn(expectedMessage);
+		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
+
+		Message<?> removed = store.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		verify(mockValueOps, never()).getAndDelete();
+		verify(mockValueOps).get();
+		verify(mockRedisTemplate).unlink(prefixedKey);
+	}
+
+	@Test
+	void testDoRemoveUsesGetDelWhenUseUnlinkIsDefault() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
+		ReflectionTestUtils.setField(store, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock();
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+
+		Message<String> expectedMessage = new GenericMessage<>("Hello, Redis");
+		when(mockValueOps.getAndDelete()).thenReturn(expectedMessage);
+
+		UUID id = UUID.randomUUID();
+		Message<?> removed = store.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		verify(mockValueOps).getAndDelete();
+		verify(mockValueOps, never()).get();
+		verify(mockRedisTemplate, never()).unlink(any());
 	}
 
 	@Test

@@ -18,7 +18,11 @@ package org.springframework.integration.redis.store;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Michal Domagala
+ * @author Yordan Tsintsov
  *
  * @since 2.1
  */
@@ -48,6 +53,10 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	private final RedisTemplate<Object, Object> redisTemplate;
 
 	private boolean valueSerializerSet;
+
+	private volatile boolean supportsGetDel = true;
+
+	private volatile boolean useUnlink = false;
 
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
@@ -89,8 +98,28 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		this.valueSerializerSet = true;
 	}
 
+	/**
+	 * Configure the deletion strategy used when removing messages from the store.
+	 * <p>By default ({@code false}), the store uses the Redis {@code GETDEL} command (since Redis 6.2).
+	 * <p>When set to {@code true}, the store uses {@code GET} + {@code UNLINK}.
+	 * <p>Consider enabling this option when:
+	 * <ul>
+	 *     <li>Stored messages are large, and blocking deletes cause noticeable Redis latency</li>
+	 *     <li>Atomicity between get and delete is not required for your use case</li>
+	 * </ul>
+	 * <p>Note: For small values, Redis may perform synchronous deletion even with
+	 * {@code UNLINK}, so the benefit is primarily for larger payloads.
+	 * @param useUnlink param to set deletion strategy.
+	 * @since 7.1
+	 * @see <a href="https://redis.io/commands/getdel/">GETDEL command</a>
+	 * @see <a href="https://redis.io/commands/unlink/">UNLINK command</a>
+	 */
+	public void setUseUnlink(boolean useUnlink) {
+		this.useUnlink = useUnlink;
+	}
+
 	@Override
-	protected Object doRetrieve(Object id) {
+	protected @Nullable Object doRetrieve(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		return ops.get();
@@ -128,9 +157,27 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	}
 
 	@Override
-	protected Object doRemove(Object id) {
+	protected @Nullable Object doRemove(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		Object removedObject = this.doRetrieve(id);
+		if (this.supportsGetDel && !this.useUnlink) {
+			try {
+				return this.redisTemplate.boundValueOps(id).getAndDelete();
+			}
+			catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
+				if (isGetDelNotSupportedError(ex)) {
+					logger.debug("GETDEL not supported, falling back to GET + UNLINK", ex);
+					this.supportsGetDel = false;
+				}
+				else {
+					throw ex;
+				}
+			}
+		}
+		return doRetrieveAndUnlink(id);
+	}
+
+	private @Nullable Object doRetrieveAndUnlink(Object id) {
+		Object removedObject = doRetrieve(id);
 		if (removedObject != null) {
 			this.redisTemplate.unlink(id);
 		}
@@ -153,6 +200,13 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 				"(JdkSerializationRedisSerializer) the Object must be Serializable. " +
 				"Either make it Serializable or provide your own implementation of " +
 				"RedisSerializer via 'setValueSerializer(..)'", e);
+	}
+
+	private static boolean isGetDelNotSupportedError(Exception exception) {
+		Throwable cause = exception.getCause();
+		return cause != null
+				&& cause.getMessage() != null
+				&& cause.getMessage().contains("ERR unknown command `GETDEL`");
 	}
 
 }
