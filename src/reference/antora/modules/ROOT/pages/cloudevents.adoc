@@ -57,7 +57,7 @@ The following table lists the attribute names and the values the default express
 
 | `dataContentType`
 | The contentType of the message, defaults to `application/octet-stream`.
-Some other examples include, but are not limited to, `application/json`, `application/x-avro`, and `application/xml`.
+Some other examples include, but are not limited to: `application/json`, `application/x-avro`, and `application/xml`.
 
 | `dataSchema`
 | The URI to the specified schema.
@@ -337,9 +337,3 @@ public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEve
         .get();
 }
 ----
-
-=== Requirements and Constraints
-
-The transformer has the following requirements:
-
-- **Payload Type**: Must be either a `CloudEvent` instance or `byte[]`

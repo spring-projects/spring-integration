@@ -22,6 +22,7 @@ import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.provider.EventFormatProvider;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.cloudevents.CloudEventHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -42,8 +43,11 @@ import org.springframework.util.MimeType;
  *   extensions are also mapped to message headers with the {@value CloudEventHeaders#PREFIX} prefix.</li>
  *   <li><b>Serialized CloudEvent Type:</b> When the message payload is a {@code byte[]} containing
  *   a serialized CloudEvent (e.g., JSON, XML), the transformer uses the {@link MessageHeaders#CONTENT_TYPE}
- *   header to resolve an {@link EventFormat} via {@link EventFormatProvider}. The CloudEvent is
- *   deserialized, and the data is extracted from the {@link CloudEvent} with its attributes mapped to headers.</li>
+ *   header to resolve an {@link EventFormat} via {@link EventFormatProvider}.  If the {@link EventFormat} is not
+ *   found from the {@link MessageHeaders#CONTENT_TYPE} or if the message does not contain
+ *   {@link MessageHeaders#CONTENT_TYPE} then it will fall back to the event `eventFormat` of the class if set. The
+ *   {@link CloudEvent} is then deserialized, and the data is extracted from the {@link CloudEvent} with its attributes
+ *   mapped to headers.</li>
  * </ul>
  *
  * @author Glenn Renfro
@@ -95,7 +99,10 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 
 			if (format == null) {
 				format = this.eventFormat;
-				logger.debug(String.format("Fallback to '%s' for content type '%s'", this.eventFormat, contentType));
+				if (format != null) {
+					logger.debug(LogMessage.format("Fallback to '%s' for content type '%s'", this.eventFormat,
+							contentType));
+				}
 			}
 
 			if (format == null) {
