@@ -52,7 +52,7 @@ import org.springframework.util.MimeType;
  *
  * @see ToCloudEventTransformer
  * @see CloudEventHeaders
- * @see io.cloudevents.CloudEvent
+ * @see CloudEvent
  * @see EventFormat
  */
 public class FromCloudEventTransformer extends AbstractTransformer {
@@ -64,7 +64,8 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Establish the {@link EventFormat} that will be used if the {@link EventFormatProvider} can not identify the
-	 * {@link EventFormat} for the message's payload.
+	 * {@link EventFormat} for the {@link MessageHeaders#CONTENT_TYPE} or the message does not contain a
+	 * {@link MessageHeaders#CONTENT_TYPE}.
 	 * @param eventFormat The fallback {@link EventFormat} to use if {@link EventFormatProvider} can not identify the
 	 *                    {@link EventFormat} for the payload.
 	 */
@@ -94,11 +95,12 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 
 			if (format == null) {
 				format = this.eventFormat;
+				logger.debug(String.format("Fallback to '%s' for content type '%s'", this.eventFormat, contentType));
 			}
 
 			if (format == null) {
 				throw new MessageTransformationException(
-						message, "No event format found or specified for specified content type: " + contentType
+						message, "No event format resolved for content type: " + contentType
 						+ " and no fallback format provided");
 			}
 
@@ -121,9 +123,9 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 				.setHeader(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, cloudEvent.getDataContentType())
 				.setHeader(CloudEventHeaders.EVENT_DATA_SCHEMA, cloudEvent.getDataSchema());
 
-		CloudEvent cloudEventInstance = cloudEvent;
-		cloudEvent.getExtensionNames().forEach(name ->
-				builder.setHeader(CloudEventHeaders.PREFIX + name, cloudEventInstance.getExtension(name)));
+		for (String headerName : cloudEvent.getExtensionNames()) {
+			builder.setHeader(CloudEventHeaders.PREFIX + headerName, cloudEvent.getExtension(headerName));
+		}
 
 		return builder.build();
 	}

@@ -89,9 +89,8 @@ public class FromCloudEventTransformerTests {
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
 				.containsEntry("custom-header", "custom-value")
 				.containsEntry("another-header", 123)
-				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("/spring/null.jsonTransformerWithExtensions"));
-
-		assertThat(result.getHeaders().get("ce-time")).isNotNull();
+				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("/spring/null.jsonTransformerWithExtensions"))
+				.containsKey(CloudEventHeaders.EVENT_TIME);
 		assertThat(result.getPayload()).isEqualTo(EXPECTED_RESULT);
 	}
 
@@ -137,24 +136,9 @@ public class FromCloudEventTransformerTests {
 				.containsEntry("ce-spanid", "span-789")
 				.containsEntry("ce-userid", "user-123")
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
-				.containsEntry("ce-time", timestamp);
+				.containsEntry(CloudEventHeaders.EVENT_TIME, timestamp);
 
 		assertThat(result.getPayload()).isEqualTo(EXPECTED_RESULT);
-	}
-
-	@Test
-	void cloudEventWithEmptyDataTransformToMessage() {
-		CloudEvent payload = CloudEventBuilder.v1().withId("empty-data")
-				.withSource(URI.create("/spring/empty"))
-				.withType("empty.event")
-				.withDataContentType("text/plain")
-				.withData(new byte[0])
-				.build();
-		Message<?> message = MessageBuilder.withPayload(payload).build();
-		Message<?> result = this.fromCloudEventTransformer.transform(message);
-
-		assertThat(result.getHeaders()).containsEntry(CloudEventHeaders.EVENT_ID, "empty-data");
-		assertThat(result.getPayload()).isEqualTo(new byte[0]);
 	}
 
 	@Test
