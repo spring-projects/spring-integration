@@ -21,7 +21,7 @@ import java.util.Collection;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -136,22 +136,17 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	@Override
 	protected @Nullable Object doRemove(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		Object removedObject;
 		if (this.supportsGetDel) {
 			try {
-				removedObject = this.redisTemplate.boundValueOps(id).getAndDelete();
+				return this.redisTemplate.boundValueOps(id).getAndDelete();
 			}
-			catch (DataAccessException e) {
+			catch (RedisSystemException e) {
 				// GETDEL command is not supported before Redis 6.2
 				logger.debug("GETDEL not supported, falling back to GET + UNLINK", e);
-				removedObject = this.doRetrieveAndUnlink(id);
 				this.supportsGetDel = false;
 			}
 		}
-		else {
-			removedObject = this.doRetrieveAndUnlink(id);
-		}
-		return removedObject;
+		return this.doRetrieveAndUnlink(id);
 	}
 
 	private @Nullable Object doRetrieveAndUnlink(Object id) {

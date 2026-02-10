@@ -26,8 +26,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -38,9 +40,16 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
@@ -54,9 +63,9 @@ class RedisMessageStoreTests implements RedisContainerTest {
 
 	private static RedisConnectionFactory redisConnectionFactory;
 
-	private static final String DEFAULT_PERSON_ADDRESS = "1600 Pennsylvania Av, Washington, DC";
+	private static final String DEFAULT_PERSON_ADDRESS = "1234 Main String, Somewhere, City, Province";
 
-	private static final String DEFAULT_PERSON_NAME = "Barak Obama";
+	private static final String DEFAULT_PERSON_NAME = "John Doe";
 
 	@BeforeAll
 	static void setupConnection() {
@@ -204,6 +213,60 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		assertThat(removed3).isNotNull();
 		assertThat(removed3.getPayload()).isEqualTo("Message 3");
 		assertThat(store.getMessageCount()).isZero();
+	}
+
+	@Test
+	void testDoRemoveFallbackWhenGetDelNotSupported() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		RedisMessageStore spyStore = spy(store);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock(RedisTemplate.class);
+		ReflectionTestUtils.setField(spyStore, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock(BoundValueOperations.class);
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+		when(mockValueOps.getAndDelete())
+				.thenThrow(new RedisSystemException("ERR unknown command 'GETDEL'", null));
+
+		Message<String> expectedMessage = new GenericMessage<>("test");
+		UUID id = UUID.randomUUID();
+		String prefixedKey = "MESSAGE_" + id;
+		when(mockValueOps.get()).thenReturn(expectedMessage);
+		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
+
+		Message<?> removed = spyStore.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		assertThat(ReflectionTestUtils.getField(spyStore, "supportsGetDel")).isEqualTo(false);
+		verify(mockValueOps).getAndDelete();
+		verify(mockValueOps).get();
+		verify(mockRedisTemplate).unlink(prefixedKey);
+	}
+
+	@Test
+	void testDoRemoveSkipsGetDelAfterFallback() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		RedisMessageStore spyStore = spy(store);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock(RedisTemplate.class);
+		ReflectionTestUtils.setField(spyStore, "redisTemplate", mockRedisTemplate);
+		ReflectionTestUtils.setField(spyStore, "supportsGetDel", false);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock(BoundValueOperations.class);
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+
+		Message<String> expectedMessage = new GenericMessage<>("test");
+		UUID id = UUID.randomUUID();
+		String prefixedKey = "MESSAGE_" + id;
+		when(mockValueOps.get()).thenReturn(expectedMessage);
+		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
+
+		Message<?> removed = spyStore.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		verify(mockValueOps, never()).getAndDelete();
+		verify(mockValueOps).get();
+		verify(mockRedisTemplate).unlink(prefixedKey);
 	}
 
 	@Test
