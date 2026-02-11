@@ -63,7 +63,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 
 	private boolean defaultOverwrite;
 
-	private boolean shouldSkipNulls;
+	private boolean shouldSkipNulls = true;
 
 	private @Nullable MessageProcessor<?> messageProcessor;
 
