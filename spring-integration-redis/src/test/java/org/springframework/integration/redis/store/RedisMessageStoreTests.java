@@ -46,8 +46,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -220,13 +220,13 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 		RedisMessageStore spyStore = spy(store);
 
-		RedisTemplate<Object, Object> mockRedisTemplate = mock(RedisTemplate.class);
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
 		ReflectionTestUtils.setField(spyStore, "redisTemplate", mockRedisTemplate);
 
-		BoundValueOperations<Object, Object> mockValueOps = mock(BoundValueOperations.class);
+		BoundValueOperations<Object, Object> mockValueOps = mock();
 		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
 		when(mockValueOps.getAndDelete())
-				.thenThrow(new RedisSystemException("ERR unknown command 'GETDEL'", null));
+				.thenThrow(new RedisSystemException("ERR unknown command `GETDEL`", new Throwable("ERR unknown command `GETDEL`")));
 
 		Message<String> expectedMessage = new GenericMessage<>("test");
 		UUID id = UUID.randomUUID();
@@ -234,39 +234,15 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		when(mockValueOps.get()).thenReturn(expectedMessage);
 		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
 
-		Message<?> removed = spyStore.removeMessage(id);
+		Message<?> removed1 = spyStore.removeMessage(id);
+		Message<?> removed2 = spyStore.removeMessage(id);
 
-		assertThat(removed).isEqualTo(expectedMessage);
+		assertThat(removed1).isEqualTo(expectedMessage);
+		assertThat(removed2).isEqualTo(expectedMessage);
 		assertThat(ReflectionTestUtils.getField(spyStore, "supportsGetDel")).isEqualTo(false);
-		verify(mockValueOps).getAndDelete();
-		verify(mockValueOps).get();
-		verify(mockRedisTemplate).unlink(prefixedKey);
-	}
-
-	@Test
-	void testDoRemoveSkipsGetDelAfterFallback() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-		RedisMessageStore spyStore = spy(store);
-
-		RedisTemplate<Object, Object> mockRedisTemplate = mock(RedisTemplate.class);
-		ReflectionTestUtils.setField(spyStore, "redisTemplate", mockRedisTemplate);
-		ReflectionTestUtils.setField(spyStore, "supportsGetDel", false);
-
-		BoundValueOperations<Object, Object> mockValueOps = mock(BoundValueOperations.class);
-		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
-
-		Message<String> expectedMessage = new GenericMessage<>("test");
-		UUID id = UUID.randomUUID();
-		String prefixedKey = "MESSAGE_" + id;
-		when(mockValueOps.get()).thenReturn(expectedMessage);
-		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
-
-		Message<?> removed = spyStore.removeMessage(id);
-
-		assertThat(removed).isEqualTo(expectedMessage);
-		verify(mockValueOps, never()).getAndDelete();
-		verify(mockValueOps).get();
-		verify(mockRedisTemplate).unlink(prefixedKey);
+		verify(mockValueOps, times(1)).getAndDelete();
+		verify(mockValueOps, times(2)).get();
+		verify(mockRedisTemplate, times(2)).unlink(prefixedKey);
 	}
 
 	@Test

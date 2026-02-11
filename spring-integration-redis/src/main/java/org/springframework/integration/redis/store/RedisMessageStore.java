@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -140,17 +141,28 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 			try {
 				return this.redisTemplate.boundValueOps(id).getAndDelete();
 			}
-			catch (RedisSystemException e) {
-				// GETDEL command is not supported before Redis 6.2
-				logger.debug("GETDEL not supported, falling back to GET + UNLINK", e);
-				this.supportsGetDel = false;
+			catch (RedisSystemException | InvalidDataAccessApiUsageException e) {
+				if (isGetDelNotSupportedError(e)) {
+					logger.debug("GETDEL not supported, falling back to GET + UNLINK", e);
+					this.supportsGetDel = false;
+				}
+				else {
+					throw e;
+				}
 			}
 		}
-		return this.doRetrieveAndUnlink(id);
+		return doRetrieveAndUnlink(id);
+	}
+
+	private boolean isGetDelNotSupportedError(Exception e) {
+		Throwable cause = e.getCause();
+		return cause != null
+				&& cause.getMessage() != null
+				&& cause.getMessage().contains("ERR unknown command `GETDEL`");
 	}
 
 	private @Nullable Object doRetrieveAndUnlink(Object id) {
-		Object removedObject = this.doRetrieve(id);
+		Object removedObject = doRetrieve(id);
 		if (removedObject != null) {
 			this.redisTemplate.unlink(id);
 		}
