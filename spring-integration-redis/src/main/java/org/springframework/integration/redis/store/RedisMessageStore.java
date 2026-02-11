@@ -154,13 +154,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		return doRetrieveAndUnlink(id);
 	}
 
-	private boolean isGetDelNotSupportedError(Exception e) {
-		Throwable cause = e.getCause();
-		return cause != null
-				&& cause.getMessage() != null
-				&& cause.getMessage().contains("ERR unknown command `GETDEL`");
-	}
-
 	private @Nullable Object doRetrieveAndUnlink(Object id) {
 		Object removedObject = doRetrieve(id);
 		if (removedObject != null) {
@@ -185,6 +178,13 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 				"(JdkSerializationRedisSerializer) the Object must be Serializable. " +
 				"Either make it Serializable or provide your own implementation of " +
 				"RedisSerializer via 'setValueSerializer(..)'", e);
+	}
+
+	private static boolean isGetDelNotSupportedError(Exception e) {
+		Throwable cause = e.getCause();
+		return cause != null
+				&& cause.getMessage() != null
+				&& cause.getMessage().contains("ERR unknown command `GETDEL`");
 	}
 
 }
