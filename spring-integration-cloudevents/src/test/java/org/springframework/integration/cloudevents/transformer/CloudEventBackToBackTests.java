@@ -159,24 +159,23 @@ class CloudEventBackToBackTests {
 					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
 
 			return IntegrationFlow.from("messageInputChannel")
-					.transform(new FromCloudEventTransformer())
-					.transform(toCloudEventsTransformer)
+					.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.fromCloudEventTransformer())
+					.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.toCloudEventTransformer()
+							.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)))
 					.channel("outputChannel")
 					.get();
 		}
 
-		@Bean
-		IntegrationFlow jsonCaseFlow() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer(TEST_PATTERNS);
-			toCloudEventsTransformer
-					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
-
-			return IntegrationFlow.from("jsonCaseInputChannel")
-					.transform(toCloudEventsTransformer)
-					.transform(new FromCloudEventTransformer())
-					.channel("outputChannel")
-					.get();
-		}
+	@Bean
+	IntegrationFlow jsonCaseFlow() {
+		return IntegrationFlow.from("jsonCaseInputChannel")
+				.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.toCloudEventTransformer(
+						TEST_PATTERNS)
+						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)))
+				.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.fromCloudEventTransformer())
+				.channel("outputChannel")
+				.get();
+	}
 
 		@Bean
 		PollableChannel outputChannel() {

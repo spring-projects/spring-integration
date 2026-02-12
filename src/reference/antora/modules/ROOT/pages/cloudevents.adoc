@@ -102,7 +102,7 @@ public ToCloudEventTransformer cloudEventTransformer() {
 public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEventTransformer) {
     return IntegrationFlows
         .from("inputChannel")
-        .transform(toCloudEventTransformer)
+        .handle(CloudEvent.toCloudEventTransformer())
         .channel("outputChannel")
         .get();
 }
@@ -337,7 +337,7 @@ public FromCloudEventTransformer fromCloudEventTransformer() {
 public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEventTransformer) {
     return IntegrationFlows
         .from("cloudEventInputChannel")
-        .transform(fromCloudEventTransformer)
+        .handle(CloudEvent.fromCloudEventTransformer())
         .channel("messageOutputChannel")
         .get();
 }
