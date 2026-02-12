@@ -162,17 +162,16 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 			}
 		}
 
-		Assert.notNull(this.handshakeHandler, "'handshakeHandler' must not be null");
-		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
-				.setHandshakeHandler(this.handshakeHandler);
+		WebSocketHandlerRegistration registration =
+				registry.addHandler(webSocketHandler, this.paths)
+						.addInterceptors(this.interceptors)
+						.setAllowedOrigins(this.origins);
 
-		configureRegistration(registration);
+		if (this.handshakeHandler != null) {
+			registration.setHandshakeHandler(this.handshakeHandler);
+		}
+
 		configureSockJsOptionsIfAny(registration);
-	}
-
-	private void configureRegistration(WebSocketHandlerRegistration registration) {
-		registration.addInterceptors(this.interceptors);
-		registration.setAllowedOrigins(this.origins);
 	}
 
 	private void configureSockJsOptionsIfAny(WebSocketHandlerRegistration registration) {
