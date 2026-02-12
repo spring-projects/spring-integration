@@ -21,13 +21,13 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AnonymousQueue;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +49,8 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -70,8 +72,8 @@ public class ManualAckTests implements RabbitTestContainer {
 
 	@Test
 	public void testManual() {
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(this.container);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) this.container);
+		adapter.setBeanFactory(mock());
 		adapter.setOutputChannel(foo);
 		adapter.afterPropertiesSet();
 		adapter.start();

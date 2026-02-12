@@ -129,6 +129,21 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	/**
 	 * Construct an instance using the provided container.
+	 * Needed for bytecode backward compatibility.
+	 * @param listenerContainer the container.
+	 * @deprecated since 7.1 in favor of
+	 * {@link #AmqpInboundChannelAdapter(org.springframework.amqp.core.MessageListenerContainer)}.
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(forRemoval = true, since = "7.1")
+	public AmqpInboundChannelAdapter(
+			org.springframework.amqp.rabbit.listener.MessageListenerContainer listenerContainer) {
+
+		this((MessageListenerContainer) listenerContainer);
+	}
+
+	/**
+	 * Construct an instance using the provided container.
 	 * @param listenerContainer the container.
 	 */
 	@SuppressWarnings("this-escape")

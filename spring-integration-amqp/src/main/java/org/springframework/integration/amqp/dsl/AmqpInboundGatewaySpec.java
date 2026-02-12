@@ -22,6 +22,7 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -58,7 +59,7 @@ public abstract class AmqpInboundGatewaySpec
 	AmqpInboundGatewaySpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec,
 			AmqpTemplate amqpTemplate) {
 
-		super(new AmqpInboundGateway(listenerContainerSpec.getObject(), amqpTemplate));
+		super(new AmqpInboundGateway((MessageListenerContainer) listenerContainerSpec.getObject(), amqpTemplate));
 		this.listenerContainerSpec = listenerContainerSpec;
 	}
 

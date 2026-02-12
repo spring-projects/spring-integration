@@ -108,6 +108,23 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	/**
 	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
 	 * to receive request messages and {@link AmqpTemplate} to send replies.
+	 * Needed for bytecode backward compatibility.
+	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
+	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
+	 * @deprecated since 7.1 in favor
+	 * of {@link #AmqpInboundGateway(org.springframework.amqp.core.MessageListenerContainer, AmqpTemplate)}.
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(forRemoval = true, since = "7.1")
+	public AmqpInboundGateway(org.springframework.amqp.rabbit.listener.MessageListenerContainer listenerContainer,
+			AmqpTemplate amqpTemplate) {
+
+		this((MessageListenerContainer) listenerContainer, amqpTemplate);
+	}
+
+	/**
+	 * Construct {@link AmqpInboundGateway} based on the provided {@link MessageListenerContainer}
+	 * to receive request messages and {@link AmqpTemplate} to send replies.
 	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
 	 */

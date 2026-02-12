@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.batch.MessageBatch;
@@ -47,7 +48,6 @@ import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.retry.RetryException;
 import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.retry.RetryTemplate;
@@ -103,7 +103,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		container.setConnectionFactory(connectionFactory);
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setMessageConverter(new JacksonJsonMessageConverter());
 
 		PollableChannel channel = new QueueChannel();
@@ -131,8 +131,9 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		Message<?> result = channel.receive(1000);
 		assertThat(result.getPayload()).isEqualTo(payload);
 
-		assertThat(result.getHeaders().get(AmqpHeaders.CHANNEL)).isSameAs(rabbitChannel);
-		assertThat(result.getHeaders().get(AmqpHeaders.DELIVERY_TAG)).isEqualTo(123L);
+		assertThat(result.getHeaders())
+				.containsEntry(AmqpHeaders.CHANNEL, rabbitChannel)
+				.containsEntry(AmqpHeaders.DELIVERY_TAG, 123L);
 		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(result);
 		assertThat(sourceData).isSameAs(amqpMessage);
 	}
@@ -146,19 +147,20 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 
 		PollableChannel channel = new QueueChannel();
 
 		adapter.setOutputChannel(channel);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(mock());
 		adapter.afterPropertiesSet();
 
 		Object payload = new Foo("bar1");
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage =
-				new JacksonJsonMessageConverter().toMessage(payload, amqpMessageProperties);
+				new JacksonJsonMessageConverter()
+						.toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, null);
@@ -184,7 +186,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 
 		DirectChannel channel = new DirectChannel();
 
-		final Channel rabbitChannel = mock(Channel.class);
+		Channel rabbitChannel = mock();
 
 		channel.subscribe(new MessageTransformingHandler(message -> {
 			assertThat(message.getHeaders().get(AmqpHeaders.CHANNEL)).isSameAs(rabbitChannel);
@@ -205,22 +207,23 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 					org.springframework.amqp.core.Message message =
 							invocation.getArgument(2);
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
-					assertThat(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isTrue();
-					assertThat(headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isNotEqualTo("foo");
-					assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
-					assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
-					assertThat(headers.containsKey(JsonHeaders.TYPE_ID)).isFalse();
-					assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID)).isFalse();
-					assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)).isFalse();
+					assertThat(headers)
+							.doesNotContainKeys(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""),
+									JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""),
+									JsonHeaders.TYPE_ID,
+									JsonHeaders.KEY_TYPE_ID,
+									JsonHeaders.CONTENT_TYPE_ID)
+							.containsEntry(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""),
+									InboundEndpointTests.Foo.class.getName());
 					sendLatch.countDown();
 					return null;
 				}).when(rabbitTemplate)
 				.send(anyString(), anyString(), any(org.springframework.amqp.core.Message.class), isNull());
 
-		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
+		AmqpInboundGateway gateway = new AmqpInboundGateway((MessageListenerContainer) container, rabbitTemplate);
 		gateway.setMessageConverter(new JacksonJsonMessageConverter());
 		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(mock());
 		gateway.setDefaultReplyTo("foo");
 		gateway.setReplyHeadersMappedLast(true);
 		gateway.afterPropertiesSet();
@@ -230,7 +233,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage =
-				new JacksonJsonMessageConverter().toMessage(payload, amqpMessageProperties);
+				new JacksonJsonMessageConverter()
+						.toMessage(payload, amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, rabbitChannel);
@@ -246,7 +250,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
@@ -261,7 +265,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		});
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
-		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
+		org.springframework.amqp.core.Message message = mock();
 		MessageProperties props = new MessageProperties();
 		props.setDeliveryTag(42L);
 		given(message.getMessageProperties()).willReturn(props);
@@ -271,17 +275,17 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		Message<?> received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
-		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+		assertThat(received.getPayload()).isInstanceOf(ListenerExecutionFailedException.class);
 
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 		adapter.afterPropertiesSet(); // ack mode is now captured during init
-		Channel channel = mock(Channel.class);
+		Channel channel = mock();
 		((ChannelAwareMessageListener) container.getMessageListener())
 				.onMessage(message, channel);
 		assertThat(outputChannel.receive(0)).isNull();
 		received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
 		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
 				.getPayload();
@@ -318,7 +322,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		});
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
-		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
+		org.springframework.amqp.core.Message message = mock();
 		MessageProperties props = new MessageProperties();
 		props.setDeliveryTag(42L);
 		given(message.getMessageProperties()).willReturn(props);
@@ -327,16 +331,16 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(outputChannel.receive(0)).isNull();
 		Message<?> received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-		Channel channel = mock(Channel.class);
+		Channel channel = mock();
 		((ChannelAwareMessageListener) container.getMessageListener())
 				.onMessage(message, channel);
 		assertThat(outputChannel.receive(0)).isNull();
 		received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
 		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
 				.getPayload();
@@ -348,9 +352,13 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testRetryWithinOnMessageAdapter() throws Exception {
 		ConnectionFactory connectionFactory = mock();
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(RetryPolicy.builder()
+						.maxRetries(2)
+						.delay(Duration.ZERO)
+						.build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -378,9 +386,13 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testRetryWithMessageRecovererOnMessageAdapter() throws Exception {
 		ConnectionFactory connectionFactory = mock();
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(RetryPolicy.builder()
+						.maxRetries(2)
+						.delay(Duration.ZERO)
+						.build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -416,7 +428,11 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(RetryPolicy.builder()
+						.maxRetries(2)
+						.delay(Duration.ZERO)
+						.build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
@@ -451,7 +467,12 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
 		adapter.setRequestChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(
+						RetryPolicy.builder()
+								.maxRetries(2)
+								.delay(Duration.ZERO)
+								.build()));
 		AtomicReference<org.springframework.amqp.core.Message> recoveredMessage = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
@@ -486,7 +507,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testBatchAdapter() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock());
 		container.setDeBatchingEnabled(false);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -540,7 +561,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testConsumerBatchExtract() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock());
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBatchMode(BatchMode.EXTRACT_PAYLOADS_WITH_HEADERS);
@@ -566,7 +587,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testConsumerBatch() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock());
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -589,7 +610,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 	public void testConsumerBatchAndWrongMessageRecoverer() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock());
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setRetryTemplate(new RetryTemplate());
 		adapter.setMessageRecoverer((message, cause) -> {
@@ -602,7 +623,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 
 	@Test
 	public void testExclusiveRecover() {
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(mock());
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(mock(MessageListenerContainer.class));
 		adapter.setRetryTemplate(new RetryTemplate());
 		adapter.setMessageRecoverer((message, cause) -> {
 		});
@@ -623,7 +644,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
@@ -653,8 +674,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(outputChannel.receive(0)).isNull();
 		Message<?> received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
-		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+		assertThat(received.getPayload()).isInstanceOf(ListenerExecutionFailedException.class);
 
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 		adapter.afterPropertiesSet(); // ack mode is now captured during init
@@ -664,7 +685,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(outputChannel.receive(0)).isNull();
 		received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
 		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
 				.getPayload();
@@ -681,7 +702,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
@@ -710,8 +731,8 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(outputChannel.receive(0)).isNull();
 		Message<?> received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
-		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+		assertThat(received.getPayload()).isInstanceOf(ListenerExecutionFailedException.class);
 
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 		adapter.afterPropertiesSet(); // ack mode is now captured during init
@@ -721,7 +742,7 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		assertThat(outputChannel.receive(0)).isNull();
 		received = errorChannel.receive(0);
 		assertThat(received).isNotNull();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getHeaders()).containsKey(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
 		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
 		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
 				.getPayload();
@@ -734,9 +755,14 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		ConnectionFactory connectionFactory = mock();
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(
+						RetryPolicy.builder()
+								.maxRetries(2)
+								.delay(Duration.ZERO)
+								.build()));
 		QueueChannel errors = new QueueChannel();
 		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -765,7 +791,6 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		List<org.springframework.amqp.core.Message> amqpMessages = errorMessage.getHeaders()
 				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
 						List.class);
-		assertThat(amqpMessages).isNotNull();
 		assertThat(amqpMessages).hasSize(2);
 		@SuppressWarnings("unchecked")
 		List<Message<?>> msgs = (List<Message<?>>) payload.getFailedMessage().getPayload();
@@ -782,9 +807,14 @@ public class InboundEndpointTests implements TestApplicationContextAware {
 		ConnectionFactory connectionFactory = mock();
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
 		container.setConsumerBatchEnabled(true);
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter((MessageListenerContainer) container);
 		adapter.setOutputChannel(new DirectChannel());
-		adapter.setRetryTemplate(new RetryTemplate(RetryPolicy.builder().maxRetries(2).delay(Duration.ZERO).build()));
+		adapter.setRetryTemplate(
+				new RetryTemplate(
+						RetryPolicy.builder()
+								.maxRetries(2)
+								.delay(Duration.ZERO)
+								.build()));
 		AtomicReference<List<org.springframework.amqp.core.Message>> recoveredMessages = new AtomicReference<>();
 		AtomicReference<Throwable> recoveredError = new AtomicReference<>();
 		CountDownLatch recoveredLatch = new CountDownLatch(1);
