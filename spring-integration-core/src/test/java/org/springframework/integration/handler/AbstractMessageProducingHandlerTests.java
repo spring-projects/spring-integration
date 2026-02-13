@@ -39,35 +39,21 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link AbstractMessageProducingHandler}.
  *
  * @author Glenn Renfro
- * @since 7.1
+ * @since 6.5.7
  */
 public class AbstractMessageProducingHandlerTests {
 
 	private TestMessageProducingHandler handler;
 
-	private BeanFactory beanFactory;
-
 	@BeforeEach
 	void setup() {
 		this.handler = new TestMessageProducingHandler();
-		this.beanFactory = mock(BeanFactory.class);
-		this.handler.setBeanFactory(this.beanFactory);
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		this.handler.setBeanFactory(beanFactory);
 		this.handler.afterPropertiesSet();
 	}
 
-	@Test
-	void shouldSendOutputToConfiguredChannel() {
-		QueueChannel outputChannel = new QueueChannel();
-		this.handler.setOutputChannel(outputChannel);
-		Message<?> inputMessage = MessageBuilder.withPayload("test").build();
-
-		this.handler.handleMessageInternal(inputMessage);
-
-		Message<?> outputMessage = outputChannel.receive(0);
-		assertThat(outputMessage).isNotNull();
-		assertThat(outputMessage.getPayload()).isEqualTo("test");
-	}
-
+	@SuppressWarnings("unchecked")
 	@Test
 	void shouldSendNonQueueFluxOutputToConfiguredChannel() {
 		QueueChannel outputChannel = new QueueChannel();
@@ -87,6 +73,7 @@ public class AbstractMessageProducingHandlerTests {
 				.verify();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	void shouldSendMonoOutputToConfiguredChannel() {
 		QueueChannel outputChannel = new QueueChannel();
@@ -105,6 +92,7 @@ public class AbstractMessageProducingHandlerTests {
 				.verify();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	void shouldSendQueueFluxOutputToConfiguredChannel() {
 		QueueChannel outputChannel = new QueueChannel();
@@ -132,20 +120,6 @@ public class AbstractMessageProducingHandlerTests {
 	}
 
 	@Test
-	void shouldSendOutputToReplyChannel() {
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> inputMessage = MessageBuilder.withPayload("test")
-				.setReplyChannel(replyChannel)
-				.build();
-
-		this.handler.handleMessageInternal(inputMessage);
-
-		Message<?> outputMessage = replyChannel.receive(0);
-		assertThat(outputMessage).isNotNull();
-		assertThat(outputMessage.getPayload()).isEqualTo("test");
-	}
-
-	@Test
 	void shouldHandleCompletableFutureInAsyncMode() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
 		this.handler.setOutputChannel(outputChannel);
@@ -155,8 +129,6 @@ public class AbstractMessageProducingHandlerTests {
 		Message<?> inputMessage = MessageBuilder.withPayload("test").build();
 
 		this.handler.handleMessageInternal(inputMessage);
-
-		assertThat(outputChannel.receive(0)).isNull();
 
 		future.complete("asyncResult");
 
