@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -72,7 +72,8 @@ import static org.mockito.Mockito.verify;
  *
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests implements TestApplicationContextAware {
+public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests
+		implements TestApplicationContextAware {
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -315,7 +316,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	}
 
 	@Test
-	public void INT2680DuplicateContentTypeHeader() throws Exception {
+	public void noDuplicateContentTypeHeader() throws Exception {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 
@@ -328,36 +329,31 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 
 		});
 
-		final List<MediaType> supportedMediaTypes = new ArrayList<>();
-		supportedMediaTypes.add(MediaType.TEXT_HTML);
+		List<MediaType> supportedMediaTypes = List.of(MediaType.TEXT_PLAIN);
 
-		final ByteArrayHttpMessageConverter messageConverter = new ByteArrayHttpMessageConverter();
+		ByteArrayHttpMessageConverter messageConverter = new ByteArrayHttpMessageConverter();
 		messageConverter.setSupportedMediaTypes(supportedMediaTypes);
 
-		final List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-		messageConverters.add(messageConverter);
+		List<HttpMessageConverter<?>> messageConverters = List.of(messageConverter);
 
-		final HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setMessageConverters(messageConverters);
 		gateway.setRequestChannel(requestChannel);
 		gateway.start();
 
-		final MockHttpServletRequest request = new MockHttpServletRequest();
+		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
-		final ContentTypeCheckingMockHttpServletResponse response = new ContentTypeCheckingMockHttpServletResponse();
+		ContentTypeCheckingMockHttpServletResponse response = new ContentTypeCheckingMockHttpServletResponse();
 		gateway.handleRequest(request, response);
 
 		assertThat(response.getContentAsString()).isEqualTo("Cartman");
 
-		/* Before fixing INT2680, 2 content type headers were being written. */
-		final List<String> contentTypes = response.getContentTypeList();
+		List<String> contentTypes = response.getContentTypeList();
 
-		assertThat(Integer.valueOf(contentTypes.size())).as("Expecting only 1 content type being set.")
-				.isEqualTo(Integer.valueOf(1));
-		assertThat(contentTypes.get(0)).isEqualTo("text/plain");
+		assertThat(contentTypes).containsOnly("text/plain");
 	}
 
 	@Test
@@ -455,7 +451,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void testMultipart() throws Exception {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		MultipartResolver multipartResolver = mock(MultipartResolver.class);
+		MultipartResolver multipartResolver = mock();
 		gateway.setMultipartResolver(multipartResolver);
 		gateway.setRequestChannel(new NullChannel());
 		gateway.setRequestPayloadTypeClass(String.class);
@@ -504,12 +500,18 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		private final List<String> contentTypeList = new ArrayList<>();
 
 		@Override
-		public void addHeader(String name, String value) {
-
+		public void setHeader(@Nullable String name, @Nullable String value) {
 			if ("Content-Type".equalsIgnoreCase(name)) {
 				this.contentTypeList.add(value);
 			}
+			super.setHeader(name, value);
+		}
 
+		@Override
+		public void addHeader(String name, String value) {
+			if ("Content-Type".equalsIgnoreCase(name)) {
+				this.contentTypeList.add(value);
+			}
 			super.addHeader(name, value);
 		}
 
@@ -522,7 +524,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	private static class TestHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
 
 		TestHttpMessageConverter() {
-			setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
+			setSupportedMediaTypes(List.of(MediaType.ALL));
 		}
 
 		@Override
