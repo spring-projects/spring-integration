@@ -241,7 +241,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	protected void sendOutputs(@Nullable Object result, Message<?> requestMessage) {
-		if (result instanceof Iterable<?> iterableResult && shouldSplitOutput(iterableResult)) {
+
+		if (!(result instanceof Flux<?>)
+				&& result instanceof Iterable<?> iterableResult
+				&& shouldSplitOutput(iterableResult)) {
 			for (Object o : iterableResult) {
 				produceOutput(o, requestMessage);
 			}
@@ -510,7 +513,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		else {
 			builder = getMessageBuilderFactory().withPayload(output);
 			// Assuming that a message in the payload collection is a copy of the request message.
-			if (output instanceof Iterable<?> iterable) {
+			if (!(output instanceof Flux<?>)
+					&& output instanceof Iterable<?> iterable) {
 				Iterator<?> iterator = iterable.iterator();
 				if (iterator.hasNext() && iterator.next() instanceof Message<?>) {
 					builder = builder.cloneMessageHistoryIfAny();
