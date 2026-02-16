@@ -245,10 +245,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	protected void sendOutputs(Object result, Message<?> requestMessage) {
-		
 		if (!(result instanceof Flux<?>)
 				&& result instanceof Iterable<?> iterableResult
 				&& shouldSplitOutput(iterableResult)) {
+
 			for (Object o : iterableResult) {
 				produceOutput(o, requestMessage);
 			}
