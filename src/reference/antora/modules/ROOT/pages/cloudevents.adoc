@@ -31,7 +31,7 @@ implementation "org.springframework.integration:spring-integration-cloudevents:{
 
 Use the `ToCloudEventTransformer` to convert Spring Integration messages into CloudEvents-compliant messages.
 This transformer supports the CloudEvents specification v1.0 and serializes CloudEvents if an `EventFormat` or `eventFormatContentTypeExpression` is specified.
-When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the `CloudEvent` in the payload.
+When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the `CloudEvents` in the payload.
 If neither is specified, the transformer writes the event data message payload as-is and adds attributes as well as extensions to the message headers.
 The transformer supports defining attributes using expressions and identifies extensions in the message headers via patterns.
 
@@ -89,7 +89,7 @@ To exclude specific headers, use negated patterns: `"custom-*", "!custom-interna
 [[configuration-with-dsl]]
 === Configuration with DSL
 
-Add the CloudEvent transformer to flows using the DSL:
+Use the `CloudEvents` factory to add the `ToCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
@@ -102,7 +102,7 @@ public ToCloudEventTransformer cloudEventTransformer() {
 public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEventTransformer) {
     return IntegrationFlows
         .from("inputChannel")
-        .handle(CloudEvent.toCloudEventTransformer())
+        .transform(CloudEvents.toCloudEventTransformer().get())
         .channel("outputChannel")
         .get();
 }
@@ -159,9 +159,9 @@ The transformer throws an `IllegalArgumentException` if the payload is not a byt
 == `FromCloudEventTransformer`
 
 Use the `FromCloudEventTransformer` to convert CloudEvents into Spring Integration messages.
-This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: `CloudEvent` objects or serialized `CloudEvent` byte arrays.
+This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: `CloudEvents` objects or serialized `CloudEvents` byte arrays.
 
-The transformer extracts `CloudEvent` data from the message payload and maps `CloudEvent` attributes along with `CloudEvent` extensions to message headers with a `ce-` prefix.
+The transformer extracts `CloudEvents` data from the message payload and maps `CloudEvents` attributes along with `CloudEvents` extensions to message headers with a `ce-` prefix.
 
 === Supported Payload Types
 
@@ -170,12 +170,12 @@ The transformer accepts messages with the following payload types:
 [#cloudeventobjectype]
 ==== CloudEvent Object Type
 
-When the message payload is a `CloudEvent` instance, the transformer:
+When the message payload is a `CloudEvents` instance, the transformer:
 
 1. Extracts the CloudEvent data and uses it as the message payload.
 2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers with a `ce-` prefix.
 3. Maps all CloudEvent extensions to message headers with the `ce-` prefix.
-4. Preserves all original message headers unless a header key matches a `CloudEvent` attribute or extension, in which case the original value is overwritten.
+4. Preserves all original message headers unless a header key matches a `CloudEvents` attribute or extension, in which case the original value is overwritten.
 
 Example:
 
@@ -220,10 +220,10 @@ GenericMessage [
 
 ==== Serialized CloudEvent Type
 
-When the message payload is a `byte[]` containing a serialized `CloudEvent`, the transformer:
+When the message payload is a `byte[]` containing a serialized `CloudEvents`, the transformer:
 
 1. Uses the `content-type` header to resolve the appropriate `EventFormat` via `EventFormatProvider`.
-2. Deserializes the payload to a `CloudEvent` object using the resolved format.
+2. Deserializes the payload to a `CloudEvents` object using the resolved format.
 3. Follows the same steps enumerated in the <<cloudeventobjectype>> section.
 
 Information on supported content types is discussed in the <<eventformats>> section.
@@ -282,7 +282,7 @@ GenericMessage [
 [#cloudevent-attribute-mapping]
 === CloudEvent Attribute Mapping
 
-The transformer maps `CloudEvent` attributes to message headers using the following `CloudEventHeaders` constants:
+The transformer maps `CloudEvents` attributes to message headers using the following `CloudEventHeaders` constants:
 
 |===
 | CloudEvent Attribute | Message Header Key | Required
@@ -324,7 +324,7 @@ NOTE: The `contentType` header in the output message is always set to the CloudE
 
 === Configuration with DSL
 
-Add the `CloudEvent` transformer to flows using the DSL:
+Use the `CloudEvents` factory to add the `FromCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
@@ -337,7 +337,7 @@ public FromCloudEventTransformer fromCloudEventTransformer() {
 public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEventTransformer) {
     return IntegrationFlows
         .from("cloudEventInputChannel")
-        .handle(CloudEvent.fromCloudEventTransformer())
+        .transform(CloudEvents.fromCloudEventTransformer())
         .channel("messageOutputChannel")
         .get();
 }

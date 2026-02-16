@@ -66,7 +66,7 @@ import org.springframework.util.StringUtils;
  *   (either configured via {@link #setEventFormat(EventFormat)} or resolved via
  *   {@link #setEventFormatContentTypeExpression(Expression)}), the {@link CloudEvent} is
  *   serialized into the message payload using that format (e.g., JSON, XML).
- *   The output message contains the serialized CloudEvent as payload with
+ *   The output message contains the serialized CloudEvents as payload with
  *   {@link MessageHeaders#CONTENT_TYPE} set to the format's serialized content type.</li>
  *   <li><b>Binary Content Mode:</b> When no {@link EventFormat} is available,
  *   the transformer uses {@link MessageBuilderMessageWriter} to convert the {@link CloudEvent}
@@ -209,7 +209,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 			String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
 			if (!StringUtils.hasText(appName)) {
 				logger.warn("'spring.application.name' is not set. " +
-						"CloudEvent source URIs will use 'null' as the application name. ");
+						"CloudEvents source URIs will use 'null' as the application name. ");
 			}
 			this.sourceExpression = new ValueExpression<>(URI.create("/spring/" + appName + "." + getBeanName()));
 		}

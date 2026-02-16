@@ -85,7 +85,7 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 	@Override
 	protected Object doTransform(Message<?> message) {
 		Assert.state(message.getPayload() instanceof byte[] || message.getPayload() instanceof CloudEvent,
-				"Payload did not contain 'CloudEvent' nor could it be deserialized to a 'CloudEvent'");
+				"Payload did not contain 'CloudEvents' nor could it be deserialized to a 'CloudEvents'");
 
 		CloudEvent cloudEvent;
 

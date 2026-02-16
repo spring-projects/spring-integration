@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.cloudevents.CloudEventHeaders;
+import org.springframework.integration.cloudevents.dsl.CloudEvents;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
@@ -106,8 +107,8 @@ class CloudEventBackToBackTests {
 
 		CloudEvent cloudEvent = jsonFormat.deserialize((byte[]) result.getPayload());
 		assertThat(cloudEvent.getDataContentType()).isEqualTo("text/plain");
-		assertThat(cloudEvent.getId()).isNotNull(); //new ID created when new CloudEvent is created
-		assertThat(cloudEvent.getTime()).isNotNull(); //new time created when new CloudEvent is created
+		assertThat(cloudEvent.getId()).isNotNull(); //new ID created when new CloudEvents is created
+		assertThat(cloudEvent.getTime()).isNotNull(); //new time created when new CloudEvents is created
 		assertThat(cloudEvent.getSource().toString())
 				.isEqualTo("/spring/test-app.messageToCloudEvent.ce:to-cloudevent-transformer#0");
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(JSON_PAYLOAD);
@@ -152,27 +153,27 @@ class CloudEventBackToBackTests {
 	@EnableIntegration
 	static class ContextConfiguration {
 
-		@Bean
-		IntegrationFlow messageToCloudEvent() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
-			toCloudEventsTransformer
-					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
+	@Bean
+	IntegrationFlow messageToCloudEvent() {
+		ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
+		toCloudEventsTransformer
+				.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
 
-			return IntegrationFlow.from("messageInputChannel")
-					.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.fromCloudEventTransformer())
-					.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.toCloudEventTransformer()
-							.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)))
-					.channel("outputChannel")
-					.get();
-		}
+		return IntegrationFlow.from("messageInputChannel")
+				.transform(CloudEvents.fromCloudEventTransformer())
+				.transform(CloudEvents.toCloudEventTransformer()
+						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
+				.channel("outputChannel")
+				.get();
+	}
 
 	@Bean
 	IntegrationFlow jsonCaseFlow() {
 		return IntegrationFlow.from("jsonCaseInputChannel")
-				.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.toCloudEventTransformer(
+				.transform(CloudEvents.toCloudEventTransformer(
 						TEST_PATTERNS)
-						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)))
-				.handle(org.springframework.integration.cloudevents.dsl.CloudEvent.fromCloudEventTransformer())
+						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
+				.transform(CloudEvents.fromCloudEventTransformer())
 				.channel("outputChannel")
 				.get();
 	}

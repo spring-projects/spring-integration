@@ -16,21 +16,27 @@
 
 package org.springframework.integration.cloudevents.dsl;
 
+import io.cloudevents.core.format.EventFormat;
+
+import org.springframework.integration.cloudevents.transformer.FromCloudEventTransformer;
+
 /**
- * Factory class for CloudEvent components.
+ * Factory class for CloudEvents components.
  *
  * @author Glenn Renfro
  *
  * @since 7.1
  */
-public final class CloudEvent {
+public final class CloudEvents {
 
-	/**
-	 * The factory to produce a {@link FromCloudEventTransformerSpec}.
-	 * @return the {@link FromCloudEventTransformerSpec} instance
-	 */
-	public static FromCloudEventTransformerSpec fromCloudEventTransformer() {
-		return new FromCloudEventTransformerSpec();
+	public static FromCloudEventTransformer fromCloudEventTransformer() {
+		return new FromCloudEventTransformer();
+	}
+
+	public static FromCloudEventTransformer fromCloudEventTransformer(EventFormat eventFormat) {
+		FromCloudEventTransformer transformer = new FromCloudEventTransformer();
+		transformer.setEventFormat(eventFormat);
+		return transformer;
 	}
 
 	/**
@@ -51,6 +57,6 @@ public final class CloudEvent {
 		return new ToCloudEventTransformerSpec(extensionPatterns);
 	}
 
-	private CloudEvent() {
+	private CloudEvents() {
 	}
 }
