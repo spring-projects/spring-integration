@@ -120,13 +120,12 @@ public class AbstractMessageProducingHandlerTests {
 	}
 
 	@Test
-	void shouldHandleCompletableFutureInAsyncMode() throws Exception {
+	void shouldHandleCompletableFutureInAsyncMode() {
 		QueueChannel outputChannel = new QueueChannel();
 		this.handler.setOutputChannel(outputChannel);
 		this.handler.setAsync(true);
 		CompletableFuture<String> future = new CompletableFuture<>();
-		this.handler.setResult(future);
-		Message<?> inputMessage = MessageBuilder.withPayload("test").build();
+		Message<?> inputMessage = MessageBuilder.withPayload(future).build();
 
 		this.handler.handleMessageInternal(inputMessage);
 
@@ -139,16 +138,9 @@ public class AbstractMessageProducingHandlerTests {
 
 	private static class TestMessageProducingHandler extends AbstractMessageProducingHandler {
 
-		private Object result;
-
-		void setResult(Object result) {
-			this.result = result;
-		}
-
 		@Override
 		protected void handleMessageInternal(Message<?> message) {
-			Object resultToSend = this.result != null ? this.result : message.getPayload();
-			sendOutputs(resultToSend, message);
+			sendOutputs(message.getPayload(), message);
 		}
 
 	}
