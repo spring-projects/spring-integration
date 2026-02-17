@@ -24,5 +24,5 @@ jobs:
           
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
-          git commit -m "CI/CD: Trigger dependabot updates"
+          git commit -am "CI/CD: Trigger dependabot updates"
           git push origin
