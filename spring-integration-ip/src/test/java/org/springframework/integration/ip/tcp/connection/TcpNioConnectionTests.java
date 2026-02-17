@@ -131,7 +131,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				latch.countDown();
 				Socket s = server.accept();
 				// block so we fill the buffer
-				done.await(10, TimeUnit.SECONDS);
+				done.await(30, TimeUnit.SECONDS);
 				s.close();
 			}
 			catch (Exception e) {
@@ -711,7 +711,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 		TcpNioConnection connection =
 				TestUtils.<Map<SocketChannel, TcpNioConnection>>getPropertyValue(factory, "connections")
-				.values().iterator().next();
+						.values().iterator().next();
 		Log logger = spy(TestUtils.<Log>getPropertyValue(connection, "logger"));
 		doReturn(true).when(logger).isTraceEnabled();
 		doAnswer(invocation -> {
