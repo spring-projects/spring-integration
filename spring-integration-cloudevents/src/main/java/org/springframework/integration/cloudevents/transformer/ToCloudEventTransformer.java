@@ -287,7 +287,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Extract {@link CloudEvent} extensions from message headers based on pattern matching.
-	 * @param headers           the message headers to extract extensions from
+	 * @param headers the message headers to extract extensions from
 	 * @param extensionPatterns the patterns that identify extensions
 	 * @return a map of header key-value pairs that match the extension patterns;
 	 * an empty map if no headers match the patterns
@@ -364,7 +364,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 * Add a {@link CloudEvent} context attribute to the message headers.
 		 * Map the {@link CloudEvent} attribute to a message header by prepending the configured prefix
 		 * to the attribute name (e.g., "id" becomes "ce-id" with the default prefix).
-		 * @param name  the {@link CloudEvent} attribute name
+		 * @param name the {@link CloudEvent} attribute name
 		 * @param value the {@link CloudEvent} attribute value
 		 * @return this writer for method chaining
 		 * @throws CloudEventRWException if an error occurs while setting the attribute

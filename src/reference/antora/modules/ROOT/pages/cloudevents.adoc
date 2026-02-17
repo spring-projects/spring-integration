@@ -31,7 +31,7 @@ implementation "org.springframework.integration:spring-integration-cloudevents:{
 
 Use the `ToCloudEventTransformer` to convert Spring Integration messages into CloudEvents-compliant messages.
 This transformer supports the CloudEvents specification v1.0 and serializes CloudEvents if an `EventFormat` or `eventFormatContentTypeExpression` is specified.
-When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the `CloudEvents` in the payload.
+When you specify an `EventFormat` or `eventFormatContentTypeExpression`, the transformer uses the `EventFormat` to generate the `CloudEvent` in the payload.
 If neither is specified, the transformer writes the event data message payload as-is and adds attributes as well as extensions to the message headers.
 The transformer supports defining attributes using expressions and identifies extensions in the message headers via patterns.
 
@@ -175,7 +175,7 @@ When the message payload is a `CloudEvents` instance, the transformer:
 1. Extracts the CloudEvent data and uses it as the message payload.
 2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers with a `ce-` prefix.
 3. Maps all CloudEvent extensions to message headers with the `ce-` prefix.
-4. Preserves all original message headers unless a header key matches a `CloudEvents` attribute or extension, in which case the original value is overwritten.
+4. Preserves all original message headers unless a header key matches a `CloudEvent` attribute or extension, in which case the original value is overwritten.
 
 Example:
 

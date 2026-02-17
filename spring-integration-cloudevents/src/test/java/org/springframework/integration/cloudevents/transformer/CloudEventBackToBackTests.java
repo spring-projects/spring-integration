@@ -107,8 +107,8 @@ class CloudEventBackToBackTests {
 
 		CloudEvent cloudEvent = jsonFormat.deserialize((byte[]) result.getPayload());
 		assertThat(cloudEvent.getDataContentType()).isEqualTo("text/plain");
-		assertThat(cloudEvent.getId()).isNotNull(); //new ID created when new CloudEvents is created
-		assertThat(cloudEvent.getTime()).isNotNull(); //new time created when new CloudEvents is created
+		assertThat(cloudEvent.getId()).isNotNull(); //new ID created when new CloudEvent is created
+		assertThat(cloudEvent.getTime()).isNotNull(); //new time created when new CloudEvent is created
 		assertThat(cloudEvent.getSource().toString())
 				.isEqualTo("/spring/test-app.messageToCloudEvent.ce:to-cloudevent-transformer#0");
 		assertThat(cloudEvent.getData().toBytes()).isEqualTo(JSON_PAYLOAD);
@@ -153,30 +153,25 @@ class CloudEventBackToBackTests {
 	@EnableIntegration
 	static class ContextConfiguration {
 
-	@Bean
-	IntegrationFlow messageToCloudEvent() {
-		ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
-		toCloudEventsTransformer
-				.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
-
-		return IntegrationFlow.from("messageInputChannel")
-				.transform(CloudEvents.fromCloudEventTransformer())
-				.transform(CloudEvents.toCloudEventTransformer()
+		@Bean
+		IntegrationFlow messageToCloudEvent() {
+			return IntegrationFlow.from("messageInputChannel")
+					.transform(CloudEvents.fromCloudEventTransformer())
+					.transform(CloudEvents.toCloudEventTransformer()
 						.eventFormatContentType(JsonFormat.CONTENT_TYPE).get())
-				.channel("outputChannel")
-				.get();
-	}
+					.channel("outputChannel")
+					.get();
+		}
 
-	@Bean
-	IntegrationFlow jsonCaseFlow() {
-		return IntegrationFlow.from("jsonCaseInputChannel")
-				.transform(CloudEvents.toCloudEventTransformer(
-						TEST_PATTERNS)
+		@Bean
+		IntegrationFlow jsonCaseFlow() {
+			return IntegrationFlow.from("jsonCaseInputChannel")
+					.transform(CloudEvents.toCloudEventTransformer(TEST_PATTERNS)
 						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
-				.transform(CloudEvents.fromCloudEventTransformer())
-				.channel("outputChannel")
-				.get();
-	}
+					.transform(CloudEvents.fromCloudEventTransformer())
+					.channel("outputChannel")
+					.get();
+		}
 
 		@Bean
 		PollableChannel outputChannel() {

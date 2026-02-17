@@ -29,10 +29,20 @@ import org.springframework.integration.cloudevents.transformer.FromCloudEventTra
  */
 public final class CloudEvents {
 
+	/**
+	 * The factory to produce a {@link FromCloudEventTransformer}.
+	 * @return the {@link FromCloudEventTransformer} instance
+	 */
 	public static FromCloudEventTransformer fromCloudEventTransformer() {
 		return new FromCloudEventTransformer();
 	}
 
+	/**
+	 * The factory to produce a {@link FromCloudEventTransformer} with specified {@link EventFormat}.
+	 * @param eventFormat The fallback {@link EventFormat} to use if {@code EventFormatProvider} can not identify the
+	 * {@link EventFormat} for the payload.
+	 * @return the {@link FromCloudEventTransformer} instance
+	 */
 	public static FromCloudEventTransformer fromCloudEventTransformer(EventFormat eventFormat) {
 		FromCloudEventTransformer transformer = new FromCloudEventTransformer();
 		transformer.setEventFormat(eventFormat);
