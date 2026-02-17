@@ -178,9 +178,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	}
 
 	/**
-	 * Set the {@link Expression} to produce a cloud event format content type
-	 * when {@link EventFormatProvider} is to be used to determine
-	 * {@link EventFormat}.
+	 * Set the {@link Expression} to produce a cloud event format content type when {@link EventFormatProvider} is to
+	 * be used to determine {@link EventFormat}.
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
 	 * the {@code eventFormat} has precedence.
 	 * @param eventFormatContentTypeExpression the expression to create

@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.cloudevents.CloudEventHeaders;
+import org.springframework.integration.cloudevents.dsl.CloudEvents;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
@@ -154,26 +155,20 @@ class CloudEventBackToBackTests {
 
 		@Bean
 		IntegrationFlow messageToCloudEvent() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer();
-			toCloudEventsTransformer
-					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
-
 			return IntegrationFlow.from("messageInputChannel")
-					.transform(new FromCloudEventTransformer())
-					.transform(toCloudEventsTransformer)
+					.transform(CloudEvents.fromCloudEventTransformer())
+					.transform(CloudEvents.toCloudEventTransformer()
+						.eventFormatContentType(JsonFormat.CONTENT_TYPE).get())
 					.channel("outputChannel")
 					.get();
 		}
 
 		@Bean
 		IntegrationFlow jsonCaseFlow() {
-			ToCloudEventTransformer toCloudEventsTransformer = new ToCloudEventTransformer(TEST_PATTERNS);
-			toCloudEventsTransformer
-					.setEventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE));
-
 			return IntegrationFlow.from("jsonCaseInputChannel")
-					.transform(toCloudEventsTransformer)
-					.transform(new FromCloudEventTransformer())
+					.transform(CloudEvents.toCloudEventTransformer(TEST_PATTERNS)
+						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
+					.transform(CloudEvents.fromCloudEventTransformer())
 					.channel("outputChannel")
 					.get();
 		}
