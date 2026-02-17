@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -243,6 +244,53 @@ class RedisMessageStoreTests implements RedisContainerTest {
 		verify(mockValueOps, times(1)).getAndDelete();
 		verify(mockValueOps, times(2)).get();
 		verify(mockRedisTemplate, times(2)).unlink(prefixedKey);
+	}
+
+	@Test
+	void testDoRemoveUsesUnlinkWhenConfigured() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+		store.setUseUnlink(true);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
+		ReflectionTestUtils.setField(store, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock();
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+
+		Message<String> expectedMessage = new GenericMessage<>("Hello, Redis");
+		UUID id = UUID.randomUUID();
+		String prefixedKey = "MESSAGE_" + id;
+		when(mockValueOps.get()).thenReturn(expectedMessage);
+		when(mockRedisTemplate.unlink(prefixedKey)).thenReturn(true);
+
+		Message<?> removed = store.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		verify(mockValueOps, never()).getAndDelete();
+		verify(mockValueOps).get();
+		verify(mockRedisTemplate).unlink(prefixedKey);
+	}
+
+	@Test
+	void testDoRemoveUsesGetDelWhenUseUnlinkIsDefault() {
+		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+
+		RedisTemplate<Object, Object> mockRedisTemplate = mock();
+		ReflectionTestUtils.setField(store, "redisTemplate", mockRedisTemplate);
+
+		BoundValueOperations<Object, Object> mockValueOps = mock();
+		when(mockRedisTemplate.boundValueOps(any())).thenReturn(mockValueOps);
+
+		Message<String> expectedMessage = new GenericMessage<>("Hello, Redis");
+		when(mockValueOps.getAndDelete()).thenReturn(expectedMessage);
+
+		UUID id = UUID.randomUUID();
+		Message<?> removed = store.removeMessage(id);
+
+		assertThat(removed).isEqualTo(expectedMessage);
+		verify(mockValueOps).getAndDelete();
+		verify(mockValueOps, never()).get();
+		verify(mockRedisTemplate, never()).unlink(any());
 	}
 
 	@Test

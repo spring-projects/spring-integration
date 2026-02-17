@@ -56,6 +56,8 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	private volatile boolean supportsGetDel = true;
 
+	private volatile boolean useUnlink = false;
+
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
 	 * {@link RedisConnectionFactory} and default empty prefix.
@@ -94,6 +96,27 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.redisTemplate.setValueSerializer(valueSerializer);
 		this.valueSerializerSet = true;
+	}
+
+	/**
+	 * Configure the deletion strategy used when removing messages from the store.
+	 * <p>By default ({@code false}), the store uses the Redis {@code GETDEL} command.
+	 * <p>When set to {@code true}, the store uses {@code GET} + {@code UNLINK}.
+	 * <p>Consider enabling this option when:
+	 * <ul>
+	 *     <li>Stored messages are large (e.g., several MB) and blocking deletes
+	 *         cause noticeable Redis latency</li>
+	 *     <li>Atomicity between get and delete is not required for your use case</li>
+	 * </ul>
+	 * <p>Note: For small values, Redis may perform synchronous deletion even with
+	 * {@code UNLINK}, so the benefit is primarily for larger payloads.
+	 * @param useUnlink param to set deletion strategy.
+	 * @since 7.0.2
+	 * @see <a href="https://redis.io/commands/getdel/">GETDEL command</a>
+	 * @see <a href="https://redis.io/commands/unlink/">UNLINK command</a>
+	 */
+	public void setUseUnlink(boolean useUnlink) {
+		this.useUnlink = useUnlink;
 	}
 
 	@Override
@@ -137,7 +160,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	@Override
 	protected @Nullable Object doRemove(Object id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		if (this.supportsGetDel) {
+		if (this.supportsGetDel && !this.useUnlink) {
 			try {
 				return this.redisTemplate.boundValueOps(id).getAndDelete();
 			}
