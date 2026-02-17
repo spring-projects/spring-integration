@@ -19,24 +19,21 @@ package org.springframework.integration.cloudevents.dsl;
 import java.net.URI;
 import java.util.function.Function;
 
-import io.cloudevents.CloudEvent;
 import io.cloudevents.core.format.EventFormat;
-import io.cloudevents.core.provider.EventFormatProvider;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.cloudevents.CloudEventHeaders;
 import org.springframework.integration.cloudevents.transformer.ToCloudEventTransformer;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * Spec for an {@link ToCloudEventTransformer}.
  *
  * @author Glenn Renfro
+ * @author Artem Bilan
  *
  * @since 7.1
  */
@@ -56,9 +53,9 @@ public class ToCloudEventTransformerSpec {
 	/**
 	 * Create an instance with the provided extension patterns.
 	 * <p>Extension patterns are used to match message headers that should be included
-	 * as {@link CloudEvent} extensions. Patterns support wildcards (e.g., "myapp.*").
+	 * as {@link io.cloudevents.CloudEvent} extensions. Patterns support wildcards (e.g., "myapp.*").
 	 * @param extensionPatterns patterns to evaluate whether message headers should be added as extensions
-	 * to the {@link CloudEvent}.
+	 * to the {@link io.cloudevents.CloudEvent}.
 	 */
 	protected ToCloudEventTransformerSpec(String... extensionPatterns) {
 		this.transformer = new ToCloudEventTransformer(extensionPatterns);
@@ -78,7 +75,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the SpEL expression to create {@link io.cloudevents.CloudEvent} {@code id}.
-	 * <p>Default is to extract the {@code id} from the {@link MessageHeaders} of the message.
+	 * <p>Default is to extract the {@code id}
+	 * from the {@link org.springframework.messaging.MessageHeaders} of the message.
 	 * @param eventIdExpression the SpEL expression to create the {@code id} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
@@ -88,7 +86,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@link Function} to create {@link io.cloudevents.CloudEvent} {@code id}.
-	 * <p>Default is to extract the {@code id} from the {@link MessageHeaders} of the message.
+	 * <p>Default is to extract the {@code id}
+	 * from the {@link org.springframework.messaging.MessageHeaders} of the message.
 	 * @param eventIdFunction the {@link Function} to create the {@code id} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
@@ -98,7 +97,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@link Expression} to create {@link io.cloudevents.CloudEvent} {@code id}.
-	 * <p>Default is to extract the {@code id} from the {@link MessageHeaders} of the message.
+	 * <p>Default is to extract the {@code id}
+	 * from the {@link org.springframework.messaging.MessageHeaders} of the message.
 	 * @param eventIdExpression the expression to create the {@code id} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
@@ -271,12 +271,12 @@ public class ToCloudEventTransformerSpec {
 	}
 
 	/**
-	 * Set the SpEL expression to produce a cloud event format content type when {@link EventFormatProvider} is to
-	 * be used to determine {@link EventFormat}.
+	 * Set the SpEL expression to produce a cloud event format content type
+	 * when {@link io.cloudevents.core.provider.EventFormatProvider} is to be used to determine {@link EventFormat}.
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
 	 * the {@code eventFormat} has precedence.
-	 * @param eventFormatContentTypeExpression the SpEL expression to create content type for the
-	 * {@link EventFormatProvider#resolveFormat(String)}
+	 * @param eventFormatContentTypeExpression the SpEL expression to evaluate a content type
+	 * for the {@link io.cloudevents.core.provider.EventFormatProvider#resolveFormat(String)}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec eventFormatContentTypeExpression(String eventFormatContentTypeExpression) {
@@ -284,12 +284,12 @@ public class ToCloudEventTransformerSpec {
 	}
 
 	/**
-	 * Set the {@link Function} to produce a cloud event format content type when {@link EventFormatProvider} is to
-	 * be used to determine {@link EventFormat}.
+	 * Set the {@link Function} to produce a cloud event format content type
+	 * when {@link io.cloudevents.core.provider.EventFormatProvider} is to be used to determine {@link EventFormat}.
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided, the {@code
 	 * eventFormat} has precedence.
-	 * @param eventFormatContentTypeFunction the {@link Function} to create content type for the
-	 * {@link EventFormatProvider#resolveFormat(String)}
+	 * @param eventFormatContentTypeFunction the {@link Function} to evaluate a content type
+	 * for the {@link io.cloudevents.core.provider.EventFormatProvider#resolveFormat(String)}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec eventFormatContentTypeFunction(
@@ -299,12 +299,12 @@ public class ToCloudEventTransformerSpec {
 	}
 
 	/**
-	 * Set the cloud event format content type when {@link EventFormatProvider} is to be used to determine
-	 * {@link EventFormat}.
+	 * Set the cloud event format content type
+	 * when {@link io.cloudevents.core.provider.EventFormatProvider} is to be used to determine {@link EventFormat}.
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentType} are provided, the {@code eventFormat} has
 	 * precedence.
-	 * @param eventFormatContentType the {@link Function} to create content type for the
-	 * {@link EventFormatProvider#resolveFormat(String)}
+	 * @param eventFormatContentType the {@link Function} to evaluate a content type
+	 * for the {@link io.cloudevents.core.provider.EventFormatProvider#resolveFormat(String)}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec eventFormatContentType(String eventFormatContentType) {
@@ -312,12 +312,12 @@ public class ToCloudEventTransformerSpec {
 	}
 
 	/**
-	 * Set the {@link Expression} to produce a cloud event format content type when {@link EventFormatProvider} is to
-	 * be used to determine {@link EventFormat}.
+	 * Set the {@link Expression} to produce a cloud event format content type
+	 * when {@link io.cloudevents.core.provider.EventFormatProvider} is to be used to determine {@link EventFormat}.
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
 	 * the {@code eventFormat} has precedence.
-	 * @param eventFormatContentTypeExpression the {@link Expression} to create content type for the
-	 * {@link EventFormatProvider#resolveFormat(String)}
+	 * @param eventFormatContentTypeExpression the {@link Expression} to evaluate a content type
+	 * for the {@link io.cloudevents.core.provider.EventFormatProvider#resolveFormat(String)}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec eventFormatContentTypeExpression(Expression eventFormatContentTypeExpression) {
@@ -327,8 +327,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the prefix for {@link io.cloudevents.CloudEvent} headers in binary content mode.
-	 * <p>Default is {@link CloudEventHeaders#PREFIX}.
-	 * @param cloudEventPrefix the prefix to use for {@link CloudEvent} headers
+	 * <p>Default is {@link org.springframework.integration.cloudevents.CloudEventHeaders#PREFIX}.
+	 * @param cloudEventPrefix the prefix to use for {@link io.cloudevents.CloudEvent} headers
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec cloudEventPrefix(String cloudEventPrefix) {
@@ -337,7 +337,7 @@ public class ToCloudEventTransformerSpec {
 	}
 
 	/**
-	 * Get the {@link ToCloudEventTransformer} instance.
+	 * Get the {@link ToCloudEventTransformer} instance created and configured by this builder.
 	 * <p>This method provides access to the transformer for advanced configuration or direct use outside the DSL
 	 * context.
 	 * @return the configured {@link ToCloudEventTransformer}

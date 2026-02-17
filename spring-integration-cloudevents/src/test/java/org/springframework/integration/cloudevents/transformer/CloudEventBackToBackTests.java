@@ -157,8 +157,10 @@ class CloudEventBackToBackTests {
 		IntegrationFlow messageToCloudEvent() {
 			return IntegrationFlow.from("messageInputChannel")
 					.transform(CloudEvents.fromCloudEventTransformer())
-					.transform(CloudEvents.toCloudEventTransformer()
-						.eventFormatContentType(JsonFormat.CONTENT_TYPE).get())
+					.transform(
+							CloudEvents.toCloudEventTransformer()
+									.eventFormatContentType(JsonFormat.CONTENT_TYPE)
+									.get())
 					.channel("outputChannel")
 					.get();
 		}
@@ -166,8 +168,10 @@ class CloudEventBackToBackTests {
 		@Bean
 		IntegrationFlow jsonCaseFlow() {
 			return IntegrationFlow.from("jsonCaseInputChannel")
-					.transform(CloudEvents.toCloudEventTransformer(TEST_PATTERNS)
-						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
+					.transform(
+							CloudEvents.toCloudEventTransformer(TEST_PATTERNS)
+									.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE))
+									.get())
 					.transform(CloudEvents.fromCloudEventTransformer())
 					.channel("outputChannel")
 					.get();

@@ -269,7 +269,8 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		}
 
 		if (selectedEventFormat != null) {
-			return getMessageBuilderFactory().withPayload(selectedEventFormat.serialize(cloudEvent))
+			return getMessageBuilderFactory()
+					.withPayload(selectedEventFormat.serialize(cloudEvent))
 					.copyHeaders(headers)
 					.setHeader(MessageHeaders.CONTENT_TYPE, selectedEventFormat.serializedContentType())
 					.build();

@@ -136,7 +136,7 @@ Object cloudEventMessage = transformer.transform(inputMessage);
 [[eventformats]]
 === EventFormats
 
-The ToCloudEventTransformer uses formatting to serialize the CloudEvent into the message's payload when the `EventFormat` is available, or uses Binary Format Mode otherwise.
+The ToCloudEventTransformer uses formatting to serialize the `CloudEvent` into the message's payload when the `EventFormat` is available, or uses Binary Format Mode otherwise.
 Set the `EventFormat` in one of two ways:
 
 1. Set the desired `EventFormat`.

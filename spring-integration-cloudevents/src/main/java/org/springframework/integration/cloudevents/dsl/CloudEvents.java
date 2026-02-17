@@ -69,4 +69,5 @@ public final class CloudEvents {
 
 	private CloudEvents() {
 	}
+
 }
