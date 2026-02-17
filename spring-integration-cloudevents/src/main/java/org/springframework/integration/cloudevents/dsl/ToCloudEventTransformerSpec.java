@@ -16,21 +16,17 @@
 
 package org.springframework.integration.cloudevents.dsl;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Function;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.provider.EventFormatProvider;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.cloudevents.CloudEventHeaders;
 import org.springframework.integration.cloudevents.transformer.ToCloudEventTransformer;
-import org.springframework.integration.dsl.ConsumerEndpointSpec;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -41,8 +37,7 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @since 7.1
  */
-public class ToCloudEventTransformerSpec
-		extends ConsumerEndpointSpec<ToCloudEventTransformerSpec, MessageTransformingHandler> {
+public class ToCloudEventTransformerSpec {
 
 	private final ToCloudEventTransformer transformer;
 
@@ -62,7 +57,6 @@ public class ToCloudEventTransformerSpec
 	 */
 	protected ToCloudEventTransformerSpec(String... extensionPatterns) {
 		this.transformer = new ToCloudEventTransformer(extensionPatterns);
-		this.handler = new MessageTransformingHandler(this.transformer);
 	}
 
 	/**
@@ -94,8 +88,19 @@ public class ToCloudEventTransformerSpec
 	 * @param eventIdFunction the {@link Function} to create the {@code id} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec eventIdExpression(Function<Message<?>, String> eventIdFunction) {
+	public ToCloudEventTransformerSpec eventIdFunction(Function<Message<?>, String> eventIdFunction) {
 		return eventIdExpression(new FunctionExpression<>(eventIdFunction));
+	}
+
+	/**
+	 * Set the {@link io.cloudevents.CloudEvent} {@code id}.
+	 * <p>Default is to extract the {@code id} from the {@link MessageHeaders} of the message.
+	 * @param eventId the  {@code id} for each {@link io.cloudevents.CloudEvent}
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec eventId(String eventId) {
+		this.eventIdExpression(new LiteralExpression(eventId));
+		return this;
 	}
 
 	/**
@@ -116,8 +121,18 @@ public class ToCloudEventTransformerSpec
 	 *                       {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec sourceExpression(Function<Message<?>, String> sourceFunction) {
+	public ToCloudEventTransformerSpec sourceFunction(Function<Message<?>, String> sourceFunction) {
 		return sourceExpression(new FunctionExpression<>(sourceFunction));
+	}
+
+	/**
+	 * Set the {@link io.cloudevents.CloudEvent} {@code source}.
+	 * <p>Default is {@code "/spring/" + appName + "." + getBeanName())}.
+	 * @param source the {@code source} for each {@link io.cloudevents.CloudEvent}
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec source(String source) {
+		return sourceExpression(new LiteralExpression(source));
 	}
 
 	/**
@@ -137,8 +152,18 @@ public class ToCloudEventTransformerSpec
 	 *                     <p>Default is {@code spring.message}.
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec typeExpression(Function<Message<?>, String> typeFunction) {
+	public ToCloudEventTransformerSpec typeFunction(Function<Message<?>, String> typeFunction) {
 		return typeExpression(new FunctionExpression<>(typeFunction));
+	}
+
+	/**
+	 * Set the {@code type} for the {@link io.cloudevents.CloudEvent}.
+	 * @param type the {@code type} for each {@link io.cloudevents.CloudEvent}
+	 *             <p>Default is {@code spring.message}.
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec type(String type) {
+		return typeExpression(new LiteralExpression(type));
 	}
 
 	/**
@@ -158,8 +183,17 @@ public class ToCloudEventTransformerSpec
 	 *                           {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec dataSchemaExpression(Function<Message<?>, String> dataSchemaFunction) {
+	public ToCloudEventTransformerSpec dataSchemaFunction(Function<Message<?>, String> dataSchemaFunction) {
 		return dataSchemaExpression(new FunctionExpression<>(dataSchemaFunction));
+	}
+
+	/**
+	 * Set the {@code dataSchema} for the {@link io.cloudevents.CloudEvent}.
+	 * @param dataSchema the  {@code dataSchema} for each {@link io.cloudevents.CloudEvent}
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec dataSchema(String dataSchema) {
+		return dataSchemaExpression(new LiteralExpression(dataSchema));
 	}
 
 	/**
@@ -175,11 +209,20 @@ public class ToCloudEventTransformerSpec
 	/**
 	 * Set the {@link Function} to create the {@code subject} for the {@link io.cloudevents.CloudEvent}.
 	 * @param subjectFunction the {@link Function} to create the {@code subject} for each
-	 * {@link io.cloudevents.CloudEvent}
+	 *                        {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec subjectExpression(Function<Message<?>, String> subjectFunction) {
+	public ToCloudEventTransformerSpec subjectFunction(Function<Message<?>, String> subjectFunction) {
 		return subjectExpression(new FunctionExpression<>(subjectFunction));
+	}
+
+	/**
+	 * Set the {@code subject} for the {@link io.cloudevents.CloudEvent}.
+	 * @param subject the {@code subject} for each {@link io.cloudevents.CloudEvent}
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec subject(String subject) {
+		return subjectExpression(new LiteralExpression(subject));
 	}
 
 	/**
@@ -207,9 +250,22 @@ public class ToCloudEventTransformerSpec
 	 *                                       content type for the {@link EventFormatProvider#resolveFormat(String)}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec eventFormatContentTypeExpression(
+	public ToCloudEventTransformerSpec eventFormatContentTypeFunction(
 			Function<Message<?>, String> eventFormatContentTypeFunction) {
 		return eventFormatContentTypeExpression(new FunctionExpression<>(eventFormatContentTypeFunction));
+	}
+
+	/**
+	 * Set the cloud event format content type when {@link EventFormatProvider} is to be used to determine
+	 * {@link EventFormat}.
+	 * <p>If {@code eventFormat} and the {@code eventFormatContentType} are provided, the {@code eventFormat} has
+	 * precedence.
+	 * @param eventFormatContentType the {@link Function} to create content type for the
+	 *                               {@link EventFormatProvider#resolveFormat(String)}
+	 * @return the spec
+	 */
+	public ToCloudEventTransformerSpec eventFormatContentType(String eventFormatContentType) {
+		return eventFormatContentTypeExpression(new LiteralExpression(eventFormatContentType));
 	}
 
 	/**
@@ -221,11 +277,6 @@ public class ToCloudEventTransformerSpec
 	public ToCloudEventTransformerSpec cloudEventPrefix(String cloudEventPrefix) {
 		this.transformer.setCloudEventPrefix(cloudEventPrefix);
 		return this;
-	}
-
-	@Override
-	public Map<Object, @Nullable String> getComponentsToRegister() {
-		return Collections.singletonMap(this.transformer, null);
 	}
 
 	/**

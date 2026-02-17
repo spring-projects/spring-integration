@@ -166,7 +166,7 @@ class FromCloudEventTransformerTests {
 				.cause()
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining(
-						"Payload did not contain 'CloudEvents' nor could it be deserialized to a 'CloudEvents'");
+						"Payload did not contain 'CloudEvent' nor could it be deserialized to a 'CloudEvent'");
 	}
 
 	@Test

@@ -162,7 +162,7 @@ class CloudEventBackToBackTests {
 		return IntegrationFlow.from("messageInputChannel")
 				.transform(CloudEvents.fromCloudEventTransformer())
 				.transform(CloudEvents.toCloudEventTransformer()
-						.eventFormatContentTypeExpression(new LiteralExpression(JsonFormat.CONTENT_TYPE)).get())
+						.eventFormatContentType(JsonFormat.CONTENT_TYPE).get())
 				.channel("outputChannel")
 				.get();
 	}

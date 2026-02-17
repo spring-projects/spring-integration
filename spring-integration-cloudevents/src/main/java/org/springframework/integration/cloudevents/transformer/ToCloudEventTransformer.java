@@ -66,7 +66,7 @@ import org.springframework.util.StringUtils;
  *   (either configured via {@link #setEventFormat(EventFormat)} or resolved via
  *   {@link #setEventFormatContentTypeExpression(Expression)}), the {@link CloudEvent} is
  *   serialized into the message payload using that format (e.g., JSON, XML).
- *   The output message contains the serialized CloudEvents as payload with
+ *   The output message contains the serialized CloudEvent as payload with
  *   {@link MessageHeaders#CONTENT_TYPE} set to the format's serialized content type.</li>
  *   <li><b>Binary Content Mode:</b> When no {@link EventFormat} is available,
  *   the transformer uses {@link MessageBuilderMessageWriter} to convert the {@link CloudEvent}
@@ -184,7 +184,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 	 * <p>If {@code eventFormat} and the {@code eventFormatContentTypeExpression} are provided,
 	 * the {@code eventFormat} has precedence.
 	 * @param eventFormatContentTypeExpression the expression to create
-	 * content type for the {@link EventFormatProvider#resolveFormat(String)}
+	 *                                         content type for the {@link EventFormatProvider#resolveFormat(String)}
 	 * @see io.cloudevents.core.format.ContentType
 	 */
 	public void setEventFormatContentTypeExpression(Expression eventFormatContentTypeExpression) {
@@ -209,7 +209,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 			String appName = applicationContext.getEnvironment().getProperty("spring.application.name");
 			if (!StringUtils.hasText(appName)) {
 				logger.warn("'spring.application.name' is not set. " +
-						"CloudEvents source URIs will use 'null' as the application name. ");
+						"CloudEvent source URIs will use 'null' as the application name. ");
 			}
 			this.sourceExpression = new ValueExpression<>(URI.create("/spring/" + appName + "." + getBeanName()));
 		}
@@ -287,7 +287,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 	/**
 	 * Extract {@link CloudEvent} extensions from message headers based on pattern matching.
-	 * @param headers the message headers to extract extensions from
+	 * @param headers           the message headers to extract extensions from
 	 * @param extensionPatterns the patterns that identify extensions
 	 * @return a map of header key-value pairs that match the extension patterns;
 	 * an empty map if no headers match the patterns
@@ -364,7 +364,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 * Add a {@link CloudEvent} context attribute to the message headers.
 		 * Map the {@link CloudEvent} attribute to a message header by prepending the configured prefix
 		 * to the attribute name (e.g., "id" becomes "ce-id" with the default prefix).
-		 * @param name the {@link CloudEvent} attribute name
+		 * @param name  the {@link CloudEvent} attribute name
 		 * @param value the {@link CloudEvent} attribute value
 		 * @return this writer for method chaining
 		 * @throws CloudEventRWException if an error occurs while setting the attribute
