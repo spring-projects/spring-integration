@@ -125,7 +125,7 @@ public class ToCloudEventTransformerSpec {
 	 * {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec sourceFunction(Function<Message<?>, String> sourceFunction) {
+	public ToCloudEventTransformerSpec sourceFunction(Function<Message<?>, URI> sourceFunction) {
 		return sourceExpression(new FunctionExpression<>(sourceFunction));
 	}
 
@@ -207,7 +207,7 @@ public class ToCloudEventTransformerSpec {
 	 * {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
-	public ToCloudEventTransformerSpec dataSchemaFunction(Function<Message<?>, String> dataSchemaFunction) {
+	public ToCloudEventTransformerSpec dataSchemaFunction(Function<Message<?>, URI> dataSchemaFunction) {
 		return dataSchemaExpression(new FunctionExpression<>(dataSchemaFunction));
 	}
 

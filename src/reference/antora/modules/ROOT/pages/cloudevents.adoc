@@ -159,9 +159,9 @@ The transformer throws an `IllegalArgumentException` if the payload is not a byt
 == `FromCloudEventTransformer`
 
 Use the `FromCloudEventTransformer` to convert CloudEvents into Spring Integration messages.
-This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: `CloudEvents` objects or serialized `CloudEvents` byte arrays.
+This transformer supports the CloudEvents specification v1.0 and processes CloudEvents from two payload types: `CloudEvent` objects or serialized `CloudEvent` byte arrays.
 
-The transformer extracts `CloudEvents` data from the message payload and maps `CloudEvents` attributes along with `CloudEvents` extensions to message headers with a `ce-` prefix.
+The transformer extracts `CloudEvent` data from the message payload and maps `CloudEvent` attributes along with `CloudEvent` extensions to message headers with a `ce-` prefix.
 
 === Supported Payload Types
 
@@ -170,7 +170,7 @@ The transformer accepts messages with the following payload types:
 [#cloudeventobjectype]
 ==== CloudEvent Object Type
 
-When the message payload is a `CloudEvents` instance, the transformer:
+When the message payload is a `CloudEvent` instance, the transformer:
 
 1. Extracts the CloudEvent data and uses it as the message payload.
 2. Maps CloudEvent attributes (`id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `dataschema`) to message headers with a `ce-` prefix.
@@ -220,10 +220,10 @@ GenericMessage [
 
 ==== Serialized CloudEvent Type
 
-When the message payload is a `byte[]` containing a serialized `CloudEvents`, the transformer:
+When the message payload is a `byte[]` containing a serialized `CloudEvent`, the transformer:
 
 1. Uses the `content-type` header to resolve the appropriate `EventFormat` via `EventFormatProvider`.
-2. Deserializes the payload to a `CloudEvents` object using the resolved format.
+2. Deserializes the payload to a `CloudEvent` object using the resolved format.
 3. Follows the same steps enumerated in the <<cloudeventobjectype>> section.
 
 Information on supported content types is discussed in the <<eventformats>> section.
