@@ -282,7 +282,7 @@ GenericMessage [
 [#cloudevent-attribute-mapping]
 === CloudEvent Attribute Mapping
 
-The transformer maps `CloudEvents` attributes to message headers using the following `CloudEventHeaders` constants:
+The transformer maps `CloudEvent` attributes to message headers using the following `CloudEventHeaders` constants:
 
 |===
 | CloudEvent Attribute | Message Header Key | Required
