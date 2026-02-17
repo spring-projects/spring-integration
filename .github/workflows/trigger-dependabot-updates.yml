@@ -1,0 +1,27 @@
+name: Trigger Dependabot Updates
+
+# This workflow is a convenient alternative to the GitHub UI interface for Dependabot updates.
+# The workflow performs file timestamp update on the dependabot.yml file.
+# That is enough for Dependabot to understand that some changes have happened in the dependency updates config.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigget-dependabot:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Touch dependabot.yml
+        run: |
+          # Trigger dependabot by modifying the file timestamp
+          touch ".github/dependabot.yml"
+          
+          git config --global user.name 'Spring Builds'
+          git config --global user.email 'builds@springframework.org'
+          git commit -m "CI/CD: Trigger dependabot updates"
+          git push origin
