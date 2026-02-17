@@ -44,8 +44,8 @@ ext {
     linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
-    apacheSshdVersion = '2.16.0'
-    artemisVersion = '2.44.0'
+    apacheSshdVersion = '2.17.1'
+    artemisVersion = '2.51.0'
     aspectjVersion = '1.9.25.1'
     assertjVersion = '3.27.7'
     assertkVersion = '0.28.1'
@@ -62,8 +62,8 @@ ext {
     ftpServerVersion = '1.2.1'
     graalvmVersion = '25.0.2'
     greenmailVersion = '2.1.8'
-    groovyVersion = '5.0.3'
-	grpcVersion = '1.78.0'
+    groovyVersion = '5.0.4'
+	grpcVersion = '1.79.0'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
     hibernateVersion = '7.2.4.Final'
@@ -82,14 +82,14 @@ ext {
     junitPioneerVersion = '2.3.0'
     kotlinCoroutinesVersion = '1.10.2'
     kryoVersion = '5.6.2'
-    lettuceVersion = '7.3.0.RELEASE'
+    lettuceVersion = '7.4.0.RELEASE'
     log4jVersion = '2.25.3'
     mailVersion = '2.0.5'
-    micrometerTracingVersion = '1.7.0-M2'
-    micrometerVersion = '1.17.0-M1'
+    micrometerTracingVersion = '1.7.0-M3'
+    micrometerVersion = '1.17.0-M2'
     mockitoVersion = '5.21.0'
     mongoDriverVersion = '5.6.3'
-    mysqlVersion = '9.5.0'
+    mysqlVersion = '9.6.0'
     oracleVersion = '23.26.1.0.0'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.7.10'
@@ -102,10 +102,10 @@ ext {
     servletApiVersion = '6.1.0'
     smackVersion = '4.4.8'
     springAmqpVersion = '4.1.0-M2'
-    springDataVersion = '2026.0.0-SNAPSHOT'
+    springDataVersion = '2026.0.0-M1'
     springGraphqlVersion = '2.0.2'
-    springKafkaVersion = '4.0.3'
-    springSecurityVersion = '7.1.0-M1'
+    springKafkaVersion = '4.1.0-M1'
+    springSecurityVersion = '7.1.0-M2'
     springVersion = '7.0.4'
     springWsVersion = '5.0.0'
     testcontainersVersion = '2.0.3'
@@ -327,7 +327,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '13.0.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '13.2.0'
     }
 
     jar {
@@ -419,7 +419,7 @@ configure(javaProjects) { subproject ->
                     url.set(uri('https://projectreactor.io/docs/core/release/api/'))
                 }
                 externalDocumentationLinks.register('reactive-streams') {
-                    url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.3-javadoc/'))
+                    url.set(uri('https://www.reactive-streams.org/reactive-streams-1.0.4-javadoc/'))
                 }
             }
         }
