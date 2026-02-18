@@ -37,12 +37,13 @@ updates:
           - org.hsqldb:hsqldb
           - com.h2database:h2
           - org.postgresql:postgresql
-          - mysql:mysql-connector-java
+          - com.mysql:mysql-connector-j
           - com.oracle.database.jdbc:ojdbc11
           - org.apache.tomcat.embed:tomcat-embed-websocket
           - org.xmlunit:xmlunit-assertj3
           - com.thoughtworks.xstream:xstream
           - org.springframework.security*
+          - org.jruby
 
   - package-ecosystem: gradle
     target-branch: 7.0.x
@@ -82,12 +83,13 @@ updates:
           - org.hsqldb:hsqldb
           - com.h2database:h2
           - org.postgresql:postgresql
-          - mysql:mysql-connector-java
+          - com.mysql:mysql-connector-j
           - com.oracle.database.jdbc:ojdbc11
           - org.apache.tomcat.embed:tomcat-embed-websocket
           - org.xmlunit:xmlunit-assertj3
           - com.thoughtworks.xstream:xstream
           - org.springframework.security*
+          - org.jruby
 
   - package-ecosystem: gradle
     target-branch: 6.5.x
@@ -127,12 +129,13 @@ updates:
           - org.hsqldb:hsqldb
           - com.h2database:h2
           - org.postgresql:postgresql
-          - mysql:mysql-connector-java
+          - com.mysql:mysql-connector-j
           - com.oracle.database.jdbc:ojdbc11
           - org.apache.tomcat.embed:tomcat-embed-websocket
           - org.xmlunit:xmlunit-assertj3
           - com.thoughtworks.xstream:xstream
           - org.springframework.security*
+          - org.jruby
 
   - package-ecosystem: github-actions
     directory: /
