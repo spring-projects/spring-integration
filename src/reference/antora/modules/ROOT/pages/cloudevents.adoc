@@ -342,3 +342,35 @@ public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEve
         .get();
 }
 ----
+
+[[cloudevent-headers-builder]]
+== CloudEvent Headers Builder
+
+Use the `CloudEventHeadersBuilder` to set CloudEvent headers using Spring Integration's DSL.
+Access the builder through the `CloudEvents.headers()` factory method.
+
+The builder supports three ways to set header values:
+
+1. **Direct values** - Set static values directly
+2. **SpEL expressions** - Use Spring Expression Language for dynamic values
+3. **Functions** - Provide Java functions that evaluate the values for the attributes
+
+=== Basic Usage
+
+[source,java]
+----
+@Bean
+public IntegrationFlow cloudEventFlow() {
+    return IntegrationFlow
+        .from("inputChannel")
+        .enrichHeaders(CloudEvents.headers()
+            .idExpression("headers['orderId']")
+            .sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action")))
+            .type("order.created")
+            .subject("order-processing"))
+        .transform(CloudEvents.toCloudEventTransformer())
+        .channel("outputChannel")
+        .get();
+}
+----
+

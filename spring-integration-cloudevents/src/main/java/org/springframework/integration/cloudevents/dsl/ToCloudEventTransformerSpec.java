@@ -30,7 +30,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
 
 /**
- * Spec for an {@link ToCloudEventTransformer}.
+ * Spec for a {@link ToCloudEventTransformer}.
  *
  * @author Glenn Renfro
  * @author Artem Bilan
@@ -152,8 +152,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the SpEL expression to extract the {@code type} for the {@link io.cloudevents.CloudEvent}.
-	 * @param typeExpression the SpEL expression to create the {@code type} for each {@link io.cloudevents.CloudEvent}
 	 * <p>Default is {@code spring.message}.
+	 * @param typeExpression the SpEL expression to create the {@code type} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec typeExpression(String typeExpression) {
@@ -162,8 +162,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@link Function} to extract the {@code type} for the {@link io.cloudevents.CloudEvent}.
+	 * <p>Default is {@code spring.message}.
 	 * @param typeFunction the {@link Function} to create the {@code type} for each {@link io.cloudevents.CloudEvent}
-	 *                     <p>Default is {@code spring.message}.
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec typeFunction(Function<Message<?>, String> typeFunction) {
@@ -172,8 +172,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@code type} for the {@link io.cloudevents.CloudEvent}.
+	 * <p>Default is {@code spring.message}.
 	 * @param type the {@code type} for each {@link io.cloudevents.CloudEvent}
-	 *             <p>Default is {@code spring.message}.
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec type(String type) {
@@ -182,8 +182,8 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@link Expression} to extract the {@code type} for the {@link io.cloudevents.CloudEvent}.
-	 * @param typeExpression the expression to create the {@code type} for each {@link io.cloudevents.CloudEvent}
 	 * <p>Default is {@code spring.message}.
+	 * @param typeExpression the expression to create the {@code type} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec typeExpression(Expression typeExpression) {
@@ -213,7 +213,7 @@ public class ToCloudEventTransformerSpec {
 
 	/**
 	 * Set the {@code dataSchema} for the {@link io.cloudevents.CloudEvent}.
-	 * @param dataSchema the  {@code dataSchema} for each {@link io.cloudevents.CloudEvent}
+	 * @param dataSchema the {@code dataSchema} for each {@link io.cloudevents.CloudEvent}
 	 * @return the spec
 	 */
 	public ToCloudEventTransformerSpec dataSchema(URI dataSchema) {
