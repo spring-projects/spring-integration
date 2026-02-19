@@ -1,29 +1,9 @@
 name: Trigger Dependabot Updates
-
-# This workflow is a convenient alternative to the GitHub UI interface for Dependabot updates.
-# The workflow performs Toggle executable permission as a superficial change on the dependabot.yml file.
-# That is enough for Dependabot to understand that some changes have happened in the dependency updates config.
-
 on:
   workflow_dispatch:
 
 jobs:
   trigget-dependabot:
-    runs-on: ubuntu-latest
-    steps:
-
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-          show-progress: false
-
-      - name: Touch dependabot.yml
-        run: |
-          file=".github/dependabot.yml"
-          # Toggle executable permission as a superficial change
-          [ -x "$file" ] && chmod -x "$file" || chmod +x "$file"
-          
-          git config --global user.name 'Spring Builds'
-          git config --global user.email 'builds@springframework.org'
-          git commit -am "CI/CD: Trigger dependabot updates"
-          git push origin
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-trigger-dependabot-updates.yml@main
+    secrets:
+      GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
