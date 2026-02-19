@@ -291,7 +291,7 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 				.containsKey(MessageHeaders.TIMESTAMP);
 	}
 
-	private Message<?> getResultMessage(StaticHeaderValueMessageProcessor<?> staticHeaderValueMessageProcessor) {
+	private static Message<?> getResultMessage(StaticHeaderValueMessageProcessor<?> staticHeaderValueMessageProcessor) {
 		HeaderEnricher transformer = new HeaderEnricher();
 		transformer.setMessageProcessor(staticHeaderValueMessageProcessor);
 		transformer.setDefaultOverwrite(true);

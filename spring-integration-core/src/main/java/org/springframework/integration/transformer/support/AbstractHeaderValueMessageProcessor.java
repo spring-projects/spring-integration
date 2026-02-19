@@ -23,10 +23,11 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
-public abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
+public abstract class AbstractHeaderValueMessageProcessor<T extends @Nullable Object> implements HeaderValueMessageProcessor<T> {
 
 	private @Nullable Boolean overwrite = null;
 

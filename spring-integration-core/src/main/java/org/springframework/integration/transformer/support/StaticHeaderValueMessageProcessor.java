@@ -30,16 +30,16 @@ import org.springframework.messaging.Message;
  *
  * @since 3.0
  */
-public class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
+public class StaticHeaderValueMessageProcessor<T extends @Nullable Object> extends AbstractHeaderValueMessageProcessor<T> {
 
-	private final @Nullable T value;
+	private final T value;
 
-	public StaticHeaderValueMessageProcessor(@Nullable T value) {
+	public StaticHeaderValueMessageProcessor(T value) {
 		this.value = value;
 	}
 
 	@Override
-	public @Nullable T processMessage(Message<?> message) {
+	public T processMessage(Message<?> message) {
 		return this.value;
 	}
 
