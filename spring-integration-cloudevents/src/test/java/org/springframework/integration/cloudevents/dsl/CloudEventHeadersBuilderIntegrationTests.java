@@ -52,8 +52,7 @@ class CloudEventHeadersBuilderIntegrationTests {
 	private PollableChannel outputChannel;
 
 	@Test
-	void testEnrichHeadersWithDirectValues(
-			@Autowired @Qualifier("directFlow.input") MessageChannel inputChannel) {
+	void testEnrichHeadersWithDirectValues(@Autowired @Qualifier("directFlow.input") MessageChannel inputChannel) {
 
 		inputChannel.send(new GenericMessage<>("test-payload"));
 
@@ -77,7 +76,8 @@ class CloudEventHeadersBuilderIntegrationTests {
 		assertThat(result.getHeaders())
 				.containsEntry(CloudEventHeaders.EVENT_ID, "id-order-456")
 				.containsEntry(CloudEventHeaders.EVENT_TYPE, "order.created")
-				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("https://example.com/created"));
+				.containsEntry(CloudEventHeaders.EVENT_SOURCE, URI.create("https://example.com/created"))
+				.containsEntry(CloudEventHeaders.EVENT_DATA_SCHEMA, URI.create("https://example.com/schema/created"));
 	}
 
 	@Test
@@ -115,7 +115,8 @@ class CloudEventHeadersBuilderIntegrationTests {
 		IntegrationFlow functionFlow() {
 			return flow -> flow
 					.enrichHeaders(CloudEvents.headers()
-							.dataSchema(URI.create("https://example.com"))
+							.dataSchemaFunction(msg -> URI.create("https://example.com/schema/" +
+									msg.getHeaders().get("action")))
 							.idFunction(msg -> "id-" + msg.getPayload())
 							.typeFunction(msg -> "order." + msg.getHeaders().get("action"))
 							.sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action"))))
@@ -128,7 +129,7 @@ class CloudEventHeadersBuilderIntegrationTests {
 					.enrichHeaders(CloudEvents.headers()
 							.idExpression("headers['orderId']")
 							.typeExpression("'order.' + headers['type']")
-							.sourceExpression("'https://example.com/' + headers[ 'type']"))
+							.sourceExpression("'https://example.com/' + headers.type"))
 					.channel("outputChannel");
 		}
 

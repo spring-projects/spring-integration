@@ -352,8 +352,8 @@ Access the builder through the `CloudEvents.headers()` factory method.
 The builder supports three ways to set header values:
 
 1. **Direct values** - Set static values directly
-2. **SpEL expressions** - Use Spring Expression Language for dynamic values
-3. **Functions** - Provide Java functions that evaluate the values for the attributes
+2. **SpEL expressions** - Use Spring Expression Language for dynamic values based on the message
+3. **Functions** - Provide Java functions that evaluate the values based on the message
 
 === Basic Usage
 

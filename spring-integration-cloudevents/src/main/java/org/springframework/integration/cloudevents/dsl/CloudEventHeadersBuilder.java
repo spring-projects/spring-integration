@@ -29,7 +29,8 @@ import org.springframework.messaging.Message;
 
 /**
  * The CloudEvent specific {@link MapBuilder} implementation.
- * <p>Provide a fluent API for building CloudEvent headers with support for
+ * <p>
+ * Provide a fluent API for building CloudEvent headers with support for
  * literal values, SpEL expressions, and function-based values.
  *
  * @author Glenn Renfro
@@ -38,7 +39,27 @@ import org.springframework.messaging.Message;
  */
 public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilder, String, Object> {
 
-	CloudEventHeadersBuilder() {
+	/**
+	 * Create a new {@link CloudEventHeadersBuilder}.
+	 */
+	public CloudEventHeadersBuilder() {
+	}
+
+	/**
+	 * Create a new {@link CloudEventHeadersBuilder} with the given prefix.
+	 * @param prefix the CloudEvent header prefix
+	 */
+	public CloudEventHeadersBuilder(String prefix) {
+		prefix(prefix);
+	}
+
+	/**
+	 * Set the CloudEvent prefix.
+	 * @param prefix the event prefix
+	 * @return the builder
+	 */
+	public CloudEventHeadersBuilder prefix(String prefix) {
+		return put(CloudEventHeaders.PREFIX, prefix);
 	}
 
 	/**
@@ -74,15 +95,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder source(URI source) {
-		return put(CloudEventHeaders.EVENT_SOURCE, source);
-	}
-
-	/**
-	 * Set the CloudEvent source.
-	 * @param source the event source as string
-	 * @return the builder
-	 */
-	public CloudEventHeadersBuilder source(String source) {
 		return put(CloudEventHeaders.EVENT_SOURCE, source);
 	}
 

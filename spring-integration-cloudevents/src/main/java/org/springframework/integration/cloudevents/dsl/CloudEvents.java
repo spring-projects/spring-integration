@@ -22,6 +22,7 @@ import org.springframework.integration.cloudevents.transformer.FromCloudEventTra
 
 /**
  * Factory class for CloudEvents components.
+ *
  * @author Glenn Renfro
  *
  * @since 7.1
