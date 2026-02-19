@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -25,8 +26,10 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -36,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 class MethodInvokingTransformerTests implements TestApplicationContextAware {
 
@@ -264,6 +268,36 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 		assertThat(result.getHeaders().get("prop1")).isEqualTo("foo");
 		assertThat(result.getHeaders().get("prop2")).isEqualTo("bar");
 		assertThat(result.getHeaders().get("prop3")).isEqualTo("baz");
+	}
+
+	@Test
+	void headerEnricherStaticHeaderValueMessageProcessorNullCheck() {
+		Message<?> result = getResultMessage(new StaticHeaderValueMessageProcessor<>(null));
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders()).containsEntry("test", "value")
+				.containsKey(MessageHeaders.ID)
+				.containsKey(MessageHeaders.TIMESTAMP);
+
+		result = getResultMessage(new StaticHeaderValueMessageProcessor<>(Collections.singletonMap("test", null)));
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders()).doesNotContainKey("test")
+				.containsKey(MessageHeaders.ID)
+				.containsKey(MessageHeaders.TIMESTAMP);
+
+		result = getResultMessage(new StaticHeaderValueMessageProcessor<>(Collections.singletonMap("test", "replace")));
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders()).containsEntry("test", "replace")
+				.containsKey(MessageHeaders.ID)
+				.containsKey(MessageHeaders.TIMESTAMP);
+	}
+
+	private Message<?> getResultMessage(StaticHeaderValueMessageProcessor<?> staticHeaderValueMessageProcessor) {
+		HeaderEnricher transformer = new HeaderEnricher();
+		transformer.setMessageProcessor(staticHeaderValueMessageProcessor);
+		transformer.setDefaultOverwrite(true);
+
+		Message<String> message = MessageBuilder.withPayload("test").setHeader("test", "value").build();
+		return transformer.transform(message);
 	}
 
 	@SuppressWarnings("unused")

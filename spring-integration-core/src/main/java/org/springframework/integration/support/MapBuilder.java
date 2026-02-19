@@ -19,6 +19,8 @@ package org.springframework.integration.support;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -29,6 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @param <V> The Map value type.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -38,7 +41,7 @@ public class MapBuilder<B extends MapBuilder<B, K, V>, K, V> {
 
 	private final Map<K, V> map = new HashMap<>();
 
-	public B put(K key, V value) {
+	public B put(K key, @Nullable V value) {
 		this.map.put(key, value);
 		return _this();
 	}
