@@ -52,6 +52,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -307,7 +308,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec correlationId(Object correlationId) {
+	public HeaderEnricherSpec correlationId(@Nullable Object correlationId) {
 		return correlationId(correlationId, null);
 	}
 
@@ -318,7 +319,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec correlationId(Object correlationId, @Nullable Boolean overwrite) {
+	public HeaderEnricherSpec correlationId(@Nullable Object correlationId, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId, overwrite);
 	}
 
@@ -387,7 +388,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec replyChannel(Object replyChannel) {
+	public HeaderEnricherSpec replyChannel(@Nullable Object replyChannel) {
 		return replyChannel(replyChannel, null);
 	}
 
@@ -398,7 +399,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec replyChannel(Object replyChannel, @Nullable Boolean overwrite) {
+	public HeaderEnricherSpec replyChannel(@Nullable Object replyChannel, @Nullable Boolean overwrite) {
 		return header(MessageHeaders.REPLY_CHANNEL, replyChannel, overwrite);
 	}
 
@@ -465,7 +466,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec errorChannel(Object errorChannel) {
+	public HeaderEnricherSpec errorChannel(@Nullable Object errorChannel) {
 		return errorChannel(errorChannel, null);
 	}
 
@@ -476,7 +477,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec errorChannel(Object errorChannel, @Nullable Boolean overwrite) {
+	public HeaderEnricherSpec errorChannel(@Nullable Object errorChannel, @Nullable Boolean overwrite) {
 		return header(MessageHeaders.ERROR_CHANNEL, errorChannel, overwrite);
 	}
 
@@ -543,7 +544,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec priority(Number priority) {
+	public HeaderEnricherSpec priority(@Nullable Number priority) {
 		return priority(priority, null);
 	}
 
@@ -554,7 +555,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec priority(Number priority, @Nullable Boolean overwrite) {
+	public HeaderEnricherSpec priority(@Nullable Number priority, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.PRIORITY, priority, overwrite);
 	}
 
@@ -621,7 +622,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec expirationDate(Object expirationDate) {
+	public HeaderEnricherSpec expirationDate(@Nullable Object expirationDate) {
 		return expirationDate(expirationDate, null);
 	}
 
@@ -632,7 +633,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec expirationDate(Object expirationDate, @Nullable Boolean overwrite) {
+	public HeaderEnricherSpec expirationDate(@Nullable Object expirationDate, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate, overwrite);
 	}
 
@@ -759,7 +760,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param <V> the value type.
 	 * @return the header enricher spec.
 	 */
-	public <V> HeaderEnricherSpec header(String name, V value, @Nullable Boolean overwrite) {
+	public <V extends @Nullable Object> HeaderEnricherSpec header(String name, V value, @Nullable Boolean overwrite) {
 		AbstractHeaderValueMessageProcessor<V> headerValueMessageProcessor =
 				new StaticHeaderValueMessageProcessor<>(value);
 		headerValueMessageProcessor.setOverwrite(overwrite);

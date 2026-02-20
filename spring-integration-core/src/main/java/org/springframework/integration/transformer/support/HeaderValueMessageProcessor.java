@@ -25,10 +25,11 @@ import org.springframework.integration.handler.MessageProcessor;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
-public interface HeaderValueMessageProcessor<T> extends MessageProcessor<T> {
+public interface HeaderValueMessageProcessor<T extends @Nullable Object> extends MessageProcessor<T> {
 
 	/**
 	 * Return the overwrite flag.

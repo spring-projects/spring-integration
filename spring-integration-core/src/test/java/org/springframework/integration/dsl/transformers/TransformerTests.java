@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -296,6 +297,74 @@ public class TransformerTests {
 
 	}
 
+	@Autowired
+	@Qualifier("headerEnricherWithNullFlow.input")
+	MessageChannel headerEnricherWithNullFlowInput;
+
+	@Autowired
+	@Qualifier("headerEnricherRemoveWithNullFlow.input")
+	MessageChannel headerEnricherRemoveWithNullFlowInput;
+
+	@Autowired
+	@Qualifier("headerEnricherWithMapNullFlow.input")
+	MessageChannel headerEnricherWithMapNullFlowInput;
+
+	@Test
+	void headerEnricherWithNullValueSkipsNull() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.headerEnricherWithNullFlowInput.send(
+				MessageBuilder.withPayload("test")
+						.setHeader("existingHeader", "existingValue")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
+		assertThat(receive.getHeaders())
+				.containsEntry("existingHeader", "existingValue")
+				.containsEntry("nonNullHeader", "value")
+				.doesNotContainKey("nullHeader");
+	}
+
+	@Test
+	void headerEnricherWithNullValueRemovesHeader() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.headerEnricherRemoveWithNullFlowInput.send(
+				MessageBuilder.withPayload("test")
+						.setHeader("headerToRemove", "willBeRemoved")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
+		assertThat(receive.getHeaders())
+				.containsEntry("nonNullHeader", "value")
+				.doesNotContainKey("headerToRemove");
+	}
+
+	@Test
+	void headerEnricherWithMapContainingNullValues() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.headerEnricherWithMapNullFlowInput.send(
+				MessageBuilder.withPayload("test")
+						.setHeader("header1", "original")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
+		assertThat(receive.getHeaders())
+				.containsEntry("header1", "value1")
+				.containsEntry("header2", "value2")
+				.doesNotContainKey("header3");
+	}
+
 	@Test
 	void reactiveTransformerReplyIsProcessed() {
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
@@ -512,6 +581,39 @@ public class TransformerTests {
 							.<String, CompletableFuture<String>>transformer(payload ->
 									CompletableFuture.completedFuture(payload + " async"))
 							.async(true));
+		}
+
+		@Bean
+		public IntegrationFlow headerEnricherWithNullFlow() {
+			String nullValue = null;
+			return f -> f
+					.enrichHeaders(h -> h
+							// if null is placed then Nullability states you can't pass a null.
+							// But a String that is null is accepted.
+							.header("nullHeader", nullValue)
+							.header("nonNullHeader", "value")
+							.shouldSkipNulls(true));
+		}
+
+		@Bean
+		public IntegrationFlow headerEnricherRemoveWithNullFlow() {
+			return f -> f
+					.enrichHeaders(h -> h
+							.header("headerToRemove", null, true)
+							.header("nonNullHeader", "value")
+							.shouldSkipNulls(false));
+		}
+
+		@Bean
+		public IntegrationFlow headerEnricherWithMapNullFlow() {
+			Map<String, Object> headers = new HashMap<>();
+			headers.put("header1", "value1");
+			headers.put("header2", "value2");
+			headers.put("header3", null);
+			return f -> f
+					.enrichHeaders(h -> h
+							.headers(headers, true)
+							.shouldSkipNulls(true));
 		}
 
 	}
