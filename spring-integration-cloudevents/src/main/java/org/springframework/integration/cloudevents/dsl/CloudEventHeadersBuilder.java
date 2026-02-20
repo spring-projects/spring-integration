@@ -37,7 +37,7 @@ import org.springframework.messaging.Message;
  *
  * @since 7.1
  */
-public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilder, String, Object> {
+public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilder, String, @Nullable Object> {
 
 	private final String eventIdKey;
 
@@ -160,7 +160,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param time the event timestamp
 	 * @return the builder
 	 */
-	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder time(@Nullable OffsetDateTime time) {
 		return put(this.eventTimeKey, time);
 	}
@@ -188,7 +187,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param subject the event subject
 	 * @return the builder
 	 */
-	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder subject(@Nullable String subject) {
 		return put(this.eventSubjectKey, subject);
 	}
@@ -216,7 +214,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param dataContentType the data content type
 	 * @return the builder
 	 */
-	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder dataContentType(@Nullable String dataContentType) {
 		return put(this.eventDataContentTypeKey, dataContentType);
 	}
@@ -244,7 +241,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param dataSchema the data schema URI
 	 * @return the builder
 	 */
-	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder dataSchema(@Nullable URI dataSchema) {
 		return put(this.eventDataSchemaKey, dataSchema);
 	}
