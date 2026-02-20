@@ -35,7 +35,8 @@ import org.springframework.util.MimeType;
 
 /**
  * Transform {@link CloudEvent} format messages to Spring Integration messages.
- * <p>This transformer supports two payload types:
+ * <p>
+ * This transformer supports two payload types:
  * <ul>
  *   <li><b>{@link CloudEvent} Object Type:</b> When the message payload is a {@link CloudEvent} instance,
  *   the transformer extracts the {@link CloudEvent} data from the message payload and maps {@link CloudEvent}
@@ -54,7 +55,6 @@ import org.springframework.util.MimeType;
  * @author Artem Bilan
  *
  * @since 7.1
- *
  * @see ToCloudEventTransformer
  * @see CloudEventHeaders
  * @see CloudEvent
@@ -125,10 +125,10 @@ public class FromCloudEventTransformer extends AbstractTransformer {
 				getMessageBuilderFactory()
 						.withPayload(payload)
 						.copyHeaders(message.getHeaders())
+						.setHeader(MessageHeaders.CONTENT_TYPE, cloudEvent.getDataContentType())
 						.setHeader(CloudEventHeaders.EVENT_SOURCE, cloudEvent.getSource())
 						.setHeader(CloudEventHeaders.EVENT_TYPE, cloudEvent.getType())
 						.setHeader(CloudEventHeaders.EVENT_ID, cloudEvent.getId())
-						.setHeader(MessageHeaders.CONTENT_TYPE, cloudEvent.getDataContentType())
 						.setHeader(CloudEventHeaders.EVENT_SUBJECT, cloudEvent.getSubject())
 						.setHeader(CloudEventHeaders.EVENT_TIME, cloudEvent.getTime())
 						.setHeader(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, cloudEvent.getDataContentType())

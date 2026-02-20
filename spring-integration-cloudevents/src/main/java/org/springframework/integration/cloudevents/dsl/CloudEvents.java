@@ -30,7 +30,7 @@ import org.springframework.integration.cloudevents.transformer.FromCloudEventTra
 public final class CloudEvents {
 
 	/**
-	 * The factory to produce a {@link FromCloudEventTransformer}.
+	 * Create a {@link FromCloudEventTransformer}.
 	 * @return the {@link FromCloudEventTransformer} instance
 	 */
 	public static FromCloudEventTransformer fromCloudEventTransformer() {
@@ -38,7 +38,7 @@ public final class CloudEvents {
 	}
 
 	/**
-	 * The factory to produce a {@link FromCloudEventTransformer} with specified {@link EventFormat}.
+	 * Create a {@link FromCloudEventTransformer} with specified {@link EventFormat}.
 	 * @param eventFormat The fallback {@link EventFormat} to use if {@code EventFormatProvider} can not identify the
 	 * {@link EventFormat} for the payload.
 	 * @return the {@link FromCloudEventTransformer} instance
@@ -50,7 +50,7 @@ public final class CloudEvents {
 	}
 
 	/**
-	 * The factory to produce a {@link ToCloudEventTransformerSpec}.
+	 * Create a {@link ToCloudEventTransformerSpec}.
 	 * @return the {@link ToCloudEventTransformerSpec} instance
 	 */
 	public static ToCloudEventTransformerSpec toCloudEventTransformer() {
@@ -58,13 +58,30 @@ public final class CloudEvents {
 	}
 
 	/**
-	 * The factory to produce a {@link ToCloudEventTransformerSpec} with extension patterns.
+	 * Create a {@link ToCloudEventTransformerSpec} with extension patterns.
 	 * @param extensionPatterns patterns to evaluate whether message headers should be added as extensions
-	 *                          to the {@link io.cloudevents.CloudEvent}
+	 * to the {@link io.cloudevents.CloudEvent}
 	 * @return the {@link ToCloudEventTransformerSpec} instance
 	 */
 	public static ToCloudEventTransformerSpec toCloudEventTransformer(String... extensionPatterns) {
 		return new ToCloudEventTransformerSpec(extensionPatterns);
+	}
+
+	/**
+	 * Create a {@link CloudEventHeadersBuilder} with default prefix.
+	 * @return the CloudEventHeadersBuilder instance
+	 */
+	public static CloudEventHeadersBuilder headers() {
+		return new CloudEventHeadersBuilder();
+	}
+
+	/**
+	 * Create a {@link CloudEventHeadersBuilder} with the given prefix.
+	 * @param prefix the CloudEvent header prefix
+	 * @return the CloudEventHeadersBuilder instance
+	 */
+	public static CloudEventHeadersBuilder headers(String prefix) {
+		return new CloudEventHeadersBuilder(prefix);
 	}
 
 	private CloudEvents() {

@@ -342,3 +342,35 @@ public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEve
         .get();
 }
 ----
+
+[[cloudevent-headers-builder]]
+== CloudEvent Headers Builder
+
+The `CloudEventHeadersBuilder` can be used to add CloudEvent attributes when using the xref:dsl.adoc[].
+The builder is accessible through the `CloudEvents.headers()` factory method.
+
+The builder supports three ways to set header values:
+
+1. **Direct values** - Set static values directly
+2. **SpEL expressions** - Use Spring Expression Language for dynamic values based on the message
+3. **Functions** - Provide Java functions that evaluate the values based on the message
+
+=== Basic Usage
+
+[source,java]
+----
+@Bean
+public IntegrationFlow cloudEventFlow() {
+    return IntegrationFlow
+        .from("inputChannel")
+        .enrichHeaders(CloudEvents.headers()
+            .idExpression("headers.orderId")
+            .sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action")))
+            .type("order.created")
+            .subject("order-processing"))
+        .transform(CloudEvents.toCloudEventTransformer())
+        .channel("outputChannel")
+        .get();
+}
+----
+
