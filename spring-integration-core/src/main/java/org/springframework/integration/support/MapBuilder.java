@@ -35,13 +35,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  *
  * @since 5.0
  */
-public class MapBuilder<B extends MapBuilder<B, K, V>, K, V> {
+public class MapBuilder<B extends MapBuilder<B, K, V>, K, V extends @Nullable Object> {
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Map<K, V> map = new HashMap<>();
 
-	public B put(K key, @Nullable V value) {
+	public B put(K key, V value) {
 		this.map.put(key, value);
 		return _this();
 	}

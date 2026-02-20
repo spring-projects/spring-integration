@@ -42,7 +42,6 @@ import org.springframework.messaging.Message;
  *
  * @author Mark Fisher
  * @author Artem Bilan
- * @author Glenn Renfro
  *
  * @since 2.0
  */

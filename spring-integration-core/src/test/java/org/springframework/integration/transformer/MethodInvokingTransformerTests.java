@@ -29,7 +29,6 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -272,23 +271,21 @@ class MethodInvokingTransformerTests implements TestApplicationContextAware {
 
 	@Test
 	void headerEnricherStaticHeaderValueMessageProcessorNullCheck() {
-		Message<?> result = getResultMessage(new StaticHeaderValueMessageProcessor<>(null));
-		assertThat(result.getPayload()).isEqualTo("test");
-		assertThat(result.getHeaders()).containsEntry("test", "value")
-				.containsKey(MessageHeaders.ID)
-				.containsKey(MessageHeaders.TIMESTAMP);
+		HeaderEnricher transformer = new HeaderEnricher(Collections.singletonMap("test", new StaticHeaderValueMessageProcessor<>(null)));
+		transformer.setDefaultOverwrite(true);
+		Message<String> message = MessageBuilder.withPayload("test").setHeader("test", "value").build();
+		Message<?> result = transformer.transform(message);
 
-		result = getResultMessage(new StaticHeaderValueMessageProcessor<>(Collections.singletonMap("test", null)));
 		assertThat(result.getPayload()).isEqualTo("test");
-		assertThat(result.getHeaders()).doesNotContainKey("test")
-				.containsKey(MessageHeaders.ID)
-				.containsKey(MessageHeaders.TIMESTAMP);
+		assertThat(result.getHeaders()).containsEntry("test", "value");
 
-		result = getResultMessage(new StaticHeaderValueMessageProcessor<>(Collections.singletonMap("test", "replace")));
+		transformer = new HeaderEnricher(Collections.singletonMap("test", new StaticHeaderValueMessageProcessor<>(null)));
+		transformer.setDefaultOverwrite(true);
+		transformer.setShouldSkipNulls(false);
+		result = transformer.transform(message);
+
 		assertThat(result.getPayload()).isEqualTo("test");
-		assertThat(result.getHeaders()).containsEntry("test", "replace")
-				.containsKey(MessageHeaders.ID)
-				.containsKey(MessageHeaders.TIMESTAMP);
+		assertThat(result.getHeaders()).doesNotContainKey("test");
 	}
 
 	private static Message<?> getResultMessage(StaticHeaderValueMessageProcessor<?> staticHeaderValueMessageProcessor) {
