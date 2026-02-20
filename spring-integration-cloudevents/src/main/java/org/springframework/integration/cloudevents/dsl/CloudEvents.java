@@ -75,7 +75,17 @@ public final class CloudEvents {
 		return new CloudEventHeadersBuilder();
 	}
 
+	/**
+	 * Create a {@link CloudEventHeadersBuilder} with the given prefix.
+	 * @param prefix the CloudEvent header prefix
+	 * @return the CloudEventHeadersBuilder instance
+	 */
+	public static CloudEventHeadersBuilder headers(String prefix) {
+		return new CloudEventHeadersBuilder(prefix);
+	}
+
 	private CloudEvents() {
 	}
 
 }
+

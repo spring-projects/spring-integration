@@ -66,6 +66,21 @@ class CloudEventHeadersBuilderIntegrationTests {
 	}
 
 	@Test
+	void testEnrichHeadersWithDirectValuesNewPrefix(
+			@Autowired @Qualifier("directFlowNewPrefixFlow.input") MessageChannel inputChannel) {
+
+		inputChannel.send(new GenericMessage<>("test-payload"));
+
+		Message<?> result = this.outputChannel.receive(1000);
+		assertThat(result.getHeaders())
+				.containsEntry("test-id", "test-id-123")
+				.containsEntry("test-type", "test.event")
+				.containsEntry("test-source", URI.create("https://example.com"))
+				.containsEntry("test-subject", "test-subject")
+				.doesNotContainKey("test-dataschema");
+	}
+
+	@Test
 	void testEnrichHeadersWithFunctions(@Autowired @Qualifier("functionFlow.input") MessageChannel inputChannel) {
 		Message<String> message = MessageBuilder.withPayload("order-456")
 				.setHeader("action", "created")
@@ -112,6 +127,18 @@ class CloudEventHeadersBuilderIntegrationTests {
 		}
 
 		@Bean
+		IntegrationFlow directFlowNewPrefixFlow() {
+			return flow -> flow
+					.enrichHeaders(CloudEvents.headers("test-")
+							.id("test-id-123")
+							.type("test.event")
+							.dataSchema(null)
+							.source(URI.create("https://example.com"))
+							.subject("test-subject"))
+					.channel("outputChannel");
+		}
+
+		@Bean
 		IntegrationFlow functionFlow() {
 			return flow -> flow
 					.enrichHeaders(CloudEvents.headers()
@@ -127,8 +154,8 @@ class CloudEventHeadersBuilderIntegrationTests {
 		IntegrationFlow expressionFlow() {
 			return flow -> flow
 					.enrichHeaders(CloudEvents.headers()
-							.idExpression("headers['orderId']")
-							.typeExpression("'order.' + headers['type']")
+							.idExpression("headers.orderId")
+							.typeExpression("'order.' + headers.type")
 							.sourceExpression("'https://example.com/' + headers.type"))
 					.channel("outputChannel");
 		}
@@ -141,3 +168,4 @@ class CloudEventHeadersBuilderIntegrationTests {
 	}
 
 }
+

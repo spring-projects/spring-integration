@@ -39,6 +39,22 @@ import org.springframework.messaging.Message;
  */
 public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilder, String, Object> {
 
+	private String prefix = CloudEventHeaders.PREFIX;
+
+	private String eventIdKey = CloudEventHeaders.EVENT_ID;
+
+	private String eventTypeKey = CloudEventHeaders.EVENT_TYPE;
+
+	private String eventSourceKey = CloudEventHeaders.EVENT_SOURCE;
+
+	private String eventSubjectKey = CloudEventHeaders.EVENT_SUBJECT;
+
+	private String eventTimeKey = CloudEventHeaders.EVENT_TIME;
+
+	private String eventDataContentTypeKey = CloudEventHeaders.EVENT_DATA_CONTENT_TYPE;
+
+	private String eventDataSchemaKey = CloudEventHeaders.EVENT_DATA_SCHEMA;
+
 	/**
 	 * Create a new {@link CloudEventHeadersBuilder}.
 	 */
@@ -50,16 +66,8 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param prefix the CloudEvent header prefix
 	 */
 	public CloudEventHeadersBuilder(String prefix) {
-		prefix(prefix);
-	}
-
-	/**
-	 * Set the CloudEvent prefix.
-	 * @param prefix the event prefix
-	 * @return the builder
-	 */
-	public CloudEventHeadersBuilder prefix(String prefix) {
-		return put(CloudEventHeaders.PREFIX, prefix);
+		this.prefix = prefix;
+		updatePrefix();
 	}
 
 	/**
@@ -68,7 +76,18 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder id(String id) {
-		return put(CloudEventHeaders.EVENT_ID, id);
+		return put(this.eventIdKey, id);
+	}
+
+	/**
+	 * Set the CloudEvent prefix.
+	 * @param prefix the event prefix
+	 * @return the builder
+	 */
+	public CloudEventHeadersBuilder prefix(String prefix) {
+		this.prefix = prefix;
+		updatePrefix();
+		return _this();
 	}
 
 	/**
@@ -77,7 +96,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder idExpression(String id) {
-		return putExpression(CloudEventHeaders.EVENT_ID, id);
+		return putExpression(this.eventIdKey, id);
 	}
 
 	/**
@@ -86,7 +105,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder idFunction(Function<Message<P>, String> id) {
-		return put(CloudEventHeaders.EVENT_ID, new FunctionExpression<>(id));
+		return put(this.eventIdKey, new FunctionExpression<>(id));
 	}
 
 	/**
@@ -95,7 +114,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder source(URI source) {
-		return put(CloudEventHeaders.EVENT_SOURCE, source);
+		return put(this.eventSourceKey, source);
 	}
 
 	/**
@@ -104,7 +123,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder sourceExpression(String source) {
-		return putExpression(CloudEventHeaders.EVENT_SOURCE, source);
+		return putExpression(this.eventSourceKey, source);
 	}
 
 	/**
@@ -113,7 +132,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder sourceFunction(Function<Message<P>, URI> source) {
-		return put(CloudEventHeaders.EVENT_SOURCE, new FunctionExpression<>(source));
+		return put(this.eventSourceKey, new FunctionExpression<>(source));
 	}
 
 	/**
@@ -122,7 +141,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder type(String type) {
-		return put(CloudEventHeaders.EVENT_TYPE, type);
+		return put(this.eventTypeKey, type);
 	}
 
 	/**
@@ -131,7 +150,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder typeExpression(String type) {
-		return putExpression(CloudEventHeaders.EVENT_TYPE, type);
+		return putExpression(this.eventTypeKey, type);
 	}
 
 	/**
@@ -140,7 +159,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder typeFunction(Function<Message<P>, String> type) {
-		return put(CloudEventHeaders.EVENT_TYPE, new FunctionExpression<>(type));
+		return put(this.eventTypeKey, new FunctionExpression<>(type));
 	}
 
 	/**
@@ -150,7 +169,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 */
 	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder time(@Nullable OffsetDateTime time) {
-		return put(CloudEventHeaders.EVENT_TIME, time);
+		return put(this.eventTimeKey, time);
 	}
 
 	/**
@@ -159,7 +178,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder timeExpression(String time) {
-		return putExpression(CloudEventHeaders.EVENT_TIME, time);
+		return putExpression(this.eventTimeKey, time);
 	}
 
 	/**
@@ -168,7 +187,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder timeFunction(Function<Message<P>, OffsetDateTime> time) {
-		return put(CloudEventHeaders.EVENT_TIME, new FunctionExpression<>(time));
+		return put(this.eventTimeKey, new FunctionExpression<>(time));
 	}
 
 	/**
@@ -178,7 +197,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 */
 	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder subject(@Nullable String subject) {
-		return put(CloudEventHeaders.EVENT_SUBJECT, subject);
+		return put(this.eventSubjectKey, subject);
 	}
 
 	/**
@@ -187,7 +206,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder subjectExpression(String subject) {
-		return putExpression(CloudEventHeaders.EVENT_SUBJECT, subject);
+		return putExpression(this.eventSubjectKey, subject);
 	}
 
 	/**
@@ -196,7 +215,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder subjectFunction(Function<Message<P>, String> subject) {
-		return put(CloudEventHeaders.EVENT_SUBJECT, new FunctionExpression<>(subject));
+		return put(this.eventSubjectKey, new FunctionExpression<>(subject));
 	}
 
 	/**
@@ -206,7 +225,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 */
 	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder dataContentType(@Nullable String dataContentType) {
-		return put(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, dataContentType);
+		return put(this.eventDataContentTypeKey, dataContentType);
 	}
 
 	/**
@@ -215,7 +234,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder dataContentTypeExpression(String dataContentType) {
-		return putExpression(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, dataContentType);
+		return putExpression(this.eventDataContentTypeKey, dataContentType);
 	}
 
 	/**
@@ -224,7 +243,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder dataContentTypeFunction(Function<Message<P>, String> dataContentType) {
-		return put(CloudEventHeaders.EVENT_DATA_CONTENT_TYPE, new FunctionExpression<>(dataContentType));
+		return put(this.eventDataContentTypeKey, new FunctionExpression<>(dataContentType));
 	}
 
 	/**
@@ -234,7 +253,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 */
 	@SuppressWarnings("NullAway")
 	public CloudEventHeadersBuilder dataSchema(@Nullable URI dataSchema) {
-		return put(CloudEventHeaders.EVENT_DATA_SCHEMA, dataSchema);
+		return put(this.eventDataSchemaKey, dataSchema);
 	}
 
 	/**
@@ -243,7 +262,7 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public CloudEventHeadersBuilder dataSchemaExpression(String dataSchema) {
-		return putExpression(CloudEventHeaders.EVENT_DATA_SCHEMA, dataSchema);
+		return putExpression(this.eventDataSchemaKey, dataSchema);
 	}
 
 	/**
@@ -252,11 +271,22 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @return the builder
 	 */
 	public <P> CloudEventHeadersBuilder dataSchemaFunction(Function<Message<P>, URI> dataSchema) {
-		return put(CloudEventHeaders.EVENT_DATA_SCHEMA, new FunctionExpression<>(dataSchema));
+		return put(this.eventDataSchemaKey, new FunctionExpression<>(dataSchema));
 	}
 
 	private CloudEventHeadersBuilder putExpression(String key, String expression) {
 		return put(key, PARSER.parseExpression(expression));
 	}
 
+	private void updatePrefix() {
+		this.eventIdKey = this.prefix + "id";
+		this.eventTimeKey = this.prefix + "time";
+		this.eventTypeKey = this.prefix + "type";
+		this.eventDataContentTypeKey = this.prefix + "datacontenttype";
+		this.eventDataSchemaKey = this.prefix + "dataschema";
+		this.eventSourceKey = this.prefix + "source";
+		this.eventSubjectKey = this.prefix + "subject";
+	}
+
 }
+
