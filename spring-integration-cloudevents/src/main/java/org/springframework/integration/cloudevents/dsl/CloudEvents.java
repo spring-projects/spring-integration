@@ -68,7 +68,7 @@ public final class CloudEvents {
 	}
 
 	/**
-	 * Create a {@link CloudEventHeadersBuilder}.
+	 * Create a {@link CloudEventHeadersBuilder} with default prefix.
 	 * @return the CloudEventHeadersBuilder instance
 	 */
 	public static CloudEventHeadersBuilder headers() {
@@ -88,4 +88,3 @@ public final class CloudEvents {
 	}
 
 }
-

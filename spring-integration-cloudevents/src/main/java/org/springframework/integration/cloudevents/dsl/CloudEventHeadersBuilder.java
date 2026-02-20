@@ -39,26 +39,25 @@ import org.springframework.messaging.Message;
  */
 public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilder, String, Object> {
 
-	private String prefix = CloudEventHeaders.PREFIX;
+	private final String eventIdKey;
 
-	private String eventIdKey = CloudEventHeaders.EVENT_ID;
+	private final String eventTypeKey;
 
-	private String eventTypeKey = CloudEventHeaders.EVENT_TYPE;
+	private final String eventSourceKey;
 
-	private String eventSourceKey = CloudEventHeaders.EVENT_SOURCE;
+	private final String eventSubjectKey;
 
-	private String eventSubjectKey = CloudEventHeaders.EVENT_SUBJECT;
+	private final String eventTimeKey;
 
-	private String eventTimeKey = CloudEventHeaders.EVENT_TIME;
+	private final String eventDataContentTypeKey;
 
-	private String eventDataContentTypeKey = CloudEventHeaders.EVENT_DATA_CONTENT_TYPE;
-
-	private String eventDataSchemaKey = CloudEventHeaders.EVENT_DATA_SCHEMA;
+	private final String eventDataSchemaKey;
 
 	/**
-	 * Create a new {@link CloudEventHeadersBuilder}.
+	 * Create a new {@link CloudEventHeadersBuilder} with default prefix.
 	 */
 	public CloudEventHeadersBuilder() {
+		this(CloudEventHeaders.PREFIX);
 	}
 
 	/**
@@ -66,8 +65,13 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 * @param prefix the CloudEvent header prefix
 	 */
 	public CloudEventHeadersBuilder(String prefix) {
-		this.prefix = prefix;
-		updatePrefix();
+		this.eventIdKey = prefix + "id";
+		this.eventTimeKey = prefix + "time";
+		this.eventTypeKey = prefix + "type";
+		this.eventDataContentTypeKey = prefix + "datacontenttype";
+		this.eventDataSchemaKey = prefix + "dataschema";
+		this.eventSourceKey = prefix + "source";
+		this.eventSubjectKey = prefix + "subject";
 	}
 
 	/**
@@ -77,17 +81,6 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 	 */
 	public CloudEventHeadersBuilder id(String id) {
 		return put(this.eventIdKey, id);
-	}
-
-	/**
-	 * Set the CloudEvent prefix.
-	 * @param prefix the event prefix
-	 * @return the builder
-	 */
-	public CloudEventHeadersBuilder prefix(String prefix) {
-		this.prefix = prefix;
-		updatePrefix();
-		return _this();
 	}
 
 	/**
@@ -278,15 +271,4 @@ public class CloudEventHeadersBuilder extends MapBuilder<CloudEventHeadersBuilde
 		return put(key, PARSER.parseExpression(expression));
 	}
 
-	private void updatePrefix() {
-		this.eventIdKey = this.prefix + "id";
-		this.eventTimeKey = this.prefix + "time";
-		this.eventTypeKey = this.prefix + "type";
-		this.eventDataContentTypeKey = this.prefix + "datacontenttype";
-		this.eventDataSchemaKey = this.prefix + "dataschema";
-		this.eventSourceKey = this.prefix + "source";
-		this.eventSubjectKey = this.prefix + "subject";
-	}
-
 }
-

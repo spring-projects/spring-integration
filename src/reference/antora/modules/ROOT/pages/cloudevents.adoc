@@ -364,7 +364,7 @@ public IntegrationFlow cloudEventFlow() {
     return IntegrationFlow
         .from("inputChannel")
         .enrichHeaders(CloudEvents.headers()
-            .idExpression("headers['orderId']")
+            .idExpression("headers.orderId")
             .sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action")))
             .type("order.created")
             .subject("order-processing"))

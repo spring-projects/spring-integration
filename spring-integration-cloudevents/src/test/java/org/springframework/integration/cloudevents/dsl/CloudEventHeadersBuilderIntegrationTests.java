@@ -53,7 +53,6 @@ class CloudEventHeadersBuilderIntegrationTests {
 
 	@Test
 	void testEnrichHeadersWithDirectValues(@Autowired @Qualifier("directFlow.input") MessageChannel inputChannel) {
-
 		inputChannel.send(new GenericMessage<>("test-payload"));
 
 		Message<?> result = this.outputChannel.receive(1000);
@@ -142,8 +141,8 @@ class CloudEventHeadersBuilderIntegrationTests {
 		IntegrationFlow functionFlow() {
 			return flow -> flow
 					.enrichHeaders(CloudEvents.headers()
-							.dataSchemaFunction(msg -> URI.create("https://example.com/schema/" +
-									msg.getHeaders().get("action")))
+							.dataSchemaFunction(
+									msg -> URI.create("https://example.com/schema/" + msg.getHeaders().get("action")))
 							.idFunction(msg -> "id-" + msg.getPayload())
 							.typeFunction(msg -> "order." + msg.getHeaders().get("action"))
 							.sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action"))))
@@ -168,4 +167,3 @@ class CloudEventHeadersBuilderIntegrationTests {
 	}
 
 }
-
