@@ -47,7 +47,7 @@ import org.springframework.messaging.Message;
  * @since 2.0
  */
 @FunctionalInterface
-public interface MessageProcessor<T extends @Nullable Object> {
+public interface MessageProcessor<T> {
 
 	/**
 	 * Process the Message and return a value (or null).
