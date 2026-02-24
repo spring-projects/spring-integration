@@ -72,3 +72,5 @@ public IntegrationFlow outbound() {
 }
 ----
 
+Starting with version 7.1, the `Http` DSL for outbound endpoints includes support for configuring a RestClient.
+The `RestTemplate` -based configuration is now deprecated and will be removed in a future version.

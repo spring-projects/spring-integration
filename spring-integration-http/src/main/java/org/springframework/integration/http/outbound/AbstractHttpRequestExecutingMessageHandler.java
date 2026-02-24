@@ -331,8 +331,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return exchange(uri, httpMethod, httpRequest, expectedResponseType, requestMessage, uriVariables);
 	}
 
-	@Nullable
-	protected abstract Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+	protected abstract @Nullable Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables);
 
 	@SuppressWarnings("NullAway")

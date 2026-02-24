@@ -29,6 +29,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -37,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Oleksii Komlyk
+ * @author Arun Sethumadhavan
  *
  * @since 5.0
  *
@@ -45,20 +47,43 @@ import org.springframework.web.client.RestTemplate;
 public class HttpMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<HttpMessageHandlerSpec, HttpRequestExecutingMessageHandler> {
 
-	@Nullable
-	private final RestTemplate restTemplate;
+	private final boolean clientSet;
 
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
-		this(new ValueExpression<>(uri), restTemplate);
+		this(new ValueExpression<>(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(String uri, @Nullable RestTemplate restTemplate) {
-		this(new LiteralExpression(uri), restTemplate);
+		this(new LiteralExpression(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
-		super(new HttpRequestExecutingMessageHandler(uriExpression, restTemplate));
-		this.restTemplate = restTemplate;
+		this(uriExpression, restTemplate != null ? RestClient.create(restTemplate) : null);
+	}
+
+	protected HttpMessageHandlerSpec(URI uri, @Nullable RestClient restClient) {
+		this(new ValueExpression<>(uri), restClient);
+	}
+
+	protected HttpMessageHandlerSpec(String uri, @Nullable RestClient restClient) {
+		this(new LiteralExpression(uri), restClient);
+	}
+
+	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestClient restClient) {
+		super(new HttpRequestExecutingMessageHandler(uriExpression, restClient));
+		this.clientSet = restClient != null;
 	}
 
 	/**
@@ -67,7 +92,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
-		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided client");
 		this.target.setRequestFactory(requestFactory);
 		return this;
 	}
@@ -78,7 +103,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
-		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
 		this.target.setErrorHandler(errorHandler);
 		return _this();
 	}
@@ -90,14 +115,14 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
-		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided client");
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return _this();
 	}
 
 	@Override
 	protected boolean isClientSet() {
-		return this.restTemplate != null;
+		return this.clientSet;
 	}
 
 }

@@ -19,6 +19,11 @@
 
 	<beans:bean id="customRestTemplate" class="org.springframework.web.client.RestTemplate"/>
 
+	<outbound-channel-adapter id="restClientConfig" url="http://localhost/test1" channel="requests"
+							  rest-client="customRestClient"/>
+
+	<beans:bean id="customRestClient" class="org.springframework.web.client.RestClient" factory-method="create"/>
+
 	<outbound-channel-adapter id="fullConfig"
 							  url="http://localhost/test2/{foo}"
 							  http-method="GET"

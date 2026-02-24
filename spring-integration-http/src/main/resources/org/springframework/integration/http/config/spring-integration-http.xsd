@@ -792,7 +792,19 @@
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-					The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+					[DEPRECATED] The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="rest-client" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.RestClient"/>
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The reference to org.springframework.web.client.RestClient bean to send the HTTP Request.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

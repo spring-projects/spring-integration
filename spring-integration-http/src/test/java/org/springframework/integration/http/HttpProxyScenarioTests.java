@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Arun Sethumadhavan
  *
  * @since 3.0
  */
@@ -136,6 +137,8 @@ public class HttpProxyScenarioTests {
 						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
+		dfa.setPropertyValue("localRestClientBuilder", null);
+		dfa.setPropertyValue("restClient", null);
 		dfa.setPropertyValue("restTemplate", template);
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);
@@ -197,6 +200,8 @@ public class HttpProxyScenarioTests {
 						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
+		dfa.setPropertyValue("localRestClientBuilder", null);
+		dfa.setPropertyValue("restClient", null);
 		dfa.setPropertyValue("restTemplate", template);
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);

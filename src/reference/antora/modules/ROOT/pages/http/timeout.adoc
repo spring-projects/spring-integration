@@ -22,15 +22,19 @@ image::http-outbound-gateway.png[align="center"]
 //TODO These images are too small, and the text within them is much too small.
 
 You may want to configure the HTTP-related timeout behavior when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
-In those instances, these two components use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[`RestTemplate`] support to execute HTTP requests.
+Starting with version 7.1, these outbound HTTP components support Spring's `RestClient` for request execution.
+`RestTemplate`-based endpoint configuration is deprecated for removal in a future version.
 
-To configure timeouts for the HTTP outbound gateway and the HTTP outbound channel adapter, you can either reference a `RestTemplate` bean directly (by using the `rest-template` attribute) or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
+For timeout configuration on the HTTP outbound gateway and outbound channel adapter, prefer referencing a `RestClient` bean with the `rest-client` attribute.
+To migrate existing `RestTemplate` customization, create a `RestClient` by using `RestClient.create(restTemplate)` and reference it with `rest-client`.
+The `rest-template` attribute remains available for backward compatibility.
+You can also provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
 Spring provides the following implementations of the `ClientHttpRequestFactory` interface:
 
 * https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[`SimpleClientHttpRequestFactory`]: Uses standard J2SE facilities for making HTTP Requests
 * https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html[`HttpComponentsClientHttpRequestFactory`]: Uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] (since Spring 3.1)
 
-If you do not explicitly configure the `request-factory` or `rest-template` attribute, a default `RestTemplate` (which uses a `SimpleClientHttpRequestFactory`) is instantiated.
+If you do not explicitly configure the `request-factory`, `rest-template`, or `rest-client` attribute, a default `RestTemplate` (which uses a `SimpleClientHttpRequestFactory`) is instantiated.
 
 [NOTE]
 =====
@@ -91,4 +95,3 @@ Ultimately, the `request-timeout` property is used to set the `sendTimeout` on t
 The `replyTimeout` property, on the other hand, is used to set the `receiveTimeout` property on the `MessagingTemplate` instance.
 
 TIP: To simulate connection timeouts, you can connect to a non-routable IP address, such as 10.255.255.10.
-

@@ -17,8 +17,10 @@ To configure the `HttpRequestExecutingMessageHandler`, write a bean definition s
 </bean>
 ----
 
-This bean definition runs HTTP requests by delegating to a `RestTemplate`.
-That template, in turn, delegates to a list of `HttpMessageConverter` instances to generate the HTTP request body from the `Message` payload.
+Starting with version 7.1, this endpoint provides support for `RestClient` configuration.
+The `RestTemplate`-based endpoint configuration is deprecated and scheduled for removal in a future release.
+To migrate existing `RestTemplate` customizations, create a `RestClient` using `RestClient.create(restTemplate)` and configure the resulting client on the endpoint.
+The underlying HTTP client utilizes `HttpMessageConverter` instances to construct the HTTP request body from the `Message` payload.
 You can configure those converters as well as the `ClientHttpRequestFactory` instance to use, as the following example shows:
 
 [source,xml]
@@ -72,4 +74,3 @@ This can be an abstract class or even an interface (such as `java.io.Serializabl
 
 Starting with version 5.5, the `HttpRequestExecutingMessageHandler` exposes an `extractResponseBody` flag (which is `true` by default) to return just the response body, or to return the whole `ResponseEntity` as the reply message payload, independently of the provided `expectedResponseType`.
 If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
-

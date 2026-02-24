@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Arun Sethumadhavan
  *
  * @since 2.1
  *
@@ -94,6 +96,8 @@ public class CookieTests {
 
 				private final HttpHeaders headers = new HttpHeaders();
 
+				private final Map<String, Object> attributes = new HashMap<>();
+
 				public HttpHeaders getHeaders() {
 					return headers;
 				}
@@ -112,7 +116,7 @@ public class CookieTests {
 
 				@Override
 				public Map<String, Object> getAttributes() {
-					return null;
+					return this.attributes;
 				}
 
 				public ClientHttpResponse execute() {

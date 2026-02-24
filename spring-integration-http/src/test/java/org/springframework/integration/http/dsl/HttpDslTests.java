@@ -97,6 +97,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Gary Russell
  * @author Oleksii Komlyk
  * @author Glenn Renfro
+ * @author Arun Sethumadhavan
  *
  * @since 5.0
  */
@@ -129,6 +130,7 @@ public class HttpDslTests {
 		ClientHttpRequestFactory mockRequestFactory =
 				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory");
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
+		this.serviceInternalGatewayHandler.afterPropertiesSet();
 
 		this.mockMvc.perform(
 						get("/service")

@@ -16,6 +16,11 @@
 
 	<outbound-gateway id="minimalConfig" url="http://localhost/test1" request-channel="requests"/>
 
+	<outbound-gateway id="restClientConfig" url="http://localhost/test1" request-channel="requests"
+					  rest-client="customRestClient"/>
+
+	<beans:bean id="customRestClient" class="org.springframework.web.client.RestClient" factory-method="create"/>
+
 	<si:channel id="replies">
 		<si:queue/>
 	</si:channel>

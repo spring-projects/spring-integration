@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Arun Sethumadhavan
  *
  * @since 2.0.2
  */
@@ -58,6 +59,23 @@ final class HttpAdapterParsingUtils {
 		if (element.hasAttribute("encoding-mode")) {
 			parserContext.getReaderContext().error("When providing a 'rest-template' reference, " +
 							"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.",
+					parserContext.extractSource(element));
+		}
+	}
+
+	static void verifyNoRestClientAttributes(Element element, ParserContext parserContext) {
+		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+			if (element.hasAttribute(attributeName)) {
+				parserContext.getReaderContext().error("When providing a 'rest-client' reference, the '"
+								+ attributeName + "' attribute is not allowed, " +
+								"it must be set on the provided client instead",
+						parserContext.extractSource(element));
+			}
+		}
+
+		if (element.hasAttribute("encoding-mode")) {
+			parserContext.getReaderContext().error("When providing a 'rest-client' reference, " +
+							"the 'encoding-mode' must be set on the 'RestClient.Builder.uriBuilderFactory' property.",
 					parserContext.extractSource(element));
 		}
 	}
@@ -97,6 +115,7 @@ final class HttpAdapterParsingUtils {
 
 	static void configureUrlConstructorArg(Element element, ParserContext parserContext,
 			BeanDefinitionBuilder builder) {
+
 		String urlAttribute = element.getAttribute("url");
 		String urlExpressionAttribute = element.getAttribute("url-expression");
 		boolean hasUrlAttribute = StringUtils.hasText(urlAttribute);
@@ -114,6 +133,7 @@ final class HttpAdapterParsingUtils {
 			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(urlExpressionAttribute);
 		}
+
 		builder.addConstructorArgValue(expressionDef);
 
 	}
@@ -147,6 +167,7 @@ final class HttpAdapterParsingUtils {
 
 	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext,
 			BeanDefinitionBuilder builder) {
+
 		String expectedResponseType = element.getAttribute("expected-response-type");
 		String expectedResponseTypeExpression = element.getAttribute("expected-response-type-expression");
 

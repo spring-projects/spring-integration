@@ -60,3 +60,10 @@ See xref:redis.adoc[] for more information.
 
 JMS-backed message channels now map headers to JMS message properties and back.
 See xref:jms.adoc[] for more information.
+
+[[x7.1-http-changes]]
+=== HTTP Support Changes
+
+The `HttpRequestExecutingMessageHandler` (its XML and Java DSL) now can be used with a `RestClient`.
+The `RestTemplate` configuration is deprecated.
+See xref:http.adoc[] for more information.

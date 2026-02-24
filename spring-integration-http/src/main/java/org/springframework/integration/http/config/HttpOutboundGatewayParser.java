@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Arun Sethumadhavan
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -91,12 +92,25 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
 
 		String restTemplateRef = element.getAttribute("rest-template");
+		String restClientRef = element.getAttribute("rest-client");
+
+		if (StringUtils.hasText(restTemplateRef) && StringUtils.hasText(restClientRef)) {
+			parserContext.getReaderContext()
+					.error("Only one of 'rest-template' and 'rest-client' references is allowed.",
+							parserContext.extractSource(element));
+		}
 
 		if (StringUtils.hasText(restTemplateRef)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
 			builder.getBeanDefinition()
 					.getConstructorArgumentValues()
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(restTemplateRef));
+		}
+		else if (StringUtils.hasText(restClientRef)) {
+			HttpAdapterParsingUtils.verifyNoRestClientAttributes(element, parserContext);
+			builder.getBeanDefinition()
+					.getConstructorArgumentValues()
+					.addIndexedArgumentValue(1, new RuntimeBeanReference(restClientRef));
 		}
 		else {
 			for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
