@@ -16,8 +16,8 @@
 
 package org.springframework.integration.redis.inbound;
 
+import java.time.Duration;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 
@@ -191,7 +191,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	private void receiveAndReply() {
 		byte[] value;
 		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			value = this.boundListOperations.rightPop(Duration.ofMillis(this.receiveTimeout));
 		}
 		catch (Exception e) {
 			handlePopException(e);
@@ -208,7 +208,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 				return;
 			}
 			try {
-				value = this.template.boundListOps(uuid).rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.template.boundListOps(uuid).rightPop(Duration.ofMillis(this.receiveTimeout));
 			}
 			catch (Exception e) {
 				handlePopException(e);

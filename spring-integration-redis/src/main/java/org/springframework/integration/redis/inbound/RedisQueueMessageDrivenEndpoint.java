@@ -16,9 +16,9 @@
 
 package org.springframework.integration.redis.inbound;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 
@@ -241,10 +241,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		byte[] value = null;
 		try {
 			if (this.rightPop) {
-				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.boundListOperations.rightPop(Duration.ofMillis(this.receiveTimeout));
 			}
 			else {
-				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.boundListOperations.leftPop(Duration.ofMillis(this.receiveTimeout));
 			}
 		}
 		catch (Exception ex) {

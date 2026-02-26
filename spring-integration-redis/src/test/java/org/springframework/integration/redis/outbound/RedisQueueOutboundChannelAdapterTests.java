@@ -16,9 +16,9 @@
 
 package org.springframework.integration.redis.outbound;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
@@ -77,7 +77,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		Object result = redisTemplate.boundListOps(queueName).rightPop(Duration.ofMillis(5000));
 		assertThat(result)
 				.isNotNull()
 				.isEqualTo(payload);
@@ -92,7 +92,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate2.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate2.afterPropertiesSet();
 
-		Object result2 = redisTemplate2.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		Object result2 = redisTemplate2.boundListOps(queueName).rightPop(Duration.ofMillis(5000));
 		assertThat(result2)
 				.isNotNull()
 				.isEqualTo(payload2);
@@ -116,8 +116,8 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
-
-		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		Object result = redisTemplate.boundListOps(queueName).rightPop(Duration.ofMillis(5000)
+		);
 		assertThat(result)
 				.isNotNull()
 				.isEqualTo(message);
@@ -140,14 +140,14 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 
 		handler.handleMessage(new GenericMessage<Object>(Arrays.asList("foo", "bar", "baz")));
 
-		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		Object result = redisTemplate.boundListOps(queueName).rightPop(Duration.ofMillis(5000));
 		assertThat(result)
 				.isNotNull()
 				.isEqualTo("[\"foo\",\"bar\",\"baz\"]");
 
 		handler.handleMessage(new GenericMessage<Object>("test"));
 
-		result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		result = redisTemplate.boundListOps(queueName).rightPop(Duration.ofMillis(5000));
 		assertThat(result)
 				.isNotNull()
 				.isEqualTo("\"test\"");
@@ -165,7 +165,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		String result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		String result = redisTemplate.boundListOps(queueName).rightPop(Duration.ofMillis(5000));
 		assertThat(result).isNotNull();
 		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class,
 				new JacksonJsonMessageParser());
@@ -192,7 +192,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		Object result = redisTemplate.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
+		Object result = redisTemplate.boundListOps(queueName).leftPop(Duration.ofMillis(5000));
 		assertThat(result)
 				.isNotNull()
 				.isEqualTo(payload);
@@ -204,7 +204,7 @@ class RedisQueueOutboundChannelAdapterTests implements RedisContainerTest {
 		redisTemplate2.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate2.afterPropertiesSet();
 
-		Object result2 = redisTemplate2.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
+		Object result2 = redisTemplate2.boundListOps(queueName).leftPop(Duration.ofMillis(5000));
 		assertThat(result2)
 				.isNotNull()
 				.isEqualTo(payload2);
