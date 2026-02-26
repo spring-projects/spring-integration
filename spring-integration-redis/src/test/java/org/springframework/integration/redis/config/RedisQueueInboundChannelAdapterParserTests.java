@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,13 +89,12 @@ public class RedisQueueInboundChannelAdapterParserTests {
 	private RedisSerializer<?> serializer;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testInt3017DefaultConfig() {
 		BoundListOperations<String, byte[]> boundListOperations =
 				TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations");
 		assertThat(boundListOperations.getKey()).isEqualTo("si.test.Int3017.Inbound1");
 		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultAdapter, "expectMessage")).isFalse();
-		assertThat(TestUtils.<Long>getPropertyValue(this.defaultAdapter, "receiveTimeout"))
+		assertThat(TestUtils.<Duration>getPropertyValue(this.defaultAdapter, "receiveTimeout").toMillis())
 				.isEqualTo(1000L);
 		assertThat(TestUtils.<Long>getPropertyValue(this.defaultAdapter, "recoveryInterval"))
 				.isEqualTo(5000L);
@@ -110,13 +111,13 @@ public class RedisQueueInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testInt3017CustomConfig() {
 		BoundListOperations<String, byte[]> boundListOperations =
 				TestUtils.getPropertyValue(this.customAdapter, "boundListOperations");
 		assertThat(boundListOperations.getKey()).isEqualTo("si.test.Int3017.Inbound2");
 		assertThat(TestUtils.<Boolean>getPropertyValue(this.customAdapter, "expectMessage")).isTrue();
-		assertThat(TestUtils.<Long>getPropertyValue(this.customAdapter, "receiveTimeout")).isEqualTo(2000L);
+		assertThat(TestUtils.<Duration>getPropertyValue(this.customAdapter, "receiveTimeout").toMillis())
+				.isEqualTo(2000L);
 		assertThat(TestUtils.<Long>getPropertyValue(this.customAdapter, "recoveryInterval")).isEqualTo(3000L);
 		assertThat(TestUtils.<MessageChannel>getPropertyValue(this.customAdapter, "errorChannel"))
 				.isSameAs(this.errorChannel);
@@ -133,7 +134,8 @@ public class RedisQueueInboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt4341ZeroReceiveTimeoutConfig() {
-		assertThat(TestUtils.<Long>getPropertyValue(this.zeroReceiveTimeoutAdapter, "receiveTimeout")).isEqualTo(0L);
+		assertThat(TestUtils.<Duration>getPropertyValue(this.zeroReceiveTimeoutAdapter, "receiveTimeout").toMillis())
+				.isEqualTo(0L);
 	}
 
 }

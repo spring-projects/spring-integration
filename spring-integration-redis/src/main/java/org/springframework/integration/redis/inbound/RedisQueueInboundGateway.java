@@ -17,7 +17,9 @@
 package org.springframework.integration.redis.inbound;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 
@@ -34,6 +36,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
+import org.springframework.integration.redis.util.DurationUtil;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -127,12 +130,15 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	/**
 	 * This timeout is used when retrieving elements from the queue
 	 * specified by {@link #boundListOperations}.
-	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
 	 * if the queue is empty, the Redis connection is blocked until either an element
 	 * can be retrieved from the queue or until the specified timeout passes.
-	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
 	 * the timeout value will default to {@code 1000 millis}
-	 * <p> See also: https://redis.io/commands/brpop
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
 	 * @param receiveTimeout {@link Duration} containing the receive timeout.
 	 * @since 7.1
 	 */
@@ -144,16 +150,39 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	/**
 	 * This timeout (milliseconds) is used when retrieving elements from the queue
 	 * specified by {@link #boundListOperations}.
-	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
 	 * if the queue is empty, the Redis connection is blocked until either an element
 	 * can be retrieved from the queue or until the specified timeout passes.
-	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
 	 * the timeout value will default to {@code 1000 millis}
-	 * <p> See also: https://redis.io/commands/brpop
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
 		setReceiveTimeout(Duration.ofMillis(receiveTimeout));
+	}
+
+	/**
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link #boundListOperations}.
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout String containing the receive timeout as a string serialized (millis) or
+	 * ISO-8601 duration format.
+	 * @since 7.1
+	 */
+	public void setReceiveTimeout(String receiveTimeout) {
+		setReceiveTimeout(DurationUtil.toDuration(Objects.requireNonNull(receiveTimeout), TimeUnit.MILLISECONDS));
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -366,7 +395,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	}
 
 	/**
-	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
+	 * Return the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
 	 * is returned. See also <a href="https://redis.io/commands/llen">LLEN</a>
 	 * @return Size of the queue. Never negative.

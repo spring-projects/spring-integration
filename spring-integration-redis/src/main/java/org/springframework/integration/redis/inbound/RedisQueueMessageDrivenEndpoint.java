@@ -17,8 +17,10 @@
 package org.springframework.integration.redis.inbound;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
+import org.springframework.integration.redis.util.DurationUtil;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -54,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Rainer Frey
  * @author Matthias Jeschke
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -80,7 +84,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	private boolean expectMessage = false;
 
-	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+	private Duration receiveTimeout = Duration.ofMillis(DEFAULT_RECEIVE_TIMEOUT);
 
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
@@ -91,10 +95,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	private volatile @Nullable Runnable stopCallback;
 
 	/**
-	 * @param queueName         Must not be an empty String
+	 * @param queueName Must not be an empty String
 	 * @param connectionFactory Must not be null
 	 */
 	public RedisQueueMessageDrivenEndpoint(String queueName, RedisConnectionFactory connectionFactory) {
+
 		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		RedisTemplate<String, byte[]> template = new RedisTemplate<>();
@@ -125,9 +130,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	/**
 	 * When data is retrieved from the Redis queue, does the returned data represent
 	 * just the payload for a Message, or does the data represent a serialized
-	 * {@link Message}?. {@code expectMessage} defaults to false. This means
-	 * the retrieved data will be used as the payload for a new Spring Integration
-	 * Message. Otherwise, the data is deserialized as Spring Integration Message.
+	 * {@link Message}?. {@code expectMessage} defaults to false. This means the
+	 * retrieved data will be used as the payload for a new Spring Integration Message.
+	 * Otherwise, the data is deserialized as Spring Integration Message.
 	 * @param expectMessage Defaults to false
 	 */
 	public void setExpectMessage(boolean expectMessage) {
@@ -135,19 +140,61 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	}
 
 	/**
-	 * This timeout (milliseconds) is used when retrieving elements from the queue
-	 * specified by {@link #boundListOperations}.
-	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link BoundListOperations}.
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
 	 * if the queue is empty, the Redis connection is blocked until either an element
 	 * can be retrieved from the queue or until the specified timeout passes.
-	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
-	 * the timeout value will default to {@code 1000}
-	 * <p> See also: https://redis.io/commands/brpop
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout {@link Duration} containing the receive timeout.
+	 * @since 7.1
+	 */
+	public void setReceiveTimeout(Duration receiveTimeout) {
+		Assert.isTrue(!receiveTimeout.isNegative(), "'receiveTimeout' must be >= 0.");
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	/**
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link BoundListOperations}.
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout String containing the receive timeout as a string serialized (millis) or
+	 * ISO-8601 duration format.
+	 * @since 7.1
+	 */
+	public void setReceiveTimeout(String receiveTimeout) {
+		setReceiveTimeout(DurationUtil.toDuration(Objects.requireNonNull(receiveTimeout), TimeUnit.MILLISECONDS));
+	}
+
+	/**
+	 * This timeout (milliseconds) is used when retrieving elements from the queue
+	 * specified by {@link #boundListOperations}.
+	 * <p>
+	 * If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p>
+	 * A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p>
+	 * See also: https://redis.io/commands/brpop
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
-		Assert.isTrue(receiveTimeout >= 0, "'receiveTimeout' must be >= 0.");
-		this.receiveTimeout = receiveTimeout;
+		setReceiveTimeout(Duration.ofMillis(receiveTimeout));
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -241,10 +288,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		byte[] value = null;
 		try {
 			if (this.rightPop) {
-				value = this.boundListOperations.rightPop(Duration.ofMillis(this.receiveTimeout));
+				value = this.boundListOperations.rightPop(this.receiveTimeout);
 			}
 			else {
-				value = this.boundListOperations.leftPop(Duration.ofMillis(this.receiveTimeout));
+				value = this.boundListOperations.leftPop(this.receiveTimeout);
 			}
 		}
 		catch (Exception ex) {
@@ -314,7 +361,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	}
 
 	/**
-	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
+	 * Return the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
 	 * is returned. See also https://redis.io/commands/llen
 	 * @return Size of the queue. Never negative.
