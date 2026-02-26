@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,8 +94,8 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Test
 	void testInboundGatewayStop() {
-		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
-		this.outboundGateway.setReceiveTimeout(1);
+		Duration receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
+		this.outboundGateway.setReceiveTimeout(1L);
 		this.inboundGateway.stop();
 		try {
 			this.sendChannel.send(new GenericMessage<>("test1"));
@@ -108,8 +110,8 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 
 	@Test
 	void testNullSerializer() {
-		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
-		this.outboundGateway.setReceiveTimeout(1);
+		Duration receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout");
+		this.outboundGateway.setReceiveTimeout(1L);
 		this.inboundGateway.setSerializer(null);
 		try {
 			this.sendChannel.send(new GenericMessage<>("test1"));

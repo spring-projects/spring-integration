@@ -36,6 +36,7 @@ import org.springframework.util.IdGenerator;
  * @author David Liu
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 4.1
  */
@@ -60,7 +61,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private boolean serializerExplicitlySet;
 
-	private int receiveTimeout = TIMEOUT;
+	private Duration receiveTimeout = Duration.ofMillis(TIMEOUT);
 
 	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
@@ -80,8 +81,53 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	public void setReceiveTimeout(int timeout) {
-		this.receiveTimeout = timeout;
+	/**
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link BoundListOperations}.
+	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p> See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout {@link Duration} containing the receive timeout.
+	 * @since 7.1
+	 */
+	public void setReceiveTimeout(Duration receiveTimeout) {
+		Assert.isTrue(!receiveTimeout.isNegative(), "'receiveTimeout' must be >= 0.");
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	/**
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link BoundListOperations}.
+	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p> See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
+	 * @deprecated since 7.1 in favor of {@link #setReceiveTimeout(long)}
+	 */
+	@Deprecated(forRemoval = true, since = "7.1")
+	public void setReceiveTimeout(int receiveTimeout) {
+		setReceiveTimeout(Duration.ofMillis(receiveTimeout));
+	}
+
+	/**
+	 * This timeout is used when retrieving elements from the queue
+	 * specified by {@link BoundListOperations}.
+	 * <p> If the queue does contain elements, the data is retrieved immediately. However,
+	 * if the queue is empty, the Redis connection is blocked until either an element
+	 * can be retrieved from the queue or until the specified timeout passes.
+	 * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
+	 * the timeout value will default to {@code 1000 millis}
+	 * <p> See also: https://redis.io/commands/brpop
+	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
+	 */
+	public void setReceiveTimeout(long receiveTimeout) {
+		setReceiveTimeout(Duration.ofMillis(receiveTimeout));
 	}
 
 	public void setExtractPayload(boolean extractPayload) {
@@ -129,7 +175,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.template.boundListOps(uuid).leftPush(value);
 
 		BoundListOperations<String, Object> boundListOperations = this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
-		byte[] reply = (byte[]) boundListOperations.rightPop(Duration.ofMillis(this.receiveTimeout));
+		byte[] reply = (byte[]) boundListOperations.rightPop(this.receiveTimeout);
 		if (reply != null && reply.length > 0) {
 			return createReply(reply);
 		}

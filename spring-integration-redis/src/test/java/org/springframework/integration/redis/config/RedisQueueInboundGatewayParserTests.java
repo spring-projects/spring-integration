@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Matthias Jeschke
  * @author Glenn Renfro
  *
- * since 4.1
+ * @since 4.1
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -77,7 +79,7 @@ public class RedisQueueInboundGatewayParserTests {
 
 	@Test
 	public void testZeroReceiveTimeoutConfig() {
-		assertThat(TestUtils.<Long>getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout"))
+		assertThat(TestUtils.<Duration>getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout").toMillis())
 				.isEqualTo(0L);
 	}
 

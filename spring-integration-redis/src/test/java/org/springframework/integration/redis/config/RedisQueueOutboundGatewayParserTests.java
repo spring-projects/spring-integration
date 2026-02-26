@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +74,8 @@ public class RedisQueueOutboundGatewayParserTests {
 		assertThat(TestUtils.<MessageChannel>getPropertyValue(this.consumer, "inputChannel"))
 				.isSameAs(this.requestChannel);
 		assertThat(TestUtils.<Boolean>getPropertyValue(this.defaultGateway, "requiresReply")).isFalse();
-		assertThat(TestUtils.<Integer>getPropertyValue(this.defaultGateway, "receiveTimeout"))
-				.isEqualTo(2000);
+		assertThat(TestUtils.<Duration>getPropertyValue(this.defaultGateway, "receiveTimeout").toMillis())
+				.isEqualTo(2000L);
 		assertThat(TestUtils.<Boolean>getPropertyValue(this.consumer, "autoStartup")).isFalse();
 		assertThat(TestUtils.<Integer>getPropertyValue(this.consumer, "phase")).isEqualTo(3);
 	}
