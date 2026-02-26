@@ -190,8 +190,7 @@ Java::
 ----
 @Bean
 public JmsMessageDrivenEndpoint jmsIn() {
-    JmsMessageDrivenEndpoint endpoint = new JmsMessageDrivenEndpoint(container(), listener());
-    return endpoint;
+    return new JmsMessageDrivenEndpoint(container(), listener());
 }
 @Bean
 public AbstractMessageListenerContainer container() {
@@ -822,8 +821,8 @@ Starting with version 5.1, the `DefaultJmsHeaderMapper` can be configured for ma
 @Bean
 public DefaultJmsHeaderMapper jmsHeaderMapper() {
     DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
-    mapper.setMapInboundDeliveryMode(true)
-    mapper.setMapInboundExpiration(true)
+    mapper.setMapInboundDeliveryMode(true);
+    mapper.setMapInboundExpiration(true);
     return mapper;
 }
 ----
@@ -925,6 +924,9 @@ The following example provides both a custom instance for resolution of the JMS 
 
 For the `<publish-subscribe-channel />`, set the `durable` attribute to `true` for a durable subscription or `subscription-shared` for a shared subscription (requires a JMS 2.0 broker and has been available since version 4.2).
 Use `subscription` to name the subscription.
+
+Starting with version 7.1, the `AbstractJmsChannel` and its implementations use a `DefaultJmsHeaderMapper` internally to map all headers from the message-to-send to JMS message properties; and on consuming side, map all JMS message properties into message headers.
+The custom header-mapping and payload conversion logic can be done by the `org.springframework.jms.support.converter.MessagingMessageConverter` injection into the `JmsTemplate` used for `AbstractJmsChannel` instances.
 
 [[jms-selectors]]
 == Using JMS Message Selectors

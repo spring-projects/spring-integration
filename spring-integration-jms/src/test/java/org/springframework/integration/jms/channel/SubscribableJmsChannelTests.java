@@ -26,6 +26,7 @@ import jakarta.jms.Destination;
 import jakarta.jms.MessageListener;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
+import org.apache.activemq.artemis.reader.MessageUtil;
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +35,15 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -47,7 +51,6 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -100,15 +103,22 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new GenericMessage<>("test1"));
+		channel.send(MessageBuilder.withPayload("test1").setHeader("customHeader", "customValue").build());
 		channel.send(new GenericMessage<>("test2"));
-		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertThat(receivedList1.size()).isEqualTo(1);
-		assertThat(receivedList1.get(0)).isNotNull();
-		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
-		assertThat(receivedList2.size()).isEqualTo(1);
-		assertThat(receivedList2.get(0)).isNotNull();
-		assertThat(receivedList2.get(0).getPayload()).isEqualTo("test2");
+
+		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(receivedList1).hasSize(1);
+		assertThat(receivedList1.get(0))
+				.extracting(Message::getPayload)
+				.isEqualTo("test1");
+		assertThat(receivedList1.get(0).getHeaders())
+				.containsEntry(MessageUtil.JMSXDELIVERYCOUNT, 1)
+				.containsEntry(JmsHeaders.DESTINATION, this.queue)
+				.containsEntry("customHeader", "customValue");
+		assertThat(receivedList2).hasSize(1);
+		assertThat(receivedList2.get(0))
+				.extracting(Message::getPayload)
+				.isEqualTo("test2");
 		channel.stop();
 	}
 
@@ -135,12 +145,11 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.start();
-		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
-			fail("Listener failed to subscribe to topic");
-		}
+		assertThat(waitUntilRegisteredWithDestination(channel, 10000)).isTrue();
 		channel.send(new GenericMessage<>("test1"));
 		channel.send(new GenericMessage<>("test2"));
-		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+
+		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS)).isTrue();
 		assertThat(receivedList1).hasSize(2);
 		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
 		assertThat(receivedList1.get(1).getPayload()).isEqualTo("test2");
@@ -214,14 +223,13 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
-		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
-			fail("Listener failed to subscribe to topic");
-		}
+		assertThat(waitUntilRegisteredWithDestination(channel, 10000)).isTrue();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new GenericMessage<>("test1"));
 		channel.send(new GenericMessage<>("test2"));
-		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+
+		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS)).isTrue();
 		assertThat(receivedList1).hasSize(2);
 		assertThat(receivedList1.get(0).getPayload()).isEqualTo("test1");
 		assertThat(receivedList1.get(1).getPayload()).isEqualTo("test2");
@@ -289,8 +297,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	}
 
 	private static List<String> insertMockLoggerInListener(SubscribableJmsChannel channel) {
-		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
-		Log logger = mock(Log.class);
+		LogAccessor logAccessor = TestUtils.getPropertyValue(channel, "logger");
+		Log logger = mock();
 		final ArrayList<String> logList = new ArrayList<>();
 		doAnswer(invocation -> {
 			String message = invocation.getArgument(0);
@@ -300,9 +308,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 			return null;
 		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
-		Object listener = container.getMessageListener();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);
-		dfa.setPropertyValue("logger", logger);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(logAccessor);
+		dfa.setPropertyValue("log", logger);
 		return logList;
 	}
 
@@ -323,7 +330,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	/**
 	 * Blocks until the listener container has subscribed; if the container does not support
-	 * this test, or the caching mode is incompatible, true is returned. Otherwise blocks
+	 * this test, or the caching mode is incompatible, true is returned. Otherwise, blocks
 	 * until timeout milliseconds have passed, or the consumer has registered.
 	 * @see DefaultMessageListenerContainer#isRegisteredWithDestination()
 	 * @param timeout Timeout in milliseconds.

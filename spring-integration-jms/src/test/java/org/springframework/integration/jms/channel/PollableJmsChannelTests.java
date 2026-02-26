@@ -28,6 +28,7 @@ import jakarta.jms.DeliveryMode;
 import jakarta.jms.Destination;
 import jakarta.jms.TextMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.apache.activemq.artemis.reader.MessageUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -36,6 +37,7 @@ import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -55,17 +57,15 @@ import static org.mockito.Mockito.verify;
  */
 public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
-	private Destination queue;
-
 	@Test
 	public void queueReference() throws Exception {
-		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
+		Destination queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
 		ccf.setCacheConsumers(false);
 		factoryBean.setConnectionFactory(ccf);
-		factoryBean.setDestination(this.queue);
+		factoryBean.setDestination(queue);
 		factoryBean.setBeanFactory(mock());
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
@@ -76,6 +76,9 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		Message<?> result1 = channel.receive(10000);
 		assertThat(result1).isNotNull();
 		assertThat(result1.getPayload()).isEqualTo("test1");
+		assertThat(result1.getHeaders())
+				.containsEntry(MessageUtil.JMSXDELIVERYCOUNT, 1)
+				.containsEntry(JmsHeaders.DESTINATION, queue);
 		Message<?> result2 = channel.receive(10000);
 		assertThat(result2).isNotNull();
 		assertThat(result2.getPayload()).isEqualTo("test2");
@@ -152,13 +155,13 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void qos() throws Exception {
-		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
+		Destination queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
 		ccf.setCacheConsumers(false);
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		factoryBean.setConnectionFactory(ccf);
-		factoryBean.setDestination(this.queue);
+		factoryBean.setDestination(queue);
 		factoryBean.setExplicitQosEnabled(true);
 		factoryBean.setPriority(5);
 		int ttl = 10000;
@@ -200,13 +203,13 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void selector() throws Exception {
-		this.queue = new ActiveMQQueue("pollableJmsChannelSelectorTestQueue");
+		Destination queue = new ActiveMQQueue("pollableJmsChannelSelectorTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
 		ccf.setCacheConsumers(false);
 		factoryBean.setConnectionFactory(ccf);
-		factoryBean.setDestination(this.queue);
+		factoryBean.setDestination(queue);
 
 		factoryBean.setMessageSelector("property='value'");
 

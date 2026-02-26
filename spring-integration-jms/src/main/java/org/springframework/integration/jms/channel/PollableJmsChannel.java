@@ -61,8 +61,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
-	@Nullable
-	public Message<?> receive(long timeout) {
+	public @Nullable Message<?> receive(long timeout) {
 		try {
 			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
 			return receive();
@@ -73,8 +72,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
-	@Nullable
-	public Message<?> receive() {
+	public @Nullable Message<?> receive() {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
@@ -109,24 +107,25 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		}
 	}
 
-	@Nullable
-	private Message<?> receiveAndConvertToMessage() {
-		Object object;
+	private @Nullable Message<?> receiveAndConvertToMessage() {
+		jakarta.jms.Message jmsMessage;
 		if (this.messageSelector == null) {
-			object = getJmsTemplate().receiveAndConvert();
+			jmsMessage = this.jmsTemplate.receive();
 		}
 		else {
-			object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
+			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
 		}
 
-		if (object == null) {
+		if (jmsMessage == null) {
 			logger.trace(() -> "postReceive on channel '" + this + "', message is null");
 			return null;
 		}
-		Message<?> message = object instanceof Message<?> msg
-				? msg
-				: getMessageBuilderFactory().withPayload(object).build();
-		logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
+
+		Message<?> message = fromJmsMessage(jmsMessage);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("postReceive on channel '" + this + "', message: " + message);
+		}
 
 		return message;
 	}
