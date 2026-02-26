@@ -17,25 +17,19 @@
 package org.springframework.integration.jms.channel;
 
 import jakarta.jms.MessageListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
-import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -102,12 +96,8 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 			return;
 		}
 		super.onInit();
-		boolean isPubSub = isBroadcast();
-		configureDispatcher(isPubSub);
-		MessageListener listener =
-				new DispatchingMessageListener(getJmsTemplate(), this.dispatcher, this, isPubSub,
-						getMessageBuilderFactory());
-		this.container.setMessageListener(listener);
+		configureDispatcher(isBroadcast());
+		this.container.setMessageListener((MessageListener) this::receiveAndDispatch);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
 		}
@@ -140,115 +130,54 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) && this.container.isAutoStartup();
+		return this.container.isAutoStartup();
 	}
 
 	@Override
 	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
+		return this.container.getPhase();
 	}
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) && this.container.isRunning();
+		return this.container.isRunning();
 	}
 
 	@Override
 	public void start() {
-		if (this.container != null) {
-			this.container.start();
-		}
+		this.container.start();
 	}
 
 	@Override
 	public void stop() {
-		if (this.container != null) {
-			this.container.stop();
-		}
+		this.container.stop();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.container != null) {
-			this.container.stop(callback);
-		}
-		else {
-			callback.run();
-		}
+		this.container.stop(callback);
 	}
 
 	@Override
 	public void destroy() {
-		if (this.container != null) {
-			this.container.destroy();
-		}
+		this.container.destroy();
 	}
 
-	private static final class DispatchingMessageListener implements MessageListener {
-
-		private final Log logger = LogFactory.getLog(this.getClass());
-
-		private final JmsTemplate jmsTemplate;
-
-		private final MessageDispatcher dispatcher;
-
-		private final SubscribableJmsChannel channel;
-
-		private final boolean isPubSub;
-
-		private final MessageBuilderFactory messageBuilderFactory;
-
-		DispatchingMessageListener(JmsTemplate jmsTemplate,
-				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
-				MessageBuilderFactory messageBuilderFactory) {
-
-			this.jmsTemplate = jmsTemplate;
-			this.dispatcher = dispatcher;
-			this.channel = channel;
-			this.isPubSub = isPubSub;
-			this.messageBuilderFactory = messageBuilderFactory;
+	private void receiveAndDispatch(jakarta.jms.Message message) {
+		Message<?> messageToSend = fromJmsMessage(message);
+		try {
+			this.dispatcher.dispatch(messageToSend);
 		}
-
-		@SuppressWarnings("NullAway") // Dataflow analysis limitation
-		@Override
-		public void onMessage(jakarta.jms.Message message) {
-			Message<?> messageToSend = null;
-			try {
-				MessageConverter converter = this.jmsTemplate.getMessageConverter();
-				Object converted = null;
-				if (converter != null) {
-					converted = converter.fromMessage(message);
-				}
-				if (converted != null) {
-					messageToSend =
-							converted instanceof Message<?> convertedMessage
-									? convertedMessage
-									: this.messageBuilderFactory.withPayload(converted).build();
-					this.dispatcher.dispatch(messageToSend);
-				}
-				else if (this.logger.isWarnEnabled()) {
-					this.logger.warn("No converter found, or converter returned null for: " + message
-							+ ", no Message to dispatch");
-				}
+		catch (MessageDispatchingException ex) {
+			String exceptionMessage = ex.getMessage() + " for jms-channel '" + this.getFullChannelName() + "'.";
+			if (isBroadcast()) {
+				// log only for backwards compatibility with pub/sub
+				this.logger.warn(ex, exceptionMessage);
 			}
-			catch (MessageDispatchingException ex) {
-				String exceptionMessage = ex.getMessage() + " for jms-channel '"
-						+ this.channel.getFullChannelName() + "'.";
-				if (this.isPubSub) {
-					// log only for backwards compatibility with pub/sub
-					if (this.logger.isWarnEnabled()) {
-						this.logger.warn(exceptionMessage, ex);
-					}
-				}
-				else {
-					throw new MessageDeliveryException(messageToSend, exceptionMessage, ex);
-				}
-			}
-			catch (Exception ex) {
-				throw new MessagingException("failed to handle incoming JMS Message", ex);
+			else {
+				throw new MessageDeliveryException(messageToSend, exceptionMessage, ex);
 			}
 		}
-
 	}
 
 }

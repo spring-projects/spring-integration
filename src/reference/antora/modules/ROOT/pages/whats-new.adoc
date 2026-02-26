@@ -54,3 +54,9 @@ See xref:testing.adoc[] for more information.
 The `RedisMessageStore.doRemove` now uses `GETDEL` instead of `GET` + `UNLINK` for Redis 6.2+ by default.
 Use `RedisMessageStore.setUseUnlink(true)` to use `GET` + `UNLINK` when atomicity is not required and `GETDEL` causes noticeable Redis latency.
 See xref:redis.adoc[] for more information.
+
+[[x7.1-jms-changes]]
+=== JMS Support Changes
+
+JMS-backed message channels now map headers to JMS message properties and back.
+See xref:jms.adoc[] for more information.

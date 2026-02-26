@@ -176,8 +176,6 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 				"container");
 		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(topic);
 		assertThat(container.getDestination()).isEqualTo(topic);
-		assertThat(TestUtils.<Object>getPropertyValue(channel, "container.messageListener.messageBuilderFactory"))
-				.isSameAs(this.messageBuilderFactory);
 	}
 
 	@Test

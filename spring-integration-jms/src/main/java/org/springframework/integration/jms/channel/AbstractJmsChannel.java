@@ -16,11 +16,18 @@
 
 package org.springframework.integration.jms.channel;
 
+import jakarta.jms.JMSException;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.DynamicJmsTemplateProperties;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.MessagingMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -28,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 7.0
  *
@@ -36,27 +44,62 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 
-	private final JmsTemplate jmsTemplate;
+	protected final DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+
+	protected final JmsTemplate jmsTemplate;
 
 	public AbstractJmsChannel(JmsTemplate jmsTemplate) {
 		Assert.notNull(jmsTemplate, "jmsTemplate must not be null");
 		this.jmsTemplate = jmsTemplate;
 	}
 
-	JmsTemplate getJmsTemplate() {
-		return this.jmsTemplate;
-	}
-
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		try {
 			DynamicJmsTemplateProperties.setPriority(new IntegrationMessageHeaderAccessor(message).getPriority());
-			this.jmsTemplate.convertAndSend(message);
+			MessageConverter messageConverter = this.jmsTemplate.getMessageConverter();
+			this.jmsTemplate.send((session) -> {
+				jakarta.jms.Message jmsMessage = messageConverter.toMessage(message, session);
+				if (!(messageConverter instanceof MessagingMessageConverter)) {
+					MessageHeaders headers = message.getHeaders();
+					this.headerMapper.fromHeaders(headers, jmsMessage);
+				}
+				return jmsMessage;
+			});
 		}
 		finally {
 			DynamicJmsTemplateProperties.clearPriority();
 		}
 		return true;
+	}
+
+	protected Message<?> fromJmsMessage(jakarta.jms.Message message) {
+		MessageConverter converter = this.jmsTemplate.getMessageConverter();
+		try {
+			Object converted = converter.fromMessage(message);
+			Message<?> messageToSend;
+			if (converted instanceof Message<?> convertedMessage) {
+				messageToSend = convertedMessage;
+				if (!(converter instanceof MessagingMessageConverter)) {
+					messageToSend = getMessageBuilderFactory()
+							.fromMessage(messageToSend)
+							.copyHeadersIfAbsent(this.headerMapper.toHeaders(message))
+							.build();
+				}
+			}
+			else {
+				messageToSend = getMessageBuilderFactory()
+						.withPayload(converted)
+						.copyHeaders(this.headerMapper.toHeaders(message))
+						.build();
+			}
+
+			return messageToSend;
+		}
+		catch (JMSException ex) {
+			throw new MessagingException("failed to convert incoming JMS Message", ex);
+		}
+
 	}
 
 }
