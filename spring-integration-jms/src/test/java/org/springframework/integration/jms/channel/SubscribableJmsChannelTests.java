@@ -119,6 +119,10 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		assertThat(receivedList2.get(0))
 				.extracting(Message::getPayload)
 				.isEqualTo("test2");
+		assertThat(receivedList2.get(0).getHeaders())
+				.containsEntry(MessageUtil.JMSXDELIVERYCOUNT, 1)
+				.containsEntry(JmsHeaders.DESTINATION, this.queue)
+				.doesNotContainKey("customHeader");
 		channel.stop();
 	}
 

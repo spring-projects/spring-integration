@@ -123,9 +123,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 
 		Message<?> message = fromJmsMessage(jmsMessage);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("postReceive on channel '" + this + "', message: " + message);
-		}
+		logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
 
 		return message;
 	}

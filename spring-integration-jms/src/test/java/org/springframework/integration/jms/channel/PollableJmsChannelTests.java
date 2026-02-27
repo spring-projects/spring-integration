@@ -232,6 +232,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		Message<?> result2 = channel.receive(10000);
 		assertThat(result2).isNotNull();
 		assertThat(result2.getPayload()).isEqualTo("test2");
+		assertThat(result2.getHeaders()).containsEntry("property", "value");
 	}
 
 	public record SampleInterceptor(boolean preReceiveFlag) implements ChannelInterceptor {

@@ -73,15 +73,11 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null,
-				"'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.addHandler(handler);
 	}
 
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null,
-				"'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.removeHandler(handler);
 	}
 

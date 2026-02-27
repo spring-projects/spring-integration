@@ -26,7 +26,6 @@ import jakarta.jms.Session;
 import jakarta.jms.Topic;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.channel.PollableJmsChannel;
@@ -44,6 +43,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatObject;
 
 /**
  * @author Mark Fisher
@@ -120,72 +120,65 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void queueReferenceChannel() {
-		assertThat(queueReferenceChannel.getClass()).isEqualTo(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueReferenceChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container =
-				(AbstractMessageListenerContainer) accessor.getPropertyValue("container");
-		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(queue);
-		assertThat(container.getDestination()).isEqualTo(queue);
+		assertThat(this.queueReferenceChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.queueReferenceChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(this.queueReferenceChannel, "container");
+		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(this.queue);
+		assertThat(container.getDestination()).isEqualTo(this.queue);
 		assertThat(TestUtils.<Boolean>getPropertyValue(jmsTemplate, "explicitQosEnabled")).isEqualTo(true);
 		assertThat(TestUtils.<Integer>getPropertyValue(jmsTemplate, "deliveryMode")).isEqualTo(DeliveryMode.PERSISTENT);
 		assertThat(TestUtils.<Long>getPropertyValue(jmsTemplate, "timeToLive")).isEqualTo(123L);
 		assertThat(TestUtils.<Integer>getPropertyValue(jmsTemplate, "priority")).isEqualTo(12);
-		assertThat(TestUtils.<Integer>getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
+		assertThat(
+				TestUtils.<Integer>getPropertyValue(this.queueReferenceChannel, "dispatcher.maxSubscribers").intValue())
 				.isEqualTo(Integer.MAX_VALUE);
+		assertThatObject(TestUtils.getPropertyValue(this.queueReferenceChannel, "messageBuilderFactory"))
+				.isSameAs(this.messageBuilderFactory);
 	}
 
 	@Test
 	public void queueNameChannel() {
-		assertThat(queueNameChannel.getClass()).isEqualTo(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueNameChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue(
-				"container");
+		assertThat(this.queueNameChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.queueNameChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(this.queueNameChannel, "container");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("test.queue");
 		assertThat(container.getDestinationName()).isEqualTo("test.queue");
-		assertThat(TestUtils.<Integer>getPropertyValue(
-				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers").intValue())
+		assertThat(TestUtils.<Integer>getPropertyValue(this.queueNameChannel, "dispatcher.maxSubscribers").intValue())
 				.isEqualTo(1);
 		assertThat(TestUtils.<String>getPropertyValue(container, "taskExecutor.threadNamePrefix"))
 				.isEqualTo("queueNameChannel.container-");
+		assertThatObject(TestUtils.getPropertyValue(this.queueNameChannel, "messageBuilderFactory"))
+				.isSameAs(this.messageBuilderFactory);
 	}
 
 	@Test
 	public void queueNameWithResolverChannel() {
-		assertThat(queueNameWithResolverChannel).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueNameWithResolverChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue(
-				"container");
+		assertThat(this.queueNameWithResolverChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.queueNameWithResolverChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container =
+				TestUtils.getPropertyValue(this.queueNameWithResolverChannel, "container");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("foo");
 		assertThat(container.getDestinationName()).isEqualTo("foo");
+		assertThatObject(TestUtils.getPropertyValue(this.queueNameWithResolverChannel, "messageBuilderFactory"))
+				.isSameAs(this.messageBuilderFactory);
 	}
 
 	@Test
 	public void topicReferenceChannel() {
-		assertThat(topicReferenceChannel).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicReferenceChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue(
-				"container");
-		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(topic);
-		assertThat(container.getDestination()).isEqualTo(topic);
+		assertThat(this.topicReferenceChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.topicReferenceChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(this.topicReferenceChannel, "container");
+		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(this.topic);
+		assertThat(container.getDestination()).isEqualTo(this.topic);
+		assertThatObject(TestUtils.getPropertyValue(this.topicReferenceChannel, "messageBuilderFactory"))
+				.isSameAs(this.messageBuilderFactory);
 	}
 
 	@Test
 	public void topicNameChannel() {
-		assertThat(topicNameChannel).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicNameChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue(
-				"container");
+		assertThat(this.topicNameChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.topicNameChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(this.topicNameChannel, "container");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("test.topic");
 		assertThat(container.getDestinationName()).isEqualTo("test.topic");
 		assertThat(container.isSubscriptionShared()).isTrue();
@@ -195,72 +188,65 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void topicNameWithResolverChannel() {
-		assertThat(topicNameWithResolverChannel).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicNameWithResolverChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue(
-				"container");
+		assertThat(this.topicNameWithResolverChannel).isInstanceOf(SubscribableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.topicNameWithResolverChannel, "jmsTemplate");
+		AbstractMessageListenerContainer container =
+				TestUtils.getPropertyValue(this.topicNameWithResolverChannel, "container");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("foo");
 		assertThat(container.getDestinationName()).isEqualTo("foo");
 	}
 
 	@Test
 	public void channelWithConcurrencySettings() {
-		assertThat(channelWithConcurrencySettings).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) channelWithConcurrencySettings;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) accessor.getPropertyValue(
-				"container");
+		assertThat(this.channelWithConcurrencySettings).isInstanceOf(SubscribableJmsChannel.class);
+		DefaultMessageListenerContainer container =
+				TestUtils.getPropertyValue(this.channelWithConcurrencySettings, "container");
 		assertThat(container.getConcurrentConsumers()).isEqualTo(11);
 		assertThat(container.getMaxConcurrentConsumers()).isEqualTo(55);
 	}
 
 	@Test
 	public void queueChannelWithInterceptors() {
-		assertThat(queueChannelWithInterceptors).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueChannelWithInterceptors;
-		List<ChannelInterceptor> interceptors = TestUtils.getPropertyValue(channel, "interceptors.interceptors");
-		assertThat(interceptors).hasSize(1);
-		assertThat(interceptors.get(0)).isInstanceOf(TestInterceptor.class);
+		assertThat(this.queueChannelWithInterceptors).isInstanceOf(SubscribableJmsChannel.class);
+		List<ChannelInterceptor> interceptors =
+				TestUtils.getPropertyValue(this.queueChannelWithInterceptors, "interceptors.interceptors");
+		assertThat(interceptors)
+				.hasSize(1)
+				.first()
+				.isInstanceOf(TestInterceptor.class);
 	}
 
 	@Test
 	public void topicChannelWithInterceptors() {
-		assertThat(topicChannelWithInterceptors).isInstanceOf(SubscribableJmsChannel.class);
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicChannelWithInterceptors;
-		List<ChannelInterceptor> interceptors = TestUtils.getPropertyValue(channel, "interceptors.interceptors");
+		assertThat(this.topicChannelWithInterceptors).isInstanceOf(SubscribableJmsChannel.class);
+		List<ChannelInterceptor> interceptors =
+				TestUtils.getPropertyValue(this.topicChannelWithInterceptors, "interceptors.interceptors");
 		assertThat(interceptors).hasSize(2);
-		assertThat(interceptors.get(0)).isInstanceOf(TestInterceptor.class);
+		assertThat(interceptors).first().isInstanceOf(TestInterceptor.class);
 		assertThat(interceptors.get(1)).isInstanceOf(TestInterceptor.class);
 	}
 
 	@Test
 	public void queueReferencePollableChannel() {
-		assertThat(pollableQueueReferenceChannel).isInstanceOf(PollableJmsChannel.class);
-		PollableJmsChannel channel = (PollableJmsChannel) pollableQueueReferenceChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
-		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(queue);
+		assertThat(this.pollableQueueReferenceChannel).isInstanceOf(PollableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.pollableQueueReferenceChannel, "jmsTemplate");
+		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(this.queue);
 	}
 
 	@Test
 	public void queueNamePollableChannel() {
-		assertThat(pollableQueueNameChannel).isInstanceOf(PollableJmsChannel.class);
-		PollableJmsChannel channel = (PollableJmsChannel) pollableQueueNameChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
+		assertThat(this.pollableQueueNameChannel).isInstanceOf(PollableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.pollableQueueNameChannel, "jmsTemplate");
 		assertThat(jmsTemplate.getDefaultDestinationName()).isEqualTo("foo");
 	}
 
 	@Test
 	public void selectorPollableChannel() {
-		assertThat(pollableWithSelectorChannel).isInstanceOf(PollableJmsChannel.class);
-		PollableJmsChannel channel = (PollableJmsChannel) pollableWithSelectorChannel;
-		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
+		assertThat(this.pollableWithSelectorChannel).isInstanceOf(PollableJmsChannel.class);
+		JmsTemplate jmsTemplate = TestUtils.getPropertyValue(this.pollableWithSelectorChannel, "jmsTemplate");
 		assertThat(jmsTemplate.getDefaultDestination()).isEqualTo(queue);
-		assertThat(accessor.getPropertyValue("messageSelector")).isEqualTo("foo='bar'");
+		assertThatObject(TestUtils.getPropertyValue(this.pollableWithSelectorChannel, "messageSelector"))
+				.isEqualTo("foo='bar'");
 	}
 
 	@Test
