@@ -104,7 +104,7 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 			assertThat(e.getMessage()).contains("No reply produced");
 		}
 		finally {
-			this.outboundGateway.setReceiveTimeout(receiveTimeout);
+			this.outboundGateway.setReceiveDuration(receiveTimeout);
 		}
 	}
 
@@ -121,7 +121,7 @@ class RedisQueueGatewayIntegrationTests implements RedisContainerTest {
 		}
 		finally {
 			this.inboundGateway.setSerializer(new StringRedisSerializer());
-			this.outboundGateway.setReceiveTimeout(receiveTimeout);
+			this.outboundGateway.setReceiveDuration(receiveTimeout);
 		}
 	}
 
