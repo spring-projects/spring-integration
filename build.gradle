@@ -22,7 +22,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.6' apply false
     id 'io.freefair.aggregate-javadoc' version '9.2.0'
-    id 'io.spring.nullability' version '0.0.11' apply false
+    id 'io.spring.nullability' version '0.0.12' apply false
 }
 
 if (isCI) {
@@ -66,7 +66,7 @@ ext {
 	grpcVersion = '1.79.0'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.6.0'
-    hibernateVersion = '7.2.5.Final'
+    hibernateVersion = '7.2.6.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.4.240'
     jacksonVersion = '2.21.1'
