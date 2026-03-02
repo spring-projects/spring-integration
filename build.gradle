@@ -39,11 +39,11 @@ description = 'Spring Integration'
 
 ext {
     linkHomepage = 'https://projects.spring.io/spring-integration'
-    linkCi = 'https://build.spring.io/browse/INT'
+    linkCi = 'https://github.com/spring-projects/spring-integration/actions/workflows/ci-snapshot.yml'
     linkIssue = 'https://github.com/spring-projects/spring-integration/issues'
     linkScmUrl = 'https://github.com/spring-projects/spring-integration'
-    linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
-    linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
+    linkScmConnection = 'git://github.com/spring-projects/spring-integration.git'
+    linkScmDevConnection = 'git@github.com:spring-projects/spring-integration.git'
 
     apacheSshdVersion = '2.15.0'
     artemisVersion = '2.41.0'
