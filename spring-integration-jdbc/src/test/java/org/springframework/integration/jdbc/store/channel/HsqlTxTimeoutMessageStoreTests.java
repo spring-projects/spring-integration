@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -25,7 +24,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Artem Bilan
  *
  */
-@LongRunningTest
 @ContextConfiguration
 public class HsqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
 

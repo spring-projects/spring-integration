@@ -47,7 +47,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -68,7 +67,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LongRunningTest;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -101,8 +100,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 2.0
  */
-@LongRunningTest
-public class TcpOutboundGatewayTests {
+public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(TcpOutboundGatewayTests.class);
 
@@ -492,7 +490,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 
 		// Failover
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		AbstractClientConnectionFactory factory1 = mock();
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		doThrow(new UncheckedIOException(new IOException("fail")))
@@ -518,7 +516,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setConnectionFactory(cachingFactory);
 		PollableChannel outputChannel = new QueueChannel();
 		gateway.setOutputChannel(outputChannel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 
@@ -596,6 +594,7 @@ public class TcpOutboundGatewayTests {
 		factories.add(cachingFactory2);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.setSingleUse(true);
+		failoverFactory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		failoverFactory.afterPropertiesSet();
 		failoverFactory.start();
 
@@ -603,7 +602,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setConnectionFactory(failoverFactory);
 		PollableChannel outputChannel = new QueueChannel();
 		gateway.setOutputChannel(outputChannel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 
@@ -619,8 +618,8 @@ public class TcpOutboundGatewayTests {
 		serverSocket.get().close();
 	}
 
-	public TcpConnectionSupport makeMockConnection() {
-		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+	private static TcpConnectionSupport makeMockConnection() {
+		TcpConnectionSupport connection = mock();
 		when(connection.isOpen()).thenReturn(true);
 		return connection;
 	}
@@ -736,7 +735,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		gateway.setRemoteTimeoutExpression(new SpelExpressionParser().parseExpression("5000"));
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		Throwable thrown = catchThrowable(() -> gateway.handleMessage(MessageBuilder.withPayload("Test").build()));
@@ -843,7 +842,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		gateway.setRemoteTimeoutExpression(new SpelExpressionParser().parseExpression("5000"));
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		Throwable thrown = catchThrowable(() -> gateway.handleMessage(MessageBuilder.withPayload("Test").build()));
@@ -892,7 +891,7 @@ public class TcpOutboundGatewayTests {
 		});
 		QueueChannel replies = new QueueChannel();
 		gateway.setReplyChannel(replies);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setRemoteTimeout(60_000);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -984,7 +983,7 @@ public class TcpOutboundGatewayTests {
 			});
 			gateway.setRequiresReply(true);
 			gateway.setOutputChannel(replyChannel);
-			gateway.setBeanFactory(mock(BeanFactory.class));
+			gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			gateway.setTaskScheduler(sched);
 			gateway.afterPropertiesSet();
 			gateway.handleMessage(MessageBuilder.withPayload("Test1").build());
@@ -1064,7 +1063,7 @@ public class TcpOutboundGatewayTests {
 			QueueChannel replyChannel = new QueueChannel();
 			gateway.setRequiresReply(true);
 			gateway.setOutputChannel(replyChannel);
-			gateway.setBeanFactory(mock(BeanFactory.class));
+			gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			gateway.setTaskScheduler(sched);
 			gateway.afterPropertiesSet();
 			QueueChannel errorChannel = new QueueChannel();
@@ -1107,7 +1106,7 @@ public class TcpOutboundGatewayTests {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		gateway.setAsync(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setRemoteTimeout(-1);
 		gateway.afterPropertiesSet();
 

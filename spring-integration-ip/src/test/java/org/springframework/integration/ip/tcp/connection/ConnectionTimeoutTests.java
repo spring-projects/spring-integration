@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LongRunningTest;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
@@ -42,12 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.2
  */
 @LongRunningTest
-public class ConnectionTimeoutTests {
+public class ConnectionTimeoutTests implements TestApplicationContextAware {
 
 	@Test
 	public void testDefaultTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
-		this.setupServerCallbacks(server, 0);
+		setupServerCallbacks(server, 0);
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
@@ -65,7 +66,7 @@ public class ConnectionTimeoutTests {
 	@Test
 	public void testNetSimpleTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
-		this.setupServerCallbacks(server, 0);
+		setupServerCallbacks(server, 0);
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
@@ -94,7 +95,7 @@ public class ConnectionTimeoutTests {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		setupAndStartServer(server);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		this.notTimeoutGuts(server, client);
+		notTimeoutGuts(server, client);
 	}
 
 	/**
@@ -107,10 +108,10 @@ public class ConnectionTimeoutTests {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		setupAndStartServer(server);
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
-		this.notTimeoutGuts(server, client);
+		notTimeoutGuts(server, client);
 	}
 
-	private void notTimeoutGuts(AbstractServerConnectionFactory server, AbstractClientConnectionFactory client)
+	private static void notTimeoutGuts(AbstractServerConnectionFactory server, AbstractClientConnectionFactory client)
 			throws Exception {
 		final AtomicReference<Message<?>> reply = new AtomicReference<>();
 		final CountDownLatch replyLatch = new CountDownLatch(1);
@@ -135,8 +136,8 @@ public class ConnectionTimeoutTests {
 		client.stop();
 	}
 
-	private void setupAndStartServer(AbstractServerConnectionFactory server) {
-		this.setupServerCallbacks(server, 1200);
+	private static void setupAndStartServer(AbstractServerConnectionFactory server) {
+		setupServerCallbacks(server, 1200);
 		server.start();
 		TestingUtilities.waitListening(server, null);
 	}
@@ -149,8 +150,8 @@ public class ConnectionTimeoutTests {
 	@Test
 	public void testNetReplyTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
-		this.setupServerCallbacks(server, 4500);
-		final AtomicReference<Message<?>> reply = new AtomicReference<>();
+		setupServerCallbacks(server, 4500);
+		AtomicReference<Message<?>> reply = new AtomicReference<>();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
@@ -185,8 +186,8 @@ public class ConnectionTimeoutTests {
 	@Test
 	public void testNioReplyTimeout() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
-		this.setupServerCallbacks(server, 2100);
-		final AtomicReference<Message<?>> reply = new AtomicReference<>();
+		setupServerCallbacks(server, 2100);
+		AtomicReference<Message<?>> reply = new AtomicReference<>();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
@@ -211,7 +212,8 @@ public class ConnectionTimeoutTests {
 		client.stop();
 	}
 
-	private void setupServerCallbacks(AbstractServerConnectionFactory server, final int serverDelay) {
+	private static void setupServerCallbacks(AbstractServerConnectionFactory server, final int serverDelay) {
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.setComponentName("serverFactory");
 		final AtomicReference<TcpConnection> serverConnection = new AtomicReference<>();
 		server.registerListener(message -> {
@@ -236,7 +238,8 @@ public class ConnectionTimeoutTests {
 		});
 	}
 
-	public void setupClientCallback(AbstractClientConnectionFactory client) {
+	public static void setupClientCallback(AbstractClientConnectionFactory client) {
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.setComponentName("clientFactory");
 		client.registerSender(new TcpSender() {
 
@@ -250,7 +253,7 @@ public class ConnectionTimeoutTests {
 		});
 	}
 
-	private CountDownLatch getCloseLatch(AbstractClientConnectionFactory client) {
+	private static CountDownLatch getCloseLatch(AbstractClientConnectionFactory client) {
 		final CountDownLatch clientClosedLatch;
 		clientClosedLatch = new CountDownLatch(1);
 		client.setApplicationEventPublisher(new ApplicationEventPublisher() {

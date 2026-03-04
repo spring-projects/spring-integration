@@ -46,7 +46,6 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.support.json.JacksonMessagingUtils;
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -69,7 +68,6 @@ import static org.mockito.Mockito.mock;
  * @since 4.0
  *
  */
-@LongRunningTest
 @SpringJUnitConfig
 @DirtiesContext
 public class BackToBackAdapterTests implements MosquittoContainerTest {
