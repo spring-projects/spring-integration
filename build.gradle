@@ -273,7 +273,10 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-		runtimeOnly 'com.github.spotbugs:spotbugs-annotations:4.9.8'
+		def spotBugs = 'com.github.spotbugs:spotbugs-annotations:4.9.8'
+		runtimeOnly spotBugs
+		testRuntimeOnly spotBugs
+
         testImplementation "org.awaitility:awaitility:$awaitilityVersion"
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'

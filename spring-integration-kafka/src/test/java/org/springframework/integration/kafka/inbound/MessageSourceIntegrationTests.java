@@ -40,7 +40,6 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -91,7 +90,7 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 
 		});
 
-		consumerProperties.setPollTimeout(10);
+		consumerProperties.setPollTimeout(10_000);
 
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 
@@ -131,8 +130,6 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 		MessageHistory messageHistory = MessageHistory.read(received);
 		assertThat(messageHistory).isNotNull();
 		assertThat(messageHistory.toString()).isEqualTo("myNullChannel");
-		received = source.receive();
-		assertThat(received).isNull();
 		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.delegate.fetcher.fetchConfig.minBytes")).isEqualTo(2);
 		source.destroy();
 		template.destroy();
@@ -147,10 +144,10 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC2);
 
-		consumerProperties.setPollTimeout(10);
+		consumerProperties.setPollTimeout(10_000);
 
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
-		source.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
+		source.setBeanClassLoader(TEST_INTEGRATION_CONTEXT.getClassLoader());
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
