@@ -60,7 +60,6 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -140,6 +139,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
@@ -205,6 +207,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
@@ -262,6 +267,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
@@ -337,6 +345,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		return ccf;
 	}
 
@@ -502,6 +513,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		factory2.setDeserializer(new DefaultDeserializer());
 		factory2.setSoTimeout(10000);
 		factory2.setSingleUse(false);
+		factory2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		factory2.afterPropertiesSet();
 
 		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(factory1);
@@ -572,7 +586,7 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 
 		// Cache
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		AbstractClientConnectionFactory factory1 = mock();
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		when(factory1.isSingleUse()).thenReturn(true);
@@ -586,6 +600,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		factory2.setDeserializer(new DefaultDeserializer());
 		factory2.setSoTimeout(10000);
 		factory2.setSingleUse(true);
+		factory2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		factory2.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		factory2.afterPropertiesSet();
 		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 1);
 
 		// Failover
@@ -633,6 +650,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketCloseGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -647,6 +667,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketCloseGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -661,6 +684,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
 		cccf.start();
 		testGWPropagatesSocketCloseGuts(cccf, serverSocket);
@@ -676,6 +702,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		FailoverClientConnectionFactory focf = new FailoverClientConnectionFactory(
 				Collections.singletonList(ccf));
 		focf.start();
@@ -760,6 +789,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -774,6 +806,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -788,6 +823,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -802,6 +840,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
+		ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		ccf.afterPropertiesSet();
 		ccf.start();
 		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
@@ -864,8 +905,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		final int port = server.getLocalPort();
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		TcpNioClientConnectionFactory cf = new TcpNioClientConnectionFactory("localhost", port);
-		cf.setApplicationEventPublisher(e -> {
-		});
+		cf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		cf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		cf.afterPropertiesSet();
 		gateway.setConnectionFactory(cf);
 		final AtomicBoolean done = new AtomicBoolean();
 
@@ -966,6 +1008,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 					serverSocket.get().getLocalPort());
 			ccf.setSoTimeout(10000);
 			ccf.setSingleUse(singleUse);
+			ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+			ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+			ccf.afterPropertiesSet();
 			ccf.start();
 			gateway = new TcpOutboundGateway();
 			gateway.setConnectionFactory(ccf);
@@ -1055,6 +1100,9 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			ccf = new TcpNetClientConnectionFactory("localhost",
 					serverSocket.get().getLocalPort());
 			ccf.setSoTimeout(10000);
+			ccf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+			ccf.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+			ccf.afterPropertiesSet();
 			ccf.start();
 			TcpOutboundGateway gateway = new TcpOutboundGateway();
 			gateway.setConnectionFactory(ccf);
@@ -1090,9 +1138,8 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 
 	@Test
 	void semaphoreIsReleasedOnAsyncSendFailure() throws InterruptedException {
-		AbstractClientConnectionFactory ccf = mock(AbstractClientConnectionFactory.class);
-
-		TcpConnection connection = mock(TcpConnectionSupport.class);
+		AbstractClientConnectionFactory ccf = mock();
+		TcpConnectionSupport connection = mock();
 
 		given(connection.getConnectionId()).willReturn("testId");
 		willThrow(new RuntimeException("intentional"))
