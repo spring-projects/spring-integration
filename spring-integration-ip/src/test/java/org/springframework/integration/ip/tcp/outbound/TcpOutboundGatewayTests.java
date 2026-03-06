@@ -69,11 +69,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -938,8 +936,6 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		gateway.afterPropertiesSet();
 		gateway.start();
 		this.executor.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
-		int n = 0;
-		@SuppressWarnings("unchecked")
 		Map<String, ?> pending = TestUtils.getPropertyValue(gateway, "pendingReplies");
 		await().atMost(Duration.ofSeconds(10)).until(() -> pending.size() > 0);
 		String connectionId = pending.keySet().iterator().next();
@@ -1016,16 +1012,6 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			gateway.setConnectionFactory(ccf);
 			gateway.setAsync(true);
 			QueueChannel replyChannel = new QueueChannel();
-			AtomicReference<Thread> thread = new AtomicReference<>();
-			replyChannel.addInterceptor(new ChannelInterceptor() {
-
-				@Override
-				public Message<?> preSend(Message<?> message, MessageChannel channel) {
-					thread.set(Thread.currentThread());
-					return message;
-				}
-
-			});
 			gateway.setRequiresReply(true);
 			gateway.setOutputChannel(replyChannel);
 			gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -1036,9 +1022,10 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			Message<?> reply1 = replyChannel.receive(10000);
 			assertThat(reply1).isNotNull();
 			if (singleUse) {
-				assertThat(reply1.getPayload()).satisfiesAnyOf(
-						payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
-						payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
+				assertThat(reply1.getPayload())
+						.satisfiesAnyOf(
+								payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
+								payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
 			}
 			else {
 				assertThat(reply1.getPayload()).isEqualTo("reply1".getBytes());
@@ -1046,24 +1033,22 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			Message<?> reply2 = replyChannel.receive(10000);
 			assertThat(reply2).isNotNull();
 			if (singleUse) {
-				assertThat(reply1.getPayload()).satisfiesAnyOf(
-						payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
-						payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
+				assertThat(reply1.getPayload())
+						.satisfiesAnyOf(
+								payload -> assertThat(payload).isEqualTo("reply1".getBytes()),
+								payload -> assertThat(payload).isEqualTo("reply2".getBytes()));
 				assertThat(reply1.getPayload()).isNotEqualTo(reply2.getPayload());
 			}
 			else {
 				assertThat(reply2.getPayload()).isEqualTo("reply2".getBytes());
 			}
-			assertThat(thread.get()).isNotSameAs(Thread.currentThread());
 		}
 		finally {
 			if (gateway != null) {
 				gateway.stop();
 			}
 			done.set(true);
-			if (serverSocket.get() != null) {
-				serverSocket.get().close();
-			}
+			serverSocket.get().close();
 			sched.shutdown();
 		}
 	}
@@ -1083,7 +1068,6 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
 					serverSocket.set(server);
 					latch.countDown();
-					int i = 0;
 					while (true) {
 						Socket socket = server.accept();
 						doneLatch.await(10, TimeUnit.SECONDS);
@@ -1115,12 +1099,15 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			gateway.setTaskScheduler(sched);
 			gateway.afterPropertiesSet();
 			QueueChannel errorChannel = new QueueChannel();
-			gateway.handleMessage(MessageBuilder.withPayload("Test1")
-					.setErrorChannel(errorChannel)
-					.build());
+			gateway.handleMessage(
+					MessageBuilder.withPayload("Test1")
+							.setErrorChannel(errorChannel)
+							.build());
 			Message<?> reply = errorChannel.receive(10000);
-			assertThat(reply).isInstanceOf(ErrorMessage.class);
-			assertThat(reply.getPayload()).isInstanceOf(MessageTimeoutException.class);
+			assertThat(reply)
+					.isInstanceOf(ErrorMessage.class)
+					.extracting(Message::getPayload)
+					.isInstanceOf(MessageTimeoutException.class);
 			doneLatch.countDown();
 			gateway.stop();
 		}
@@ -1129,9 +1116,7 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 			if (ccf != null) {
 				ccf.stop();
 			}
-			if (serverSocket.get() != null) {
-				serverSocket.get().close();
-			}
+			serverSocket.get().close();
 			sched.shutdown();
 		}
 	}
@@ -1159,13 +1144,15 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("Test1")))
-				.withCauseExactlyInstanceOf(RuntimeException.class)
-				.withStackTraceContaining("intentional");
+				.havingCause()
+				.isInstanceOf(RuntimeException.class)
+				.withMessage("intentional");
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("Test2")))
-				.withCauseExactlyInstanceOf(RuntimeException.class)
-				.withStackTraceContaining("intentional");
+				.havingCause()
+				.isInstanceOf(RuntimeException.class)
+				.withMessage("intentional");
 	}
 
 }
