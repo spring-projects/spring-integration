@@ -16,6 +16,8 @@
 
 package org.springframework.integration.core;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHeaders;
 
 /**
@@ -36,6 +38,6 @@ import org.springframework.messaging.MessageHeaders;
 @FunctionalInterface
 public interface GenericHandler<P> {
 
-	Object handle(P payload, MessageHeaders headers);
+	@Nullable Object handle(P payload, MessageHeaders headers);
 
 }
