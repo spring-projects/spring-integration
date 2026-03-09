@@ -1,6 +1,5 @@
 buildscript {
     ext.kotlinVersion = '2.3.10'
-    ext.isCI = System.getenv('GITHUB_ACTION')
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -16,22 +15,12 @@ buildscript {
 
 plugins {
     id 'base'
-    id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.jetbrains.dokka' version '2.1.0' apply false
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.google.protobuf' version '0.9.6' apply false
     id 'io.freefair.aggregate-javadoc' version '9.2.0'
     id 'io.spring.nullability' version '0.0.12' apply false
-}
-
-if (isCI) {
-    apply plugin: 'io.spring.nohttp'
-
-    nohttp {
-        source.include '**/src/**'
-        source.exclude '**/bin/**', '**/build/**', '**/out/**', '**/target/**', '**/*.gif', '**/*.jpg', '**/*.png', '**/*.svg', '**/*.ks'
-    }
 }
 
 description = 'Spring Integration'
@@ -274,8 +263,8 @@ configure(javaProjects) { subproject ->
         }
 
 		def spotBugs = 'com.github.spotbugs:spotbugs-annotations:4.9.8'
-		runtimeOnly spotBugs
-		testRuntimeOnly spotBugs
+		compileOnly spotBugs
+		testImplementation spotBugs
 
         testImplementation "org.awaitility:awaitility:$awaitilityVersion"
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -1100,8 +1089,11 @@ javadoc {
     }
 
     destinationDir = file('build/api')
+
+	notCompatibleWithConfigurationCache('Task requires resolving transitive dependencies from all subprojects')
+
 	doFirst {
-		classpath = files(javaProjects.collect { it.sourceSets.main.compileClasspath })
+		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
 	}
 }
 
@@ -1121,6 +1113,8 @@ tasks.register('schemaZip', Zip) {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
+	String[] versionNumbers = project.version.toString().split(/\./, 3)
+
     javaProjects.each { subproject ->
         Properties schemas = new Properties()
         def shortName = subproject.name.replaceFirst("${rootProject.name}-", '')
@@ -1139,10 +1133,7 @@ tasks.register('schemaZip', Zip) {
             assert xsdFile != null
             into("integration/$shortName") {
                 from xsdFile.path
-                rename { String fileName ->
-                    String[] versionNumbers = project.version.split(/\./, 3)
-                    fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
-                }
+				rename { it.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd") }
             }
         }
     }
