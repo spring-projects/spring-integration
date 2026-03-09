@@ -266,6 +266,10 @@ configure(javaProjects) { subproject ->
 		compileOnly spotBugs
 		testImplementation spotBugs
 
+		def checkerFramework = 'org.checkerframework:checker-qual:3.54.0'
+		compileOnly checkerFramework
+		testImplementation checkerFramework
+
         testImplementation "org.awaitility:awaitility:$awaitilityVersion"
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'

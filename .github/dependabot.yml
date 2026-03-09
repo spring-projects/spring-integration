@@ -44,6 +44,8 @@ updates:
           - com.thoughtworks.xstream:xstream
           - org.springframework.security*
           - org.jruby
+          - org.checkerframework
+          - com.github.spotbugs
 
   - package-ecosystem: gradle
     target-branch: 7.0.x
