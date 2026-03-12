@@ -130,7 +130,6 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
 				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()))
 				.map((entry) -> {
-
 					String filename = entry.getFilename();
 					return new SftpClient.DirEntry(filename, longNameDirPrefix + filename, entry.getAttributes());
 				});
