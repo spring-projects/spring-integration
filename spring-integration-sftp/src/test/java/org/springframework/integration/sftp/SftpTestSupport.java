@@ -80,8 +80,8 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
 		factory.setHost("localhost");
 		factory.setPort(port);
-		factory.setUser("foo");
-		factory.setPassword("foo");
+		factory.setUser("user");
+		factory.setPassword("password");
 		factory.setAllowUnknownKeys(true);
 		CachingSessionFactory<SftpClient.DirEntry> cachingSessionFactory = new CachingSessionFactory<>(factory);
 		cachingSessionFactory.setTestSession(true);

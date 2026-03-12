@@ -126,16 +126,12 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 			}
 		}
 		remoteDir = normalizePath(remoteDir);
-		String remoteDirToUse = remoteDir;
-		return StreamSupport.stream(this.sftpClient.readDir(remoteDirToUse).spliterator(), false)
+		String longNameDirPrefix = remoteDir.endsWith("/") ? remoteDir : remoteDir + '/';
+		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
 				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()))
 				.map((entry) -> {
-					String longFilename = entry.getLongFilename();
-					if (StringUtils.hasText(longFilename)) {
-						return entry;
-					}
 					String filename = entry.getFilename();
-					return new SftpClient.DirEntry(filename, remoteDirToUse + '/' + filename, entry.getAttributes());
+					return new SftpClient.DirEntry(filename, longNameDirPrefix + filename, entry.getAttributes());
 				});
 	}
 
