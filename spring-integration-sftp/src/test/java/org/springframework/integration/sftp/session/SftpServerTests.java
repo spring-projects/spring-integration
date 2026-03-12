@@ -35,6 +35,8 @@ import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpVersionSelector;
+import org.apache.sshd.sftp.common.SftpConstants;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
 
@@ -109,6 +111,8 @@ public class SftpServerTests {
 			f.setPort(server.getPort());
 			f.setUser("user");
 			f.setAllowUnknownKeys(true);
+			// See AbstractSftpClient.checkDirResponse() with the respective constant logic
+			f.setSftpVersionSelector(SftpVersionSelector.fixedVersionSelector(SftpConstants.SFTP_V3));
 			InputStream stream = new ClassPathResource(privKey).getInputStream();
 			f.setPrivateKey(new ByteArrayResource(FileCopyUtils.copyToByteArray(stream)));
 			f.setPrivateKeyPassphrase(passphrase);
@@ -159,13 +163,16 @@ public class SftpServerTests {
 			}
 		}
 
-		session.write(new ByteArrayInputStream("foo".getBytes()), "bar");
+		session.write(new ByteArrayInputStream("test data".getBytes()), "test_file");
 		list = session.list(".");
-		assertThat(list[1].getFilename()).isEqualTo("bar");
+		assertThat(list[1].getFilename()).isEqualTo("test_file");
+		// The root dir (.) becomes '/' after sftpClient.canonicalPath()
+		// Plus with the SftpConstants.SFTP_V3 settings, we ensure here that SftpSession overrides file long name
+		assertThat(list[1].getLongFilename()).isEqualTo("/test_file");
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		session.read("bar", outputStream);
-		assertThat(new String(outputStream.toByteArray())).isEqualTo("foo");
-		session.remove("bar");
+		session.read("test_file", outputStream);
+		assertThat(new String(outputStream.toByteArray())).isEqualTo("test data");
+		session.remove("test_file");
 		session.close();
 	}
 
