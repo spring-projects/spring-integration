@@ -532,7 +532,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
 		for (String subscribedTopic : getTopic()) {
-			if (subscribedTopic.startsWith("$share/")) {
+			if (subscribedTopic.startsWith("$") && subscribedTopic.contains("/")) {
 				subscribedTopic = subscribedTopic.split("/", 3)[2];
 			}
 			if (MqttTopicValidator.isMatched(subscribedTopic, topic)) {
