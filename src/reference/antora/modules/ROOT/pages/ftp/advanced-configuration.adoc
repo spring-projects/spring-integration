@@ -42,7 +42,7 @@ public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
 
 When using FTP over SSL or TLS, some servers require the same `SSLSession` to be used on the control and data connections.
 This is to prevent "`stealing`" data connections.
-See https://scarybeastsecurity.blogspot.cz/2009/02/vsftpd-210-released.html for more information.
+See https://scarybeastsecurity.blogspot.com/2009/02/vsftpd-210-released.html for more information.
 
 Currently, the Apache FTPSClient does not support this feature.
 See https://issues.apache.org/jira/browse/NET-408[NET-408].
