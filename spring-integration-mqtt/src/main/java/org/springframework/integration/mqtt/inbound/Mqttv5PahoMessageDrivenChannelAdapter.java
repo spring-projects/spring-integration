@@ -20,10 +20,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
@@ -92,6 +95,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
+	private static final Pattern SHARED_SUBSCRIPTION_PATTERN =
+			Pattern.compile("^\\$(?:share|SharedSubscription)/[^/]*/(.*)$");
+
 	private final Lock lock = new ReentrantLock();
 
 	/**
@@ -100,6 +106,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private final ClientManager.DefaultMessageHandler<MqttMessage> defaultMessageHandler = this::messageArrivedIfMatched;
 
 	private final MqttConnectionOptions connectionOptions;
+
+	private final Map<String, String> topicsWithoutSharedSubscriptionPrefix = new HashMap<>();
 
 	private @Nullable List<MqttSubscription> subscriptions;
 
@@ -137,6 +145,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		this.connectionOptions = new MqttConnectionOptions();
 		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
+		populateTopicsWithoutSharedSubscriptionPrefix(topic);
 	}
 
 	/**
@@ -165,6 +174,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					"Otherwise the current channel adapter restart should be used explicitly, " +
 					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
 		}
+		populateTopicsWithoutSharedSubscriptionPrefix(topic);
 	}
 
 	/**
@@ -193,6 +203,18 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		super(clientManager, topic);
 		this.connectionOptions = clientManager.getConnectionInfo();
+		populateTopicsWithoutSharedSubscriptionPrefix(topic);
+	}
+
+	private void populateTopicsWithoutSharedSubscriptionPrefix(String... topics) {
+		for (String topic : topics) {
+			String topicWithoutPrefix = topic;
+			Matcher matcher = SHARED_SUBSCRIPTION_PATTERN.matcher(topic);
+			if (matcher.find()) {
+				topicWithoutPrefix = matcher.group(1);
+			}
+			this.topicsWithoutSharedSubscriptionPrefix.put(topic, topicWithoutPrefix);
+		}
 	}
 
 	@Override
@@ -301,7 +323,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				if (this.connectionOptions.isCleanStart()) {
 					unsubscribe(topics);
-					// Have to re-subscribe on next start if connection is not lost.
+					// Have to re-subscribe on the next start if the connection is not lost.
 					this.readyToSubscribeOnStart = true;
 
 				}
@@ -360,6 +382,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		this.topicLock.lock();
 		try {
 			super.addTopic(topic, qos);
+			populateTopicsWithoutSharedSubscriptionPrefix(topic);
 			MqttSubscription subscription = new MqttSubscription(topic, qos);
 			if (this.subscriptions != null) {
 				this.subscriptions.add(subscription);
@@ -386,6 +409,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		this.topicLock.lock();
 		try {
 			super.removeTopic(topic);
+			for (String topicToRemove : topic) {
+				this.topicsWithoutSharedSubscriptionPrefix.remove(topicToRemove);
+			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				unsubscribe(topic);
 			}
@@ -467,7 +493,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	@Override
 	public void connectComplete(boolean reconnect, @Nullable String serverURI) {
 		// The 'running' flag is set after 'doStart()', so possible a race condition
-		// when start is not finished yet, but server answers with successful connection.
+		// when start is not finished yet, but the server answers with a successful connection.
 		if (isActive()) {
 			subscribe();
 		}
@@ -531,10 +557,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	private void messageArrivedIfMatched(String topic, MqttMessage mqttMessage) {
-		for (String subscribedTopic : getTopic()) {
-			if (subscribedTopic.startsWith("$share/")) {
-				subscribedTopic = subscribedTopic.split("/", 3)[2];
-			}
+		for (String subscribedTopic : this.topicsWithoutSharedSubscriptionPrefix.values()) {
 			if (MqttTopicValidator.isMatched(subscribedTopic, topic)) {
 				messageArrived(topic, mqttMessage);
 				return;
