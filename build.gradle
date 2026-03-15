@@ -60,7 +60,7 @@ ext {
     h2Version = '2.4.240'
     jacksonVersion = '2.21.1'
     jackson3Version = '3.1.0'
-    jaxbVersion = '4.0.6'
+    jaxbVersion = '4.0.7'
     jcifsVersion = '3.0.2'
     jeroMqVersion = '0.6.0'
     jmsApiVersion = '3.1.0'
