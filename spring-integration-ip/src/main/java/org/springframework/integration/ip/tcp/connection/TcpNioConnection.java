@@ -375,9 +375,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 						getConnectionId() + " checking data avail (convert): " + this.channelInputStream.available() +
 								" pending: " + (this.writingToPipe));
 			}
-			if (this.channelInputStream.available() <= 0) {
+			CountDownLatch writingLatchToUse = this.writingLatch;
+			if (this.channelInputStream.available() <= 0 && writingLatchToUse != null) {
 				try {
-					if (this.writingLatch.await(SIXTY, TimeUnit.SECONDS)) {
+					if (writingLatchToUse.await(SIXTY, TimeUnit.SECONDS)) {
 						if (this.channelInputStream.available() <= 0) {
 							return null;
 						}
