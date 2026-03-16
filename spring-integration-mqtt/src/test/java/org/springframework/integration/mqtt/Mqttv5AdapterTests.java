@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt;
 
+import java.util.Map;
+
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
@@ -28,8 +30,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -73,6 +77,25 @@ public class Mqttv5AdapterTests {
 		verify(client).connect(any(MqttConnectionOptions.class));
 		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener.class), any());
 		verify(client, never()).unsubscribe(any(String[].class));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void sharedSubscriptionsPopulation() throws Exception {
+		IMqttAsyncClient client = mock();
+		Mqttv5PahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false);
+
+		adapter.addTopic("$share/group/testTopic", "$SharedSubscription/myGroup/test/#", "some_other_topic",
+				"$SYS/broker/#");
+
+		Map<String, String> topicsWithoutSharedSubscriptionPrefix =
+				(Map<String, String>) TestUtils.getPropertyValue(adapter, "topicsWithoutSharedSubscriptionPrefix");
+
+		assertThat(topicsWithoutSharedSubscriptionPrefix)
+				.containsEntry("$share/group/testTopic", "testTopic")
+				.containsEntry("$SharedSubscription/myGroup/test/#", "test/#")
+				.containsEntry("some_other_topic", "some_other_topic")
+				.containsEntry("$SYS/broker/#", "$SYS/broker/#");
 	}
 
 	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client,
