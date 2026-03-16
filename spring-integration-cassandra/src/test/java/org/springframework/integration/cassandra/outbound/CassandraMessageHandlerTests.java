@@ -30,6 +30,7 @@ import reactor.test.StepVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.data.cassandra.core.InsertOptions;
 import org.springframework.data.cassandra.core.ReactiveCassandraOperations;
@@ -145,12 +146,13 @@ public class CassandraMessageHandlerTests implements CassandraContainerTest {
 		this.template.batchOps().delete(books);
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class Config extends IntegrationTestConfig {
 
 		@Autowired
-		public ReactiveCassandraOperations template;
+		@Lazy
+		ReactiveCassandraOperations template;
 
 		@Bean
 		public MessageHandler cassandraMessageHandler1() {
@@ -165,7 +167,7 @@ public class CassandraMessageHandlerTests implements CassandraContainerTest {
 		}
 
 		@Bean
-		public MessageHandler cassandraMessageHandler2() {
+		MessageHandler cassandraMessageHandler2(PollableChannel messageChannel) {
 			CassandraMessageHandler cassandraMessageHandler = new CassandraMessageHandler(this.template);
 
 			WriteOptions options =
@@ -175,7 +177,7 @@ public class CassandraMessageHandlerTests implements CassandraContainerTest {
 							.build();
 
 			cassandraMessageHandler.setWriteOptions(options);
-			cassandraMessageHandler.setOutputChannel(messageChannel());
+			cassandraMessageHandler.setOutputChannel(messageChannel);
 			cassandraMessageHandler.setAsync(false);
 			return cassandraMessageHandler;
 		}
@@ -196,7 +198,7 @@ public class CassandraMessageHandlerTests implements CassandraContainerTest {
 		}
 
 		@Bean
-		public MessageHandler cassandraMessageHandler4() {
+		MessageHandler cassandraMessageHandler4(FluxMessageChannel resultChannel) {
 			CassandraMessageHandler cassandraMessageHandler = new CassandraMessageHandler(this.template);
 			cassandraMessageHandler.setQuery("SELECT * FROM book WHERE author = :author limit :size");
 
@@ -206,7 +208,7 @@ public class CassandraMessageHandlerTests implements CassandraContainerTest {
 
 			cassandraMessageHandler.setParameterExpressions(params);
 
-			cassandraMessageHandler.setOutputChannel(resultChannel());
+			cassandraMessageHandler.setOutputChannel(resultChannel);
 			cassandraMessageHandler.setProducesReply(true);
 			return cassandraMessageHandler;
 		}
