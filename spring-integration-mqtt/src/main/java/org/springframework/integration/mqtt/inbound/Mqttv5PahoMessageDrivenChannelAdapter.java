@@ -405,22 +405,22 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	@Override
-	public void removeTopic(String... topic) {
+	public void removeTopic(String... topics) {
 		this.topicLock.lock();
 		try {
-			super.removeTopic(topic);
-			for (String topicToRemove : topic) {
+			super.removeTopic(topics);
+			for (String topicToRemove : topics) {
 				this.topicsWithoutSharedSubscriptionPrefix.remove(topicToRemove);
 			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				unsubscribe(topic);
+				unsubscribe(topics);
 			}
 			if (!CollectionUtils.isEmpty(this.subscriptions)) {
-				this.subscriptions.removeIf((sub) -> ObjectUtils.containsElement(topic, sub.getTopic()));
+				this.subscriptions.removeIf((sub) -> ObjectUtils.containsElement(topics, sub.getTopic()));
 			}
 		}
 		catch (MqttException ex) {
-			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), ex);
+			throw new MessagingException("Failed to unsubscribe from topics(s) " + Arrays.toString(topics), ex);
 		}
 		finally {
 			this.topicLock.unlock();
