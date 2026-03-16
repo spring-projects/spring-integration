@@ -1,5 +1,5 @@
 [[sftp]]
-= SFTP Adapters
+= SFTP Support
 
 Spring Integration provides support for file transfer operations over SFTP.
 
@@ -13,7 +13,7 @@ It also provides convenient namespace configuration to define these client compo
 NOTE: Starting with version 6.0, an outdated JCraft JSch client has been replaced with modern https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] framework.
 This caused a lot of breaking changes in the framework components.
 However, in most cases, such a migration is hidden behind Spring Integration API.
-The most drastic changed has happened with a `DefaultSftpSessionFactory` which is based now on the `org.apache.sshd.client.SshClient` and exposes some if its configuration properties.
+The most drastic change has happened to the `DefaultSftpSessionFactory`, which is now based on the `org.apache.sshd.client.SshClient` and exposes several of its configuration properties.
 
 
 This dependency is required for the project:
