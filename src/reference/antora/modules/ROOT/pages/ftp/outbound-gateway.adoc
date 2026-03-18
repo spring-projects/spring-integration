@@ -327,7 +327,6 @@ public class FtpJavaApplication {
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
-        sf.setTestSession(true);
         return new CachingSessionFactory<FTPFile>(sf);
     }
 
@@ -366,7 +365,6 @@ public class FtpJavaApplication {
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
-        sf.setTestSession(true);
         return new CachingSessionFactory<FTPFile>(sf);
     }
 

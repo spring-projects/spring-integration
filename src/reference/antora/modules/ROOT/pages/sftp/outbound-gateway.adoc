@@ -333,7 +333,6 @@ public class SftpJavaApplication {
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
-        factory.setTestSession(true);
         return new CachingSessionFactory<>(sf);
     }
 
