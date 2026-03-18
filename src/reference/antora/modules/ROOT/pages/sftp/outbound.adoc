@@ -98,7 +98,6 @@ public class SftpJavaApplication {
         factory.setUser("foo");
         factory.setPassword("foo");
         factory.setAllowUnknownKeys(true);
-        factory.setTestSession(true);
         return new CachingSessionFactory<SftpClient.DirEntry>(factory);
     }
 
