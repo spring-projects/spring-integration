@@ -161,6 +161,7 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 	void testOutbound() {
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
 		producerProps.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 40_000);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -218,8 +219,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	void testOutboundWithTimestamp() {
-		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
-				KafkaTestUtils.producerProps(embeddedKafka));
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -249,8 +251,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	void testOutboundWithTimestampExpression() {
-		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
-				KafkaTestUtils.producerProps(embeddedKafka));
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -288,8 +291,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	void testOutboundWithAsyncResults() {
-		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
-				KafkaTestUtils.producerProps(embeddedKafka));
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -379,8 +383,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	void testOutboundWithCustomHeaderMapper() {
-		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
-				KafkaTestUtils.producerProps(embeddedKafka));
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -430,8 +435,9 @@ class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
 
-		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
-				KafkaTestUtils.producerProps(embeddedKafka));
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		ReplyingKafkaTemplate<Integer, String, String> template =
 				new ReplyingKafkaTemplate<>(producerFactory, container);
 		template.start();
