@@ -34,6 +34,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
@@ -161,6 +162,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic1);
@@ -253,6 +255,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic4);
@@ -325,6 +328,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		DefaultKafkaProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic6);
@@ -367,6 +371,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic5);
@@ -431,6 +436,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic2);
@@ -503,6 +509,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic3);
@@ -552,6 +559,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic6);

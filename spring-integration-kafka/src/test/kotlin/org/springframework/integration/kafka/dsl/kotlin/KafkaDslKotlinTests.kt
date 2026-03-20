@@ -275,6 +275,7 @@ class KafkaDslKotlinTests {
 		fun producerFactory(): DefaultKafkaProducerFactory<Int, String> {
 			val props = KafkaTestUtils.producerProps(this.embeddedKafkaBrokers)
 			props[ProducerConfig.MAX_BLOCK_MS_CONFIG] = "10000"
+			props[ProducerConfig.LINGER_MS_CONFIG] = 0
 			return DefaultKafkaProducerFactory(props)
 		}
 

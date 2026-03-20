@@ -345,6 +345,7 @@ public class KafkaDslTests {
 		public ProducerFactory<Integer, String> producerFactory() {
 			Map<String, Object> props = KafkaTestUtils.producerProps(this.embeddedKafkaBrokers);
 			props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10000);
+			props.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 			return new DefaultKafkaProducerFactory<>(props);
 		}
 

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.junit.jupiter.api.BeforeAll;
@@ -95,6 +96,7 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(brokers);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Object, Object> template = new KafkaTemplate<>(producerFactory);
 		template.setDefaultTopic(TOPIC1);
@@ -153,6 +155,7 @@ class MessageSourceIntegrationTests implements TestApplicationContextAware {
 		source.start();
 
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(brokers);
+		producerProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Object, Object> template = new KafkaTemplate<>(producerFactory);
 

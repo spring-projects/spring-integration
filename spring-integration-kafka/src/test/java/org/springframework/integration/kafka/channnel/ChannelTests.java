@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,7 +126,9 @@ public class ChannelTests {
 
 		@Bean
 		ProducerFactory<Integer, String> pf() {
-			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(this.embeddedKafkaBrokers));
+			Map<String, Object> configs = KafkaTestUtils.producerProps(this.embeddedKafkaBrokers);
+			configs.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+			return new DefaultKafkaProducerFactory<>(configs);
 		}
 
 		@Bean
