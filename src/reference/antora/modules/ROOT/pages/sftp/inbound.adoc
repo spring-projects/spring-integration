@@ -89,7 +89,7 @@ IMPORTANT: Further, if you use a distributed `MetadataStore` (such as xref:redis
 The actual local filter is a `ChainFileListFilter` that contains a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`) and the supplied filter.
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
 
-See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-sftp/src/main/resources/org/springframework/integration/sftp/config[schema] for more detail on these attributes.
 
 SFTP inbound channel adapter is a polling consumer.
 Therefore, you must configure a poller (either a global default or a local element).
