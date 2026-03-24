@@ -28,7 +28,7 @@ The following example shows how to configure an SFTP outbound channel adapter:
     mode="REPLACE"/>
 ----
 
-See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-sftp/src/main/resources/org/springframework/integration/sftp/config[schema] for more detail on these attributes.
 
 [[spel-and-the-sftp-outbound-adapter]]
 == SpEL and the SFTP Outbound Adapter
