@@ -32,7 +32,7 @@ The following example shows how to configure an `outbound-channel-adapter`:
 The preceding configuration shows how you can configure an FTP outbound channel adapter by using the `outbound-channel-adapter` element while also providing values for various attributes, such as `filename-generator` (an implementation of the `o.s.i.file.FileNameGenerator` strategy interface), a reference to a `session-factory`, and other attributes.
 You can also see some examples of `*expression` attributes that let you use SpEL to configure settings such as `remote-directory-expression`, `temporary-remote-directory-expression`, and `remote-filename-generator-expression` (a SpEL alternative to `filename-generator`, shown in the preceding example).
 As with any component that allows the usage of SpEL, access to the payload and the message Headers is available through the 'payload' and 'headers' variables.
-See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on the available attributes.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-ftp/src/main/resources/org/springframework/integration/ftp/config[schema] for more details on the available attributes.
 
 NOTE: By default,  if no file name generator is specified, Spring Integration uses `o.s.i.file.DefaultFileNameGenerator`.
 `DefaultFileNameGenerator` determines the file name based on the value of the `file_name` header (if it exists) in the `MessageHeaders`, or, if the payload of the Message is already a `java.io.File`, it uses the original name of that file.
