@@ -179,24 +179,9 @@ configure(javaProjects) { subproject ->
 
     apply from: "${rootDir}/gradle/publish-maven.gradle"
 
-    def scopeAttribute = Attribute.of('dependency.scope', String)
-
     configurations {
-        provided {
-            attributes {
-                attribute(scopeAttribute, 'provided')
-            }
-        }
-
         [compileClasspath, runtimeClasspath, testCompileClasspath, testRuntimeClasspath].each {
-            it.extendsFrom(provided)
 			it.extendsFrom(dependencyManagement)
-        }
-    }
-
-    components.java.with {
-        it.addVariantsFromConfiguration(configurations.provided) {
-            mapToMavenScope('compile') // This is temporary. Gradle doesn't natively support the provided scope
         }
     }
 
@@ -248,10 +233,6 @@ configure(javaProjects) { subproject ->
 
     // dependencies that are common across all java projects
     dependencies {
-        attributesSchema {
-            attribute(scopeAttribute)
-        }
-
         if (!(subproject.name ==~ /.*-test.*/)) {
             testImplementation(project(':spring-integration-test-support')) {
                 exclude group: 'org.hamcrest'
@@ -390,12 +371,6 @@ configure(javaProjects) { subproject ->
             mavenJava(MavenPublication) {
                 suppressAllPomMetadataWarnings()
                 from components.java
-                pom.withXml {
-                    def pomDeps = asNode().dependencies.first()
-                    subproject.configurations.provided.allDependencies.each { dep ->
-                     pomDeps.'*'.find { it.artifactId.text() == dep.name }.scope.first().value = 'provided'
-                    }
-                }
             }
         }
     }
@@ -694,7 +669,7 @@ project('spring-integration-http') {
     description = 'Spring Integration HTTP Support'
     dependencies {
         api 'org.springframework:spring-webmvc'
-        provided "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
+        optionalApi "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
         optionalApi "com.rometools:rome:$romeToolsVersion"
         optionalApi 'org.springframework:spring-webflux'
 
@@ -750,7 +725,7 @@ project('spring-integration-jms') {
     description = 'Spring Integration JMS Support'
     dependencies {
         api 'org.springframework:spring-jms'
-        provided "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
+        optionalApi "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
 
         testImplementation "org.apache.activemq:artemis-server:$artemisVersion"
         testImplementation "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
@@ -794,7 +769,7 @@ project('spring-integration-mail') {
     dependencies {
         api 'org.springframework:spring-context-support'
 
-        provided "org.eclipse.angus:jakarta.mail:$mailVersion"
+        optionalApi "org.eclipse.angus:jakarta.mail:$mailVersion"
 
         testImplementation "com.icegreen:greenmail:$greenmailVersion"
 
@@ -855,9 +830,9 @@ project('spring-integration-scripting') {
     description = 'Spring Integration Scripting Support'
     dependencies {
         optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
-        provided "org.graalvm.sdk:graal-sdk:$graalvmVersion"
-        provided "org.graalvm.polyglot:js:$graalvmVersion"
-        provided "org.graalvm.polyglot:python:$graalvmVersion"
+        optionalApi "org.graalvm.sdk:graal-sdk:$graalvmVersion"
+        optionalApi "org.graalvm.polyglot:js:$graalvmVersion"
+        optionalApi "org.graalvm.polyglot:python:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
         testImplementation 'org.apache.groovy:groovy-jsr223'
@@ -961,7 +936,7 @@ project('spring-integration-websocket') {
     dependencies {
         api 'org.springframework:spring-websocket'
         optionalApi 'org.springframework:spring-webmvc'
-        provided "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
+        optionalApi "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
 
         testImplementation project(':spring-integration-event')
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
@@ -979,7 +954,7 @@ project('spring-integration-ws') {
             exclude group: 'org.glassfish.jaxb'
         }
 
-        provided "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+        optionalApi "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
 
         testImplementation "com.thoughtworks.xstream:xstream:$xstreamVersion"
         testImplementation 'org.springframework.ws:spring-ws-support'
