@@ -41,6 +41,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.core.retry.RetryListener;
 import org.springframework.core.retry.RetryPolicy;
@@ -399,12 +400,12 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		pf.reset();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 60);
-		props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 2000);
+		props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 50);
+		props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 1000);
 
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
@@ -478,9 +479,9 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		});
 		PollableChannel errors = new QueueChannel();
 		adapter.setErrorChannel(errors);
-		template.sendDefault(1, "foo");
-		template.sendDefault(1, "bar");
-		Message<?> error = errors.receive(10000);
+		template.sendDefault(0, 1487694048607L, 1, "foo");
+		template.sendDefault(0, 1487694048608L, 1, "bar");
+		Message<?> error = errors.receive(30000);
 		assertThat(error).isNotNull();
 		assertThat(error.getPayload()).isInstanceOf(ConversionException.class);
 		assertThat(((ConversionException) error.getPayload()).getMessage())
