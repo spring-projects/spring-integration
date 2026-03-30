@@ -400,7 +400,7 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		pf.reset();
 	}
 
-	@RetryingTest(10)
+	@Test
 	void testInboundBatch(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
