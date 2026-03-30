@@ -1,0 +1,96 @@
+description = 'Spring Integration External Dependencies BOM'
+
+apply plugin: 'java-platform'
+apply from: "${rootDir}/gradle/publish-maven.gradle"
+
+javaPlatform {
+	allowDependencies()
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+	enabled = false
+}
+
+dependencies {
+	api platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
+	api platform("tools.jackson:jackson-bom:$jackson3Version")
+	api platform("org.junit:junit-bom:$junitJupiterVersion")
+	api platform("io.projectreactor:reactor-bom:$reactorVersion")
+	api platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
+	api platform("tools.jackson:jackson-bom:$jackson3Version")
+	api platform("org.junit:junit-bom:$junitJupiterVersion")
+	api platform("org.springframework:spring-framework-bom:$springVersion")
+	api platform("io.projectreactor:reactor-bom:$reactorVersion")
+	api platform("org.apache.logging.log4j:log4j-bom:$log4jVersion")
+	api platform("org.springframework.data:spring-data-bom:$springDataVersion")
+	api platform("io.micrometer:micrometer-bom:$micrometerVersion")
+	api platform("io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion")
+	api platform("org.testcontainers:testcontainers-bom:$testcontainersVersion")
+	api platform("org.apache.camel:camel-bom:$camelVersion")
+	api platform("org.apache.groovy:groovy-bom:$groovyVersion")
+	api platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion")
+	api platform("org.springframework.amqp:spring-amqp-bom:$springAmqpVersion")
+	api platform("org.springframework.kafka:spring-kafka-bom:$springKafkaVersion")
+	api platform("org.springframework.security:spring-security-bom:$springSecurityVersion")
+	api platform("org.springframework.ws:spring-ws-bom:$springWsVersion")
+	api platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion")
+	api platform("io.grpc:grpc-bom:$grpcVersion")
+	api platform("io.cloudevents:cloudevents-bom:$cloudEventsVersion")
+
+	constraints {
+
+		// spring-integration-core
+		api "com.google.protobuf:protobuf-java:$protobufVersion"
+		api "com.jayway.jsonpath:json-path:$jsonpathVersion"
+		api "com.esotericsoftware:kryo:$kryoVersion"
+		api "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
+		api "org.apache.avro:avro:$avroVersion"
+		api "org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion"
+
+		// spring-integration-ftp
+		api "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+
+		// spring-integration-http, spring-integration-websocket
+		api "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
+
+		// spring-integration-http
+		api "com.rometools:rome:$romeToolsVersion"
+
+		// spring-integration-jdbc
+		api "org.postgresql:postgresql:$postgresVersion"
+
+		// spring-integration-jms
+		api "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
+
+		// spring-integration-jpa
+		api "jakarta.persistence:jakarta.persistence-api:$jpaApiVersion"
+
+		// spring-integration-mail
+		api "org.eclipse.angus:jakarta.mail:$mailVersion"
+
+		// spring-integration-mongodb
+		api "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
+		api "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+
+		// spring-integration-mqtt
+		api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
+		api "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
+
+		// spring-integration-scripting
+		api "org.jetbrains.kotlin:kotlin-scripting-jsr223:$kotlinVersion"
+		api "org.graalvm.sdk:graal-sdk:$graalvmVersion"
+		api "org.graalvm.polyglot:js:$graalvmVersion"
+		api "org.graalvm.polyglot:python:$graalvmVersion"
+
+		// spring-integration-ws
+		api "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+	}
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.javaPlatform
+		}
+	}
+}

@@ -103,7 +103,7 @@ ext {
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
 
-    javaProjects = subprojects - project(':spring-integration-bom')
+    javaProjects = subprojects - project(':spring-integration-bom') - project(':spring-integration-dependencies')
 
 }
 
@@ -145,26 +145,7 @@ allprojects {
 	}
 
 	dependencies {
-		dependencyManagement(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
-		dependencyManagement(platform("tools.jackson:jackson-bom:$jackson3Version"))
-		dependencyManagement(platform("org.junit:junit-bom:$junitJupiterVersion"))
-		dependencyManagement(platform("org.springframework:spring-framework-bom:$springVersion"))
-		dependencyManagement(platform("io.projectreactor:reactor-bom:$reactorVersion"))
-		dependencyManagement(platform("org.apache.logging.log4j:log4j-bom:$log4jVersion"))
-		dependencyManagement(platform("org.springframework.data:spring-data-bom:$springDataVersion"))
-		dependencyManagement(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
-		dependencyManagement(platform("io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"))
-		dependencyManagement(platform("org.testcontainers:testcontainers-bom:$testcontainersVersion"))
-		dependencyManagement(platform("org.apache.camel:camel-bom:$camelVersion"))
-		dependencyManagement(platform("org.apache.groovy:groovy-bom:$groovyVersion"))
-		dependencyManagement(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"))
-		dependencyManagement(platform("org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"))
-		dependencyManagement(platform("org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"))
-		dependencyManagement(platform("org.springframework.security:spring-security-bom:$springSecurityVersion"))
-		dependencyManagement(platform("org.springframework.ws:spring-ws-bom:$springWsVersion"))
-		dependencyManagement(platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion"))
-		dependencyManagement(platform("io.grpc:grpc-bom:$grpcVersion"))
-		dependencyManagement(platform("io.cloudevents:cloudevents-bom:$cloudEventsVersion"))
+		dependencyManagement(platform(project(':spring-integration-dependencies')))
 	}
 }
 
