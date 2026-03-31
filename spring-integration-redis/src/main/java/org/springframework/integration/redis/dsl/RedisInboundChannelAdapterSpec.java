@@ -28,6 +28,7 @@ import org.springframework.messaging.converter.MessageConverter;
  * A {@link MessageProducerSpec} for a {@link RedisInboundChannelAdapterSpec}.
  *
  * @author Jiandong Ma
+ *
  * @since 7.1
  */
 public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInboundChannelAdapterSpec, RedisInboundChannelAdapter> {

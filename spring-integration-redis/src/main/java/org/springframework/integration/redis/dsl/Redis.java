@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  * Factory class for Redis components.
  *
  * @author Jiandong Ma
+ *
  * @since 7.1
  */
 public final class Redis {
@@ -34,6 +35,9 @@ public final class Redis {
 	 */
 	public static RedisInboundChannelAdapterSpec inboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 		return new RedisInboundChannelAdapterSpec(connectionFactory);
+	}
+
+	private Redis() {
 	}
 
 }

@@ -95,7 +95,7 @@ class RedisTests implements RedisContainerTest {
 		}
 
 		@Bean
-		public IntegrationFlow inboundChannelAdapter(RedisConnectionFactory redisConnectionFactory) {
+		public IntegrationFlow inboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 
 			return IntegrationFlow.from(Redis
 							.inboundChannelAdapter(redisConnectionFactory)
