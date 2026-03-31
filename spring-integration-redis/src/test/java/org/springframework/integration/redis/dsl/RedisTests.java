@@ -45,6 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 class RedisTests implements RedisContainerTest {
 
+	private static final String TOPIC_FOR_INBOUND_CHANNEL_ADAPTER = "dslInboundChannelAdapterTopic";
+
 	@Autowired
 	private RedisConnectionFactory connectionFactory;
 
@@ -59,35 +61,29 @@ class RedisTests implements RedisContainerTest {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(inboundChannelAdapter, "container"),
-				redisTemplate, Config.inboundChannelAdapterTopic, inboundChannelAdapterQueueChannel, "foo");
+				redisTemplate, TOPIC_FOR_INBOUND_CHANNEL_ADAPTER, inboundChannelAdapterQueueChannel, "subscribeTestMessage");
 
 		// Given
 		int numToTest = 10;
 		for (int i = 0; i < numToTest; i++) {
 			String message = "test-" + i;
-			redisTemplate.convertAndSend(Config.inboundChannelAdapterTopic, message);
+			redisTemplate.convertAndSend(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER, message);
 		}
-		// When
-		int counter = 0;
+		// When & Then
 		for (int i = 0; i < numToTest; i++) {
 			Message<?> message = inboundChannelAdapterQueueChannel.receive(10000);
-			// Then
 			assertThat(message)
 					.isNotNull()
 					.satisfies(msg -> {
-						assertThat(msg.getHeaders()).containsEntry(RedisHeaders.MESSAGE_SOURCE, Config.inboundChannelAdapterTopic);
+						assertThat(msg.getHeaders()).containsEntry(RedisHeaders.MESSAGE_SOURCE, TOPIC_FOR_INBOUND_CHANNEL_ADAPTER);
 						assertThat(msg.getPayload().toString()).startsWith("test-");
 					});
-			counter++;
 		}
-		assertThat(counter).isEqualTo(numToTest);
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class Config {
-
-		static String inboundChannelAdapterTopic = "testDslInboundChannelAdapterTopic";
 
 		@Bean
 		public RedisConnectionFactory connectionFactory() {
@@ -99,7 +95,7 @@ class RedisTests implements RedisContainerTest {
 
 			return IntegrationFlow.from(Redis
 							.inboundChannelAdapter(redisConnectionFactory)
-							.topics(inboundChannelAdapterTopic))
+							.topics(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER))
 					.channel(c -> c.queue("inboundChannelAdapterQueueChannel"))
 					.get();
 		}

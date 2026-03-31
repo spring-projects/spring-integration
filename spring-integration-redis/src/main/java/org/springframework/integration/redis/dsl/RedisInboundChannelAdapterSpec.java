@@ -33,7 +33,7 @@ import org.springframework.messaging.converter.MessageConverter;
  */
 public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInboundChannelAdapterSpec, RedisInboundChannelAdapter> {
 
-	public RedisInboundChannelAdapterSpec(RedisConnectionFactory connectionFactory) {
+	protected RedisInboundChannelAdapterSpec(RedisConnectionFactory connectionFactory) {
 		this.target = new RedisInboundChannelAdapter(connectionFactory);
 	}
 
@@ -62,7 +62,7 @@ public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInb
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setTopicPatterns(String...)
 	 */
-	public RedisInboundChannelAdapterSpec topicsPatterns(String... topicPatterns) {
+	public RedisInboundChannelAdapterSpec topicPatterns(String... topicPatterns) {
 		this.target.setTopicPatterns(topicPatterns);
 		return this;
 	}

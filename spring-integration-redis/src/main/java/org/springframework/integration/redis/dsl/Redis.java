@@ -29,7 +29,6 @@ public final class Redis {
 
 	/**
 	 * The factory to produce a {@link RedisInboundChannelAdapterSpec}.
-	 *
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisInboundChannelAdapterSpec} instance
 	 */
