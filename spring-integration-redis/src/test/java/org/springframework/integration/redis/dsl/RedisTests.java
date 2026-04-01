@@ -16,21 +16,37 @@
 
 package org.springframework.integration.redis.dsl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.Topic;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.support.RedisHeaders;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -45,7 +61,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 class RedisTests implements RedisContainerTest {
 
-	private static final String TOPIC_FOR_INBOUND_CHANNEL_ADAPTER = "dslInboundChannelAdapterTopic";
+	static final String TOPIC_FOR_INBOUND_CHANNEL_ADAPTER = "dslInboundChannelAdapterTopic";
+
+	static final String TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslOutboundChannelAdapterTopic";
 
 	@Autowired
 	private RedisConnectionFactory connectionFactory;
@@ -56,8 +74,12 @@ class RedisTests implements RedisContainerTest {
 	@Autowired
 	private QueueChannel inboundChannelAdapterQueueChannel;
 
+	@Autowired
+	@Qualifier("outboundChannelAdapterFlow.input")
+	private MessageChannel outboundChannelAdapterInputChannel;
+
 	@Test
-	void testInboundChannelAdapter() throws Exception {
+	void testInboundChannelAdapterFlow() throws Exception {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		RedisContainerTest.awaitFullySubscribed(TestUtils.getPropertyValue(inboundChannelAdapter, "container"),
@@ -81,6 +103,50 @@ class RedisTests implements RedisContainerTest {
 		}
 	}
 
+	@Test
+	void testOutboundChannelAdapterFlow() throws Exception {
+		// Given
+		int numToTest = 10;
+		final CountDownLatch latch = new CountDownLatch(numToTest);
+		List<org.springframework.data.redis.connection.Message> receivedMessages = new ArrayList<>();
+		MessageListenerAdapter listener = new MessageListenerAdapter() {
+
+			@Override
+			public void onMessage(org.springframework.data.redis.connection.Message message, byte @Nullable [] pattern) {
+				receivedMessages.add(message);
+				latch.countDown();
+			}
+		};
+
+		listener.afterPropertiesSet();
+
+		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		container.afterPropertiesSet();
+		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER)));
+		container.start();
+
+		RedisContainerTest.awaitContainerSubscribed(container);
+
+		// When
+		for (int i = 0; i < numToTest; i++) {
+			outboundChannelAdapterInputChannel.send(MessageBuilder.withPayload("outbound-test-" + i).build());
+		}
+
+		// Then
+		RedisSerializer<String> stringRedisSerializer = RedisSerializer.string();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(receivedMessages)
+				.hasSize(numToTest)
+				.satisfies(msgList -> {
+					msgList.forEach((msg) -> {
+						assertThat(stringRedisSerializer.deserialize(msg.getChannel())).isEqualTo(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER);
+						assertThat(stringRedisSerializer.deserialize(msg.getBody())).startsWith("outbound-test-");
+					});
+				});
+		container.stop();
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -98,6 +164,13 @@ class RedisTests implements RedisContainerTest {
 							.topics(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER))
 					.channel(c -> c.queue("inboundChannelAdapterQueueChannel"))
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow outboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.outboundChannelAdapter(redisConnectionFactory)
+							.topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER)));
 		}
 
 	}

@@ -36,6 +36,15 @@ public final class Redis {
 		return new RedisInboundChannelAdapterSpec(connectionFactory);
 	}
 
+	/**
+	 * The factory to produce a {@link RedisOutboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisOutboundChannelAdapterSpec outboundChannelAdapter(RedisConnectionFactory connectionFactory) {
+		return new RedisOutboundChannelAdapterSpec(connectionFactory);
+	}
+
 	private Redis() {
 	}
 
