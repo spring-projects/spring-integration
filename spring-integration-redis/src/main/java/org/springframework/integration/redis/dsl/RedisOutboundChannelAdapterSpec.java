@@ -16,12 +16,15 @@
 
 package org.springframework.integration.redis.dsl;
 
+import java.util.function.Function;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
@@ -78,12 +81,24 @@ public class RedisOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisOut
 	}
 
 	/**
-	 * @param evaluationContext the evaluationContext
+	 * Configure a SpEL expression to determine the topic.
+	 * @param topicExpression the topicExpression
 	 * @return the spec
-	 * @see RedisPublishingMessageHandler#setIntegrationEvaluationContext(EvaluationContext)
+	 * @see RedisPublishingMessageHandler#setTopicExpression(Expression)
 	 */
-	public RedisOutboundChannelAdapterSpec taskExecutor(EvaluationContext evaluationContext) {
-		this.target.setIntegrationEvaluationContext(evaluationContext);
+	public RedisOutboundChannelAdapterSpec topicExpression(String topicExpression) {
+		this.target.setTopicExpression(PARSER.parseExpression(topicExpression));
+		return this;
+	}
+
+	/**
+	 * Configure a {@link Function} to determine the topic.
+	 * @param topicFunction the topicFunction
+	 * @param <P> the payload type.
+	 * @return the spec
+	 */
+	public <P> RedisOutboundChannelAdapterSpec topicFunction(Function<Message<P>, String> topicFunction) {
+		this.target.setTopicExpression(new FunctionExpression<>(topicFunction));
 		return this;
 	}
 

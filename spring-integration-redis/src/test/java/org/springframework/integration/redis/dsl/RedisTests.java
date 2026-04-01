@@ -43,10 +43,10 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.support.RedisHeaders;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -66,17 +66,17 @@ class RedisTests implements RedisContainerTest {
 	static final String TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslOutboundChannelAdapterTopic";
 
 	@Autowired
-	private RedisConnectionFactory connectionFactory;
+	RedisConnectionFactory connectionFactory;
 
 	@Autowired
-	private RedisInboundChannelAdapter inboundChannelAdapter;
+	RedisInboundChannelAdapter inboundChannelAdapter;
 
 	@Autowired
-	private QueueChannel inboundChannelAdapterQueueChannel;
+	QueueChannel inboundChannelAdapterQueueChannel;
 
 	@Autowired
 	@Qualifier("outboundChannelAdapterFlow.input")
-	private MessageChannel outboundChannelAdapterInputChannel;
+	MessageChannel outboundChannelAdapterInputChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -147,17 +147,17 @@ class RedisTests implements RedisContainerTest {
 		container.stop();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
-	public static class Config {
+	static class Config {
 
 		@Bean
-		public RedisConnectionFactory connectionFactory() {
+		RedisConnectionFactory connectionFactory() {
 			return RedisContainerTest.connectionFactory();
 		}
 
 		@Bean
-		public IntegrationFlow inboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+		IntegrationFlow inboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 
 			return IntegrationFlow.from(Redis
 							.inboundChannelAdapter(redisConnectionFactory)
@@ -167,7 +167,7 @@ class RedisTests implements RedisContainerTest {
 		}
 
 		@Bean
-		public IntegrationFlow outboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+		IntegrationFlow outboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
 					.handle(Redis.outboundChannelAdapter(redisConnectionFactory)
 							.topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER)));
