@@ -389,13 +389,17 @@ public class DefaultLockRepository
 	public boolean acquire(String lock, Duration ttlDuration) {
 		return this.readCommittedTransactionTemplate.<Boolean>execute(
 				transactionStatus -> {
-					if (this.template.update(this.updateQuery, this.id, ttlEpochMillis(ttlDuration),
-							this.region, lock, this.id, currentTime()) > 0) {
+					LocalDateTime currentTime = currentTime();
+					if (this.template.update(this.updateQuery, this.id, currentTime.plus(ttlDuration),
+							this.region, lock, this.id, currentTime) > 0) {
+
 						return true;
 					}
+
 					try {
+						currentTime = currentTime();
 						return this.template.update(this.insertQuery, this.region, lock, this.id,
-								currentTime(), ttlEpochMillis(ttlDuration)) > 0;
+								currentTime, currentTime.plus(ttlDuration)) > 0;
 					}
 					catch (DataIntegrityViolationException ex) {
 						return false;
