@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -440,12 +439,12 @@ public class DefaultLockRepository
 		return Boolean.TRUE.equals(result);
 	}
 
-	private Timestamp ttlEpochMillis() {
-		return Timestamp.valueOf(currentTime().minus(this.ttl));
+	private LocalDateTime ttlEpochMillis() {
+		return currentTime().minus(this.ttl);
 	}
 
-	private static Timestamp epochMillis() {
-		return Timestamp.valueOf(currentTime());
+	private static LocalDateTime epochMillis() {
+		return currentTime();
 	}
 
 	private static LocalDateTime currentTime() {
