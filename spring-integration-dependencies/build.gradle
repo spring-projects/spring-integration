@@ -81,76 +81,94 @@ ext {
 
 dependencies {
 	api platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
-	api platform("tools.jackson:jackson-bom:$jackson3Version")
-	api platform("org.junit:junit-bom:$junitJupiterVersion")
-	api platform("io.projectreactor:reactor-bom:$reactorVersion")
-	api platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
-	api platform("tools.jackson:jackson-bom:$jackson3Version")
-	api platform("org.junit:junit-bom:$junitJupiterVersion")
-	api platform("org.springframework:spring-framework-bom:$springVersion")
-	api platform("io.projectreactor:reactor-bom:$reactorVersion")
-	api platform("org.apache.logging.log4j:log4j-bom:$log4jVersion")
-	api platform("org.springframework.data:spring-data-bom:$springDataVersion")
+	api platform("io.cloudevents:cloudevents-bom:$cloudEventsVersion")
+	api platform("io.grpc:grpc-bom:$grpcVersion")
 	api platform("io.micrometer:micrometer-bom:$micrometerVersion")
 	api platform("io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion")
-	api platform("org.testcontainers:testcontainers-bom:$testcontainersVersion")
+	api platform("io.projectreactor:reactor-bom:$reactorVersion")
 	api platform("org.apache.camel:camel-bom:$camelVersion")
 	api platform("org.apache.groovy:groovy-bom:$groovyVersion")
+	api platform("org.apache.logging.log4j:log4j-bom:$log4jVersion")
 	api platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion")
+	api platform("org.junit:junit-bom:$junitJupiterVersion")
+	api platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion")
+	api platform("org.springframework:spring-framework-bom:$springVersion")
 	api platform("org.springframework.amqp:spring-amqp-bom:$springAmqpVersion")
+	api platform("org.springframework.data:spring-data-bom:$springDataVersion")
 	api platform("org.springframework.kafka:spring-kafka-bom:$springKafkaVersion")
 	api platform("org.springframework.security:spring-security-bom:$springSecurityVersion")
 	api platform("org.springframework.ws:spring-ws-bom:$springWsVersion")
-	api platform("org.mongodb:mongodb-driver-bom:$mongoDriverVersion")
-	api platform("io.grpc:grpc-bom:$grpcVersion")
-	api platform("io.cloudevents:cloudevents-bom:$cloudEventsVersion")
+	api platform("org.testcontainers:testcontainers-bom:$testcontainersVersion")
+	api platform("tools.jackson:jackson-bom:$jackson3Version")
 
 	constraints {
-
-		// spring-integration-core
-		api "com.google.protobuf:protobuf-java:$protobufVersion"
-		api "com.jayway.jsonpath:json-path:$jsonpathVersion"
 		api "com.esotericsoftware:kryo:$kryoVersion"
-		api "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
-		api "org.apache.avro:avro:$avroVersion"
-		api "org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion"
-
-		// spring-integration-ftp
-		api "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
-
-		// spring-integration-http, spring-integration-websocket
-		api "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
-
-		// spring-integration-http
+		api "com.google.protobuf:protobuf-java:$protobufVersion"
+		api "com.google.protobuf:protobuf-java-util:$protobufVersion"
+		api "com.h2database:h2:$h2Version"
+		api "com.hazelcast:hazelcast:$hazelcastVersion"
+		api "com.icegreen:greenmail:$greenmailVersion"
+		api "com.jayway.jsonpath:json-path:$jsonpathVersion"
+		api "com.mysql:mysql-connector-j:$mysqlVersion"
+		api "com.oracle.database.jdbc:ojdbc11:$oracleVersion"
 		api "com.rometools:rome:$romeToolsVersion"
-
-		// spring-integration-jdbc
-		api "org.postgresql:postgresql:$postgresVersion"
-
-		// spring-integration-jms
+		api "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+		api "com.thoughtworks.xstream:xstream:$xstreamVersion"
+		api "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
+		api "commons-io:commons-io:$commonsIoVersion"
+		api "commons-net:commons-net:$commonsNetVersion"
+		api "io.cloudevents:cloudevents-xml:$cloudEventsVersion"
+		api "io.debezium:debezium-connector-mysql:$debeziumVersion"
+		api "io.debezium:debezium-embedded:$debeziumVersion"
+		api "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
+		api "io.lettuce:lettuce-core:$lettuceVersion"
+		api "io.r2dbc:r2dbc-h2:$r2dbch2Version"
+		api "io.rsocket:rsocket-transport-netty:$rsocketVersion"
 		api "jakarta.jms:jakarta.jms-api:$jmsApiVersion"
-
-		// spring-integration-jpa
 		api "jakarta.persistence:jakarta.persistence-api:$jpaApiVersion"
-
-		// spring-integration-mail
+		api "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
+		api "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
+		api "org.apache.activemq:artemis-server:$artemisVersion"
+		api "org.apache.activemq:artemis-stomp-protocol:$artemisVersion"
+		api "org.apache.avro:avro:$avroVersion"
+		api "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
+		api "org.apache.curator:curator-recipes:$curatorVersion"
+		api "org.apache.curator:curator-test:$curatorVersion"
+		api "org.apache.derby:derby:$derbyVersion"
+		api "org.apache.derby:derbyclient:$derbyVersion"
+		api "org.apache.derby:derbytools:$derbyVersion"
+		api "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+		api "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
+		api "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
+		api "org.aspectj:aspectjweaver:$aspectjVersion"
+		api "org.assertj:assertj-core:$assertjVersion"
+		api "org.awaitility:awaitility:$awaitilityVersion"
+		api "org.codelibs:jcifs:$jcifsVersion"
+		api "org.eclipse.angus:angus-mail:$mailVersion"
 		api "org.eclipse.angus:jakarta.mail:$mailVersion"
-
-		// spring-integration-mongodb
-		api "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
-		api "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
-
-		// spring-integration-mqtt
 		api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
 		api "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
-
-		// spring-integration-scripting
-		api "org.jetbrains.kotlin:kotlin-scripting-jsr223:$kotlinVersion"
-		api "org.graalvm.sdk:graal-sdk:$graalvmVersion"
 		api "org.graalvm.polyglot:js:$graalvmVersion"
 		api "org.graalvm.polyglot:python:$graalvmVersion"
-
-		// spring-integration-ws
-		api "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+		api "org.graalvm.sdk:graal-sdk:$graalvmVersion"
+		api "org.hamcrest:hamcrest-library:$hamcrestVersion"
+		api "org.hibernate.orm:hibernate-core:$hibernateVersion"
+		api "org.hsqldb:hsqldb:$hsqldbVersion"
+		api "org.igniterealtime.smack:smack-experimental:$smackVersion"
+		api "org.igniterealtime.smack:smack-extensions:$smackVersion"
+		api "org.igniterealtime.smack:smack-java8:$smackVersion"
+		api "org.igniterealtime.smack:smack-tcp:$smackVersion"
+		api "org.jetbrains.kotlin:kotlin-scripting-jsr223:$kotlinVersion"
+		api "org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion"
+		api "org.jruby:jruby-complete:$jrubyVersion"
+		api "org.junit-pioneer:junit-pioneer:$junitPioneerVersion"
+		api "org.mockito:mockito-core:$mockitoVersion"
+		api "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+		api "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
+		api "org.postgresql:postgresql:$postgresVersion"
+		api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
+		api "org.xmlunit:xmlunit-assertj3:$xmlUnitVersion"
+		api "org.zeromq:jeromq:$jeroMqVersion"
+		api "org.zeroturnaround:zt-zip:$ztZipVersion"
 	}
 }
