@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.dsl;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.expression.Expression;
 
 /**
  * Factory class for Redis components.
@@ -43,6 +44,36 @@ public final class Redis {
 	 */
 	public static RedisOutboundChannelAdapterSpec outboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 		return new RedisOutboundChannelAdapterSpec(connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueInboundChannelAdapterSpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueInboundChannelAdapterSpec} instance
+	 */
+	public static RedisQueueInboundChannelAdapterSpec queueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
+		return new RedisQueueInboundChannelAdapterSpec(queueName, connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueOutboundChannelAdapterSpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
+		return new RedisQueueOutboundChannelAdapterSpec(queueName, connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueOutboundChannelAdapterSpec}.
+	 * @param queueExpression The queueExpression of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(Expression queueExpression, RedisConnectionFactory connectionFactory) {
+		return new RedisQueueOutboundChannelAdapterSpec(queueExpression, connectionFactory);
 	}
 
 	private Redis() {

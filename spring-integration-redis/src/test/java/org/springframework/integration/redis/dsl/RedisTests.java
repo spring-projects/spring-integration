@@ -65,6 +65,10 @@ class RedisTests implements RedisContainerTest {
 
 	static final String TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslOutboundChannelAdapterTopic";
 
+	static final String QUEUE_NAME_FOR_QUEUE_INBOUND_CHANNEL_ADAPTER = "dslQueueInboundChannelAdapter";
+
+	static final String QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER = "dslQueueOutboundChannelAdapter";
+
 	@Autowired
 	RedisConnectionFactory connectionFactory;
 
@@ -77,6 +81,13 @@ class RedisTests implements RedisContainerTest {
 	@Autowired
 	@Qualifier("outboundChannelAdapterFlow.input")
 	MessageChannel outboundChannelAdapterInputChannel;
+
+	@Autowired
+	QueueChannel queueInboundChannelAdapterOutputChannel;
+
+	@Autowired
+	@Qualifier("queueOutboundChannelAdapterFlow.input")
+	MessageChannel queueOutboundChannelAdapterInputChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -147,6 +158,46 @@ class RedisTests implements RedisContainerTest {
 		container.stop();
 	}
 
+	@Test
+	void testQueueInboundChannelAdapterFlow() {
+		// Given
+		int numToTest = 10;
+		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+		var listOps = redisTemplate.boundListOps(QUEUE_NAME_FOR_QUEUE_INBOUND_CHANNEL_ADAPTER);
+		for (int i = 0; i < numToTest; i++) {
+			listOps.leftPush("queue-inbound-message-" + i);
+		}
+
+		for (int i = 0; i < numToTest; i++) {
+			// When
+			Message<?> message = queueInboundChannelAdapterOutputChannel.receive(10000);
+			// Then
+			assertThat(message).isNotNull()
+					.extracting(Message::getPayload)
+					.isEqualTo("queue-inbound-message-" + i);
+		}
+	}
+
+	@Test
+	void testQueueOutboundChannelAdapterFlow() {
+		// Given
+		int numToTest = 10;
+		for (int i = 0; i < numToTest; i++) {
+			queueOutboundChannelAdapterInputChannel.send(MessageBuilder.withPayload("queue-outbound-message-" + i).build());
+		}
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+		var listOps = redisTemplate.boundListOps(QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER);
+		for (int i = 0; i < numToTest; i++) {
+			// When
+			String msg = listOps.rightPop();
+			// Then
+			assertThat(msg)
+					.isNotNull()
+					.isEqualTo("queue-outbound-message-" + i);
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -171,6 +222,26 @@ class RedisTests implements RedisContainerTest {
 			return flow -> flow
 					.handle(Redis.outboundChannelAdapter(redisConnectionFactory)
 							.topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER)));
+		}
+
+		@Bean
+		IntegrationFlow queueInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+			return IntegrationFlow.from(Redis
+							.queueInboundChannelAdapter(QUEUE_NAME_FOR_QUEUE_INBOUND_CHANNEL_ADAPTER, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.rightPop(true)
+					)
+					.channel(c -> c.queue("queueInboundChannelAdapterOutputChannel"))
+					.get();
+		}
+
+		@Bean
+		IntegrationFlow queueOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.queueOutboundChannelAdapter(QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.leftPush(true)
+					);
 		}
 
 	}

@@ -148,13 +148,17 @@ Java DSL::
 RedisConnectionFactory connectionFactory() {
     return RedisContainerTest.connectionFactory();
 }
-
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
 @Bean
 IntegrationFlow inboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 
     return IntegrationFlow.from(Redis
                     .inboundChannelAdapter(redisConnectionFactory)
-                    .topics(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER))
+                    .topics(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER)
+                    .messageConverter(testConverter()))
             .channel(c -> c.queue("inboundChannelAdapterQueueChannel"))
             .get();
 }
@@ -169,12 +173,16 @@ Java::
 RedisConnectionFactory connectionFactory() {
     return RedisContainerTest.connectionFactory();
 }
-
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
 @Bean
 RedisInboundChannelAdapter inboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 	var adapter = new RedisInboundChannelAdapter(connectionFactory);
 	adapter.setTopics(redisChannelName);
 	adapter.setOutputChannel(channel);
+	adapter.setMessageConverter(testConverter());
 	return adapter;
 }
 ----
@@ -241,10 +249,16 @@ RedisConnectionFactory connectionFactory() {
 }
 
 @Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+
+@Bean
 IntegrationFlow outboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
     return flow -> flow
             .handle(Redis.outboundChannelAdapter(redisConnectionFactory)
-                    .topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER)));
+                    .topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER))
+                    .messageConverter(testConverter()));
 }
 ----
 
@@ -258,9 +272,15 @@ RedisConnectionFactory connectionFactory() {
 }
 
 @Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+
+@Bean
 RedisPublishingMessageHandler outboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 	var handler = new RedisPublishingMessageHandler(connectionFactory);
 	handler.setTopicExpression(new LiteralExpression(topic));
+    handler.setMessageConverter(testConverter());
 	return handler;
 }
 ----
@@ -301,7 +321,61 @@ It uses an internal listener thread and does not use a poller.
 
 The following listing shows all the available attributes for `queue-inbound-channel-adapter`:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from(Redis
+                    .queueInboundChannelAdapter(
+							queueName, <6>
+                            redisConnectionFactory) <5>
+                    .id() <1>
+                    .outputChannel() <2>
+                    .autoStartup() <3>
+                    .phase()   <4>
+                    .errorChannel() <7>
+                    .serializer() <8>
+                    .receiveTimeout() <9>
+                    .recoveryInterval() <10>
+                    .expectMessage() <11>
+                    .taskExecutor() <12>
+                    .rightPop() <13>
+            )
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+RedisQueueMessageDrivenEndpoint queueInboundChannelAdapter() {
+    var adapter = new RedisQueueMessageDrivenEndpoint(
+            queueName, <6>
+            redisConnectionFactory <5>
+    );
+    adapter.setBeanName(); <1>
+    adapter.setOutputChannel(); <2>
+    adapter.setAutoStartup(); <3>
+    adapter.setPhase(); <4>
+    adapter.setErrorChannel(); <7>
+    adapter.setSerializer(); <8>
+    adapter.setReceiveTimeout(); <9>
+    adapter.setRecoveryInterval(); <10>
+    adapter.setExpectMessage(); <11>
+    adapter.setTaskExecutor(); <12>
+    adapter.setRightPop(); <13>
+}
+----
+
+XML::
++
+[source,xml, role="secondary"]
 ----
 <int-redis:queue-inbound-channel-adapter id=""  <1>
                     channel=""  <2>
@@ -318,6 +392,8 @@ The following listing shows all the available attributes for `queue-inbound-chan
                     right-pop=""/>  <13>
 
 ----
+
+======
 
 <1> The component bean name.
 If `channel` attribute not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
@@ -363,7 +439,49 @@ Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" t
 By default, it uses "`left push`", but "`right push`" can be configured instead.
 The following listing shows all the available attributes for a Redis `queue-outbound-channel-adapter`:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("inputChannel") <2>
+            .handle(Redis.queueOutboundChannelAdapter(
+					    queueName <4>
+                        or queueExpression, <5>
+                        redisConnectionFactory) <3>
+                    .serializer(RedisSerializer.string()) <6>
+                    .extractPayload() <7>
+                    .leftPush() <8>
+            , e->e.id()) <1>
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "channel") <2>
+RedisQueueOutboundChannelAdapter queueOutboundChannelAdapter() {
+	var adapter = new RedisQueueOutboundChannelAdapter(
+		queueName   <4>
+        or queueExpression,  <5>
+        redisConnectionFactory  <3>
+    );
+    adapter.setBeanName(); <1>
+    adapter.setSerializer(); <6>
+    adapter.setExtractPayload(); <7>
+    adapter.setLeftPush(); <8>
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:queue-outbound-channel-adapter id=""  <1>
                     channel=""  <2>
@@ -375,6 +493,8 @@ The following listing shows all the available attributes for a Redis `queue-outb
                     left-push=""/>  <8>
 
 ----
+
+======
 
 <1> The component bean name.
 If the `channel` attribute is not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
