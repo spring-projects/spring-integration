@@ -247,7 +247,7 @@ configure(javaProjects) { subproject ->
 		compileOnly spotBugs
 		testImplementation spotBugs
 
-		def checkerFramework = 'org.checkerframework:checker-qual:3.54.0'
+		def checkerFramework = 'org.checkerframework:checker-qual:3.54.1'
 		compileOnly checkerFramework
 		testImplementation checkerFramework
 
