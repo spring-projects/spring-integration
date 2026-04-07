@@ -56,7 +56,9 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisQueueInboundChannelAdapterSpec} instance
 	 */
-	public static RedisQueueInboundChannelAdapterSpec queueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
+	public static RedisQueueInboundChannelAdapterSpec queueInboundChannelAdapter(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
 		return new RedisQueueInboundChannelAdapterSpec(queueName, connectionFactory);
 	}
 
@@ -66,7 +68,9 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisQueueOutboundChannelAdapterSpec} instance
 	 */
-	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
+	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
 		return new RedisQueueOutboundChannelAdapterSpec(queueName, connectionFactory);
 	}
 
@@ -76,7 +80,9 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisQueueOutboundChannelAdapterSpec} instance
 	 */
-	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(Expression queueExpression, RedisConnectionFactory connectionFactory) {
+	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(Expression queueExpression,
+			RedisConnectionFactory connectionFactory) {
+
 		return new RedisQueueOutboundChannelAdapterSpec(queueExpression, connectionFactory);
 	}
 
@@ -86,7 +92,9 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisQueueOutboundChannelAdapterSpec} instance
 	 */
-	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(Function<Message<?>, String> queueFunction, RedisConnectionFactory connectionFactory) {
+	public static RedisQueueOutboundChannelAdapterSpec queueOutboundChannelAdapter(
+			Function<Message<?>, String> queueFunction, RedisConnectionFactory connectionFactory) {
+
 		return new RedisQueueOutboundChannelAdapterSpec(new FunctionExpression<>(queueFunction), connectionFactory);
 	}
 

@@ -31,13 +31,15 @@ import org.springframework.messaging.converter.MessageConverter;
  *
  * @since 7.1
  */
-public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInboundChannelAdapterSpec, RedisInboundChannelAdapter> {
+public class RedisInboundChannelAdapterSpec extends
+		MessageProducerSpec<RedisInboundChannelAdapterSpec, RedisInboundChannelAdapter> {
 
 	protected RedisInboundChannelAdapterSpec(RedisConnectionFactory connectionFactory) {
 		this.target = new RedisInboundChannelAdapter(connectionFactory);
 	}
 
 	/**
+	 * Specify the RedisSerializer to deserialize the body of Redis messages.
 	 * @param serializer the serializer
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setSerializer(RedisSerializer)
@@ -48,6 +50,7 @@ public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInb
 	}
 
 	/**
+	 * Specify the topics to subscribe.
 	 * @param topics the topics
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setTopics(String...)
@@ -58,6 +61,7 @@ public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInb
 	}
 
 	/**
+	 * Specify the topicPatterns to subscribe.
 	 * @param topicPatterns the topicPatterns
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setTopicPatterns(String...)
@@ -68,6 +72,7 @@ public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInb
 	}
 
 	/**
+	 * Specify the messageConverter to convert between Redis messages and Spring message payloads.
 	 * @param messageConverter the messageConverter
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setMessageConverter(MessageConverter)
@@ -78,6 +83,7 @@ public class RedisInboundChannelAdapterSpec extends MessageProducerSpec<RedisInb
 	}
 
 	/**
+	 * Specify an {@link Executor} for running the message listeners when messages are received.
 	 * @param taskExecutor the taskExecutor
 	 * @return the spec
 	 * @see RedisInboundChannelAdapter#setTaskExecutor(Executor)

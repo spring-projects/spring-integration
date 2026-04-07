@@ -31,13 +31,15 @@ import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndp
  *
  * @since 7.1
  */
-public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<RedisQueueInboundChannelAdapterSpec, RedisQueueMessageDrivenEndpoint> {
+public class RedisQueueInboundChannelAdapterSpec extends
+		MessageProducerSpec<RedisQueueInboundChannelAdapterSpec, RedisQueueMessageDrivenEndpoint> {
 
 	protected RedisQueueInboundChannelAdapterSpec(String queueName, RedisConnectionFactory connectionFactory) {
 		this.target = new RedisQueueMessageDrivenEndpoint(queueName, connectionFactory);
 	}
 
 	/**
+	 * Specify the RedisSerializer to deserialize the body of Redis messages.
 	 * @param serializer the serializer
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setSerializer(RedisSerializer)
@@ -48,6 +50,7 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify whether expects data from the Redis queue to contain entire Message instances.
 	 * @param expectMessage the expectMessage
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setExpectMessage(boolean)
@@ -58,6 +61,7 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify the timeout for 'pop' operation to wait for a Redis message from the Redis Queue.
 	 * @param receiveTimeout the receiveTimeout
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setReceiveDuration(Duration)
@@ -68,6 +72,7 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify the timeout for 'pop' operation to wait for a Redis message from the Redis Queue.
 	 * @param receiveTimeout the receiveTimeout
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setReceiveTimeout(long)
@@ -78,6 +83,7 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify an {@link Executor} for the underlying listening task.
 	 * @param taskExecutor the taskExecutor
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setTaskExecutor(Executor)
@@ -88,6 +94,8 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify the time in milliseconds for the underlying listening task should sleep
+	 * after exceptions on the 'pop' operation.
 	 * @param recoveryInterval the recoveryInterval
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setRecoveryInterval(long)
@@ -98,6 +106,7 @@ public class RedisQueueInboundChannelAdapterSpec extends MessageProducerSpec<Red
 	}
 
 	/**
+	 * Specify use "right pop" or "left pop" to read messages from the Redis Queue.
 	 * @param rightPop the rightPop
 	 * @return the spec
 	 * @see RedisQueueMessageDrivenEndpoint#setRightPop(boolean)

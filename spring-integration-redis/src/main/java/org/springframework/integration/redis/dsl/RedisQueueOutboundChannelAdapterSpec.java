@@ -29,7 +29,8 @@ import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelA
  *
  * @since 7.1
  */
-public class RedisQueueOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisQueueOutboundChannelAdapterSpec, RedisQueueOutboundChannelAdapter> {
+public class RedisQueueOutboundChannelAdapterSpec extends
+		MessageHandlerSpec<RedisQueueOutboundChannelAdapterSpec, RedisQueueOutboundChannelAdapter> {
 
 	protected RedisQueueOutboundChannelAdapterSpec(String queueName, RedisConnectionFactory connectionFactory) {
 		this.target = new RedisQueueOutboundChannelAdapter(queueName, connectionFactory);
@@ -40,6 +41,7 @@ public class RedisQueueOutboundChannelAdapterSpec extends MessageHandlerSpec<Red
 	}
 
 	/**
+	 * Specify send only the payload or the entire Message to the Redis queue.
 	 * @param extractPayload the extractPayload
 	 * @return the spec
 	 * @see RedisQueueOutboundChannelAdapter#setExtractPayload(boolean)
@@ -50,6 +52,7 @@ public class RedisQueueOutboundChannelAdapterSpec extends MessageHandlerSpec<Red
 	}
 
 	/**
+	 * Specify the RedisSerializer to serialize data before sending to the Redis Queue.
 	 * @param serializer the serializer
 	 * @return the spec
 	 * @see RedisQueueOutboundChannelAdapter#setSerializer(RedisSerializer)
@@ -60,6 +63,7 @@ public class RedisQueueOutboundChannelAdapterSpec extends MessageHandlerSpec<Red
 	}
 
 	/**
+	 * Specify use "left push" or "right push" to write messages to the Redis Queue.
 	 * @param leftPush the leftPush
 	 * @return the spec
 	 * @see RedisQueueOutboundChannelAdapter#setLeftPush(boolean)

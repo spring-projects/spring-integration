@@ -34,13 +34,15 @@ import org.springframework.messaging.converter.MessageConverter;
  *
  * @since 7.1
  */
-public class RedisOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisOutboundChannelAdapterSpec, RedisPublishingMessageHandler> {
+public class RedisOutboundChannelAdapterSpec extends
+		MessageHandlerSpec<RedisOutboundChannelAdapterSpec, RedisPublishingMessageHandler> {
 
 	protected RedisOutboundChannelAdapterSpec(RedisConnectionFactory connectionFactory) {
 		this.target = new RedisPublishingMessageHandler(connectionFactory);
 	}
 
 	/**
+	 * Specify the RedisSerializer to serialize data before sending to the Redis.
 	 * @param serializer the serializer
 	 * @return the spec
 	 * @see RedisPublishingMessageHandler#setSerializer(RedisSerializer)
@@ -51,6 +53,7 @@ public class RedisOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisOut
 	}
 
 	/**
+	 * Specify the messageConverter to convert between Redis messages and Spring message payloads.
 	 * @param messageConverter the messageConverter
 	 * @return the spec
 	 * @see RedisPublishingMessageHandler#setMessageConverter(MessageConverter)
@@ -61,6 +64,7 @@ public class RedisOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisOut
 	}
 
 	/**
+	 * Specify the topic to publish messages.
 	 * @param topic the topic
 	 * @return the spec
 	 * @see RedisPublishingMessageHandler#setTopic(String)
@@ -71,6 +75,7 @@ public class RedisOutboundChannelAdapterSpec extends MessageHandlerSpec<RedisOut
 	}
 
 	/**
+	 * Specify the topicExpression to determine the topic.
 	 * @param topicExpression the topicExpression
 	 * @return the spec
 	 * @see RedisPublishingMessageHandler#setTopicExpression(Expression)
