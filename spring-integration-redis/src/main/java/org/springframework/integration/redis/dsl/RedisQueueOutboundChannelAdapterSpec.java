@@ -23,7 +23,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 
 /**
- * A {@link MessageHandlerSpec} for a {@link RedisQueueOutboundChannelAdapterSpec}.
+ * A {@link MessageHandlerSpec} for a {@link RedisQueueOutboundChannelAdapter}.
  *
  * @author Jiandong Ma
  *

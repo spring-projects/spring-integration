@@ -28,7 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
- * A {@link MessageHandlerSpec} for a {@link RedisOutboundChannelAdapterSpec}.
+ * A {@link MessageHandlerSpec} for a {@link RedisPublishingMessageHandler}.
  *
  * @author Jiandong Ma
  *

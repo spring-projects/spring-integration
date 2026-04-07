@@ -453,7 +453,7 @@ IntegrationFlow queueOutboundChannelAdapterFlow(RedisConnectionFactory redisConn
 					    queueName <4>
                         or queueExpression, <5>
                         redisConnectionFactory) <3>
-                    .serializer(RedisSerializer.string()) <6>
+                    .serializer() <6>
                     .extractPayload() <7>
                     .leftPush() <8>
             , e->e.id()) <1>

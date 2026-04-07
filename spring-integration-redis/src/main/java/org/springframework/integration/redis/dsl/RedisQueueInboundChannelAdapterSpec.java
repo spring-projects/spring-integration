@@ -25,7 +25,7 @@ import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 
 /**
- * A {@link MessageProducerSpec} for a {@link RedisQueueInboundChannelAdapterSpec}.
+ * A {@link MessageProducerSpec} for a {@link RedisQueueMessageDrivenEndpoint}.
  *
  * @author Jiandong Ma
  *

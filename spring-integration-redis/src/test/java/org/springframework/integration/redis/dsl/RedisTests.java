@@ -229,7 +229,6 @@ class RedisTests implements RedisContainerTest {
 			return IntegrationFlow.from(Redis
 							.queueInboundChannelAdapter(QUEUE_NAME_FOR_QUEUE_INBOUND_CHANNEL_ADAPTER, redisConnectionFactory)
 							.serializer(RedisSerializer.string())
-							.rightPop(true)
 					)
 					.channel(c -> c.queue("queueInboundChannelAdapterOutputChannel"))
 					.get();
@@ -240,7 +239,6 @@ class RedisTests implements RedisContainerTest {
 			return flow -> flow
 					.handle(Redis.queueOutboundChannelAdapter(QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER, redisConnectionFactory)
 							.serializer(RedisSerializer.string())
-							.leftPush(true)
 					);
 		}
 

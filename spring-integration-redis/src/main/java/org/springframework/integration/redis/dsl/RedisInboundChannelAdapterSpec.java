@@ -25,7 +25,7 @@ import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.messaging.converter.MessageConverter;
 
 /**
- * A {@link MessageProducerSpec} for a {@link RedisInboundChannelAdapterSpec}.
+ * A {@link MessageProducerSpec} for a {@link RedisInboundChannelAdapter}.
  *
  * @author Jiandong Ma
  *
