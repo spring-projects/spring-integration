@@ -61,8 +61,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.Mockito;
 
@@ -79,13 +77,11 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MimeTypeUtils;
 
@@ -112,16 +108,10 @@ import static org.mockito.Mockito.when;
  * @author Dominik Simmen
  * @author Filip Hrisafov
  */
-@SpringJUnitConfig
-@ContextConfiguration(
-		"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@LogLevels(level = "debug",
-		categories = {
-				"org.springframework.integration.mail",
-				"com.icegreen.greenmail",
-				"jakarta.mail"
-		})
+@SpringJUnitConfig(
+		locations =
+				"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
+@DirtiesContext
 public class ImapMailReceiverTests implements TestApplicationContextAware {
 
 	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
@@ -182,7 +172,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		testIdleWithServerGuts(receiver, false);
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -190,7 +180,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -198,8 +188,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		testIdleWithServerGuts(receiver, true);
 	}
 
-	@Test
-	@Disabled
+	@RetryingTest(10)
 	public void testIdleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -208,7 +197,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testIdleWithMessageMappingSimple() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -217,11 +206,683 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		testIdleWithServerGuts(receiver, true, true);
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws Exception {
+	@RetryingTest(10)
+	public void receiveAndMarkAsReadDontDelete() throws Exception {
+		user.deliver(GreenMailUtil.createTextEmail("user", "sender", "subject", "body",
+				imapIdleServer.getImap().getServerSetup()));
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	@RetryingTest(10)
+	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("true");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	@RetryingTest(10)
+	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		given(msg2.getSubject()).willReturn("foo"); // should not be marked seen
+		Expression selectorExpression = new SpelExpressionParser()
+				.parseExpression("subject == null OR !subject.equals('foo')");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	@RetryingTest(10)
+	public void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(false);
+
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
+		receiver.setSelectorExpression(selectorExpression);
+		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(msg1).isExpunged();
+		verify(msg2).isExpunged();
+		verify(msg1).getSubject();
+		verify(msg2).getSubject();
+		verify(logger, never()).debug(Mockito.startsWith("Expunged message received"));
+		verify(logger, never()).debug(org.mockito.ArgumentMatchers.contains("will be discarded by the matching filter"));
+	}
+
+	@RetryingTest(10)
+	public void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+
+		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
+		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(true);
+
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		given(msg1.isExpunged()).willReturn(true);
+		given(msg1.getSubject()).willReturn("msg1");
+		given(msg2.getSubject()).willReturn("msg2");
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
+		receiver.setSelectorExpression(selectorExpression);
+		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(msg1).isExpunged();
+		verify(msg2).isExpunged();
+		verify(msg1, never()).getSubject();
+		verify(msg2).getSubject();
+		verify(logger).debug(Mockito.startsWith("Expunged message discarded"));
+	}
+
+	@RetryingTest(10)
+	public void receiveMarkAsReadAndDelete() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
+		receiver.setShouldDeleteMessages(true);
+		receiver = spy(receiver);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		folderField.set(receiver, folder);
+
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		final Message[] messages = new Message[] {msg1, msg2};
+		willAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
+			}
+			return null;
+		}).given(receiver).openFolder();
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		receiver.receive();
+
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+
+		verify(receiver, times(2)).deleteMessages(Mockito.any());
+	}
+
+	@RetryingTest(10)
+	public void receiveAndDontMarkAsRead() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
+		receiver = spy(receiver);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		folderField.set(receiver, folder);
+
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		final Message[] messages = new Message[] {msg1, msg2};
+		willAnswer(invocation -> null).given(receiver).openFolder();
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		receiver.afterPropertiesSet();
+		receiver.receive();
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+	}
+
+	@RetryingTest(10)
+	public void receiveAndDontMarkAsReadButDelete() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver.setShouldDeleteMessages(true);
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
+		receiver = spy(receiver);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		folderField.set(receiver, folder);
+
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		final Message[] messages = new Message[] {msg1, msg2};
+		willAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
+			}
+			return null;
+		}).given(receiver).openFolder();
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		receiver.afterPropertiesSet();
+		receiver.receive();
+
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg1.getFlags().contains(Flag.DELETED)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.DELETED)).isTrue();
+	}
+
+	@RetryingTest(10)
+	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver = spy(receiver);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		folderField.set(receiver, folder);
+
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		final Message[] messages = new Message[] {msg1, msg2};
+		willAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
+			}
+			return null;
+		}).given(receiver).openFolder();
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		receiver.receive();
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	@RetryingTest(10)
+	public void testMessageHistory() throws Exception {
+		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+		adapter.setReconnectDelay(10);
+
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver = spy(receiver);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
+		final Message[] messages = new Message[] {mailMessage};
+
+		IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.isOpen()).willReturn(true);
+		given(folder.hasNewMessages()).willReturn(true);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+
+		willAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
+			accessor.setPropertyValue("folder", folder);
+			return null;
+		}).given(receiver).openFolder();
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+
+		PollableChannel channel = this.context.getBean("channel", PollableChannel.class);
+
+		adapter.start();
+		org.springframework.messaging.Message<?> replMessage = channel.receive(10000);
+		MessageHistory history = MessageHistory.read(replMessage);
+		assertThat(history).isNotNull();
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("mail:imap-idle-channel-adapter");
+		adapter.stop();
+	}
+
+	@RetryingTest(10)
+	public void testIdleChannelAdapterException() throws Exception {
+		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
+
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(org.springframework.messaging.Message<?> requestMessage) {
+				throw new RuntimeException("Failed");
+			}
+		});
+		adapter.setOutputChannel(channel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setReconnectDelay(10);
+
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(IMAPFolder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		given(folder.exists()).willReturn(true);
+		folderField.set(receiver, folder);
+
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(true);
+		storeField.set(receiver, store);
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
+		Message[] messages = new Message[] {mailMessage};
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		adapter.start();
+		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
+		assertThat(replMessage).isNotNull();
+		assertThat(((Exception) replMessage.getPayload()).getCause().getMessage()).isEqualTo("Failed");
+		adapter.stop();
+	}
+
+	@SuppressWarnings("resource")
+	@RetryingTest(10)
+	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
+		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		adapter.setReconnectDelay(10);
+
+		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
+
+		final IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
+
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(true);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		storeField.set(receiver, store);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
+		final Message[] messages = new Message[] {mailMessage};
+
+		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
+		willAnswer(invocation -> {
+			/*
+			 * Return the message from first invocation of waitForMessages()
+			 * and in receive(); then return false in the next call to
+			 * waitForMessages() so we enter idle(); counter will be reset
+			 * to 1 in the mocked idle().
+			 */
+			if (shouldFindMessagesCounter.decrementAndGet() >= 0) {
+				return messages;
+			}
+			else {
+				return new Message[0];
+			}
+		}).given(folder).search(any(SearchTerm.class));
+
+		willAnswer(invocation -> {
+			Thread.sleep(300);
+			shouldFindMessagesCounter.set(1);
+			return null;
+		}).given(folder).idle(true);
+
+		adapter.start();
+
+		/*
+		 * Idle takes 5 seconds; if all is well, we should receive the first message
+		 * before then.
+		 */
+		assertThat(channel.receive(20000)).isNotNull();
+		// We should not receive any more until the next idle elapses
+		assertThat(channel.receive(100)).isNull();
+		assertThat(channel.receive(10000)).isNotNull();
+		adapter.stop();
+	}
+
+	@RetryingTest(10)
+	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
+		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		adapter.setReconnectDelay(100);
+		adapter.afterPropertiesSet();
+
+		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
+		receiver.setCancelIdleInterval(10);
+		IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.RECENT));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
+
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(true);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		storeField.set(receiver, store);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
+		Message[] messages = new Message[] {mailMessage};
+
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
+
+		CountDownLatch idles = new CountDownLatch(2);
+		willAnswer(invocation -> {
+			idles.countDown();
+			Thread.sleep(500);
+			return null;
+		}).given(folder).idle(true);
+
+		adapter.start();
+
+		/*
+		 * Idle takes 5 seconds; since this server supports RECENT, we should
+		 * not receive any early messages.
+		 */
+		assertThat(channel.receive(100)).isNull();
+		assertThat(channel.receive(20000)).isNotNull();
+		assertThat(idles.await(10, TimeUnit.SECONDS)).isTrue();
+		adapter.stop();
+	}
+
+	@RetryingTest(10)
+	public void testConnectionException() throws Exception {
+		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
+		final AtomicReference<Object> theEvent = new AtomicReference<>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		adapter.setApplicationEventPublisher(event -> {
+			theEvent.set(event);
+			latch.countDown();
+		});
+		adapter.setReconnectDelay(10);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(theEvent.get().toString())
+				.endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]");
+
+		adapter.stop();
+	}
+
+	@RetryingTest(10) // see INT-1801
+	public void testImapLifecycleForRaceCondition() throws Exception {
+		final AtomicInteger failed = new AtomicInteger(0);
+		for (int i = 0; i < 100; i++) {
+			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+			Store store = mock(Store.class);
+			Folder folder = mock(Folder.class);
+			given(folder.exists()).willReturn(true);
+			given(folder.isOpen()).willReturn(true);
+			given(folder.search(Mockito.any())).willReturn(new Message[] {});
+			given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+			given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+
+			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
+			df.setPropertyValue("store", store);
+			receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+			receiver.afterPropertiesSet();
+
+			new Thread(() -> {
+				try {
+					receiver.receive();
+				}
+				catch (jakarta.mail.MessagingException e) {
+					if (e.getCause() instanceof NullPointerException) {
+						failed.getAndIncrement();
+					}
+				}
+
+			}).start();
+
+			new Thread(() -> {
+				try {
+					receiver.destroy();
+				}
+				catch (Exception ignore) {
+					// ignore
+				}
+			}).start();
+		}
+		assertThat(failed.get()).isEqualTo(0);
+	}
+
+	@RetryingTest(10)
+	public void testAttachments() throws Exception {
+		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		Folder folder = testAttachmentsGuts(receiver);
+		Message[] messages = (Message[]) receiver.receive();
+		Object content = messages[0].getContent();
+		assertThat(((Multipart) content).getBodyPart(0).getContent().toString().trim()).isEqualTo("bar");
+		assertThat(((Multipart) content).getBodyPart(1).getContent().toString().trim()).isEqualTo("foo");
+
+		assertThat(messages[0].getFolder()).isSameAs(folder);
+	}
+
+	@RetryingTest(10)
+	public void testAttachmentsWithMappingMultiAsBytes() throws Exception {
+		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		testAttachmentsGuts(receiver);
+		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
+				.receive();
+		org.springframework.messaging.Message<?> received = messages[0];
+		Object content = received.getPayload();
+		assertThat(content).isInstanceOf(byte[].class);
+		assertThat(received.getHeaders().get(MailHeaders.CONTENT_TYPE))
+				.isEqualTo("multipart/mixed;\r\n boundary=\"------------040903000701040401040200\"");
+		assertThat(received.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isEqualTo("application/octet-stream");
+	}
+
+	@RetryingTest(10)
+	public void testAttachmentsWithMapping() throws Exception {
+		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		receiver.setEmbeddedPartsAsBytes(false);
+		testAttachmentsGuts(receiver);
+		org.springframework.messaging.Message<?>[] messages =
+				(org.springframework.messaging.Message<?>[]) receiver.receive();
+		Object content = messages[0].getPayload();
+		assertThat(content).isInstanceOf(Multipart.class);
+		assertThat(((Multipart) content).getBodyPart(0).getContent().toString().trim()).isEqualTo("bar");
+		assertThat(((Multipart) content).getBodyPart(1).getContent().toString().trim()).isEqualTo("foo");
+	}
+
+	private Folder testAttachmentsGuts(final ImapMailReceiver receiver) throws MessagingException, IOException {
+		Store store = mock(Store.class);
+		Folder folder = mock(Folder.class);
+		given(folder.exists()).willReturn(true);
+		given(folder.isOpen()).willReturn(true);
+
+		Message message = GreenMailUtil.newMimeMessage(new ClassPathResource("test.mail").getInputStream());
+		given(folder.search(Mockito.any())).willReturn(new Message[] {message});
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
+		df.setPropertyValue("store", store);
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+
+		return folder;
+	}
+
+	@RetryingTest(10)
+	public void testNullMessages() throws Exception {
+		Message message1 = GreenMailUtil.newMimeMessage("test1");
+		Message message2 = GreenMailUtil.newMimeMessage("test2");
+		final Message[] messages1 = new Message[] {null, null, message1};
+		final Message[] messages2 = new Message[] {message2};
+		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
+		class TestReceiver extends ImapMailReceiver {
+
+			private boolean firstDone;
+
+			private TestReceiver() {
+				setSearchTermStrategy(searchTermStrategy);
+			}
+
+			@Override
+			protected Folder getFolder() {
+				Folder folder = mock(Folder.class);
+				given(folder.isOpen()).willReturn(true);
+				try {
+					given(folder.getMessages())
+							.willReturn(!this.firstDone ? messages1 : messages2);
+				}
+				catch (MessagingException ignored) {
+				}
+				return folder;
+			}
+
+			@Override
+			public Message[] receive() throws MessagingException {
+				Message[] messages = searchForNewMessages();
+				this.firstDone = true;
+				return messages;
+			}
+
+		}
+
+		ImapMailReceiver receiver = new TestReceiver();
+		Message[] received = (Message[]) receiver.receive();
+		assertThat(received.length).isEqualTo(1);
+		assertThat(received[0]).isSameAs(message1);
+		received = (Message[]) receiver.receive();
+		assertThat(received.length).isEqualTo(1);
+		assertThat(received).isSameAs(messages2);
+		assertThat(received[0]).isSameAs(message2);
+	}
+
+	@RetryingTest(10)
+	public void testIdleReconnects() throws Exception {
+		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		receiver.afterPropertiesSet();
+		IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
+		given(folder.hasNewMessages()).willReturn(true);
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(false);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		storeField.set(receiver, store);
+
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
+		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		willDoNothing().given(logger).warn(any(Throwable.class), anyString());
+		willAnswer(i -> {
+			i.callRealMethod();
+			throw new FolderClosedException(folder, "test");
+		}).given(receiver).waitForNewMessages();
+		adapter.setReconnectDelay(10);
+		CountDownLatch latch = new CountDownLatch(3);
+		adapter.setApplicationEventPublisher(e -> latch.countDown());
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
+		verify(store, atLeast(3)).connect();
+
+		adapter.stop();
+	}
+
+	@RetryingTest(10)
+	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		MimeMessage msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");
+		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, false);
+		assertThatThrownBy(receiver::receive)
+				.isInstanceOf(MessagingException.class)
+				.hasMessage("IOException while copying message")
+				.cause()
+				.isInstanceOf(IOException.class)
+				.hasMessage("Simulated exception");
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+		verify(msg1, times(0)).setFlags(Mockito.any(), Mockito.anyBoolean());
+
+		receiver.receive();
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		// msg2 is marked with the user and seen flags
+		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	private void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws Exception {
 		testIdleWithServerGuts(receiver, mapped, false);
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
+	private void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
 		receiver.setMaxFetchSize(1);
 		receiver.setShouldDeleteMessages(false);
 		receiver.setShouldMarkMessagesAsRead(true);
@@ -287,19 +948,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 		assertThat(imapSearches.stores.get(0)).contains("testSIUserFlag");
 	}
 
-	@Test
-	public void receiveAndMarkAsReadDontDelete() throws Exception {
-		user.deliver(GreenMailUtil.createTextEmail("user", "sender", "subject", "body",
-				imapIdleServer.getImap().getServerSetup()));
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-		verify(receiver, times(0)).deleteMessages(Mockito.any());
-	}
-
 	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
 			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
 
@@ -339,665 +987,6 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 			receiver.receive();
 		}
 		return receiver;
-	}
-
-	@Test
-	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		Expression selectorExpression = new SpelExpressionParser().parseExpression("true");
-		receiver.setSelectorExpression(selectorExpression);
-		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-		verify(receiver, times(0)).deleteMessages(Mockito.any());
-	}
-
-	@Test
-	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		given(msg2.getSubject()).willReturn("foo"); // should not be marked seen
-		Expression selectorExpression = new SpelExpressionParser()
-				.parseExpression("subject == null OR !subject.equals('foo')");
-		receiver.setSelectorExpression(selectorExpression);
-		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
-		verify(receiver, times(0)).deleteMessages(Mockito.any());
-	}
-
-	@Test
-	public void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-
-		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
-		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
-		when(logger.isDebugEnabled()).thenReturn(false);
-
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
-		receiver.setSelectorExpression(selectorExpression);
-		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		verify(msg1).isExpunged();
-		verify(msg2).isExpunged();
-		verify(msg1).getSubject();
-		verify(msg2).getSubject();
-		verify(logger, never()).debug(Mockito.startsWith("Expunged message received"));
-		verify(logger, never()).debug(org.mockito.ArgumentMatchers.contains("will be discarded by the matching filter"));
-	}
-
-	@Test
-	public void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-
-		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
-		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
-		when(logger.isDebugEnabled()).thenReturn(true);
-
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		given(msg1.isExpunged()).willReturn(true);
-		given(msg1.getSubject()).willReturn("msg1");
-		given(msg2.getSubject()).willReturn("msg2");
-		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
-		receiver.setSelectorExpression(selectorExpression);
-		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		verify(msg1).isExpunged();
-		verify(msg2).isExpunged();
-		verify(msg1, never()).getSubject();
-		verify(msg2).getSubject();
-		verify(logger).debug(Mockito.startsWith("Expunged message discarded"));
-	}
-
-	@Test
-	public void receiveMarkAsReadAndDelete() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
-		receiver.setShouldDeleteMessages(true);
-		receiver = spy(receiver);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(true);
-		folderField.set(receiver, folder);
-
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		final Message[] messages = new Message[] {msg1, msg2};
-		willAnswer(invocation -> {
-			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
-			if (folderOpenMode != Folder.READ_WRITE) {
-				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-			}
-			return null;
-		}).given(receiver).openFolder();
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-		receiver.receive();
-
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-
-		verify(receiver, times(2)).deleteMessages(Mockito.any());
-	}
-
-	@Test
-	public void receiveAndDontMarkAsRead() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
-		receiver = spy(receiver);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(true);
-		folderField.set(receiver, folder);
-
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		final Message[] messages = new Message[] {msg1, msg2};
-		willAnswer(invocation -> null).given(receiver).openFolder();
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-		receiver.afterPropertiesSet();
-		receiver.receive();
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
-	}
-
-	@Test
-	public void receiveAndDontMarkAsReadButDelete() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setShouldDeleteMessages(true);
-		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
-		receiver = spy(receiver);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(true);
-		folderField.set(receiver, folder);
-
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		final Message[] messages = new Message[] {msg1, msg2};
-		willAnswer(invocation -> {
-			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
-			if (folderOpenMode != Folder.READ_WRITE) {
-				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-			}
-			return null;
-		}).given(receiver).openFolder();
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-		receiver.afterPropertiesSet();
-		receiver.receive();
-
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
-		assertThat(msg1.getFlags().contains(Flag.DELETED)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.DELETED)).isTrue();
-	}
-
-	@Test
-	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver = spy(receiver);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(true);
-		folderField.set(receiver, folder);
-
-		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
-		final Message[] messages = new Message[] {msg1, msg2};
-		willAnswer(invocation -> {
-			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
-			if (folderOpenMode != Folder.READ_WRITE) {
-				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-			}
-			return null;
-		}).given(receiver).openFolder();
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-		receiver.receive();
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-		verify(receiver, times(0)).deleteMessages(Mockito.any());
-	}
-
-	@Test
-	public void testMessageHistory() throws Exception {
-		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-		adapter.setReconnectDelay(10);
-
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver = spy(receiver);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-
-		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
-		final Message[] messages = new Message[] {mailMessage};
-
-		IMAPFolder folder = mock(IMAPFolder.class);
-		given(folder.isOpen()).willReturn(true);
-		given(folder.hasNewMessages()).willReturn(true);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-
-		willAnswer(invocation -> {
-			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
-			accessor.setPropertyValue("folder", folder);
-			return null;
-		}).given(receiver).openFolder();
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-
-		PollableChannel channel = this.context.getBean("channel", PollableChannel.class);
-
-		adapter.start();
-		org.springframework.messaging.Message<?> replMessage = channel.receive(10000);
-		MessageHistory history = MessageHistory.read(replMessage);
-		assertThat(history).isNotNull();
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
-		assertThat(componentHistoryRecord).isNotNull();
-		assertThat(componentHistoryRecord.get("type")).isEqualTo("mail:imap-idle-channel-adapter");
-		adapter.stop();
-	}
-
-	@Test
-	public void testIdleChannelAdapterException() throws Exception {
-		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-
-		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
-
-		DirectChannel channel = new DirectChannel();
-		channel.subscribe(new AbstractReplyProducingMessageHandler() {
-
-			@Override
-			protected Object handleRequestMessage(org.springframework.messaging.Message<?> requestMessage) {
-				throw new RuntimeException("Failed");
-			}
-		});
-		adapter.setOutputChannel(channel);
-		QueueChannel errorChannel = new QueueChannel();
-		adapter.setErrorChannel(errorChannel);
-		adapter.setReconnectDelay(10);
-
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(IMAPFolder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(true);
-		given(folder.exists()).willReturn(true);
-		folderField.set(receiver, folder);
-
-		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
-		storeField.setAccessible(true);
-		Store store = mock(Store.class);
-		given(store.isConnected()).willReturn(true);
-		storeField.set(receiver, store);
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-
-		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
-		Message[] messages = new Message[] {mailMessage};
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		adapter.start();
-		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
-		assertThat(replMessage).isNotNull();
-		assertThat(((Exception) replMessage.getPayload()).getCause().getMessage()).isEqualTo("Failed");
-		adapter.stop();
-	}
-
-	@SuppressWarnings("resource")
-	@Test
-	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
-		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-
-		QueueChannel channel = new QueueChannel();
-		adapter.setOutputChannel(channel);
-		adapter.setReconnectDelay(10);
-
-		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
-
-		final IMAPFolder folder = mock(IMAPFolder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(false).willReturn(true);
-		given(folder.exists()).willReturn(true);
-
-		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
-		storeField.setAccessible(true);
-		Store store = mock(Store.class);
-		given(store.isConnected()).willReturn(true);
-		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
-		storeField.set(receiver, store);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-
-		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
-		final Message[] messages = new Message[] {mailMessage};
-
-		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
-		willAnswer(invocation -> {
-			/*
-			 * Return the message from first invocation of waitForMessages()
-			 * and in receive(); then return false in the next call to
-			 * waitForMessages() so we enter idle(); counter will be reset
-			 * to 1 in the mocked idle().
-			 */
-			if (shouldFindMessagesCounter.decrementAndGet() >= 0) {
-				return messages;
-			}
-			else {
-				return new Message[0];
-			}
-		}).given(folder).search(any(SearchTerm.class));
-
-		willAnswer(invocation -> {
-			Thread.sleep(300);
-			shouldFindMessagesCounter.set(1);
-			return null;
-		}).given(folder).idle(true);
-
-		adapter.start();
-
-		/*
-		 * Idle takes 5 seconds; if all is well, we should receive the first message
-		 * before then.
-		 */
-		assertThat(channel.receive(20000)).isNotNull();
-		// We should not receive any more until the next idle elapses
-		assertThat(channel.receive(100)).isNull();
-		assertThat(channel.receive(10000)).isNotNull();
-		adapter.stop();
-	}
-
-	@Test
-	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
-		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-
-		QueueChannel channel = new QueueChannel();
-		adapter.setOutputChannel(channel);
-		adapter.setReconnectDelay(100);
-		adapter.afterPropertiesSet();
-
-		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
-		receiver.setCancelIdleInterval(10);
-		IMAPFolder folder = mock(IMAPFolder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.RECENT));
-		given(folder.isOpen()).willReturn(false).willReturn(true);
-		given(folder.exists()).willReturn(true);
-
-		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
-		storeField.setAccessible(true);
-		Store store = mock(Store.class);
-		given(store.isConnected()).willReturn(true);
-		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
-		storeField.set(receiver, store);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-
-		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
-		Message[] messages = new Message[] {mailMessage};
-
-		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
-
-		CountDownLatch idles = new CountDownLatch(2);
-		willAnswer(invocation -> {
-			idles.countDown();
-			Thread.sleep(500);
-			return null;
-		}).given(folder).idle(true);
-
-		adapter.start();
-
-		/*
-		 * Idle takes 5 seconds; since this server supports RECENT, we should
-		 * not receive any early messages.
-		 */
-		assertThat(channel.receive(100)).isNull();
-		assertThat(channel.receive(20000)).isNotNull();
-		assertThat(idles.await(10, TimeUnit.SECONDS)).isTrue();
-		adapter.stop();
-	}
-
-	@Test
-	public void testConnectionException() throws Exception {
-		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
-		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
-		final AtomicReference<Object> theEvent = new AtomicReference<>();
-		final CountDownLatch latch = new CountDownLatch(1);
-		adapter.setApplicationEventPublisher(event -> {
-			theEvent.set(event);
-			latch.countDown();
-		});
-		adapter.setReconnectDelay(10);
-		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		adapter.afterPropertiesSet();
-		adapter.start();
-		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(theEvent.get().toString())
-				.endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]");
-
-		adapter.stop();
-	}
-
-	@Test // see INT-1801
-	public void testImapLifecycleForRaceCondition() throws Exception {
-		final AtomicInteger failed = new AtomicInteger(0);
-		for (int i = 0; i < 100; i++) {
-			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
-			Store store = mock(Store.class);
-			Folder folder = mock(Folder.class);
-			given(folder.exists()).willReturn(true);
-			given(folder.isOpen()).willReturn(true);
-			given(folder.search(Mockito.any())).willReturn(new Message[] {});
-			given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
-			given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-
-			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
-			df.setPropertyValue("store", store);
-			receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-			receiver.afterPropertiesSet();
-
-			new Thread(() -> {
-				try {
-					receiver.receive();
-				}
-				catch (jakarta.mail.MessagingException e) {
-					if (e.getCause() instanceof NullPointerException) {
-						failed.getAndIncrement();
-					}
-				}
-
-			}).start();
-
-			new Thread(() -> {
-				try {
-					receiver.destroy();
-				}
-				catch (Exception ignore) {
-					// ignore
-				}
-			}).start();
-		}
-		assertThat(failed.get()).isEqualTo(0);
-	}
-
-	@Test
-	public void testAttachments() throws Exception {
-		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
-		Folder folder = testAttachmentsGuts(receiver);
-		Message[] messages = (Message[]) receiver.receive();
-		Object content = messages[0].getContent();
-		assertThat(((Multipart) content).getBodyPart(0).getContent().toString().trim()).isEqualTo("bar");
-		assertThat(((Multipart) content).getBodyPart(1).getContent().toString().trim()).isEqualTo("foo");
-
-		assertThat(messages[0].getFolder()).isSameAs(folder);
-	}
-
-	@Test
-	public void testAttachmentsWithMappingMultiAsBytes() throws Exception {
-		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
-		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
-		testAttachmentsGuts(receiver);
-		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
-				.receive();
-		org.springframework.messaging.Message<?> received = messages[0];
-		Object content = received.getPayload();
-		assertThat(content).isInstanceOf(byte[].class);
-		assertThat(received.getHeaders().get(MailHeaders.CONTENT_TYPE))
-				.isEqualTo("multipart/mixed;\r\n boundary=\"------------040903000701040401040200\"");
-		assertThat(received.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isEqualTo("application/octet-stream");
-	}
-
-	@Test
-	public void testAttachmentsWithMapping() throws Exception {
-		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
-		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
-		receiver.setEmbeddedPartsAsBytes(false);
-		testAttachmentsGuts(receiver);
-		org.springframework.messaging.Message<?>[] messages =
-				(org.springframework.messaging.Message<?>[]) receiver.receive();
-		Object content = messages[0].getPayload();
-		assertThat(content).isInstanceOf(Multipart.class);
-		assertThat(((Multipart) content).getBodyPart(0).getContent().toString().trim()).isEqualTo("bar");
-		assertThat(((Multipart) content).getBodyPart(1).getContent().toString().trim()).isEqualTo("foo");
-	}
-
-	private Folder testAttachmentsGuts(final ImapMailReceiver receiver) throws MessagingException, IOException {
-		Store store = mock(Store.class);
-		Folder folder = mock(Folder.class);
-		given(folder.exists()).willReturn(true);
-		given(folder.isOpen()).willReturn(true);
-
-		Message message = GreenMailUtil.newMimeMessage(new ClassPathResource("test.mail").getInputStream());
-		given(folder.search(Mockito.any())).willReturn(new Message[] {message});
-		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
-		df.setPropertyValue("store", store);
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-
-		return folder;
-	}
-
-	@Test
-	public void testNullMessages() throws Exception {
-		Message message1 = GreenMailUtil.newMimeMessage("test1");
-		Message message2 = GreenMailUtil.newMimeMessage("test2");
-		final Message[] messages1 = new Message[] {null, null, message1};
-		final Message[] messages2 = new Message[] {message2};
-		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
-		class TestReceiver extends ImapMailReceiver {
-
-			private boolean firstDone;
-
-			private TestReceiver() {
-				setSearchTermStrategy(searchTermStrategy);
-			}
-
-			@Override
-			protected Folder getFolder() {
-				Folder folder = mock(Folder.class);
-				given(folder.isOpen()).willReturn(true);
-				try {
-					given(folder.getMessages())
-							.willReturn(!this.firstDone ? messages1 : messages2);
-				}
-				catch (MessagingException ignored) {
-				}
-				return folder;
-			}
-
-			@Override
-			public Message[] receive() throws MessagingException {
-				Message[] messages = searchForNewMessages();
-				this.firstDone = true;
-				return messages;
-			}
-
-		}
-
-		ImapMailReceiver receiver = new TestReceiver();
-		Message[] received = (Message[]) receiver.receive();
-		assertThat(received.length).isEqualTo(1);
-		assertThat(received[0]).isSameAs(message1);
-		received = (Message[]) receiver.receive();
-		assertThat(received.length).isEqualTo(1);
-		assertThat(received).isSameAs(messages2);
-		assertThat(received[0]).isSameAs(message2);
-	}
-
-	@Test
-	public void testIdleReconnects() throws Exception {
-		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
-		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		receiver.afterPropertiesSet();
-		IMAPFolder folder = mock(IMAPFolder.class);
-		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
-		given(folder.isOpen()).willReturn(false).willReturn(true);
-		given(folder.exists()).willReturn(true);
-		given(folder.hasNewMessages()).willReturn(true);
-		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
-		storeField.setAccessible(true);
-		Store store = mock(Store.class);
-		given(store.isConnected()).willReturn(false);
-		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
-		storeField.set(receiver, store);
-
-		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
-		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
-		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
-		willDoNothing().given(logger).warn(any(Throwable.class), anyString());
-		willAnswer(i -> {
-			i.callRealMethod();
-			throw new FolderClosedException(folder, "test");
-		}).given(receiver).waitForNewMessages();
-		adapter.setReconnectDelay(10);
-		CountDownLatch latch = new CountDownLatch(3);
-		adapter.setApplicationEventPublisher(e -> latch.countDown());
-		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		adapter.afterPropertiesSet();
-		adapter.start();
-		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
-		verify(store, atLeast(3)).connect();
-
-		adapter.stop();
-	}
-
-	@Test
-	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		MimeMessage msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");
-		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2);
-		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, false);
-		assertThatThrownBy(receiver::receive)
-				.isInstanceOf(MessagingException.class)
-				.hasMessage("IOException while copying message")
-				.cause()
-				.isInstanceOf(IOException.class)
-				.hasMessage("Simulated exception");
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
-		verify(msg1, times(0)).setFlags(Mockito.any(), Mockito.anyBoolean());
-
-		receiver.receive();
-		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-		// msg2 is marked with the user and seen flags
-		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
-		verify(receiver, times(0)).deleteMessages(Mockito.any());
 	}
 
 	private static class ImapSearchLoggingHandler extends Handler {
