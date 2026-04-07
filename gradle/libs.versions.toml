@@ -1,0 +1,169 @@
+[versions]
+apacheSshdVersion = "2.17.1"
+artemisVersion = "2.52.0"
+aspectjVersion = "1.9.25.1"
+assertjVersion = "3.27.7"
+assertkVersion = "0.28.1"
+avroVersion = "1.12.1"
+awaitilityVersion = "4.3.0"
+camelVersion = "4.18.1"
+cloudEventsVersion = "4.0.1"
+commonsDbcp2Version = "2.14.0"
+commonsIoVersion = "2.21.0"
+commonsNetVersion = "3.12.0"
+curatorVersion = "5.9.0"
+debeziumVersion = "3.4.3.Final"
+derbyVersion = "10.17.1.0"
+ftpServerVersion = "1.2.1"
+graalvmVersion = "25.0.2"
+greenmailVersion = "2.1.8"
+groovyVersion = "5.0.5"
+grpcVersion = "1.79.0"
+h2Version = "2.4.240"
+hamcrestVersion = "3.0"
+hazelcastVersion = "5.6.0"
+hibernateVersion = "7.3.0.Final"
+hsqldbVersion = "2.7.4"
+jackson3Version = "3.1.1"
+jacksonVersion = "2.21.2"
+jaxbVersion = "4.0.7"
+jcifsVersion = "3.0.2"
+jeroMqVersion = "0.6.0"
+jmsApiVersion = "3.1.0"
+jpaApiVersion = "3.2.0"
+jrubyVersion = "10.0.4.0"
+jsonpathVersion = "3.0.0"
+junitJupiterVersion = "6.0.3"
+junitPioneerVersion = "2.3.0"
+kotlinCoroutinesVersion = "1.10.2"
+kotlinVersion = "2.3.20"
+kryoVersion = "5.6.2"
+lettuceVersion = "7.5.1.RELEASE"
+log4jVersion = "2.25.4"
+mailVersion = "2.0.5"
+micrometerTracingVersion = "1.7.0-M4"
+micrometerVersion = "1.17.0-M3"
+mockitoVersion = "5.23.0"
+mongoDriverVersion = "5.7.0-beta1"
+mysqlVersion = "9.6.0"
+oracleVersion = "23.26.1.0.0"
+pahoMqttClientVersion = "1.2.5"
+postgresVersion = "42.7.10"
+protobufVersion = "4.34.1"
+r2dbch2Version = "1.1.0.RELEASE"
+reactorVersion = "2025.0.4"
+resilience4jVersion = "2.4.0"
+romeToolsVersion = "2.1.0"
+rsocketVersion = "1.1.5"
+servletApiVersion = "6.1.0"
+smackVersion = "4.4.8"
+springAmqpVersion = "4.1.0-M3"
+springDataVersion = "2026.0.0-SNAPSHOT"
+springGraphqlVersion = "2.0.2"
+springKafkaVersion = "4.1.0-SNAPSHOT"
+springSecurityVersion = "7.1.0-M3"
+springVersion = "7.0.6"
+springWsVersion = "5.0.1"
+testcontainersVersion = "2.0.4"
+tomcatVersion = "11.0.21"
+xmlUnitVersion = "2.11.0"
+xstreamVersion = "1.4.21"
+ztZipVersion = "1.17"
+
+[libraries]
+apache-sshd-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "apacheSshdVersion" }
+apache-activemq-artemis-jakarta-client = { module = "org.apache.activemq:artemis-jakarta-client", version.ref = "artemisVersion" }
+apache-activemq-artemis-server = { module = "org.apache.activemq:artemis-server", version.ref = "artemisVersion" }
+apache-activemq-artemis-stomp-protocol = { module = "org.apache.activemq:artemis-stomp-protocol", version.ref = "artemisVersion" }
+apache-avro-avro = { module = "org.apache.avro:avro", version.ref = "avroVersion" }
+apache-camel-camel-bom = { module = "org.apache.camel:camel-bom", version.ref = "camelVersion" }
+apache-commons-commons-dbcp2 = { module = "org.apache.commons:commons-dbcp2", version.ref = "commonsDbcp2Version" }
+apache-curator-curator-recipes = { module = "org.apache.curator:curator-recipes", version.ref = "curatorVersion" }
+apache-curator-curator-test = { module = "org.apache.curator:curator-test", version.ref = "curatorVersion" }
+apache-derby-derby = { module = "org.apache.derby:derby", version.ref = "derbyVersion" }
+apache-derby-derbyclient = { module = "org.apache.derby:derbyclient", version.ref = "derbyVersion" }
+apache-derby-derbytools = { module = "org.apache.derby:derbytools", version.ref = "derbyVersion" }
+apache-ftpserver-ftpserver-core = { module = "org.apache.ftpserver:ftpserver-core", version.ref = "ftpServerVersion" }
+apache-groovy-groovy-bom = { module = "org.apache.groovy:groovy-bom", version.ref = "groovyVersion" }
+apache-logging-log4j-log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", version.ref = "log4jVersion" }
+apache-tomcat-embed-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcatVersion" }
+com-esotericsoftware-kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryoVersion" }
+com-fasterxml-jackson-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jacksonVersion" }
+com-google-protobuf-protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufVersion" }
+com-google-protobuf-protobuf-java-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobufVersion" }
+com-h2database-h2 = { module = "com.h2database:h2", version.ref = "h2Version" }
+com-hazelcast-hazelcast = { module = "com.hazelcast:hazelcast", version.ref = "hazelcastVersion" }
+com-icegreen-greenmail = { module = "com.icegreen:greenmail", version.ref = "greenmailVersion" }
+com-jayway-jsonpath-json-path = { module = "com.jayway.jsonpath:json-path", version.ref = "jsonpathVersion" }
+com-mysql-mysql-connector-j = { module = "com.mysql:mysql-connector-j", version.ref = "mysqlVersion" }
+com-oracle-database-jdbc-ojdbc11 = { module = "com.oracle.database.jdbc:ojdbc11", version.ref = "oracleVersion" }
+com-rometools-rome = { module = "com.rometools:rome", version.ref = "romeToolsVersion" }
+com-sun-xml-bind-jaxb-impl = { module = "com.sun.xml.bind:jaxb-impl", version.ref = "jaxbVersion" }
+com-thoughtworks-xstream-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "xstreamVersion" }
+com-willowtreeapps-assertk-assertk-jvm = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertkVersion" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIoVersion" }
+commons-net = { module = "commons-net:commons-net", version.ref = "commonsNetVersion" }
+io-cloudevents-cloudevents-bom = { module = "io.cloudevents:cloudevents-bom", version.ref = "cloudEventsVersion" }
+io-cloudevents-cloudevents-xml = { module = "io.cloudevents:cloudevents-xml", version.ref = "cloudEventsVersion" }
+io-debezium-debezium-connector-mysql = { module = "io.debezium:debezium-connector-mysql", version.ref = "debeziumVersion" }
+io-debezium-debezium-embedded = { module = "io.debezium:debezium-embedded", version.ref = "debeziumVersion" }
+io-github-resilience4j-resilience4j-ratelimiter = { module = "io.github.resilience4j:resilience4j-ratelimiter", version.ref = "resilience4jVersion" }
+io-grpc-grpc-bom = { module = "io.grpc:grpc-bom", version.ref = "grpcVersion" }
+io-lettuce-lettuce-core = { module = "io.lettuce:lettuce-core", version.ref = "lettuceVersion" }
+io-micrometer-micrometer-bom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometerVersion" }
+io-micrometer-micrometer-tracing-bom = { module = "io.micrometer:micrometer-tracing-bom", version.ref = "micrometerTracingVersion" }
+io-projectreactor-reactor-bom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorVersion" }
+io-r2dbc-r2dbc-h2 = { module = "io.r2dbc:r2dbc-h2", version.ref = "r2dbch2Version" }
+io-rsocket-rsocket-transport-netty = { module = "io.rsocket:rsocket-transport-netty", version.ref = "rsocketVersion" }
+jakarta-jms-api = { module = "jakarta.jms:jakarta.jms-api", version.ref = "jmsApiVersion" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jpaApiVersion" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servletApiVersion" }
+org-aspectj-aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjVersion" }
+org-assertj-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjVersion" }
+org-awaitility-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitilityVersion" }
+org-codelibs-jcifs = { module = "org.codelibs:jcifs", version.ref = "jcifsVersion" }
+org-eclipse-angus-angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "mailVersion" }
+org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", version.ref = "mailVersion" }
+org-eclipse-paho-client-mqttv3 = { module = "org.eclipse.paho:org.eclipse.paho.client.mqttv3", version.ref = "pahoMqttClientVersion" }
+org-eclipse-paho-mqttv5-client = { module = "org.eclipse.paho:org.eclipse.paho.mqttv5.client", version.ref = "pahoMqttClientVersion" }
+org-graalvm-polyglot-js = { module = "org.graalvm.polyglot:js", version.ref = "graalvmVersion" }
+org-graalvm-polyglot-python = { module = "org.graalvm.polyglot:python", version.ref = "graalvmVersion" }
+org-graalvm-sdk-graal-sdk = { module = "org.graalvm.sdk:graal-sdk", version.ref = "graalvmVersion" }
+org-hamcrest-hamcrest-library = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrestVersion" }
+org-hibernate-orm-hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernateVersion" }
+org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "hsqldbVersion" }
+org-igniterealtime-smack-smack-experimental = { module = "org.igniterealtime.smack:smack-experimental", version.ref = "smackVersion" }
+org-igniterealtime-smack-smack-extensions = { module = "org.igniterealtime.smack:smack-extensions", version.ref = "smackVersion" }
+org-igniterealtime-smack-smack-java8 = { module = "org.igniterealtime.smack:smack-java8", version.ref = "smackVersion" }
+org-igniterealtime-smack-smack-tcp = { module = "org.igniterealtime.smack:smack-tcp", version.ref = "smackVersion" }
+org-jetbrains-kotlin-kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:kotlin-scripting-jsr223", version.ref = "kotlinVersion" }
+org-jetbrains-kotlinx-kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "kotlinCoroutinesVersion" }
+org-jetbrains-kotlinx-kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinCoroutinesVersion" }
+org-jruby-jruby-complete = { module = "org.jruby:jruby-complete", version.ref = "jrubyVersion" }
+org-junit-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitJupiterVersion" }
+org-junit-pioneer-junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junitPioneerVersion" }
+org-mockito-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
+org-mongodb-mongodb-driver-bom = { module = "org.mongodb:mongodb-driver-bom", version.ref = "mongoDriverVersion" }
+org-mongodb-mongodb-driver-reactivestreams = { module = "org.mongodb:mongodb-driver-reactivestreams", version.ref = "mongoDriverVersion" }
+org-mongodb-mongodb-driver-sync = { module = "org.mongodb:mongodb-driver-sync", version.ref = "mongoDriverVersion" }
+org-postgresql-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresVersion" }
+org-testcontainers-testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainersVersion" }
+org-xmlunit-xmlunit-assertj3 = { module = "org.xmlunit:xmlunit-assertj3", version.ref = "xmlUnitVersion" }
+org-zeromq-jeromq = { module = "org.zeromq:jeromq", version.ref = "jeroMqVersion" }
+org-zeroturnaround-zt-zip = { module = "org.zeroturnaround:zt-zip", version.ref = "ztZipVersion" }
+spring-amqp-bom = { module = "org.springframework.amqp:spring-amqp-bom", version.ref = "springAmqpVersion" }
+spring-data-bom = { module = "org.springframework.data:spring-data-bom", version.ref = "springDataVersion" }
+spring-framework-bom = { module = "org.springframework:spring-framework-bom", version.ref = "springVersion" }
+spring-graphql = { module = "org.springframework.graphql:spring-graphql", version.ref = "springGraphqlVersion" }
+spring-kafka-bom = { module = "org.springframework.kafka:spring-kafka-bom", version.ref = "springKafkaVersion" }
+spring-security-bom = { module = "org.springframework.security:spring-security-bom", version.ref = "springSecurityVersion" }
+spring-ws-bom = { module = "org.springframework.ws:spring-ws-bom", version.ref = "springWsVersion" }
+tools-jackson-jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson3Version" }
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version = "2.1.0" }
+antora = { id = "org.antora", version = "1.0.0" }
+antora-generate-yml = { id = "io.spring.antora.generate-antora-yml", version = "0.0.1" }
+protobuf = { id = "com.google.protobuf", version = "0.9.6" }
+aggregate-javadoc = { id = "io.freefair.aggregate-javadoc", version = "9.2.0" }
+nullability = { id = "io.spring.nullability", version = "0.0.12" }
