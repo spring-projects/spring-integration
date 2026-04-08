@@ -20,9 +20,10 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.SerializationHints;
 import org.springframework.integration.file.splitter.FileSplitter;
 
 /**
@@ -36,9 +37,12 @@ class FileRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-		SerializationHints serializationHints = hints.serialization();
+		ReflectionHints reflectionHints = hints.reflection();
+
 		Stream.of(FileSplitter.FileMarker.class, FileSplitter.FileMarker.Mark.class)
-				.forEach(serializationHints::registerType);
+				.forEach(clazz -> reflectionHints.registerType(clazz,
+						MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS,
+						MemberCategory.INVOKE_PUBLIC_METHODS));
 	}
 
 }
