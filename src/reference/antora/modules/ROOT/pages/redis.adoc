@@ -645,7 +645,45 @@ IMPORTANT: The `RedisMetadataStore.replace()` cannot be used (for example, in th
 The Redis store inbound channel adapter is a polling consumer that reads data from a Redis collection and sends it as a `Message` payload.
 The following example shows how to configure a Redis store inbound channel adapter:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from(Redis
+                        .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                        .collectionType(CollectionType.LIST),
+                endpointConfigure -> endpointConfigure
+                        .poller(Pollers.fixedDelay(2000))
+                        .id("storeSourcePollingChannelAdapter"))
+        .channel(c -> c.queue("redisChannel"))
+        .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+SourcePollingChannelAdapterFactoryBean storeInboundChannelAdapter(RedisConnectionFactory redisConnectionFactory) {
+    var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
+    messageSource.setCollectionType(CollectionType.LIST);
+
+    var adapter = new SourcePollingChannelAdapterFactoryBean();
+    adapter.setSource(messageSource);
+    adapter.setOutputChannel(MessageChannels.queue("redisChannel").getObject());
+    adapter.setPollerMetadata(Pollers.fixedDelay(2000).getObject());
+    return adapter;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-inbound-channel-adapter id="listAdapter"
     connection-factory="redisConnectionFactory"
@@ -655,6 +693,8 @@ The following example shows how to configure a Redis store inbound channel adapt
     <int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 </int-redis:store-inbound-channel-adapter>
 ----
+
+======
 
 The preceding example shows how to configure a Redis store inbound channel adapter by using the `store-inbound-channel-adapter` element, providing values for various attributes, such as:
 
@@ -699,7 +739,86 @@ For example, the value may be moved or removed after it has been processed.
 The transaction synchronization feature could be used for such a logic.
 The following example uses `key-expression` and transaction synchronization:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+
+@Bean
+IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
+        TransactionSynchronizationFactory syncFactory) {
+    return IntegrationFlow.from(Redis
+                            .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                            .collectionType(CollectionType.ZSET),
+                    endpointConfigure -> endpointConfigure
+                            .poller(Pollers
+                                    .fixedDelay(1000)
+                                    .transactional(new PseudoTransactionManager())
+                                    .transactionSynchronizationFactory(syncFactory)
+                            )
+                            .autoStartup(false)
+                            .id("storeSourcePollingChannelAdapter"))
+            .transform((GenericTransformer<RedisZSet<?>, Collection<?>>) source -> source.rangeByScore(1, 3))
+            .channel(c -> c.queue("storeInboundChannelAdapterOutputChannel"))
+            .get();
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(BeanFactory beanFactory) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    processor.setAfterCommitExpression(new SpelExpressionParser()
+            .parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(MessageChannels.queue("storeInboundAdapterCommitChannel").getObject());
+
+    processor.setBeanFactory(beanFactory);
+    processor.afterPropertiesSet();
+    return new DefaultTransactionSynchronizationFactory(processor);
+}
+
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+
+@Bean
+SourcePollingChannelAdapterFactoryBean storeInboundChannelAdapter(RedisConnectionFactory redisConnectionFactory,
+        TransactionSynchronizationFactory syncFactory) {
+
+    var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
+    messageSource.setCollectionType(CollectionType.ZSET);
+
+    var adapter = new SourcePollingChannelAdapterFactoryBean();
+    adapter.setSource(messageSource);
+    adapter.setOutputChannel(MessageChannels.queue("storeInboundChannelAdapterOutputChannel").getObject());
+    adapter.setPollerMetadata(Pollers
+            .fixedDelay(1000)
+            .transactional(new PseudoTransactionManager())
+            .transactionSynchronizationFactory(syncFactory)
+            .getObject());
+    adapter.setAutoStartup(false);
+    return adapter;
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(BeanFactory beanFactory) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    processor.setAfterCommitExpression(new SpelExpressionParser()
+            .parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(MessageChannels.queue("storeInboundAdapterCommitChannel").getObject());
+
+    processor.setBeanFactory(beanFactory);
+    processor.afterPropertiesSet();
+    return new DefaultTransactionSynchronizationFactory(processor);
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
         connection-factory="redisConnectionFactory"
@@ -718,6 +837,8 @@ The following example uses `key-expression` and transaction synchronization:
 
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>
 ----
+
+======
 
 The poller can be transactional by using a `transactional` element.
 This element can reference a real transaction manager, for example, if some other part of the flow invokes JDBC.
@@ -744,13 +865,47 @@ For more information about transaction synchronization, see xref:transactions.ad
 
 The RedisStore outbound channel adapter lets write a message payload to a Redis collection, as the following example shows:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+public IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory connectionFactory) {
+    return IntegrationFlow.from("requestChannel")
+            .handle(Redis.storeOutboundChannelAdapterSpec(connectionFactory)
+                    .collectionType(CollectionType.LIST)
+                    .key("myCollection"))
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "requestChannel")
+public MessageHandler redisListAdapter(RedisConnectionFactory connectionFactory) {
+    var handler = new RedisStoreWritingMessageHandler(connectionFactory);
+    handler.setCollectionType(CollectionType.LIST);
+    handler.setKey("myCollection");
+    return handler;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-outbound-channel-adapter id="redisListAdapter"
           collection-type="LIST"
           channel="requestChannel"
           key="myCollection" />
 ----
+
+======
 
 The preceding configuration a Redis store outbound channel adapter by using the `store-inbound-channel-adapter` element.
 It provides values for various attributes, such as:
