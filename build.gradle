@@ -17,7 +17,7 @@ plugins {
     id 'base'
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.antora)
-    alias(libs.plugins.antora.generate.yml)
+    alias(libs.plugins.io.spring.antora.generate.yml)
     alias(libs.plugins.protobuf) apply false
     alias(libs.plugins.aggregate.javadoc)
     alias(libs.plugins.nullability) apply false
@@ -77,16 +77,18 @@ allprojects {
 
 	dependencies {
 		dependencyManagement(platform(libs.com.fasterxml.jackson.bom))
+		dependencyManagement(platform(libs.com.google.protobuf.bom))
 		dependencyManagement(platform(libs.io.cloudevents.bom))
 		dependencyManagement(platform(libs.io.grpc.bom))
 		dependencyManagement(platform(libs.io.micrometer.bom))
 		dependencyManagement(platform(libs.io.micrometer.tracing.bom))
-		dependencyManagement(platform(libs.io.projectreactor.reactor.bom))
+		dependencyManagement(platform(libs.io.projectreactor.bom))
+		dependencyManagement(platform(libs.apache.artemis.bom))
 		dependencyManagement(platform(libs.apache.camel.bom))
 		dependencyManagement(platform(libs.apache.groovy.bom))
 		dependencyManagement(platform(libs.apache.logging.log4j.bom))
 		dependencyManagement(platform(libs.org.jetbrains.kotlinx.coroutines.bom))
-		dependencyManagement(platform(libs.org.junit.junit.bom))
+		dependencyManagement(platform(libs.org.junit.bom))
 		dependencyManagement(platform(libs.org.mongodb.driver.bom))
 		dependencyManagement(platform(libs.spring.framework.bom))
 		dependencyManagement(platform(libs.spring.amqp.bom))
@@ -185,8 +187,8 @@ configure(javaProjects) { subproject ->
         testImplementation libs.org.awaitility
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'
-        testImplementation libs.org.junit.pioneer.junit.pioneer
-        testImplementation(libs.com.willowtreeapps.assertk.jvm) {
+        testImplementation libs.org.junit.pioneer
+        testImplementation(libs.com.willowtreeapps.assertk) {
             exclude group: 'org.jetbrains.kotlin'
         }
         testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
@@ -333,7 +335,7 @@ configure(javaProjects) { subproject ->
 project('spring-integration-test-support') {
     description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
     dependencies {
-        api libs.org.hamcrest.library
+        api libs.org.hamcrest
         api libs.org.mockito.core
         api libs.org.assertj.core
         api 'org.springframework:spring-context'
@@ -424,8 +426,8 @@ project('spring-integration-core') {
         optionalApi('com.fasterxml.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
-        optionalApi libs.com.google.protobuf.java
-        optionalApi libs.com.jayway.jsonpath.json.path
+        optionalApi 'com.google.protobuf:protobuf-java'
+        optionalApi libs.com.jayway.jsonpath
         optionalApi libs.com.esotericsoftware.kryo
         optionalApi 'io.micrometer:micrometer-core'
         optionalApi('io.micrometer:micrometer-tracing') {
@@ -435,7 +437,7 @@ project('spring-integration-core') {
         optionalApi libs.apache.avro
         optionalApi libs.org.jetbrains.kotlinx.coroutines.reactor
 
-        testImplementation libs.com.google.protobuf.java.util
+        testImplementation 'com.google.protobuf:protobuf-java-util'
         testImplementation libs.org.aspectj.aspectjweaver
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation('io.micrometer:micrometer-tracing-integration-test') {
@@ -491,7 +493,7 @@ project('spring-integration-file') {
         testImplementation project(':spring-integration-jdbc')
         testImplementation libs.com.h2database.h2
         testImplementation libs.io.lettuce.core
-        testImplementation libs.com.jayway.jsonpath.json.path
+        testImplementation libs.com.jayway.jsonpath
         testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
@@ -559,7 +561,7 @@ project('spring-integration-grpc') {
 
         testImplementation 'io.grpc:grpc-protobuf'
 		testImplementation 'io.grpc:grpc-inprocess'
-		testImplementation libs.com.google.protobuf.java
+		testImplementation 'com.google.protobuf:protobuf-java'
 	}
 
 	protobuf {
@@ -608,7 +610,7 @@ project('spring-integration-http') {
         testImplementation 'org.springframework.security:spring-security-test'
         testImplementation 'tools.jackson.core:jackson-databind'
 
-        testRuntimeOnly libs.com.jayway.jsonpath.json.path
+        testRuntimeOnly libs.com.jayway.jsonpath
     }
 }
 
@@ -629,26 +631,26 @@ project('spring-integration-ip') {
 }
 
 project('spring-integration-jdbc') {
-    description = 'Spring Integration JDBC Support'
-    dependencies {
-        api 'org.springframework:spring-jdbc'
-        optionalApi libs.org.postgresql
+	description = 'Spring Integration JDBC Support'
+	dependencies {
+		api 'org.springframework:spring-jdbc'
+		optionalApi libs.org.postgresql
 
-        testImplementation libs.com.h2database.h2
-        testImplementation libs.org.hsqldb.hsqldb
-        testImplementation libs.apache.derby
-        testImplementation libs.apache.derbytools
-        testImplementation libs.apache.derbyclient
-        testImplementation libs.org.postgresql
-        testImplementation libs.apache.commons.dbcp2
-        testImplementation 'org.testcontainers:testcontainers-mysql'
-        testImplementation 'org.testcontainers:testcontainers-postgresql'
-        testImplementation 'org.testcontainers:testcontainers-oracle-xe'
+		testImplementation libs.com.h2database.h2
+		testImplementation libs.org.hsqldb
+		testImplementation libs.apache.derby
+		testImplementation libs.apache.derbytools
+		testImplementation libs.apache.derbyclient
+		testImplementation libs.org.postgresql
+		testImplementation libs.apache.commons.dbcp2
+		testImplementation 'org.testcontainers:testcontainers-mysql'
+		testImplementation 'org.testcontainers:testcontainers-postgresql'
+		testImplementation 'org.testcontainers:testcontainers-oracle-xe'
 		testImplementation 'tools.jackson.core:jackson-databind'
 
-        testRuntimeOnly libs.com.oracle.database.jdbc.ojdbc11
-		testRuntimeOnly libs.com.mysql.connector.j
-    }
+		testRuntimeOnly libs.com.oracle.ojdbc11
+		testRuntimeOnly libs.com.mysql.connector
+	}
 }
 
 project('spring-integration-jms') {
@@ -657,8 +659,8 @@ project('spring-integration-jms') {
         api 'org.springframework:spring-jms'
         optionalApi libs.jakarta.jms.api
 
-        testImplementation libs.apache.activemq.artemis.server
-        testImplementation libs.apache.activemq.artemis.jakarta.client
+        testImplementation 'org.apache.activemq:artemis-server'
+        testImplementation 'org.apache.activemq:artemis-jakarta-client'
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
@@ -680,7 +682,7 @@ project('spring-integration-jpa') {
 
         testImplementation 'org.springframework.data:spring-data-jpa'
         testImplementation libs.com.h2database.h2
-        testImplementation libs.org.hibernate.orm.hibernate.core
+        testImplementation libs.org.hibernate.core
     }
 }
 
@@ -712,8 +714,8 @@ project('spring-integration-mongodb') {
     dependencies {
         api 'org.springframework.data:spring-data-mongodb'
 
-        optionalApi libs.org.mongodb.driver.sync
-        optionalApi libs.org.mongodb.driver.reactivestreams
+        optionalApi 'org.mongodb:mongodb-driver-sync'
+        optionalApi 'org.mongodb:mongodb-driver-reactivestreams'
 
         testImplementation 'org.testcontainers:testcontainers-mongodb'
     }
@@ -759,7 +761,7 @@ project('spring-integration-rsocket') {
 project('spring-integration-scripting') {
     description = 'Spring Integration Scripting Support'
     dependencies {
-        optionalApi libs.org.jetbrains.kotlin.scripting.jsr223
+        optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
         optionalApi libs.org.graalvm.sdk.graal.sdk
         optionalApi libs.org.graalvm.polyglot.js
         optionalApi libs.org.graalvm.polyglot.python
@@ -805,7 +807,7 @@ project('spring-integration-stomp') {
         testImplementation project(':spring-integration-websocket')
         testImplementation project(':spring-integration-websocket').sourceSets.test.output
         testImplementation project(':spring-integration-event')
-        testImplementation libs.apache.activemq.artemis.stomp.protocol
+        testImplementation 'org.apache.activemq:artemis-stomp-protocol'
         testImplementation libs.apache.tomcat.embed.websocket
         testImplementation 'tools.jackson.core:jackson-databind'
 
@@ -857,7 +859,7 @@ project('spring-integration-webflux') {
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
         }
 
-        testRuntimeOnly libs.com.jayway.jsonpath.json.path
+        testRuntimeOnly libs.com.jayway.jsonpath
     }
 }
 
@@ -884,7 +886,7 @@ project('spring-integration-ws') {
             exclude group: 'org.glassfish.jaxb'
         }
 
-        optionalApi libs.com.sun.xml.bind.jaxb.impl
+        optionalApi libs.com.sun.jaxb
 
         testImplementation libs.com.thoughtworks.xstream
         testImplementation 'org.springframework.ws:spring-ws-support'
@@ -904,7 +906,7 @@ project('spring-integration-xml') {
 
         optionalApi 'org.springframework.ws:spring-ws-core'
 
-        testImplementation libs.com.sun.xml.bind.jaxb.impl
+        testImplementation libs.com.sun.jaxb
         testImplementation libs.org.xmlunit.assertj3
     }
 
