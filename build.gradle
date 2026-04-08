@@ -435,7 +435,7 @@ project('spring-integration-core') {
         }
         optionalApi libs.io.github.resilience4j.ratelimiter
         optionalApi libs.apache.avro
-        optionalApi libs.org.jetbrains.kotlinx.coroutines.reactor
+        optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
         testImplementation 'com.google.protobuf:protobuf-java-util'
         testImplementation libs.org.aspectj.aspectjweaver
@@ -659,8 +659,8 @@ project('spring-integration-jms') {
         api 'org.springframework:spring-jms'
         optionalApi libs.jakarta.jms.api
 
-        testImplementation 'org.apache.activemq:artemis-server'
-        testImplementation 'org.apache.activemq:artemis-jakarta-client'
+        testImplementation 'org.apache.artemis:artemis-server'
+        testImplementation 'org.apache.artemis:artemis-jakarta-client'
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'

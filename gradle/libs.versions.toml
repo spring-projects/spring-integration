@@ -36,7 +36,6 @@ jsonpathVersion = "3.0.0"
 junitJupiterVersion = "6.0.3"
 junitPioneerVersion = "2.3.0"
 kotlinCoroutinesVersion = "1.10.2"
-kotlinVersion = "2.3.20"
 kryoVersion = "5.6.2"
 lettuceVersion = "7.5.1.RELEASE"
 log4jVersion = "2.25.4"
@@ -126,7 +125,7 @@ org-eclipse-paho-mqttv5-client = { module = "org.eclipse.paho:org.eclipse.paho.m
 org-graalvm-polyglot-js = { module = "org.graalvm.polyglot:js", version.ref = "graalvmVersion" }
 org-graalvm-polyglot-python = { module = "org.graalvm.polyglot:python", version.ref = "graalvmVersion" }
 org-graalvm-sdk-graal-sdk = { module = "org.graalvm.sdk:graal-sdk", version.ref = "graalvmVersion" }
-org-hamcrest     = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrestVersion" }
+org-hamcrest = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrestVersion" }
 org-hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernateVersion" }
 org-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "hsqldbVersion" }
 org-igniterealtime-smack-experimental = { module = "org.igniterealtime.smack:smack-experimental", version.ref = "smackVersion" }
@@ -134,7 +133,6 @@ org-igniterealtime-smack-extensions = { module = "org.igniterealtime.smack:smack
 org-igniterealtime-smack-java8 = { module = "org.igniterealtime.smack:smack-java8", version.ref = "smackVersion" }
 org-igniterealtime-smack-tcp = { module = "org.igniterealtime.smack:smack-tcp", version.ref = "smackVersion" }
 org-jetbrains-kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "kotlinCoroutinesVersion" }
-org-jetbrains-kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinCoroutinesVersion" }
 org-jruby-complete = { module = "org.jruby:jruby-complete", version.ref = "jrubyVersion" }
 org-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitJupiterVersion" }
 org-junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junitPioneerVersion" }
