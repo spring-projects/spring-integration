@@ -173,13 +173,11 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-		def spotBugs = 'com.github.spotbugs:spotbugs-annotations:4.9.8'
-		compileOnly spotBugs
-		testImplementation spotBugs
+		compileOnly libs.com.github.spotbugs.annotations
+		testImplementation libs.com.github.spotbugs.annotations
 
-		def checkerFramework = 'org.checkerframework:checker-qual:3.54.1'
-		compileOnly checkerFramework
-		testImplementation checkerFramework
+		compileOnly libs.org.checkerframework.checker.qual
+		testImplementation libs.org.checkerframework.checker.qual
 
         testImplementation libs.org.awaitility
         testImplementation 'org.junit.jupiter:junit-jupiter-api'

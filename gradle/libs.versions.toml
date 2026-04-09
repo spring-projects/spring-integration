@@ -71,7 +71,7 @@ ztZipVersion = "1.17"
 
 [libraries]
 apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "apacheSshdVersion" }
-apache-artemis-bom = {module = "org.apache.artemis:artemis-bom", version.ref = "artemisVersion"}
+apache-artemis-bom = { module = "org.apache.artemis:artemis-bom", version.ref = "artemisVersion" }
 apache-avro = { module = "org.apache.avro:avro", version.ref = "avroVersion" }
 apache-camel-bom = { module = "org.apache.camel:camel-bom", version.ref = "camelVersion" }
 apache-commons-dbcp2 = { module = "org.apache.commons:commons-dbcp2", version.ref = "commonsDbcp2Version" }
@@ -86,6 +86,7 @@ apache-logging-log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", vers
 apache-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcatVersion" }
 com-esotericsoftware-kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryoVersion" }
 com-fasterxml-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jacksonVersion" }
+com-github-spotbugs-annotations = { module = 'com.github.spotbugs:spotbugs-annotations', version = '4.9.8' }
 com-google-protobuf-bom = { module = "com.google.protobuf:protobuf-bom", version.ref = "protobufVersion" }
 com-h2database-h2 = { module = "com.h2database:h2", version.ref = "h2Version" }
 com-hazelcast = { module = "com.hazelcast:hazelcast", version.ref = "hazelcastVersion" }
@@ -117,6 +118,7 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.
 org-aspectj-aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjVersion" }
 org-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjVersion" }
 org-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitilityVersion" }
+org-checkerframework-checker-qual = { module = 'org.checkerframework:checker-qual', version = '3.54.1' }
 org-codelibs-jcifs = { module = "org.codelibs:jcifs", version.ref = "jcifsVersion" }
 org-eclipse-angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "mailVersion" }
 org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", version.ref = "mailVersion" }
