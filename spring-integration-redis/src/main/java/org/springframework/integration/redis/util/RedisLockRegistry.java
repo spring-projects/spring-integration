@@ -48,6 +48,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -99,6 +101,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Youbin Wu
  * @author Michal Domagala
  * @author Severin Kistler
+ * @author Yordan Tsintsov
  *
  * @since 4.0
  *
@@ -172,6 +175,8 @@ public final class RedisLockRegistry
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
 	private volatile @Nullable RedisMessageListenerContainer redisMessageListenerContainer;
+
+	private volatile boolean supportsCasCadOperations = true;
 
 	/**
 	 * Create a lock registry with the default (60 second) lock expiration.
@@ -371,6 +376,13 @@ public final class RedisLockRegistry
 			case SPIN_LOCK -> RedisSpinLock::new;
 			case PUB_SUB_LOCK -> RedisPubSubLock::new;
 		};
+	}
+
+	private boolean isCasCadNotSupportedError(Exception ex) {
+		Throwable cause = ex.getCause();
+		return cause != null
+				&& cause.getMessage() != null
+				&& (cause.getMessage().contains("ERR syntax error") || cause.getMessage().contains("ERR unknown command"));
 	}
 
 	private abstract class RedisLock implements DistributedLock {
@@ -591,13 +603,42 @@ public final class RedisLockRegistry
 		}
 
 		protected final boolean renew(long expireAfter) {
-			boolean res = Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.clientId, String.valueOf(expireAfter)));
-			if (!res) {
+			Boolean res;
+
+			if (RedisLockRegistry.this.supportsCasCadOperations) {
+				try {
+					res = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey).set(
+							RedisLockRegistry.this.clientId,
+							spec -> spec.ifEquals()
+									.value(RedisLockRegistry.this.clientId)
+									.expire(Duration.ofMillis(expireAfter)));
+				}
+				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
+					if (isCasCadNotSupportedError(ex)) {
+						LOGGER.debug("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						RedisLockRegistry.this.supportsCasCadOperations = false;
+						res = RedisLockRegistry.this.redisTemplate.execute(
+								RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+								RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
+					}
+					else {
+						throw ex;
+					}
+				}
+			}
+			else {
+				res = RedisLockRegistry.this.redisTemplate.execute(
+						RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+						RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
+			}
+
+			boolean result = Boolean.TRUE.equals(res);
+
+			if (!result) {
 				stopRenew();
 			}
-			return res;
+
+			return result;
 		}
 
 		protected final void stopRenew() {
@@ -833,11 +874,29 @@ public final class RedisLockRegistry
 
 		@Override
 		protected boolean removeLockKeyInnerUnlink() {
-			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.clientId));
+			if (RedisLockRegistry.this.supportsCasCadOperations) {
+				try {
+					return RedisLockRegistry.this.redisTemplate.delete(this.lockKey, it -> it.ifEquals().value(RedisLockRegistry.this.clientId));
+				}
+				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
+					if (isCasCadNotSupportedError(ex)) {
+						LOGGER.debug("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						RedisLockRegistry.this.supportsCasCadOperations = false;
+						return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+								UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+								RedisLockRegistry.this.clientId));
+					}
+					else {
+						throw ex;
+					}
+				}
+			}
+			else {
+				return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+						UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+						RedisLockRegistry.this.clientId));
+			}
 		}
-
 	}
 
 }

@@ -54,6 +54,7 @@ import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockTyp
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -73,6 +74,7 @@ import static org.mockito.Mockito.mock;
  * @author Youbin Wu
  * @author Glenn Renfro
  * @author Jiandong Ma
+ * @author Yordan Tsintsov
  *
  * @since 4.0
  *
@@ -997,6 +999,93 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry redisLockRegistry = new RedisLockRegistry(redisConnectionFactory, "registryKey");
 		redisLockRegistry.setRedisLockType(testRedisLockType);
 		assertThatNoException().isThrownBy(() -> redisLockRegistry.setExecutor(mock()));
+	}
+
+	@Test
+	void testRenewFallbackWhenCasCadNotSupported() {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+
+		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
+
+		Lock lock = registry.obtain("foo");
+		assertThat(lock.tryLock()).isTrue();
+		try {
+			registry.renewLock("foo");
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@Test
+	void testUnlockFallbackWhenCasCadNotSupported() {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+
+		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
+
+		Lock lock = registry.obtain("foo");
+		lock.lock();
+		assertThatNoException().isThrownBy(lock::unlock);
+	}
+
+	@Test
+	void testRenewActuallyExtendsTtl() throws InterruptedException {
+		long shortExpiry = 200;
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, shortExpiry);
+		registry.setRedisLockType(testRedisLockType);
+
+		Lock lock = registry.obtain("foo");
+		assertThat(lock.tryLock()).isTrue();
+		try {
+			registry.renewLock("foo", Duration.ofSeconds(10));
+			Thread.sleep(shortExpiry + 100);
+			StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory);
+			assertThat(template.hasKey(this.registryKey + ":foo")).isTrue();
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@Test
+	void testUnlockDoesNotDeleteOtherClientsLock() throws Exception {
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry1.setRedisLockType(testRedisLockType);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 10000);
+		registry2.setRedisLockType(testRedisLockType);
+
+		Lock lock1 = registry1.obtain("foo");
+		lock1.lock();
+
+		waitForExpire("foo");
+
+		Lock lock2 = registry2.obtain("foo");
+		assertThat(lock2.tryLock()).isTrue();
+		try {
+			assertThatThrownBy(lock1::unlock).isInstanceOf(ConcurrentModificationException.class);
+		}
+		finally {
+			lock2.unlock();
+		}
+		registry1.destroy();
+		registry2.destroy();
+	}
+
+	@Test
+	void testSupportsCasCadFlagSharedAcrossLocks() {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+
+		assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isTrue();
+
+		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
+
+		Lock lock = registry.obtain("foo");
+		lock.lock();
+		assertThatNoException().isThrownBy(lock::unlock);
+		registry.destroy();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {

@@ -58,7 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers(disabledWithoutDocker = true)
 public interface RedisContainerTest {
 
-	GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>("redis:7.0.2")
+	GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>("redis:8.4.0")
 			.withExposedPorts(6379);
 
 	@BeforeAll
