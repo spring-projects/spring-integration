@@ -17,12 +17,14 @@
 package org.springframework.integration.redis.dsl;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.messaging.Message;
 
 /**
@@ -127,13 +129,13 @@ public final class Redis {
 	/**
 	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
-	 * @param keyFunction The keyFunction of the Redis collection to build on
+	 * @param keySupplier The keySupplier of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
 	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
-			RedisConnectionFactory connectionFactory, Function<Message<?>, String> keyFunction) {
+			RedisConnectionFactory connectionFactory, Supplier<Message<?>> keySupplier) {
 
-		return storeInboundChannelAdapterSpec(connectionFactory, new FunctionExpression<>(keyFunction));
+		return storeInboundChannelAdapterSpec(connectionFactory, new SupplierExpression<>(keySupplier));
 	}
 
 	/**
@@ -163,13 +165,13 @@ public final class Redis {
 	/**
 	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
 	 * @param redisTemplate the {@link RedisTemplate} to build on
-	 * @param keyFunction The keyFunction of the Redis collection to build on
+	 * @param keySupplier The keySupplier of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
 	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
-			RedisTemplate<String, ?> redisTemplate, Function<Message<?>, String> keyFunction) {
+			RedisTemplate<String, ?> redisTemplate, Supplier<Message<?>> keySupplier) {
 
-		return storeInboundChannelAdapterSpec(redisTemplate, new FunctionExpression<>(keyFunction));
+		return storeInboundChannelAdapterSpec(redisTemplate, new SupplierExpression<>(keySupplier));
 	}
 
 	/**

@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +28,6 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -49,7 +47,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
@@ -60,6 +57,7 @@ import org.springframework.integration.transaction.DefaultTransactionSynchroniza
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -115,6 +113,9 @@ class RedisTests implements RedisContainerTest {
 
 	@Autowired
 	QueueChannel storeInboundChannelAdapterOutputChannel;
+
+	@Autowired
+	QueueChannel storeInboundChannelAdapterAfterCommitChannel;
 
 	@Autowired
 	@Qualifier("storeOutboundChannelAdapterFlow.input")
@@ -242,20 +243,20 @@ class RedisTests implements RedisContainerTest {
 
 		// When
 		storeSourcePollingChannelAdapter.start();
-		Message<?> receive = storeInboundChannelAdapterOutputChannel.receive(10000);
+		Message<?> receivedMessage = storeInboundChannelAdapterOutputChannel.receive(10000);
+		Message<?> remainingMessage = storeInboundChannelAdapterAfterCommitChannel.receive(10000);
 
 		// Then
-		assertThat(receive)
+		assertThat(receivedMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.asInstanceOf(InstanceOfAssertFactories.set(String.class))
-				.hasSize(3)
 				.containsExactly("task:1", "task:2", "task:3");
 
-		Set<String> remainingItems = zSetOps.rangeByScore(1, 5);
-		assertThat(remainingItems)
+		assertThat(remainingMessage)
 				.isNotNull()
-				.hasSize(2)
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.set(String.class))
 				.containsExactly("task:4", "task:5");
 
 		storeSourcePollingChannelAdapter.stop();
@@ -275,13 +276,7 @@ class RedisTests implements RedisContainerTest {
 		var entries = hashOps.entries();
 		assertThat(entries)
 				.isNotNull()
-				.hasSize(2)
-				.satisfies(entry -> {
-							assertThat(entry.get("apple")).isEqualTo("red");
-							assertThat(entry.get("banana")).isEqualTo("yellow");
-						}
-				);
-
+				.containsOnly(Map.entry("apple", "red"), Map.entry("banana", "yellow"));
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -348,15 +343,22 @@ class RedisTests implements RedisContainerTest {
 		}
 
 		@Bean
-		TransactionSynchronizationFactory syncFactory(BeanFactory beanFactory) {
-			var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
-			processor.setAfterCommitExpression(new SpelExpressionParser()
-					.parseExpression("payload.removeByScore(1, 3)"));
-			processor.setAfterCommitChannel(MessageChannels.queue("storeInboundAdapterCommitChannel").getObject());
+		QueueChannel storeInboundChannelAdapterAfterCommitChannel() {
+			return new QueueChannel();
+		}
 
-			processor.setBeanFactory(beanFactory);
-			processor.afterPropertiesSet();
-			return new DefaultTransactionSynchronizationFactory(processor);
+		@Bean
+		TransactionSynchronizationProcessor syncProcessor(QueueChannel storeInboundChannelAdapterAfterCommitChannel) {
+			var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+			SpelExpressionParser parser = new SpelExpressionParser();
+			processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+			processor.setAfterCommitChannel(storeInboundChannelAdapterAfterCommitChannel);
+			return processor;
+		}
+
+		@Bean
+		TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+			return new DefaultTransactionSynchronizationFactory(syncProcessor);
 		}
 
 		@Bean

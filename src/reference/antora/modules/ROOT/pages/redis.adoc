@@ -669,15 +669,11 @@ Java::
 [source, Java, role="secondary"]
 ----
 @Bean
-SourcePollingChannelAdapterFactoryBean storeInboundChannelAdapter(RedisConnectionFactory redisConnectionFactory) {
+@InboundChannelAdapter(channel = "redisChannel", poller = @Poller(fixedDelay = "2000"))
+public RedisStoreMessageSource storeInboundChannelAdapter() {
     var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
     messageSource.setCollectionType(CollectionType.LIST);
-
-    var adapter = new SourcePollingChannelAdapterFactoryBean();
-    adapter.setSource(messageSource);
-    adapter.setOutputChannel(MessageChannels.queue("redisChannel").getObject());
-    adapter.setPollerMetadata(Pollers.fixedDelay(2000).getObject());
-    return adapter;
+    return messageSource;
 }
 ----
 
@@ -766,16 +762,24 @@ IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConne
 }
 
 @Bean
-TransactionSynchronizationFactory syncFactory(BeanFactory beanFactory) {
-    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
-    processor.setAfterCommitExpression(new SpelExpressionParser()
-            .parseExpression("payload.removeByScore(1, 3)"));
-    processor.setAfterCommitChannel(MessageChannels.queue("storeInboundAdapterCommitChannel").getObject());
-
-    processor.setBeanFactory(beanFactory);
-    processor.afterPropertiesSet();
-    return new DefaultTransactionSynchronizationFactory(processor);
+QueueChannel afterCommitChannel() {
+    return new QueueChannel();
 }
+
+@Bean
+TransactionSynchronizationProcessor syncProcessor(QueueChannel afterCommitChannel) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    SpelExpressionParser parser = new SpelExpressionParser();
+    processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(afterCommitChannel);
+    return processor;
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+    return new DefaultTransactionSynchronizationFactory(syncProcessor);
+}
+
 
 ----
 
@@ -783,37 +787,49 @@ Java::
 +
 [source, Java, role="secondary"]
 ----
-
 @Bean
-SourcePollingChannelAdapterFactoryBean storeInboundChannelAdapter(RedisConnectionFactory redisConnectionFactory,
-        TransactionSynchronizationFactory syncFactory) {
-
+@InboundChannelAdapter(channel = "outputChannel", autoStartup = "false", poller = @Poller("myPoller"))
+public RedisStoreMessageSource storeInboundChannelAdapter() {
     var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
     messageSource.setCollectionType(CollectionType.ZSET);
-
-    var adapter = new SourcePollingChannelAdapterFactoryBean();
-    adapter.setSource(messageSource);
-    adapter.setOutputChannel(MessageChannels.queue("storeInboundChannelAdapterOutputChannel").getObject());
-    adapter.setPollerMetadata(Pollers
-            .fixedDelay(1000)
-            .transactional(new PseudoTransactionManager())
-            .transactionSynchronizationFactory(syncFactory)
-            .getObject());
-    adapter.setAutoStartup(false);
-    return adapter;
+    return messageSource;
 }
 
 @Bean
-TransactionSynchronizationFactory syncFactory(BeanFactory beanFactory) {
-    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
-    processor.setAfterCommitExpression(new SpelExpressionParser()
-            .parseExpression("payload.removeByScore(1, 3)"));
-    processor.setAfterCommitChannel(MessageChannels.queue("storeInboundAdapterCommitChannel").getObject());
-
-    processor.setBeanFactory(beanFactory);
-    processor.afterPropertiesSet();
-    return new DefaultTransactionSynchronizationFactory(processor);
+QueueChannel afterCommitChannel() {
+    return new QueueChannel();
 }
+
+@Bean
+public PollerMetadata myPoller(TransactionSynchronizationFactory syncFactory) {
+    PollerMetadata poller = new PollerMetadata();
+    PeriodicTrigger periodicTrigger = new PeriodicTrigger(Duration.ofMillis(1000));
+    periodicTrigger.setFixedRate(false);
+    poller.setTrigger(periodicTrigger);
+
+    var txInterceptor = new TransactionInterceptorBuilder()
+            .transactionManager(new PseudoTransactionManager())
+            .build();
+
+    poller.setTransactionSynchronizationFactory(syncFactory);
+    poller.setAdviceChain(Collections.singletonList(txInterceptor));
+    return poller;
+}
+
+@Bean
+TransactionSynchronizationProcessor syncProcessor(QueueChannel afterCommitChannel) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    SpelExpressionParser parser = new SpelExpressionParser();
+    processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(afterCommitChannel);
+    return processor;
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+    return new DefaultTransactionSynchronizationFactory(syncProcessor);
+}
+
 ----
 
 XML::

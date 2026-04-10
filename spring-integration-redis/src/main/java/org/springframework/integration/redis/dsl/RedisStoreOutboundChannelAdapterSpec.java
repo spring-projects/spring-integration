@@ -62,7 +62,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setKeyExpressionString(String)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec keyExpressionString(String keyExpression) {
+	public RedisStoreOutboundChannelAdapterSpec keyExpression(String keyExpression) {
 		this.target.setKeyExpressionString(keyExpression);
 		return this;
 	}
@@ -84,7 +84,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setKeyExpression(Expression)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec keyFunction(Function<Message<?>, String> keyFunction) {
+	public RedisStoreOutboundChannelAdapterSpec keyExpression(Function<Message<?>, String> keyFunction) {
 		this.target.setKeyExpression(new FunctionExpression<>(keyFunction));
 		return this;
 	}
@@ -117,7 +117,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setMapKeyExpressionString(String)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec mapKeyExpressionString(String mapKeyExpression) {
+	public RedisStoreOutboundChannelAdapterSpec mapKeyExpression(String mapKeyExpression) {
 		this.target.setMapKeyExpressionString(mapKeyExpression);
 		return this;
 	}
@@ -150,7 +150,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setZsetIncrementExpressionString(String)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreExpressionString(String zsetIncrementScoreExpression) {
+	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreExpression(String zsetIncrementScoreExpression) {
 		this.target.setZsetIncrementExpressionString(zsetIncrementScoreExpression);
 		return this;
 	}
@@ -172,7 +172,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setZsetIncrementExpression(Expression)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreExpression(Function<Message<?>, String> zsetIncrementScoreFunction) {
+	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreExpression(Function<Message<?>, Boolean> zsetIncrementScoreFunction) {
 		this.target.setZsetIncrementExpression(new FunctionExpression<>(zsetIncrementScoreFunction));
 		return this;
 	}
