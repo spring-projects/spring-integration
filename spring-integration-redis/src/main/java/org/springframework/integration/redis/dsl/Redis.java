@@ -17,10 +17,14 @@
 package org.springframework.integration.redis.dsl;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.messaging.Message;
 
 /**
@@ -96,6 +100,100 @@ public final class Redis {
 			Function<Message<?>, String> queueFunction, RedisConnectionFactory connectionFactory) {
 
 		return new RedisQueueOutboundChannelAdapterSpec(new FunctionExpression<>(queueFunction), connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @param key The key of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisConnectionFactory connectionFactory, String key) {
+
+		return storeInboundChannelAdapterSpec(connectionFactory, new LiteralExpression(key));
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @param keyExpression The keyExpression of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisConnectionFactory connectionFactory, Expression keyExpression) {
+
+		return new RedisStoreInboundChannelAdapterSpec(connectionFactory, keyExpression);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @param keySupplier The keySupplier of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisConnectionFactory connectionFactory, Supplier<Message<?>> keySupplier) {
+
+		return storeInboundChannelAdapterSpec(connectionFactory, new SupplierExpression<>(keySupplier));
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param redisTemplate the {@link RedisTemplate} to build on
+	 * @param key The key of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisTemplate<String, ?> redisTemplate, String key) {
+
+		return storeInboundChannelAdapterSpec(redisTemplate, new LiteralExpression(key));
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param redisTemplate the {@link RedisTemplate} to build on
+	 * @param keyExpression The keyExpression of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
+
+		return new RedisStoreInboundChannelAdapterSpec(redisTemplate, keyExpression);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreInboundChannelAdapterSpec}.
+	 * @param redisTemplate the {@link RedisTemplate} to build on
+	 * @param keySupplier The keySupplier of the Redis collection to build on
+	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+			RedisTemplate<String, ?> redisTemplate, Supplier<Message<?>> keySupplier) {
+
+		return storeInboundChannelAdapterSpec(redisTemplate, new SupplierExpression<>(keySupplier));
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreOutboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisStoreOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapterSpec(
+			RedisConnectionFactory connectionFactory) {
+
+		return new RedisStoreOutboundChannelAdapterSpec(connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStoreOutboundChannelAdapterSpec}.
+	 * @param redisTemplate the {@link RedisTemplate} to build on
+	 * @return the {@link RedisStoreOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapterSpec(
+			RedisTemplate<String, ?> redisTemplate) {
+
+		return new RedisStoreOutboundChannelAdapterSpec(redisTemplate);
 	}
 
 	private Redis() {

@@ -17,11 +17,14 @@
 package org.springframework.integration.redis.dsl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -36,16 +39,28 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
+import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
+import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.PseudoTransactionManager;
+import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -69,6 +84,10 @@ class RedisTests implements RedisContainerTest {
 
 	static final String QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER = "dslQueueOutboundChannelAdapter";
 
+	static final String STORE_FOR_INBOUND_CHANNEL_ADAPTER = "dslStoreInboundChannelAdapter";
+
+	static final String STORE_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslStoreOutboundChannelAdapter";
+
 	@Autowired
 	RedisConnectionFactory connectionFactory;
 
@@ -88,6 +107,19 @@ class RedisTests implements RedisContainerTest {
 	@Autowired
 	@Qualifier("queueOutboundChannelAdapterFlow.input")
 	MessageChannel queueOutboundChannelAdapterInputChannel;
+
+	@Autowired
+	SourcePollingChannelAdapter storeSourcePollingChannelAdapter;
+
+	@Autowired
+	QueueChannel storeInboundChannelAdapterOutputChannel;
+
+	@Autowired
+	QueueChannel storeInboundChannelAdapterAfterCommitChannel;
+
+	@Autowired
+	@Qualifier("storeOutboundChannelAdapterFlow.input")
+	MessageChannel storeOutboundChannelAdapterInputChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -198,6 +230,55 @@ class RedisTests implements RedisContainerTest {
 		}
 	}
 
+	@Test
+	void testStoreInboundChannelAdapterFlow() {
+		// Given
+		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+		var zSetOps = redisTemplate.boundZSetOps(STORE_FOR_INBOUND_CHANNEL_ADAPTER);
+		zSetOps.add("task:1", 1);
+		zSetOps.add("task:2", 2);
+		zSetOps.add("task:3", 3);
+		zSetOps.add("task:4", 4);
+		zSetOps.add("task:5", 5);
+
+		// When
+		storeSourcePollingChannelAdapter.start();
+		Message<?> receivedMessage = storeInboundChannelAdapterOutputChannel.receive(10000);
+		Message<?> remainingMessage = storeInboundChannelAdapterAfterCommitChannel.receive(10000);
+
+		// Then
+		assertThat(receivedMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.set(String.class))
+				.containsExactly("task:1", "task:2", "task:3");
+
+		assertThat(remainingMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.set(String.class))
+				.containsExactly("task:4", "task:5");
+
+		storeSourcePollingChannelAdapter.stop();
+	}
+
+	@Test
+	void testStoreOutboundChannelAdapterFlow() {
+		// Given
+		var entry1 = new GenericMessage<>("red", Map.of(RedisHeaders.MAP_KEY, "apple"));
+		var entry2 = MessageBuilder.withPayload(Map.of("banana", "yellow")).build();
+		// When
+		storeOutboundChannelAdapterInputChannel.send(entry1);
+		storeOutboundChannelAdapterInputChannel.send(entry2);
+		// Then
+		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+		var hashOps = redisTemplate.boundHashOps(STORE_FOR_OUTBOUND_CHANNEL_ADAPTER);
+		var entries = hashOps.entries();
+		assertThat(entries)
+				.isNotNull()
+				.containsOnly(Map.entry("apple", "red"), Map.entry("banana", "yellow"));
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -240,6 +321,52 @@ class RedisTests implements RedisContainerTest {
 					.handle(Redis.queueOutboundChannelAdapter(QUEUE_NAME_FOR_QUEUE_OUTBOUND_CHANNEL_ADAPTER, redisConnectionFactory)
 							.serializer(RedisSerializer.string())
 					);
+		}
+
+		@Bean
+		IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
+				TransactionSynchronizationFactory syncFactory) {
+			return IntegrationFlow.from(Redis
+									.storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+									.collectionType(CollectionType.ZSET),
+							endpointConfigure -> endpointConfigure
+									.poller(Pollers
+											.fixedDelay(1000)
+											.transactional(new PseudoTransactionManager())
+											.transactionSynchronizationFactory(syncFactory)
+									)
+									.autoStartup(false)
+									.id("storeSourcePollingChannelAdapter"))
+					.transform((GenericTransformer<RedisZSet<?>, Collection<?>>) source -> source.rangeByScore(1, 3))
+					.channel(c -> c.queue("storeInboundChannelAdapterOutputChannel"))
+					.get();
+		}
+
+		@Bean
+		QueueChannel storeInboundChannelAdapterAfterCommitChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		TransactionSynchronizationProcessor syncProcessor(QueueChannel storeInboundChannelAdapterAfterCommitChannel) {
+			var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+			SpelExpressionParser parser = new SpelExpressionParser();
+			processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+			processor.setAfterCommitChannel(storeInboundChannelAdapterAfterCommitChannel);
+			return processor;
+		}
+
+		@Bean
+		TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+			return new DefaultTransactionSynchronizationFactory(syncProcessor);
+		}
+
+		@Bean
+		IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.storeOutboundChannelAdapterSpec(redisConnectionFactory)
+							.key(STORE_FOR_OUTBOUND_CHANNEL_ADAPTER)
+							.collectionType(CollectionType.MAP));
 		}
 
 	}
