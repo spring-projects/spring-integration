@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -68,7 +69,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private final boolean messageDriven;
 
-	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
+	private JmsTemplate jmsTemplate = new DynamicJmsTemplate();
 
 	private @Nullable Class<? extends AbstractMessageListenerContainer> containerType;
 
@@ -323,6 +324,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	public void setSessionAcknowledgeMode(int sessionAcknowledgeMode) {
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 		this.jmsTemplate.setSessionAcknowledgeMode(sessionAcknowledgeMode);
+	}
+
+	public void setJmsTemplate(JmsTemplate jmsTemplate) {
+		this.jmsTemplate = jmsTemplate;
 	}
 
 	public void setSessionTransacted(boolean sessionTransacted) {

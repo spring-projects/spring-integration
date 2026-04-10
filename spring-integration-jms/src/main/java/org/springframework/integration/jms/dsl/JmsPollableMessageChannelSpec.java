@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.jms.channel.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 
@@ -36,6 +37,7 @@ import org.springframework.jms.support.destination.DestinationResolver;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -48,11 +50,24 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 		this(new JmsChannelFactoryBean(false), connectionFactory);
 	}
 
+	protected JmsPollableMessageChannelSpec(JmsTemplate jmsTemplate) {
+		this(new JmsChannelFactoryBean(false), jmsTemplate);
+	}
+
 	protected JmsPollableMessageChannelSpec(JmsChannelFactoryBean jmsChannelFactoryBean,
 			ConnectionFactory connectionFactory) {
 
 		this.jmsChannelFactoryBean = jmsChannelFactoryBean;
 		this.jmsChannelFactoryBean.setConnectionFactory(connectionFactory);
+		this.jmsChannelFactoryBean.setSingleton(false);
+		this.jmsChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
+	}
+
+	protected JmsPollableMessageChannelSpec(JmsChannelFactoryBean jmsChannelFactoryBean,
+			JmsTemplate jmsTemplate) {
+
+		this.jmsChannelFactoryBean = jmsChannelFactoryBean;
+		this.jmsChannelFactoryBean.setJmsTemplate(jmsTemplate);
 		this.jmsChannelFactoryBean.setSingleton(false);
 		this.jmsChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}

@@ -30,6 +30,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -47,6 +48,18 @@ public final class Jms {
 	}
 
 	/**
+	 * The template to produce a {@link JmsPollableMessageChannelSpec}.
+	 * @param jmsTemplate the {@link JmsTemplate} to build on
+	 * @return the {@link JmsPollableMessageChannelSpec} instance
+	 * @since 7.1
+	 */
+	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(
+			JmsTemplate jmsTemplate) {
+
+		return new JmsPollableMessageChannelSpec<>(jmsTemplate);
+	}
+
+	/**
 	 * The factory to produce a {@link JmsPollableMessageChannelSpec}.
 	 * @param id                the bean name for the target {@code PollableChannel} component
 	 * @param connectionFactory the JMS ConnectionFactory to build on
@@ -61,12 +74,36 @@ public final class Jms {
 	}
 
 	/**
+	 * The template to produce a {@link JmsPollableMessageChannelSpec}.
+	 * @param id the bean name for the target {@code PollableChannel} component
+	 * @param jmsTemplate the {@link JmsTemplate} to build on
+	 * @return the {@link JmsPollableMessageChannelSpec} instance
+	 * @since 7.1
+	 */
+	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(String id,
+			JmsTemplate jmsTemplate) {
+
+		JmsPollableMessageChannelSpec<?, PollableJmsChannel> spec = new JmsPollableMessageChannelSpec<>(jmsTemplate);
+		return spec.id(id);
+	}
+
+	/**
 	 * The factory to produce a {@link JmsMessageChannelSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
 	public static JmsMessageChannelSpec<?, ?> channel(ConnectionFactory connectionFactory) {
 		return new JmsMessageChannelSpec<>(connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link JmsMessageChannelSpec}.
+	 * @param jmsTemplate the {@link JmsTemplate} to build on
+	 * @return the {@link JmsMessageChannelSpec} instance
+	 * @since 7.1
+	 */
+	public static JmsMessageChannelSpec<?, ?> channel(JmsTemplate jmsTemplate) {
+		return new JmsMessageChannelSpec<>(jmsTemplate);
 	}
 
 	/**

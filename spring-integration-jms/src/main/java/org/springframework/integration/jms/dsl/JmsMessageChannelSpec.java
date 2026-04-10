@@ -23,6 +23,7 @@ import jakarta.jms.ConnectionFactory;
 import org.springframework.integration.jms.channel.AbstractJmsChannel;
 import org.springframework.integration.jms.channel.SubscribableJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ErrorHandler;
@@ -37,6 +38,7 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -45,6 +47,10 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S, T>, T
 
 	protected JmsMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new JmsChannelFactoryBean(true), connectionFactory);
+	}
+
+	protected JmsMessageChannelSpec(JmsTemplate jmsTemplate) {
+		super(new JmsChannelFactoryBean(true), jmsTemplate);
 	}
 
 	/**
