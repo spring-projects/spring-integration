@@ -84,7 +84,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setKeyExpression(Expression)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec keyExpression(Function<Message<?>, String> keyFunction) {
+	public RedisStoreOutboundChannelAdapterSpec keyFunction(Function<Message<?>, String> keyFunction) {
 		this.target.setKeyExpression(new FunctionExpression<>(keyFunction));
 		return this;
 	}
@@ -139,7 +139,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setMapKeyExpression(Expression)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec mapKeyExpression(Function<Message<?>, String> mapKeyFunction) {
+	public RedisStoreOutboundChannelAdapterSpec mapKeyFunction(Function<Message<?>, String> mapKeyFunction) {
 		this.target.setMapKeyExpression(new FunctionExpression<>(mapKeyFunction));
 		return this;
 	}
@@ -172,7 +172,7 @@ public class RedisStoreOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see RedisStoreWritingMessageHandler#setZsetIncrementExpression(Expression)
 	 */
-	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreExpression(Function<Message<?>, Boolean> zsetIncrementScoreFunction) {
+	public RedisStoreOutboundChannelAdapterSpec zsetIncrementScoreFunction(Function<Message<?>, Boolean> zsetIncrementScoreFunction) {
 		this.target.setZsetIncrementExpression(new FunctionExpression<>(zsetIncrementScoreFunction));
 		return this;
 	}
