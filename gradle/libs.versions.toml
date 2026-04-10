@@ -10,7 +10,7 @@ camelVersion = "4.18.1"
 cloudEventsVersion = "4.0.1"
 commonsDbcp2Version = "2.14.0"
 commonsIoVersion = "2.21.0"
-commonsNetVersion = "3.12.0"
+commonsNetVersion = "3.13.0"
 curatorVersion = "5.9.0"
 debeziumVersion = "3.5.0.Final"
 derbyVersion = "10.17.1.0"
@@ -18,7 +18,7 @@ ftpServerVersion = "1.2.1"
 graalvmVersion = "25.0.2"
 greenmailVersion = "2.1.8"
 groovyVersion = "5.0.5"
-grpcVersion = "1.79.0"
+grpcVersion = "1.80.0"
 h2Version = "2.4.240"
 hamcrestVersion = "3.0"
 hazelcastVersion = "5.6.0"
@@ -118,7 +118,7 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.
 org-aspectj-aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjVersion" }
 org-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjVersion" }
 org-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitilityVersion" }
-org-checkerframework-checker-qual = { module = 'org.checkerframework:checker-qual', version = '3.54.1' }
+org-checkerframework-checker-qual = { module = 'org.checkerframework:checker-qual', version = '4.0.0' }
 org-codelibs-jcifs = { module = "org.codelibs:jcifs", version.ref = "jcifsVersion" }
 org-eclipse-angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "mailVersion" }
 org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", version.ref = "mailVersion" }
@@ -155,7 +155,7 @@ spring-ws-bom = { module = "org.springframework.ws:spring-ws-bom", version.ref =
 tools-jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson3Version" }
 
 [plugins]
-dokka = { id = "org.jetbrains.dokka", version = "2.1.0" }
+dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 antora = { id = "org.antora", version = "1.0.0" }
 io-spring-antora-generate-yml = { id = "io.spring.antora.generate-antora-yml", version = "0.0.1" }
 protobuf = { id = "com.google.protobuf", version = "0.9.6" }
