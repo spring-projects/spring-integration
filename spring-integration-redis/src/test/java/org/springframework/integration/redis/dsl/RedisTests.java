@@ -39,6 +39,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
@@ -120,6 +121,13 @@ class RedisTests implements RedisContainerTest {
 	@Autowired
 	@Qualifier("storeOutboundChannelAdapterFlow.input")
 	MessageChannel storeOutboundChannelAdapterInputChannel;
+
+	@Autowired
+	@Qualifier("outboundGatewayFlow.input")
+	MessageChannel outboundGatewayFlowInputChannel;
+
+	@Autowired
+	QueueChannel outboundGatewayReplyChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -279,6 +287,23 @@ class RedisTests implements RedisContainerTest {
 				.containsOnly(Map.entry("apple", "red"), Map.entry("banana", "yellow"));
 	}
 
+	@Test
+	void testOutboundGatewayFlow() {
+		// Given
+		String counter = "MyCounter";
+		long initialValue = 5;
+		new RedisAtomicLong(counter, connectionFactory, initialValue);
+		// When
+		outboundGatewayFlowInputChannel.send(MessageBuilder.withPayload(counter).build());
+		// Then
+		Message<?> replyMessage = outboundGatewayReplyChannel.receive(10000);
+		assertThat(replyMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(Long.class)
+				.isEqualTo(initialValue + 1);
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -367,6 +392,14 @@ class RedisTests implements RedisContainerTest {
 					.handle(Redis.storeOutboundChannelAdapterSpec(redisConnectionFactory)
 							.key(STORE_FOR_OUTBOUND_CHANNEL_ADAPTER)
 							.collectionType(CollectionType.MAP));
+		}
+
+		@Bean
+		IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+							.commandExpression("'INCR'"))
+					.channel(c -> c.queue("outboundGatewayReplyChannel"));
 		}
 
 	}

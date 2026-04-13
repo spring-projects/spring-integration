@@ -956,7 +956,61 @@ To do so, their `-expression` equivalents (`key-expression`, `map-key-expression
 Spring Integration 4.0 introduced the Redis command gateway to let perform any standard Redis command by using the generic `RedisConnection#execute` method.
 The following listing shows the available attributes for the Redis outbound gateway:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+IntegrationFlow outboundGatewayFlow() {
+    return IntegrationFlow.from("request-channel") <1>
+            .handle(Redis
+                    .outboundGatewaySpec(redisConnectionFactory <5>
+                        or redisTemplate)  <6>
+                    .argumentsSerializer() <7>
+                    .commandExpression("") <8>
+                    .argumentsStrategy(new ExpressionArgumentsStrategy(
+						<argument-expressions>, <9>
+                        <use-command-variable>) <10>
+                    )
+                    .argumentsStrategy() <11>
+                    , e -> e
+                    .requiresReply() <3>
+                    .sendTimeout() <4>
+            )
+            .channel(c -> c.queue("replyChannel")) <2>
+            .get();
+}
+----
+
+Java::
++
+----
+@Bean
+@ServiceActivator(
+        inputChannel = "", <1>
+        outputChannel = "", <2>
+        requiresReply = "", <3>
+        sendTimeout = "")  <4>
+MessageHandler outboundGateway() {
+    RedisOutboundGateway gateway = new RedisOutboundGateway(
+        redisConnectionFactory <5>
+        or redisTemplate );      <6>
+    gateway.setArgumentsSerializer(); <7>
+    gateway.setCommandExpression(); <8>
+    var expressionArgumentStrategy = new ExpressionArgumentsStrategy(
+            <argument-expressions>,  <9>
+            <use-command-variable>); <10>
+    gateway.setArgumentsStrategy(expressionArgumentStrategy);
+    gateway.setArgumentsStrategy(); <11>
+    return gateway;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:outbound-gateway
         request-channel=""  <1>
@@ -971,6 +1025,8 @@ The following listing shows the available attributes for the Redis outbound gate
         use-command-variable=""  <10>
         arguments-strategy="" /> <11>
 ----
+
+======
 
 <1> The `MessageChannel` from which this endpoint receives `Message` instances.
 <2> The `MessageChannel` where this endpoint sends reply `Message` instances.
@@ -1002,12 +1058,45 @@ If neither attribute is provided, the `payload` is used as the command arguments
 The `<int-redis:outbound-gateway>` can be used as a common component to perform any desired Redis operation.
 The following example shows how to get incremented values from Redis atomic number:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+----
+@Bean
+IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("requestChannel")
+            .handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+                    .commandExpression("'INCR'"))
+            .channel(c -> c.queue("replyChannel"))
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "requestChannel", outputChannel = "replyChannel")
+MessageHandler outboundGateway(RedisConnectionFactory redisConnectionFactory) {
+    RedisOutboundGateway gateway = new RedisOutboundGateway(redisConnectionFactory);
+    gateway.setCommandExpressionString("'INCR'");
+    return gateway;
+}
+
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:outbound-gateway request-channel="requestChannel"
     reply-channel="replyChannel"
     command-expression="'INCR'"/>
 ----
+
+======
 
 The `Message` payload should have a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
 
