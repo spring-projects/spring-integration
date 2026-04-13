@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.redis.outbound.ArgumentsStrategy;
@@ -53,6 +54,17 @@ public class RedisOutboundGatewaySpec extends MessageHandlerSpec<RedisOutboundGa
 	 */
 	public RedisOutboundGatewaySpec argumentsSerializer(RedisSerializer<?> serializer) {
 		this.target.setArgumentsSerializer(serializer);
+		return this;
+	}
+
+	/**
+	 * Specify the command.
+	 * @param command the command
+	 * @return the spec
+	 * @see RedisOutboundGateway#setCommandExpression(Expression)
+	 */
+	public RedisOutboundGatewaySpec command(String command) {
+		this.target.setCommandExpression(new LiteralExpression(command));
 		return this;
 	}
 

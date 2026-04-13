@@ -398,7 +398,7 @@ class RedisTests implements RedisContainerTest {
 		IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
 					.handle(Redis.outboundGatewaySpec(redisConnectionFactory)
-							.commandExpression("'INCR'"))
+							.command("INCR"))
 					.channel(c -> c.queue("outboundGatewayReplyChannel"));
 		}
 

@@ -1067,7 +1067,7 @@ Java DSL::
 IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from("requestChannel")
             .handle(Redis.outboundGatewaySpec(redisConnectionFactory)
-                    .commandExpression("'INCR'"))
+                    .command("INCR"))
             .channel(c -> c.queue("replyChannel"))
             .get();
 }
