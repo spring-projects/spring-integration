@@ -106,6 +106,7 @@ import static org.mockito.Mockito.verify;
  * @author Biju Kunjummen
  * @author Cameron Mayfield
  * @author Urs Keller
+ * @author Jiandong Ma
  *
  * @since 5.4
  *
@@ -426,8 +427,6 @@ class MessageDrivenAdapterTests {
 			}
 
 		});
-		adapter.start();
-		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
@@ -435,6 +434,9 @@ class MessageDrivenAdapterTests {
 		template.setDefaultTopic(topic2);
 		template.sendDefault(0, 1487694048607L, 1, "foo");
 		template.sendDefault(0, 1487694048608L, 1, "bar");
+
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 1);
 
 		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
@@ -456,6 +458,11 @@ class MessageDrivenAdapterTests {
 
 		assertThat(onPartitionsAssignedCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
+		adapter.stop();
+
+		final CountDownLatch restartAssignmentLatch = new CountDownLatch(1);
+		adapter.setOnPartitionsAssignedSeekCallback((map, consumer) -> restartAssignmentLatch.countDown());
+
 		adapter.setMessageConverter(new BatchMessageConverter() {
 
 			@Override
@@ -473,14 +480,19 @@ class MessageDrivenAdapterTests {
 		});
 		PollableChannel errors = new QueueChannel();
 		adapter.setErrorChannel(errors);
-		template.sendDefault(1, "foo");
-		template.sendDefault(1, "bar");
-		Message<?> error = errors.receive(10000);
+		template.sendDefault(0, 1487694048607L, 1, "foo");
+		template.sendDefault(0, 1487694048608L, 1, "bar");
+
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 1);
+
+		Message<?> error = errors.receive(30000);
 		assertThat(error).isNotNull();
 		assertThat(error.getPayload()).isInstanceOf(ConversionException.class);
 		assertThat(((ConversionException) error.getPayload()).getMessage())
 				.contains("Failed to convert to message");
 		assertThat(((ConversionException) error.getPayload()).getRecords()).hasSize(2);
+		assertThat(restartAssignmentLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		adapter.stop();
 		pf.reset();
