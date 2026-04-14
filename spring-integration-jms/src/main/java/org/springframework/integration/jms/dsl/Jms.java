@@ -48,7 +48,7 @@ public final class Jms {
 	}
 
 	/**
-	 * The template to produce a {@link JmsPollableMessageChannelSpec}.
+	 * The factory to produce a {@link JmsPollableMessageChannelSpec}.
 	 * @param jmsTemplate the {@link JmsTemplate} to build on
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
 	 * @since 7.1

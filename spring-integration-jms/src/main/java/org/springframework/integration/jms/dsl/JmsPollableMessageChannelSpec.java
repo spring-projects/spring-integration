@@ -59,8 +59,6 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 
 		this.jmsChannelFactoryBean = jmsChannelFactoryBean;
 		this.jmsChannelFactoryBean.setConnectionFactory(connectionFactory);
-		this.jmsChannelFactoryBean.setSingleton(false);
-		this.jmsChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}
 
 	protected JmsPollableMessageChannelSpec(JmsChannelFactoryBean jmsChannelFactoryBean,
@@ -68,8 +66,6 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 
 		this.jmsChannelFactoryBean = jmsChannelFactoryBean;
 		this.jmsChannelFactoryBean.setJmsTemplate(jmsTemplate);
-		this.jmsChannelFactoryBean.setSingleton(false);
-		this.jmsChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}
 
 	@Override
@@ -235,6 +231,8 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 	@SuppressWarnings("unchecked")
 	protected T doGet() {
 		try {
+			this.jmsChannelFactoryBean.setSingleton(false);
+			this.jmsChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
 			this.channel = (T) this.jmsChannelFactoryBean.getObject();
 		}
 		catch (Exception e) {
