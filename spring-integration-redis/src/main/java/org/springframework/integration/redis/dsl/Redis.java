@@ -196,6 +196,24 @@ public final class Redis {
 		return new RedisStoreOutboundChannelAdapterSpec(redisTemplate);
 	}
 
+	/**
+	 * The factory to produce a {@link RedisOutboundGatewaySpec}.
+	 * @param redisTemplate the {@link RedisTemplate} to build on
+	 * @return the {@link RedisOutboundGatewaySpec} instance
+	 */
+	public static RedisOutboundGatewaySpec outboundGatewaySpec(RedisTemplate<String, ?> redisTemplate) {
+		return new RedisOutboundGatewaySpec(redisTemplate);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisOutboundGatewaySpec}.
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisOutboundGatewaySpec} instance
+	 */
+	public static RedisOutboundGatewaySpec outboundGatewaySpec(RedisConnectionFactory connectionFactory) {
+		return new RedisOutboundGatewaySpec(connectionFactory);
+	}
+
 	private Redis() {
 	}
 
