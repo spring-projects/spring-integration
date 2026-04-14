@@ -51,6 +51,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @author Gary Russell
  * @author Christian Tzolov
  * @author Jooyoung Pyoung
+ * @author Marcin Nowicki
  *
  * @since 4.1
  */
@@ -68,6 +69,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	private @Nullable SockJsServiceOptions sockJsServiceOptions;
 
 	private String[] origins = {};
+
+	private String[] originPatterns = {};
 
 	private boolean autoStartup = true;
 
@@ -121,6 +124,18 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		return this;
 	}
 
+	/**
+	 * Specify origin patterns for which cross-origin requests are allowed from a browser.
+	 * @param originPatterns the origin patterns to allow.
+	 * @return the current ServerWebSocketContainer
+	 * @since 7.0.5
+	 * @see WebSocketHandlerRegistration#setAllowedOriginPatterns(String...)
+	 */
+	public ServerWebSocketContainer setAllowedOriginPatterns(String... originPatterns) {
+		this.originPatterns = Arrays.copyOf(originPatterns, originPatterns.length);
+		return this;
+	}
+
 	public ServerWebSocketContainer withSockJs(SockJsServiceOptions... sockJsServiceOptions) {
 		if (ObjectUtils.isEmpty(sockJsServiceOptions)) {
 			setSockJsServiceOptions(new SockJsServiceOptions());
@@ -164,8 +179,14 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 		WebSocketHandlerRegistration registration =
 				registry.addHandler(webSocketHandler, this.paths)
-						.addInterceptors(this.interceptors)
-						.setAllowedOrigins(this.origins);
+						.addInterceptors(this.interceptors);
+
+		if (!ObjectUtils.isEmpty(this.originPatterns)) {
+			registration.setAllowedOriginPatterns(this.originPatterns);
+		}
+		if (!ObjectUtils.isEmpty(this.origins)) {
+			registration.setAllowedOrigins(this.origins);
+		}
 
 		if (this.handshakeHandler != null) {
 			registration.setHandshakeHandler(this.handshakeHandler);
