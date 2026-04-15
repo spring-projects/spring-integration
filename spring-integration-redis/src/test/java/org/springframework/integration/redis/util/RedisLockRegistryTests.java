@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,7 +48,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.SetSpec;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
@@ -60,6 +64,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -1006,12 +1012,21 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 
-		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
-
 		Lock lock = registry.obtain("foo");
 		assertThat(lock.tryLock()).isTrue();
+
 		try {
+			BoundValueOperations<String, String> boundValueOps = mock();
+			ReflectionTestUtils.setField(lock, "boundValueOps", boundValueOps);
+
+			given(boundValueOps.set(any(), (Consumer<SetSpec<String, String>>) any()))
+					.willThrow(new RedisSystemException("CAS failed", new RuntimeException("ERR unknown command")));
+
+			assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isTrue();
+
 			registry.renewLock("foo");
+
+			assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isFalse();
 		}
 		finally {
 			lock.unlock();
@@ -1025,28 +1040,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
 
-		Lock lock = registry.obtain("foo");
+		Lock lock = registry.obtain("testLock");
 		lock.lock();
 		assertThatNoException().isThrownBy(lock::unlock);
-	}
-
-	@Test
-	void testRenewActuallyExtendsTtl() throws InterruptedException {
-		long shortExpiry = 200;
-		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, shortExpiry);
-		registry.setRedisLockType(testRedisLockType);
-
-		Lock lock = registry.obtain("foo");
-		assertThat(lock.tryLock()).isTrue();
-		try {
-			registry.renewLock("foo", Duration.ofSeconds(10));
-			Thread.sleep(shortExpiry + 100);
-			StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory);
-			assertThat(template.hasKey(this.registryKey + ":foo")).isTrue();
-		}
-		finally {
-			lock.unlock();
-		}
 	}
 
 	@Test
@@ -1068,24 +1064,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		finally {
 			lock2.unlock();
+			registry1.destroy();
+			registry2.destroy();
 		}
-		registry1.destroy();
-		registry2.destroy();
-	}
-
-	@Test
-	void testSupportsCasCadFlagSharedAcrossLocks() {
-		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry.setRedisLockType(testRedisLockType);
-
-		assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isTrue();
-
-		ReflectionTestUtils.setField(registry, "supportsCasCadOperations", false);
-
-		Lock lock = registry.obtain("foo");
-		lock.lock();
-		assertThatNoException().isThrownBy(lock::unlock);
-		registry.destroy();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {

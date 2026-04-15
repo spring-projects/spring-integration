@@ -53,6 +53,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -176,6 +177,9 @@ public final class RedisLockRegistry
 	 */
 	private volatile @Nullable RedisMessageListenerContainer redisMessageListenerContainer;
 
+	/**
+	 * Flag to denote whether the Redis server supports CAS/CAD operations.
+	 */
 	private volatile boolean supportsCasCadOperations = true;
 
 	/**
@@ -378,7 +382,7 @@ public final class RedisLockRegistry
 		};
 	}
 
-	private boolean isCasCadNotSupportedError(Exception ex) {
+	private static boolean isCasCadNotSupportedError(Exception ex) {
 		Throwable cause = ex.getCause();
 		return cause != null
 				&& cause.getMessage() != null
@@ -415,6 +419,8 @@ public final class RedisLockRegistry
 
 		protected final String lockKey;
 
+		protected final BoundValueOperations<String, String> boundValueOps;
+
 		private final ReentrantLock localLock = new ReentrantLock();
 
 		private volatile long lockedAt;
@@ -423,6 +429,7 @@ public final class RedisLockRegistry
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
+			this.boundValueOps = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey);
 		}
 
 		private String constructLockKey(String path) {
@@ -445,7 +452,7 @@ public final class RedisLockRegistry
 				throws ExecutionException, InterruptedException;
 
 		/**
-		 * Unlock the lock using the unlink method in redis.
+		 * Unlock the lock. Uses delete method for Redis 8.4 and higher or unlink for earlier versions.
 		 */
 		protected abstract boolean removeLockKeyInnerUnlink();
 
@@ -607,7 +614,7 @@ public final class RedisLockRegistry
 
 			if (RedisLockRegistry.this.supportsCasCadOperations) {
 				try {
-					res = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey).set(
+					res = this.boundValueOps.set(
 							RedisLockRegistry.this.clientId,
 							spec -> spec.ifEquals()
 									.value(RedisLockRegistry.this.clientId)
@@ -615,11 +622,9 @@ public final class RedisLockRegistry
 				}
 				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
 					if (isCasCadNotSupportedError(ex)) {
-						LOGGER.debug("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
 						RedisLockRegistry.this.supportsCasCadOperations = false;
-						res = RedisLockRegistry.this.redisTemplate.execute(
-								RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-								RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
+						res = executeRenewRedisScript(expireAfter);
 					}
 					else {
 						throw ex;
@@ -627,9 +632,7 @@ public final class RedisLockRegistry
 				}
 			}
 			else {
-				res = RedisLockRegistry.this.redisTemplate.execute(
-						RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-						RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
+				res = executeRenewRedisScript(expireAfter);
 			}
 
 			boolean result = Boolean.TRUE.equals(res);
@@ -639,6 +642,12 @@ public final class RedisLockRegistry
 			}
 
 			return result;
+		}
+
+		private Boolean executeRenewRedisScript(long expireAfter) {
+			return RedisLockRegistry.this.redisTemplate.execute(
+					RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
 		}
 
 		protected final void stopRenew() {
@@ -880,11 +889,9 @@ public final class RedisLockRegistry
 				}
 				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
 					if (isCasCadNotSupportedError(ex)) {
-						LOGGER.debug("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
 						RedisLockRegistry.this.supportsCasCadOperations = false;
-						return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-								UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-								RedisLockRegistry.this.clientId));
+						return executeUnlinkUnlockRedisScript();
 					}
 					else {
 						throw ex;
@@ -892,11 +899,16 @@ public final class RedisLockRegistry
 				}
 			}
 			else {
-				return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-						UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-						RedisLockRegistry.this.clientId));
+				return executeUnlinkUnlockRedisScript();
 			}
 		}
+
+		private Boolean executeUnlinkUnlockRedisScript() {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId));
+		}
+
 	}
 
 }

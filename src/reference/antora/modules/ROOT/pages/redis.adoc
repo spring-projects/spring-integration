@@ -866,8 +866,7 @@ Starting with version 7.0, the `RedisLock` implements `DistributedLock` interfac
 A `RedisLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
 The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing to renew the lock with a custom time-to-live value.
 
-Starting with version 7.1, the `RedisLockRegistry` prefers native Redis CAS (Compare-And-Set) and CAD (Compare-And-Delete) commands over Lua scripts for lock renewal and spin-lock release.
-This requires Redis 8.4 or later. For older Redis versions, the registry automatically falls back to the previous Lua script-based approach.
+Starting with version 7.1, the RedisLockRegistry uses native Redis CAS (Compare-And-Set) and CAD (Compare-And-Delete) commands for Redis 8.4 or later. For older Redis versions, the registry automatically falls back to the previous Lua script-based approach.
 
 [[elasticache-valkey-cluster]]
 === AWS ElastiCache for Valkey Support in cluster mode
