@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -390,13 +389,17 @@ public class DefaultLockRepository
 	public boolean acquire(String lock, Duration ttlDuration) {
 		return this.readCommittedTransactionTemplate.<Boolean>execute(
 				transactionStatus -> {
-					if (this.template.update(this.updateQuery, this.id, ttlEpochMillis(ttlDuration),
-							this.region, lock, this.id, epochMillis()) > 0) {
+					LocalDateTime currentTime = currentTime();
+					if (this.template.update(this.updateQuery, this.id, currentTime.plus(ttlDuration),
+							this.region, lock, this.id, currentTime) > 0) {
+
 						return true;
 					}
+
 					try {
+						currentTime = currentTime();
 						return this.template.update(this.insertQuery, this.region, lock, this.id,
-								epochMillis(), ttlEpochMillis(ttlDuration)) > 0;
+								currentTime, currentTime.plus(ttlDuration)) > 0;
 					}
 					catch (DataIntegrityViolationException ex) {
 						return false;
@@ -410,14 +413,14 @@ public class DefaultLockRepository
 				transactionStatus ->
 						Integer.valueOf(1).equals(
 								this.template.queryForObject(this.countQuery,
-										Integer.class, this.region, lock, this.id, epochMillis())));
+										Integer.class, this.region, lock, this.id, currentTime())));
 	}
 
 	@Override
 	public void deleteExpired() {
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
-						this.template.update(this.deleteExpiredQuery, this.region, epochMillis()));
+						this.template.update(this.deleteExpiredQuery, this.region, currentTime()));
 	}
 
 	@Override
@@ -427,12 +430,8 @@ public class DefaultLockRepository
 						this.template.update(this.renewQuery, ttlEpochMillis(ttlDuration), this.region, lock, this.id) == 1);
 	}
 
-	private Timestamp ttlEpochMillis(Duration ttl) {
-		return Timestamp.valueOf(currentTime().plus(ttl));
-	}
-
-	private static Timestamp epochMillis() {
-		return Timestamp.valueOf(currentTime());
+	private static LocalDateTime ttlEpochMillis(Duration ttl) {
+		return currentTime().plus(ttl);
 	}
 
 	private static LocalDateTime currentTime() {

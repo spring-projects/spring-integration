@@ -138,7 +138,58 @@ The Redis inbound channel adapter (`RedisInboundChannelAdapter`) adapts incoming
 It receives platform-specific messages (Redis in this case) and converts them to Spring messages by using a `MessageConverter` strategy.
 The following example shows how to configure a Redis inbound channel adapter:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+RedisConnectionFactory connectionFactory() {
+    return RedisContainerTest.connectionFactory();
+}
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+@Bean
+IntegrationFlow inboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+
+    return IntegrationFlow.from(Redis
+                    .inboundChannelAdapter(redisConnectionFactory)
+                    .topics(TOPIC_FOR_INBOUND_CHANNEL_ADAPTER)
+                    .messageConverter(testConverter()))
+            .channel(c -> c.queue("inboundChannelAdapterQueueChannel"))
+            .get();
+}
+
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+RedisConnectionFactory connectionFactory() {
+    return RedisContainerTest.connectionFactory();
+}
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+@Bean
+RedisInboundChannelAdapter inboundChannelAdapter(RedisConnectionFactory connectionFactory) {
+	var adapter = new RedisInboundChannelAdapter(connectionFactory);
+	adapter.setTopics(redisChannelName);
+	adapter.setOutputChannel(channel);
+	adapter.setMessageConverter(testConverter());
+	return adapter;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:inbound-channel-adapter id="redisAdapter"
        topics="thing1, thing2"
@@ -153,6 +204,8 @@ The following example shows how to configure a Redis inbound channel adapter:
 
 <bean id="testConverter" class="things.something.SampleMessageConverter" />
 ----
+
+======
 
 The preceding example shows a simple but complete configuration of a Redis inbound channel adapter.
 Note that the preceding configuration relies on the familiar Spring paradigm of auto-discovering certain beans.
@@ -184,7 +237,57 @@ The Redis outbound channel adapter adapts outgoing Spring Integration messages i
 It receives Spring Integration messages and converts them to platform-specific messages (Redis in this case) by using a `MessageConverter` strategy.
 The following example shows how to configure a Redis outbound channel adapter:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+RedisConnectionFactory connectionFactory() {
+    return RedisContainerTest.connectionFactory();
+}
+
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+
+@Bean
+IntegrationFlow outboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return flow -> flow
+            .handle(Redis.outboundChannelAdapter(redisConnectionFactory)
+                    .topicExpression(new LiteralExpression(TOPIC_FOR_OUTBOUND_CHANNEL_ADAPTER))
+                    .messageConverter(testConverter()));
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+RedisConnectionFactory connectionFactory() {
+    return RedisContainerTest.connectionFactory();
+}
+
+@Bean
+MessageConverter testConverter() {
+    return new SimpleMessageConverter();
+}
+
+@Bean
+RedisPublishingMessageHandler outboundChannelAdapter(RedisConnectionFactory connectionFactory) {
+	var handler = new RedisPublishingMessageHandler(connectionFactory);
+	handler.setTopicExpression(new LiteralExpression(topic));
+    handler.setMessageConverter(testConverter());
+	return handler;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:outbound-channel-adapter id="outboundAdapter"
     channel="sendChannel"
@@ -198,6 +301,8 @@ The following example shows how to configure a Redis outbound channel adapter:
 
 <bean id="testConverter" class="things.something.SampleMessageConverter" />
 ----
+
+======
 
 The configuration parallels the Redis inbound channel adapter.
 The adapter is implicitly injected with a `RedisConnectionFactory`, which is defined with `redisConnectionFactory` as its bean name.
@@ -216,7 +321,62 @@ It uses an internal listener thread and does not use a poller.
 
 The following listing shows all the available attributes for `queue-inbound-channel-adapter`:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from(Redis
+                    .queueInboundChannelAdapter(
+							queueName, <6>
+                            redisConnectionFactory) <5>
+                    .id() <1>
+                    .outputChannel() <2>
+                    .autoStartup() <3>
+                    .phase()   <4>
+                    .errorChannel() <7>
+                    .serializer() <8>
+                    .receiveTimeout() <9>
+                    .recoveryInterval() <10>
+                    .expectMessage() <11>
+                    .taskExecutor() <12>
+                    .rightPop() <13>
+            )
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+RedisQueueMessageDrivenEndpoint queueInboundChannelAdapter() {
+    var adapter = new RedisQueueMessageDrivenEndpoint(
+            queueName, <6>
+            redisConnectionFactory <5>
+    );
+    adapter.setBeanName(); <1>
+    adapter.setOutputChannel(); <2>
+    adapter.setAutoStartup(); <3>
+    adapter.setPhase(); <4>
+    adapter.setErrorChannel(); <7>
+    adapter.setSerializer(); <8>
+    adapter.setReceiveTimeout(); <9>
+    adapter.setRecoveryInterval(); <10>
+    adapter.setExpectMessage(); <11>
+    adapter.setTaskExecutor(); <12>
+    adapter.setRightPop(); <13>
+    return adapter;
+}
+----
+
+XML::
++
+[source,xml, role="secondary"]
 ----
 <int-redis:queue-inbound-channel-adapter id=""  <1>
                     channel=""  <2>
@@ -233,6 +393,8 @@ The following listing shows all the available attributes for `queue-inbound-chan
                     right-pop=""/>  <13>
 
 ----
+
+======
 
 <1> The component bean name.
 If `channel` attribute not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
@@ -278,7 +440,50 @@ Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" t
 By default, it uses "`left push`", but "`right push`" can be configured instead.
 The following listing shows all the available attributes for a Redis `queue-outbound-channel-adapter`:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("inputChannel") <2>
+            .handle(Redis.queueOutboundChannelAdapter(
+					    queueName <4>
+                        or queueExpression, <5>
+                        redisConnectionFactory) <3>
+                    .serializer() <6>
+                    .extractPayload() <7>
+                    .leftPush() <8>
+            , e->e.id()) <1>
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "channel") <2>
+RedisQueueOutboundChannelAdapter queueOutboundChannelAdapter() {
+	var adapter = new RedisQueueOutboundChannelAdapter(
+		queueName   <4>
+        or queueExpression,  <5>
+        redisConnectionFactory  <3>
+    );
+    adapter.setBeanName(); <1>
+    adapter.setSerializer(); <6>
+    adapter.setExtractPayload(); <7>
+    adapter.setLeftPush(); <8>
+    return adapter;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:queue-outbound-channel-adapter id=""  <1>
                     channel=""  <2>
@@ -290,6 +495,8 @@ The following listing shows all the available attributes for a Redis `queue-outb
                     left-push=""/>  <8>
 
 ----
+
+======
 
 <1> The component bean name.
 If the `channel` attribute is not provided, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
@@ -438,7 +645,41 @@ IMPORTANT: The `RedisMetadataStore.replace()` cannot be used (for example, in th
 The Redis store inbound channel adapter is a polling consumer that reads data from a Redis collection and sends it as a `Message` payload.
 The following example shows how to configure a Redis store inbound channel adapter:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from(Redis
+                        .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                        .collectionType(CollectionType.LIST),
+                endpointConfigure -> endpointConfigure
+                        .poller(Pollers.fixedDelay(2000))
+                        .id("storeSourcePollingChannelAdapter"))
+        .channel(c -> c.queue("redisChannel"))
+        .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@InboundChannelAdapter(channel = "redisChannel", poller = @Poller(fixedDelay = "2000"))
+public RedisStoreMessageSource storeInboundChannelAdapter() {
+    var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
+    messageSource.setCollectionType(CollectionType.LIST);
+    return messageSource;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-inbound-channel-adapter id="listAdapter"
     connection-factory="redisConnectionFactory"
@@ -448,6 +689,8 @@ The following example shows how to configure a Redis store inbound channel adapt
     <int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 </int-redis:store-inbound-channel-adapter>
 ----
+
+======
 
 The preceding example shows how to configure a Redis store inbound channel adapter by using the `store-inbound-channel-adapter` element, providing values for various attributes, such as:
 
@@ -492,7 +735,106 @@ For example, the value may be moved or removed after it has been processed.
 The transaction synchronization feature could be used for such a logic.
 The following example uses `key-expression` and transaction synchronization:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+
+@Bean
+IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
+        TransactionSynchronizationFactory syncFactory) {
+    return IntegrationFlow.from(Redis
+                            .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                            .collectionType(CollectionType.ZSET),
+                    endpointConfigure -> endpointConfigure
+                            .poller(Pollers
+                                    .fixedDelay(1000)
+                                    .transactional(new PseudoTransactionManager())
+                                    .transactionSynchronizationFactory(syncFactory)
+                            )
+                            .autoStartup(false)
+                            .id("storeSourcePollingChannelAdapter"))
+            .transform((GenericTransformer<RedisZSet<?>, Collection<?>>) source -> source.rangeByScore(1, 3))
+            .channel(c -> c.queue("storeInboundChannelAdapterOutputChannel"))
+            .get();
+}
+
+@Bean
+QueueChannel afterCommitChannel() {
+    return new QueueChannel();
+}
+
+@Bean
+TransactionSynchronizationProcessor syncProcessor(QueueChannel afterCommitChannel) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    SpelExpressionParser parser = new SpelExpressionParser();
+    processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(afterCommitChannel);
+    return processor;
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+    return new DefaultTransactionSynchronizationFactory(syncProcessor);
+}
+
+
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@InboundChannelAdapter(channel = "outputChannel", autoStartup = "false", poller = @Poller("myPoller"))
+public RedisStoreMessageSource storeInboundChannelAdapter() {
+    var messageSource = new RedisStoreMessageSource(redisConnectionFactory, new LiteralExpression(STORE_FOR_INBOUND_CHANNEL_ADAPTER));
+    messageSource.setCollectionType(CollectionType.ZSET);
+    return messageSource;
+}
+
+@Bean
+QueueChannel afterCommitChannel() {
+    return new QueueChannel();
+}
+
+@Bean
+public PollerMetadata myPoller(TransactionSynchronizationFactory syncFactory) {
+    PollerMetadata poller = new PollerMetadata();
+    PeriodicTrigger periodicTrigger = new PeriodicTrigger(Duration.ofMillis(1000));
+    periodicTrigger.setFixedRate(false);
+    poller.setTrigger(periodicTrigger);
+
+    var txInterceptor = new TransactionInterceptorBuilder()
+            .transactionManager(new PseudoTransactionManager())
+            .build();
+
+    poller.setTransactionSynchronizationFactory(syncFactory);
+    poller.setAdviceChain(Collections.singletonList(txInterceptor));
+    return poller;
+}
+
+@Bean
+TransactionSynchronizationProcessor syncProcessor(QueueChannel afterCommitChannel) {
+    var processor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+    SpelExpressionParser parser = new SpelExpressionParser();
+    processor.setAfterCommitExpression(parser.parseExpression("payload.removeByScore(1, 3)"));
+    processor.setAfterCommitChannel(afterCommitChannel);
+    return processor;
+}
+
+@Bean
+TransactionSynchronizationFactory syncFactory(TransactionSynchronizationProcessor syncProcessor) {
+    return new DefaultTransactionSynchronizationFactory(syncProcessor);
+}
+
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
         connection-factory="redisConnectionFactory"
@@ -511,6 +853,8 @@ The following example uses `key-expression` and transaction synchronization:
 
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>
 ----
+
+======
 
 The poller can be transactional by using a `transactional` element.
 This element can reference a real transaction manager, for example, if some other part of the flow invokes JDBC.
@@ -537,13 +881,47 @@ For more information about transaction synchronization, see xref:transactions.ad
 
 The RedisStore outbound channel adapter lets write a message payload to a Redis collection, as the following example shows:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+public IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory connectionFactory) {
+    return IntegrationFlow.from("requestChannel")
+            .handle(Redis.storeOutboundChannelAdapterSpec(connectionFactory)
+                    .collectionType(CollectionType.LIST)
+                    .key("myCollection"))
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "requestChannel")
+public MessageHandler redisListAdapter(RedisConnectionFactory connectionFactory) {
+    var handler = new RedisStoreWritingMessageHandler(connectionFactory);
+    handler.setCollectionType(CollectionType.LIST);
+    handler.setKey("myCollection");
+    return handler;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:store-outbound-channel-adapter id="redisListAdapter"
           collection-type="LIST"
           channel="requestChannel"
           key="myCollection" />
 ----
+
+======
 
 The preceding configuration a Redis store outbound channel adapter by using the `store-inbound-channel-adapter` element.
 It provides values for various attributes, such as:
@@ -578,7 +956,61 @@ To do so, their `-expression` equivalents (`key-expression`, `map-key-expression
 Spring Integration 4.0 introduced the Redis command gateway to let perform any standard Redis command by using the generic `RedisConnection#execute` method.
 The following listing shows the available attributes for the Redis outbound gateway:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, Java, role="primary"]
+----
+@Bean
+IntegrationFlow outboundGatewayFlow() {
+    return IntegrationFlow.from("request-channel") <1>
+            .handle(Redis
+                    .outboundGatewaySpec(redisConnectionFactory <5>
+                        or redisTemplate)  <6>
+                    .argumentsSerializer() <7>
+                    .commandExpression("") <8>
+                    .argumentsStrategy(new ExpressionArgumentsStrategy(
+						<argument-expressions>, <9>
+                        <use-command-variable>) <10>
+                    )
+                    .argumentsStrategy() <11>
+                    , e -> e
+                    .requiresReply() <3>
+                    .sendTimeout() <4>
+            )
+            .channel(c -> c.queue("replyChannel")) <2>
+            .get();
+}
+----
+
+Java::
++
+----
+@Bean
+@ServiceActivator(
+        inputChannel = "", <1>
+        outputChannel = "", <2>
+        requiresReply = "", <3>
+        sendTimeout = "")  <4>
+MessageHandler outboundGateway() {
+    RedisOutboundGateway gateway = new RedisOutboundGateway(
+        redisConnectionFactory <5>
+        or redisTemplate );      <6>
+    gateway.setArgumentsSerializer(); <7>
+    gateway.setCommandExpression(); <8>
+    var expressionArgumentStrategy = new ExpressionArgumentsStrategy(
+            <argument-expressions>,  <9>
+            <use-command-variable>); <10>
+    gateway.setArgumentsStrategy(expressionArgumentStrategy);
+    gateway.setArgumentsStrategy(); <11>
+    return gateway;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:outbound-gateway
         request-channel=""  <1>
@@ -593,6 +1025,8 @@ The following listing shows the available attributes for the Redis outbound gate
         use-command-variable=""  <10>
         arguments-strategy="" /> <11>
 ----
+
+======
 
 <1> The `MessageChannel` from which this endpoint receives `Message` instances.
 <2> The `MessageChannel` where this endpoint sends reply `Message` instances.
@@ -624,12 +1058,45 @@ If neither attribute is provided, the `payload` is used as the command arguments
 The `<int-redis:outbound-gateway>` can be used as a common component to perform any desired Redis operation.
 The following example shows how to get incremented values from Redis atomic number:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+----
+@Bean
+IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("requestChannel")
+            .handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+                    .command("INCR"))
+            .channel(c -> c.queue("replyChannel"))
+            .get();
+}
+----
+
+Java::
++
+[source, Java, role="secondary"]
+----
+@Bean
+@ServiceActivator(inputChannel = "requestChannel", outputChannel = "replyChannel")
+MessageHandler outboundGateway(RedisConnectionFactory redisConnectionFactory) {
+    RedisOutboundGateway gateway = new RedisOutboundGateway(redisConnectionFactory);
+    gateway.setCommandExpressionString("'INCR'");
+    return gateway;
+}
+
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:outbound-gateway request-channel="requestChannel"
     reply-channel="replyChannel"
     command-expression="'INCR'"/>
 ----
+
+======
 
 The `Message` payload should have a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
 

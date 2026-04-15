@@ -25,7 +25,6 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -42,8 +41,6 @@ import org.springframework.util.ObjectUtils;
  * @since 4.0
  */
 public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
-
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final byte[][] EMPTY_ARGS = new byte[0][];
 
