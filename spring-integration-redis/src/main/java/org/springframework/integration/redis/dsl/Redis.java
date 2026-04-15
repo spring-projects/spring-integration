@@ -214,6 +214,30 @@ public final class Redis {
 		return new RedisOutboundGatewaySpec(connectionFactory);
 	}
 
+	/**
+	 * The factory to produce a {@link RedisQueueOutboundGatewaySpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueOutboundGatewaySpec} instance
+	 */
+	public static RedisQueueOutboundGatewaySpec queueOutboundGatewaySpec(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
+		return new RedisQueueOutboundGatewaySpec(queueName, connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueInboundGatewaySpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueInboundGatewaySpec} instance
+	 */
+	public static RedisQueueInboundGatewaySpec queueInboundGatewaySpec(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
+		return new RedisQueueInboundGatewaySpec(queueName, connectionFactory);
+	}
+
 	private Redis() {
 	}
 

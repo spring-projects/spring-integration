@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.dsl;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -63,8 +65,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -88,6 +93,10 @@ class RedisTests implements RedisContainerTest {
 	static final String STORE_FOR_INBOUND_CHANNEL_ADAPTER = "dslStoreInboundChannelAdapter";
 
 	static final String STORE_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslStoreOutboundChannelAdapter";
+
+	static final String QUEUE_NAME_FOR_QUEUE_OUTBOUND_GATEWAY = "dslQueueOutboundGateway";
+
+	static final String QUEUE_NAME_FOR_QUEUE_INBOUND_GATEWAY = "dslQueueInboundGateway";
 
 	@Autowired
 	RedisConnectionFactory connectionFactory;
@@ -128,6 +137,16 @@ class RedisTests implements RedisContainerTest {
 
 	@Autowired
 	QueueChannel outboundGatewayReplyChannel;
+
+	@Autowired
+	@Qualifier("queueOutboundGatewayFlow.input")
+	MessageChannel queueOutboundGatewayFlowInputChannel;
+
+	@Autowired
+	QueueChannel queueOutboundGatewayReplyChannel;
+
+	@Autowired
+	ThreadPoolTaskScheduler taskScheduler;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -304,6 +323,68 @@ class RedisTests implements RedisContainerTest {
 				.isEqualTo(initialValue + 1);
 	}
 
+	@Test
+	void testQueueOutboundGatewayFlow() {
+		// Given
+		String gatewayReqMessage = "queue-outbound-gateway-message";
+		// simulate the outbound gateway handler in a separate thread.
+		// which in turn pops the uuid from the provided queue, pops value from uuid queue, send reply to uuid.reply queue
+		taskScheduler.execute(() -> {
+			StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+
+			String uuid = redisTemplate
+					.boundListOps(QUEUE_NAME_FOR_QUEUE_OUTBOUND_GATEWAY)
+					.rightPop(Duration.ofMillis(10000));
+			assertThat(uuid).isNotNull();
+
+			String uuidValue = redisTemplate
+					.boundListOps(uuid)
+					.rightPop(Duration.ofMillis(10000));
+			assertThat(uuidValue)
+					.isNotNull()
+					.isEqualTo(gatewayReqMessage);
+
+			redisTemplate
+					.boundListOps(uuid + ".reply")
+					.leftPush("Acked:" + uuidValue);
+		});
+		// When
+		queueOutboundGatewayFlowInputChannel.send(MessageBuilder.withPayload(gatewayReqMessage).build());
+		// Then
+		Message<?> replyMessage = queueOutboundGatewayReplyChannel.receive(10000);
+		assertThat(replyMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("Acked:" + gatewayReqMessage);
+	}
+
+	@Test
+	void testQueueInboundGatewayFlow() {
+		// Given
+		String redisInboundMessage = "queue-inbound-gateway-message";
+		// simulate the inbound gateway caller in test thread,
+		// which in turn pushes uuid to the provided queue, pushes request message to the uuid queue.
+		IdGenerator idGenerator = new AlternativeJdkIdGenerator();
+		String uuid = idGenerator.generateId().toString();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
+		redisTemplate
+				.boundListOps(QUEUE_NAME_FOR_QUEUE_INBOUND_GATEWAY)
+				.leftPush(uuid);
+		redisTemplate
+				.boundListOps(uuid)
+				.leftPush(redisInboundMessage);
+		// When
+		var redisReplyQueueOps = redisTemplate.boundListOps(uuid + ".reply");
+		Awaitility.await()
+				.atMost(Duration.ofMillis(10000))
+				.until(() -> redisReplyQueueOps.size() > 0);
+		// Then
+		String redisReplyMessage = redisReplyQueueOps.rightPop();
+		assertThat(redisReplyMessage)
+				.isNotNull()
+				.isEqualTo("Acked:" + redisInboundMessage);
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -400,6 +481,27 @@ class RedisTests implements RedisContainerTest {
 					.handle(Redis.outboundGatewaySpec(redisConnectionFactory)
 							.command("INCR"))
 					.channel(c -> c.queue("outboundGatewayReplyChannel"));
+		}
+
+		@Bean
+		IntegrationFlow queueOutboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.queueOutboundGatewaySpec(QUEUE_NAME_FOR_QUEUE_OUTBOUND_GATEWAY, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.extractPayload(true)
+							.receiveTimeout(20000), e -> e
+							.sendTimeout(10000))
+					.channel(c -> c.queue("queueOutboundGatewayReplyChannel"));
+		}
+
+		@Bean
+		IntegrationFlow queueInboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+			return IntegrationFlow.from(Redis
+							.queueInboundGatewaySpec(QUEUE_NAME_FOR_QUEUE_INBOUND_GATEWAY, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.receiveTimeout(10000))
+					.handle((uuidValue, headers) -> "Acked:" + uuidValue)
+					.get();
 		}
 
 	}
