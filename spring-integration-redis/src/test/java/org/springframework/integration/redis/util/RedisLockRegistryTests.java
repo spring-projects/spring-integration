@@ -1012,7 +1012,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 
-		Lock lock = registry.obtain("foo");
+		Lock lock = registry.obtain("testLock");
 		assertThat(lock.tryLock()).isTrue();
 
 		try {
@@ -1024,7 +1024,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 			assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isTrue();
 
-			registry.renewLock("foo");
+			registry.renewLock("testLock");
 
 			assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isFalse();
 		}
@@ -1052,12 +1052,12 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 10000);
 		registry2.setRedisLockType(testRedisLockType);
 
-		Lock lock1 = registry1.obtain("foo");
+		Lock lock1 = registry1.obtain("testLock");
 		lock1.lock();
 
-		waitForExpire("foo");
+		waitForExpire("testLock");
 
-		Lock lock2 = registry2.obtain("foo");
+		Lock lock2 = registry2.obtain("testLock");
 		assertThat(lock2.tryLock()).isTrue();
 		try {
 			assertThatThrownBy(lock1::unlock).isInstanceOf(ConcurrentModificationException.class);
