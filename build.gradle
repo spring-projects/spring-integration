@@ -319,8 +319,13 @@ configure(javaProjects) { subproject ->
 
         enableAssertions = false
 
-        jvmArgs '-Xshare:off'
-    }
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(project.findProperty('testJavaVersion') ?: 25)
+		}
+
+        jvmArgs '-Xshare:off',
+				'--enable-native-access=ALL-UNNAMED'
+	}
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
