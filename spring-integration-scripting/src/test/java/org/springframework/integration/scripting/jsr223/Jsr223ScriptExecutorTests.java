@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -34,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author David Turanski
  * @author Artem Bilan
  */
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "JRuby 10.0.5.0")
 public class Jsr223ScriptExecutorTests {
 
 	@Test
@@ -64,13 +67,13 @@ public class Jsr223ScriptExecutorTests {
 		Object obj = executor.executeScript(new StaticScriptSource("x=2"));
 		assertThat(obj).isEqualTo(2);
 
-		obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
+		obj = executor.executeScript(new StaticScriptSource("def test(y):\n\tx=y\n\treturn y\nz=test(2)"));
 		assertThat(obj).isEqualTo(2);
 	}
 
 	@Test
 	public void testInvalidLanguageThrowsIllegalArgumentException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ScriptExecutorFactory.getScriptExecutor("foo"));
+		assertThatIllegalArgumentException().isThrownBy(() -> ScriptExecutorFactory.getScriptExecutor("test"));
 	}
 
 }
