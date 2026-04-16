@@ -378,7 +378,7 @@ class RedisTests implements RedisContainerTest {
 		IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
 				TransactionSynchronizationFactory syncFactory) {
 			return IntegrationFlow.from(Redis
-									.storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+									.storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
 									.collectionType(CollectionType.ZSET),
 							endpointConfigure -> endpointConfigure
 									.poller(Pollers
@@ -415,7 +415,7 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
-					.handle(Redis.storeOutboundChannelAdapterSpec(redisConnectionFactory)
+					.handle(Redis.storeOutboundChannelAdapter(redisConnectionFactory)
 							.key(STORE_FOR_OUTBOUND_CHANNEL_ADAPTER)
 							.collectionType(CollectionType.MAP));
 		}
@@ -423,7 +423,7 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
-					.handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+					.handle(Redis.outboundGateway(redisConnectionFactory)
 							.command("INCR"))
 					.channel(c -> c.queue("outboundGatewayReplyChannel"));
 		}
@@ -431,7 +431,7 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow queueOutboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
-					.handle(Redis.queueOutboundGatewaySpec(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
+					.handle(Redis.queueOutboundGateway(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
 							.serializer(RedisSerializer.string())
 							.extractPayload(true)
 							.receiveTimeout(20000), e -> e
@@ -446,7 +446,7 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow queueInboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
 			return IntegrationFlow.from(Redis
-							.queueInboundGatewaySpec(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
+							.queueInboundGateway(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
 							.serializer(RedisSerializer.string())
 							.receiveTimeout(10000))
 					.handle((uuidValue, headers) -> "Acked:" + uuidValue)

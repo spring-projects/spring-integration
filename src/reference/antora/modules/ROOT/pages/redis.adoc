@@ -654,7 +654,7 @@ Java DSL::
 @Bean
 IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from(Redis
-                        .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                        .storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
                         .collectionType(CollectionType.LIST),
                 endpointConfigure -> endpointConfigure
                         .poller(Pollers.fixedDelay(2000))
@@ -746,7 +746,7 @@ Java DSL::
 IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
         TransactionSynchronizationFactory syncFactory) {
     return IntegrationFlow.from(Redis
-                            .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                            .storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
                             .collectionType(CollectionType.ZSET),
                     endpointConfigure -> endpointConfigure
                             .poller(Pollers
@@ -890,7 +890,7 @@ Java DSL::
 @Bean
 public IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory connectionFactory) {
     return IntegrationFlow.from("requestChannel")
-            .handle(Redis.storeOutboundChannelAdapterSpec(connectionFactory)
+            .handle(Redis.storeOutboundChannelAdapter(connectionFactory)
                     .collectionType(CollectionType.LIST)
                     .key("myCollection"))
             .get();
@@ -966,7 +966,7 @@ Java DSL::
 IntegrationFlow outboundGatewayFlow() {
     return IntegrationFlow.from("request-channel") <1>
             .handle(Redis
-                    .outboundGatewaySpec(redisConnectionFactory <5>
+                    .outboundGateway(redisConnectionFactory <5>
                         or redisTemplate)  <6>
                     .argumentsSerializer() <7>
                     .commandExpression("") <8>
@@ -1066,7 +1066,7 @@ Java DSL::
 @Bean
 IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from("requestChannel")
-            .handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+            .handle(Redis.outboundGateway(redisConnectionFactory)
                     .command("INCR"))
             .channel(c -> c.queue("replyChannel"))
             .get();
@@ -1122,7 +1122,7 @@ Java DSL::
 @Bean
 IntegrationFlow queueOutboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from("requestChannel") <1>
-            .handle(Redis.queueOutboundGatewaySpec(
+            .handle(Redis.queueOutboundGateway(
                             QUEUE_NAME, <6>
                             redisConnectionFactory) <5>
                     .serializer() <8>
@@ -1211,7 +1211,7 @@ Java DSL::
 @Bean
 IntegrationFlow queueInboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from("requestChannel") <1>
-            .handle(Redis.queueInboundGatewaySpec(
+            .handle(Redis.queueInboundGateway(
                             QUEUE_NAME, <6>
                             redisConnectionFactory) <5>
                     .taskExecutor() <3>
