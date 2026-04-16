@@ -85,7 +85,7 @@ ext {
     mailVersion = '2.0.5'
     micrometerTracingVersion = '1.5.10'
     micrometerVersion = '1.15.10'
-    mockitoVersion = '5.17.0'
+    mockitoVersion = '5.18.0'
     mongoDriverVersion = '5.5.2'
     mysqlVersion = '9.3.0'
     oracleVersion = '23.8.0.25.04'
@@ -245,11 +245,13 @@ configure(javaProjects) { subproject ->
         options.encoding = 'UTF-8'
     }
 
-    compileKotlin {
-        compilerOptions {
-            allWarningsAsErrors = true
-        }
-    }
+	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask).configureEach {
+		compilerOptions {
+			jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+			javaParameters = true
+			allWarningsAsErrors = true
+		}
+	}
 
     tasks.withType(JavaCompile).configureEach {
         options.fork = true
@@ -344,7 +346,14 @@ configure(javaProjects) { subproject ->
         reports.junitXml.required = false
 
         enableAssertions = false
-    }
+
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(project.findProperty('testJavaVersion') ?: 17)
+		}
+
+        jvmArgs '-Xshare:off',
+				'--enable-native-access=ALL-UNNAMED'
+	}
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
