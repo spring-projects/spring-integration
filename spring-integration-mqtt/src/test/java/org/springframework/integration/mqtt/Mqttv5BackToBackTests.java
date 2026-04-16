@@ -52,6 +52,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Gary Russell
@@ -116,10 +117,11 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, SimpleAcknowledgment.class)
 				.acknowledge();
 
+		await().untilAsserted(() ->
+				assertThat(this.config.events).hasAtLeastOneElementOfType(MqttMessageDeliveredEvent.class));
+
 		assertThat(this.config.events)
-				.isNotEmpty()
 				.hasAtLeastOneElementOfType(MqttMessageSentEvent.class)
-				.hasAtLeastOneElementOfType(MqttMessageDeliveredEvent.class)
 				.hasAtLeastOneElementOfType(MqttSubscribedEvent.class);
 
 		this.mqttv5MessageDrivenChannelAdapter.addTopic("anotherTopic");
