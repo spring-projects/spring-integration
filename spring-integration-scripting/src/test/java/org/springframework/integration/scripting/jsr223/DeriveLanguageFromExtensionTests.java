@@ -19,6 +19,8 @@ package org.springframework.integration.scripting.jsr223;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.provider.Arguments;
@@ -45,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "JRuby 10.0.5.0")
 public class DeriveLanguageFromExtensionTests {
 
 	@Autowired

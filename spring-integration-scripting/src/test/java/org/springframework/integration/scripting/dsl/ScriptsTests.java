@@ -23,6 +23,8 @@ import java.util.Date;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "JRuby 10.0.5.0")
 public class ScriptsTests {
 
 	@TempDir

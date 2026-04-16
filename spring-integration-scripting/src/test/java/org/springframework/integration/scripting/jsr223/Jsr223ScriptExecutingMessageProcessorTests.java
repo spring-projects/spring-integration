@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  *
  */
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "JRuby 10.0.5.0")
 public class Jsr223ScriptExecutingMessageProcessorTests {
 
 	private static final ScriptExecutor SCRIPT_EXECUTOR = ScriptExecutorFactory.getScriptExecutor("jruby");
