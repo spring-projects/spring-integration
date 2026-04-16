@@ -48,9 +48,12 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -99,6 +102,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Youbin Wu
  * @author Michal Domagala
  * @author Severin Kistler
+ * @author Yordan Tsintsov
  *
  * @since 4.0
  *
@@ -172,6 +176,11 @@ public final class RedisLockRegistry
 	 * It is set via lazy initialization when it is a {@link RedisLockType#PUB_SUB_LOCK}.
 	 */
 	private volatile @Nullable RedisMessageListenerContainer redisMessageListenerContainer;
+
+	/**
+	 * Flag to denote whether the Redis server supports CAS/CAD operations.
+	 */
+	private volatile boolean supportsCasCadOperations = true;
 
 	/**
 	 * Create a lock registry with the default (60 second) lock expiration.
@@ -373,6 +382,13 @@ public final class RedisLockRegistry
 		};
 	}
 
+	private static boolean isCasCadNotSupportedError(Exception ex) {
+		Throwable cause = ex.getCause();
+		return cause != null
+				&& cause.getMessage() != null
+				&& (cause.getMessage().contains("ERR syntax error") || cause.getMessage().contains("ERR unknown command"));
+	}
+
 	private abstract class RedisLock implements DistributedLock {
 
 		private static final String OBTAIN_LOCK_SCRIPT = """
@@ -403,6 +419,8 @@ public final class RedisLockRegistry
 
 		protected final String lockKey;
 
+		protected final BoundValueOperations<String, String> boundValueOps;
+
 		private final ReentrantLock localLock = new ReentrantLock();
 
 		private volatile long lockedAt;
@@ -411,6 +429,7 @@ public final class RedisLockRegistry
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
+			this.boundValueOps = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey);
 		}
 
 		private String constructLockKey(String path) {
@@ -433,7 +452,7 @@ public final class RedisLockRegistry
 				throws ExecutionException, InterruptedException;
 
 		/**
-		 * Unlock the lock using the unlink method in redis.
+		 * Unlock the lock. Uses delete method for Redis 8.4 and higher or unlink for earlier versions.
 		 */
 		protected abstract boolean removeLockKeyInnerUnlink();
 
@@ -591,13 +610,44 @@ public final class RedisLockRegistry
 		}
 
 		protected final boolean renew(long expireAfter) {
-			boolean res = Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
-					RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.clientId, String.valueOf(expireAfter)));
-			if (!res) {
+			Boolean res;
+
+			if (RedisLockRegistry.this.supportsCasCadOperations) {
+				try {
+					res = this.boundValueOps.set(
+							RedisLockRegistry.this.clientId,
+							spec -> spec.ifEquals()
+									.value(RedisLockRegistry.this.clientId)
+									.expire(Duration.ofMillis(expireAfter)));
+				}
+				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
+					if (isCasCadNotSupportedError(ex)) {
+						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						RedisLockRegistry.this.supportsCasCadOperations = false;
+						res = executeRenewRedisScript(expireAfter);
+					}
+					else {
+						throw ex;
+					}
+				}
+			}
+			else {
+				res = executeRenewRedisScript(expireAfter);
+			}
+
+			boolean result = Boolean.TRUE.equals(res);
+
+			if (!result) {
 				stopRenew();
 			}
-			return res;
+
+			return result;
+		}
+
+		private Boolean executeRenewRedisScript(long expireAfter) {
+			return RedisLockRegistry.this.redisTemplate.execute(
+					RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId, String.valueOf(expireAfter));
 		}
 
 		protected final void stopRenew() {
@@ -833,6 +883,27 @@ public final class RedisLockRegistry
 
 		@Override
 		protected boolean removeLockKeyInnerUnlink() {
+			if (RedisLockRegistry.this.supportsCasCadOperations) {
+				try {
+					return RedisLockRegistry.this.redisTemplate.delete(this.lockKey, it -> it.ifEquals().value(RedisLockRegistry.this.clientId));
+				}
+				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
+					if (isCasCadNotSupportedError(ex)) {
+						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						RedisLockRegistry.this.supportsCasCadOperations = false;
+						return executeUnlinkUnlockRedisScript();
+					}
+					else {
+						throw ex;
+					}
+				}
+			}
+			else {
+				return executeUnlinkUnlockRedisScript();
+			}
+		}
+
+		private Boolean executeUnlinkUnlockRedisScript() {
 			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
 					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
 					RedisLockRegistry.this.clientId));
