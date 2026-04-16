@@ -1192,7 +1192,8 @@ It is mutually exclusive with the 'redis-template' attribute.
 It can be an empty string, which means "`no serializer`".
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
 By default, it is a `JdkSerializationRedisSerializer`.
-<9> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue. It defaults to `true`.
+<9> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue.
+It defaults to `true`.
 
 [[redis-queue-inbound-gateway]]
 == Redis Queue Inbound Gateway
@@ -1279,7 +1280,8 @@ It is typically applied for queue-based limited reply-channels.
 It defaults to `redisConnectionFactory`.
 It is mutually exclusive with `redis-template` attribute.
 <6> The name of the Redis list for the conversation `UUID`.
-<7> A `SmartLifecycle` attribute to specify the phase in which this endpoint is started. It defaults to `0`.
+<7> A `SmartLifecycle` attribute to specify the phase in which this endpoint is started.
+It defaults to `0`.
 <8> The `RedisSerializer` bean reference.
 It can be an empty string, which means "`no serializer`".
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
@@ -1288,7 +1290,8 @@ It defaults to a `JdkSerializationRedisSerializer`.
 To restore that behavior, provide a reference to a `StringRedisSerializer`).
 <9> The timeout (in milliseconds) to wait until the received message is fetched.
 It is typically applied for queue-based limited request-channels.
-<10> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue. It defaults to `true`.
+<10> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue.
+It defaults to `true`.
 <11> The time (in milliseconds) the listener task should sleep after exceptions on the "`right pop`" operation before restarting the listener task.
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
