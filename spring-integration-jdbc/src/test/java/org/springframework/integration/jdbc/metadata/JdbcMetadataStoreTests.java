@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 import org.apache.derby.shared.common.error.StandardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextException;
@@ -41,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class JdbcMetadataStoreTests {
 
 	@Autowired

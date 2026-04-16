@@ -26,6 +26,9 @@ import javax.sql.DataSource;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -75,6 +78,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 class JdbcTests {
 
 	@Autowired

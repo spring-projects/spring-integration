@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 	@Autowired

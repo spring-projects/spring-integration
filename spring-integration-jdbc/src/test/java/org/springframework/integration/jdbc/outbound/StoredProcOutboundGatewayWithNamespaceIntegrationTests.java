@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -49,6 +51,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
  */
 @SpringJUnitConfig
 @DirtiesContext
+@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Autowired
