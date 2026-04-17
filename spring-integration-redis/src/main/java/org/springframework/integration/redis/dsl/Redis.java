@@ -108,10 +108,10 @@ public final class Redis {
 	 * @param key The key of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisConnectionFactory connectionFactory, String key) {
 
-		return storeInboundChannelAdapterSpec(connectionFactory, new LiteralExpression(key));
+		return storeInboundChannelAdapter(connectionFactory, new LiteralExpression(key));
 	}
 
 	/**
@@ -120,7 +120,7 @@ public final class Redis {
 	 * @param keyExpression The keyExpression of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisConnectionFactory connectionFactory, Expression keyExpression) {
 
 		return new RedisStoreInboundChannelAdapterSpec(connectionFactory, keyExpression);
@@ -132,10 +132,10 @@ public final class Redis {
 	 * @param keySupplier The keySupplier of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisConnectionFactory connectionFactory, Supplier<Message<?>> keySupplier) {
 
-		return storeInboundChannelAdapterSpec(connectionFactory, new SupplierExpression<>(keySupplier));
+		return storeInboundChannelAdapter(connectionFactory, new SupplierExpression<>(keySupplier));
 	}
 
 	/**
@@ -144,10 +144,10 @@ public final class Redis {
 	 * @param key The key of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisTemplate<String, ?> redisTemplate, String key) {
 
-		return storeInboundChannelAdapterSpec(redisTemplate, new LiteralExpression(key));
+		return storeInboundChannelAdapter(redisTemplate, new LiteralExpression(key));
 	}
 
 	/**
@@ -156,7 +156,7 @@ public final class Redis {
 	 * @param keyExpression The keyExpression of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 
 		return new RedisStoreInboundChannelAdapterSpec(redisTemplate, keyExpression);
@@ -168,10 +168,10 @@ public final class Redis {
 	 * @param keySupplier The keySupplier of the Redis collection to build on
 	 * @return the {@link RedisStoreInboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapterSpec(
+	public static RedisStoreInboundChannelAdapterSpec storeInboundChannelAdapter(
 			RedisTemplate<String, ?> redisTemplate, Supplier<Message<?>> keySupplier) {
 
-		return storeInboundChannelAdapterSpec(redisTemplate, new SupplierExpression<>(keySupplier));
+		return storeInboundChannelAdapter(redisTemplate, new SupplierExpression<>(keySupplier));
 	}
 
 	/**
@@ -179,7 +179,7 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisStoreOutboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapterSpec(
+	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapter(
 			RedisConnectionFactory connectionFactory) {
 
 		return new RedisStoreOutboundChannelAdapterSpec(connectionFactory);
@@ -190,7 +190,7 @@ public final class Redis {
 	 * @param redisTemplate the {@link RedisTemplate} to build on
 	 * @return the {@link RedisStoreOutboundChannelAdapterSpec} instance
 	 */
-	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapterSpec(
+	public static RedisStoreOutboundChannelAdapterSpec storeOutboundChannelAdapter(
 			RedisTemplate<String, ?> redisTemplate) {
 
 		return new RedisStoreOutboundChannelAdapterSpec(redisTemplate);
@@ -201,7 +201,7 @@ public final class Redis {
 	 * @param redisTemplate the {@link RedisTemplate} to build on
 	 * @return the {@link RedisOutboundGatewaySpec} instance
 	 */
-	public static RedisOutboundGatewaySpec outboundGatewaySpec(RedisTemplate<String, ?> redisTemplate) {
+	public static RedisOutboundGatewaySpec outboundGateway(RedisTemplate<String, ?> redisTemplate) {
 		return new RedisOutboundGatewaySpec(redisTemplate);
 	}
 
@@ -210,8 +210,32 @@ public final class Redis {
 	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
 	 * @return the {@link RedisOutboundGatewaySpec} instance
 	 */
-	public static RedisOutboundGatewaySpec outboundGatewaySpec(RedisConnectionFactory connectionFactory) {
+	public static RedisOutboundGatewaySpec outboundGateway(RedisConnectionFactory connectionFactory) {
 		return new RedisOutboundGatewaySpec(connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueOutboundGatewaySpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueOutboundGatewaySpec} instance
+	 */
+	public static RedisQueueOutboundGatewaySpec queueOutboundGateway(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
+		return new RedisQueueOutboundGatewaySpec(queueName, connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisQueueInboundGatewaySpec}.
+	 * @param queueName The queueName of the Redis list to build on
+	 * @param connectionFactory the {@link RedisConnectionFactory} to build on
+	 * @return the {@link RedisQueueInboundGatewaySpec} instance
+	 */
+	public static RedisQueueInboundGatewaySpec queueInboundGateway(String queueName,
+			RedisConnectionFactory connectionFactory) {
+
+		return new RedisQueueInboundGatewaySpec(queueName, connectionFactory);
 	}
 
 	private Redis() {

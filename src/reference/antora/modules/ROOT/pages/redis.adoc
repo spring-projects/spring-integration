@@ -654,7 +654,7 @@ Java DSL::
 @Bean
 IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from(Redis
-                        .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                        .storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
                         .collectionType(CollectionType.LIST),
                 endpointConfigure -> endpointConfigure
                         .poller(Pollers.fixedDelay(2000))
@@ -746,7 +746,7 @@ Java DSL::
 IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
         TransactionSynchronizationFactory syncFactory) {
     return IntegrationFlow.from(Redis
-                            .storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+                            .storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
                             .collectionType(CollectionType.ZSET),
                     endpointConfigure -> endpointConfigure
                             .poller(Pollers
@@ -890,7 +890,7 @@ Java DSL::
 @Bean
 public IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory connectionFactory) {
     return IntegrationFlow.from("requestChannel")
-            .handle(Redis.storeOutboundChannelAdapterSpec(connectionFactory)
+            .handle(Redis.storeOutboundChannelAdapter(connectionFactory)
                     .collectionType(CollectionType.LIST)
                     .key("myCollection"))
             .get();
@@ -966,7 +966,7 @@ Java DSL::
 IntegrationFlow outboundGatewayFlow() {
     return IntegrationFlow.from("request-channel") <1>
             .handle(Redis
-                    .outboundGatewaySpec(redisConnectionFactory <5>
+                    .outboundGateway(redisConnectionFactory <5>
                         or redisTemplate)  <6>
                     .argumentsSerializer() <7>
                     .commandExpression("") <8>
@@ -1066,7 +1066,7 @@ Java DSL::
 @Bean
 IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
     return IntegrationFlow.from("requestChannel")
-            .handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+            .handle(Redis.outboundGateway(redisConnectionFactory)
                     .command("INCR"))
             .channel(c -> c.queue("replyChannel"))
             .get();
@@ -1113,7 +1113,54 @@ It pushes a conversation `UUID` to the provided `queue`, pushes the value with t
 A different UUID is used for each interaction.
 The following listing shows the available attributes for a Redis outbound gateway:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueOutboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("requestChannel") <1>
+            .handle(Redis.queueOutboundGateway(
+                            QUEUE_NAME, <6>
+                            redisConnectionFactory) <5>
+                    .serializer() <8>
+                    .extractPayload() <9>
+                    , e -> e
+                    .requiresReply() <3>
+                    .sendTimeout() <4>
+                    .order()) <7>
+            .channel(c -> c.queue("replyChannel")) <2>
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+@ServiceActivator(
+        inputChannel = "", <1>
+        outputChannel = "", <2>
+        requiresReply = "", <3>
+        sendTimeout = "" <4>
+)
+MessageHandler queueOutboundGateway(RedisConnectionFactory redisConnectionFactory) {
+    var gateway = new RedisQueueOutboundGateway(
+            QUEUE_NAME, <6>
+            redisConnectionFactory); <5>
+    gateway.setOrder(); <7>
+    gateway.setSerializer(); <8>
+    gateway.setExtractPayload(); <9>
+    return gateway;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:queue-outbound-gateway
         request-channel=""  <1>
@@ -1126,6 +1173,8 @@ The following listing shows the available attributes for a Redis outbound gatewa
         serializer=""  <8>
         extract-payload=""/>  <9>
 ----
+
+======
 
 <1> The `MessageChannel` from which this endpoint receives `Message` instances.
 <2> The `MessageChannel` where this endpoint sends reply `Message` instances.
@@ -1143,8 +1192,8 @@ It is mutually exclusive with the 'redis-template' attribute.
 It can be an empty string, which means "`no serializer`".
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
 By default, it is a `JdkSerializationRedisSerializer`.
-<9> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
-If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
+<9> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue.
+It defaults to `true`.
 
 [[redis-queue-inbound-gateway]]
 == Redis Queue Inbound Gateway
@@ -1153,7 +1202,55 @@ Spring Integration 4.1 introduced the Redis queue inbound gateway to perform req
 It pops a conversation `UUID` from the provided `queue`, pops the value with that `UUID` as its key from the Redis list, and pushes the reply to the Redis list with a key of `UUID` plus `.reply`.
 The following listing shows the available attributes for a Redis queue inbound gateway:
 
-[source,xml]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow queueInboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+    return IntegrationFlow.from("requestChannel") <1>
+            .handle(Redis.queueInboundGateway(
+                            QUEUE_NAME, <6>
+                            redisConnectionFactory) <5>
+                    .taskExecutor() <3>
+                    .replyTimeout() <4>
+                    .phase() <7>
+                    .serializer() <8>
+                    .receiveTimeout() <9>
+                    .extractPayload() <10>
+                    .recoveryInterval()) <11>
+            .channel(c -> c.queue("replyChannel")) <2>
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+public RedisQueueInboundGateway queueInboundGateway(RedisConnectionFactory connectionFactory) {
+    var gateway = new RedisQueueInboundGateway(
+            QUEUE_NAME, <6>
+            connectionFactory); <5>
+    gateway.setRequestChannel(); <1>
+    gateway.setReplyChannel(); <2>
+    gateway.setTaskExecutor(); <3>
+    gateway.setReplyTimeout(); <4>
+    gateway.setPhase(); <7>
+    gateway.setSerializer(); <8>
+    gateway.setReceiveTimeout(); <9>
+    gateway.setExtractPayload(); <10>
+    gateway.setRecoveryInterval(); <11>
+    return gateway;
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
 ----
 <int-redis:queue-inbound-gateway
         request-channel=""  <1>
@@ -1162,12 +1259,14 @@ The following listing shows the available attributes for a Redis queue inbound g
         reply-timeout=""  <4>
         connection-factory=""  <5>
         queue=""  <6>
-        order=""  <7>
+        phase=""  <7>
         serializer=""  <8>
         receive-timeout=""  <9>
-        expect-message=""  <10>
+        extract-payload=""  <10>
         recovery-interval=""/>  <11>
 ----
+
+======
 
 <1> The `MessageChannel` where this endpoint sends `Message` instances created from the Redis data.
 <2> The `MessageChannel` from where this endpoint waits for reply `Message` instances.
@@ -1181,7 +1280,8 @@ It is typically applied for queue-based limited reply-channels.
 It defaults to `redisConnectionFactory`.
 It is mutually exclusive with `redis-template` attribute.
 <6> The name of the Redis list for the conversation `UUID`.
-<7> The order of this inbound gateway when multiple gateways are registered.
+<7> A `SmartLifecycle` attribute to specify the phase in which this endpoint is started.
+It defaults to `0`.
 <8> The `RedisSerializer` bean reference.
 It can be an empty string, which means "`no serializer`".
 In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
@@ -1190,8 +1290,8 @@ It defaults to a `JdkSerializationRedisSerializer`.
 To restore that behavior, provide a reference to a `StringRedisSerializer`).
 <9> The timeout (in milliseconds) to wait until the received message is fetched.
 It is typically applied for queue-based limited request-channels.
-<10> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
-If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
+<10> Specifies whether this endpoint should deal only with the payload or the entire Message against the Redis queue.
+It defaults to `true`.
 <11> The time (in milliseconds) the listener task should sleep after exceptions on the "`right pop`" operation before restarting the listener task.
 
 IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.

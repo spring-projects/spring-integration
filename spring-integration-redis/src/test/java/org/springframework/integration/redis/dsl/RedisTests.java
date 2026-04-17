@@ -61,6 +61,7 @@ import org.springframework.integration.transaction.TransactionSynchronizationFac
 import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -88,6 +89,8 @@ class RedisTests implements RedisContainerTest {
 	static final String STORE_FOR_INBOUND_CHANNEL_ADAPTER = "dslStoreInboundChannelAdapter";
 
 	static final String STORE_FOR_OUTBOUND_CHANNEL_ADAPTER = "dslStoreOutboundChannelAdapter";
+
+	static final String QUEUE_NAME_FOR_QUEUE_GATEWAYS = "dslQueueGateways";
 
 	@Autowired
 	RedisConnectionFactory connectionFactory;
@@ -128,6 +131,10 @@ class RedisTests implements RedisContainerTest {
 
 	@Autowired
 	QueueChannel outboundGatewayReplyChannel;
+
+	@Autowired
+	@Qualifier("queueOutboundGatewayFlow.input")
+	MessageChannel queueOutboundGatewayFlowInputChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -304,6 +311,24 @@ class RedisTests implements RedisContainerTest {
 				.isEqualTo(initialValue + 1);
 	}
 
+	@Test
+	void testQueueInboundAndOutboundGatewayFlow() {
+		// Given
+		QueueChannel replyChannel = new QueueChannel();
+		String gatewayMessagePayload = "queue-gateway-message";
+		Message<String> gatewayMessage = MessageBuilder.withPayload(gatewayMessagePayload)
+				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
+				.build();
+		// When
+		queueOutboundGatewayFlowInputChannel.send(gatewayMessage);
+		// Then
+		Message<?> replyMessage = replyChannel.receive(10000);
+		assertThat(replyMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("Acked:" + gatewayMessagePayload);
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -352,7 +377,7 @@ class RedisTests implements RedisContainerTest {
 		IntegrationFlow storeInboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory,
 				TransactionSynchronizationFactory syncFactory) {
 			return IntegrationFlow.from(Redis
-									.storeInboundChannelAdapterSpec(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
+									.storeInboundChannelAdapter(redisConnectionFactory, STORE_FOR_INBOUND_CHANNEL_ADAPTER)
 									.collectionType(CollectionType.ZSET),
 							endpointConfigure -> endpointConfigure
 									.poller(Pollers
@@ -389,7 +414,7 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow storeOutboundChannelAdapterFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
-					.handle(Redis.storeOutboundChannelAdapterSpec(redisConnectionFactory)
+					.handle(Redis.storeOutboundChannelAdapter(redisConnectionFactory)
 							.key(STORE_FOR_OUTBOUND_CHANNEL_ADAPTER)
 							.collectionType(CollectionType.MAP));
 		}
@@ -397,9 +422,29 @@ class RedisTests implements RedisContainerTest {
 		@Bean
 		IntegrationFlow outboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
 			return flow -> flow
-					.handle(Redis.outboundGatewaySpec(redisConnectionFactory)
+					.handle(Redis.outboundGateway(redisConnectionFactory)
 							.command("INCR"))
 					.channel(c -> c.queue("outboundGatewayReplyChannel"));
+		}
+
+		@Bean
+		IntegrationFlow queueOutboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+			return flow -> flow
+					.handle(Redis.queueOutboundGateway(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.extractPayload(true)
+							.receiveTimeout(20000), e -> e
+							.sendTimeout(10000));
+		}
+
+		@Bean
+		IntegrationFlow queueInboundGatewayFlow(RedisConnectionFactory redisConnectionFactory) {
+			return IntegrationFlow.from(Redis
+							.queueInboundGateway(QUEUE_NAME_FOR_QUEUE_GATEWAYS, redisConnectionFactory)
+							.serializer(RedisSerializer.string())
+							.receiveTimeout(10000))
+					.handle((uuidValue, headers) -> "Acked:" + uuidValue)
+					.get();
 		}
 
 	}
