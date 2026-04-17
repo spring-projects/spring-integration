@@ -28,8 +28,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
 import org.junitpioneer.jupiter.RetryingTest;
@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Multicast
 @DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
-@EnabledOnJre(JRE.JAVA_17)
+@DisabledOnJre(JRE.JAVA_17)
 public class DatagramPacketMulticastSendingHandlerTests implements TestApplicationContextAware {
 
 	@RetryingTest(20)
