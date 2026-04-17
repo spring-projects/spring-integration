@@ -30,10 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -48,7 +45,6 @@ import org.springframework.integration.ip.udp.outbound.MulticastSendingMessageHa
 import org.springframework.integration.ip.udp.outbound.UnicastSendingMessageHandler;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
@@ -66,7 +62,6 @@ import static org.assertj.core.api.Assertions.fail;
  *
  */
 @Multicast
-@LogLevels(categories = "org.springframework.integration.ip.udp", level = "TRACE")
 public class UdpChannelAdapterTests implements TestApplicationContextAware {
 
 	@Test
@@ -260,7 +255,6 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Disabled("Fails on Java > 17")
 	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =
@@ -309,7 +303,6 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 	public void testMulticastSender(MulticastCondition multicastCondition) {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter =
@@ -378,12 +371,12 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		UnicastReceivingChannelAdapter adapter = context.getBean(UnicastReceivingChannelAdapter.class);
 		SocketTestUtils.waitListening(adapter);
 		int receiverServerPort = adapter.getPort();
-		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
+		DatagramPacket packet = new DatagramPacket("test".getBytes(), 4);
 		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
 		DatagramSocket socket = new DatagramSocket();
 		socket.send(packet);
 		socket.receive(packet);
-		assertThat(new String(packet.getData())).isEqualTo("FOO");
+		assertThat(new String(packet.getData())).isEqualTo("TEST");
 		assertThat(packet.getPort()).isEqualTo(receiverServerPort);
 		socket.close();
 		context.close();
