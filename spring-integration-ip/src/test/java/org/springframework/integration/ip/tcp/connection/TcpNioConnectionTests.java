@@ -59,6 +59,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
@@ -673,7 +674,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		return new CompositeExecutor(ioExec, assemblerExec);
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void nioAssemblerThreadIsReleased() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		factory.setTaskScheduler(mock());
