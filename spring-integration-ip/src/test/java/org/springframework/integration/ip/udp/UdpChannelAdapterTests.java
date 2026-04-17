@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -59,6 +61,7 @@ import static org.mockito.Mockito.mock;
  *
  */
 @Multicast
+@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 public class UdpChannelAdapterTests {
 
 	@Test
