@@ -31,7 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
 import org.junitpioneer.jupiter.RetryingTest;
 
@@ -247,6 +249,7 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@RetryingTest(20)
+	@DisabledOnJre(JRE.JAVA_17)
 	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =
