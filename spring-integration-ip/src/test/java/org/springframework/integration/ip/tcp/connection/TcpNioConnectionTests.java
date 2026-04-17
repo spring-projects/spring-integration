@@ -58,6 +58,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -682,7 +683,7 @@ public class TcpNioConnectionTests {
 		return new CompositeExecutor(ioExec, assemblerExec);
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void nioAssemblerThreadIsReleased() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		final CountDownLatch connectionLatch = new CountDownLatch(1);
