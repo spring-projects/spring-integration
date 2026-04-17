@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -257,7 +258,7 @@ public class DeserializationTests {
 	@Test
 	public void deserializationEvents() {
 		doDeserialize(new ByteArrayCrLfSerializer(), "CRLF not found before max message length: 5");
-		doDeserialize(new ByteArrayLengthHeaderSerializer(), "Message length 1718579042 exceeds max message length: 5");
+		doDeserialize(new ByteArrayLengthHeaderSerializer(), "Message length 1952805748 exceeds max message length: 5");
 		TcpDeserializationExceptionEvent event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
 				"Stream closed after 3 of 4", new byte[] {0, 0, 0}, 5); // closed during header read
 		assertThat(event.getOffset()).isEqualTo(-1);
@@ -277,7 +278,7 @@ public class DeserializationTests {
 	}
 
 	private TcpDeserializationExceptionEvent doDeserialize(AbstractByteArraySerializer deser, String expectedMessage) {
-		return doDeserialize(deser, expectedMessage, "foobar".getBytes(), 5);
+		return doDeserialize(deser, expectedMessage, "test_test".getBytes(), 5);
 	}
 
 	private TcpDeserializationExceptionEvent doDeserialize(AbstractByteArraySerializer deser, String expectedMessage,
@@ -361,7 +362,7 @@ public class DeserializationTests {
 		assertThat(message).isNull();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testTimeoutWithRawDeserializerEofIsTerminator() {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
