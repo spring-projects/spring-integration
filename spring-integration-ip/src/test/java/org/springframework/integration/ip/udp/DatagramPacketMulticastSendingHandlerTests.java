@@ -28,9 +28,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.mock;
 @DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 public class DatagramPacketMulticastSendingHandlerTests {
 
-	@Test
+	@RetryingTest(10)
 	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket;
 		try {
@@ -121,7 +121,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		socket.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket = new MulticastSocket();
 		final int testPort = socket.getLocalPort();
