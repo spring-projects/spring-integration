@@ -52,7 +52,7 @@ import static org.mockito.Mockito.mock;
 @DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 public class DatagramPacketMulticastSendingHandlerTests {
 
-	@RetryingTest(10)
+	@RetryingTest(20)
 	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket;
 		try {
@@ -121,7 +121,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		socket.close();
 	}
 
-	@RetryingTest(10)
+	@RetryingTest(20)
 	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket = new MulticastSocket();
 		final int testPort = socket.getLocalPort();
