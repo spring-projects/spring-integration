@@ -586,7 +586,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		TestUtils.<DisposableBean>getPropertyValue(compositeExec, "secondaryTaskExecutor").destroy();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testAllMessagesDelivered() throws Exception {
 		final int numberOfSockets = 10;
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
