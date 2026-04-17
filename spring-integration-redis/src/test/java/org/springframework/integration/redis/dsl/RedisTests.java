@@ -136,9 +136,6 @@ class RedisTests implements RedisContainerTest {
 	@Qualifier("queueOutboundGatewayFlow.input")
 	MessageChannel queueOutboundGatewayFlowInputChannel;
 
-	@Autowired
-	QueueChannel queueOutboundGatewayReplyChannel;
-
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
@@ -317,13 +314,15 @@ class RedisTests implements RedisContainerTest {
 	@Test
 	void testQueueInboundAndOutboundGatewayFlow() {
 		// Given
+		QueueChannel replyChannel = new QueueChannel();
 		String gatewayMessagePayload = "queue-gateway-message";
-		Message<String> gatewayMessage = new GenericMessage<>(gatewayMessagePayload,
-				Map.of(MessageHeaders.REPLY_CHANNEL, queueOutboundGatewayReplyChannel));
+		Message<String> gatewayMessage = MessageBuilder.withPayload(gatewayMessagePayload)
+				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
+				.build();
 		// When
 		queueOutboundGatewayFlowInputChannel.send(gatewayMessage);
 		// Then
-		Message<?> replyMessage = queueOutboundGatewayReplyChannel.receive(10000);
+		Message<?> replyMessage = replyChannel.receive(10000);
 		assertThat(replyMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
@@ -436,11 +435,6 @@ class RedisTests implements RedisContainerTest {
 							.extractPayload(true)
 							.receiveTimeout(20000), e -> e
 							.sendTimeout(10000));
-		}
-
-		@Bean
-		QueueChannel queueOutboundGatewayReplyChannel() {
-			return new QueueChannel();
 		}
 
 		@Bean
