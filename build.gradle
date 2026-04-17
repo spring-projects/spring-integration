@@ -625,7 +625,8 @@ project('spring-integration-ip') {
 
     tasks.withType(JavaForkOptions) {
         jvmArgs '--add-opens', 'java.base/java.nio.channels.spi=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+                '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+				'-Djava.net.preferIPv4Stack=true'
     }
 }
 
