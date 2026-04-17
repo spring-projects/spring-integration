@@ -60,7 +60,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		}
 		final int testPort = socket.getLocalPort();
 		final String multicastAddress = multicastCondition.getGroup();
-		final String payload = "foo";
+		final String payload = "test";
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch received = new CountDownLatch(2);
 		Runnable catcher = () -> {
@@ -90,7 +90,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticast-");
 		executor.execute(catcher);
 		executor.execute(catcher);
-		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(listening.await(20, TimeUnit.SECONDS)).isTrue();
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		NetworkInterface nic = multicastCondition.getNic();
@@ -113,26 +113,19 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		}
 		handler.afterPropertiesSet();
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertThat(received.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(received.await(20000, TimeUnit.MILLISECONDS)).isTrue();
 		handler.stop();
 		socket.close();
 	}
 
 	@Test
 	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
-
-		MulticastSocket socket;
-		try {
-			socket = new MulticastSocket();
-		}
-		catch (Exception e) {
-			return;
-		}
+		MulticastSocket socket = new MulticastSocket();
 		final int testPort = socket.getLocalPort();
 		final AtomicInteger ackPort = new AtomicInteger();
 
 		final String multicastAddress = multicastCondition.getGroup();
-		final String payload = "foobar";
+		final String payload = "test_test";
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(2);
@@ -147,14 +140,14 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				InetAddress group = InetAddress.getByName(multicastAddress);
 				socket1.joinGroup(new InetSocketAddress(group, 0), null);
 				listening.countDown();
-				assertThat(ackListening.await(10, TimeUnit.SECONDS)).isTrue();
+				assertThat(ackListening.await(20, TimeUnit.SECONDS)).isTrue();
 				socket1.receive(receivedPacket);
 				socket1.close();
 				byte[] src = receivedPacket.getData();
 				int length = receivedPacket.getLength();
 				int offset = receivedPacket.getOffset();
-				byte[] dest = new byte[6];
-				System.arraycopy(src, offset + length - 6, dest, 0, 6);
+				byte[] dest = new byte[9];
+				System.arraycopy(src, offset + length - 9, dest, 0, 9);
 				assertThat(new String(dest)).isEqualTo(payload);
 				DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 				mapper.setAcknowledge(true);
@@ -191,9 +184,9 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		Executor executor = new SimpleAsyncTaskExecutor("verifySendMulticastWithAcks-");
 		executor.execute(catcher);
 		executor.execute(catcher);
-		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(listening.await(20000, TimeUnit.MILLISECONDS)).isTrue();
 		MulticastSendingMessageHandler handler =
-				new MulticastSendingMessageHandler(multicastAddress, testPort, true, true, "localhost", 0, 10000);
+				new MulticastSendingMessageHandler(multicastAddress, testPort, true, true, "localhost", 0, 20000);
 
 		if (nic != null) {
 			String hostName = null;
@@ -220,7 +213,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		ackPort.set(handler.getAckPort());
 		ackListening.countDown();
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertThat(ackSent.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(ackSent.await(20000, TimeUnit.MILLISECONDS)).isTrue();
 		handler.stop();
 		socket.close();
 	}

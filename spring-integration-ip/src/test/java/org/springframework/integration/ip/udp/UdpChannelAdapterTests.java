@@ -42,7 +42,6 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -60,7 +59,6 @@ import static org.mockito.Mockito.mock;
  *
  */
 @Multicast
-@LogLevels(categories = "org.springframework.integration.ip.udp", level = "TRACE")
 public class UdpChannelAdapterTests {
 
 	@Test
@@ -352,12 +350,12 @@ public class UdpChannelAdapterTests {
 		UnicastReceivingChannelAdapter adapter = context.getBean(UnicastReceivingChannelAdapter.class);
 		SocketTestUtils.waitListening(adapter);
 		int receiverServerPort = adapter.getPort();
-		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
+		DatagramPacket packet = new DatagramPacket("test".getBytes(), 4);
 		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
 		DatagramSocket socket = new DatagramSocket();
 		socket.send(packet);
 		socket.receive(packet);
-		assertThat(new String(packet.getData())).isEqualTo("FOO");
+		assertThat(new String(packet.getData())).isEqualTo("TEST");
 		assertThat(packet.getPort()).isEqualTo(receiverServerPort);
 		socket.close();
 		context.close();
