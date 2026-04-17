@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -62,6 +64,7 @@ import static org.assertj.core.api.Assertions.fail;
  *
  */
 @Multicast
+@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 public class UdpChannelAdapterTests implements TestApplicationContextAware {
 
 	@Test
