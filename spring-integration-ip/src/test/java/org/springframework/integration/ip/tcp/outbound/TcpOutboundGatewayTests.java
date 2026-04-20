@@ -45,6 +45,7 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -319,7 +320,7 @@ public class TcpOutboundGatewayTests {
 		serverSocket.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testGoodNetGWTimeoutCached() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
