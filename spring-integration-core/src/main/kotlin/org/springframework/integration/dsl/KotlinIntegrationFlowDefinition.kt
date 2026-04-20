@@ -139,7 +139,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P : Any> route(crossinline function: (P) -> Any?) {
+	inline fun <reified P : Any> route(crossinline function: (P) -> Any) {
 		route(function) { }
 	}
 
@@ -147,7 +147,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.route] providing a `route<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
-	inline fun <reified P : Any, T : Any?> route(
+	inline fun <reified P : Any, T : Any> route(
 		crossinline function: (P) -> T,
 		crossinline configurer: KotlinRouterSpec<T, MethodInvokingRouter>.() -> Unit
 	) {
@@ -724,10 +724,11 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		beanName: String, method: String?,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
 	) {
 
-		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it)) }
+		@Suppress("UNCHECKED_CAST")
+		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it as RouterSpec<Any, MethodInvokingRouter>)) }
 	}
 
 	/**
@@ -744,17 +745,18 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		service: Any, methodName: String?,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
 	) {
 
-		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it)) }
+		@Suppress("UNCHECKED_CAST")
+		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it as RouterSpec<Any, MethodInvokingRouter>)) }
 	}
 
 	/**
 	 * Populate the [ExpressionEvaluatingRouter] for provided SpEL expression
 	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun <T : Any?> route(
+	fun <T : Any> route(
 		expression: String,
 		routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
 	) {
@@ -768,10 +770,11 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		messageProcessorSpec: MessageProcessorSpec<*>,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit = {}
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit = {}
 	) {
 
-		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it)) }
+		@Suppress("UNCHECKED_CAST")
+		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it as RouterSpec<Any, MethodInvokingRouter>)) }
 	}
 
 	/**

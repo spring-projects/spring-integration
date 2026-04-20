@@ -1653,11 +1653,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B route(String beanName, @Nullable String method,
-			@Nullable Consumer<RouterSpec<@Nullable Object, MethodInvokingRouter>> routerConfigurer) {
+			@Nullable Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 
 		MethodInvokingRouter methodInvokingRouter =
 				new MethodInvokingRouter(new BeanNameMessageProcessor<>(beanName, method));
-		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(methodInvokingRouter), routerConfigurer);
+		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 
 	/**
@@ -1693,7 +1693,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see MethodInvokingRouter
 	 */
 	public B route(Object service, @Nullable String methodName,
-			@Nullable Consumer<RouterSpec<@Nullable Object, MethodInvokingRouter>> routerConfigurer) {
+			@Nullable Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 
 		MethodInvokingRouter router;
 		if (StringUtils.hasText(methodName)) {
@@ -1702,7 +1702,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		else {
 			router = new MethodInvokingRouter(service);
 		}
-		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(router), routerConfigurer);
+		return route(new RouterSpec<>(router), routerConfigurer);
 	}
 
 	/**
@@ -1805,7 +1805,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec) {
-		return route(messageProcessorSpec, (Consumer<RouterSpec<@Nullable Object, MethodInvokingRouter>>) null);
+		return route(messageProcessorSpec, (Consumer<RouterSpec<Object, MethodInvokingRouter>>) null);
 	}
 
 	/**
@@ -1825,13 +1825,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
-			@Nullable Consumer<RouterSpec<@Nullable Object, MethodInvokingRouter>> routerConfigurer) {
+			@Nullable Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		addComponent(processor);
 
-		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(new MethodInvokingRouter(processor)), routerConfigurer);
+		return route(new RouterSpec<>(new MethodInvokingRouter(processor)), routerConfigurer);
 	}
 
 	protected <R extends AbstractMessageRouter, S extends AbstractRouterSpec<? super S, R>> B route(S routerSpec,

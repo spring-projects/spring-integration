@@ -28,7 +28,7 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinRouterSpec<K : Any?, R : AbstractMappingMessageRouter>(override val delegate: RouterSpec<K, R>) :
+class KotlinRouterSpec<K : Any, R : AbstractMappingMessageRouter>(override val delegate: RouterSpec<K, R>) :
 	AbstractKotlinRouterSpec<RouterSpec<K, R>, R>(delegate) {
 
 	fun resolutionRequired(resolutionRequired: Boolean) {

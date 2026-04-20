@@ -303,8 +303,8 @@ class KotlinDslTests : TestApplicationContextAware {
 			integrationFlow<Function<*, *>> {
 				transform<String> { it.lowercase() }
 				filter(UnexpiredMessageSelector())
-				route<Message<*>, Any?>({ null }) { defaultOutputToParentFlow() }
-				route<Message<*>> { m -> m.headers.replyChannel }
+				route<Message<*>, String>({ "" }) { defaultOutputToParentFlow() }
+				route<Message<*>> { m -> m.headers.replyChannel!! }
 			}
 
 		@Bean
