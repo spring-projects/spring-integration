@@ -28,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
