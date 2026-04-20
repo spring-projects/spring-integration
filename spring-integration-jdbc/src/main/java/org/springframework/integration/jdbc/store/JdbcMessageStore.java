@@ -712,6 +712,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Iterator<MessageGroup> iterator() {
 		List<String> groupIds =
 				this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS), new SingleColumnRowMapper<>(), this.region);

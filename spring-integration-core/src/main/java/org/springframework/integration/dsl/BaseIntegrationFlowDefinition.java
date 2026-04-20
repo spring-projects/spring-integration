@@ -1657,7 +1657,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		MethodInvokingRouter methodInvokingRouter =
 				new MethodInvokingRouter(new BeanNameMessageProcessor<>(beanName, method));
-		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
+		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(methodInvokingRouter), routerConfigurer);
 	}
 
 	/**
@@ -1702,7 +1702,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		else {
 			router = new MethodInvokingRouter(service);
 		}
-		return route(new RouterSpec<>(router), routerConfigurer);
+		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(router), routerConfigurer);
 	}
 
 	/**
@@ -1831,7 +1831,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		addComponent(processor);
 
-		return route(new RouterSpec<>(new MethodInvokingRouter(processor)), routerConfigurer);
+		return route(new RouterSpec<@Nullable Object, MethodInvokingRouter>(new MethodInvokingRouter(processor)), routerConfigurer);
 	}
 
 	protected <R extends AbstractMessageRouter, S extends AbstractRouterSpec<? super S, R>> B route(S routerSpec,
