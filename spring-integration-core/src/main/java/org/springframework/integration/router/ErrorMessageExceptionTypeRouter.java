@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
@@ -114,7 +112,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	@Override
-	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		String mostSpecificCause = null;
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable cause) {

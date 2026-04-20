@@ -49,7 +49,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	 *    preferring direct interface to indirect subclass
 	 */
 	@Override
-	protected @Nullable List<@Nullable Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
 		if (CollectionUtils.isEmpty(getChannelMappings())) {
 			return null;
 		}
@@ -59,7 +59,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 			type = type.getComponentType();
 		}
 		String closestMatch = findClosestMatch(type, isArray);
-		return (closestMatch != null) ? Collections.<@Nullable Object>singletonList(closestMatch) : null;
+		return (closestMatch != null) ? Collections.singletonList(closestMatch) : null;
 	}
 
 	private @Nullable String findClosestMatch(Class<?> type, boolean isArray) { // NOSONAR

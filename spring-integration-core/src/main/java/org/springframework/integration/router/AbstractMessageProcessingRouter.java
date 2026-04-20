@@ -57,7 +57,7 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter
 				((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 			}
 		}
-		if (this.messageProcessor instanceof BeanFactoryAware beanFactoryAware && this.getBeanFactory() != null) {
+		if (this.messageProcessor instanceof BeanFactoryAware beanFactoryAware && getBeanFactory() != null) {
 			beanFactoryAware.setBeanFactory(this.getBeanFactory());
 		}
 	}
@@ -82,9 +82,9 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter
 	}
 
 	@Override
-	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
-		return Collections.singletonList(result);
+		return result == null ? null : Collections.singletonList(result);
 	}
 
 }

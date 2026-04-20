@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.store;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -713,9 +714,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		List<String> groupIds =
+		List<@Nullable String> groupIds =
 				this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS), new SingleColumnRowMapper<>(), this.region);
-		return new FunctionIterator<>(groupIds, this::getMessageGroup);
+		List<String> groupIdsToMap = new ArrayList<>(groupIds.size());
+		for (String groupId : groupIds) {
+			if (groupId != null) {
+				groupIdsToMap.add(groupId);
+			}
+		}
+		return new FunctionIterator<>(groupIdsToMap, this::getMessageGroup);
 	}
 
 	/**

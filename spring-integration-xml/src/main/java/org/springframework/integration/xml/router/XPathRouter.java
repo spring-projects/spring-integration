@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.router;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -114,13 +115,21 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	}
 
 	@Override
-	protected List<@Nullable Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		if (this.evaluateAsString) {
-			return Collections.<@Nullable Object>singletonList(this.xPathExpression.evaluateAsString(node));
+			String channelKey = this.xPathExpression.evaluateAsString(node);
+			return channelKey == null ? null : Collections.singletonList(channelKey);
 		}
 		else {
-			return this.xPathExpression.evaluate(node, this.nodeMapper);
+			List<@Nullable Object> resultList = this.xPathExpression.evaluate(node, this.nodeMapper);
+			List<Object> channelKeys = new ArrayList<>(resultList.size());
+			for (Object result : resultList) {
+				if (result != null) {
+					channelKeys.add(result);
+				}
+			}
+			return channelKeys;
 		}
 	}
 
