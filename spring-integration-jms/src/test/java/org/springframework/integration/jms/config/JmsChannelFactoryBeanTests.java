@@ -37,11 +37,12 @@ class JmsChannelFactoryBeanTests {
 		fb.setDestinationName("testQueue");
 		fb.setSessionTransacted(true);
 		fb.setJmsTemplate(new JmsTemplate());
+		fb.setBeanFactory(new StaticListableBeanFactory());
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(fb::createInstance)
-				.withMessageContaining("'sessionTransacted'")
-				.withMessageContaining("must be provided on the externally configured JmsTemplate");
+				.withMessageContaining("JmsTemplate properties must be configured on the externally supplied " +
+						"JmsTemplate, not on the factory bean.");
 	}
 
 	@Test
