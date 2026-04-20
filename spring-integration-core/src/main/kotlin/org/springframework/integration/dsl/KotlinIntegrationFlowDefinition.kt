@@ -724,7 +724,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		beanName: String, method: String?,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(beanName, method) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -744,7 +744,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		service: Any, methodName: String?,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit
 	) {
 
 		this.delegate.route(service, methodName) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -754,9 +754,9 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [ExpressionEvaluatingRouter] for provided SpEL expression
 	 * with provided options from [KotlinRouterSpec].
 	 */
-	fun <T : Any?> route(
+	fun route(
 		expression: String,
-		routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
+		routerConfigurer: KotlinRouterSpec<Any, ExpressionEvaluatingRouter>.() -> Unit = {}
 	) {
 
 		this.delegate.route(expression) { routerConfigurer(KotlinRouterSpec(it)) }
@@ -768,7 +768,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun route(
 		messageProcessorSpec: MessageProcessorSpec<*>,
-		routerConfigurer: KotlinRouterSpec<Any?, MethodInvokingRouter>.() -> Unit = {}
+		routerConfigurer: KotlinRouterSpec<Any, MethodInvokingRouter>.() -> Unit = {}
 	) {
 
 		this.delegate.route(messageProcessorSpec) { routerConfigurer(KotlinRouterSpec(it)) }

@@ -369,7 +369,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelKeys, Message<?> message) {
 		for (Object channelKey : channelKeys) {
-			addChannelKeyToCollection(channels, message, channelKey);
+			if (channelKey != null) {
+				addChannelKeyToCollection(channels, message, channelKey);
+			}
 		}
 	}
 

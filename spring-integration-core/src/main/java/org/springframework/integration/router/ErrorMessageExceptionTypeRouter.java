@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
@@ -69,7 +71,6 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 
 	private Class<?> resolveClassFromName(String className) {
 		try {
-			Assert.state(getApplicationContext() != null, "An ApplicationContext is required");
 			return ClassUtils.forName(className, getApplicationContext().getClassLoader());
 		}
 		catch (ClassNotFoundException e) {
@@ -112,7 +113,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
+	protected @Nullable List<Object> getChannelKeys(Message<?> message) {
 		String mostSpecificCause = null;
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable cause) {
@@ -127,7 +128,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 				cause = cause.getCause();
 			}
 		}
-		return Collections.singletonList(mostSpecificCause);
+		return mostSpecificCause == null ? null : Collections.singletonList(mostSpecificCause);
 	}
 
 }
