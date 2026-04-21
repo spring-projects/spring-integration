@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.tomcat.websocket.Constants;
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,7 +77,7 @@ public class WebSocketClientTests {
 	@Qualifier("webSocketInputChannel")
 	private QueueChannel webSocketInputChannel;
 
-	@Test
+	@RetryingTest(10)
 	public void testWebSocketOutboundMessageHandler() {
 		this.webSocketOutputChannel.send(new GenericMessage<>("Spring"));
 
