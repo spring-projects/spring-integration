@@ -47,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.Mockito;
 
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -1019,7 +1020,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			BoundValueOperations<String, String> boundValueOps = mock();
 			ReflectionTestUtils.setField(lock, "boundValueOps", boundValueOps);
 
-			given(boundValueOps.set(any(), (Consumer<SetSpec<String, String>>) any()))
+			given(boundValueOps.set(any(), Mockito.<Consumer<SetSpec<String, String>>>any()))
 					.willThrow(new RedisSystemException("CAS failed", new RuntimeException("ERR unknown command")));
 
 			assertThat(TestUtils.<Boolean>getPropertyValue(registry, "supportsCasCadOperations")).isTrue();
