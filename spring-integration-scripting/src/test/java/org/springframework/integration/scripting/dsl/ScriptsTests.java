@@ -23,6 +23,8 @@ import java.util.Date;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +128,7 @@ public class ScriptsTests {
 	}
 
 	@Test
+	@EnabledForJreRange(max = JRE.JAVA_21)
 	public void filterTest() {
 		Message<?> message1 = MessageBuilder.withPayload("bad").setHeader("type", "bad").build();
 		Message<?> message2 = MessageBuilder.withPayload("good").setHeader("type", "good").build();
@@ -183,6 +186,7 @@ public class ScriptsTests {
 	private MessageChannel kotlinScriptFlowInput;
 
 	@Test
+	@EnabledForJreRange(max = JRE.JAVA_21)
 	public void testKotlinScript() {
 		this.kotlinScriptFlowInput.send(new GenericMessage<>(3));
 		Message<?> receive = this.results.receive(10_000);
