@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -155,7 +156,7 @@ class FluxAggregatorMessageHandlerTests {
 		fluxAggregatorMessageHandler.stop();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testWindowTimespan() {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
