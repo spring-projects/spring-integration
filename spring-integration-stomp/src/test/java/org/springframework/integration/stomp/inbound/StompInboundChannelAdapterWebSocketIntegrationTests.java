@@ -16,7 +16,7 @@
 
 package org.springframework.integration.stomp.inbound;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -30,8 +30,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
@@ -62,7 +60,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -71,9 +68,9 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
-import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.standard.StandardWebSocketUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.sockjs.client.RestTemplateXhrTransport;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
@@ -229,7 +226,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 	// STOMP Client
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class ContextConfiguration {
 
@@ -240,26 +237,30 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.singletonList(new WebSocketTransport(new StandardWebSocketClient())));
+			return new SockJsClient(List.of(new RestTemplateXhrTransport(),
+					new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean
-		public WebSocketStompClient stompClient(
-				@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
-			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
+		public WebSocketStompClient stompClient(@Qualifier("taskScheduler") TaskScheduler taskScheduler,
+				WebSocketClient webSocketClient) {
+
+			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient);
 			webSocketStompClient.setMessageConverter(new JacksonJsonMessageConverter());
 			webSocketStompClient.setTaskScheduler(taskScheduler);
 			return webSocketStompClient;
 		}
 
 		@Bean
-		public StompSessionManager stompSessionManager(WebSocketStompClient stompClient) {
+		public StompSessionManager stompSessionManager(WebSocketStompClient stompClient,
+				TomcatWebSocketTestServer server) {
+
 			WebSocketStompSessionManager webSocketStompSessionManager =
-					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
+					new WebSocketStompSessionManager(stompClient, server.getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
 			webSocketStompSessionManager.setRecoveryInterval(1000);
 			WebSocketHttpHeaders handshakeHeaders = new WebSocketHttpHeaders();
-			handshakeHeaders.setOrigin("https://www.example.com/");
+			handshakeHeaders.setOrigin("https://www.example.com");
 			webSocketStompSessionManager.setHandshakeHeaders(handshakeHeaders);
 			StompHeaders stompHeaders = new StompHeaders();
 			stompHeaders.setHeartbeat(new long[] {10000, 10000});
@@ -278,11 +279,13 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		}
 
 		@Bean
-		public StompInboundChannelAdapter stompInboundChannelAdapter(StompSessionManager stompSessionFactory) {
+		public StompInboundChannelAdapter stompInboundChannelAdapter(StompSessionManager stompSessionFactory,
+				PollableChannel stompInputChannel, PollableChannel errorChannel) {
+
 			StompInboundChannelAdapter adapter = new StompInboundChannelAdapter(stompSessionFactory, "/topic/myTopic");
 			adapter.setPayloadType(Map.class);
-			adapter.setOutputChannel(stompInputChannel());
-			adapter.setErrorChannel(errorChannel());
+			adapter.setOutputChannel(stompInputChannel);
+			adapter.setErrorChannel(errorChannel);
 			return adapter;
 		}
 
@@ -292,10 +295,10 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		}
 
 		@Bean
-		public ApplicationListener<ApplicationEvent> stompEventListener() {
+		public ApplicationListener<ApplicationEvent> stompEventListener(PollableChannel stompEvents) {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(StompIntegrationEvent.class);
-			producer.setOutputChannel(stompEvents());
+			producer.setOutputChannel(stompEvents);
 			return producer;
 		}
 
@@ -317,22 +320,6 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			registry.addEndpoint("/ws")
 					.setHandshakeHandler(handshakeHandler())
 					.setAllowedOrigins("https://www.example.com")
-					.addInterceptors(new HandshakeInterceptor() {
-
-						@Override
-						public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-								WebSocketHandler wsHandler, Map<String, Object> attributes) {
-
-							return request.getHeaders().getOrigin() != null;
-						}
-
-						@Override
-						public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-								WebSocketHandler wsHandler, Exception exception) {
-
-						}
-
-					})
 					.withSockJS();
 		}
 
