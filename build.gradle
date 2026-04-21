@@ -45,7 +45,7 @@ ext {
     linkScmDevConnection = 'git@github.com:spring-projects/spring-integration.git'
 
     apacheSshdVersion = '2.16.0'
-    artemisVersion = '2.44.0'
+    artemisVersion = '2.53.0'
     aspectjVersion = '1.9.25.1'
     assertjVersion = '3.27.7'
     assertkVersion = '0.28.1'
