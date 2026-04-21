@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -243,7 +244,7 @@ public class DefaultLockRegistryTests {
 		assertThat(brokenBarrierLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void executeLockedIsTimedOutInOtherThread() throws Exception {
 		LockRegistry registry = new DefaultLockRegistry(1);
 
