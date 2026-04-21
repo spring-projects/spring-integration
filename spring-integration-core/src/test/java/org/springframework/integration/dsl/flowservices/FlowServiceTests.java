@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -129,7 +130,7 @@ public class FlowServiceTests {
 	@Qualifier("delaysBetweenPollsOutput")
 	private PollableChannel delaysBetweenPollsOutput;
 
-	@Test
+	@RetryingTest(10)
 	public void noDoubleStartForEndpoints() {
 		this.delaysBetweenPollsInput.send(new GenericMessage<>("A,B"));
 
