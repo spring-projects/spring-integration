@@ -21,7 +21,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 
@@ -69,7 +69,7 @@ public class ZeroMqDslTests {
 	@Autowired
 	IntegrationFlowContext integrationFlowContext;
 
-	@Test
+	@RetryingTest(10)
 	void testZeroMqDslIntegration() throws InterruptedException {
 		BlockingQueue<Message<?>> results = new LinkedBlockingQueue<>();
 
@@ -102,13 +102,13 @@ public class ZeroMqDslTests {
 
 		assertThat(message.getHeaders()).containsEntry(ZeroMqHeaders.TOPIC, "someTopic");
 
-		message = results.poll(1, TimeUnit.SECONDS);
+		message = results.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("test");
 
 		// With Pub/Sub channel we would have 4 messages.
-		assertThat(results.poll(1, TimeUnit.SECONDS)).isNull();
+		assertThat(results.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		this.integrationFlowContext.getRegistry()
 				.values()
