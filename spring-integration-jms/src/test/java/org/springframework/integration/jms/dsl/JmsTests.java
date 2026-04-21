@@ -110,6 +110,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	private PollableChannel outputChannel;
 
 	@Autowired
+	@Qualifier("flow2QueueChannel")
+	private PollableChannel flow2OutputChannel;
+
+	@Autowired
 	@Qualifier("jmsOutboundFlow.input")
 	private MessageChannel jmsOutboundInboundChannel;
 
@@ -126,6 +130,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
+
+	@Autowired
+	private TestChannelInterceptor testChannelInterceptorTemplate;
 
 	@Autowired
 	private PollableChannel jmsPubSubBridgeChannel;
@@ -158,7 +165,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	private CountDownLatch redeliveryLatch;
 
 	@Autowired
-	JmsTemplate jmsTemplate;
+	private JmsTemplate jmsTemplate;
 
 	@Autowired
 	TestObservationRegistry observationRegistry;
@@ -182,6 +189,23 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		assertThat(((InterceptableChannel) this.outputChannel).getInterceptors())
 				.contains(this.testChannelInterceptor);
 		assertThat(this.testChannelInterceptor.invoked.get()).isGreaterThanOrEqualTo(5);
+
+	}
+
+	@Test
+	public void testPollingFlowWithTemplate() {
+		this.controlBus.send("'integerMessageSourceForTemplate.inboundChannelAdapter'.start");
+		assertThat(this.beanFactory.getBean("integerChannelFlow2")).isInstanceOf(FixedSubscriberChannel.class);
+		for (int i = 0; i < 5; i++) {
+			Message<?> message = this.flow2OutputChannel.receive(20000);
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload()).isEqualTo("" + i);
+		}
+		this.controlBus.send("'integerMessageSourceForTemplate.inboundChannelAdapter'.stop");
+
+		assertThat(((InterceptableChannel) this.flow2OutputChannel).getInterceptors())
+				.contains(this.testChannelInterceptorTemplate);
+		assertThat(this.testChannelInterceptorTemplate.invoked.get()).isGreaterThanOrEqualTo(5);
 
 	}
 
@@ -373,12 +397,30 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
+		@InboundChannelAdapter(value = "flow2.input", autoStartup = "false", poller = @Poller(fixedRate = "100"))
+		public MessageSource<?> integerMessageSourceForTemplate() {
+			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
+			source.setObject(new AtomicInteger());
+			source.setMethodName("getAndIncrement");
+			return source;
+		}
+
+		@Bean
 		public IntegrationFlow flow1() {
 			return f -> f
 					.fixedSubscriberChannel("integerChannel")
 					.transform("payload.toString()")
 					.channel(Jms.pollableChannel("flow1QueueChannel", amqFactory)
 							.destination("flow1QueueChannel"));
+		}
+
+		@Bean
+		public IntegrationFlow flow2(JmsTemplate jmsTemplate) {
+			return f -> f
+					.fixedSubscriberChannel("integerChannelFlow2")
+					.transform("payload.toString()")
+					.channel(Jms.pollableChannel("flow2QueueChannel", jmsTemplate)
+							.destination("flow2QueueChannel"));
 		}
 
 		@Bean
@@ -570,6 +612,12 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		@GlobalChannelInterceptor(patterns = "flow1QueueChannel")
 		ChannelInterceptor testChannelInterceptor() {
+			return new TestChannelInterceptor();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = "flow2QueueChannel")
+		ChannelInterceptor testChannelInterceptorTemplate() {
 			return new TestChannelInterceptor();
 		}
 

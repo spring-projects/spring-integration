@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -68,7 +69,11 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private final boolean messageDriven;
 
-	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
+	private JmsTemplate jmsTemplate = new DynamicJmsTemplate();
+
+	private boolean jmsTemplateExplicitlySet;
+
+	private boolean defaultTemplatePropertySet;
 
 	private @Nullable Class<? extends AbstractMessageListenerContainer> containerType;
 
@@ -164,30 +169,37 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	 */
 
 	public void setDeliveryPersistent(boolean deliveryPersistent) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setDeliveryPersistent(deliveryPersistent);
 	}
 
 	public void setExplicitQosEnabled(boolean explicitQosEnabled) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setExplicitQosEnabled(explicitQosEnabled);
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setMessageConverter(messageConverter);
 	}
 
 	public void setMessageIdEnabled(boolean messageIdEnabled) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setMessageIdEnabled(messageIdEnabled);
 	}
 
 	public void setMessageTimestampEnabled(boolean messageTimestampEnabled) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setMessageTimestampEnabled(messageTimestampEnabled);
 	}
 
 	public void setPriority(int priority) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setPriority(priority);
 	}
 
 	public void setTimeToLive(long timeToLive) {
+		recordJmsTemplateOption();
 		this.jmsTemplate.setTimeToLive(timeToLive);
 	}
 
@@ -236,6 +248,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
 	}
 
@@ -254,6 +267,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setDestinationResolver(destinationResolver);
 	}
 
@@ -302,16 +316,19 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setPubSubDomain(boolean pubSubDomain) {
 		this.pubSubDomain = pubSubDomain;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setPubSubDomain(pubSubDomain);
 	}
 
 	public void setPubSubNoLocal(boolean pubSubNoLocal) {
 		this.pubSubNoLocal = pubSubNoLocal;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setPubSubNoLocal(pubSubNoLocal);
 	}
 
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setReceiveTimeout(receiveTimeout);
 	}
 
@@ -322,11 +339,30 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setSessionAcknowledgeMode(int sessionAcknowledgeMode) {
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setSessionAcknowledgeMode(sessionAcknowledgeMode);
+	}
+
+	/**
+	 * The template to be used by the Factory.
+	 * When an external {@link JmsTemplate} is provided, none of the individual template options
+	 * (e.g. {@code deliveryPersistent}, {@code connectionFactory}, {@code receiveTimeout}, etc.)
+	 * may be set on this factory bean — configure them directly on the provided template instead.
+	 * @param jmsTemplate the {@link JmsTemplate} to build on
+	 * @since 7.1
+	 */
+	public void setJmsTemplate(JmsTemplate jmsTemplate) {
+		this.jmsTemplate = jmsTemplate;
+		this.jmsTemplateExplicitlySet = true;
+	}
+
+	private void recordJmsTemplateOption() {
+		this.defaultTemplatePropertySet = true;
 	}
 
 	public void setSessionTransacted(boolean sessionTransacted) {
 		this.sessionTransacted = sessionTransacted;
+		recordJmsTemplateOption();
 		this.jmsTemplate.setSessionTransacted(sessionTransacted);
 	}
 
@@ -406,6 +442,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private void initializeJmsTemplate() {
 		Assert.isTrue(this.destination != null ^ this.destinationName != null,
 				"Exactly one of destination or destinationName is required.");
+		Assert.isTrue(!this.jmsTemplateExplicitlySet || !this.defaultTemplatePropertySet,
+				() -> "JmsTemplate properties must be configured on the externally supplied JmsTemplate, " +
+						"not on the factory bean.");
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(this.destination, this.jmsTemplate::setDefaultDestination)
 				.acceptIfNotNull(this.destinationName, this.jmsTemplate::setDefaultDestinationName);

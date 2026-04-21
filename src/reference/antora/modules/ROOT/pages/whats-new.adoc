@@ -63,6 +63,10 @@ See xref:redis.adoc[] for more information.
 JMS-backed message channels now map headers to JMS message properties and back.
 See xref:jms.adoc[] for more information.
 
+JMS DSL now allows the user to set the `JmsTemplate`.
+When using an external `JmsTemplate` it must be configured prior to when it is set, because the DSL can only set the
+configurations for the default `JmsTemplate`.
+
 [[x7.1-http-changes]]
 === HTTP Support Changes
 
