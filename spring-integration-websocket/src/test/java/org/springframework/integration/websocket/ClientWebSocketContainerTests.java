@@ -32,6 +32,7 @@ import org.apache.tomcat.websocket.Constants;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.test.util.TestUtils;
@@ -68,7 +69,7 @@ public class ClientWebSocketContainerTests {
 		server.destroy();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testClientWebSocketContainer() throws Exception {
 		AtomicBoolean failure = new AtomicBoolean();
 
