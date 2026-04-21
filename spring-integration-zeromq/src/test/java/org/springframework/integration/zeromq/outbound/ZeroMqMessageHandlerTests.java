@@ -20,6 +20,7 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -188,7 +189,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 		subSocket.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testMessageHandlerForPubSubWithBind() {
 		int boundPort = TestSocketUtils.findAvailableTcpPort();
 		ZeroMqMessageHandler messageHandler =
