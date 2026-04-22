@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import java.util.regex.Matcher;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -58,12 +61,15 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -309,6 +315,54 @@ public class FtpTests extends FtpTestSupport {
 				.contains(dir + "subFtpSource");
 
 		registration.destroy();
+	}
+
+	@Test
+	public void checkPathThrowsOnDirectoryTraversal() {
+		IntegrationFlow flow = f -> f
+			.handle(
+				Ftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+					.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+					.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'test/../../localTarget')")
+					.useTemporaryFileName(true));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		assertThatExceptionOfType(MessagingException.class)
+			.isThrownBy(() -> registration.getInputChannel().send(new GenericMessage<>("ftpSource/" + "*")))
+			.withStackTraceContaining("trying to leave the target output directory")
+			.withRootCauseInstanceOf(InvalidPathException.class);
+	}
+
+	@Test
+	@EnabledOnOs({OS.LINUX, OS.MAC})
+	public void checkPathOnAbsoluteUnix() {
+		IntegrationFlow flow = f -> f
+			.handle(
+				Ftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+					.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+					.localFilenameExpression("#remoteFileName.replaceFirst(' ftpSource', '/localTarget')")
+					.useTemporaryFileName(true));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> registration.getInputChannel().send(new GenericMessage<>("ftpSource/" + "*")))
+				.withStackTraceContaining("trying to leave the target output directory")
+				.withRootCauseInstanceOf(InvalidPathException.class);
+	}
+
+	@Test
+	@EnabledOnOs({OS.WINDOWS})
+	public void checkPathOnAbsoluteWindows() {
+		IntegrationFlow flow = f -> f
+				.handle(
+						Ftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression(
+										"#remoteFileName.replaceFirst(' ftpSource', 'c:/')")
+								.useTemporaryFileName(true));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> registration.getInputChannel().send(new GenericMessage<>("ftpSource/" + "*")))
+				.withStackTraceContaining("trying to leave the target output directory")
+				.withRootCauseInstanceOf(InvalidPathException.class);
 	}
 
 	@Configuration

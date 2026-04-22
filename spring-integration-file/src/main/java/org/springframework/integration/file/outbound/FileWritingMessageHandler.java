@@ -505,7 +505,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
 
-		File tempFile = new File(destinationDirectoryToUse, generatedFileName + this.temporaryFileSuffix);
+		File tempFile = FileUtils.newFileInDirectoryIfValid(destinationDirectoryToUse,
+				generatedFileName + this.temporaryFileSuffix);
+		// Validation above prevents Path Traversal for the line below; no redundant check needed.
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
 
 		boolean exists = resultFile.exists();
