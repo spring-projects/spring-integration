@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +54,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
@@ -689,6 +691,19 @@ public class FileWritingMessageHandlerTests {
 		assertLastModifiedIs(result, lastModified);
 		handler.handleRequestMessage(message);
 		assertFileContentIs(result, "foo" + System.lineSeparator() + "barbar");
+	}
+
+	@Test
+	public void checkPathThrowsOnDirectoryTraversal() {
+		Message<?> message = MessageBuilder.withPayload("testdata").build();
+		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+		fileNameGenerator.setExpression("'base/../../../escaped.txt'");
+		handler.setFileNameGenerator(fileNameGenerator);
+
+		assertThatExceptionOfType(MessagingException.class)
+			.isThrownBy(() -> handler.handleMessage(message))
+			.withStackTraceContaining("trying to leave the target output directory")
+			.withRootCauseInstanceOf(InvalidPathException.class);
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {
