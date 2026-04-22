@@ -325,6 +325,11 @@ configure(javaProjects) { subproject ->
 
         jvmArgs '-Xshare:off',
 				'--enable-native-access=ALL-UNNAMED'
+
+		if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+			systemProperty 'java.io.tmpdir', '/private/tmp'
+		}
+
 	}
 
     checkstyle {
