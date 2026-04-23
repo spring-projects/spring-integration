@@ -67,6 +67,9 @@ public class UnZipTransformerParserTests {
 		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory");
 		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles");
 		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult");
+		Long maxUncompressedSize = (Long) TestUtils.getPropertyValue(unZipTransformer, "maxUncompressedSize");
+		Integer maxEntryCount = (Integer) TestUtils.getPropertyValue(unZipTransformer, "maxEntryCount");
+		Double maxCompressionRatio = (Double) TestUtils.getPropertyValue(unZipTransformer, "maxCompressionRatio");
 
 		assertThat(charset).isNotNull();
 		assertThat(zipResultType).isNotNull();
@@ -82,6 +85,9 @@ public class UnZipTransformerParserTests {
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isFalse();
 		assertThat(expectSingleResult).isFalse();
+		assertThat(maxUncompressedSize).isEqualTo(1024 * 1024 * 100);
+		assertThat(maxEntryCount).isEqualTo(1000);
+		assertThat(maxCompressionRatio).isEqualTo(100);
 	}
 
 	@Test
@@ -117,6 +123,23 @@ public class UnZipTransformerParserTests {
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isTrue();
 		assertThat(expectSingleResult).isTrue();
+	}
+
+	@Test
+	public void testUnZipTransformerParserWithSizeConstraints() {
+		EventDrivenConsumer consumer =
+				this.context.getBean("unzipTransformerWithSizeConstraints", EventDrivenConsumer.class);
+
+		UnZipTransformer unZipTransformer = (UnZipTransformer) TestUtils.getPropertyValue(consumer,
+				"handler.transformer");
+
+		Long maxUncompressedSize = (Long) TestUtils.getPropertyValue(unZipTransformer, "maxUncompressedSize");
+		Integer maxEntryCount = (Integer) TestUtils.getPropertyValue(unZipTransformer, "maxEntryCount");
+		Double maxCompressionRatio = (Double) TestUtils.getPropertyValue(unZipTransformer, "maxCompressionRatio");
+
+		assertThat(maxUncompressedSize).isEqualTo(2048);
+		assertThat(maxEntryCount).isEqualTo(5);
+		assertThat(maxCompressionRatio).isEqualTo(10.5);
 	}
 
 }

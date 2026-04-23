@@ -62,6 +62,31 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
+					<xsd:attribute name="max-uncompressed-size" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The maximum allowed bytes for the cumulative total of all entries.
+								Defaults to 1024 * 1024 * 100.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="max-entry-count" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The maximum number of zip entries allowed within a single archive.
+								Defaults to 1000.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="max-compression-ratio" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The maximum allowed ratio of uncompressedSize / compressedSize.
+								The compression ratio threshold checks only work on compressed files.
+								Defaults to 100.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
