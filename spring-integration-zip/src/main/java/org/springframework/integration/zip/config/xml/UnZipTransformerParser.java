@@ -28,6 +28,7 @@ import org.springframework.integration.zip.transformer.UnZipTransformer;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -41,6 +42,9 @@ public class UnZipTransformerParser extends AbstractZipTransformerParser {
 	@Override
 	protected void postProcessTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-uncompressed-size");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-entry-count");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-compression-ratio");
 	}
 
 }
