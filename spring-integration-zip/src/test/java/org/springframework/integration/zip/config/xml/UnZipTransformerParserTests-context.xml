@@ -16,4 +16,8 @@
 
 	<int-zip:unzip-transformer id="unzipTransformerWithDefaults"
 		input-channel="input" output-channel="output" />
+
+	<int-zip:unzip-transformer id="unzipTransformerWithSizeConstraints"
+		input-channel="input" output-channel="output"
+		max-uncompressed-size="2048" max-entry-count="5" max-compression-ratio="10.5"/>
 </beans>
