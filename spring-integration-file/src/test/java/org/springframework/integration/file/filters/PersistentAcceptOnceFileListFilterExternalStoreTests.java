@@ -37,7 +37,9 @@ import org.springframework.integration.jdbc.metadata.JdbcMetadataStore;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
+import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -49,10 +51,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Bojan Vukasovic
  * @author Artem Vozhdayenko
+ * @author Jiandong Ma
  *
  * @since 4.0
  */
-public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest {
+public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest,
+		TestApplicationContextAware {
 
 	static RedisConnectionFactory redisConnectionFactory;
 
@@ -86,9 +90,13 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
 				.build();
 
+		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+		TEST_INTEGRATION_CONTEXT.registerBean("transactionManager", transactionManager);
 		JdbcMetadataStore metadataStore = new JdbcMetadataStore(dataSource);
+		metadataStore.setApplicationContext(TEST_INTEGRATION_CONTEXT);
 		metadataStore.setLockHint("");
 		metadataStore.afterPropertiesSet();
+		metadataStore.afterSingletonsInstantiated();
 
 		try {
 			testFileSystem(metadataStore);
