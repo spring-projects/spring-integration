@@ -22,7 +22,12 @@ import javax.sql.DataSource;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,7 +37,11 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -52,10 +61,12 @@ import org.springframework.util.Assert;
  * @author Bojan Vukasovic
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
-public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean, SmartLifecycle {
+public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean, SmartLifecycle,
+		ApplicationContextAware, SmartInitializingSingleton {
 
 	private static final LogAccessor LOGGER = new LogAccessor(JdbcMetadataStore.class);
 
@@ -117,6 +128,18 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private boolean checkDatabaseOnStart = true;
 
+	@SuppressWarnings("NullAway.Init")
+	private ApplicationContext applicationContext;
+
+	@SuppressWarnings("NullAway.Init")
+	private PlatformTransactionManager transactionManager;
+
+	@SuppressWarnings("NullAway.Init")
+	private TransactionTemplate defaultTransactionTemplate;
+
+	@SuppressWarnings("NullAway.Init")
+	private TransactionTemplate readOnlyTransactionTemplate;
+
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
 	 * @param dataSource a {@link DataSource}
@@ -171,6 +194,11 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
 	public void afterPropertiesSet() {
 		String dataBaseVendor =
 				this.jdbcTemplate.execute((ConnectionCallback<String>) connection ->
@@ -185,6 +213,28 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 			this.putIfAbsentValueQuery += " ON CONFLICT DO NOTHING";
 		}
 		this.countQuery = String.format(this.countQuery, this.tablePrefix);
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		if (this.transactionManager == null) {
+			try {
+				this.transactionManager = this.applicationContext.getBean(PlatformTransactionManager.class);
+			}
+			catch (BeansException ex) {
+				throw new BeanInitializationException("A unique or primary 'PlatformTransactionManager' bean " +
+						"must be present in the application context.", ex);
+			}
+		}
+
+		var transactionDefinition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+		this.defaultTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
+
+		// It is safe to reuse the transactionDefinition - the TransactionTemplate makes copy of its properties.
+		transactionDefinition.setReadOnly(true);
+
+		this.readOnlyTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
 	}
 
 	/**
@@ -223,26 +273,34 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	@Override
-	@Transactional
 	public @Nullable String putIfAbsent(String key, String value) {
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
-			//try to insert if the entry does not exist
-			int affectedRows = tryToPutIfAbsent(key, value);
+			int affectedRows = this.defaultTransactionTemplate.execute(transactionStatus -> {
+				//try to insert if the entry does not exist
+				return tryToPutIfAbsent(key, value);
+			});
+
 			if (affectedRows > 0) {
 				//it was not in the table, so we have just inserted
 				return null;
 			}
-			else {
-				//value should be in table. try to return it
+
+			//value should be in table. try to return it
+			String oldValue = this.readOnlyTransactionTemplate.execute(transactionStatus -> {
 				try {
 					return this.jdbcTemplate.queryForObject(this.getValueQuery, String.class, key, this.region);
 				}
 				catch (EmptyResultDataAccessException e) {
 					//somebody deleted it between calls. try to insert again (go to beginning of while loop)
+					return null;
 				}
+			});
+			if (oldValue != null) {
+				return oldValue;
 			}
+
 		}
 	}
 
@@ -279,7 +337,6 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	@Override
-	@Transactional
 	public void put(String key, String value) {
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");

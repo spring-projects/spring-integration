@@ -25,11 +25,12 @@ import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -37,24 +38,32 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Bojan Vukasovic
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
-@Transactional
 @EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class JdbcMetadataStoreTests {
 
 	@Autowired
 	private DataSource dataSource;
 
+	@Autowired
+	private ApplicationContext applicationContext;
+
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
 	private JdbcMetadataStore metadataStore;
 
 	@BeforeEach
 	public void init() {
 		metadataStore = new JdbcMetadataStore(dataSource);
+		metadataStore.setApplicationContext(applicationContext);
 		metadataStore.afterPropertiesSet();
+		metadataStore.afterSingletonsInstantiated();
 	}
 
 	@Test
@@ -114,6 +123,7 @@ public class JdbcMetadataStoreTests {
 	@Test
 	void noTableThrowsExceptionOnStart() {
 		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
+			testApplicationContext.registerBean("transactionManager", this.transactionManager);
 			JdbcMetadataStore jdbcMetadataStore = new JdbcMetadataStore(this.dataSource);
 			jdbcMetadataStore.setTablePrefix("TEST_");
 			testApplicationContext.registerBean("jdbcMetadataStore", jdbcMetadataStore);

@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 6.4
  */
@@ -66,6 +67,25 @@ class MySqlMetadataStoreTests implements MySqlContainerTest {
 		}
 		assertThat(successPutIfAbsents.await(10, TimeUnit.SECONDS)).isTrue();
 		executorService.shutdown();
+	}
+
+	@Test
+	void verifyJdbcMetadataStoreMultiKeyValConcurrency() throws InterruptedException {
+		for (int i = 0; i < 10; i++) {
+			int idx = i;
+			int threadCount = 2;
+
+			var executor = Executors.newFixedThreadPool(threadCount);
+			CountDownLatch latch = new CountDownLatch(threadCount);
+			for (int j = 0; j < threadCount; j++) {
+				executor.execute(() -> {
+					this.jdbcMetadataStore.putIfAbsent("testKey" + idx, "testValue");
+					latch.countDown();
+				});
+			}
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			executor.shutdown();
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
