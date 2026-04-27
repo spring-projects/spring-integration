@@ -1305,7 +1305,26 @@ Spring Integration 5.4 introduced Reactive Redis Stream outbound channel adapter
 Outbound Channel adapter uses `ReactiveStreamOperations.add(...)` to add a  `Record` to the stream.
 The following example shows how to use Java configuration and Service class for Redis Stream Outbound Channel Adapter.
 
-[source,java]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow reactiveOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+    return flow -> flow.handle(Redis
+            .reactiveOutboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
+            .serializationContext() <2>
+            .hashMapper() <3>
+            .extractPayload() <4>
+    );
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
 ----
 @Bean
 @ServiceActivator(inputChannel = "messageChannel")
@@ -1319,6 +1338,7 @@ public ReactiveRedisStreamMessageHandler reactiveValidatorMessageHandler(
     return reactiveStreamMessageHandler;
 }
 ----
+======
 <1> Construct an instance of `ReactiveRedisStreamMessageHandler` using `ReactiveRedisConnectionFactory` and stream name to add records.
 Another constructor variant is based on a SpEL expression to evaluate a stream key against a request message.
 <2> Set a `RedisSerializationContext` used to serialize a record key and value before adding to the stream.
@@ -1336,7 +1356,36 @@ Spring Integration 5.4 introduced the Reactive Stream inbound channel adapter fo
 Inbound channel adapter uses `StreamReceiver.receive(...)` or `StreamReceiver.receiveAutoAck()` based on an auto acknowledgement flag to read record from Redis stream.
 The following example shows how to use Java configuration for Redis Stream Inbound Channel Adapter.
 
-[source,java]
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+IntegrationFlow reactiveInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(Redis
+                    .reactiveInboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
+                    .streamReceiverOptions( <2>
+						StreamReceiver.StreamReceiverOptions.builder()
+                            .pollTimeout(Duration.ofMillis(100))
+                            .build())
+                    .autoStartup() <3>
+                    .autoAck() <4>
+                    .createConsumerGroup() <5>
+                    .consumerGroup() <6>
+                    .consumerName() <7>
+                    .readOffset() <9>
+                    .extractPayload() <10>
+            )
+            .channel(c -> c.flux()) <8>
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
 ----
 @Bean
 public ReactiveRedisStreamMessageProducer reactiveRedisStreamProducer(
@@ -1358,6 +1407,7 @@ ReactiveRedisStreamMessageProducer messageProducer =
     return messageProducer;
 }
 ----
+======
 <1> Construct an instance of `ReactiveRedisStreamMessageProducer` using `ReactiveRedisConnectionFactory` and a stream key to read records.
 <2> A `StreamReceiver.StreamReceiverOptions` to consume redis stream using reactive infrastructure.
 <3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context starts or not.
