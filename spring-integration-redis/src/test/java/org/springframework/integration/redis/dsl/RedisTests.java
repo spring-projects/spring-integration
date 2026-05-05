@@ -16,7 +16,9 @@
 
 package org.springframework.integration.redis.dsl;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -27,23 +29,35 @@ import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.GenericTransformer;
@@ -51,6 +65,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
+import org.springframework.integration.redis.inbound.ReactiveRedisStreamMessageProducer;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.test.util.TestUtils;
@@ -92,8 +107,12 @@ class RedisTests implements RedisContainerTest {
 
 	static final String QUEUE_NAME_FOR_QUEUE_GATEWAYS = "dslQueueGateways";
 
+	static final String STREAM_KEY_FOR_REACTIVE_OUTBOUND_ADAPTER = "dslReactiveOutboundChannelAdapter";
+
+	static final String STREAM_KEY_FOR_REACTIVE_INBOUND_ADAPTER = "dslReactiveInboundChannelAdapter";
+
 	@Autowired
-	RedisConnectionFactory connectionFactory;
+	LettuceConnectionFactory connectionFactory;
 
 	@Autowired
 	RedisInboundChannelAdapter inboundChannelAdapter;
@@ -135,6 +154,17 @@ class RedisTests implements RedisContainerTest {
 	@Autowired
 	@Qualifier("queueOutboundGatewayFlow.input")
 	MessageChannel queueOutboundGatewayFlowInputChannel;
+
+	@Autowired
+	@Qualifier("reactiveOutboundChannelAdapterFlow.input")
+	MessageChannel reactiveOutboundChannelAdapterFlowInputChannel;
+
+	@Autowired
+	@Qualifier("reactiveInboundMessageProducer")
+	ReactiveRedisStreamMessageProducer reactiveInboundMessageProducer;
+
+	@Autowired
+	FluxMessageChannel reactiveInboundChannelAdapterOutputFluxChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -329,12 +359,56 @@ class RedisTests implements RedisContainerTest {
 				.isEqualTo("Acked:" + gatewayMessagePayload);
 	}
 
+	@Test
+	void testReactiveOutboundChannelAdapterFlow() {
+		// Given
+		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
+		// When
+		reactiveOutboundChannelAdapterFlowInputChannel.send(MessageBuilder.withPayload(messagePayload).build());
+		// Then
+		var reactiveRedisTemplate = new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
+		ObjectRecord<String, ?> record = reactiveRedisTemplate.opsForStream()
+				.read(List.class, StreamOffset.fromStart(STREAM_KEY_FOR_REACTIVE_OUTBOUND_ADAPTER))
+				.blockFirst();
+		assertThat(record)
+				.isNotNull()
+				.extracting(ObjectRecord::getValue)
+				.isEqualTo(messagePayload);
+	}
+
+	@Test
+	void testReactiveInboundChannelAdapterFlow() {
+		Person person = new Person(new Address("Winterfell, Westeros"), "John Snow");
+		// Subscriber
+		StepVerifier stepVerifier = Flux.from(this.reactiveInboundChannelAdapterOutputFluxChannel)
+				.as(StepVerifier::create)
+				.assertNext(message -> {
+					assertThat(message.getPayload()).isEqualTo(person);
+					assertThat(message.getHeaders()).containsKeys(RedisHeaders.STREAM_KEY, RedisHeaders.STREAM_MESSAGE_ID);
+				})
+				.thenCancel()
+				.verifyLater();
+
+		reactiveInboundMessageProducer.start();
+		// Given
+		var reactiveRedisTemplate = new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
+		reactiveRedisTemplate
+				.opsForStream()
+				.add(StreamRecords.objectBacked(person).withStreamKey(STREAM_KEY_FOR_REACTIVE_INBOUND_ADAPTER))
+				.subscribe();
+
+		// Then
+		stepVerifier.verify(Duration.ofSeconds(10));
+
+		reactiveInboundMessageProducer.stop();
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
 
 		@Bean
-		RedisConnectionFactory connectionFactory() {
+		LettuceConnectionFactory connectionFactory() {
 			return RedisContainerTest.connectionFactory();
 		}
 
@@ -446,6 +520,38 @@ class RedisTests implements RedisContainerTest {
 					.handle((uuidValue, headers) -> "Acked:" + uuidValue)
 					.get();
 		}
+
+		@Bean
+		IntegrationFlow reactiveOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+			return flow -> flow
+					.handle(Redis.reactiveOutboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_OUTBOUND_ADAPTER));
+		}
+
+		@Bean
+		IntegrationFlow reactiveInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+			return IntegrationFlow.from(Redis
+							.reactiveInboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_INBOUND_ADAPTER)
+							.readOffset(ReadOffset.from("0-0"))
+							.streamReceiverOptions(StreamReceiver.StreamReceiverOptions.builder()
+									.pollTimeout(Duration.ofMillis(100))
+									.targetType(Person.class)
+									.build())
+							.createConsumerGroup(false)
+							.consumerName(null)
+							.autoStartup(false)
+							.id("reactiveInboundMessageProducer")
+							.autoAck(true))
+					.channel(c -> c.flux("reactiveInboundChannelAdapterOutputFluxChannel"))
+					.get();
+		}
+
+	}
+
+	record Person(Address address, String name) {
+
+	}
+
+	record Address(String address) {
 
 	}
 
