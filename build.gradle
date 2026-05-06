@@ -596,6 +596,13 @@ project('spring-integration-hazelcast') {
     }
 }
 
+project('spring-integration-hivemq') {
+	description = 'Spring Integration Hivemq MQTT Support'
+	dependencies {
+		api libs.com.hivemq.mqtt.client
+	}
+}
+
 project('spring-integration-http') {
     description = 'Spring Integration HTTP Support'
     dependencies {
