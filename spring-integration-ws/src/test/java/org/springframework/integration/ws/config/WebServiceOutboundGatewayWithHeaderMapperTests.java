@@ -62,6 +62,8 @@ import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.StringResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky
@@ -213,11 +215,11 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 					TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
 			template.setMessageFactory(new DomPoxMessageFactory());
 		}
-
-		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
-		WebServiceConnection wsConnection = Mockito.mock(WebServiceConnection.class);
-		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
-		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
+		WebServiceMessageSender messageSender = mock();
+		WebServiceConnection wsConnection = mock();
+		Mockito.when(messageSender.createConnection(any(URI.class))).thenReturn(wsConnection);
+		Mockito.when(messageSender.supports(any(URI.class), any(WebServiceMessageSender.UriSource.class)))
+				.thenReturn(true);
 
 		Mockito.doAnswer(invocation -> {
 
@@ -241,7 +243,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 					return null;
 
 				}).when(wsConnection)
-				.send(Mockito.any(WebServiceMessage.class));
+				.send(any(WebServiceMessage.class));
 
 		Mockito.doAnswer(invocation -> {
 			Object[] args = invocation.getArguments();
@@ -265,7 +267,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //					// ignore
 //				}
 			return wsMessage;
-		}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
+		}).when(wsConnection).receive(any(WebServiceMessageFactory.class));
 
 		gateway.setMessageSenders(messageSender);
 
