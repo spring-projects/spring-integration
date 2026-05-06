@@ -247,7 +247,9 @@ public class SimpleWebServiceOutboundGatewayTests implements TestApplicationCont
 		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
 		WebServiceConnection wsConnection = Mockito.mock(WebServiceConnection.class);
 		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
-		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
+		Mockito.when(messageSender.supports(Mockito.any(URI.class),
+				Mockito.any(WebServiceMessageSender.UriSource.class)))
+				.thenReturn(true);
 
 		Mockito.doAnswer(invocation -> {
 			WebServiceMessageFactory factory = invocation.getArgument(0);
