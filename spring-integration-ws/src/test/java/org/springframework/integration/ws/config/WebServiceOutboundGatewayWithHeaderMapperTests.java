@@ -216,7 +216,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		WebServiceMessageSender messageSender = mock();
 		WebServiceConnection wsConnection = mock();
 		Mockito.when(messageSender.createConnection(any(URI.class))).thenReturn(wsConnection);
-		Mockito.when(messageSender.supports(any(URI.class))).thenReturn(true);
+		Mockito.when(messageSender.supports(any(URI.class), any(WebServiceMessageSender.UriSource.class)))
+				.thenReturn(true);
 
 		Mockito.doAnswer(invocation -> {
 
