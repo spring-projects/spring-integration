@@ -1,0 +1,4 @@
+description = 'Spring Integration MQTT Support'
+dependencies {
+	api libs.com.hivemq.mqtt.client
+}
