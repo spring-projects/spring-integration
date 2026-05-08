@@ -23,6 +23,7 @@ h2Version = "2.4.240"
 hamcrestVersion = "3.0"
 hazelcastVersion = "5.6.0"
 hibernateVersion = "7.3.2.Final"
+hivemqMqttClientVersion="1.3.14"
 hsqldbVersion = "2.7.4"
 jackson3Version = "3.1.3"
 jacksonVersion = "2.21.3"
@@ -90,6 +91,7 @@ com-github-spotbugs-annotations = { module = 'com.github.spotbugs:spotbugs-annot
 com-google-protobuf-bom = { module = "com.google.protobuf:protobuf-bom", version.ref = "protobufVersion" }
 com-h2database-h2 = { module = "com.h2database:h2", version.ref = "h2Version" }
 com-hazelcast = { module = "com.hazelcast:hazelcast", version.ref = "hazelcastVersion" }
+com-hivemq-mqtt-client = { module="com.hivemq:hivemq-mqtt-client", version.ref = "hivemqMqttClientVersion"}
 com-icegreen-greenmail = { module = "com.icegreen:greenmail", version.ref = "greenmailVersion" }
 com-jayway-jsonpath = { module = "com.jayway.jsonpath:json-path", version.ref = "jsonpathVersion" }
 com-mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysqlVersion" }
