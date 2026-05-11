@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mqtt;
 
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
@@ -23,14 +24,22 @@ import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
+import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
+import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.converter.ByteArrayMessageConverter;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +54,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
+ * @author Goutam Adwant
  *
  * @since 5.5.16
  *
@@ -98,8 +108,35 @@ public class Mqttv5AdapterTests {
 				.containsEntry("$SYS/broker/#", "$SYS/broker/#");
 	}
 
+	@Test
+	public void payloadTypeIsUsedForInboundPayloadConversion() throws Exception {
+		IMqttAsyncClient client = mock();
+		QueueChannel outputChannel = new QueueChannel();
+		Mqttv5PahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false, outputChannel);
+		adapter.setPayloadType(String.class);
+		adapter.setMessageConverter(new CompositeMessageConverter(List.of(
+				new ByteArrayMessageConverter(),
+				new StringMessageConverter())));
+
+		MqttMessage mqttMessage = new MqttMessage("test payload".getBytes());
+		mqttMessage.setProperties(new MqttProperties());
+
+		adapter.messageArrived("testTopic", mqttMessage);
+
+		Message<?> message = outputChannel.receive(0);
+
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("test payload");
+	}
+
 	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client,
 			boolean cleanStart) throws MqttException {
+
+		return buildAdapterIn(client, cleanStart, new NullChannel());
+	}
+
+	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client,
+			boolean cleanStart, MessageChannel outputChannel) throws MqttException {
 
 		MqttConnectionOptions connectionOptions = new MqttConnectionOptions();
 		connectionOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
@@ -117,7 +154,7 @@ public class Mqttv5AdapterTests {
 		ReflectionTestUtils.setField(adapter, "mqttClient", client);
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
-		adapter.setOutputChannel(new NullChannel());
+		adapter.setOutputChannel(outputChannel);
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
