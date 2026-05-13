@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer;
 
+import java.util.Date;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -24,41 +26,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.selector.AllowListMessageHeaderSelector;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
  * @author Glenn Renfro
+ * @author Artem Bilan
  *
  * @since 5.2
  *
  */
 @SpringJUnitConfig
 @DirtiesContext
-@LogLevels(categories = "foo", level = "DEBUG")
 public class AvroTests {
 
 	@Test
-	@LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
 	void testTransformers(@Autowired Config config) {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
 		LogAccessor spied = spy(TestUtils.<LogAccessor>getPropertyValue(config.in1(), "logger"));
+		when(spied.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
 		config.in1().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
@@ -163,6 +169,37 @@ public class AvroTests {
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow6");
 	}
 
+	@Test
+	void validateAvroHeaderTypeAgainstAllowList(@Autowired Config config) {
+		AvroTestClass1 test = new AvroTestClass1("data1", "data2");
+		Message<?> transform =
+				new SimpleToAvroTransformer()
+						.transform(new GenericMessage<>(test));
+
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<?> messageToTransform =
+				MessageBuilder.fromMessage(transform)
+						.setReplyChannel(replyChannel)
+						.build();
+
+		config.flow7().getInputChannel().send(messageToTransform);
+
+		Message<?> receive = replyChannel.receive(10_000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.isEqualTo(test);
+
+		Message<?> messageToTransform2 =
+				MessageBuilder.fromMessage(transform)
+						.setHeader(AvroHeaders.TYPE, Date.class)
+						.build();
+
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> config.flow7().getInputChannel().send(messageToTransform2))
+				.withMessageContaining("message has been rejected in filter");
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -239,6 +276,14 @@ public class AvroTests {
 					.enrichHeaders(h -> h.header("flow", "flow6"))
 					.channel(out())
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow flow7() {
+			return f -> f
+					.filter(new AllowListMessageHeaderSelector(AvroHeaders.TYPE, AvroTestClass1.class.getName()),
+							e -> e.throwExceptionOnRejection(true))
+					.transform(fromTransformer());
 		}
 
 		@Bean

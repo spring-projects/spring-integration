@@ -226,4 +226,4 @@ All the configuration options provided by the XML element are also available for
 
 The filter can be either referenced explicitly from XML or, if the `@MessageEndpoint` annotation is defined on the class, detected automatically through classpath scanning.
 
-See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
+See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations] and xref:security.adoc[].

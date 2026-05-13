@@ -111,3 +111,82 @@ public interface SecuredGateway {
 }
 ----
 ====
+
+[[trusting-data]]
+== Trusting Data
+
+If the data integrity, transferred in the system via messages, is not guaranteed, the authentication and authorization control might not be enough for the application to perform correctly, since even a valid user may produce malicious data.
+The validation and filtration must be applied to the message payload and its headers if the source of that message is not trusted.
+This applies not only to the type information carried in headers with potential deserialization gadgets but also to those use-cases where the target destination for the message is determined from a header of that message.
+These scenarios fit into the https://www.enterpriseintegrationpatterns.com/patterns/messaging/ReturnAddress.html[Return Address] pattern.
+Some vulnerabilities have been identified related to email reply addresses, specifically involving injection, spoofing, and unauthorized redirection of replies.
+Therefore, such metadata in those standard message headers (`MqttHeaders.TOPIC`, `RedisHeaders.KEY`, `MailHeaders.TO`, `MailHeaders.CC`, `MailHeaders.BCC`, `AvroHeaders.TYPE` etc.), if they are carried (or re-mapped) from an external untrusted source, should be validated or stripped before they are used in the target endpoint.
+
+One of the options to avoid metadata spoofing is to not allow it to enter the application at all.
+The inbound channel adapters (and gateways) in Spring Integration provide a `HeaderMapper` strategy to filter what headers should be mapped from the source system.
+Another component is the `HeaderFilter` to remove unwanted headers in the flow.
+
+However, sometimes the logic of the application relies on those headers even if they come from an external system.
+For this purpose values of those headers should be validated, for example, using `MessageFilter` endpoint, or `MessageSelectingInterceptor`.
+Starting with version `6.5.9`, Spring Integration provides an `AllowListMessageHeaderSelector` to apply simple patterns on the message header values:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow mqttOutFlow() {
+    return f -> f
+        .intercept(new MessageSelectingInterceptor(
+            new AllowListMessageHeaderSelector(MqttHeaders.TOPIC, "test*", "!test*malicious*")))
+        .handle(new MqttPahoMessageHandler("mqttOut", pahoClientFactory()));
+}
+----
+
+In the example above only values starting with `test` would be accepted for `MqttHeaders.TOPIC`.
+And those with `malicious` sub-string (even if they start with `test`) won't be accepted.
+See `AllowListMessageHeaderSelector` Javadocs for more information.
+
+[[sensitive-metadata]]
+=== Sensitive Metadata
+
+The following is the list of standard Spring Integration headers that are involved in some message processing decisions internally in the framework.
+The mentioned above validation and filtering might be applied to them before the message goes to the respective processing if the source of the message is not trusted.
+
+- `spring-integration-core`
+ * `replyChannel`
+ * `errorChannel`
+ * `routingSlip`
+ * `gatherResultChannel`
+ * `originalErrorChannel`
+ * `avro_type`
+ * `proto_type`
+
+- `spring-integration-file`
+ * `file_name`
+
+- `spring-integration-ip`
+ * `ip_ackTo`
+
+- `spring-integration-jmx`
+ * `jmx_objectName`
+ * `jmx_operationName`
+
+- `spring-integration-kafka`
+ * `kafka_topic`
+
+- `spring-integration-mail`
+ * `mail_to`
+ * `mail_cc`
+ * `mail_bcc`
+
+- `spring-integration-mqtt`
+ * `mqtt_topic`
+
+- `spring-integration-redis`
+ * `redis_key`
+ * `redis_mapKey`
+
+- `spring-integration-xmpp`
+ * `xmpp_to`
+
+- `spring-integration-zip`
+* `zip_entryFilename`
