@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
@@ -36,15 +37,18 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
+import org.springframework.integration.selector.AllowListMessageHeaderSelector;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -85,6 +89,13 @@ public class MqttDslTests implements MosquittoContainerTest {
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.mqttOutFlowInput.send(
+						MessageBuilder.withPayload(testPayload)
+								.setHeader(MqttHeaders.TOPIC, "someOtherTopic")
+								.build()))
+				.withMessageContaining("did not accept message");
 	}
 
 	@Configuration
@@ -108,7 +119,10 @@ public class MqttDslTests implements MosquittoContainerTest {
 
 		@Bean
 		public IntegrationFlow mqttOutFlow() {
-			return f -> f.handle(new MqttPahoMessageHandler("jmxTestOut", pahoClientFactory()));
+			return f -> f
+					.intercept(new MessageSelectingInterceptor(
+							new AllowListMessageHeaderSelector(MqttHeaders.TOPIC, "jmxTests")))
+					.handle(new MqttPahoMessageHandler("jmxTestOut", pahoClientFactory()));
 		}
 
 		@Bean
