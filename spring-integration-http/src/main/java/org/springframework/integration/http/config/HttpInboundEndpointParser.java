@@ -220,7 +220,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		if (crossOriginElement != null) {
 			BeanDefinitionBuilder crossOriginBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(CrossOrigin.class);
-			String[] attributes = {"origin", "allowed-headers", "exposed-headers", "max-age", "method"};
+			String[] attributes =
+					{"origin", "origin-patterns", "allowed-headers", "exposed-headers", "max-age", "method"};
 			for (String crossOriginAttribute : attributes) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(crossOriginBuilder, crossOriginElement,
 						crossOriginAttribute);

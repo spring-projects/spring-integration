@@ -396,6 +396,18 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 		}
 
 		/**
+		 * Alternative to {@link #origin} that supports more flexible origin
+		 * patterns.
+		 * @param originPatterns the list of allowed origins.
+		 * @return the spec
+		 * @since 6.5.9
+		 */
+		public CrossOriginSpec originPatterns(String... originPatterns) {
+			this.crossOrigin.setOriginPatterns(originPatterns);
+			return this;
+		}
+
+		/**
 		 * List of request headers that can be used during the actual request.
 		 * <p>This property controls the value of the pre-flight response's
 		 * {@code Access-Control-Allow-Headers} header.
