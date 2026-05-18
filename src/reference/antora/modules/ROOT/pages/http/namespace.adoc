@@ -129,8 +129,7 @@ The `pass:[*]` means that all origins are allowed.
 These values are placed in the `Access-Control-Allow-Origin` header of both the pre-flight and actual responses.
 The default value is empty.
 * `origin-patterns`: List of allowed origin patterns.
-Alternative list to `origin` that supports more flexible
-origins patterns with `pass:[*]` anywhere in the host name in addition to port lists.
+Alternative list to `origin` that supports more flexible origins patterns with `pass:[*]` anywhere in the host name in addition to port lists.
 The default value is empty.
 * `allowed-headers`: Indicates which request headers can be used during the actual request.
 The `pass:[*]` means that all headers requested by the client are allowed.
