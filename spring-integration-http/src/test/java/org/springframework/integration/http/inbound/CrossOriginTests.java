@@ -84,12 +84,12 @@ public class CrossOriginTests {
 		HandlerExecutionChain chain = this.handlerMapping.getHandler(this.request);
 		CorsConfiguration config = getCorsConfiguration(chain, false);
 		assertThat(config).isNotNull();
-		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] {"GET"});
-		assertThat(config.getAllowedOrigins()).isNull();
-		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] {"*"});
-		assertThat(config.getAllowCredentials()).isTrue();
-		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] {"*"});
-		assertThat(config.getExposedHeaders()).isEmpty();
+		assertThat(config.getAllowedMethods()).containsOnly("GET");
+		assertThat(config.getAllowedOrigins()).containsOnly("*");
+		assertThat(config.getAllowedOriginPatterns()).isNull();
+		assertThat(config.getAllowCredentials()).isFalse();
+		assertThat(config.getAllowedHeaders()).containsOnly("*");
+		assertThat(config.getExposedHeaders()).isNull();
 		assertThat(config.getMaxAge()).isEqualTo(1800L);
 	}
 
@@ -116,12 +116,12 @@ public class CrossOriginTests {
 		HandlerExecutionChain chain = this.handlerMapping.getHandler(this.request);
 		CorsConfiguration config = getCorsConfiguration(chain, true);
 		assertThat(config).isNotNull();
-		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] {"GET"});
-		assertThat(config.getAllowedOrigins()).isNull();
-		assertThat(config.getAllowedOriginPatterns().toArray()).isEqualTo(new String[] {"*"});
-		assertThat(config.getAllowCredentials()).isTrue();
-		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] {"*"});
-		assertThat(config.getExposedHeaders()).isEmpty();
+		assertThat(config.getAllowedMethods()).containsOnly("GET");
+		assertThat(config.getAllowedOrigins()).containsOnly("*");
+		assertThat(config.getAllowedOriginPatterns()).isNull();
+		assertThat(config.getAllowCredentials()).isFalse();
+		assertThat(config.getAllowedHeaders()).containsOnly("*");
+		assertThat(config.getExposedHeaders()).isNull();
 		assertThat(config.getMaxAge()).isEqualTo(1800L);
 	}
 

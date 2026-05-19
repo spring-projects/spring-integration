@@ -17,7 +17,6 @@
 package org.springframework.integration.webflux.inbound;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -166,28 +165,23 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 		for (RequestMethod requestMethod : crossOrigin.getMethod()) {
 			config.addAllowedMethod(requestMethod.name());
 		}
-		config.setAllowedHeaders(Arrays.asList(crossOrigin.getAllowedHeaders()));
-		config.setExposedHeaders(Arrays.asList(crossOrigin.getExposedHeaders()));
-		Boolean allowCredentials = crossOrigin.getAllowCredentials();
-		config.setAllowCredentials(allowCredentials);
-		List<String> allowedOrigins = Arrays.asList(crossOrigin.getOrigin());
-		if (Boolean.TRUE.equals(allowCredentials)
-				&& CollectionUtils.contains(allowedOrigins.iterator(), CorsConfiguration.ALL)) {
-			config.setAllowedOriginPatterns(allowedOrigins);
-		}
-		else {
-			config.setAllowedOrigins(allowedOrigins);
-		}
+		List<String> allowedHeadersList = crossOrigin.getAllowedHeadersList();
+		config.setAllowedHeaders(allowedHeadersList);
+		config.setExposedHeaders(crossOrigin.getExposedHeadersList());
+		config.setAllowCredentials(crossOrigin.getAllowCredentials());
+		config.setAllowedOrigins(crossOrigin.getOriginsList());
+		config.setAllowedOriginPatterns(crossOrigin.getOriginPatternsList());
 
-		if (crossOrigin.getMaxAge() != -1) {
-			config.setMaxAge(crossOrigin.getMaxAge());
+		long maxAge = crossOrigin.getMaxAge();
+		if (maxAge != -1) {
+			config.setMaxAge(maxAge);
 		}
 		if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
 			for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
 				config.addAllowedMethod(allowedMethod.name());
 			}
 		}
-		if (CollectionUtils.isEmpty(config.getAllowedHeaders())) {
+		if (CollectionUtils.isEmpty(allowedHeadersList)) {
 			for (NameValueExpression<String> headerExpression :
 					mappingInfo.getHeadersCondition().getExpressions()) {
 
