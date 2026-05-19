@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
@@ -57,13 +58,8 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	 */
 	public ExpressionEvaluatingMessageProcessor(Expression expression, @Nullable Class<T> expectedType) {
 		Assert.notNull(expression, "The expression must not be null");
-		try {
-			this.expression = expression;
-			this.expectedType = expectedType;
-		}
-		catch (ParseException e) {
-			throw new IllegalArgumentException("Failed to parse expression.", e);
-		}
+		this.expression = expression;
+		this.expectedType = expectedType;
 	}
 
 	/**
@@ -72,13 +68,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	 * @since 5.0
 	 */
 	public ExpressionEvaluatingMessageProcessor(String expression) {
-		try {
-			this.expression = EXPRESSION_PARSER.parseExpression(expression);
-			this.expectedType = null;
-		}
-		catch (ParseException e) {
-			throw new IllegalArgumentException("Failed to parse expression.", e);
-		}
+		this(expression, null);
 	}
 
 	/**
