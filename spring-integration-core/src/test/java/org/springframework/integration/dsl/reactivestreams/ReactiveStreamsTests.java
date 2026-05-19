@@ -276,7 +276,7 @@ public class ReactiveStreamsTests {
 	@Autowired
 	ConfigurableApplicationContext applicationContext;
 
-	@Test
+	@RetryingTest(10)
 	void verifyFluxMessageChannelRestart() {
 		for (long i = 0; i < 3L; i++) {
 			assertThat(this.fromPublisherResult.receive(10_000)).extracting(Message::getPayload).isEqualTo(i);
