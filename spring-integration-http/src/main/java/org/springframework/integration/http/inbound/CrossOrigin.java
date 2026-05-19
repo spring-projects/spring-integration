@@ -19,8 +19,6 @@ package org.springframework.integration.http.inbound;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -60,7 +58,6 @@ public class CrossOrigin {
 		return this.origin;
 	}
 
-	@Nullable
 	public List<String> getOriginsList() {
 		return ObjectUtils.isEmpty(this.origin) ? null : Arrays.asList(this.origin);
 	}
@@ -73,7 +70,6 @@ public class CrossOrigin {
 		return this.originPatterns;
 	}
 
-	@Nullable
 	public List<String> getOriginPatternsList() {
 		return ObjectUtils.isEmpty(this.originPatterns) ? null : Arrays.asList(this.originPatterns);
 	}
@@ -86,7 +82,6 @@ public class CrossOrigin {
 		return this.allowedHeaders;
 	}
 
-	@Nullable
 	public List<String> getAllowedHeadersList() {
 		return ObjectUtils.isEmpty(this.allowedHeaders) ? null : Arrays.asList(this.allowedHeaders);
 	}
@@ -99,7 +94,6 @@ public class CrossOrigin {
 		return this.exposedHeaders;
 	}
 
-	@Nullable
 	public List<String> getExposedHeadersList() {
 		return ObjectUtils.isEmpty(this.exposedHeaders) ? null : Arrays.asList(this.exposedHeaders);
 	}
@@ -112,7 +106,6 @@ public class CrossOrigin {
 		return this.method;
 	}
 
-	@Nullable
 	public List<RequestMethod> getMethodsList() {
 		return ObjectUtils.isEmpty(this.method) ? null : Arrays.asList(this.method);
 	}
