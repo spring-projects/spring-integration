@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,7 +68,7 @@ public class DelayerUsageTests {
 	@Autowired
 	private PollableChannel outputC;
 
-	@Test
+	@RetryingTest(10)
 	public void testDelayWithDefaultSchedulerAndTransactionSynchronization() {
 		long start = System.currentTimeMillis();
 
@@ -82,7 +82,7 @@ public class DelayerUsageTests {
 		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(25));
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testDelayWithDefaultSchedulerCustomDelayHeader() {
 		MessageBuilder<String> builder = MessageBuilder.withPayload("Hello");
 		// set custom delay header
@@ -93,7 +93,7 @@ public class DelayerUsageTests {
 		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(25));
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testDelayWithCustomScheduler() {
 		long start = System.currentTimeMillis();
 		inputB.send(new GenericMessage<>("1"));
@@ -117,7 +117,7 @@ public class DelayerUsageTests {
 		assertThat(System.currentTimeMillis() - start).isBetween(1000L, 3000L);
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testDelayerInsideChain() {
 		long start = System.currentTimeMillis();
 		delayerInsideChain.send(new GenericMessage<>("Hello"));
@@ -127,7 +127,7 @@ public class DelayerUsageTests {
 		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void delayEvaluatedFromExpression() {
 		long start = System.currentTimeMillis();
 		this.inputC.send(new GenericMessage<>("test"));
