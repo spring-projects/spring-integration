@@ -20,6 +20,8 @@ import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 
@@ -30,10 +32,11 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
-public interface MessageStore {
+public interface MessageStore extends IntegrationPattern {
 
 	/**
 	 * @param id The message identifier.
@@ -85,5 +88,10 @@ public interface MessageStore {
 	 */
 	@ManagedAttribute
 	long getMessageCount();
+
+	@Override
+	default IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.message_store;
+	}
 
 }

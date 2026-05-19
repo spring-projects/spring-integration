@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * Used to indicate which pattern a target component implements.
  *
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 5.3
  */
@@ -84,6 +85,8 @@ public enum IntegrationPatternType { // NOSONAR Initialization circularity is us
 
 	control_bus(IntegrationPatternCategory.system_management),
 
+	message_store(IntegrationPatternCategory.system_management),
+
 	router(IntegrationPatternCategory.message_routing),
 
 	recipient_list_router(IntegrationPatternCategory.message_routing);
@@ -140,7 +143,9 @@ public enum IntegrationPatternType { // NOSONAR Initialization circularity is us
 				claim_check_in,
 				claim_check_out),
 
-		system_management(control_bus);
+		system_management(
+				control_bus,
+				message_store);
 
 		private final IntegrationPatternType[] patternTypes;
 
