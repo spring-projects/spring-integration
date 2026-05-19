@@ -36,7 +36,7 @@
 				<xsd:element name="cross-origin" type="crossOriginType" minOccurs="0">
 					<xsd:annotation>
 						<xsd:documentation>
-							Marks this endpoint as permitting cross origin requests (CORS).
+							Marks this endpoint as permitting cross-origin requests (CORS).
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
@@ -716,16 +716,24 @@
 				Defines configuration for org.springframework.web.cors.CorsConfiguration.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="origin" type="xsd:string" default="*">
+		<xsd:attribute name="origin" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					List of allowed origins. "*" means that all origins are allowed. These values
 					are placed in the 'Access-Control-Allow-Origin' header of both the pre-flight
-					and actual responses. Default value is "*".
+					and actual responses.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="allowed-headers" type="xsd:string" default="*">
+		<xsd:attribute name="origin-patterns" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Alternative list to `origin` that supports more flexible
+					origins patterns with "*" anywhere in the host name in addition to port lists.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="allowed-headers" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					Indicates which request headers can be used during the actual request. "*" means
@@ -747,20 +755,20 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					The HTTP request methods to allow: GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE, TRACE.
-					Methods specified here overrides 'supported-methods' ones.
+					Methods specified here override 'supported-methods' ones.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:union memberTypes="httpMethodEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="allow-credentials" default="true">
+		<xsd:attribute name="allow-credentials">
 			<xsd:annotation>
 				<xsd:documentation>
-					Set to "true" if the browser should include any cookies associated to the domain
+					Set to "true" if the browser should include any cookies associated with the domain
 					of the request being annotated, or "false" if it should not. Empty string "" means undefined.
 					If true, the pre-flight response will include the header
-					'Access-Control-Allow-Credentials=true'. Default value is "true".
+					'Access-Control-Allow-Credentials=true'.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
@@ -771,7 +779,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Controls the cache duration for pre-flight responses. Setting this to a reasonable
-					value can reduce the number of pre-flight request/response interaction required by
+					value can reduce the amount of pre-flight request/response interaction required by
 					the browser. This property controls the value of the 'Access-Control-Max-Age' header
 					in the pre-flight response. Value set to '-1' means undefined.
 					Default value is 1800 seconds, or 30 minutes.
