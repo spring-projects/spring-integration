@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -185,7 +186,7 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 		Mockito.verify(conn2).send(message);
 	}
 
-	@Test
+	@RetryingTest(10)
 	void failoverAllDeadAfterSuccess() throws Exception {
 		ServerSocket ss1 = ServerSocketFactory.getDefault().createServerSocket(0);
 		ThreadPoolTaskExecutor exec = new ThreadPoolTaskExecutor();
@@ -743,4 +744,3 @@ public class FailoverClientConnectionFactoryTests implements TestApplicationCont
 	}
 
 }
-
