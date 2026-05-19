@@ -17,11 +17,15 @@
 package org.springframework.integration.http.inbound;
 
 import java.util.Arrays;
+import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * The mapping to permit cross origin requests (CORS) for {@link HttpRequestHandlingEndpointSupport}.
+ * The mapping to permit cross-origin requests (CORS) for {@link HttpRequestHandlingEndpointSupport}.
  * Provides direct mapping in terms of functionality compared to
  * {@link org.springframework.web.bind.annotation.CrossOrigin}.
  *
@@ -34,24 +38,44 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 public class CrossOrigin {
 
-	private String[] origin = {"*"};
+	private String[] origin = {};
 
-	private String[] allowedHeaders = {"*"};
+	private String[] originPatterns = {};
+
+	private String[] allowedHeaders = {};
 
 	private String[] exposedHeaders = {};
 
 	private RequestMethod[] method = {};
 
-	private Boolean allowCredentials = true;
+	private Boolean allowCredentials = false;
 
-	private long maxAge = 1800; // NOSONAR magic number
+	private long maxAge = 1800L;
 
 	public void setOrigin(String... origin) {
 		this.origin = Arrays.copyOf(origin, origin.length);
 	}
 
 	public String[] getOrigin() {
-		return this.origin; // NOSONAR - expose internals
+		return this.origin;
+	}
+
+	@Nullable
+	public List<String> getOriginsList() {
+		return ObjectUtils.isEmpty(this.origin) ? null : Arrays.asList(this.origin);
+	}
+
+	public void setOriginPatterns(String... originPatterns) {
+		this.originPatterns = Arrays.copyOf(originPatterns, originPatterns.length);
+	}
+
+	public String[] getOriginPatterns() {
+		return this.originPatterns;
+	}
+
+	@Nullable
+	public List<String> getOriginPatternsList() {
+		return ObjectUtils.isEmpty(this.originPatterns) ? null : Arrays.asList(this.originPatterns);
 	}
 
 	public void setAllowedHeaders(String... allowedHeaders) {
@@ -59,7 +83,12 @@ public class CrossOrigin {
 	}
 
 	public String[] getAllowedHeaders() {
-		return this.allowedHeaders; // NOSONAR - expose internals
+		return this.allowedHeaders;
+	}
+
+	@Nullable
+	public List<String> getAllowedHeadersList() {
+		return ObjectUtils.isEmpty(this.allowedHeaders) ? null : Arrays.asList(this.allowedHeaders);
 	}
 
 	public void setExposedHeaders(String... exposedHeaders) {
@@ -67,7 +96,12 @@ public class CrossOrigin {
 	}
 
 	public String[] getExposedHeaders() {
-		return this.exposedHeaders; // NOSONAR - expose internals
+		return this.exposedHeaders;
+	}
+
+	@Nullable
+	public List<String> getExposedHeadersList() {
+		return ObjectUtils.isEmpty(this.exposedHeaders) ? null : Arrays.asList(this.exposedHeaders);
 	}
 
 	public void setMethod(RequestMethod... method) {
@@ -75,7 +109,12 @@ public class CrossOrigin {
 	}
 
 	public RequestMethod[] getMethod() {
-		return this.method; // NOSONAR - expose internals
+		return this.method;
+	}
+
+	@Nullable
+	public List<RequestMethod> getMethodsList() {
+		return ObjectUtils.isEmpty(this.method) ? null : Arrays.asList(this.method);
 	}
 
 	public void setAllowCredentials(Boolean allowCredentials) {
