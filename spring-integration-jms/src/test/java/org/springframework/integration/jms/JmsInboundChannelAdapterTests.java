@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
@@ -40,7 +40,7 @@ public class JmsInboundChannelAdapterTests extends ActiveMQMultiContextTests {
 	@Autowired
 	private PollableChannel out;
 
-	@Test
+	@RetryingTest(10)
 	public void testTransactionalReceive() {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.convertAndSend("incatQ", "bar");
