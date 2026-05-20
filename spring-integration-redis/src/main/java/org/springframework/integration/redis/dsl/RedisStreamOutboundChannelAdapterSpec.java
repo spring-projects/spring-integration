@@ -34,16 +34,16 @@ import org.springframework.messaging.Message;
  *
  * @since 7.1
  */
-public class ReactiveRedisOutboundChannelAdapterSpec extends
-		ReactiveMessageHandlerSpec<ReactiveRedisOutboundChannelAdapterSpec, ReactiveRedisStreamMessageHandler> {
+public class RedisStreamOutboundChannelAdapterSpec extends
+		ReactiveMessageHandlerSpec<RedisStreamOutboundChannelAdapterSpec, ReactiveRedisStreamMessageHandler> {
 
-	protected ReactiveRedisOutboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
+	protected RedisStreamOutboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
 			String streamKey) {
 
 		super(new ReactiveRedisStreamMessageHandler(connectionFactory, streamKey));
 	}
 
-	protected ReactiveRedisOutboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
+	protected RedisStreamOutboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
 			Expression streamExpression) {
 
 		super(new ReactiveRedisStreamMessageHandler(connectionFactory, streamExpression));
@@ -55,7 +55,7 @@ public class ReactiveRedisOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageHandler#setSerializationContext(RedisSerializationContext)
 	 */
-	public ReactiveRedisOutboundChannelAdapterSpec serializationContext(RedisSerializationContext<String, ?> serializationContext) {
+	public RedisStreamOutboundChannelAdapterSpec serializationContext(RedisSerializationContext<String, ?> serializationContext) {
 		this.reactiveMessageHandler.setSerializationContext(serializationContext);
 		return this;
 	}
@@ -66,7 +66,7 @@ public class ReactiveRedisOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageHandler#setHashMapper(HashMapper)
 	 */
-	public ReactiveRedisOutboundChannelAdapterSpec hashMapper(HashMapper<String, ?, ?> hashMapper) {
+	public RedisStreamOutboundChannelAdapterSpec hashMapper(HashMapper<String, ?, ?> hashMapper) {
 		this.reactiveMessageHandler.setHashMapper(hashMapper);
 		return this;
 	}
@@ -77,7 +77,7 @@ public class ReactiveRedisOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageHandler#setExtractPayload(boolean)
 	 */
-	public ReactiveRedisOutboundChannelAdapterSpec extractPayload(boolean extractPayload) {
+	public RedisStreamOutboundChannelAdapterSpec extractPayload(boolean extractPayload) {
 		this.reactiveMessageHandler.setExtractPayload(extractPayload);
 		return this;
 	}
@@ -88,7 +88,7 @@ public class ReactiveRedisOutboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageHandler#setAddOptionsFunction(Function)
 	 */
-	public ReactiveRedisOutboundChannelAdapterSpec addOptionsFunction(Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction) {
+	public RedisStreamOutboundChannelAdapterSpec addOptionsFunction(Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction) {
 		this.reactiveMessageHandler.setAddOptionsFunction(addOptionsFunction);
 		return this;
 	}

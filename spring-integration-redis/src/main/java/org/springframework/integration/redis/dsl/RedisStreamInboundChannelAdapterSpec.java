@@ -37,10 +37,10 @@ import org.springframework.integration.redis.inbound.ReactiveRedisStreamMessageP
  *
  * @since 7.1
  */
-public class ReactiveRedisInboundChannelAdapterSpec extends
-		MessageProducerSpec<ReactiveRedisInboundChannelAdapterSpec, ReactiveRedisStreamMessageProducer> {
+public class RedisStreamInboundChannelAdapterSpec extends
+		MessageProducerSpec<RedisStreamInboundChannelAdapterSpec, ReactiveRedisStreamMessageProducer> {
 
-	protected ReactiveRedisInboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
+	protected RedisStreamInboundChannelAdapterSpec(ReactiveRedisConnectionFactory connectionFactory,
 			String streamKey) {
 
 		this.target = new ReactiveRedisStreamMessageProducer(connectionFactory, streamKey);
@@ -52,7 +52,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setReadOffset(ReadOffset)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec readOffset(ReadOffset readOffset) {
+	public RedisStreamInboundChannelAdapterSpec readOffset(ReadOffset readOffset) {
 		this.target.setReadOffset(readOffset);
 		return this;
 	}
@@ -63,7 +63,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setExtractPayload(boolean)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec extractPayload(boolean extractPayload) {
+	public RedisStreamInboundChannelAdapterSpec extractPayload(boolean extractPayload) {
 		this.target.setExtractPayload(extractPayload);
 		return this;
 	}
@@ -74,7 +74,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setAutoAck(boolean)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec autoAck(boolean autoAck) {
+	public RedisStreamInboundChannelAdapterSpec autoAck(boolean autoAck) {
 		this.target.setAutoAck(autoAck);
 		return this;
 	}
@@ -85,7 +85,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setConsumerGroup(String)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec consumerGroup(String consumerGroup) {
+	public RedisStreamInboundChannelAdapterSpec consumerGroup(String consumerGroup) {
 		this.target.setConsumerGroup(consumerGroup);
 		return this;
 	}
@@ -96,7 +96,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setConsumerName(String)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec consumerName(@Nullable String consumerName) {
+	public RedisStreamInboundChannelAdapterSpec consumerName(@Nullable String consumerName) {
 		this.target.setConsumerName(consumerName);
 		return this;
 	}
@@ -107,7 +107,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setCreateConsumerGroup(boolean)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec createConsumerGroup(boolean createConsumerGroup) {
+	public RedisStreamInboundChannelAdapterSpec createConsumerGroup(boolean createConsumerGroup) {
 		this.target.setCreateConsumerGroup(createConsumerGroup);
 		return this;
 	}
@@ -118,7 +118,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setStreamReceiverOptions(StreamReceiver.StreamReceiverOptions)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec streamReceiverOptions(
+	public RedisStreamInboundChannelAdapterSpec streamReceiverOptions(
 			StreamReceiver.@Nullable StreamReceiverOptions<String, ?> streamReceiverOptions) {
 
 		this.target.setStreamReceiverOptions(streamReceiverOptions);
@@ -131,7 +131,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setPollTimeout(Duration)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec pollTimeout(Duration pollTimeout) {
+	public RedisStreamInboundChannelAdapterSpec pollTimeout(Duration pollTimeout) {
 		this.target.setPollTimeout(pollTimeout);
 		return this;
 	}
@@ -142,7 +142,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setBatchSize(int)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec batchSize(int recordsPerPoll) {
+	public RedisStreamInboundChannelAdapterSpec batchSize(int recordsPerPoll) {
 		this.target.setBatchSize(recordsPerPoll);
 		return this;
 	}
@@ -153,7 +153,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setOnErrorResume(Function)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec errorResumeFunction(
+	public RedisStreamInboundChannelAdapterSpec errorResumeFunction(
 			Function<? super Throwable, ? extends Publisher<Void>> resumeFunction) {
 
 		this.target.setOnErrorResume(resumeFunction);
@@ -166,7 +166,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setSerializer(RedisSerializationContext.SerializationPair)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec serializer(RedisSerializationContext.SerializationPair<?> pair) {
+	public RedisStreamInboundChannelAdapterSpec serializer(RedisSerializationContext.SerializationPair<?> pair) {
 		this.target.setSerializer(pair);
 		return this;
 	}
@@ -177,7 +177,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setTargetType(Class)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec targetType(Class<?> targetType) {
+	public RedisStreamInboundChannelAdapterSpec targetType(Class<?> targetType) {
 		this.target.setTargetType(targetType);
 		return this;
 	}
@@ -188,7 +188,7 @@ public class ReactiveRedisInboundChannelAdapterSpec extends
 	 * @return the spec
 	 * @see ReactiveRedisStreamMessageProducer#setObjectMapper(HashMapper)
 	 */
-	public ReactiveRedisInboundChannelAdapterSpec objectMapper(HashMapper<?, ?, ?> hashMapper) {
+	public RedisStreamInboundChannelAdapterSpec objectMapper(HashMapper<?, ?, ?> hashMapper) {
 		this.target.setObjectMapper(hashMapper);
 		return this;
 	}

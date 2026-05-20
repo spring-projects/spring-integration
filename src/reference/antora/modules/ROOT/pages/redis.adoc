@@ -1312,9 +1312,9 @@ Java DSL::
 [source, java, role="primary"]
 ----
 @Bean
-IntegrationFlow reactiveOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+IntegrationFlow streamOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
     return flow -> flow.handle(Redis
-            .reactiveOutboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
+            .streamOutboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
             .serializationContext() <2>
             .hashMapper() <3>
             .extractPayload() <4>
@@ -1363,9 +1363,9 @@ Java DSL::
 [source, java, role="primary"]
 ----
 @Bean
-IntegrationFlow reactiveInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+IntegrationFlow streamInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
     return IntegrationFlow.from(Redis
-                    .reactiveInboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
+                    .streamInboundChannelAdapter(connectionFactory, "STREAM_KEY") <1>
                     .streamReceiverOptions( <2>
 						StreamReceiver.StreamReceiverOptions.builder()
                             .pollTimeout(Duration.ofMillis(100))

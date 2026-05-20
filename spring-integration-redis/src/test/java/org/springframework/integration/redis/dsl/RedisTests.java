@@ -156,15 +156,15 @@ class RedisTests implements RedisContainerTest {
 	MessageChannel queueOutboundGatewayFlowInputChannel;
 
 	@Autowired
-	@Qualifier("reactiveOutboundChannelAdapterFlow.input")
-	MessageChannel reactiveOutboundChannelAdapterFlowInputChannel;
+	@Qualifier("streamOutboundChannelAdapterFlow.input")
+	MessageChannel streamOutboundChannelAdapterFlowInputChannel;
 
 	@Autowired
-	@Qualifier("reactiveInboundMessageProducer")
-	ReactiveRedisStreamMessageProducer reactiveInboundMessageProducer;
+	@Qualifier("streamInboundMessageProducer")
+	ReactiveRedisStreamMessageProducer streamInboundMessageProducer;
 
 	@Autowired
-	FluxMessageChannel reactiveInboundChannelAdapterOutputFluxChannel;
+	FluxMessageChannel streamInboundChannelAdapterOutputFluxChannel;
 
 	@Test
 	void testInboundChannelAdapterFlow() throws Exception {
@@ -360,11 +360,11 @@ class RedisTests implements RedisContainerTest {
 	}
 
 	@Test
-	void testReactiveOutboundChannelAdapterFlow() {
+	void testStreamOutboundChannelAdapterFlow() {
 		// Given
 		List<String> messagePayload = Arrays.asList("Hello", "stream", "message");
 		// When
-		reactiveOutboundChannelAdapterFlowInputChannel.send(MessageBuilder.withPayload(messagePayload).build());
+		streamOutboundChannelAdapterFlowInputChannel.send(MessageBuilder.withPayload(messagePayload).build());
 		// Then
 		var reactiveRedisTemplate = new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
 		ObjectRecord<String, ?> record = reactiveRedisTemplate.opsForStream()
@@ -377,10 +377,10 @@ class RedisTests implements RedisContainerTest {
 	}
 
 	@Test
-	void testReactiveInboundChannelAdapterFlow() {
+	void testStreamInboundChannelAdapterFlow() {
 		Person person = new Person(new Address("Winterfell, Westeros"), "John Snow");
 		// Subscriber
-		StepVerifier stepVerifier = Flux.from(this.reactiveInboundChannelAdapterOutputFluxChannel)
+		StepVerifier stepVerifier = Flux.from(this.streamInboundChannelAdapterOutputFluxChannel)
 				.as(StepVerifier::create)
 				.assertNext(message -> {
 					assertThat(message.getPayload()).isEqualTo(person);
@@ -389,7 +389,7 @@ class RedisTests implements RedisContainerTest {
 				.thenCancel()
 				.verifyLater();
 
-		reactiveInboundMessageProducer.start();
+		streamInboundMessageProducer.start();
 		// Given
 		var reactiveRedisTemplate = new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
 		reactiveRedisTemplate
@@ -400,7 +400,7 @@ class RedisTests implements RedisContainerTest {
 		// Then
 		stepVerifier.verify(Duration.ofSeconds(10));
 
-		reactiveInboundMessageProducer.stop();
+		streamInboundMessageProducer.stop();
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -522,15 +522,15 @@ class RedisTests implements RedisContainerTest {
 		}
 
 		@Bean
-		IntegrationFlow reactiveOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+		IntegrationFlow streamOutboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
 			return flow -> flow
-					.handle(Redis.reactiveOutboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_OUTBOUND_ADAPTER));
+					.handle(Redis.streamOutboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_OUTBOUND_ADAPTER));
 		}
 
 		@Bean
-		IntegrationFlow reactiveInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
+		IntegrationFlow streamInboundChannelAdapterFlow(ReactiveRedisConnectionFactory connectionFactory) {
 			return IntegrationFlow.from(Redis
-							.reactiveInboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_INBOUND_ADAPTER)
+							.streamInboundChannelAdapter(connectionFactory, STREAM_KEY_FOR_REACTIVE_INBOUND_ADAPTER)
 							.readOffset(ReadOffset.from("0-0"))
 							.streamReceiverOptions(StreamReceiver.StreamReceiverOptions.builder()
 									.pollTimeout(Duration.ofMillis(100))
@@ -539,9 +539,9 @@ class RedisTests implements RedisContainerTest {
 							.createConsumerGroup(false)
 							.consumerName(null)
 							.autoStartup(false)
-							.id("reactiveInboundMessageProducer")
+							.id("streamInboundMessageProducer")
 							.autoAck(true))
-					.channel(c -> c.flux("reactiveInboundChannelAdapterOutputFluxChannel"))
+					.channel(c -> c.flux("streamInboundChannelAdapterOutputFluxChannel"))
 					.get();
 		}
 
