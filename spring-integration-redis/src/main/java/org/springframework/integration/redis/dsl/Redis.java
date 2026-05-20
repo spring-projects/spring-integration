@@ -19,6 +19,7 @@ package org.springframework.integration.redis.dsl;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.expression.Expression;
@@ -236,6 +237,54 @@ public final class Redis {
 			RedisConnectionFactory connectionFactory) {
 
 		return new RedisQueueInboundGatewaySpec(queueName, connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStreamOutboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link ReactiveRedisConnectionFactory} to build on
+	 * @param streamKey The streamKey of the Redis stream to build on
+	 * @return the {@link RedisStreamOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisStreamOutboundChannelAdapterSpec streamOutboundChannelAdapter(
+			ReactiveRedisConnectionFactory connectionFactory, String streamKey) {
+
+		return new RedisStreamOutboundChannelAdapterSpec(connectionFactory, streamKey);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStreamOutboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link ReactiveRedisConnectionFactory} to build on
+	 * @param streamExpression The streamKey expression of the Redis stream to build on
+	 * @return the {@link RedisStreamOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisStreamOutboundChannelAdapterSpec streamOutboundChannelAdapter(
+			ReactiveRedisConnectionFactory connectionFactory, Expression streamExpression) {
+
+		return new RedisStreamOutboundChannelAdapterSpec(connectionFactory, streamExpression);
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStreamOutboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link ReactiveRedisConnectionFactory} to build on
+	 * @param streamFunction The streamKey function of the Redis stream to build on
+	 * @return the {@link RedisStreamOutboundChannelAdapterSpec} instance
+	 */
+	public static RedisStreamOutboundChannelAdapterSpec streamOutboundChannelAdapter(
+			ReactiveRedisConnectionFactory connectionFactory, Function<Message<?>, String> streamFunction) {
+
+		return streamOutboundChannelAdapter(connectionFactory, new FunctionExpression<>(streamFunction));
+	}
+
+	/**
+	 * The factory to produce a {@link RedisStreamInboundChannelAdapterSpec}.
+	 * @param connectionFactory the {@link ReactiveRedisConnectionFactory} to build on
+	 * @param streamKey The streamKey of the Redis stream to build on
+	 * @return the {@link RedisStreamInboundChannelAdapterSpec} instance
+	 */
+	public static RedisStreamInboundChannelAdapterSpec streamInboundChannelAdapter(
+			ReactiveRedisConnectionFactory connectionFactory, String streamKey) {
+
+		return new RedisStreamInboundChannelAdapterSpec(connectionFactory, streamKey);
 	}
 
 	private Redis() {
