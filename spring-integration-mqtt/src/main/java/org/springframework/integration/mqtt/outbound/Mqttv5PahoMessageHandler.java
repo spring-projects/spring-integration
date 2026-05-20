@@ -49,11 +49,14 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMqttMessageHandler} implementation for MQTT v5.
+ * <p>
+ * Payloads other than {@code byte[]} or {@link String} use the configured {@link MessageConverter}.
  *
  * @author Artem Bilan
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
  * @author Glenn Renfro
+ * @author Deng Pan
  *
  * @since 5.5.5
  */
@@ -214,17 +217,28 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	private MqttMessage buildMqttMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		byte[] body;
-		if (payload instanceof byte[]) {
-			body = (byte[]) payload;
+		if (payload instanceof byte[] bytes) {
+			body = bytes;
 		}
-		else if (payload instanceof String) {
-			body = ((String) payload).getBytes(StandardCharsets.UTF_8);
+		else if (payload instanceof String string) {
+			body = string.getBytes(StandardCharsets.UTF_8);
 		}
 		else {
 			MessageConverter converter = getConverter();
-			body = (byte[]) converter.fromMessage(message, byte[].class);
-			Assert.state(body != null,
+			Message<?> converted = converter.toMessage(payload, message.getHeaders());
+			Assert.state(converted != null,
 					() -> "The MQTT payload cannot be null. The '" + converter + "' returned null for: " + message);
+			Object convertedPayload = converted.getPayload();
+			if (convertedPayload instanceof byte[] bytes) {
+				body = bytes;
+			}
+			else if (convertedPayload instanceof String string) {
+				body = string.getBytes(StandardCharsets.UTF_8);
+			}
+			else {
+				throw new IllegalStateException("The MQTT payload must be a 'byte[]' or 'String'. The '" + converter +
+						"' returned a '" + convertedPayload.getClass().getSimpleName() + "' for: " + message);
+			}
 		}
 
 		MqttMessage mqttMessage = new MqttMessage();
