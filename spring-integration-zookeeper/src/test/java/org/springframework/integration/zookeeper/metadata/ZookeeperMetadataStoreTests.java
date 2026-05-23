@@ -128,12 +128,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		CuratorFramework otherClient = createNewClient();
 		final ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
 		otherMetadataStore.start();
-		otherMetadataStore.replace(testKey, "OtherValue", "Integration-2");
+		assertThat(otherMetadataStore.replace(testKey, "OtherValue", "Integration-2")).isFalse();
 		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
 				.isEqualTo("Integration");
 		assertThat(metadataStore.get(testKey)).isEqualTo("Integration");
 		await().untilAsserted(() -> assertThat("Integration").isEqualTo(otherMetadataStore.get(testKey)));
-		otherMetadataStore.replace(testKey, "Integration", "Integration-2");
+		assertThat(otherMetadataStore.replace(testKey, "Integration", "Integration-2")).isTrue();
 		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
 				.isEqualTo("Integration-2");
 		await().untilAsserted(() -> assertThat("Integration-2").isEqualTo(otherMetadataStore.get(testKey)));
