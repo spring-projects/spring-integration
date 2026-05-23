@@ -207,7 +207,7 @@ Map<List<Object>, Integer>
 
 When a message transitions through an application, each time it is mutated, (for example, by a transformer), a new message ID is assigned.
 The message ID is a `UUID`.
-Beginning with Spring Integration 3.0, the default strategy used for IS generation is more efficient than the previous `java.util.UUID.randomUUID()` implementation.
+Beginning with Spring Integration 3.0, the default strategy used for ID generation is more efficient than the previous `java.util.UUID.randomUUID()` implementation.
 It uses simple random numbers based on a secure random seed instead of creating a secure random number each time.
 
 A different UUID generation strategy can be selected by declaring a bean that implements `org.springframework.util.IdGenerator` in the application context.
