@@ -50,7 +50,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * An infrastructure {@link BeanPostProcessor} implementation that processes method-level
- * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter.
+ * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter, on regular component methods.
  *
  * @author Artem Bilan
  *
