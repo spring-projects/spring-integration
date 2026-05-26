@@ -117,5 +117,5 @@ private IntegrationFlow buildFlow(int port) {
 
 In this case, the message handler for the first flow can be referenced with bean a name of `tcp1.client.handler`.
 
-NOTE: An `id` attribute is required when you usE `useFlowIdAsPrefix()`.
+NOTE: An `id` attribute is required when you use `useFlowIdAsPrefix()`.
 
