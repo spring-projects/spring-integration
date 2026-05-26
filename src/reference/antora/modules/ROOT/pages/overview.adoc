@@ -2,7 +2,7 @@
 = Overview of Spring Integration Framework
 
 [[spring-integration-intro]]
-Spring Integration provides an extension of the Spring programming model to support the well known https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns].
+Spring Integration provides an extension of the Spring programming model to support the well-known https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns].
 It enables lightweight messaging within Spring-based applications and supports integration with external systems through declarative adapters.
 Those adapters provide a higher level of abstraction over Spring's support for remoting, messaging, and scheduling.
 
@@ -19,13 +19,13 @@ It includes some programming tips to help you make the most of Spring Integratio
 
 One of the key themes of the Spring Framework is Inversion of Control (IoC).
 In its broadest sense, this means that the framework handles responsibilities on behalf of the components that are managed within its context.
-The components themselves are simplified, because they are relieved of those responsibilities.
+The components themselves are simplified because they are relieved of those responsibilities.
 For example, dependency injection relieves the components of the responsibility of locating or creating their dependencies.
 Likewise, aspect-oriented programming relieves business components of generic cross-cutting concerns by modularizing them into reusable aspects.
 In each case, the end result is a system that is easier to test, understand, maintain, and extend.
 
 Furthermore, the Spring framework and portfolio provide a comprehensive programming model for building enterprise applications.
-Developers benefit from the consistency of this model and especially from the fact that it is based upon well established best practices, such as programming to interfaces and favoring composition over inheritance.
+Developers benefit from the consistency of this model and especially from the fact that it is based upon well-established best practices, such as programming to interfaces and favoring composition over inheritance.
 Spring's simplified abstractions and powerful support libraries boost developer productivity while simultaneously increasing the level of testability and portability.
 
 Spring Integration is motivated by these same goals and principles.
@@ -54,6 +54,39 @@ Spring Integration is guided by the following principles:
 * Components should be loosely coupled for modularity and testability.
 * The framework should enforce separation of concerns between business logic and integration logic.
 * Extension points should be abstract in nature (but within well-defined boundaries) to promote reuse and portability.
+
+=== Architectural Positioning: Application-Centric vs. Centralized ESB
+
+For developers familiar with traditional Enterprise Integration architectures, it is helpful to distinguish Spring Integration design philosophy from that of a centralized Enterprise Service Bus (ESB) such as Mule ESB, TIBCO, or BizTalk.
+
+==== Centralized ESB Topology (Bus-Centric)
+
+Traditional https://en.wikipedia.org/wiki/Enterprise_service_bus[ESB solutions] typically rely on a centralized, heavy runtime infrastructure.
+In this model:
+
+* *Centralized Runtime*: integration routes, transformations, and orchestrations are deployed into a dedicated, standalone server or cluster managed independently of the consuming business applications;
+* *Hub-and-Spoke*: applications connect as `spokes` to the central `hub`;
+* *Operational Overhead*: managing, patching, and scaling the separate integration bus infrastructure creates significant operational complexity;
+* *Potential Bottleneck*: the centralized bus can become both a runtime performance bottleneck and an organizational single point of failure.
+
+==== Spring Integration Topology (Application-Centric)
+
+Spring Integration takes an application-centric and embedded approach to Enterprise Integration Patterns:
+
+* *No Dedicated Integration Server*: Spring Integration is completely lightweight.
+Its components (channels, endpoints, transformers) live directly within the `ApplicationContext` as standard Spring beans.
+There is no external server or broker platform to administer or configure specifically for the framework itself;
+* *Decentralized and Distributed*: integration logic scales naturally alongside your application instances.
+Whether the  deployment is a monolithic system or a set of distributed cloud-native microservices, the integration rules are packaged and executed in-process;
+* *POJO-Based Programming Model*: rather than forcing developers into proprietary graphical tooling, heavy SDKs, or complex vendor-specific XML formats, Spring Integration promotes standard POJOs.
+If a custom protocol or transformation is required, it can be implemented with a simple Java method invocation or a custom bean, making the framework exceptionally easy to extend and unit-test;
+* *Simplicity & Testability*: since everything is "just Spring beans," integration flows can be fully unit-tested using standard Spring test utilities without spinning up a massive integration container environment.
+
+==== Alignment with Modern Microservices
+
+Because it runs embedded within the application classpath, Spring Integration is an ideal fit for both traditional on-premises deployments and cloud-native architectures.
+Instead of routing traffic through heavy middleware, applications integrate directly in a point-to-point fashion or leverage lightweight distributed event streaming brokers (like Apache Kafka or RabbitMQ).
+This philosophy is the foundational underpinning of https://spring.io/projects/spring-cloud-stream[Spring Cloud Stream], which encapsulates the Spring Integration's EIP model and maps it seamlessly to external messaging binders for highly distributed, event-driven architectures.
 
 [[overview-components]]
 === Main Components
