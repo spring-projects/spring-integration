@@ -73,3 +73,8 @@ configurations for the default `JmsTemplate`.
 The `HttpRequestExecutingMessageHandler` (its XML and Java DSL) now can be used with a `RestClient`.
 The `RestTemplate` configuration is deprecated.
 See xref:http.adoc[] for more information.
+
+[[x7.1-mqtt-changes]]
+=== MQTT Changes
+
+For payloads other than `byte[]` or `String`, the `Mqttv5PahoMessageHandler` now delegates the conversion to the configured `MessageConverter` via `toMessage()`, instead of via `fromMessage()`.

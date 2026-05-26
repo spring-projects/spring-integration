@@ -47,7 +47,7 @@ import static org.mockito.Mockito.verify;
  *
  * @author Deng Pan
  *
- * @since 6.5.9
+ * @since 7.1
  */
 class Mqttv5HandlerTests {
 
