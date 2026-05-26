@@ -84,7 +84,7 @@ If a custom protocol or transformation is required, it can be implemented with a
 
 ==== Alignment with Modern Microservices
 
-Because it runs embedded within the application classpath, Spring Integration is an ideal fit for modern, cloud-native architectures.
+Because it runs embedded within the application classpath, Spring Integration is an ideal fit for both traditional on-premises deployments and cloud-native architectures.
 Instead of routing traffic through heavy middleware, applications integrate directly in a point-to-point fashion or leverage lightweight distributed event streaming brokers (like Apache Kafka or RabbitMQ).
 This philosophy is the foundational underpinning of https://spring.io/projects/spring-cloud-stream[Spring Cloud Stream], which encapsulates the Spring Integration's EIP model and maps it seamlessly to external messaging binders for highly distributed, event-driven architectures.
 
