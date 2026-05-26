@@ -149,8 +149,9 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				byte[] bytes = this.client.getData().storingStatIn(currentStat).forPath(getPath(key));
 				if (oldValue.equals(IntegrationUtils.bytesToString(bytes, this.encoding))) {
 					updateNode(key, newValue, currentStat.getVersion());
+					return true;
 				}
-				return true;
+				return false;
 			}
 			catch (KeeperException.NoNodeException | KeeperException.BadVersionException ex) {
 				// ignore, the node doesn't exist there's nothing to replace
