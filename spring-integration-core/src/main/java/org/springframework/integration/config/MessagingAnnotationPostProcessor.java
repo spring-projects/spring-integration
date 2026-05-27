@@ -29,7 +29,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -51,8 +50,8 @@ import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
- * A {@link BeanPostProcessor} implementation that processes method-level
- * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter.
+ * A {@link BeanDefinitionRegistryPostProcessor} implementation that processes method-level
+ * messaging annotations (@Transformer, @Splitter, @Router, @Filter etc.) on @Bean configuration methods.
  *
  * @author Mark Fisher
  * @author Marius Bogoevici
