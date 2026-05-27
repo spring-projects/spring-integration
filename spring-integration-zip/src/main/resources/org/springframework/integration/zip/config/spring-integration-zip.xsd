@@ -42,6 +42,16 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="keep-working-directory" type="xsd:string"
+						use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								If set to 'true', the generated zip file must
+								remain in the configured work directory.
+								The default is 'false'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

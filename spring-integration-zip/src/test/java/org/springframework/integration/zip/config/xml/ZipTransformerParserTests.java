@@ -73,12 +73,14 @@ public class ZipTransformerParserTests {
 		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory");
 		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel");
 		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles");
+		final Boolean keepWorkingDirectory = TestUtils.getPropertyValue(zipTransformer, "keepWorkingDirectory");
 
 		assertThat(charset).isNotNull();
 		assertThat(fileNameGenerator).isNotNull();
 		assertThat(zipResultType).isNotNull();
 		assertThat(workDirectory).isNotNull();
 		assertThat(deleteFiles).isNotNull();
+		assertThat(keepWorkingDirectory).isNotNull();
 		assertThat(compressionLevel).isNotNull();
 
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
@@ -89,6 +91,7 @@ public class ZipTransformerParserTests {
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isFalse();
+		assertThat(keepWorkingDirectory).isFalse();
 		assertThat(compressionLevel).isEqualTo(Deflater.DEFAULT_COMPRESSION);
 	}
 
@@ -111,12 +114,14 @@ public class ZipTransformerParserTests {
 		final File workDirectory = TestUtils.getPropertyValue(zipTransformer, "workDirectory");
 		final Integer compressionLevel = TestUtils.getPropertyValue(zipTransformer, "compressionLevel");
 		final Boolean deleteFiles = TestUtils.getPropertyValue(zipTransformer, "deleteFiles");
+		final Boolean keepWorkingDirectory = TestUtils.getPropertyValue(zipTransformer, "keepWorkingDirectory");
 
 		assertThat(charset).isNotNull();
 		assertThat(fileNameGenerator).isNotNull();
 		assertThat(zipResultType).isNotNull();
 		assertThat(workDirectory).isNotNull();
 		assertThat(deleteFiles).isNotNull();
+		assertThat(keepWorkingDirectory).isNotNull();
 		assertThat(compressionLevel).isNotNull();
 
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
@@ -128,6 +133,7 @@ public class ZipTransformerParserTests {
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(compressionLevel).isEqualTo(2);
 		assertThat(deleteFiles).isTrue();
+		assertThat(keepWorkingDirectory).isTrue();
 	}
 
 	@Test

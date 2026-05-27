@@ -12,7 +12,7 @@
 
 	<int-zip:zip-transformer id="zipTransformer" compression-level="2"
 		delete-files="true" input-channel="input" output-channel="output"
-		result-type="BYTE_ARRAY"/>
+		keep-working-directory="true" result-type="BYTE_ARRAY"/>
 
 	<int-zip:zip-transformer id="zipTransformerWithDefaults"
 		input-channel="input" output-channel="output" />

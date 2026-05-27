@@ -18,6 +18,7 @@ package org.springframework.integration.zip.transformer;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,14 +30,18 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.zeroturnaround.zip.ZipException;
 import org.zeroturnaround.zip.ZipUtil;
 
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  *
@@ -170,6 +175,100 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 	}
 
 	@Test
+	public void zipStringToFileCanLeaveWorkDirectoryByDefault() throws IOException {
+		final File workDirectory = createWorkDirectory();
+		final ZipTransformer zipTransformer = createZipTransformer(workDirectory);
+		zipTransformer.afterPropertiesSet();
+
+		final String fileName = "../test-" + UUID.randomUUID();
+		final File escapedZipFile = new File(workDirectory, fileName + ".zip").getCanonicalFile();
+
+		try {
+			final Message<String> message = MessageBuilder.withPayload("Hello World")
+					.setHeader(FileHeaders.FILENAME, fileName)
+					.build();
+
+			final Message<?> result = zipTransformer.transform(message);
+
+			assertThat(result.getPayload()).isInstanceOf(File.class);
+			assertThat(((File) result.getPayload()).getCanonicalFile()).isEqualTo(escapedZipFile);
+			assertThat(escapedZipFile).exists().isFile();
+			assertThat(SpringZipUtils.isValid(escapedZipFile)).isTrue();
+		}
+		finally {
+			if (escapedZipFile.exists()) {
+				assertThat(escapedZipFile.delete()).isTrue();
+			}
+		}
+	}
+
+	@Test
+	public void zipStringToFileWithKeepWorkingDirectory() throws IOException {
+		final File workDirectory = createWorkDirectory();
+		final ZipTransformer zipTransformer = createZipTransformer(workDirectory);
+		zipTransformer.setKeepWorkingDirectory(true);
+		zipTransformer.afterPropertiesSet();
+
+		final String fileName = "test-" + UUID.randomUUID();
+		final Message<String> message = MessageBuilder.withPayload("Hello World")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+
+		final Message<?> result = zipTransformer.transform(message);
+
+		assertThat(result.getPayload()).isInstanceOf(File.class);
+
+		final File payload = (File) result.getPayload();
+
+		assertThat(payload.getCanonicalPath()).startsWith(workDirectory.getCanonicalPath() + File.separator);
+		assertThat(payload).hasName(fileName + ".zip");
+		assertThat(payload).exists().isFile();
+		assertThat(SpringZipUtils.isValid(payload)).isTrue();
+	}
+
+	@Test
+	public void zipStringToFileWithKeepWorkingDirectoryRejectsTraversal() throws IOException {
+		final File workDirectory = createWorkDirectory();
+		final ZipTransformer zipTransformer = createZipTransformer(workDirectory);
+		zipTransformer.setKeepWorkingDirectory(true);
+		zipTransformer.afterPropertiesSet();
+
+		final String fileName = "../test-" + UUID.randomUUID();
+		final File escapedZipFile = new File(workDirectory, fileName + ".zip").getCanonicalFile();
+		final Message<String> message = MessageBuilder.withPayload("Hello World")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> zipTransformer.transform(message))
+				.withRootCauseInstanceOf(ZipException.class)
+				.withStackTraceContaining("is trying to leave the target output directory");
+
+		assertThat(escapedZipFile).doesNotExist();
+	}
+
+	@Test
+	public void zipStringToFileWithKeepWorkingDirectoryRejectsRootRelativeTraversal() throws IOException {
+		final File workDirectory = createWorkDirectory();
+		final ZipTransformer zipTransformer = createZipTransformer(workDirectory);
+		zipTransformer.setKeepWorkingDirectory(true);
+		zipTransformer.afterPropertiesSet();
+
+		final String fileName = "/../test-" + UUID.randomUUID();
+		final File escapedZipFile = new File(workDirectory, fileName + ".zip").getCanonicalFile();
+		final Message<String> message = MessageBuilder.withPayload("Hello World")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> zipTransformer.transform(message))
+				.withRootCauseInstanceOf(ZipException.class)
+				.withStackTraceContaining("is trying to leave the target output directory");
+
+		assertThat(escapedZipFile).doesNotExist();
+	}
+
+	@Test
 	public void zipFile() {
 
 		ZipTransformer zipTransformer = new ZipTransformer();
@@ -227,6 +326,19 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 
 		assertThat(outputZipFile).exists().isFile().hasExtension("zip");
 		assertThat(SpringZipUtils.isValid(outputZipFile)).isTrue();
+	}
+
+	private ZipTransformer createZipTransformer(File workDirectory) {
+		final ZipTransformer zipTransformer = new ZipTransformer();
+		zipTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		zipTransformer.setWorkDirectory(workDirectory);
+		return zipTransformer;
+	}
+
+	private File createWorkDirectory() {
+		final File workDirectory = new File(this.workDir, "zip-work");
+		assertThat(workDirectory.mkdirs()).isTrue();
+		return workDirectory;
 	}
 
 	private File createTestFile(int size) {

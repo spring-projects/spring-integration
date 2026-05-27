@@ -28,6 +28,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.FileSource;
 import org.zeroturnaround.zip.ZipEntrySource;
+import org.zeroturnaround.zip.ZipException;
 
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
@@ -60,6 +61,8 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 	private boolean useFileAttributes = true;
 
+	private boolean keepWorkingDirectory;
+
 	@SuppressWarnings("NullAway.Init")
 	private FileNameGenerator fileNameGenerator;
 
@@ -78,6 +81,16 @@ public class ZipTransformer extends AbstractZipTransformer {
 	 */
 	public void setUseFileAttributes(boolean useFileAttributes) {
 		this.useFileAttributes = useFileAttributes;
+	}
+
+	/**
+	 * Specify whether the generated zip file must remain in the {@code workDirectory}.
+	 * Defaults to {@code false}.
+	 * @param keepWorkingDirectory true to reject zip file names that escape the work directory.
+	 * @since 7.1
+	 */
+	public void setKeepWorkingDirectory(boolean keepWorkingDirectory) {
+		this.keepWorkingDirectory = keepWorkingDirectory;
 	}
 
 	/**
@@ -138,14 +151,14 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 		Object zippedData;
 		if (ZipResultType.FILE.equals(this.zipResultType)) {
-			final File zippedFile = new File(this.workDirectory, zipFileName);
 			try {
+				final File zippedFile = getZippedFile(zipFileName);
 				FileCopyUtils.copy(zippedBytes, zippedFile);
+				zippedData = zippedFile;
 			}
 			catch (IOException ex) {
 				throw new UncheckedIOException(ex);
 			}
-			zippedData = zippedFile;
 		}
 		else if (ZipResultType.BYTE_ARRAY.equals(this.zipResultType)) {
 			zippedData = zippedBytes;
@@ -161,6 +174,17 @@ public class ZipTransformer extends AbstractZipTransformer {
 				.copyHeaders(messageHeaders)
 				.setHeader(FileHeaders.FILENAME, zipFileName)
 				.build();
+	}
+
+	private File getZippedFile(String zipFileName) throws IOException {
+		final File zippedFile = new File(this.workDirectory, zipFileName);
+		if (this.keepWorkingDirectory && !zippedFile.getCanonicalFile().toPath()
+				.startsWith(this.workDirectory.getCanonicalFile().toPath())) {
+
+			throw new ZipException("The file " + zipFileName +
+					" is trying to leave the target output directory of " + this.workDirectory);
+		}
+		return zippedFile;
 	}
 
 	private List<ZipEntrySource> createZipEntries(Object payload, String zipEntryName, Date lastModifiedDate) {

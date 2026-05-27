@@ -41,6 +41,7 @@ public class ZipTransformerParser extends AbstractZipTransformerParser {
 	@Override
 	protected void postProcessTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "compression-level");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "keep-working-directory");
 	}
 
 }
