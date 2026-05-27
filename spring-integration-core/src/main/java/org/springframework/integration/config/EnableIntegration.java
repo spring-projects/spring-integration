@@ -42,7 +42,10 @@ import org.springframework.context.annotation.Import;
  * </pre>
  *
  * @author Artem Bilan
+ * @author Jiandong Ma
+ *
  * @since 4.0
+ *
  * @see IntegrationRegistrar
  */
 @Target(ElementType.TYPE)
@@ -50,5 +53,17 @@ import org.springframework.context.annotation.Import;
 @Documented
 @Import(IntegrationRegistrar.class)
 public @interface EnableIntegration {
+
+	/**
+	 * Indicate whether to parse method-level annotations such as {@code @Filter}, {@code Router},
+	 * {@code @ServiceActivator}, {@code InboundChannelAdapter}, etc.
+	 * <p> Can be set to {@code false} if the application exclusively uses the Java DSL.
+	 * @return true to parse the method-level annotations.
+	 * @see MessagingAnnotationPostProcessor
+	 * @see MessagingAnnotationBeanPostProcessor
+	 * @see GatewayProxyInstantiationPostProcessor
+	 * @since 7.1
+	 */
+	boolean parseAnnotations() default true;
 
 }

@@ -218,7 +218,7 @@ class JdbcTests {
 	}
 
 	@Configuration
-	@EnableIntegration
+	@EnableIntegration(parseAnnotations = false)
 	public static class Config {
 
 		@Bean

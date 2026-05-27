@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.ClassUtils;
@@ -35,6 +36,7 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Chris Bono
+ * @author Jiandong Ma
  *
  * @since 4.0
  */
@@ -64,10 +66,22 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
+
+		boolean parseAnnotations = true;
 		if (importingClassMetadata != null) {
-			registerMessagingAnnotationPostProcessors(registry);
+			AnnotationAttributes enableIntegration = AnnotationAttributes.fromMap(
+					importingClassMetadata.getAnnotationAttributes(EnableIntegration.class.getName()));
+
+			if (enableIntegration != null && enableIntegration.containsKey("parseAnnotations")) {
+				parseAnnotations = enableIntegration.getBoolean("parseAnnotations");
+			}
+			if (parseAnnotations) {
+				registerMessagingAnnotationPostProcessors(registry);
+			}
 		}
-		registerGatewayProxyInstantiationPostProcessor(registry);
+		if (parseAnnotations) {
+			registerGatewayProxyInstantiationPostProcessor(registry);
+		}
 	}
 
 	/**

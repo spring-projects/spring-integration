@@ -196,7 +196,7 @@ public class MailTests {
 	}
 
 	@Configuration
-	@EnableIntegration
+	@EnableIntegration(parseAnnotations = false)
 	public static class ContextConfiguration {
 
 		@Bean

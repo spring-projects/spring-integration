@@ -44,8 +44,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.annotation.IntegrationComponentScan;
-import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -87,6 +85,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
@@ -309,7 +308,6 @@ public class FileTests {
 				.isInstanceOf(RecursiveDirectoryScanner.class);
 	}
 
-	@MessagingGateway(defaultRequestChannel = "controlBus.input")
 	private interface ControlBusGateway {
 
 		void send(String command);
@@ -317,14 +315,20 @@ public class FileTests {
 	}
 
 	@Configuration
-	@EnableIntegration
+	@EnableIntegration(parseAnnotations = false)
 	@ComponentScan
-	@IntegrationComponentScan
 	public static class ContextConfiguration {
 
 		@Bean
 		public IntegrationFlow controlBus() {
 			return IntegrationFlowDefinition::controlBus;
+		}
+
+		@Bean
+		public IntegrationFlow controlBusGatewayFlow() {
+			return IntegrationFlow.from(ControlBusGateway.class)
+					.channel("controlBus.input")
+					.get();
 		}
 
 		@Bean

@@ -356,7 +356,7 @@ public class WebFluxDslTests {
 	@EnableWebFlux
 	@EnableWebSecurity
 	@EnableWebFluxSecurity
-	@EnableIntegration
+	@EnableIntegration(parseAnnotations = false)
 	public static class ContextConfiguration implements WebFluxConfigurer {
 
 		@Override

@@ -282,7 +282,7 @@ class MongoDbTests implements MongoDbContainerTest {
 	}
 
 	@Configuration
-	@EnableIntegration
+	@EnableIntegration(parseAnnotations = false)
 	public static class ContextConfiguration {
 
 		@Bean

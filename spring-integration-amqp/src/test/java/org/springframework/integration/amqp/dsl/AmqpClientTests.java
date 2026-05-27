@@ -89,8 +89,8 @@ class AmqpClientTests implements RabbitTestContainer {
 				.isEqualTo("HELLO AMQP");
 	}
 
-	@Configuration
-	@EnableIntegration
+	@Configuration(proxyBeanMethods = false)
+	@EnableIntegration(parseAnnotations = false)
 	static class ContextConfiguration {
 
 		@Bean
