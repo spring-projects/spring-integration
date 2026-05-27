@@ -74,6 +74,12 @@ The `HttpRequestExecutingMessageHandler` (its XML and Java DSL) now can be used 
 The `RestTemplate` configuration is deprecated.
 See xref:http.adoc[] for more information.
 
+[[x7.1-zip-changes]]
+=== Zip Support Changes
+
+The `ZipTransformer` now provides a `keepWorkingDirectory` option to reject generated zip file names that resolve outside the configured `workDirectory` for `FILE` results.
+See xref:zip.adoc[] for more information.
+
 [[x7.1-mqtt-changes]]
 === MQTT Changes
 

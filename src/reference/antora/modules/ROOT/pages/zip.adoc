@@ -73,6 +73,10 @@ Default is `Deflater#DEFAULT_COMPRESSION`.
 Defaults to `DefaultFileNameGenerator`.
 The `.zip` extension is added into this name for the target zip file name.
 Unless it is already present as a result of this generator.
+* `keepWorkingDirectory` - specifies whether a generated target zip file name must remain under the configured `workDirectory` when the result type is `FILE`.
+Default is `false`.
+For XML configuration, use the `keep-working-directory` attribute.
+When set to `true`, generated names that resolve outside the work directory (for example, with `..`) are rejected.
 
 In addition, a `ZipHeaders.ZIP_ENTRY_FILE_NAME` and `ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE` can be supplied for the name of zip entry and its `lastmodified` attribute.
 If not provided, the entry name is exact result of the `fileNameGenerator` and `lastmodified` falls back to the current date and time.
