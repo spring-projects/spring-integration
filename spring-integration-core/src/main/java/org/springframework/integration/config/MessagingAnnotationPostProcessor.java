@@ -51,7 +51,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * A {@link BeanDefinitionRegistryPostProcessor} implementation that processes method-level
- * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter, on @Bean methods.
+ * messaging annotations (@Transformer, @Splitter, @Router, @Filter etc.) on @Bean configuration methods.
  *
  * @author Mark Fisher
  * @author Marius Bogoevici
