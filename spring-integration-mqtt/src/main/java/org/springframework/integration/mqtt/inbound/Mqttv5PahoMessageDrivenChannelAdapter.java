@@ -65,7 +65,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -462,7 +461,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 							.copyHeaders(headers)
 							.build();
 			Object convertedPayload = this.messageConverter.fromMessage(messageToConvert, this.payloadType);
-			if (convertedPayload == null || !ClassUtils.isAssignableValue(this.payloadType, convertedPayload)) {
+			if (convertedPayload == null) {
 				throw new MessageConversionException(messageToConvert, "Failed to convert from MQTT Message");
 			}
 			message =

@@ -59,6 +59,7 @@ import static org.awaitility.Awaitility.await;
  * @author Artem Bilan
  * @author Mikhail Polivakha
  * @author Glenn Renfro
+ * @author Goutam Adwant
  *
  * @since 5.5.5
  *
