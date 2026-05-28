@@ -471,12 +471,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 							.build();
 		}
 
-		Message<?> messageToSend = message;
 		try {
-			sendMessage(messageToSend);
+			sendMessage(message);
 		}
 		catch (RuntimeException ex) {
-			logger.error(ex, () -> "Unhandled exception for " + messageToSend);
+			logger.error(ex, () -> "Unhandled exception for " + message);
 			throw ex;
 		}
 	}
