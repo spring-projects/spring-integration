@@ -41,17 +41,12 @@ import org.springframework.core.retry.RetryTemplate;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.StaticMessageHeaderAccessor;
-import org.springframework.integration.annotation.InboundChannelAdapter;
-import org.springframework.integration.annotation.IntegrationComponentScan;
-import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.GlobalChannelInterceptor;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.MessageChannels;
@@ -92,6 +87,7 @@ import static org.mockito.Mockito.mock;
  * @author Nasko Vasilev
  * @author Artem Vozhdayenko
  * @author Glenn Renfro
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
@@ -352,7 +348,6 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		assertThat(replyMessage.getBody(String.class)).isEqualTo("TEST DATA");
 	}
 
-	@MessagingGateway(defaultRequestChannel = "controlBus.input")
 	private interface ControlBusGateway {
 
 		void send(String command);
@@ -361,7 +356,6 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Configuration
 	@EnableIntegration
-	@IntegrationComponentScan
 	@EnableIntegrationManagement(observationPatterns = "observedJms*")
 	public static class ContextConfiguration {
 
@@ -388,21 +382,36 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
-		@InboundChannelAdapter(value = "flow1.input", autoStartup = "false", poller = @Poller(fixedRate = "100"))
-		public MessageSource<?> integerMessageSource() {
-			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-			source.setObject(new AtomicInteger());
-			source.setMethodName("getAndIncrement");
-			return source;
+		public IntegrationFlow controlBusGatewayFlow() {
+			return IntegrationFlow.from(ControlBusGateway.class)
+					.channel("controlBus.input")
+					.get();
 		}
 
 		@Bean
-		@InboundChannelAdapter(value = "flow2.input", autoStartup = "false", poller = @Poller(fixedRate = "100"))
-		public MessageSource<?> integerMessageSourceForTemplate() {
+		public IntegrationFlow integerMessageSourceFlow() {
 			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 			source.setObject(new AtomicInteger());
 			source.setMethodName("getAndIncrement");
-			return source;
+			return IntegrationFlow.from(source, spec -> spec
+							.id("integerMessageSource.inboundChannelAdapter")
+							.autoStartup(false)
+							.poller(Pollers.fixedRate(100)))
+					.channel("flow1.input")
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow integerMessageSourceForTemplateFlow() {
+			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
+			source.setObject(new AtomicInteger());
+			source.setMethodName("getAndIncrement");
+			return IntegrationFlow.from(source, spec -> spec
+							.id("integerMessageSourceForTemplate.inboundChannelAdapter")
+							.autoStartup(false)
+							.poller(Pollers.fixedRate(100)))
+					.channel("flow2.input")
+					.get();
 		}
 
 		@Bean
