@@ -23,31 +23,30 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithSingleCallPerMethod() {
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 			context.registerBeanDefinition("input", channelDefinition);
 			RootBeanDefinition testBeanDefinition = new RootBeanDefinition(TestBean.class);
@@ -68,8 +67,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithMultipleCallsPerMethod() {
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.rootBeanDefinition(DirectChannel.class);
 			channelBuilder.addConstructorArgValue(null);
 			RootBeanDefinition channelDefinition = (RootBeanDefinition) channelBuilder.getBeanDefinition();
@@ -95,8 +93,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndRoundRobinDispatcher() {
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 			channelDefinition.getConstructorArgumentValues()
 					.addGenericArgumentValue(new RoundRobinLoadBalancingStrategy());
@@ -128,6 +125,7 @@ public class SubscriberOrderTests {
 
 	}
 
+	@EnableIntegration
 	@MessageEndpoint
 	static class TestBean extends AbstractTestBean {
 
