@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -35,7 +36,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.MessagingAnnotationBeanPostProcessor;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -49,12 +50,12 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class MessagingAnnotationPostProcessorTests {
 
@@ -289,8 +290,8 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	private static GenericApplicationContext createTestApplicationContext() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.register(Config.class);
 		return context;
 	}
 
@@ -383,6 +384,11 @@ public class MessagingAnnotationPostProcessorTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@ServiceActivator(inputChannel = "eventBus")
 	public @interface EventHandler {
+
+	}
+
+	@EnableIntegration
+	static class Config {
 
 	}
 

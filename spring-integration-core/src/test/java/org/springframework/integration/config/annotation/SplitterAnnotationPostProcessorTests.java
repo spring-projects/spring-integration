@@ -21,27 +21,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class SplitterAnnotationPostProcessorTests {
 
-	private final GenericApplicationContext context = new GenericApplicationContext();
+	private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -49,7 +49,6 @@ public class SplitterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		TestUtils.registerBean("input", this.inputChannel, this.context);
 		TestUtils.registerBean("output", this.outputChannel, this.context);
 	}
@@ -90,6 +89,7 @@ public class SplitterAnnotationPostProcessorTests {
 		context.stop();
 	}
 
+	@EnableIntegration
 	@MessageEndpoint
 	public static class TestSplitter implements Lifecycle {
 

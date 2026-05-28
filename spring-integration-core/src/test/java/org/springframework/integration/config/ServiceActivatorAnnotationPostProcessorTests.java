@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
@@ -30,19 +30,18 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class ServiceActivatorAnnotationPostProcessorTests {
 
 	@Test
 	public void testAnnotatedMethod() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			context.registerBeanDefinition("testChannel", new RootBeanDefinition(DirectChannel.class));
 			RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
 			beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
@@ -79,6 +78,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 
 	}
 
+	@EnableIntegration
 	@MessageEndpoint
 	public static class SimpleServiceActivatorAnnotationTestBean extends AbstractServiceActivatorAnnotationTestBean {
 

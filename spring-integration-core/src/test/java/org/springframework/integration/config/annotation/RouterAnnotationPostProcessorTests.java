@@ -23,26 +23,26 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class RouterAnnotationPostProcessorTests {
 
-	private final GenericApplicationContext context = new GenericApplicationContext();
+	private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -56,7 +56,6 @@ public class RouterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		TestUtils.registerBean("input", inputChannel, this.context);
 		TestUtils.registerBean("output", outputChannel, this.context);
 		TestUtils.registerBean("routingChannel", routingChannel, this.context);
@@ -95,6 +94,7 @@ public class RouterAnnotationPostProcessorTests {
 		context.stop();
 	}
 
+	@EnableIntegration
 	@MessageEndpoint
 	public static class TestRouter {
 
