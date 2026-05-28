@@ -404,7 +404,7 @@ class RedisTests implements RedisContainerTest {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@EnableIntegration(parseAnnotations = false)
+	@EnableIntegration
 	static class Config {
 
 		@Bean

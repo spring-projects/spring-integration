@@ -270,7 +270,7 @@ public class KafkaDslTests {
 	}
 
 	@Configuration
-	@EnableIntegration(parseAnnotations = false)
+	@EnableIntegration
 	@EnableKafka
 	public static class ContextConfiguration {
 

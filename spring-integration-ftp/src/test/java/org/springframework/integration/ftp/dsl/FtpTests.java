@@ -312,7 +312,7 @@ public class FtpTests extends FtpTestSupport {
 	}
 
 	@Configuration
-	@EnableIntegration(parseAnnotations = false)
+	@EnableIntegration
 	@EnableIntegrationManagement
 	public static class ContextConfiguration {
 

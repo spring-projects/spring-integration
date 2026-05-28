@@ -336,7 +336,7 @@ public class AmqpTests implements RabbitTestContainer {
 	}
 
 	@Configuration
-	@EnableIntegration(parseAnnotations = false)
+	@EnableIntegration
 	@EnableRabbit
 	@EnablePublisher
 	public static class ContextConfiguration {

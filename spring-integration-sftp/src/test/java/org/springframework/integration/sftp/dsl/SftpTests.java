@@ -304,7 +304,7 @@ public class SftpTests extends SftpTestSupport {
 	}
 
 	@Configuration
-	@EnableIntegration(parseAnnotations = false)
+	@EnableIntegration
 	public static class ContextConfiguration {
 
 		@Bean
