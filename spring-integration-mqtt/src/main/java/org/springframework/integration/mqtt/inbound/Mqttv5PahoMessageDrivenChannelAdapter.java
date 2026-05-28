@@ -462,23 +462,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 							.copyHeaders(headers)
 							.build();
 			Object convertedPayload = this.messageConverter.fromMessage(messageToConvert, this.payloadType);
-			if (convertedPayload != null && ClassUtils.isAssignableValue(this.payloadType, convertedPayload)) {
-				message =
-						getMessageBuilderFactory()
-								.withPayload(convertedPayload)
-								.copyHeaders(messageToConvert.getHeaders())
-								.build();
-			}
-			else {
-				message = this.messageConverter.toMessage(payload, messageToConvert.getHeaders(), this.payloadType);
-			}
-			if (message == null || !ClassUtils.isAssignableValue(this.payloadType, message.getPayload())) {
+			if (convertedPayload == null || !ClassUtils.isAssignableValue(this.payloadType, convertedPayload)) {
 				throw new MessageConversionException(messageToConvert, "Failed to convert from MQTT Message");
 			}
 			message =
 					getMessageBuilderFactory()
-							.fromMessage(message)
-							.copyHeadersIfAbsent(messageToConvert.getHeaders())
+							.withPayload(convertedPayload)
+							.copyHeaders(messageToConvert.getHeaders())
 							.build();
 		}
 
