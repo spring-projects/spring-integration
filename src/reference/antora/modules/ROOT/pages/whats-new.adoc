@@ -78,4 +78,6 @@ See xref:http.adoc[] for more information.
 === MQTT Changes
 
 For payloads other than `byte[]` or `String`, the `Mqttv5PahoMessageHandler` now delegates the conversion to the configured `MessageConverter` via `toMessage()`, instead of via `fromMessage()`.
+The `Mqttv5PahoMessageDrivenChannelAdapter` now delegates inbound `payloadType` conversion to the configured `SmartMessageConverter` via `fromMessage()`.
+This is a breaking change for custom MQTT v5 converters that relied on the previous reversed method call, but it aligns both channel adapters with the Spring Messaging converter contract.
 See xref:mqtt.adoc[] for more information.

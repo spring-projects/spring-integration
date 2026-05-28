@@ -59,6 +59,7 @@ import static org.awaitility.Awaitility.await;
  * @author Artem Bilan
  * @author Mikhail Polivakha
  * @author Glenn Renfro
+ * @author Goutam Adwant
  *
  * @since 5.5.5
  *
@@ -172,7 +173,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		}
 
 		@Bean
-		public SmartMessageConverter mqttStringToBytesConverter() {
+		public SmartMessageConverter mqttBytesToStringConverter() {
 			return new AbstractMessageConverter() {
 
 				@Override
@@ -184,7 +185,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 				protected Object convertFromInternal(Message<?> message, Class<?> targetClass,
 						Object conversionHint) {
 
-					return message.getPayload().toString().getBytes(StandardCharsets.UTF_8);
+					return new String((byte[]) message.getPayload(), StandardCharsets.UTF_8);
 				}
 
 				@Override
@@ -206,7 +207,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			messageHandler.setHeaderMapper(mqttHeaderMapper);
 			messageHandler.setAsync(true);
 			messageHandler.setAsyncEvents(true);
-			messageHandler.setConverter(mqttStringToBytesConverter());
+			messageHandler.setConverter(mqttBytesToStringConverter());
 
 			return f -> f.handle(messageHandler);
 		}
@@ -222,7 +223,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			messageProducer.setPayloadType(String.class);
 			messageProducer.setQuiescentTimeout(QUIESCENT_TIMEOUT);
 			messageProducer.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
-			messageProducer.setMessageConverter(mqttStringToBytesConverter());
+			messageProducer.setMessageConverter(mqttBytesToStringConverter());
 			messageProducer.setManualAcks(true);
 
 			return IntegrationFlow.from(messageProducer)
