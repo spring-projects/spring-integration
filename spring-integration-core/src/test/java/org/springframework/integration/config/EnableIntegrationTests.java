@@ -17,12 +17,10 @@
 package org.springframework.integration.config;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
-import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
-import org.springframework.context.annotation.AnnotationConfigUtils;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.util.StopWatch;
 
 /**
@@ -30,52 +28,46 @@ import org.springframework.util.StopWatch;
  */
 class EnableIntegrationTests {
 
-	@Test
-	void parseAnnotationsPerformanceTest() {
-		long startupTimeWhenParseAnnotationsEnabled;
-		long startupTimeWhenParseAnnotationsDisabled;
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
-			AnnotatedBeanDefinitionReader reader = new AnnotatedBeanDefinitionReader(context);
-
-			StopWatch stopWatch = new StopWatch();
-			stopWatch.start();
-
-			reader.register(ConfigWithParseAnnotationsEnabled.class);
-			context.refresh();
-
-			stopWatch.stop();
-			startupTimeWhenParseAnnotationsEnabled = stopWatch.getTotalTimeMillis();
+	/**
+	 * A minimal application context containing only Spring Integration infrastructure
+	 * beans (with no messaging annotations) is used to compare context startup time
+	 * when the {@code processAnnotations} attribute in {@link EnableIntegration}
+	 * is set to {@code true} versus {@code false}.
+	 *
+	 * <p> Uses {@link RetryingTest} in case of JVM pauses.
+	 */
+	@RetryingTest(maxAttempts = 10)
+	void processAnnotationsPerformanceTest() {
+		// JVM warmup
+		for (int i = 0; i < 2; i++) {
+			new AnnotationConfigApplicationContext(ConfigWithProcessAnnotations.class);
+			new AnnotationConfigApplicationContext(ConfigWithoutProcessAnnotations.class);
 		}
-		try (GenericApplicationContext context = new GenericApplicationContext()) {
-			AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
-			AnnotatedBeanDefinitionReader reader = new AnnotatedBeanDefinitionReader(context);
 
-			StopWatch stopWatch = new StopWatch();
-			stopWatch.start();
+		StopWatch stopWatch = new StopWatch();
 
-			reader.register(ConfigWithParseAnnotationsDisabled.class);
-			context.refresh();
+		stopWatch.start();
+		new AnnotationConfigApplicationContext(ConfigWithProcessAnnotations.class);
+		stopWatch.stop();
+		long processAnnotationsTime = stopWatch.lastTaskInfo().getTimeMillis();
 
-			stopWatch.stop();
-			startupTimeWhenParseAnnotationsDisabled = stopWatch.getTotalTimeMillis();
-		}
-		// with this minimal configuration, startup time is already greatly improved.
-		// @EnableIntegration - takes nearly 900ms
-		// @EnableIntegration(parseAnnotations = false) - takes nearly 30ms
-		Assertions.assertThat(startupTimeWhenParseAnnotationsEnabled)
-				.isGreaterThan(startupTimeWhenParseAnnotationsDisabled);
+		stopWatch.start();
+		new AnnotationConfigApplicationContext(ConfigWithoutProcessAnnotations.class);
+		stopWatch.stop();
+		long notProcessAnnotationsTime = stopWatch.lastTaskInfo().getTimeMillis();
+
+		Assertions.assertThat(processAnnotationsTime).isGreaterThan(notProcessAnnotationsTime);
 	}
 
 	@Configuration
-	@EnableIntegration
-	static class ConfigWithParseAnnotationsEnabled {
+	@EnableIntegration(processAnnotations = true)
+	static class ConfigWithProcessAnnotations {
 
 	}
 
 	@Configuration
-	@EnableIntegration(parseAnnotations = false)
-	static class ConfigWithParseAnnotationsDisabled {
+	@EnableIntegration(processAnnotations = false)
+	static class ConfigWithoutProcessAnnotations {
 
 	}
 

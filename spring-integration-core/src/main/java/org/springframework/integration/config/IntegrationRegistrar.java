@@ -67,19 +67,19 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
 
-		boolean parseAnnotations = true;
+		boolean processAnnotations = true;
 		if (importingClassMetadata != null) {
 			AnnotationAttributes enableIntegration = AnnotationAttributes.fromMap(
 					importingClassMetadata.getAnnotationAttributes(EnableIntegration.class.getName()));
 
-			if (enableIntegration != null && enableIntegration.containsKey("parseAnnotations")) {
-				parseAnnotations = enableIntegration.getBoolean("parseAnnotations");
+			if (enableIntegration != null) {
+				processAnnotations = enableIntegration.getBoolean("processAnnotations");
 			}
-			if (parseAnnotations) {
+			if (processAnnotations) {
 				registerMessagingAnnotationPostProcessors(registry);
 			}
 		}
-		if (parseAnnotations) {
+		if (processAnnotations) {
 			registerGatewayProxyInstantiationPostProcessor(registry);
 		}
 	}

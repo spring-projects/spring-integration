@@ -55,15 +55,16 @@ import org.springframework.context.annotation.Import;
 public @interface EnableIntegration {
 
 	/**
-	 * Indicate whether to parse method-level annotations such as {@code @Filter}, {@code Router},
-	 * {@code @ServiceActivator}, {@code InboundChannelAdapter}, etc.
-	 * <p> Can be set to {@code false} if the application exclusively uses the Java DSL.
-	 * @return true to parse the method-level annotations.
+	 * Indicate whether to process messaging annotations such as {@code @Filter}, {@code Router},
+	 * {@code @ServiceActivator}, {@code InboundChannelAdapter}, {@code MessagingGateway} etc.
+	 * <p> Can be set to {@code false} if the application exclusively uses the {@code IntegrationFlow}
+	 * definitions.
+	 * @return true to process the messaging annotations.
 	 * @see MessagingAnnotationPostProcessor
 	 * @see MessagingAnnotationBeanPostProcessor
 	 * @see GatewayProxyInstantiationPostProcessor
 	 * @since 7.1
 	 */
-	boolean parseAnnotations() default true;
+	boolean processAnnotations() default true;
 
 }
