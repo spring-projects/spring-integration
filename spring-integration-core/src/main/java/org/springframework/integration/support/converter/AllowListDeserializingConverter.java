@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.ConfigurableObjectInputStream;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -89,15 +88,8 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	public AllowListDeserializingConverter(Deserializer<Object> deserializer) {
 		Assert.notNull(deserializer, "Deserializer must not be null");
 		this.deserializer = deserializer;
-		if (deserializer instanceof DefaultDeserializer) {
-			ClassLoader classLoader = null;
-			try {
-				classLoader = (ClassLoader) new DirectFieldAccessor(deserializer).getPropertyValue("classLoader");
-			}
-			catch (Exception e) {
-				// no-op
-			}
-			this.defaultDeserializerClassLoader = classLoader;
+		if (deserializer instanceof DefaultDeserializer defaultDeserializer) {
+			this.defaultDeserializerClassLoader = defaultDeserializer.getClassLoader();
 			this.usingDefaultDeserializer = true;
 		}
 		else {
@@ -109,7 +101,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	/**
 	 * Set simple patterns for allowable packages/classes for deserialization.
 	 * The patterns will be applied in order until a match is found.
-	 * A class can be fully qualified or a wildcard '*' is allowed at the
+	 * A class can be fully qualified, or a wildcard '*' is allowed at the
 	 * beginning or end of the class name.
 	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * @param allowedPatterns the patterns.
@@ -160,6 +152,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 				@Override
 				protected Class<?> resolveClass(ObjectStreamClass classDesc)
 						throws IOException, ClassNotFoundException {
+
 					Class<?> clazz = super.resolveClass(classDesc);
 					checkAllowList(clazz);
 					return clazz;
