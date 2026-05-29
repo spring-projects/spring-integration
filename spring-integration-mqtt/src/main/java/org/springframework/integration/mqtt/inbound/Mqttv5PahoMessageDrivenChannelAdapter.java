@@ -59,11 +59,11 @@ import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.SmartMessageConverter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -87,6 +87,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
  * @author Glenn Renfro
+ * @author Goutam Adwant
  *
  * @since 5.5.5
  *
@@ -448,10 +449,26 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		Message<?> message;
 		if (MqttMessage.class.isAssignableFrom(this.payloadType) || byte[].class.isAssignableFrom(this.payloadType)) {
-			message = new GenericMessage<>(payload, headers);
+			message =
+					getMessageBuilderFactory()
+							.withPayload(payload)
+							.copyHeaders(headers)
+							.build();
 		}
 		else {
-			message = this.messageConverter.toMessage(payload, new MessageHeaders(headers), this.payloadType);
+			Message<?> messageToConvert =
+					MutableMessageBuilder.withPayload(payload, false)
+							.copyHeaders(headers)
+							.build();
+			Object convertedPayload = this.messageConverter.fromMessage(messageToConvert, this.payloadType);
+			if (convertedPayload == null) {
+				throw new MessageConversionException(messageToConvert, "Failed to convert from MQTT Message");
+			}
+			message =
+					getMessageBuilderFactory()
+							.withPayload(convertedPayload)
+							.copyHeaders(messageToConvert.getHeaders())
+							.build();
 		}
 
 		try {

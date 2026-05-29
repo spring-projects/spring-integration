@@ -20,12 +20,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -37,15 +37,15 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public class DirectChannelSubscriptionTests {
 
-	private final GenericApplicationContext context = new GenericApplicationContext();
+	private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
 	private final DirectChannel sourceChannel = new DirectChannel();
 
@@ -53,7 +53,7 @@ public class DirectChannelSubscriptionTests {
 
 	@BeforeEach
 	public void setupChannels() {
-		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
+		context.register(Config.class);
 		TestUtils.registerBean("sourceChannel", this.sourceChannel, this.context);
 		TestUtils.registerBean("targetChannel", this.targetChannel, this.context);
 	}
@@ -136,6 +136,11 @@ public class DirectChannelSubscriptionTests {
 		public Message<?> handle(Message<?> message) {
 			throw new RuntimeException("intentional test failure");
 		}
+
+	}
+
+	@EnableIntegration
+	static class Config {
 
 	}
 

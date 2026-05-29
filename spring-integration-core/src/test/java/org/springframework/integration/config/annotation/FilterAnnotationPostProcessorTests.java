@@ -23,12 +23,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.MessagingAnnotationBeanPostProcessor;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -38,19 +38,19 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
 public class FilterAnnotationPostProcessorTests {
 
-	private final GenericApplicationContext context = new GenericApplicationContext();
+	private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
 	private final DirectChannel inputChannel = new DirectChannel();
 
@@ -58,7 +58,7 @@ public class FilterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
+		context.register(Config.class);
 		TestUtils.registerBean("input", inputChannel, this.context);
 		TestUtils.registerBean("output", this.outputChannel, this.context);
 	}
@@ -270,6 +270,11 @@ public class FilterAnnotationPostProcessorTests {
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			return callback.execute();
 		}
+
+	}
+
+	@EnableIntegration
+	static class Config {
 
 	}
 
