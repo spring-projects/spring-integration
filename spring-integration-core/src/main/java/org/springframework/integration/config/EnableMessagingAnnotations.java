@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,31 +25,19 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
- * The main configuration annotation to enable Spring Integration infrastructure:
- * - Registers some built-in beans;
- * - Adds several {@code BeanFactoryPostProcessor}s;
- * - Adds several {@code BeanPostProcessor}s;
- * - Adds annotations processors.
- * <p>
- * Add this annotation to an {@code @Configuration} class to have
- * the imported Spring Integration configuration :
- * <pre class="code">
- * &#064;Configuration
- * &#064;EnableIntegration
- * &#064;ComponentScan(basePackageClasses = { MyConfiguration.class })
- * public class MyIntegrationConfiguration {
- * }
- * </pre>
+ * Provides the registration for the messaging annotations post-processors
+ * to allow the use of the {@link EnableMessagingAnnotations} annotation.
  *
- * @author Artem Bilan
- * @since 4.0
- * @see IntegrationRegistrar
+ * @author Jiandong Ma
+ *
+ * @since 7.2
+ *
+ * @see MessagingAnnotationsRegister
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import({IntegrationRegistrar.class})
-@EnableMessagingAnnotations
-public @interface EnableIntegration {
+@Import(MessagingAnnotationsRegister.class)
+public @interface EnableMessagingAnnotations {
 
 }

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config;
 
-import java.beans.Introspector;
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -64,10 +62,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
-		if (importingClassMetadata != null) {
-			registerMessagingAnnotationPostProcessors(registry);
-		}
-		registerGatewayProxyInstantiationPostProcessor(registry);
 	}
 
 	/**
@@ -97,43 +91,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
-		}
-	}
-
-	/**
-	 * Register {@link MessagingAnnotationPostProcessor} and
-	 * {@link MessagingAnnotationBeanPostProcessor},
-	 * if necessary.
-	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
-	 * @see MessagingAnnotationPostProcessor#messagingAnnotationBeanPostProcessor()
-	 */
-	private void registerMessagingAnnotationPostProcessors(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
-			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
-					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-							.getBeanDefinition());
-		}
-
-		String beanName = Introspector.decapitalize(MessagingAnnotationBeanPostProcessor.class.getName());
-		if (!registry.containsBeanDefinition(beanName)) {
-			registry.registerBeanDefinition(beanName,
-					BeanDefinitionBuilder.genericBeanDefinition()
-							.setFactoryMethodOnBean("messagingAnnotationBeanPostProcessor",
-									IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-							.getBeanDefinition());
-		}
-	}
-
-	private void registerGatewayProxyInstantiationPostProcessor(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition("gatewayProxyBeanDefinitionPostProcessor")) {
-			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyInstantiationPostProcessor.class)
-							.addConstructorArgValue(registry)
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-			registry.registerBeanDefinition("gatewayProxyBeanDefinitionPostProcessor", builder.getBeanDefinition());
 		}
 	}
 

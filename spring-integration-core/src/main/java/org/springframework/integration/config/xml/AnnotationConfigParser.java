@@ -30,6 +30,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.MessagingAnnotationsRegister;
 import org.springframework.integration.config.PublisherRegistrar;
 import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 import org.springframework.util.xml.DomUtils;
@@ -51,6 +52,8 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 		ExtendedAnnotationMetadata importingClassMetadata = new ExtendedAnnotationMetadata(element);
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		new IntegrationRegistrar()
+				.registerBeanDefinitions(importingClassMetadata, registry);
+		new MessagingAnnotationsRegister()
 				.registerBeanDefinitions(importingClassMetadata, registry);
 		if (DomUtils.getChildElementByTagName(element, "enable-publisher") != null) {
 			new PublisherRegistrar()
