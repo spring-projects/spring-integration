@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Utility class to encapsulate infrastructure Integration properties constants and their default values.
- * The default values can be overridden by the {@code META-INF/spring.integration.properties} with this entries
+ * The default values can be overridden by the {@code META-INF/spring.integration.properties} with these entries
  * (includes their default values):
  * <ul>
  *   <li> {@code spring.integration.channels.autoCreate=true}
@@ -40,9 +40,11 @@ import org.springframework.util.StringUtils;
  *   <li> {@code spring.integration.channels.error.requireSubscribers=true}
  *   <li> {@code spring.integration.channels.error.ignoreFailures=true}
  *   <li> {@code spring.integration.endpoints.defaultTimeout=30000}
+ *   <li> {@code spring.integration.annotations.enable=true}
  * </ul>
  *
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 3.0
  */
@@ -119,6 +121,12 @@ public final class IntegrationProperties {
 	 */
 	public static final String ENDPOINTS_DEFAULT_TIMEOUT = INTEGRATION_PROPERTIES_PREFIX + "endpoints.defaultTimeout";
 
+	/**
+	 * Specifies whether to enable messaging annotations processing.
+	 * @since 7.1
+	 */
+	public static final String ENABLE_ANNOTATIONS = INTEGRATION_PROPERTIES_PREFIX + "annotations.enable";
+
 	private static final Properties DEFAULTS;
 
 	private boolean channelsAutoCreate = true;
@@ -140,6 +148,8 @@ public final class IntegrationProperties {
 	private String[] noAutoStartupEndpoints = {};
 
 	private long endpointsDefaultTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
+
+	private boolean enableAnnotations = true;
 
 	@Nullable
 	private volatile Properties properties;
@@ -318,6 +328,25 @@ public final class IntegrationProperties {
 	 */
 	public void setEndpointsDefaultTimeout(long endpointsDefaultTimeout) {
 		this.endpointsDefaultTimeout = endpointsDefaultTimeout;
+		this.properties = null;
+	}
+
+	/**
+	 * Return the value of {@link #ENABLE_ANNOTATIONS} option.
+	 * @return the value of {@link #ENABLE_ANNOTATIONS} option.
+	 * @since 7.1
+	 */
+	public boolean isEnableAnnotations() {
+		return this.enableAnnotations;
+	}
+
+	/**
+	 * Configure a value for {@link #ENABLE_ANNOTATIONS} option.
+	 * @param enableAnnotations the value for {@link #ENABLE_ANNOTATIONS} option.
+	 */
+	public void setEnableAnnotations(boolean enableAnnotations) {
+		this.enableAnnotations = enableAnnotations;
+		this.properties = null;
 	}
 
 	/**
@@ -340,6 +369,7 @@ public final class IntegrationProperties {
 			props.setProperty(ENDPOINTS_NO_AUTO_STARTUP,
 					StringUtils.arrayToCommaDelimitedString(this.noAutoStartupEndpoints));
 			props.setProperty(ENDPOINTS_DEFAULT_TIMEOUT, "" + this.endpointsDefaultTimeout);
+			props.setProperty(ENABLE_ANNOTATIONS, "" + this.enableAnnotations);
 
 			this.properties = props;
 		}
@@ -378,7 +408,9 @@ public final class IntegrationProperties {
 						(value) -> integrationProperties.setNoAutoStartupEndpoints(
 								StringUtils.commaDelimitedListToStringArray(value)))
 				.acceptIfHasText(properties.getProperty(ENDPOINTS_DEFAULT_TIMEOUT),
-						(value) -> integrationProperties.setEndpointsDefaultTimeout(Long.parseLong(value)));
+						(value) -> integrationProperties.setEndpointsDefaultTimeout(Long.parseLong(value)))
+				.acceptIfHasText(properties.getProperty(ENABLE_ANNOTATIONS),
+						(value) -> integrationProperties.setEnableAnnotations(Boolean.parseBoolean(value)));
 		return integrationProperties;
 	}
 

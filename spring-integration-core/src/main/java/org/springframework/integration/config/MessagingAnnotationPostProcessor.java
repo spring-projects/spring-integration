@@ -46,18 +46,22 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.config.annotation.MethodAnnotationPostProcessor;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
  * A {@link BeanDefinitionRegistryPostProcessor} implementation that processes method-level
  * messaging annotations (@Transformer, @Splitter, @Router, @Filter etc.) on @Bean configuration methods.
+ * <p> Short-circuits processing if messaging annotations is disabled via {@link IntegrationProperties}.
  *
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rick Hogge
+ * @author Jiandong Ma
  */
 public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
@@ -69,9 +73,20 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 	@SuppressWarnings("NullAway.Init")
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private @Nullable Boolean enableAnnotations = null;
+
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 		this.registry = registry;
+
+		var beanFactory = (ConfigurableListableBeanFactory) this.registry;
+		if (this.enableAnnotations == null) {
+			IntegrationProperties integrationProperties = IntegrationContextUtils.getIntegrationProperties(beanFactory);
+			this.enableAnnotations = integrationProperties.isEnableAnnotations();
+		}
+		if (!this.enableAnnotations) {
+			return;
+		}
 
 		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor());
 		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor());

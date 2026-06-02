@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -41,6 +43,8 @@ import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Role;
 import org.springframework.integration.config.annotation.MethodAnnotationPostProcessor;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
@@ -51,8 +55,10 @@ import org.springframework.util.StringUtils;
 /**
  * An infrastructure {@link BeanPostProcessor} implementation that processes method-level
  * messaging annotations (@Transformer, @Splitter, @Router, @Filter etc.) on bean methods.
+ * <p> Short-circuits processing if messaging annotations is disabled via {@link IntegrationProperties}.
  *
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 6.2
  */
@@ -70,6 +76,8 @@ public class MessagingAnnotationBeanPostProcessor
 
 	private volatile boolean initialized;
 
+	private @Nullable Boolean enableAnnotations = null;
+
 	public MessagingAnnotationBeanPostProcessor(
 			Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors) {
 
@@ -85,6 +93,14 @@ public class MessagingAnnotationBeanPostProcessor
 	@Override
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
+
+		if (this.enableAnnotations == null) {
+			IntegrationProperties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+			this.enableAnnotations = integrationProperties.isEnableAnnotations();
+		}
+		if (!this.enableAnnotations) {
+			return bean;
+		}
 
 		Class<?> beanClass = AopUtils.getTargetClass(bean);
 
