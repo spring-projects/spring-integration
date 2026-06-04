@@ -20,6 +20,9 @@ public class FooService {
 }
 ----
 
+NOTE: Starting with version 7.1, the `spring.integration.annotations.enable` environment property can be used to control method-level annotation processing.
+By default, this property is `true`. It can be set to `false` for applications that exclusively rely on `IntegrationFlow` definitions.
+
 Exactly what it means for the method to "`handle`" the Message depends on the particular annotation.
 Annotations available in Spring Integration include:
 

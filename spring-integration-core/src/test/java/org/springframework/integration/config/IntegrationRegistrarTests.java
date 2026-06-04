@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ class IntegrationRegistrarTests {
 	static AnnotationConfigApplicationContext createApplicationContext(boolean enableAnnotationsProcessing) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context.getEnvironment(),
-				IntegrationConfigUtils.ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING + "=" + enableAnnotationsProcessing);
+				IntegrationRegistrar.ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING + "=" + enableAnnotationsProcessing);
 
 		context.register(Config.class);
 		context.refresh();
