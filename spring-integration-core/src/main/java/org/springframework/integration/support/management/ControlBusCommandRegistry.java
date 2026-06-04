@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public class ControlBusCommandRegistry
 
 	private static final ControlBusMethodFilter CONTROL_BUS_METHOD_FILTER = new ControlBusMethodFilter();
 
-	private final Map<String, Map<CommandMethod, Expression>> controlBusCommands = new HashMap<>();
+	private final Map<String, Map<CommandMethod, Expression>> controlBusCommands = new ConcurrentHashMap<>();
 
 	private boolean eagerInitialization;
 
@@ -141,14 +142,16 @@ public class ControlBusCommandRegistry
 	 */
 	public Map<String, Map<CommandMethod, String>> getCommands() {
 		Map<String, Map<CommandMethod, String>> commands = new HashMap<>(this.controlBusCommands.size());
-		for (Map.Entry<String, Map<CommandMethod, Expression>> beanEntry : this.controlBusCommands.entrySet()) {
-			Map<CommandMethod, String> commandEntries =
-					beanEntry.getValue()
-							.entrySet()
-							.stream()
-							.collect(Collectors.toMap(Map.Entry::getKey,
-									(commandEntry) -> commandEntry.getValue().getExpressionString()));
-			commands.put(beanEntry.getKey(), commandEntries);
+		synchronized (this.controlBusCommands) {
+			for (Map.Entry<String, Map<CommandMethod, Expression>> beanEntry : this.controlBusCommands.entrySet()) {
+				Map<CommandMethod, String> commandEntries =
+						beanEntry.getValue()
+								.entrySet()
+								.stream()
+								.collect(Collectors.toMap(Map.Entry::getKey,
+										(commandEntry) -> commandEntry.getValue().getExpressionString()));
+				commands.put(beanEntry.getKey(), commandEntries);
+			}
 		}
 		return Collections.unmodifiableMap(commands);
 	}
@@ -195,7 +198,7 @@ public class ControlBusCommandRegistry
 		String beanName = commandMethod.beanName;
 
 		Map<CommandMethod, Expression> beanControlBusCommands =
-				this.controlBusCommands.computeIfAbsent(beanName, (key) -> new HashMap<>());
+				this.controlBusCommands.computeIfAbsent(beanName, (key) -> new ConcurrentHashMap<>());
 
 		try {
 			return beanControlBusCommands.computeIfAbsent(commandMethod, mappingFunction);
