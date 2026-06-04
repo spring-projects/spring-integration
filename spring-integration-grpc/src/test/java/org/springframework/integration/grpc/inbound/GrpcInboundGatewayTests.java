@@ -35,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -55,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.1
  */
@@ -70,6 +72,8 @@ class GrpcInboundGatewayTests {
 
 	@Autowired
 	TestHelloWorldGrpc.TestHelloWorldStub testHelloWorldStub;
+
+	@Autowired ApplicationContext applicationContext;
 
 	@Test
 	void unary() {
@@ -161,6 +165,17 @@ class GrpcInboundGatewayTests {
 				});
 	}
 
+	@Test
+	void unknownErrorFromServer() {
+		assertThatExceptionOfType(StatusRuntimeException.class)
+				.isThrownBy(() -> this.testHelloWorldBlockingStub.errorOnHello(newHelloRequest("unknown")))
+				.satisfies(e -> {
+					assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
+					assertThat(e.getStatus().getDescription())
+							.isEqualTo("Internal Server Error");
+				});
+	}
+
 	private static HelloRequest newHelloRequest(String message) {
 		return HelloRequest.newBuilder().setName(message).build();
 	}
@@ -235,16 +250,21 @@ class GrpcInboundGatewayTests {
 											.transform(this::requestReply))
 
 									.subFlowMapping("ErrorOnHello", flow -> flow
-											.transform(p -> {
-												throw Status.UNAVAILABLE.withDescription("intentional")
-														.asRuntimeException();
-											}))
+											.transform(this::errorReply))
 					)
 					.get();
 		}
 
 		private HelloReply requestReply(HelloRequest helloRequest) {
 			return newHelloReply("Hello " + helloRequest.getName());
+		}
+
+		private HelloReply errorReply(HelloRequest helloRequest) {
+			if (helloRequest.getName().equals("Error")) {
+				throw Status.UNAVAILABLE.withDescription("intentional")
+						.asRuntimeException();
+			}
+			throw new RuntimeException("should not show");
 		}
 
 		private Flux<HelloReply> streamReply(HelloRequest helloRequest) {
