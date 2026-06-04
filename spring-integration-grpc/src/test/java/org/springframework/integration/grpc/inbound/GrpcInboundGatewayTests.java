@@ -168,7 +168,7 @@ class GrpcInboundGatewayTests {
 	@Test
 	void unknownErrorFromServer() {
 		assertThatExceptionOfType(StatusRuntimeException.class)
-				.isThrownBy(() -> this.testHelloWorldBlockingStub.unknownErrorOnHello(newHelloRequest("Error")))
+				.isThrownBy(() -> this.testHelloWorldBlockingStub.errorOnHello(newHelloRequest("unknown")))
 				.satisfies(e -> {
 					assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
 					assertThat(e.getStatus().getDescription())
@@ -250,21 +250,22 @@ class GrpcInboundGatewayTests {
 											.transform(this::requestReply))
 
 									.subFlowMapping("ErrorOnHello", flow -> flow
-											.transform(p -> {
-												throw Status.UNAVAILABLE.withDescription("intentional")
-														.asRuntimeException();
-											}))
-
-									.subFlowMapping("UnknownErrorOnHello", flow -> flow
-											.transform(p -> {
-												throw new RuntimeException("");
-											}))
+											.transform(this::errorReply))
 					)
 					.get();
 		}
 
 		private HelloReply requestReply(HelloRequest helloRequest) {
 			return newHelloReply("Hello " + helloRequest.getName());
+		}
+
+		private HelloReply errorReply(HelloRequest helloRequest) {
+			if (helloRequest.getName().equals("Error")) {
+				throw Status.UNAVAILABLE.withDescription("intentional")
+						.asRuntimeException();
+			}
+			throw Status.UNKNOWN.withDescription("")
+					.asRuntimeException();
 		}
 
 		private Flux<HelloReply> streamReply(HelloRequest helloRequest) {

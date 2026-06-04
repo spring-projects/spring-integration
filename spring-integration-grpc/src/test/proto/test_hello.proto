@@ -27,8 +27,4 @@ service TestHelloWorld {
   // Fail with error
   rpc ErrorOnHello(HelloRequest) returns (HelloReply) {}
 
-  // Fail with unknown error
-  rpc UnknownErrorOnHello(HelloRequest) returns (HelloReply) {}
-
-
 }
