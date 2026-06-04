@@ -47,6 +47,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * @author Dave Syer
@@ -551,6 +552,53 @@ class JdbcLockRegistryTests {
 
 		assertThatExceptionOfType(ConcurrentModificationException.class)
 				.isThrownBy(lock::unlock);
+	}
+
+	@Test
+	void noSecondLockOnEviction() throws InterruptedException {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		registry.setCacheCapacity(2);
+
+		CountDownLatch lock1Latch = new CountDownLatch(1);
+		CountDownLatch furtherLocksLatch = new CountDownLatch(1);
+
+		Executors.newSingleThreadExecutor()
+				.execute(() -> {
+					Lock lock1 = registry.obtain("lock1");
+					lock1.lock();
+					try {
+						furtherLocksLatch.countDown();
+						lock1Latch.await(10, TimeUnit.SECONDS);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						lock1.unlock();
+					}
+				});
+
+		assertThat(furtherLocksLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		// Two new locks to trigger cache eviction for the 'lock1'
+		registry.obtain("lock2");
+		registry.obtain("lock3");
+
+		// Request 'lock1' again: will trigger new JdbcLock instance
+		Lock lock1 = registry.obtain("lock1");
+
+		// Cannot lock because 'lock1' is still locked by another thread
+		assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).isFalse();
+
+		lock1Latch.countDown();
+
+		assertThatNoException().isThrownBy(() -> {
+			lock1.lock();
+			lock1.unlock();
+		});
 	}
 
 	@SuppressWarnings("unchecked")

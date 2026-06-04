@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -65,7 +66,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	private static final int DEFAULT_IDLE = 100;
 
-	private static final int DEFAULT_CAPACITY = 100_000;
+	private static final int DEFAULT_CAPACITY = 256;
 
 	private final Lock lock = new ReentrantLock();
 
@@ -84,6 +85,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
 
 	private int cacheCapacity = DEFAULT_CAPACITY;
+
+	private DefaultLockRegistry defaultLockRegistry = new DefaultLockRegistry();
 
 	/**
 	 * Construct an instance based on the provided {@link LockRepository}.
@@ -106,11 +109,15 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 256 locks).
 	 * @since 5.5.6
+	 * @see DefaultLockRegistry
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
 		this.cacheCapacity = cacheCapacity;
+		// Find the highest power of 2 for (n + 1), then subtract 1
+		int mask = Integer.highestOneBit(cacheCapacity + 1) - 1;
+		this.defaultLockRegistry = new DefaultLockRegistry(mask);
 	}
 
 	@Override
@@ -148,26 +155,13 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 	@Override
 	public void renewLock(Object lockKey) {
-		Assert.isInstanceOf(String.class, lockKey);
-		String path = pathFor((String) lockKey);
-		JdbcLock jdbcLock;
-		this.lock.lock();
-		try {
-			jdbcLock = this.locks.get(path);
-		}
-		finally {
-			this.lock.unlock();
-		}
-
-		if (jdbcLock == null) {
-			throw new IllegalStateException("Could not found mutex at " + path);
-		}
+		JdbcLock jdbcLock = (JdbcLock) obtain(lockKey);
 		if (!jdbcLock.renew()) {
-			throw new IllegalStateException("Could not renew mutex at " + path);
+			throw new IllegalStateException("Could not renew lock " + lockKey);
 		}
 	}
 
-	private static final class JdbcLock implements Lock {
+	private final class JdbcLock implements Lock {
 
 		private final LockRepository mutex;
 
@@ -177,12 +171,13 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 		private volatile long lastUsed = System.currentTimeMillis();
 
-		private final ReentrantLock delegate = new ReentrantLock();
+		private final ReentrantLock delegate;
 
 		JdbcLock(LockRepository client, Duration idleBetweenTries, String path) {
 			this.mutex = client;
 			this.idleBetweenTries = idleBetweenTries;
 			this.path = path;
+			this.delegate = (ReentrantLock) JdbcLockRegistry.this.defaultLockRegistry.obtain(this.path);
 		}
 
 		public long getLastUsed() {
