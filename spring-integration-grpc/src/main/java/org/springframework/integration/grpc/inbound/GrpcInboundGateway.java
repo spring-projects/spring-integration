@@ -245,7 +245,7 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 	private StatusRuntimeException toGrpcStatusException(Throwable throwable, @Nullable String description) {
 		Status status = Status.fromThrowable(throwable);
 		String statusDescription = (description != null) ? description : status.getDescription();
-		if (status.getCode().equals(Status.UNKNOWN.getCode()) || statusDescription == null) {
+		if (status.getCode().equals(Status.Code.UNKNOWN) || statusDescription == null) {
 			statusDescription = "Internal Server Error";
 		}
 		logger.error(throwable, statusDescription);
