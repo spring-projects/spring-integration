@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.ManagedChannel;
@@ -31,13 +32,17 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.grpc.GrpcHeaders;
@@ -52,9 +57,12 @@ import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.1
  */
@@ -70,6 +78,8 @@ class GrpcInboundGatewayTests {
 
 	@Autowired
 	TestHelloWorldGrpc.TestHelloWorldStub testHelloWorldStub;
+
+	@Autowired ApplicationContext applicationContext;
 
 	@Test
 	void unary() {
@@ -151,14 +161,36 @@ class GrpcInboundGatewayTests {
 
 	@Test
 	void errorFromServer() {
-		assertThatExceptionOfType(StatusRuntimeException.class)
-				.isThrownBy(() -> this.testHelloWorldBlockingStub.errorOnHello(newHelloRequest("Error")))
-				.satisfies(e -> {
-					assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE);
-					assertThat(e.getStatus().getDescription())
-							.contains("Failed to transform Message in bean " +
-									"'grpcIntegrationFlow.subFlow#4.method-invoking-transformer#1'");
-				});
+		GrpcInboundGateway gateway = this.applicationContext.getBean(GrpcInboundGateway.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		LogAccessor originalLog = (LogAccessor) accessor.getPropertyValue("logger");
+		LogAccessor spyLog = spy(originalLog);
+
+		try {
+			accessor.setPropertyValue("logger", spyLog);
+
+			assertThatExceptionOfType(StatusRuntimeException.class)
+					.isThrownBy(() -> this.testHelloWorldBlockingStub.errorOnHello(newHelloRequest("Error")))
+					.satisfies(e -> {
+						assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.INTERNAL);
+						assertThat(e.getStatus().getDescription())
+								.contains("Internal Server Error");
+					});
+
+			verify(spyLog).debug(
+					ArgumentMatchers.<Supplier<? extends CharSequence>>argThat(
+							logMessage -> {
+								String actualLogMessage = logMessage.get().toString();
+								return actualLogMessage.contains("Failed to transform Message in bean " +
+										"'grpcIntegrationFlow.subFlow#4.method-invoking-transformer#1");
+							}
+					)
+			);
+
+		}
+		finally {
+			accessor.setPropertyValue("logger", originalLog);
+		}
 	}
 
 	private static HelloRequest newHelloRequest(String message) {

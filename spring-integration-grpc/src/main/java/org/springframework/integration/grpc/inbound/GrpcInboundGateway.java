@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
  * Such information can be used, for example, in downstream flow for routing.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.1
  */
@@ -237,12 +238,13 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 				.map(Message::getPayload);
 	}
 
-	private static StatusRuntimeException toGrpcStatusException(Throwable throwable) {
-		return toGrpcStatusException(throwable, throwable.getMessage());
+	private StatusRuntimeException toGrpcStatusException(Throwable throwable) {
+		return toGrpcStatusException(throwable, "Internal Server Error");
 	}
 
-	private static StatusRuntimeException toGrpcStatusException(Throwable throwable, @Nullable String description) {
-		return Status.fromThrowable(throwable)
+	private StatusRuntimeException toGrpcStatusException(Throwable throwable, @Nullable String description) {
+		logger.error(throwable, description == null ? "Internal Server Error" : description);
+		return Status.fromCode(Status.Code.INTERNAL)
 				.withDescription(description)
 				.asRuntimeException();
 	}
