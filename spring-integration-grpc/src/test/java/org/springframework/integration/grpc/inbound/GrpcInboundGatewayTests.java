@@ -264,8 +264,7 @@ class GrpcInboundGatewayTests {
 				throw Status.UNAVAILABLE.withDescription("intentional")
 						.asRuntimeException();
 			}
-			throw Status.UNKNOWN.withDescription("")
-					.asRuntimeException();
+			throw new RuntimeException("should not show");
 		}
 
 		private Flux<HelloReply> streamReply(HelloRequest helloRequest) {
