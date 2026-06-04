@@ -185,22 +185,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	@Override
 	public void renewLock(Object lockKey, Duration customTtl) {
-		Assert.isInstanceOf(String.class, lockKey);
-		String path = pathFor((String) lockKey);
-		JdbcLock jdbcLock;
-		this.lock.lock();
-		try {
-			jdbcLock = this.locks.get(path);
-		}
-		finally {
-			this.lock.unlock();
-		}
-
-		if (jdbcLock == null) {
-			throw new IllegalStateException("Could not found mutex at " + path);
-		}
+		JdbcLock jdbcLock = (JdbcLock) obtain(lockKey);
 		if (!jdbcLock.renew(customTtl)) {
-			throw new IllegalStateException("Could not renew mutex at " + path);
+			throw new IllegalStateException("Could not renew lock " + lockKey);
 		}
 	}
 
