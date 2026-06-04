@@ -239,13 +239,17 @@ public class GrpcInboundGateway extends MessagingGatewaySupport implements Binda
 	}
 
 	private StatusRuntimeException toGrpcStatusException(Throwable throwable) {
-		return toGrpcStatusException(throwable, "Internal Server Error");
+		return toGrpcStatusException(throwable, throwable.getMessage());
 	}
 
 	private StatusRuntimeException toGrpcStatusException(Throwable throwable, @Nullable String description) {
-		logger.error(throwable, description == null ? "Internal Server Error" : description);
-		return Status.fromCode(Status.Code.INTERNAL)
-				.withDescription(description)
+		Status status = Status.fromThrowable(throwable);
+		String statusDescription = (description != null) ? description : status.getDescription();
+		if (status.getCode().equals(Status.UNKNOWN.getCode()) || statusDescription == null) {
+			statusDescription = "Internal Server Error";
+		}
+		logger.error(throwable, statusDescription);
+		return status.withDescription(statusDescription)
 				.asRuntimeException();
 	}
 

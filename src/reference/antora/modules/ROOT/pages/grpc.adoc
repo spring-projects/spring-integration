@@ -153,6 +153,14 @@ private static HelloReply newHelloReply(String message) {
 The routing is done on the `GrpcHeaders.SERVICE_METHOD` header populated by the `GrpcInboundGateway`.
 All the downstream transformer business methods are type-safe in regard to gRPC messages for the `TestHelloWorldGrpc.TestHelloWorldImplBase` service.
 
+[[grpc-inbound-error-handling]]
+=== Error Handling
+
+If an error occurs during downstream processing, the `GrpcInboundGateway` attempts to map the resulting `Throwable` to a gRPC `StatusRuntimeException`.
+It does so by utilizing `Status.fromThrowable(throwable)` to retain any specific gRPC status codes (such as `Status.UNAVAILABLE`, `Status.INVALID_ARGUMENT`, etc.).
+If the status code evaluates to `UNKNOWN`, the gateway falls back to a generic description of `"Internal Server Error"`.
+This ensures that the client receives the original gRPC status when one is provided.
+
 [[configuration-grpc-inbound-gateway-with-dsl]]
 === Configuration with DSL
 
