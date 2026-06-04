@@ -24,7 +24,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContextException;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.ClassUtils;
@@ -35,10 +37,11 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Chris Bono
+ * @author Jiandong Ma
  *
  * @since 4.0
  */
-public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
+public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
 	static {
 		if (ClassUtils.isPresent("org.springframework.integration.dsl.support.Function", null)) {
@@ -47,6 +50,14 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 					+ "the Java DSL has been merged into the core project. "
 					+ "If it is present on the classpath, it will cause class loading conflicts.");
 		}
+	}
+
+	@SuppressWarnings("NullAway.Init")
+	private Environment environment;
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 	/**
@@ -64,7 +75,11 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
-		if (importingClassMetadata != null) {
+
+		boolean enableMessagingAnnotationsProcessing = this.environment
+				.getProperty(IntegrationConfigUtils.ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING, Boolean.class, true);
+
+		if (importingClassMetadata != null && enableMessagingAnnotationsProcessing) {
 			registerMessagingAnnotationPostProcessors(registry);
 		}
 		registerGatewayProxyInstantiationPostProcessor(registry);

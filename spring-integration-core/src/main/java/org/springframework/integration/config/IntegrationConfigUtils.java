@@ -37,6 +37,8 @@ public final class IntegrationConfigUtils {
 
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 
+	public static final String ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING = "spring.integration.annotations.enable";
+
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
 			String methodSignature) {
 

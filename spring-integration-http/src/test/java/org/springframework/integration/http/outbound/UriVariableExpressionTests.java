@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatException;
  * @author Wallace Wadge
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
@@ -121,6 +122,7 @@ public class UriVariableExpressionTests implements TestApplicationContextAware {
 
 		AbstractApplicationContext context = new GenericApplicationContext();
 		IntegrationRegistrar registrar = new IntegrationRegistrar();
+		registrar.setEnvironment(context.getEnvironment());
 		registrar.registerBeanDefinitions(null, (BeanDefinitionRegistry) context.getBeanFactory());
 		context.refresh();
 		handler.setBeanFactory(context);

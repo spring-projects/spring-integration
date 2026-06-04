@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.IntegrationRegistrar;
@@ -43,14 +44,20 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  */
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
 	public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
+		Environment environment = parserContext.getReaderContext().getEnvironment();
+
+		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
+		integrationRegistrar.setEnvironment(environment);
+
 		ExtendedAnnotationMetadata importingClassMetadata = new ExtendedAnnotationMetadata(element);
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
-		new IntegrationRegistrar()
+		integrationRegistrar
 				.registerBeanDefinitions(importingClassMetadata, registry);
 		if (DomUtils.getChildElementByTagName(element, "enable-publisher") != null) {
 			new PublisherRegistrar()

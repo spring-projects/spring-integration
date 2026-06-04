@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.env.Environment;
 import org.springframework.integration.config.ChannelInitializer;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -42,6 +43,7 @@ import org.springframework.integration.context.IntegrationProperties;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  */
 public abstract class AbstractIntegrationNamespaceHandler extends NamespaceHandlerSupport {
 
@@ -50,8 +52,13 @@ public abstract class AbstractIntegrationNamespaceHandler extends NamespaceHandl
 	@Override
 	public final @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		if (!this.initialized.getAndSet(true)) {
+			Environment environment = parserContext.getReaderContext().getEnvironment();
+
+			IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
+			integrationRegistrar.setEnvironment(environment);
+
 			BeanDefinitionRegistry registry = parserContext.getRegistry();
-			new IntegrationRegistrar().registerBeanDefinitions(null, registry);
+			integrationRegistrar.registerBeanDefinitions(null, registry);
 			registerImplicitChannelCreator(registry);
 		}
 		return super.parse(element, parserContext);
