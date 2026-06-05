@@ -951,6 +951,50 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThatNoException().isThrownBy(() -> redisLockRegistry.setExecutor(mock()));
 	}
 
+	@Test
+	void noSecondLockOnEviction() throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		registry.setCacheCapacity(2);
+
+		CountDownLatch lock1Latch = new CountDownLatch(1);
+		CountDownLatch furtherLocksLatch = new CountDownLatch(1);
+
+		Executors.newSingleThreadExecutor()
+				.execute(() -> {
+					Lock lock1 = registry.obtain("lock1");
+					lock1.lock();
+					try {
+						furtherLocksLatch.countDown();
+						lock1Latch.await(10, TimeUnit.SECONDS);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						lock1.unlock();
+					}
+				});
+
+		assertThat(furtherLocksLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		// Two new locks to trigger cache eviction for the 'lock1'
+		registry.obtain("lock2");
+		registry.obtain("lock3");
+
+		// Request 'lock1' again: will trigger new RedisLock instance
+		Lock lock1 = registry.obtain("lock1");
+
+		// Cannot lock because 'lock1' is still locked by another thread
+		assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).isFalse();
+
+		lock1Latch.countDown();
+
+		assertThatNoException().isThrownBy(() -> {
+			lock1.lock();
+			lock1.unlock();
+		});
+	}
+
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
 		StringRedisTemplate template = createTemplate();
 		String registryKey = TestUtils.getPropertyValue(registry, "registryKey", String.class);
