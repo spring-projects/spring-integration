@@ -52,8 +52,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Envi
 		}
 	}
 
-	static final String ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING = "spring.integration.annotations.enable";
-
 	@SuppressWarnings("NullAway.Init")
 	private Environment environment;
 
@@ -78,10 +76,10 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Envi
 		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
 		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
 
-		if (importingClassMetadata != null) {
-			if (this.environment.getProperty(ENV_ENABLE_MESSAGING_ANNOTATIONS_PROCESSING, Boolean.class, true)) {
-				registerMessagingAnnotationPostProcessors(registry);
-			}
+		if (importingClassMetadata != null
+				&& this.environment.getProperty("spring.integration.annotations.enable", Boolean.class, true)) {
+
+			registerMessagingAnnotationPostProcessors(registry);
 		}
 		registerGatewayProxyInstantiationPostProcessor(registry);
 	}

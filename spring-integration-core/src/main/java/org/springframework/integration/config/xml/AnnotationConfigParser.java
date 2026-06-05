@@ -57,8 +57,7 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 		ExtendedAnnotationMetadata importingClassMetadata = new ExtendedAnnotationMetadata(element);
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
-		integrationRegistrar
-				.registerBeanDefinitions(importingClassMetadata, registry);
+		integrationRegistrar.registerBeanDefinitions(importingClassMetadata, registry);
 		if (DomUtils.getChildElementByTagName(element, "enable-publisher") != null) {
 			new PublisherRegistrar()
 					.registerBeanDefinitions(importingClassMetadata, registry);
