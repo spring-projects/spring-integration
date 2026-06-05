@@ -35,6 +35,9 @@ See xref:grpc.adoc[] for more information.
 The `MessageTransformingHandler.requiresReply` flag cannot be modified: an `UnsupportedOperationException` is thrown from the overridden `setRequiresReply()` method to indicate the transformer pattern cannot produce nulls for replies.
 See xref:transformer.adoc[] for more information.
 
+A new `spring.integration.annotations.enable` property is introduced to control method-level annotations processing.
+See xref:configuration/annotations.adoc[] for more information.
+
 [[x7.1-web-services-changes]]
 === Web Services Support Changes
 
