@@ -142,16 +142,14 @@ public class ControlBusCommandRegistry
 	 */
 	public Map<String, Map<CommandMethod, String>> getCommands() {
 		Map<String, Map<CommandMethod, String>> commands = new HashMap<>(this.controlBusCommands.size());
-		synchronized (this.controlBusCommands) {
-			for (Map.Entry<String, Map<CommandMethod, Expression>> beanEntry : this.controlBusCommands.entrySet()) {
-				Map<CommandMethod, String> commandEntries =
-						beanEntry.getValue()
-								.entrySet()
-								.stream()
-								.collect(Collectors.toMap(Map.Entry::getKey,
-										(commandEntry) -> commandEntry.getValue().getExpressionString()));
-				commands.put(beanEntry.getKey(), commandEntries);
-			}
+		for (Map.Entry<String, Map<CommandMethod, Expression>> beanEntry : this.controlBusCommands.entrySet()) {
+			Map<CommandMethod, String> commandEntries =
+					beanEntry.getValue()
+							.entrySet()
+							.stream()
+							.collect(Collectors.toMap(Map.Entry::getKey,
+									(commandEntry) -> commandEntry.getValue().getExpressionString()));
+			commands.put(beanEntry.getKey(), commandEntries);
 		}
 		return Collections.unmodifiableMap(commands);
 	}
