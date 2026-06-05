@@ -846,7 +846,11 @@ The expiry should be set at a large enough value to prevent this condition, but 
 Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.
 
 Starting with version 5.5.6, the `RedisLockRegistry` is support automatically clean up cache for redisLocks in `RedisLockRegistry.locks` via `RedisLockRegistry.setCacheCapacity()`.
+The default value is `256`.
 See its JavaDocs for more information.
+This capacity number is also propagated into the `DefaultLockRegistry` used internally in the `RedisLockRegistry` for a pool of shared `ReentrantLock` instances.
+So, if higher concurrent access (the number of unique lock keys used in parallel) is expected (or allowed) for the application, the `cacheCapacity` should be increased respectively, with the closest power of 2 in mind (essentially `Integer.highestOneBit(cacheCapacity + 1)`).
+
 
 Starting with version 5.5.13, the `RedisLockRegistry` exposes a `setRedisLockType(RedisLockType)` option to determine in which mode a Redis lock acquisition should happen:
 
