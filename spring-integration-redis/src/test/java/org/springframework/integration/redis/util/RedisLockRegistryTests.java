@@ -1114,6 +1114,44 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		});
 	}
 
+	@Test
+	void testUnlockWhenInterruptedBlocksUntilKeyRemoved() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+
+		AtomicBoolean backgroundTaskFinished = new AtomicBoolean(false);
+
+		// Inject an executor that takes 200ms to run the key removal
+		registry.setExecutor(runnable -> new Thread(() -> {
+			try {
+				Thread.sleep(200);
+				runnable.run();
+				backgroundTaskFinished.set(true); // Marks completion
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}).start());
+
+		Lock lock = registry.obtain("test");
+
+		Thread testThread = new Thread(() -> {
+			lock.lock();
+			try {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock.unlock();
+			}
+		});
+
+		testThread.start();
+		testThread.join();
+
+		// UNMODIFIED: FAILS (Expected: true, Actual: false) because unlock() leaked out early.
+		// FIXED: PASSES (true) because the latch forced the thread to wait for the background task.
+		assertThat(backgroundTaskFinished.get()).isTrue();
+	}
+
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
 		StringRedisTemplate template = createTemplate();
 		String registryKey = TestUtils.getPropertyValue(registry, "registryKey");
