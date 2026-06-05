@@ -60,6 +60,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
@@ -103,6 +104,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Michal Domagala
  * @author Severin Kistler
  * @author Yordan Tsintsov
+ * @author Glenn Renfro
  *
  * @since 4.0
  *
@@ -114,13 +116,15 @@ public final class RedisLockRegistry
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
-	private static final int DEFAULT_CAPACITY = 100_000;
+	private static final int DEFAULT_CAPACITY = 256;
 
 	private static final int DEFAULT_IDLE = 100;
 
 	private final Lock lock = new ReentrantLock();
 
 	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
+
+	private DefaultLockRegistry defaultLockRegistry = new DefaultLockRegistry();
 
 	private final Map<String, RedisLock> locks =
 			new LinkedHashMap<>(16, 0.75F, true) {
@@ -252,11 +256,14 @@ public final class RedisLockRegistry
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 256 locks).
 	 * @since 5.5.6
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
 		this.cacheCapacity = cacheCapacity;
+		// Find the highest power of 2 for (n + 1), then subtract 1 to get the mask
+		int mask = Integer.highestOneBit(cacheCapacity + 1) - 1;
+		this.defaultLockRegistry = new DefaultLockRegistry(mask);
 	}
 
 	/**
@@ -421,7 +428,7 @@ public final class RedisLockRegistry
 
 		protected final BoundValueOperations<String, String> boundValueOps;
 
-		private final ReentrantLock localLock = new ReentrantLock();
+		private final ReentrantLock localLock;
 
 		private volatile long lockedAt;
 
@@ -429,6 +436,7 @@ public final class RedisLockRegistry
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
+			this.localLock = (ReentrantLock) RedisLockRegistry.this.defaultLockRegistry.obtain(this.lockKey);
 			this.boundValueOps = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey);
 		}
 
