@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,7 +71,7 @@ public class ControlBusCommandRegistry
 
 	private static final ControlBusMethodFilter CONTROL_BUS_METHOD_FILTER = new ControlBusMethodFilter();
 
-	private final Map<String, Map<CommandMethod, Expression>> controlBusCommands = new HashMap<>();
+	private final Map<String, Map<CommandMethod, Expression>> controlBusCommands = new ConcurrentHashMap<>();
 
 	private boolean eagerInitialization;
 
@@ -193,7 +194,7 @@ public class ControlBusCommandRegistry
 		String beanName = commandMethod.beanName;
 
 		Map<CommandMethod, Expression> beanControlBusCommands =
-				this.controlBusCommands.computeIfAbsent(beanName, (key) -> new HashMap<>());
+				this.controlBusCommands.computeIfAbsent(beanName, (key) -> new ConcurrentHashMap<>());
 
 		try {
 			return beanControlBusCommands.computeIfAbsent(commandMethod, mappingFunction);
