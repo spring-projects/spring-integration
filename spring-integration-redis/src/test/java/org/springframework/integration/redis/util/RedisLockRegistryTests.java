@@ -954,7 +954,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	@Test
 	void noSecondLockOnEviction() throws InterruptedException {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry.setRedisLockType(testRedisLockType);
+		registry.setRedisLockType(RedisLockType.SPIN_LOCK);
 		registry.setCacheCapacity(2);
 
 		CountDownLatch lock1Latch = new CountDownLatch(1);
