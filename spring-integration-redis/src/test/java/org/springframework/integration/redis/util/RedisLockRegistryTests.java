@@ -1062,6 +1062,62 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		});
 	}
 
+	@Test
+	void testUnlockWhenInterruptedBlocksUntilKeyRemoved() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+
+		CountDownLatch removalStarted = new CountDownLatch(1);
+		CountDownLatch allowRemovalToFinish = new CountDownLatch(1);
+
+		// Create an executor to freeze the removal process
+		registry.setExecutor(runnable -> new Thread(() -> {
+			try {
+				removalStarted.countDown();
+				allowRemovalToFinish.await();
+				runnable.run();
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}).start());
+
+		Lock lock = registry.obtain("test");
+
+		// Spawn worker thread with error logging
+		Thread testThread = new Thread(() -> {
+			lock.lock();
+			try {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock.unlock();
+			}
+		});
+
+		testThread.start();
+
+		// Wait until the background thread reaches the frozen state
+		boolean started = removalStarted.await(5, TimeUnit.SECONDS);
+		assertThat(started).isTrue();
+
+		// Verify thread state - it should still be blocked in unlock()
+		assertThat(testThread.isAlive()).isTrue();
+
+		// Since testThread is blocked in unlock(), it still holds the local lock
+		Lock localUserLock = registry.obtain("test");
+		assertThat(localUserLock.tryLock()).isFalse();
+
+		// Allow executor thread to continue
+		allowRemovalToFinish.countDown();
+
+		testThread.join(1000);
+		assertThat(testThread.isAlive()).isFalse();
+
+		// Final check
+		assertThat(localUserLock.tryLock()).isTrue();
+		localUserLock.unlock();
+	}
+
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
 		StringRedisTemplate template = createTemplate();
 		String registryKey = TestUtils.getPropertyValue(registry, "registryKey", String.class);
