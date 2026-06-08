@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +38,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -539,15 +541,40 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return;
 			}
 			try {
-				if (Thread.currentThread().isInterrupted()) {
-					RedisLockRegistry.this.executor.execute(this::removeLockKey);
+				CountDownLatch latch = new CountDownLatch(1);
+				AtomicReference<RuntimeException> exceptionHolder = new AtomicReference<>();
+				RedisLockRegistry.this.executor.execute(() -> {
+					try {
+						removeLockKey();
+					}
+					catch (RuntimeException ex) {
+						exceptionHolder.set(ex);
+					}
+					finally {
+						latch.countDown();
+					}
+				});
+
+				boolean interrupted = false;
+				try {
+					while (true) {
+						try {
+							latch.await();
+							break;
+						}
+						catch (InterruptedException e) {
+							interrupted = true;
+						}
+					}
 				}
-				else {
-					removeLockKey();
+				finally {
+					if (interrupted) {
+						Thread.currentThread().interrupt();
+					}
 				}
 
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Released lock; " + this);
+				if (exceptionHolder.get() != null) {
+					throw exceptionHolder.get();
 				}
 			}
 			catch (Exception e) {
