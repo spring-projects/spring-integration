@@ -1118,14 +1118,14 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	void testUnlockWhenInterruptedBlocksUntilKeyRemoved() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 
-		AtomicBoolean backgroundTaskFinished = new AtomicBoolean(false);
+		CountDownLatch removalStarted = new CountDownLatch(1);
+		CountDownLatch allowRemovalToFinish = new CountDownLatch(1);
 
-		// Inject an executor that takes 200ms to run the key removal
 		registry.setExecutor(runnable -> new Thread(() -> {
 			try {
-				Thread.sleep(200);
+				removalStarted.countDown();
+				allowRemovalToFinish.await(); // Hold the Redis delete hostage
 				runnable.run();
-				backgroundTaskFinished.set(true); // Marks completion
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -1145,11 +1145,29 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		});
 
 		testThread.start();
-		testThread.join();
 
-		// UNMODIFIED: FAILS (Expected: true, Actual: false) because unlock() leaked out early.
-		// FIXED: PASSES (true) because the latch forced the thread to wait for the background task.
-		assertThat(backgroundTaskFinished.get()).isTrue();
+		// Wait until the background thread reaches the removal phase
+		boolean started = removalStarted.await(5, TimeUnit.SECONDS);
+		assertThat(started).isTrue();
+
+		// The unlocking thread is still blocked
+		assertThat(testThread.isAlive()).isTrue();
+
+		// Try to acquire the lock from a fresh registry instance.
+		RedisLockRegistry freshRegistry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		Lock freshLock = freshRegistry.obtain("test");
+		assertThat(freshLock.tryLock()).isFalse();
+
+		// Release the thread
+		allowRemovalToFinish.countDown();
+
+		// Verify the unlocking thread terminates normally
+		testThread.join(1000);
+		assertThat(testThread.isAlive()).isFalse();
+
+		// Now that the key is deleted, the fresh instance can acquire it
+		assertThat(freshLock.tryLock()).isTrue();
+		freshLock.unlock();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
