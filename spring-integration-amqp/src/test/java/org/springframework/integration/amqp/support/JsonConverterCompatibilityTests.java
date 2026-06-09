@@ -60,7 +60,7 @@ public class JsonConverterCompatibilityTests implements RabbitTestContainer {
 	@BeforeEach
 	public void setUp() {
 		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory(RabbitTestContainer.amqpPort()));
-		this.rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
+		this.rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter("*"));
 	}
 
 	@AfterEach
