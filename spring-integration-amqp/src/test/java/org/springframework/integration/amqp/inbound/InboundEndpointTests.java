@@ -99,7 +99,7 @@ public class InboundEndpointTests {
 		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
 
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
-		adapter.setMessageConverter(new Jackson2JsonMessageConverter());
+		adapter.setMessageConverter(new Jackson2JsonMessageConverter("*"));
 
 		PollableChannel channel = new QueueChannel();
 
@@ -192,7 +192,7 @@ public class InboundEndpointTests {
 		}));
 
 		RabbitTemplate rabbitTemplate = spy(new RabbitTemplate());
-		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter("*"));
 
 		CountDownLatch sendLatch = new CountDownLatch(1);
 
@@ -213,7 +213,7 @@ public class InboundEndpointTests {
 				.send(anyString(), anyString(), any(org.springframework.amqp.core.Message.class), isNull());
 
 		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
-		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
+		gateway.setMessageConverter(new Jackson2JsonMessageConverter("*"));
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setDefaultReplyTo("foo");

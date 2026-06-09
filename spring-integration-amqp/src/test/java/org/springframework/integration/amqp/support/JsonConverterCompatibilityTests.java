@@ -49,7 +49,7 @@ public class JsonConverterCompatibilityTests {
 	@BeforeEach
 	public void setUp() {
 		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory("localhost"));
-		this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter("*"));
 	}
 
 	@AfterEach
