@@ -197,7 +197,7 @@ The Spring Integration Git repository is located at: https://github.com/spring-p
 For the project, we also improved the process of providing code contributions.
 Further, we ensure that every commit is peer-reviewed.
 In fact, core committers now follow the same process as contributors.
-For more details, see https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc[Contributing].
+For more details, see https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md[Contributing].
 
 [[x2.1-sonar]]
 === Improved Source Code Visibility with Sonar
