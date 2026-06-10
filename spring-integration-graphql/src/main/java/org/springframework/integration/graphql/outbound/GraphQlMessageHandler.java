@@ -145,7 +145,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 		else {
 			String query = evaluateOperationExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
-			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
+			Map<String, @Nullable Object> variables = evaluateVariablesExpression(requestMessage);
 			String id = evaluateExecutionIdExpression(requestMessage);
 			Assert.notNull(id, "The 'executionIdExpression' must not evaluate to null");
 			graphQlRequest = new DefaultExecutionGraphQlRequest(query, operationName, variables, null, id, this.locale);
@@ -171,7 +171,7 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	@SuppressWarnings("unchecked")
-	private @Nullable Map<String, Object> evaluateVariablesExpression(Message<?> message) {
+	private @Nullable Map<String, @Nullable Object> evaluateVariablesExpression(Message<?> message) {
 		if (this.variablesExpression != null) {
 			return this.variablesExpression.getValue(this.evaluationContext, message, Map.class);
 		}
