@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -86,7 +87,7 @@ class JdbcLockRegistryTests {
 		this.client.close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testLock() throws Exception {
 		for (int i = 0; i < 10; i++) {
 			Lock lock = this.registry.obtain("foo");

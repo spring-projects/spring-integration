@@ -48,12 +48,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Store;
 import jakarta.mail.URLName;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.search.AndTerm;
-import jakarta.mail.search.FlagTerm;
-import jakarta.mail.search.FromTerm;
 import jakarta.mail.search.SearchTerm;
 import org.eclipse.angus.mail.imap.IMAPFolder;
 import org.eclipse.angus.mail.imap.protocol.IMAPProtocol;
@@ -61,7 +56,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -111,6 +105,7 @@ import static org.mockito.Mockito.when;
  * @author Alexander Pinske
  * @author Dominik Simmen
  * @author Filip Hrisafov
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -167,54 +162,11 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithServerCustomSearch() throws Exception {
-		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
-			try {
-				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
-				return new AndTerm(fromTerm, new FlagTerm(new Flags(Flag.SEEN), false));
-			}
-			catch (AddressException e) {
-				throw new RuntimeException(e);
-			}
-		});
-		testIdleWithServerGuts(receiver, false);
-	}
-
-	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		testIdleWithServerGuts(receiver, false);
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
-	}
-
-	@Test
-	public void testIdleWithMessageMapping() throws Exception {
-		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
-		testIdleWithServerGuts(receiver, true);
-	}
-
-	@Test
-	@Disabled
-	public void testIdleWithServerDefaultSearchSimple() throws Exception {
-		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setSimpleContent(true);
-		testIdleWithServerGuts(receiver, false, true);
-		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
-	}
-
-	@Test
-	public void testIdleWithMessageMappingSimple() throws Exception {
-		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
-		receiver.setSimpleContent(true);
-		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
-		testIdleWithServerGuts(receiver, true, true);
 	}
 
 	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws Exception {

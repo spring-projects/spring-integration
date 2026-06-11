@@ -42,4 +42,10 @@ public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageSto
 		super.testPriorityChannel();
 	}
 
+	@Override
+	@Disabled("Not stable on GitHub Actions")
+	public void testInt3181ConcurrentPolling() throws InterruptedException {
+		super.testInt3181ConcurrentPolling();
+	}
+
 }

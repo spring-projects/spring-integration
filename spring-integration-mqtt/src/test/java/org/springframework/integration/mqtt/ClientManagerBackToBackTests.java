@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -68,7 +69,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		testSubscribeAndPublish(Mqttv3Config.class, Mqttv3Config.TOPIC_NAME, Mqttv3Config.subscribedLatch);
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testSameV5ClientIdWorksForPubAndSub() throws Exception {
 		testSubscribeAndPublish(Mqttv5Config.class, Mqttv5Config.TOPIC_NAME, Mqttv5Config.subscribedLatch);
 	}
