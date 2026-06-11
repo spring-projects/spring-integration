@@ -56,7 +56,7 @@ If you want to contribute code this way, please reference, if possible, a https:
 
 For the actual code contribution process, read the Contributor Guidelines for Spring Integration.
 They apply for the samples project as well.
-You can find them at https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc
+You can find them at https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md
 
 This process ensures that every commit gets peer-reviewed.
 As a matter of fact, the core committers follow the exact same rules.
