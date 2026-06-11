@@ -57,6 +57,7 @@ class FileReadingMessageSourceTests implements TestApplicationContextAware {
 
 	public void prepResource() throws IOException {
 		when(inputDirectoryMock.toPath()).thenReturn(Path.of("[dir]"));
+		when(inputDirectoryMock.getCanonicalFile()).thenReturn(inputDirectoryMock);
 		when(fileMock.toPath()).thenReturn(Path.of("[dir]/fileMock"));
 		when(fileMock.getAbsolutePath()).thenReturn("[dir]/fileMock");
 		when(fileMock.getCanonicalFile()).thenReturn(fileMock);
