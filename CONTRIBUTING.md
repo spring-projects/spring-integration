@@ -1,41 +1,41 @@
-= Spring Integration Contributor Guidelines
+# Spring Integration Contributor Guidelines
 
 Have something you'd like to contribute to **Spring Integration**?
 We welcome pull requests, but ask that you carefully read this document first to understand how best to submit them; what kind of changes are likely to be accepted; and what to expect from the Spring team when evaluating your submission.
 
 Please refer back to this document as a checklist before issuing any pull request; this will save time for everyone!
 
-== Code of Conduct
+## Code of Conduct
 
-Please see our https://github.com/spring-projects/.github/blob/main/CODE_OF_CONDUCT.md[code of conduct]
+Please see our [code of conduct](https://github.com/spring-projects/.github/blob/main/CODE_OF_CONDUCT.md)
 
-== Reporting Security Vulnerabilities
+## Reporting Security Vulnerabilities
 
-Please see our https://github.com/spring-projects/spring-integration/security/policy[Security policy].
+Please see our [Security policy](https://github.com/spring-projects/spring-integration/security/policy).
 
-== Understand the basics
+## Understand the basics
 
-Not sure what a *pull request* is, or how to submit one?
-Take a look at GitHub's excellent documentation: https://help.github.com/articles/using-pull-requests/[Using Pull Requests] first.
+Not sure what a **pull request** is or how to submit one?
+Take a look at GitHub's excellent documentation: [Using Pull Requests](https://help.github.com/articles/using-pull-requests/) first.
 
-== Search GitHub issues first; create one if necessary
+## Search GitHub issues first; create one if necessary
 
 Is there already an issue that addresses your concern?
-Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] to see if you can find something similar.
+Search the [GitHub issue tracker](https://github.com/spring-projects/spring-integration/issues) to see if you can find something similar.
 If not, please create a new issue in GitHub before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 
-== Developer Certificate of Origin
+## Developer Certificate of Origin
 
-All commits must include a __Signed-off-by__ trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin.
-For additional details, please refer to the blog post https://spring.io/blog/2025/01/06/hello-dco-goodbye-cla-simplifying-contributions-to-spring[Hello DCO, Goodbye CLA: Simplifying Contributions to Spring].
+All commits must include a _Signed-off-by_ trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin.
+For additional details, please refer to the blog post [Hello DCO, Goodbye CLA: Simplifying Contributions to Spring](https://spring.io/blog/2025/01/06/hello-dco-goodbye-cla-simplifying-contributions-to-spring).
 
-== Fork the Repository
+## Fork the Repository
 
-1. Go to https://github.com/spring-projects/spring-integration[https://github.com/spring-projects/spring-integration]
+1. Go to [https://github.com/spring-projects/spring-integration](https://github.com/spring-projects/spring-integration)
 2. Hit the "fork" button and choose your own GitHub account as the target
-3. For more detail see https://help.github.com/fork-a-repo/[Fork A Repo].
+3. For more detail see [Fork A Repo](https://help.github.com/articles/fork-a-repo/).
 
-== Setup your Local Development Environment
+## Setup your Local Development Environment
 
 1. `git clone --recursive git@github.com:<your-github-username>/spring-integration.git`
 2. `cd spring-integration`
@@ -48,10 +48,10 @@ _you should now see 'upstream' in addition to 'origin' where 'upstream' is the S
 7. `git branch -a`
 _you should see branches on origin as well as upstream, including 'main'_
 
-== Build from Source
+## Build from Source
 
-The build system for the project is https://gradle.org/[Gradle].
-It is recommended to rely on the `wrapper` provided in the project code based and use a `gradlew` script from command line for the target operating system.
+The build system for the project is [Gradle](https://gradle.org/).
+It is recommended to rely on the `wrapper` provided in the project code-base and use a `gradlew` script from command line for the target operating system.
 The current Gradle version in use you can obtain from the `/gradle/gradle-wrapper.properties` file in the source tree.
 It is also recommended to use a Gradle import feature of your IDE for the best contribution experience.
 
@@ -59,7 +59,7 @@ The minimum JDK version at the moment is `17`.
 You always can find the currently required Java version in the `build.gradle`.
 For example, for the current project version:
 
-----
+```
 compileJava {
     options.release = 17
 }
@@ -69,118 +69,190 @@ compileTestJava {
     targetCompatibility = JavaVersion.VERSION_17
     options.encoding = 'UTF-8'
 }
-----
+```
 
 To build and install jars into your local Maven cache:
 
-----
+```
 ./gradlew build publishToMavenLocal
-----
+```
 
 To build api Javadoc (results will be in `build/api`):
 
-----
+```
 ./gradlew api
-----
+```
 
 To build the reference documentation (results will be in `build/site`):
 
-----
+```
 ./gradlew antora
-----
+```
 
 To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`):
 
-----
+```
 ./gradlew dist
-----
+```
+
+To run the standard test suite:
+
+```bash
+./gradlew clean test
+```
+
+To run all tests including long-running ones (`@LongRunningIntegrationTest`):
+
+```bash
+./gradlew clean testAll
+```
 
 You can build and test only a specific module if your contribution is only over there:
 
-----
+```bash
 ./gradlew :spring-integration-webflux:test
-----
+```
 
-== A Day in the Life of a Contributor
+To run a specific test class, follow this structure `./gradlew :spring-integration-<MODULE>:test --tests`.
+An example can be seen here:
+
+```bash
+./gradlew :spring-integration-core:test --tests "org.springframework.integration.channel.DirectChannelTests"
+```
+
+Test results appear in `build/reports/tests/test/` (or `testAll/`) under each module in HTML format.
+
+## Architecture Overview
+
+Spring Integration implements the [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/) as Spring-managed beans. 
+The fundamental building blocks are:
+
+- **Messages** — immutable payload + headers (`Message<T>`)
+- **Channels** — decouple producers from consumers; variants include `DirectChannel` (synchronous), `QueueChannel` (buffered), `PublishSubscribeChannel` (broadcast), `FluxMessageChannel` (reactive) and protocol-backed channels
+- **Endpoints** — lifecycle-managed components that connect channels to application logic; subtypes are inbound/outbound channel adapters (one-way) and inbound/outbound gateways (request-reply)
+- **Handlers** — process a message arriving on an input channel, optionally producing output on a reply/output channel
+- **Java DSL** (`IntegrationFlow`) — fluent builder API in `spring-integration-core` that assembles flows without XML
+
+Configuration is supported via XML namespaces, annotations (`@ServiceActivator`, `@Transformer`, `@Router`, etc.), and Java DSL. 
+The `@EnableIntegration` is required to activate the framework in an application context.
+
+### Module Layout
+
+```
+spring-integration-core          # Fundamental abstractions, DSL, all EIP patterns
+spring-integration-test-support  # Test utilities (no SI runtime dependency — avoids circular deps)
+spring-integration-bom           # Bill of Materials for dependency management
+spring-integration-<PROTOCOL>   # One module per integration technology
+```
+
+Protocol modules follow a consistent internal structure: `inbound`/`outbound` adapter and gateway classes under `org.springframework.integration.<PROTOCOL>.*`, mirroring the core abstractions.
+
+### Key Packages in `spring-integration-core`
+
+| Package | Purpose |
+|---|---|
+| `channel` | Channel implementations and interceptors |
+| `dsl` | Java DSL (`IntegrationFlow`, `IntegrationFlowBuilder`) |
+| `endpoint` | `AbstractEndpoint`, polling/event-driven lifecycle |
+| `handler` | `AbstractMessageHandler`, handler chain |
+| `router` | Content-based, recipient-list, and header-value routers |
+| `aggregator` | Aggregator, resequencer, correlation strategy |
+| `splitter` | Splitter and iterator support |
+| `transformer` | Transformation and enrichment |
+| `gateway` | `GatewayProxyFactoryBean`, inbound/outbound gateway base classes |
+| `config` | XML namespace parsers and annotation processors |
+| `support` | `MessageBuilder`, `IntegrationUtils`, management/metrics |
+
+### Protocol Adapter Modules
+
+| Category | Modules |
+|---|---|
+| Messaging | `amqp`, `jms`, `kafka`, `mqtt`, `stomp`, `zeromq` |
+| File/Remote | `file`, `ftp`, `sftp`, `smb`, `zip` |
+| Data stores | `jdbc`, `jpa`, `mongodb`, `redis`, `r2dbc` |
+| Web | `http`, `webflux`, `websocket`, `ws`, `graphql` |
+| Data formats | `xml`, `json`, `feed` |
+| Scripting/Other | `groovy`, `scripting`, `grpc`, `camel` |
+
+## A Day in the Life of a Contributor
 
 * _Always_ work on topic branches (Typically use the GitHub issue ID as the branch name).
   - For example, to create and switch to a new branch for issue 123: `git checkout -b GH-123`
 * You might be working on several different topic branches at any given time, but when at a stopping point for one of those branches, commit (a local operation).
-* Please follow the "Commit Guidelines" described in https://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project[this chapter of Pro Git].
+* Please follow the "Commit Guidelines" described in [this chapter of Pro Git](https://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project).
 * Then to begin working on another issue (say 101): `git checkout GH-101`.
  The _-b_ flag is not needed if that branch already exists in your local repository.
 * When ready to resolve an issue or to collaborate with others, you can push your branch to origin (your fork), e.g.: `git push origin GH-123`
 * If you want to collaborate with another contributor, have them fork your repository (add it as a remote) and `git fetch <your-username>` to grab your branch.
 Alternatively, they can use `git fetch --all` to sync their local state with all of their remotes.
 * If you grant that collaborator push access to your repository, they can even apply their changes to your branch.
-* When ready for your contribution to be reviewed for potential inclusion in the main branch of the canonical `spring-integration` repository (what you know as 'upstream'), issue a pull request to the SpringSource repository (for more detail, see https://help.github.com/articles/using-pull-requests/[Using pull requests]).
+* When ready for your contribution to be reviewed for potential inclusion in the main branch of the canonical `spring-integration` repository (what you know as 'upstream'), issue a pull request to the SpringSource repository (for more detail, see [Using pull requests](https://help.github.com/articles/using-pull-requests/)).
 * The project lead may merge your changes into the upstream main branch as-is, he may keep the pull request open yet add a comment about something that should be modified, or he might reject the pull request by closing it.
 * A prerequisite for any pull request is that it will be cleanly merge-able with the upstream main's current state.
 **This is the responsibility of any contributor.**
 If your pull request cannot be applied cleanly, the project lead will most likely add a comment requesting that you make it merge-able.
-For a full explanation, see https://git-scm.com/book/en/Git-Branching-Rebasing[the Pro Git section on rebasing].
-As stated there: _"> Often, you’ll do this to make sure your commits apply cleanly on a remote branch — perhaps in a project to which you’re trying to contribute but that you don’t maintain."_
+For a full explanation, see [the Pro Git section on rebasing](https://git-scm.com/book/en/Git-Branching-Rebasing).
+As stated there: _"> Often, you'll do this to make sure your commits apply cleanly on a remote branch — perhaps in a project to which you're trying to contribute but that you don't maintain."_
 
-== Keeping your Local Code in Sync
+## Keeping your Local Code in Sync
 
-* As mentioned above, you should always work on topic branches (since 'main' is a moving target). 
-However, you do want to always keep your own 'origin' main branch in synch with the 'upstream' main.
+* As mentioned above, you should always work on topic branches (since 'main' is a moving target).
+However, you do want to always keep your own 'origin' main branch in sync with the 'upstream' main.
 * Within your local working directory, you can sync up all remotes' branches with: `git fetch --all`
 * While on your own local main branch: `git pull upstream main` (which is the equivalent of fetching upstream/main and merging that into the branch you are in currently)
 * Now that you're in synch, switch to the topic branch where you plan to work, e.g.: `git checkout -b GH-123`
 * When you get to a stopping point: `git commit`
-* If changes have occurred on the upstream/main while you were working you can sync again:
+* If changes have occurred on the upstream/main while you were working, you can sync again:
     - Switch back to main: `git checkout main`
     - Then: `git pull upstream main`
     - Switch back to the topic branch: `git checkout GH-123` (no -b needed since the branch already exists)
     - Rebase the topic branch to minimize the distance between it and your recently synced main branch: `git rebase main`
-(Again, for more detail see https://git-scm.com/book/en/Git-Branching-Rebasing[the Pro Git section on rebasing]).
-* **Note** While it is generally recommended to __not__ re-write history by using `push --force`, and we do not do this on `main` (and release) branches in the main repo, we require topic branches for pull requests to be rebased before merging, in order to maintain a clean timeline and avoid "merge" commits.
+(Again, for more detail see [the Pro Git section on rebasing](https://git-scm.com/book/en/Git-Branching-Rebasing)).
+* **Note** While it is generally recommended to _not_ re-write history by using `push --force`, and we do not do this on `main` (and release) branches in the main repo, we require topic branches for pull requests to be rebased before merging, in order to maintain a clean timeline and avoid "merge" commits.
 * If, while rebasing for the merge, we find significant conflicts, we may ask you to rebase and `push --force` to your topic branch after resolving the conflicts.
 * Assuming your pull request is merged into the 'upstream' main, you will end up pulling that change into your own main eventually and, at that time, you may decide to delete the topic branch from your local repository and your fork (origin) if you pushed it there.
     - to delete the local branch: `git branch -d GH-123`
     - to delete the branch from your origin: `git push origin :GH-123`
 
-== Maintain a linear commit history
+## Maintain a linear commit history
 
-When merging to main, the project __always__ uses fast-forward merges.
+When merging to main, the project _always_ uses fast-forward merges.
 As discussed above, when issuing pull requests, please ensure that your commit history is linear.
 From the command line you can check this using:
 
-----
+```
 git log --graph --pretty=oneline
-----
+```
 
 As this may cause lots of typing, we recommend creating a global alias, e.g. `git logg` for this:
 
-----
+```
 git config --global alias.logg 'log --graph --pretty=oneline'
-----
+```
 
 This command, will provide the following output, which in this case shows a nice linear history:
 
-----
+```
 * c129a02e6c752b49bacd4a445092a44f66c2a1e9 GH-2721 Increase Timers on JDBC Delayer Tests
 * 14e556ce23d49229c420632cef608630b1d82e7d GH-2620 Fix Debug Log
 * 6140aa7b2cfb6ae309c55a157e94b44e5d0bea4f GH-3037 Fix JDBC MS Discard After Completion
 * 077f2b24ea871a3937c513e08241d1c6cb9c9179 Update Spring Social Twitter to 1.0.5
 * 6d4f2b46d859c903881a561c35aa28df68f8faf3 GH-3053 Allow task-executor on <reply-listener/>
 * 56f9581b85a8a40bbcf2461ffc0753212669a68d Update Spring Social Twitter version to 1.0.4
-----
+```
 
 If you see intersecting lines, that usually means that you forgot to rebase you branch.
 As mentioned earlier, **please rebase against main** before issuing a pull request.
 
-== Follow the Code Style
+## Follow the Code Style
 
-Please, follow with the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-Framework-Code-Style[Spring Integration Code Style].
+Please, follow with the [Spring Integration Code Style](https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-Framework-Code-Style).
 
-== Use `@since` tags
+## Use `@since` tags
 
-Use `@since` tags for newly-added public API types and methods e.g.
+Use `@since` tags for newly added public API types and methods e.g.
 
-[source java]
-----
+```java
 /**
  * ...
  *
@@ -190,35 +262,33 @@ Use `@since` tags for newly-added public API types and methods e.g.
  *
  * @see ...
  */
-----
+```
 
-== Use `@author` tags
+## Use `@author` tags
 
 Use `@author` tag with your real name, when you change any class e.g.
 
-[source java]
-----
+```java
 /**
  * ...
  *
  * @author First Last
  */
-----
+```
 
-
-== Submit JUnit test cases for all behavior changes
+## Submit JUnit test cases for all behavior changes
 
 Search the codebase to find related unit tests and add additional `@Test` methods within.
 It is also acceptable to submit test cases on a per GH issue basis.
 
-== Squash commits
+## Squash commits
 
 Use `git rebase --interactive`, `git add --patch` and other tools to "squash" multiple commits into atomic changes.
 In addition to the man pages for git, there are many resources online to help you understand how these tools work.
-However, we do recommend to do this only for the first commit in the PR.
+However, we recommend doing this only for the first commit in the PR.
 All the subsequent commits added after review should preserve the history for better context of the previous and current changes.
 
-== Use your real name in git commits
+## Use your real name in git commits
 
 Please configure git to use your real first and last name for any commits you intend to submit as pull requests.
 For example, this is not acceptable:
@@ -236,22 +306,22 @@ You can configure this globally via the account admin area GitHub (useful for fo
     git config --global user.name "First Last"
     git config --global user.email user@mail.com
 
-or locally for the *spring-integration* repository only by omitting the '--global' flag:
+or locally for the **spring-integration** repository only by omitting the '--global' flag:
 
     cd spring-integration
     git config user.name "First Last"
     git config user.email user@mail.com
 
-== Run all tests prior to submission
+## Run all tests prior to submission
 
-See the https://github.com/spring-projects/spring-integration#checking-out-and-building[checking out and building] section of the README for instructions.
-Make sure that all tests pass prior to submitting your pull request.
+Run `./gradlew clean test` and ensure all tests pass prior to submitting your pull request.
+For long-running tests, use `./gradlew clean testAll`.
 
-== Provide a Link to the GitHub issue in the Associated Pull Request
+## Provide a Link to the GitHub issue in the Associated Pull Request
 
 Add a GitHub issue link to your first commit comment of the pull request on the last line, so your commit message may look like this:
 
-----
+```
     GH-1639: Add <spel-function> support
 
     Fixes: gh-1639
@@ -262,6 +332,6 @@ Add a GitHub issue link to your first commit comment of the pull request on the 
     * add `SpelFunctionRegistrar` collaboration with `IntegrationEvaluationContextFactoryBean`
     * some refactoring for `IntegrationEvaluationContextFactoryBean`
     * polishing some failed tests after this change
-----
+```
 
-Please, follow Chris Beams' recommendations in regard to the good commit message: https://chris.beams.io/posts/git-commit[How to Write a Git Commit Message].
+Please, follow Chris Beams' recommendations in regard to the good commit message: [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit).

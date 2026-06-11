@@ -30,7 +30,7 @@ First, you need dependencies in your POM/Gradle:
 ```
 
 which is also pulled transitively if you deal with target protocol channel adapters.
-For example for Apache Kafka support you need just this:
+For example, for Apache Kafka support you need just this:
 
 ```xml
 <dependency>
@@ -126,7 +126,7 @@ File -> Open... -> and select build.gradle from spring-integration project root 
 
 # Guidelines
 
-See also [Contributor Guidelines](https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc).
+See also [Contributor Guidelines](https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md).
 
 # Resources
 

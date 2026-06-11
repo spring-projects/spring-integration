@@ -77,7 +77,7 @@ If you're fairly certain that there is a problem in the Spring Integration or wo
 If you have a solution in mind or a suggested fix, you can submit a pull request on https://github.com/spring-projects/spring-integration[GitHub].
 However, please keep in mind that, for all but the most trivial issues, we expect a ticket to be filed in the issue tracker, where discussions take place and leave a record for future reference.
 
-For more details see the guidelines at the https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc[CONTRIBUTING], top-level project page.
+For more details see the guidelines at the https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md[CONTRIBUTING], top-level project page.
 
 
 [[overview-getting-started]]
