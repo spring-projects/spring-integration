@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -89,8 +90,8 @@ public class FileInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void inputDirectory() {
-		File expected = new File(System.getProperty("java.io.tmpdir"));
+	public void inputDirectory() throws IOException {
+		File expected = new File(System.getProperty("java.io.tmpdir")).getCanonicalFile();
 		File actual = (File) this.accessor.getPropertyValue("directory");
 		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 		assertThat(this.accessor.getPropertyValue("scanEachPoll")).isEqualTo(Boolean.TRUE);

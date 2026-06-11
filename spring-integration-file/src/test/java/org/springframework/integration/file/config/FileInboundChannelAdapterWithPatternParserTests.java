@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -70,8 +71,8 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	}
 
 	@Test
-	public void inputDirectory() {
-		File expected = new File(System.getProperty("java.io.tmpdir"));
+	public void inputDirectory() throws IOException {
+		File expected = new File(System.getProperty("java.io.tmpdir")).getCanonicalFile();
 		File actual = TestUtils.getPropertyValue(this.source, "directory", File.class);
 		assertThat(actual).isEqualTo(expected);
 	}

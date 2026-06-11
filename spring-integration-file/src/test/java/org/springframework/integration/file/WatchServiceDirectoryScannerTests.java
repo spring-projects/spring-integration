@@ -126,10 +126,10 @@ public class WatchServiceDirectoryScannerTests {
 		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
 		files = scanner.listFiles(this.rootDir);
 		assertThat(files).hasSize(3);
-		assertThat(files).contains(top1);
-		assertThat(files).contains(foo1);
-		assertThat(files).contains(bar1);
-		assertThat(files).doesNotContain(this.skippedFile);
+		assertThat(files).contains(top1.getCanonicalFile());
+		assertThat(files).contains(foo1.getCanonicalFile());
+		assertThat(files).contains(bar1.getCanonicalFile());
+		assertThat(files).doesNotContain(this.skippedFile.getCanonicalFile());
 		fileReadingMessageSource.start();
 		File top2 = File.createTempFile("tmp", null, this.rootDir);
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);

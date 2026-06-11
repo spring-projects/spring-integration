@@ -115,7 +115,7 @@ public class FileInboundTransactionTests {
 		assertThat(transactionManager.getCommitted()).isFalse();
 		assertThat(transactionManager.getRolledBack()).isFalse();
 
-		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo"));
+		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo").getCanonicalFile());
 	}
 
 	@Test

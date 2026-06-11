@@ -43,8 +43,8 @@ public class FileLockingWithMultipleSourcesIntegrationTests {
 	private static File workdir;
 
 	@BeforeAll
-	public static void setupWorkDirectory() {
-		workdir = new File(new File(System.getProperty("java.io.tmpdir")),
+	public static void setupWorkDirectory() throws IOException {
+		workdir = new File(new File(System.getProperty("java.io.tmpdir")).getCanonicalFile(),
 				FileLockingWithMultipleSourcesIntegrationTests.class.getSimpleName());
 		workdir.mkdir();
 	}
