@@ -44,7 +44,7 @@ public class NioFileLockerTests {
 	@Test
 	public void fileListedByFirstFilter() throws Exception {
 		NioFileLocker filter = new NioFileLocker();
-		File testFile = new File(workdir, "test0");
+		File testFile = new File(workdir, "test0").getCanonicalFile();
 		testFile.createNewFile();
 		assertThat(filter.filterFiles(workdir.listFiles()).get(0)).isEqualTo(testFile);
 		filter.lock(testFile);

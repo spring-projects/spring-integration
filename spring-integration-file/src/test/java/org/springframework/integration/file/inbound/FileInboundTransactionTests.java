@@ -112,7 +112,7 @@ public class FileInboundTransactionTests {
 		assertThat(result.getPayload()).isEqualTo("foo");
 		assertThat(transactionManager.getCommitted()).isFalse();
 		assertThat(transactionManager.getRolledBack()).isFalse();
-		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo"));
+		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo").getCanonicalFile());
 
 		pseudoTx.stop();
 	}

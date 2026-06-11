@@ -64,7 +64,7 @@ public class FileLockingWithMultipleSourcesIntegrationTests {
 
 	@Test
 	public void filePickedUpOnceWithDistinctFilters() throws IOException {
-		File testFile = new File(workdir, "test");
+		File testFile = new File(workdir, "test").getCanonicalFile();
 		testFile.createNewFile();
 		assertThat(this.fileSource1.receive())
 				.isNotNull()
@@ -76,7 +76,7 @@ public class FileLockingWithMultipleSourcesIntegrationTests {
 
 	@Test
 	public void filePickedUpTwiceWithSharedFilter() throws Exception {
-		File testFile = new File(workdir, "test");
+		File testFile = new File(workdir, "test").getCanonicalFile();
 		testFile.createNewFile();
 		assertThat(this.fileSource1.receive())
 				.isNotNull()
