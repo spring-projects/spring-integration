@@ -551,7 +551,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 	}
 
 	@Test
-	public void testGet() {
+	public void testGet() throws IOException {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
@@ -575,7 +575,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		});
 		@SuppressWarnings("unchecked")
 		MessageBuilder<File> out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-		File outFile = new File(this.tmpDir + "/f1");
+		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
 		assertThat(out.getPayload()).isEqualTo(outFile);
 		assertThat(outFile.exists()).isTrue();
 		outFile.delete();
@@ -590,7 +590,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
-		File outFile = new File(this.tmpDir + "/f1");
+		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
 		FileOutputStream fos = new FileOutputStream(outFile);
 		fos.write("foo".getBytes());
 		fos.close();
@@ -651,7 +651,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
-		File outFile = new File(this.tmpDir + "/f1");
+		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
 		FileOutputStream fos = new FileOutputStream(outFile);
 		fos.write("foo".getBytes());
 		fos.close();
@@ -743,7 +743,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 	}
 
 	@Test
-	public void testGet_P() {
+	public void testGet_P() throws IOException {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
@@ -771,7 +771,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		});
 		@SuppressWarnings("unchecked")
 		MessageBuilder<File> out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("x/f1"));
-		File outFile = new File(this.tmpDir + "/f1");
+		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
 		assertThat(out.getPayload()).isEqualTo(outFile);
 		assertThat(outFile.exists()).isTrue();
 		assertThat(outFile.lastModified()).isEqualTo(modified.getTime());

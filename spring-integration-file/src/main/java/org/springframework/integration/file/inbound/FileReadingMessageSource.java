@@ -18,6 +18,7 @@ package org.springframework.integration.file.inbound;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -397,7 +398,12 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	protected @Nullable AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
-			scanInputDirectory();
+			try {
+				scanInputDirectory();
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException(ex);
+			}
 		}
 
 		DirFile dirFile = this.toBeReceived.poll();
@@ -418,9 +424,10 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		return null;
 	}
 
-	private void scanInputDirectory() {
+	private void scanInputDirectory() throws IOException {
 		File directory = this.directoryExpression.getValue(getEvaluationContext(), File.class);
 		Assert.notNull(directory, "'directoryExpression' must not evaluate to null");
+		directory = directory.getCanonicalFile();
 		if (this.scanner instanceof WatchServiceDirectoryScanner watchServiceDirectoryScanner) {
 			if (!watchServiceDirectoryScanner.directory.equals(directory)) {
 				watchServiceDirectoryScanner.stop();
@@ -431,7 +438,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		List<File> filteredFiles = this.scanner.listFiles(directory);
 
 		for (File file : filteredFiles) {
-			this.toBeReceived.add(new DirFile(file, directory));
+			this.toBeReceived.add(new DirFile(file.getCanonicalFile(), directory));
 		}
 
 		if (!filteredFiles.isEmpty()) {
