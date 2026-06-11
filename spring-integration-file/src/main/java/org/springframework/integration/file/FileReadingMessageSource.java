@@ -175,11 +175,11 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 */
 	public void setDirectory(File directory) {
 		Assert.notNull(directory, "directory must not be null");
-		this.directory = directory;
+		this.directory = directory.getAbsoluteFile();
 	}
 
 	/**
-	 * Optionally specify a custom scanner, for example the
+	 * Optionally specify a custom scanner, for example, the
 	 * {@link WatchServiceDirectoryScanner}.
 	 * @param scanner scanner implementation
 	 */
