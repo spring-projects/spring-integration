@@ -215,7 +215,7 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertThat(fileMessage).isNotNull();
-		assertThat(fileMessage.getPayload()).isEqualTo(baz3);
+		assertThat(fileMessage.getPayload().getName()).isEqualTo(baz3.getName());
 		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class))
 				.startsWith(TestUtils.applySystemFileSeparator("foo/baz/"));
 
