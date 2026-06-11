@@ -146,10 +146,10 @@ public class WatchServiceDirectoryScannerTests {
 			accum.addAll(files);
 		}
 		assertThat(accum).hasSize(4);
-		assertThat(accum).contains(top2);
-		assertThat(accum).contains(foo2);
-		assertThat(accum).contains(bar2);
-		assertThat(accum).contains(baz1);
+		assertThat(accum).contains(top2.getCanonicalFile());
+		assertThat(accum).contains(foo2.getCanonicalFile());
+		assertThat(accum).contains(bar2.getCanonicalFile());
+		assertThat(accum).contains(baz1.getCanonicalFile());
 
 		/*See AbstractWatchKey#signalEvent source code:
 			if(var5 >= 512) {
@@ -160,7 +160,7 @@ public class WatchServiceDirectoryScannerTests {
 		List<File> filesForOverflow = new ArrayList<>(600);
 
 		for (int i = 0; i < 600; i++) {
-			filesForOverflow.add(File.createTempFile("tmp" + i, null, this.rootDir));
+			filesForOverflow.add(File.createTempFile("tmp" + i, null, this.rootDir).getCanonicalFile());
 		}
 
 		n = 0;
@@ -183,7 +183,7 @@ public class WatchServiceDirectoryScannerTests {
 			accum.addAll(files);
 		}
 
-		assertThat(accum).contains(baz2);
+		assertThat(accum).contains(baz2.getCanonicalFile());
 
 		File baz2Copy = new File(baz2.getAbsolutePath());
 
@@ -198,7 +198,7 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertThat(files).hasSize(1);
-		assertThat(files).contains(baz2);
+		assertThat(files).contains(baz2.getCanonicalFile());
 
 		baz2.delete();
 

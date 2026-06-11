@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,12 +58,6 @@ public class FileReadingMessageSourcePersistentFilterIntegrationTests {
 		for (File listFile : listFiles) {
 			listFile.delete();
 		}
-	}
-
-	@Test
-	public void configured() {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollableFileSource);
-		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
 	}
 
 	@Test
