@@ -98,8 +98,12 @@ public class WatchServiceDirectoryScannerTests {
 
 					@Override
 					public boolean remove(File fileToRemove) {
-						removeFileLatch.countDown();
-						return super.remove(fileToRemove);
+						try {
+							return super.remove(fileToRemove);
+						}
+						finally {
+							removeFileLatch.countDown();
+						}
 					}
 
 				};
@@ -215,7 +219,7 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertThat(fileMessage).isNotNull();
-		assertThat(fileMessage.getPayload().getName()).isEqualTo(baz3.getName());
+		assertThat(fileMessage.getPayload()).isEqualTo(baz3);
 		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class))
 				.startsWith(TestUtils.applySystemFileSeparator("foo/baz/"));
 
