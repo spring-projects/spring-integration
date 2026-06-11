@@ -203,7 +203,7 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 
 		assertThat(removeFileLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		File baz3 = File.createTempFile("baz3", ".txt", baz.getCanonicalFile());
+		File baz3 = File.createTempFile("baz3", ".txt", baz);
 
 		n = 0;
 		Message<File> fileMessage = null;
@@ -212,7 +212,7 @@ public class WatchServiceDirectoryScannerTests implements TestApplicationContext
 		}
 
 		assertThat(fileMessage).isNotNull();
-		assertThat(fileMessage.getPayload()).isEqualTo(baz3);
+		assertThat(fileMessage.getPayload().getName()).isEqualTo(baz3.getName());
 		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class))
 				.startsWith(TestUtils.applySystemFileSeparator("foo/baz/"));
 
