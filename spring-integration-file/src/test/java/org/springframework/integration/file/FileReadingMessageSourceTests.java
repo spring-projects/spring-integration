@@ -54,6 +54,7 @@ class FileReadingMessageSourceTests {
 
 	public void prepResource() throws IOException {
 		when(inputDirectoryMock.toPath()).thenReturn(Path.of("[dir]"));
+		when(inputDirectoryMock.getCanonicalFile()).thenReturn(inputDirectoryMock);
 		when(fileMock.toPath()).thenReturn(Path.of("[dir]/fileMock"));
 		when(fileMock.getCanonicalFile()).thenReturn(fileMock);
 		when(locker.lock(isA(File.class))).thenReturn(true);
