@@ -175,7 +175,12 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 */
 	public void setDirectory(File directory) {
 		Assert.notNull(directory, "directory must not be null");
-		this.directory = directory.getAbsoluteFile();
+		try {
+			this.directory = directory.getCanonicalFile();
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
+		}
 	}
 
 	/**
