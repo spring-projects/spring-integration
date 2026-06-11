@@ -18,6 +18,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -373,7 +374,12 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	protected AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
-			scanInputDirectory();
+			try {
+				scanInputDirectory();
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException(ex);
+			}
 		}
 
 		File file = this.toBeReceived.poll();
@@ -395,12 +401,14 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		return null;
 	}
 
-	private void scanInputDirectory() {
+	private void scanInputDirectory() throws IOException {
 		List<File> filteredFiles = this.scanner.listFiles(this.directory);
-		Set<File> freshFiles = new LinkedHashSet<>(filteredFiles);
-		if (!freshFiles.isEmpty()) {
-			this.toBeReceived.addAll(freshFiles);
-			logger.debug(() -> "Added to queue: " + freshFiles);
+		for (File file : filteredFiles) {
+			this.toBeReceived.add(file.getCanonicalFile());
+		}
+
+		if (!filteredFiles.isEmpty()) {
+			logger.debug(() -> "Added to queue: " + filteredFiles);
 		}
 	}
 
