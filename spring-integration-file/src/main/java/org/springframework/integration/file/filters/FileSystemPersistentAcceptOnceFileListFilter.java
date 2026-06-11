@@ -17,11 +17,14 @@
 package org.springframework.integration.file.filters;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 3.0
  *
@@ -39,11 +42,16 @@ public class FileSystemPersistentAcceptOnceFileListFilter extends AbstractPersis
 
 	@Override
 	protected String fileName(File file) {
-		return file.getAbsolutePath();
+		try {
+			return file.getCanonicalPath();
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
+		}
 	}
 
 	/**
-	 * Check that the file still exists, to avoid a race condition when multi-threaded and
+	 * Check that the file still exists to avoid a race condition when multithreaded and
 	 * another thread removed the file while we were waiting for the lock.
 	 * @since 4.3.19
 	 */
