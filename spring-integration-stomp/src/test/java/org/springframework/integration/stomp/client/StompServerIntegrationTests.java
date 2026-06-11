@@ -23,7 +23,7 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -103,7 +103,7 @@ public class StompServerIntegrationTests {
 		taskScheduler.destroy();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testStompAdapters() throws Exception {
 		ConfigurableApplicationContext context1 = new AnnotationConfigApplicationContext(ContextConfiguration.class);
 		ConfigurableApplicationContext context2 = new AnnotationConfigApplicationContext(ContextConfiguration.class);

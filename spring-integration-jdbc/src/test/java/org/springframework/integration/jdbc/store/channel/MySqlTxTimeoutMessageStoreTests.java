@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.store.channel;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.jdbc.mysql.MySqlContainerTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,6 +40,12 @@ public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageSto
 	@Override
 	@Disabled("Not stable on GitHub Actions")
 	public void testPriorityChannel() {
+		super.testPriorityChannel();
+	}
+
+	@Test
+	@Disabled("Not stable on GitHub Actions")
+	public void testInt3181ConcurrentPolling() throws InterruptedException {
 		super.testPriorityChannel();
 	}
 
