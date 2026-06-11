@@ -113,7 +113,8 @@ You can build and test only a specific module if your contribution is only over 
 ./gradlew :spring-integration-webflux:test
 ```
 
-To run a specific test class:
+To run a specific test class, follow this structure `./gradlew :spring-integration-<MODULE>:test --tests`.
+An example can be seen here:
 
 ```bash
 ./gradlew :spring-integration-core:test --tests "org.springframework.integration.channel.DirectChannelTests"
@@ -141,10 +142,10 @@ The `@EnableIntegration` is required to activate the framework in an application
 spring-integration-core          # Fundamental abstractions, DSL, all EIP patterns
 spring-integration-test-support  # Test utilities (no SI runtime dependency — avoids circular deps)
 spring-integration-bom           # Bill of Materials for dependency management
-spring-integration-<protocol>/   # One module per integration technology
+spring-integration-<PROTOCOL>   # One module per integration technology
 ```
 
-Protocol modules follow a consistent internal structure: `inbound`/`outbound` adapter and gateway classes under `org.springframework.integration.<protocol>.*`, mirroring the core abstractions.
+Protocol modules follow a consistent internal structure: `inbound`/`outbound` adapter and gateway classes under `org.springframework.integration.<PROTOCOL>.*`, mirroring the core abstractions.
 
 ### Key Packages in `spring-integration-core`
 
