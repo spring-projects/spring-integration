@@ -210,7 +210,7 @@ public class WatchServiceDirectoryScannerTests {
 
 		assertThat(removeFileLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		File baz3 = File.createTempFile("baz3", ".txt", baz);
+		File baz3 = File.createTempFile("baz3", ".txt", baz).getCanonicalFile();
 
 		n = 0;
 		Message<File> fileMessage = null;

@@ -71,12 +71,12 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
 		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(1);
-		String ts = store.get("foo:" + file.getAbsolutePath());
+		String ts = store.get("foo:" + file.getCanonicalPath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
 		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(0);
 		file.setLastModified(file.lastModified() + 5000L);
 		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(1);
-		ts = store.get("foo:" + file.getAbsolutePath());
+		ts = store.get("foo:" + file.getCanonicalPath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
 		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(0);
 
@@ -86,7 +86,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		Future<Integer> result = executorService.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		store.put("foo:" + file.getAbsolutePath(), "43");
+		store.put("foo:" + file.getCanonicalPath(), "43");
 		latch1.countDown();
 		Integer theResult = result.get(10, TimeUnit.SECONDS);
 		assertThat(theResult).isEqualTo(Integer.valueOf(0)); // lost the race, key changed
@@ -190,7 +190,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		assertThat(passed.size()).isEqualTo(0);
 		assertThat(flushes.get()).isEqualTo(3);
 		assertThat(replaced.get()).isFalse();
-		store.put(prefix + file.getAbsolutePath(), "1");
+		store.put(prefix + file.getCanonicalPath(), "1");
 		passed = filter.filterFiles(files);
 		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		assertThat(flushes.get()).isEqualTo(4);
