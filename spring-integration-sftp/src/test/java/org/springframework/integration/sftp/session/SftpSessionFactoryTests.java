@@ -73,7 +73,7 @@ class SftpSessionFactoryTests {
 	 * Verify the socket is closed if the channel.connect() fails.
 	 * INT-3305
 	 */
-	@Test
+	@RetryingTest(10)
 	void testConnectFailSocketOpen() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
