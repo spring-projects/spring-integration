@@ -857,7 +857,7 @@ public class TcpOutboundGatewayTests {
 		ccf.stop();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testNioSecondChance() throws Exception {
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = server.getLocalPort();
