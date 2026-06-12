@@ -41,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The main Integration DSL abstraction.
@@ -91,6 +92,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -339,18 +341,24 @@ public interface IntegrationFlow {
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel = messageProducer.getOutputChannel();
-		if (outputChannel == null) {
+		MessageChannel outputChannel = null;
+		String outputChannelName = messageProducer.getOutputChannelName();
+		try {
+			outputChannel = messageProducer.getOutputChannel();
+		}
+		catch (IllegalArgumentException argumentException) {
+			if (argumentException.getMessage() != null && !argumentException.getMessage()
+					.contentEquals("'beanFactory' must not be null")) {
+				throw argumentException;
+			}
+		}
+
+		if (!StringUtils.hasText(outputChannelName) && outputChannel == null) {
 			outputChannel = new DirectChannel();
 			messageProducer.setOutputChannel(outputChannel);
 		}
-		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = from(outputChannel);
-		}
-		else {
-			integrationFlowBuilder.channel(outputChannel);
-		}
-		return integrationFlowBuilder.addComponent(messageProducer);
+		return updateOutputChannelForBuilder(integrationFlowBuilder, outputChannelName, outputChannel)
+				.addComponent(messageProducer);
 	}
 
 	/**
@@ -474,18 +482,49 @@ public interface IntegrationFlow {
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel = inboundGateway.getRequestChannel();
-		if (outputChannel == null) {
+		MessageChannel outputChannel = null;
+		String requestChannelName = inboundGateway.getRequestChannelName();
+
+		try {
+			outputChannel = inboundGateway.getRequestChannel();
+		}
+		catch (IllegalArgumentException argumentException) {
+			if (argumentException.getMessage() != null && !argumentException.getMessage()
+					.contentEquals("'beanFactory' must not be null")) {
+				throw argumentException;
+			}
+		}
+
+		if (!StringUtils.hasText(requestChannelName) && outputChannel == null) {
 			outputChannel = new DirectChannel();
 			inboundGateway.setRequestChannel(outputChannel);
 		}
+		return updateOutputChannelForBuilder(integrationFlowBuilder, requestChannelName, outputChannel)
+				.addComponent(inboundGateway);
+	}
+
+	private static IntegrationFlowBuilder updateOutputChannelForBuilder(
+			@Nullable IntegrationFlowBuilder integrationFlowBuilder, @Nullable String channelName,
+			@Nullable MessageChannel outputChannel) {
 		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = from(outputChannel);
+			if (outputChannel != null) {
+				integrationFlowBuilder = from(outputChannel);
+			}
+			else {
+				Assert.notNull(channelName, "'channelName' must not be null");
+				integrationFlowBuilder = from(channelName);
+			}
 		}
 		else {
-			integrationFlowBuilder.channel(outputChannel);
+			if (outputChannel != null) {
+				integrationFlowBuilder.channel(outputChannel);
+			}
+			else {
+				Assert.notNull(channelName, "'channelName' must not be null");
+				integrationFlowBuilder.channel(channelName);
+			}
 		}
-		return integrationFlowBuilder.addComponent(inboundGateway);
+		return integrationFlowBuilder;
 	}
 
 	@Nullable

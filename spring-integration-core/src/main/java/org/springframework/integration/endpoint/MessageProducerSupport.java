@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public abstract class MessageProducerSupport extends AbstractEndpoint
 		implements MessageProducer, TrackableComponent,
@@ -99,6 +100,16 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be null or empty");
 		this.outputChannelName = outputChannelName;
+	}
+
+	/**
+	 * Return the output channel name.
+	 * @return the output channel name.
+	 * @since 6.5
+	 */
+	@Nullable
+	public String getOutputChannelName() {
+		return this.outputChannelName;
 	}
 
 	@Override

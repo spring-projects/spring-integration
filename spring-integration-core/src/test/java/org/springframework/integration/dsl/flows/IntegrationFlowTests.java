@@ -65,6 +65,8 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.MessageProducerSpec;
+import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.QueueChannelSpec;
@@ -72,7 +74,9 @@ import org.springframework.integration.dsl.TransformerEndpointSpec;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.LoggingHandler;
@@ -563,6 +567,72 @@ public class IntegrationFlowTests {
 	@AfterEach
 	public void cleanUpList() {
 		outputStringList.clear();
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
+				.outputChannel("someChannelName")).get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputNoChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
+				.outputChannel(new QueueChannel())).get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputNullChannel() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()).get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testWithChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from("someChannelName").bridge().get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testMessagingGatewaySpecWithRequestChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
+				.requestChannel("someChannelName")).get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testMessageGatewaySpecWithRequestNoChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
+				.requestChannel(new QueueChannel())).get();
+		assertThat(flow).isNotNull();
+	}
+
+	@Test
+	public void testMessageGatewaySpecNullChannel() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()).get();
+		assertThat(flow).isNotNull();
+	}
+
+	private static class TestMessageProducerSpec
+			extends MessageProducerSpec<TestMessageProducerSpec, MessageProducerSupport> {
+
+		TestMessageProducerSpec() {
+			super(new MessageProducerSupport() {
+			});
+		}
+
+	}
+
+	private static class TestMessagingGatewaySpec
+			extends MessagingGatewaySpec<TestMessagingGatewaySpec, MessagingGatewaySupport> {
+
+		TestMessagingGatewaySpec() {
+			super(new MessagingGatewaySupport() {
+			});
+		}
+
 	}
 
 	@MessagingGateway

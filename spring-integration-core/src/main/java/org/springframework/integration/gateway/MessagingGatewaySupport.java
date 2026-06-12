@@ -92,6 +92,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Trung Pham
  * @author Christian Tzolov
+ * @author Glenn Renfro
  */
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
@@ -204,6 +205,16 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	public void setRequestChannelName(String requestChannelName) {
 		Assert.hasText(requestChannelName, "'requestChannelName' must not be empty");
 		this.requestChannelName = requestChannelName;
+	}
+
+	/**
+	 * Return this gateway's request channel name.
+	 * @return the channel name.
+	 * @since 6.5
+	 */
+	@Nullable
+	public String getRequestChannelName() {
+		return this.requestChannelName;
 	}
 
 	/**
