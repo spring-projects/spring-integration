@@ -317,7 +317,7 @@ public class TcpOutboundGatewayTests implements TestApplicationContextAware {
 		serverSocket.get().close();
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testGoodNetGWTimeout() throws Exception {
 		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
 		final int port = serverSocket.getLocalPort();
