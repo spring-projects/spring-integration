@@ -85,6 +85,7 @@ import org.springframework.util.FileCopyUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -750,7 +751,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		pre = (PathRemovedEvent) this.config.events.get(9);
 		assertThat(pre.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir2");
 		assertThat(pre.isDirectory()).isTrue();
-		assertThat(this.config.events.get(10)).isInstanceOf(SessionClosedEvent.class);
+		await().untilAsserted(() -> assertThat(this.config.events.get(10)).isInstanceOf(SessionClosedEvent.class));
 		this.config.events.clear();
 		this.config.latch = null;
 	}

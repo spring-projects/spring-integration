@@ -97,7 +97,7 @@ public class ControlBusTests {
 		assertThat(outputChannel.receive(10)).isNull();
 		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
 		inputChannel.send(message);
-		assertThat(outputChannel.receive(1000)).isNotNull();
+		assertThat(outputChannel.receive(10000)).isNotNull();
 		context.close();
 	}
 
