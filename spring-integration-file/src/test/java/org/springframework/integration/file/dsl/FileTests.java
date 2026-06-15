@@ -19,7 +19,6 @@ package org.springframework.integration.file.dsl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -248,7 +247,7 @@ public class FileTests {
 	@Test
 	public void testFileSplitterFlow() throws Exception {
 		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
-		file.write(("HelloWorld\nÃ¤Ã¶Ã¼ÃŸ").getBytes(Charset.defaultCharset()));
+		file.write(("HelloWorld" + System.lineSeparator() + "Ã¤Ã¶Ã¼ÃŸ").getBytes(StandardCharsets.US_ASCII));
 		file.flush();
 		file.close();
 
