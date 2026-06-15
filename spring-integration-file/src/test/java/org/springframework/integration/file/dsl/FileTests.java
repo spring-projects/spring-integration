@@ -250,7 +250,7 @@ public class FileTests {
 	@RetryingTest(10)
 	public void testFileSplitterFlow() throws Exception {
 		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
-		file.write(("HelloWorld" + System.lineSeparator() + "Ã¤Ã¶Ã¼ÃŸ").getBytes(Charset.defaultCharset()));
+		file.write(("HelloWorld" + System.lineSeparator() + "Ã¤Ã¶Ã¼ÃŸ").getBytes(StandardCharsets.US_ASCII));
 		file.flush();
 		file.close();
 
