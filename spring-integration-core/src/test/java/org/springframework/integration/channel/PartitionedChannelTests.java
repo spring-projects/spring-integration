@@ -54,6 +54,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.Mockito.mock;
 
@@ -177,6 +178,17 @@ public class PartitionedChannelTests {
 				.asInstanceOf(type(LinkedBlockingQueue.class))
 				.extracting(LinkedBlockingQueue::remainingCapacity)
 				.isEqualTo(1);
+
+
+		Message<String> messageWithIntMinValueHash =
+				MessageBuilder.withPayload("Integer.MIN_VALUE")
+						.setCorrelationId("polygenelubricants") // Yields Integer.MIN_VALUE for hashCode
+						.build();
+
+		// Previously it failed with
+		// Caused by: java.lang.IndexOutOfBoundsException: Index -2 out of bounds for length 9
+		assertThatNoException()
+				.isThrownBy(() -> this.testChannel.send(messageWithIntMinValueHash));
 	}
 
 	@Configuration
@@ -187,7 +199,7 @@ public class PartitionedChannelTests {
 		IntegrationFlow someFlow() {
 			return f -> f
 					.split()
-					.channel(c -> c.partitioned("testChannel", 10).workerQueueSize(1))
+					.channel(c -> c.partitioned("testChannel", 9).workerQueueSize(1))
 					.transform(p -> Thread.currentThread().getName())
 					.aggregate()
 					.channel(c -> c.queue("resultChannel"));
