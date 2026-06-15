@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +73,7 @@ import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.dsl.TransformerEndpointSpec;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -128,6 +130,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringJUnitConfig
 @DirtiesContext
 public class IntegrationFlowTests {
+
+	public static final String SAMPLE_CHANNEL_NAME = "someChannelName";
 
 	@Autowired
 	private ListableBeanFactory beanFactory;
@@ -572,47 +576,49 @@ public class IntegrationFlowTests {
 	@Test
 	public void testMessageProducerSpecWithOutputChannelName() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
-				.outputChannel("someChannelName")).get();
-		assertThat(flow).isNotNull();
+				.outputChannel(SAMPLE_CHANNEL_NAME)).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).anyMatch(c -> c instanceof MessageChannelReference channelReference &&
+				SAMPLE_CHANNEL_NAME.equals(channelReference.name()));
 	}
 
 	@Test
 	public void testMessageProducerSpecWithOutputNoChannelName() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
 				.outputChannel(new QueueChannel())).get();
-		assertThat(flow).isNotNull();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(QueueChannel.class);
 	}
 
 	@Test
 	public void testMessageProducerSpecWithOutputNullChannel() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()).get();
-		assertThat(flow).isNotNull();
-	}
-
-	@Test
-	public void testWithChannelName() {
-		IntegrationFlow flow = IntegrationFlow.from("someChannelName").bridge().get();
-		assertThat(flow).isNotNull();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(DirectChannel.class);
 	}
 
 	@Test
 	public void testMessagingGatewaySpecWithRequestChannelName() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
-				.requestChannel("someChannelName")).get();
-		assertThat(flow).isNotNull();
+				.requestChannel(SAMPLE_CHANNEL_NAME)).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).anyMatch(c -> c instanceof MessageChannelReference channelReference &&
+				SAMPLE_CHANNEL_NAME.equals(channelReference.name()));
 	}
 
 	@Test
 	public void testMessageGatewaySpecWithRequestNoChannelName() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
 				.requestChannel(new QueueChannel())).get();
-		assertThat(flow).isNotNull();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(QueueChannel.class);
 	}
 
 	@Test
-	public void testMessageGatewaySpecNullChannel() {
+	public void testMessageGatewaySpecDirectChannel() {
 		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()).get();
-		assertThat(flow).isNotNull();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(DirectChannel.class);
 	}
 
 	private static class TestMessageProducerSpec

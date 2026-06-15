@@ -209,8 +209,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	/**
 	 * Return this gateway's request channel name.
-	 * @return the channel name.
-	 * @since 6.5
+	 * @return the channel name or null if not provided.
+	 * @since 6.5.10
 	 */
 	@Nullable
 	public String getRequestChannelName() {

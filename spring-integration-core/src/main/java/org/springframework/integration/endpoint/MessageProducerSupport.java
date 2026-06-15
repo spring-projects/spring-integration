@@ -104,8 +104,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 
 	/**
 	 * Return the output channel name.
-	 * @return the output channel name.
-	 * @since 6.5
+	 * @return the output channel name or null if not provided.
+	 * @since 6.5.10
 	 */
 	@Nullable
 	public String getOutputChannelName() {
