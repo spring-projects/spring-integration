@@ -66,6 +66,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Uwez Khan
  *
  * @since 2.0
  */
@@ -243,10 +244,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 				String headersString = new String(packet.getData(), offset, length, this.charset);
 				Matcher matcher = UDP_HEADERS_PATTERN.matcher(headersString);
 				if (matcher.find()) {
-					// Strip off the ack headers and put in Message headers
-					length = length - matcher.end();
+					// Strip off the ack headers and put in Message headers.
+					// 'matcher.end()' is a character index into the decoded string; convert it to the
+					// number of bytes those characters occupy so multibyte charsets keep the payload aligned.
+					int headerLength = headersString.substring(0, matcher.end()).getBytes(this.charset).length;
+					length = length - headerLength;
 					payload = new byte[length];
-					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
+					System.arraycopy(packet.getData(), offset + headerLength, payload, 0, length);
 					message = getMessageBuilderFactory().withPayload(payload)
 							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
