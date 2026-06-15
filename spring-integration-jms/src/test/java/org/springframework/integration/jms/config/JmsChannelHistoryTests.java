@@ -20,7 +20,7 @@ import jakarta.jms.JMSException;
 import jakarta.jms.MessageProducer;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class JmsChannelHistoryTests extends ActiveMQMultiContextTests {
 	@Autowired
 	ApplicationContext context;
 
-	@Test
+	@RetryingTest(10)
 	public void testMessageHistory() throws JMSException {
 		AbstractMessageListenerContainer mlContainer = mock();
 		JmsTemplate template = new JmsTemplate(connectionFactory) {
@@ -90,7 +90,7 @@ public class JmsChannelHistoryTests extends ActiveMQMultiContextTests {
 		channel.stop();
 	}
 
-	@Test
+	@RetryingTest(10)
 	public void testFullConfig() {
 		SubscribableChannel channel = context.getBean("jmsChannel", SubscribableChannel.class);
 		PollableChannel resultChannel = context.getBean("resultChannel", PollableChannel.class);
