@@ -85,6 +85,34 @@ public class DatagramPacketMessageMapperTests {
 	}
 
 	@Test
+	public void testAckHeaderWithMultibyteAddress() {
+		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
+		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+		mapper.setAckAddress("café:11111");
+		mapper.setAcknowledge(true);
+		mapper.setBeanFactory(mock());
+		DatagramPacket packet = mapper.fromMessage(message);
+		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
+		Message<byte[]> messageOut = mapper.toMessage(packet);
+		assertThat(messageOut.getPayload()).isEqualTo(message.getPayload());
+		assertThat(messageOut.getHeaders().get(IpHeaders.ACK_ADDRESS)).isEqualTo("café:11111");
+	}
+
+	@Test
+	public void testAckHeaderWithMultibyteAddressLengthCheck() {
+		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
+		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+		mapper.setAckAddress("café:11111");
+		mapper.setAcknowledge(true);
+		mapper.setLengthCheck(true);
+		mapper.setBeanFactory(mock());
+		DatagramPacket packet = mapper.fromMessage(message);
+		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
+		Message<byte[]> messageOut = mapper.toMessage(packet);
+		assertThat(messageOut.getPayload()).isEqualTo(message.getPayload());
+	}
+
+	@Test
 	public void testTruncation() {
 		String test = "ABCD";
 		Message<byte[]> message = MessageBuilder.withPayload(test.getBytes()).build();
