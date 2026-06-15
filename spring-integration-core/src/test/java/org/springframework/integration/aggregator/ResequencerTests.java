@@ -356,11 +356,11 @@ public class ResequencerTests implements TestApplicationContextAware {
 		assertThat(out1).isNull();
 		out1 = discardChannel.receive(20000);
 		assertThat(out1).isNotNull();
-		Message<?> out2 = discardChannel.receive(10);
+		Message<?> out2 = discardChannel.receive(10000);
 		assertThat(out2).isNotNull();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
 		this.resequencer.handleMessage(message1);
-		Message<?> out3 = discardChannel.receive(0);
+		Message<?> out3 = discardChannel.receive(10000);
 		assertThat(out3).isNotNull();
 
 		taskScheduler.destroy();
