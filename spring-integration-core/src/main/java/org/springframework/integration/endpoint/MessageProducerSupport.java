@@ -114,9 +114,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 
 	@Override
 	public @Nullable MessageChannel getOutputChannel() {
-		String channelName = this.outputChannelName;
-		if (channelName != null) {
-			this.outputChannel = getChannelResolver().resolveDestination(channelName);
+		if (this.outputChannelName != null) {
+			if (getBeanFactory() == null) {
+				return null;
+			}
+			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
 			this.outputChannelName = null;
 		}
 		return this.outputChannel;

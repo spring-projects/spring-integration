@@ -341,13 +341,7 @@ public interface IntegrationFlow {
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel;
-		try {
-			outputChannel = messageProducer.getOutputChannel();
-		}
-		catch (IllegalArgumentException argumentException) {
-			outputChannel = null;
-		}
+		MessageChannel outputChannel = messageProducer.getOutputChannel();
 
 		if (outputChannel == null) {
 			String outputChannelName = messageProducer.getOutputChannelName();
@@ -490,13 +484,7 @@ public interface IntegrationFlow {
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
-		MessageChannel outputChannel;
-		try {
-			outputChannel = inboundGateway.getRequestChannel();
-		}
-		catch (IllegalArgumentException argumentException) {
-			outputChannel = null;
-		}
+		MessageChannel outputChannel = inboundGateway.getRequestChannel();
 
 		if (outputChannel == null) {
 			String requestChannelName = inboundGateway.getRequestChannelName();
