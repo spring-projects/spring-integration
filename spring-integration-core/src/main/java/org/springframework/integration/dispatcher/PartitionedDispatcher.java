@@ -183,7 +183,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	@Override
 	public boolean dispatch(Message<?> message) {
 		populatedPartitions();
-		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
+		int partition = Math.floorMod(this.partitionKeyFunction.apply(message).hashCode(), this.partitionCount);
 		UnicastingDispatcher partitionDispatcher = this.partitions.get(partition);
 		return partitionDispatcher.dispatch(message);
 	}
