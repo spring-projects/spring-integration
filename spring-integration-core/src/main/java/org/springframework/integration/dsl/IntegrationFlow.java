@@ -41,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The main Integration DSL abstraction.
@@ -92,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -342,10 +344,18 @@ public interface IntegrationFlow {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
 		MessageChannel outputChannel = messageProducer.getOutputChannel();
+
 		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			messageProducer.setOutputChannel(outputChannel);
+			String outputChannelName = messageProducer.getOutputChannelName();
+			if (StringUtils.hasText(outputChannelName)) {
+				outputChannel = new MessageChannelReference(outputChannelName);
+			}
+			else {
+				outputChannel = new DirectChannel();
+				messageProducer.setOutputChannel(outputChannel);
+			}
 		}
+
 		if (integrationFlowBuilder == null) {
 			integrationFlowBuilder = from(outputChannel);
 		}
@@ -477,10 +487,18 @@ public interface IntegrationFlow {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
 		MessageChannel outputChannel = inboundGateway.getRequestChannel();
+
 		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			inboundGateway.setRequestChannel(outputChannel);
+			String requestChannelName = inboundGateway.getRequestChannelName();
+			if (StringUtils.hasText(requestChannelName)) {
+				outputChannel = new MessageChannelReference(requestChannelName);
+			}
+			else {
+				outputChannel = new DirectChannel();
+				inboundGateway.setRequestChannel(outputChannel);
+			}
 		}
+
 		if (integrationFlowBuilder == null) {
 			integrationFlowBuilder = from(outputChannel);
 		}
