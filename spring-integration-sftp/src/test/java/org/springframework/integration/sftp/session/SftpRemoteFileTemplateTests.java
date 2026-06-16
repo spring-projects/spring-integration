@@ -138,6 +138,14 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 	}
 
 	@Test
+	public void lsRootWildCard() throws IOException {
+		try (Session<SftpClient.DirEntry> session = this.sessionFactory.getSession()) {
+			String[] entries = session.listNames("/*");
+			assertThat(entries).contains(".", "sftpSource", "sftpTarget");
+		}
+	}
+
+	@Test
 	public void renameWithOldSftpVersion() {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
 		factory.setHost("localhost");

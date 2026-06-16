@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Adam Yang
  * @since 2.0
  */
 public class SftpSession implements Session<SftpClient.DirEntry> {
@@ -80,10 +81,10 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');
-		if (lastIndex > 0) {
+		if (lastIndex >= 0) {
 			remoteDir = remoteDir.substring(0, lastIndex);
 		}
-		String remoteFile = lastIndex > 0 ? remotePath.substring(lastIndex + 1) : null;
+		String remoteFile = lastIndex >= 0 ? remotePath.substring(lastIndex + 1) : null;
 		boolean isPattern = remoteFile != null && remoteFile.contains("*");
 
 		if (!isPattern && remoteFile != null) {
