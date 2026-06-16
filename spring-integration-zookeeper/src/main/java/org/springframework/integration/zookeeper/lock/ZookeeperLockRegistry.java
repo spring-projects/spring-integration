@@ -32,6 +32,7 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
@@ -59,7 +60,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 	private final KeyToPathStrategy keyToPath;
 
-	private static final int DEFAULT_CAPACITY = 30_000;
+	private static final int DEFAULT_CAPACITY = 256;
 
 	private final Lock locksLock = new ReentrantLock();
 
@@ -90,6 +91,8 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 	private boolean mutexTaskExecutorExplicitlySet;
 
 	private int cacheCapacity = DEFAULT_CAPACITY;
+
+	private volatile DefaultLockRegistry defaultLockRegistry = new DefaultLockRegistry();
 
 	/**
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
@@ -141,11 +144,17 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param cacheCapacity The capacity of cached lock, (default 30_000).
+	 * @param cacheCapacity The capacity of cached lock, (default 256 locks).
 	 * @since 5.5.6
+	 *
+	 * @see DefaultLockRegistry
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
 		this.cacheCapacity = cacheCapacity;
+		// Find the highest power of 2 for (n + 1), then subtract 1
+
+		int mask = Integer.highestOneBit(cacheCapacity + 1) - 1;
+		this.defaultLockRegistry = new DefaultLockRegistry(mask);
 	}
 
 	@Override
@@ -155,7 +164,8 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		ZkLock lock;
 		this.locksLock.lock();
 		try {
-			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p,
+					(ReentrantLock) ZookeeperLockRegistry.this.defaultLockRegistry.obtain(path)));
 		}
 		finally {
 			this.locksLock.unlock();
@@ -263,11 +273,15 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		private long lastUsed;
 
-		ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path) {
+		private final ReentrantLock delegate;
+
+		ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path,
+				ReentrantLock registryDelegate) {
 			this.client = client;
 			this.mutex = new InterProcessMutex(client, path);
 			this.mutexTaskExecutor = mutexTaskExecutor;
 			this.path = path;
+			this.delegate = registryDelegate;
 		}
 
 		public long getLastUsed() {
@@ -280,22 +294,41 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public void lock() {
+			this.delegate.lock();
 			try {
-				this.mutex.acquire();
+				if (this.delegate.getHoldCount() == 1) {
+					this.mutex.acquire();
+				}
 			}
 			catch (Exception e) {
+				this.delegate.unlock();
 				throw new IllegalStateException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
-			boolean locked = false;
-			// this is a bit ugly, but...
-			while (!locked) {
-				locked = tryLock(1, TimeUnit.SECONDS);
+			this.delegate.lockInterruptibly();
+			try {
+				if (this.delegate.getHoldCount() == 1) {
+					boolean locked = false;
+					// this is a bit ugly, but...
+					while (!locked) {
+						locked = doTryLock(1, TimeUnit.SECONDS);
+					}
+				}
 			}
-
+			catch (InterruptedException ie) {
+				this.delegate.unlock();
+				throw ie;
+			}
+			catch (Exception e) {
+				this.delegate.unlock();
+				if (e instanceof RuntimeException runtimeException) {
+					throw runtimeException;
+				}
+				throw new RuntimeException(e);
+			}
 		}
 
 		@Override
@@ -311,9 +344,37 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			long startTime = System.nanoTime();
+			if (!this.delegate.tryLock(time, unit)) {
+				return false;
+			}
+			try {
+				if (this.delegate.getHoldCount() == 1) {
+					long waitTime = unit.toNanos(time) - (System.nanoTime() - startTime);
+					boolean acquired = doTryLock(waitTime, TimeUnit.NANOSECONDS);
+					if (!acquired) {
+						this.delegate.unlock();
+					}
+					return acquired;
+				}
+				return true;
+			}
+			catch (Exception e) {
+				this.delegate.unlock();
+				if (e instanceof InterruptedException interruptedException) {
+					throw interruptedException;
+				}
+				if (e instanceof RuntimeException runtimeException) {
+					throw runtimeException;
+				}
+				throw new RuntimeException(e);
+			}
+		}
+
+		private boolean doTryLock(long time, TimeUnit unit) throws InterruptedException {
 			Future<Boolean> future = null;
 			try {
-				long startTime = System.currentTimeMillis();
+				long startTime = System.nanoTime();
 
 				future = this.mutexTaskExecutor.submit(() -> {
 					try {
@@ -324,21 +385,23 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 					}
 				});
 
-				long waitTime = unit.toMillis(time);
+				long waitTime = unit.toNanos(time);
 
-				boolean connected = future.get(waitTime, TimeUnit.MILLISECONDS);
+				boolean connected = future.get(waitTime, TimeUnit.NANOSECONDS);
 
 				if (!connected) {
 					future.cancel(true);
 					return false;
 				}
 				else {
-					waitTime = waitTime - (System.currentTimeMillis() - startTime);
-					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
+					waitTime = waitTime - (System.nanoTime() - startTime);
+					return this.mutex.acquire(waitTime, TimeUnit.NANOSECONDS);
 				}
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
-				future.cancel(true);
+				if (future != null) {
+					future.cancel(true);
+				}
 				return false;
 			}
 			catch (InterruptedException e) {
@@ -346,17 +409,27 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 				throw e;
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to acquire mutex at " + this.path, e);
+				throw new MessagingException("Failed to acquire lock at " + this.path, e);
 			}
 		}
 
 		@Override
 		public void unlock() {
+			if (!this.delegate.isHeldByCurrentThread()) {
+				throw new IllegalMonitorStateException("You do not own lock at " + this.path);
+			}
+			if (this.delegate.getHoldCount() > 1) {
+				this.delegate.unlock();
+				return;
+			}
 			try {
 				this.mutex.release();
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to release mutex at " + this.path, e);
+				throw new MessagingException("Failed to release lock at " + this.path, e);
+			}
+			finally {
+				this.delegate.unlock();
 			}
 		}
 
@@ -366,7 +439,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		}
 
 		public boolean isAcquiredInThisProcess() {
-			return this.mutex.isAcquiredInThisProcess();
+			return this.delegate.isLocked();
 		}
 
 	}

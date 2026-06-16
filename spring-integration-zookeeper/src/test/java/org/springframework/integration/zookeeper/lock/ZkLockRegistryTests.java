@@ -31,10 +31,10 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
-import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * @author Gary Russell
@@ -155,8 +155,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			try {
 				lock2.unlock();
 			}
-			catch (MessagingException e) {
-				return e.getCause();
+			catch (Exception e) {
+				return e;
 			}
 			return null;
 		});
@@ -256,9 +256,9 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			try {
 				lock.unlock();
 			}
-			catch (Exception e) {
+			catch (IllegalMonitorStateException e) {
 				latch.countDown();
-				return e.getCause();
+				return e;
 			}
 			return null;
 		});
@@ -506,6 +506,55 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(getRegistryLocks(registry)).hasSize(4);
 		assertThat(getRegistryLocks(registry)).containsKeys(toKey("foo:3"), toKey("foo:4"), toKey("foo:5"));
 		registry.destroy();
+	}
+
+	@Test
+	public void noSecondLockOnEviction() throws InterruptedException {
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		registry.setCacheCapacity(2);
+
+		CountDownLatch lock1Latch = new CountDownLatch(1);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		CountDownLatch furtherLocksLatch = new CountDownLatch(1);
+		try {
+			executor.execute(() -> {
+				Lock lock1 = registry.obtain("lock1");
+				lock1.lock();
+				try {
+					furtherLocksLatch.countDown();
+					lock1Latch.await(10, TimeUnit.SECONDS);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					lock1.unlock();
+				}
+			});
+
+			assertThat(furtherLocksLatch.await(10, TimeUnit.SECONDS)).isTrue();
+			// Two new locks to trigger cache eviction for the 'lock1'
+			registry.obtain("lock2");
+			registry.obtain("lock3");
+
+			// Request 'lock1' again: will trigger new ZkLock instance
+			Lock lock1 = registry.obtain("lock1");
+
+			// Cannot lock because 'lock1' is still locked by another thread
+			assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).isFalse();
+
+			lock1Latch.countDown();
+
+			assertThatNoException().isThrownBy(() -> {
+				lock1.lock();
+				lock1.unlock();
+			});
+		}
+		finally {
+			executor.shutdown();
+			registry.destroy();
+		}
+
 	}
 
 	private static Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
