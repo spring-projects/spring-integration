@@ -83,7 +83,7 @@ class JdbcLockRegistryTests {
 
 	@BeforeEach
 	public void clear() {
-		this.registry.expireUnusedOlderThan(0);
+		this.registry.expireUnusedOlderThan(-10000);
 		this.client.close();
 	}
 
@@ -100,8 +100,7 @@ class JdbcLockRegistryTests {
 			}
 		}
 
-		Thread.sleep(10);
-		this.registry.expireUnusedOlderThan(0);
+		this.registry.expireUnusedOlderThan(-10000);
 		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 

@@ -79,7 +79,7 @@ class JdbcLockRegistryDifferentClientTests {
 
 	@BeforeEach
 	public void clear() {
-		this.registry.expireUnusedOlderThan(0);
+		this.registry.expireUnusedOlderThan(-10000);
 		this.client.close();
 		this.child = new AnnotationConfigApplicationContext();
 		this.child.registerBean("childLockRepository", DefaultLockRepository.class, this.dataSource);
