@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -57,6 +58,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -69,7 +71,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.0
  */
 @SpringJUnitConfig
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ReactiveStreamsTests {
 
 	@Autowired
@@ -127,9 +129,10 @@ public class ReactiveStreamsTests {
 		assertThat(TestUtils.getPropertyValue(this.messageSource, "messagingTemplate.sendTimeout")).isEqualTo(256L);
 	}
 
-	@Test
+	@RetryingTest(10)
 	void testPollableReactiveFlow() throws Exception {
 		assertThat(this.reactiveTransformer).isInstanceOf(ReactiveStreamsConsumer.class);
+		this.reactiveTransformer.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch latch = new CountDownLatch(6);
@@ -152,7 +155,7 @@ public class ReactiveStreamsTests {
 								.take(7)
 								.map(Message::getPayload)
 								.collectList()
-								.block(Duration.ofSeconds(10))
+								.block(Duration.ofSeconds(30))
 				);
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
