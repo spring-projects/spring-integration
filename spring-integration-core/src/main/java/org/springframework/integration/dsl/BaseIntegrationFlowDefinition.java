@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -2747,7 +2746,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	protected void checkReuse(MessageProducer replyHandler) {
 		Assert.isTrue(REFERENCED_REPLY_PRODUCERS.add(replyHandler),
 				() -> "A reply MessageProducer may only be referenced once (" + replyHandler
-				+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
+						+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
 	}
 
 	protected static @Nullable Object extractProxyTarget(@Nullable Object target) {
