@@ -448,13 +448,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @since 4.2
 	 */
 	public @Nullable MessageChannel getRequestChannel() {
-		String requestChannelName = this.requestChannelName;
+		String channelName = this.requestChannelName;
 
-		if (this.requestChannel == null && requestChannelName != null) {
+		if (this.requestChannel == null && channelName != null) {
 			if (getBeanFactory() == null) {
 				return null;
 			}
-			this.requestChannel = getChannelResolver().resolveDestination(requestChannelName);
+			this.requestChannel = getChannelResolver().resolveDestination(channelName);
 		}
 		return this.requestChannel;
 	}
