@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -125,7 +126,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	private static final String MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL = "'messageProcessorSpec' must not be null";
 
-	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
+	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = ConcurrentHashMap.newKeySet();
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser(); //NOSONAR - final
 
@@ -2744,11 +2745,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	protected void checkReuse(MessageProducer replyHandler) {
-		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
-				"A reply MessageProducer may only be referenced once ("
-						+ replyHandler
-						+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
-		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
+		Assert.isTrue(REFERENCED_REPLY_PRODUCERS.add(replyHandler),
+				() -> "A reply MessageProducer may only be referenced once (" + replyHandler
+				+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
 	}
 
 	protected static @Nullable Object extractProxyTarget(@Nullable Object target) {
