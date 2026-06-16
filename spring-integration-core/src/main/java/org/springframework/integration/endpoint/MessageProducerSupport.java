@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public abstract class MessageProducerSupport extends AbstractEndpoint
 		implements MessageProducer, TrackableComponent,
@@ -101,10 +102,23 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		this.outputChannelName = outputChannelName;
 	}
 
+	/**
+	 * Return the output channel name.
+	 * @return the output channel name or null if not provided.
+	 * @since 6.5.10
+	 */
+	@Nullable
+	public String getOutputChannelName() {
+		return this.outputChannelName;
+	}
+
 	@Override
 	public @Nullable MessageChannel getOutputChannel() {
 		String channelName = this.outputChannelName;
 		if (channelName != null) {
+			if (getBeanFactory() == null) {
+				return null;
+			}
 			this.outputChannel = getChannelResolver().resolveDestination(channelName);
 			this.outputChannelName = null;
 		}

@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -65,14 +66,19 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.MessageProducerSpec;
+import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.dsl.TransformerEndpointSpec;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.LoggingHandler;
@@ -124,6 +130,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringJUnitConfig
 @DirtiesContext
 public class IntegrationFlowTests {
+
+	public static final String SAMPLE_CHANNEL_NAME = "someChannelName";
 
 	@Autowired
 	private ListableBeanFactory beanFactory;
@@ -563,6 +571,74 @@ public class IntegrationFlowTests {
 	@AfterEach
 	public void cleanUpList() {
 		outputStringList.clear();
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
+				.outputChannel(SAMPLE_CHANNEL_NAME)).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).anyMatch(c -> c instanceof MessageChannelReference channelReference &&
+				SAMPLE_CHANNEL_NAME.equals(channelReference.name()));
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputNoChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()
+				.outputChannel(new QueueChannel())).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(QueueChannel.class);
+	}
+
+	@Test
+	public void testMessageProducerSpecWithOutputNullChannel() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessageProducerSpec()).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(DirectChannel.class);
+	}
+
+	@Test
+	public void testMessagingGatewaySpecWithRequestChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
+				.requestChannel(SAMPLE_CHANNEL_NAME)).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).anyMatch(c -> c instanceof MessageChannelReference channelReference &&
+				SAMPLE_CHANNEL_NAME.equals(channelReference.name()));
+	}
+
+	@Test
+	public void testMessageGatewaySpecWithRequestNoChannelName() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()
+				.requestChannel(new QueueChannel())).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(QueueChannel.class);
+	}
+
+	@Test
+	public void testMessageGatewaySpecDirectChannel() {
+		IntegrationFlow flow = IntegrationFlow.from(new TestMessagingGatewaySpec()).get();
+		Map<Object, String> components = flow.getIntegrationComponents();
+		assertThat(components.keySet()).hasAtLeastOneElementOfType(DirectChannel.class);
+	}
+
+	private static class TestMessageProducerSpec
+			extends MessageProducerSpec<TestMessageProducerSpec, MessageProducerSupport> {
+
+		TestMessageProducerSpec() {
+			super(new MessageProducerSupport() {
+			});
+		}
+
+	}
+
+	private static class TestMessagingGatewaySpec
+			extends MessagingGatewaySpec<TestMessagingGatewaySpec, MessagingGatewaySupport> {
+
+		TestMessagingGatewaySpec() {
+			super(new MessagingGatewaySupport() {
+			});
+		}
+
 	}
 
 	@MessagingGateway
