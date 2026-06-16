@@ -86,7 +86,7 @@ class JdbcLockRegistryTests {
 
 	@BeforeEach
 	public void clear() {
-		this.registry.expireUnusedOlderThan(0);
+		this.registry.expireUnusedOlderThan(-10000);
 		this.client.close();
 	}
 
@@ -103,8 +103,7 @@ class JdbcLockRegistryTests {
 			}
 		}
 
-		Thread.sleep(10);
-		this.registry.expireUnusedOlderThan(0);
+		this.registry.expireUnusedOlderThan(-10000);
 		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(this.registry, "locks")).isEmpty();
 	}
 
@@ -139,7 +138,7 @@ class JdbcLockRegistryTests {
 			}
 		}
 
-		lockRegistry.expireUnusedOlderThan(0);
+		lockRegistry.expireUnusedOlderThan(-10000);
 		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).isEmpty();
 	}
 
@@ -160,7 +159,7 @@ class JdbcLockRegistryTests {
 			}
 		}
 
-		lockRegistry.expireUnusedOlderThan(0);
+		lockRegistry.expireUnusedOlderThan(-10000);
 		assertThat(TestUtils.<Map<String, Lock>>getPropertyValue(lockRegistry, "locks")).isEmpty();
 	}
 
