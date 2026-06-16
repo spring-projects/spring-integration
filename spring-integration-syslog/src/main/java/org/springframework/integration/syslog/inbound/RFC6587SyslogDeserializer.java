@@ -23,10 +23,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.syslog.RFC5424SyslogParser;
-import org.springframework.util.Assert;
 
 /**
  * RFC5424/6587 Deserializer. Implemented as a {@link Deserializer} instead of a
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Duncan McIntyre
  * @author Gary Russell
+ * @author Uwez Khan
  * @since 4.1.1
  *
  */
@@ -44,12 +45,14 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 
 	private RFC5424SyslogParser parser = new RFC5424SyslogParser();
 
+	private int maxMessageSize = AbstractByteArraySerializer.DEFAULT_MAX_MESSAGE_SIZE;
+
 	/**
 	 * Construct an instance using a {@link ByteArrayLfSerializer} for
 	 * non-transparent frames.
 	 */
 	public RFC6587SyslogDeserializer() {
-		this.delimitedDeserializer = new ByteArrayLfSerializer();
+		this(new ByteArrayLfSerializer());
 	}
 
 	/**
@@ -59,6 +62,9 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 	 */
 	public RFC6587SyslogDeserializer(Deserializer<byte[]> delimitedDeserializer) {
 		this.delimitedDeserializer = delimitedDeserializer;
+		if (delimitedDeserializer instanceof AbstractByteArraySerializer byteArraySerializer) {
+			this.maxMessageSize = byteArraySerializer.getMaxMessageSize();
+		}
 	}
 
 	/**
@@ -66,6 +72,21 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 	 */
 	public void setParser(RFC5424SyslogParser parser) {
 		this.parser = parser;
+	}
+
+	/**
+	 * Set the maximum frame size accepted for an octet-counted frame. A frame whose
+	 * declared octet count exceeds this value is rejected with an {@link IOException}
+	 * before any buffer is allocated, mirroring the {@code maxMessageSize} ceiling the
+	 * non-transparent (LF-delimited) framing path already enforces. Defaults to the
+	 * {@code maxMessageSize} of the delimited deserializer when it is an
+	 * {@link AbstractByteArraySerializer}, otherwise
+	 * {@link AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE}.
+	 * @param maxMessageSize the maximum octet count to accept.
+	 * @since 5.5.22
+	 */
+	public void setMaxMessageSize(int maxMessageSize) {
+		this.maxMessageSize = maxMessageSize;
 	}
 
 	@Override
@@ -77,7 +98,9 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 		int peek = stream.read();
 		if (isDigit(peek)) {
 			octetCount = calculateLength(stream, peek);
-			Assert.state(octetCount > 0, "Expected length > 0");
+			if (octetCount <= 0) {
+				throw new IOException("Expected length > 0");
+			}
 			byte[] bytes = new byte[octetCount];
 			try {
 				stream.readFully(bytes);
@@ -109,6 +132,9 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 		int c = stream.read();
 		while (isDigit(c)) {
 			length = length * 10 + (c & 0xf); // NOSONAR magic number
+			if (length > this.maxMessageSize) {
+				throw new IOException("Frame length (" + length + ") exceeds maxMessageSize (" + this.maxMessageSize + ")");
+			}
 			c = stream.read();
 		}
 		return length;

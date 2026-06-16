@@ -17,6 +17,7 @@
 package org.springframework.integration.syslog.inbound;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -25,10 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.integration.syslog.SyslogHeaders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Duncan McIntyre
  * @author Gary Russell
+ * @author Uwez Khan
  * @since 4.1.1
  *
  */
@@ -142,6 +145,56 @@ public class SyslogDeserializerTests {
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SHORT_FRAMED_ENTRY.getBytes()));
 
 		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("true");
+	}
+
+	@Test
+	public void shouldRejectOctetCountAboveMaxMessageSize() {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		// An octet count well above the default 2048 ceiling must be refused before the
+		// buffer is allocated, mirroring the LF-delimited path's maxMessageSize bound.
+		String frame = "100000 <14>1 2026-06-15T00:00:00Z host app - - - x";
+
+		assertThatThrownBy(() -> deserializer.deserialize(new ByteArrayInputStream(frame.getBytes())))
+				.isInstanceOf(IOException.class)
+				.hasMessageContaining("maxMessageSize");
+	}
+
+	@Test
+	public void shouldRejectOverflowingOctetCount() {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		// A long run of digits would overflow the int length to a negative value; the
+		// bound stops it first and reports a framing IOException rather than an
+		// unchecked exception leaking out of deserialize().
+		String frame = "3000000000 <14>1 x";
+
+		assertThatThrownBy(() -> deserializer.deserialize(new ByteArrayInputStream(frame.getBytes())))
+				.isInstanceOf(IOException.class);
+	}
+
+	@Test
+	public void shouldRejectZeroOctetCount() {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		assertThatThrownBy(() -> deserializer.deserialize(new ByteArrayInputStream("0 <14>1 x".getBytes())))
+				.isInstanceOf(IOException.class);
+	}
+
+	@Test
+	public void shouldRejectAccordingToConfiguredMaxMessageSize() {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+		deserializer.setMaxMessageSize(50);
+
+		// The 106-octet frame parses with the default ceiling but is now above the
+		// configured limit, so it is rejected as a protocol error.
+		assertThatThrownBy(() -> deserializer.deserialize(new ByteArrayInputStream(VALID_FRAMED_ENTRY.getBytes())))
+				.isInstanceOf(IOException.class)
+				.hasMessageContaining("maxMessageSize");
 	}
 
 }
