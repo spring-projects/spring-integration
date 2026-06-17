@@ -508,6 +508,36 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		registry.destroy();
 	}
 
+	@Test
+	public void testLockEvictionWithAnotherLockOnTheKey() throws InterruptedException {
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		registry.setCacheCapacity(1);
+
+		Lock lock = registry.obtain("test");
+		// cache is full
+		lock.lock();
+		try {
+			registry.obtain("test2");
+
+			Lock lock1 = registry.obtain("test");
+
+			// Attempt to acquire lock with 10-second timeout
+			boolean acquired = lock1.tryLock(10, TimeUnit.SECONDS);
+
+			// Fail the test if the lock was not acquired within the timeframe
+			assertThat(acquired).isTrue();
+			try {
+				// do something
+			}
+			finally {
+				lock1.unlock();
+			}
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
 	private static Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks");
 	}
