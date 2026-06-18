@@ -1,0 +1,88 @@
+/*
+ * Copyright 2026 Broadcom Inc. and/or its subsidiaries. All Rights Reserved.
+ * Copyright 2026-present the original author or authors.
+ */
+
+package org.springframework.integration.json;
+
+import org.junit.jupiter.api.Test;
+
+import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+/**
+ * Tests for the trusted packages restriction applied to the target type resolved from the
+ * {@link JsonHeaders} type id headers of an (untrusted) request message.
+ *
+ * @author Uwez Khan
+ *
+ * @since 5.5.22
+ */
+class JsonToObjectTransformerTrustedPackagesTests {
+
+	@Test
+	void typeIdHeaderFromUntrustedPackageIsRejected() {
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer();
+		Message<?> message =
+				MessageBuilder.withPayload("{\"name\":\"John\"}")
+						.setHeader(JsonHeaders.TYPE_ID, UntrustedPojo.class.getName())
+						.build();
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> transformer.transform(message))
+				.havingCause()
+				.isInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("is not in the trusted packages");
+	}
+
+	@Test
+	void typeIdHeaderIsAcceptedWhenItsPackageIsTrusted() {
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer();
+		transformer.setTrustedPackages(getClass().getPackageName());
+		Message<?> message =
+				MessageBuilder.withPayload("{\"name\":\"John\"}")
+						.setHeader(JsonHeaders.TYPE_ID, UntrustedPojo.class.getName())
+						.build();
+
+		Message<?> result = transformer.transform(message);
+
+		assertThat(result.getPayload())
+				.isInstanceOfSatisfying(UntrustedPojo.class,
+						(pojo) -> assertThat(pojo.getName()).isEqualTo("John"));
+	}
+
+	@Test
+	void explicitlyConfiguredTargetTypeIsNotRestricted() {
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer(UntrustedPojo.class);
+		Message<?> result = transformer.transform(new GenericMessage<>("{\"name\":\"John\"}"));
+
+		assertThat(result.getPayload())
+				.isInstanceOfSatisfying(UntrustedPojo.class,
+						(pojo) -> assertThat(pojo.getName()).isEqualTo("John"));
+	}
+
+	/**
+	 * A POJO whose package ({@code org.springframework.integration.json}) is not part of the
+	 * default trusted packages, standing in for an attacker-chosen deserialization target.
+	 */
+	public static class UntrustedPojo {
+
+		private String name;
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+	}
+
+}
