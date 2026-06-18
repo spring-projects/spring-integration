@@ -517,6 +517,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		// cache is full
 		lock.lock();
 		try {
+			// Although cache is full, this does not evict an old entry because it is still locked
 			registry.obtain("test2");
 
 			Lock lock1 = registry.obtain("test");
@@ -524,10 +525,9 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			// Attempt to acquire lock with 10-second timeout
 			boolean acquired = lock1.tryLock(10, TimeUnit.SECONDS);
 
-			// Fail the test if the lock was not acquired within the timeframe
-			assertThat(acquired).isTrue();
 			try {
-				// do something
+				assertThat(acquired).isTrue();
+				assertThat(lock1).isEqualTo(lock);
 			}
 			finally {
 				lock1.unlock();
@@ -559,4 +559,5 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			return false;
 		}
 	}
+
 }
