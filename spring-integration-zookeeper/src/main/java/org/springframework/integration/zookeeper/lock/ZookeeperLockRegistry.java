@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Vedran Pavic
  * @author Unseok Kim
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 4.2
  *
@@ -71,9 +72,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, ZkLock> eldest) {
-					return size() > ZookeeperLockRegistry.this.cacheCapacity;
+					return size() > ZookeeperLockRegistry.this.cacheCapacity &&
+							!eldest.getValue().isAcquiredInThisProcess();
 				}
-
 			};
 
 	private final boolean trackingTime;
@@ -242,11 +243,6 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		@Override
 		public String pathFor(String key) {
 			return this.root + key;
-		}
-
-		@Override
-		public boolean bounded() {
-			return false;
 		}
 
 	}
