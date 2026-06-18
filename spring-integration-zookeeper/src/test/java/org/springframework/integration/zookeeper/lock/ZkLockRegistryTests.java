@@ -48,7 +48,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testLock() throws Exception {
-		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new TestKeyToPathStrategy());
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
@@ -352,7 +352,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		final CountDownLatch maincountDownLatch = new CountDownLatch(KEY_CNT);
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new TestKeyToPathStrategy());
 		registry.setCacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
@@ -509,6 +509,36 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		registry.destroy();
 	}
 
+	@Test
+	public void testLockEvictionWithAnotherLockOnTheKey() throws InterruptedException {
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		registry.setCacheCapacity(1);
+
+		Lock lock = registry.obtain("test");
+		// cache is full
+		lock.lock();
+		try {
+			// Although cache is full, this does not evict an old entry because it is still locked
+			registry.obtain("test2");
+
+			Lock lock1 = registry.obtain("test");
+
+			// Attempt to acquire lock with 10-second timeout
+			boolean acquired = lock1.tryLock(10, TimeUnit.SECONDS);
+
+			try {
+				assertThat(acquired).isTrue();
+				assertThat(lock1).isSameAs(lock);
+			}
+			finally {
+				lock1.unlock();
+			}
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRegistryLocks(ZookeeperLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
@@ -517,6 +547,19 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	private static String toKey(String path) {
 		final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 		return DEFAULT_ROOT + "/" + path;
+	}
+
+	private static final class TestKeyToPathStrategy implements ZookeeperLockRegistry.KeyToPathStrategy {
+
+		@Override
+		public String pathFor(String key) {
+			return "/SpringIntegration-LockRegistry" + key;
+		}
+
+		@Override
+		public boolean bounded() {
+			return false;
+		}
 	}
 
 }
