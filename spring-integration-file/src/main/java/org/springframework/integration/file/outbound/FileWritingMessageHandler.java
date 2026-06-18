@@ -890,6 +890,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
 	 * of any in-process files. However, if a custom {@link MessageFlushPredicate} is provided,
 	 * the payload can be of any type supported by that implementation.
+	 * <p> The Regular expression Denial of Service (ReDoS) vulnerability should be taken into account
+	 * if this action is exposed as an externally available endpoint.
 	 */
 	@Override
 	public void trigger(Message<?> message) {

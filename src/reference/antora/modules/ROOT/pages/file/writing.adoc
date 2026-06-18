@@ -156,6 +156,8 @@ The predicates are called for each open file.
 See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for these interfaces for more information.
 Note that, since version 5.0, the predicate methods provide another parameter: the time that the current file was first written to if new or previously closed.
 
+WARNING: If the `MessageFlushPredicate` is based on regular expressions (like default one), the https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS[Regular expression Denial of Service (ReDoS)] vulnerability should be taken into account, when the trigger action for the `FileWritingMessageHandler` is exposed as an external endpoint accepting those regular expressions from untrusted sources.
+
 When using `flushInterval`, the interval starts at the last write.
 The file is flushed only if it is idle for the interval.
 Starting with version 4.3.7, an additional property (`flushWhenIdle`) can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
@@ -311,4 +313,3 @@ public class FileWritingJavaApplication {
 
 }
 ----
-
