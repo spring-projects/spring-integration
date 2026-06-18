@@ -17,7 +17,6 @@
 package org.springframework.integration.zookeeper.lock;
 
 import java.io.Serial;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,22 +72,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, ZkLock> eldest) {
-					if (size() > ZookeeperLockRegistry.this.cacheCapacity) {
-						if (!eldest.getValue().isAcquiredInThisProcess()) {
-							return true;
-						}
-						Iterator<Entry<String, ZkLock>> iterator = entrySet().iterator();
-						while (iterator.hasNext()) {
-							Entry<String, ZkLock> entry = iterator.next();
-							if (!entry.getValue().isAcquiredInThisProcess()) {
-								iterator.remove();
-								break;
-							}
-						}
-					}
-					return false;
+					return size() > ZookeeperLockRegistry.this.cacheCapacity &&
+							!eldest.getValue().isAcquiredInThisProcess();
 				}
-
 			};
 
 	private final boolean trackingTime;
@@ -257,11 +243,6 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		@Override
 		public String pathFor(String key) {
 			return this.root + key;
-		}
-
-		@Override
-		public boolean bounded() {
-			return false;
 		}
 
 	}

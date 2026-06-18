@@ -49,7 +49,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testLock() throws Exception {
-		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new TestKeyToPathStrategy());
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
@@ -353,7 +353,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		final CountDownLatch maincountDownLatch = new CountDownLatch(KEY_CNT);
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new TestKeyToPathStrategy());
 		registry.setCacheCapacity(CAPACITY_CNT);
 		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
 
@@ -547,4 +547,16 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		return DEFAULT_ROOT + "/" + path;
 	}
 
+	private static final class TestKeyToPathStrategy implements ZookeeperLockRegistry.KeyToPathStrategy {
+
+		@Override
+		public String pathFor(String key) {
+			return "/SpringIntegration-LockRegistry" + key;
+		}
+
+		@Override
+		public boolean bounded() {
+			return false;
+		}
+	}
 }
