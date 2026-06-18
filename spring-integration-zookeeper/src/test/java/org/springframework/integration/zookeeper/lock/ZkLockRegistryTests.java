@@ -527,7 +527,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 			try {
 				assertThat(acquired).isTrue();
-				assertThat(lock1).isEqualTo(lock);
+				assertThat(lock1).isSameAs(lock);
 			}
 			finally {
 				lock1.unlock();
