@@ -657,7 +657,7 @@ public final class RedisLockRegistry
 				}
 				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
 					if (isCasCadNotSupportedError(ex)) {
-						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						LOGGER.info("CAS/CAD for value operations not supported, falling back to Lua script", ex);
 						RedisLockRegistry.this.supportsCasCadOperations = false;
 						res = executeRenewRedisScript(expireAfter);
 					}
@@ -924,7 +924,7 @@ public final class RedisLockRegistry
 				}
 				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
 					if (isCasCadNotSupportedError(ex)) {
-						LOGGER.warn("CAS/CAD for value operations not supported, falling back to Lua script", ex);
+						LOGGER.info("CAS/CAD for value operations not supported, falling back to Lua script", ex);
 						RedisLockRegistry.this.supportsCasCadOperations = false;
 						return executeUnlinkUnlockRedisScript();
 					}
