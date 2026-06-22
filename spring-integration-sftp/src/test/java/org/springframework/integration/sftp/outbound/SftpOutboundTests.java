@@ -77,6 +77,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Darryl Smith
+ * @author Adam Yang
  */
 public class SftpOutboundTests {
 
@@ -327,6 +328,10 @@ public class SftpOutboundTests {
 								.map((file) -> new SftpClient.DirEntry(file, file, new SftpClient.Attributes()))
 								.toList();
 				when(sftpClient.readDir("/remote-test-dir")).thenReturn(dirEntries);
+
+				SftpClient.Attributes dirAttributes = new SftpClient.Attributes();
+				dirAttributes.setPermissions(SftpConstants.S_IFDIR);
+				willReturn(dirAttributes).given(sftpClient).stat("/remote-test-dir/");
 
 				return SftpTestSessionFactory.createSftpSession(sftpClient);
 			}

@@ -55,6 +55,9 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Darryl Smith
+ * @author Glenn Renfro
+ * @author Adam Yang
+ *
  * @since 4.1
  */
 @SpringJUnitConfig
@@ -134,6 +137,22 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 	public void lsUserHome() throws IOException {
 		try (Session<SftpClient.DirEntry> session = this.sessionFactory.getSession()) {
 			String[] entries = session.listNames("");
+			assertThat(entries).contains(".", "sftpSource", "sftpTarget");
+		}
+	}
+
+	@Test
+	public void lsRootWildcard() throws IOException {
+		try (Session<SftpClient.DirEntry> session = this.sessionFactory.getSession()) {
+			String[] entries = session.listNames("/*");
+			assertThat(entries).contains(".", "sftpSource", "sftpTarget");
+		}
+	}
+
+	@Test
+	public void lsRoot() throws IOException {
+		try (Session<SftpClient.DirEntry> session = this.sessionFactory.getSession()) {
+			String[] entries = session.listNames("/");
 			assertThat(entries).contains(".", "sftpSource", "sftpTarget");
 		}
 	}
