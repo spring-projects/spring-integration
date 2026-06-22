@@ -78,6 +78,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Darryl Smith
  * @author Glenn Renfro
+ * @author Adam Yang
  */
 public class SftpOutboundTests implements TestApplicationContextAware {
 
@@ -328,6 +329,10 @@ public class SftpOutboundTests implements TestApplicationContextAware {
 								.map((file) -> new SftpClient.DirEntry(file, file, new SftpClient.Attributes()))
 								.toList();
 				when(sftpClient.readDir("/remote-test-dir")).thenReturn(dirEntries);
+
+				SftpClient.Attributes dirAttributes = new SftpClient.Attributes();
+				dirAttributes.setPermissions(SftpConstants.S_IFDIR);
+				willReturn(dirAttributes).given(sftpClient).stat("/remote-test-dir/");
 
 				return SftpTestSessionFactory.createSftpSession(sftpClient);
 			}
