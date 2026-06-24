@@ -613,14 +613,14 @@ class JdbcLockRegistryTests {
 
 		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
 		String keyB = null;
-		DistributedLock lockA = null;
-		DistributedLock lockB = null;
+		Lock lockA = null;
+		Lock lockB = null;
 		outer:
 		for (int i = 0; i < 10; i++) {
 			for (int j = i + 1; j < 10; j++) {
 				keyB = "key-" + j;
-				DistributedLock la = registry1.obtain("key-" + i);
-				DistributedLock lb = registry1.obtain(keyB);
+				Lock la = registry1.obtain("key-" + i);
+				Lock lb = registry1.obtain(keyB);
 				if (TestUtils.getPropertyValue(la, "delegate") == TestUtils.getPropertyValue(lb, "delegate")) {
 
 					lockA = la;
@@ -641,7 +641,7 @@ class JdbcLockRegistryTests {
 		lockB.unlock();
 
 		// Another process must be able to acquire keyB immediately (its DB row must be deleted)
-		DistributedLock lockBOtherProcess = registry2.obtain(keyB);
+		Lock lockBOtherProcess = registry2.obtain(keyB);
 		assertThat(lockBOtherProcess.tryLock(500, TimeUnit.MILLISECONDS))
 				.as("DB row for '" + keyB + "' was not deleted on unlock — orphaned lock detected")
 				.isTrue();
