@@ -682,6 +682,63 @@ class JdbcLockRegistryTests {
 		});
 	}
 
+	@Test
+	void sharedDelegateIsDeletedFromDbOnUnlock() throws Exception {
+		DefaultLockRepository client1 = newLockRepository();
+		DefaultLockRepository client2 = newLockRepository();
+
+		JdbcLockRegistry registry1 = new JdbcLockRegistry(client1);
+		// setCacheCapacity(2) gives mask=1 in DefaultLockRegistry → only 2 slots, guaranteed collision in ≤3 keys
+		registry1.setCacheCapacity(2);
+		JdbcLockRegistry registry2 = new JdbcLockRegistry(client2);
+
+		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
+		String keyB = null;
+		DistributedLock lockA = null;
+		DistributedLock lockB = null;
+		outer:
+		for (int i = 0; i < 10; i++) {
+			for (int j = i + 1; j < 10; j++) {
+				keyB = "key-" + j;
+				DistributedLock la = registry1.obtain("key-" + i);
+				DistributedLock lb = registry1.obtain(keyB);
+				if (TestUtils.getPropertyValue(la, "delegate") == TestUtils.getPropertyValue(lb, "delegate")) {
+
+					lockA = la;
+					lockB = lb;
+					break outer;
+				}
+			}
+		}
+		assertThat(lockA)
+				.as("Could not find two lock keys mapping to the same DefaultLockRegistry slot")
+				.isNotNull();
+
+		lockA.lock();
+		// Shared delegate: delegate.holdCount becomes 2 after this call
+		lockB.lock();
+
+		// Unlock B first — before the fix, delegate.getHoldCount()>1 short-circuited and skipped the DB delete
+		lockB.unlock();
+
+		// Another process must be able to acquire keyB immediately (its DB row must be deleted)
+		DistributedLock lockBOtherProcess = registry2.obtain(keyB);
+		assertThat(lockBOtherProcess.tryLock(500, TimeUnit.MILLISECONDS))
+				.as("DB row for '" + keyB + "' was not deleted on unlock — orphaned lock detected")
+				.isTrue();
+		lockBOtherProcess.unlock();
+
+		assertThatNoException().isThrownBy(lockA::unlock);
+	}
+
+	private DefaultLockRepository newLockRepository() {
+		DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		return client;
+	}
+
 	private static Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks");
 	}
