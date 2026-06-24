@@ -92,7 +92,7 @@ public class AmqpMessageSourceIntegrationTests {
 	@BeforeEach
 	public void before() {
 		RabbitAdmin admin = new RabbitAdmin(this.config.connectionFactory());
-		Queue queue = QueueBuilder.nonDurable(QUEUE_WITH_DLQ)
+		Queue queue = QueueBuilder.durable(QUEUE_WITH_DLQ)
 				.autoDelete()
 				.withArgument("x-dead-letter-exchange", "")
 				.withArgument("x-dead-letter-routing-key", DLQ)

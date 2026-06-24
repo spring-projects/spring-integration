@@ -177,7 +177,7 @@ public class ChannelTests {
 		assertThat(admin.getQueueProperties("explicit")).isNotNull();
 
 		admin.deleteQueue("explicit");
-		admin.declareQueue(new Queue("explicit", false)); // verify no declaration if exists with non-standard props
+		admin.declareQueue(new Queue("explicit")); // verify no declaration if exists with non-standard props
 		channel.afterPropertiesSet();
 		channel.onCreate(null);
 

@@ -92,7 +92,7 @@ public class AmqpOutboundEndpointTests2 {
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 
-		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
+		Queue queue = QueueBuilder.durable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
 		admin.declareQueue(queue);
 		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName())));
 		assertThatThrownBy(() -> flow.getInputChannel()
