@@ -197,14 +197,16 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		}
 	}
 
-	private Map<String, @Nullable Object> evaluateHeaders(MethodArgsHolder methodArgsHolder,
+	private Map<String, Object> evaluateHeaders(MethodArgsHolder methodArgsHolder,
 			Map<String, Expression> headerExpressions) {
 
-		Map<String, @Nullable Object> evaluatedHeaders = new HashMap<>();
+		Map<String, Object> evaluatedHeaders = new HashMap<>();
 		for (Map.Entry<String, Expression> entry : headerExpressions.entrySet()) {
 			Object value = entry.getValue()
 					.getValue(GatewayMethodInboundMessageMapper.this.evaluationContext, methodArgsHolder);
-			evaluatedHeaders.put(entry.getKey(), value);
+			if (value != null) {
+				evaluatedHeaders.put(entry.getKey(), value);
+			}
 		}
 		return evaluatedHeaders;
 	}
@@ -215,7 +217,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return expression.getValue(this.evaluationContext, argumentValue);
 	}
 
-	private static void copyHeaders(Map<?, ?> argumentValue, Map<String, @Nullable Object> headers) {
+	private static void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
 		for (Entry<?, ?> entry : argumentValue.entrySet()) {
 			Object key = entry.getKey();
 			if (!(key instanceof String)) {
@@ -273,7 +275,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
 			Object[] arguments = holder.args();
-			Map<String, @Nullable Object> headersToPopulate =
+			Map<String, Object> headersToPopulate =
 					headersToMap != null
 							? new HashMap<>(headersToMap)
 							: new HashMap<>();
@@ -321,7 +323,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			return buildMessage(holder, headersToPopulate, messageOrPayload);
 		}
 
-		private void headerOrHeaders(Map<String, @Nullable Object> headersToPopulate, Object argumentValue,
+		private void headerOrHeaders(Map<String, Object> headersToPopulate, Object argumentValue,
 				MethodParameter methodParameter, Annotation annotation) {
 
 			if (annotation.annotationType().equals(Header.class)) {
@@ -348,7 +350,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			}
 		}
 
-		private void processHeaderAnnotation(Map<String, @Nullable Object> headersToPopulate, @Nullable Object argumentValue,
+		private void processHeaderAnnotation(Map<String, Object> headersToPopulate, @Nullable Object argumentValue,
 				MethodParameter methodParameter, Annotation annotation) {
 
 			String headerName = determineHeaderName(annotation, methodParameter);
@@ -356,12 +358,12 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				throw new IllegalArgumentException("Received null argument value for required header: '"
 						+ headerName + "'");
 			}
-			headersToPopulate.put(headerName, argumentValue);
+			if (argumentValue != null) {
+				headersToPopulate.put(headerName, argumentValue);
+			}
 		}
 
-		private void processHeadersAnnotation(Map<String, @Nullable Object> headersToPopulate,
-				@Nullable Object argumentValue) {
-
+		private void processHeadersAnnotation(Map<String, Object> headersToPopulate, @Nullable Object argumentValue) {
 			if (argumentValue != null) {
 				if (!(argumentValue instanceof Map)) {
 					throw new IllegalArgumentException(
@@ -377,7 +379,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		}
 
 		private void processMapArgument(Object messageOrPayload, boolean foundPayloadAnnotation,
-				Map<String, @Nullable Object> headersToPopulate, Map<?, ?> argumentValue) {
+				Map<String, Object> headersToPopulate, Map<?, ?> argumentValue) {
 
 			if (messageOrPayload instanceof Map && !foundPayloadAnnotation
 					&& GatewayMethodInboundMessageMapper.this.payloadExpression == null) {
@@ -388,7 +390,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		}
 
 		private void populateSendAndReplyTimeoutHeaders(MethodArgsHolder methodArgsHolder,
-				Map<String, @Nullable Object> headersToPopulate) {
+				Map<String, Object> headersToPopulate) {
 
 			Expression sendTimeoutExpressionToUse = GatewayMethodInboundMessageMapper.this.sendTimeoutExpression;
 			if (sendTimeoutExpressionToUse != null) {
@@ -406,7 +408,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			}
 		}
 
-		private Message<?> buildMessage(MethodArgsHolder methodArgsHolder, Map<String, @Nullable Object> headers,
+		private Message<?> buildMessage(MethodArgsHolder methodArgsHolder, Map<String, Object> headers,
 				Object messageOrPayload) {
 
 			MessageBuilderFactory msgBuilderFactory = GatewayMethodInboundMessageMapper.this.messageBuilderFactory;
@@ -417,13 +419,13 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			builder.copyHeadersIfAbsent(headers);
 			// Explicit headers in XML override any @Header annotations...
 			if (!CollectionUtils.isEmpty(GatewayMethodInboundMessageMapper.this.headerExpressions)) {
-				Map<String, @Nullable Object> evaluatedHeaders =
+				Map<String, Object> evaluatedHeaders =
 						evaluateHeaders(methodArgsHolder, GatewayMethodInboundMessageMapper.this.headerExpressions);
 				builder.copyHeaders(evaluatedHeaders);
 			}
 			// ...whereas global (default) headers do not...
 			if (!CollectionUtils.isEmpty(GatewayMethodInboundMessageMapper.this.globalHeaderExpressions)) {
-				Map<String, @Nullable Object> evaluatedHeaders =
+				Map<String, Object> evaluatedHeaders =
 						evaluateHeaders(methodArgsHolder,
 								GatewayMethodInboundMessageMapper.this.globalHeaderExpressions);
 				builder.copyHeadersIfAbsent(evaluatedHeaders);
