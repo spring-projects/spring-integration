@@ -1133,6 +1133,56 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
 	}
 
+	@Test
+	void sharedDelegateIsDeletedFromRedisOnUnlock() throws Exception {
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry1.setRedisLockType(this.testRedisLockType);
+		// setCacheCapacity(2) gives mask=1 in DefaultLockRegistry → only 2 slots, guaranteed collision in ≤3 keys
+		registry1.setCacheCapacity(2);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry2.setRedisLockType(this.testRedisLockType);
+
+		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
+		String keyB = null;
+		DistributedLock lockA = null;
+		DistributedLock lockB = null;
+		outer:
+		for (int i = 0; i < 10; i++) {
+			for (int j = i + 1; j < 10; j++) {
+				DistributedLock la = registry1.obtain("key-" + i);
+				DistributedLock lb = registry1.obtain("key-" + j);
+				if (TestUtils.getPropertyValue(la, "localLock") == TestUtils.getPropertyValue(lb, "localLock")) {
+					keyB = "key-" + j;
+					lockA = la;
+					lockB = lb;
+					break outer;
+				}
+			}
+		}
+		assertThat(lockA)
+				.as("Could not find two lock keys mapping to the same DefaultLockRegistry slot")
+				.isNotNull();
+
+		lockA.lock();
+		// Shared localLock: localLock.holdCount becomes 2 after this call
+		lockB.lock();
+
+		// Unlock B first — before the fix, localLock.getHoldCount()>1 short-circuited and skipped the Redis delete
+		lockB.unlock();
+
+		// Another process must be able to acquire keyB immediately (its Redis key must be deleted)
+		DistributedLock lockBOtherProcess = registry2.obtain(keyB);
+		assertThat(lockBOtherProcess.tryLock(500, TimeUnit.MILLISECONDS))
+				.as("Redis key for '" + keyB + "' was not deleted on unlock — orphaned lock detected")
+				.isTrue();
+		lockBOtherProcess.unlock();
+
+		assertThatNoException().isThrownBy(lockA::unlock);
+
+		registry1.destroy();
+		registry2.destroy();
+	}
+
 	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);

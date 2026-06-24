@@ -414,6 +414,8 @@ public final class RedisLockRegistry
 
 		private final ReentrantLock localLock;
 
+		private int holdCount;
+
 		private volatile long lockedAt;
 
 		private volatile @Nullable ScheduledFuture<?> renewFuture;
@@ -458,6 +460,7 @@ public final class RedisLockRegistry
 			while (true) {
 				try {
 					if (tryRedisLock(-1L, ttl.toMillis())) {
+						this.holdCount++;
 						return;
 					}
 				}
@@ -485,6 +488,7 @@ public final class RedisLockRegistry
 			while (true) {
 				try {
 					if (tryRedisLock(-1L, RedisLockRegistry.this.expireAfter.toMillis())) {
+						this.holdCount++;
 						return;
 					}
 				}
@@ -526,6 +530,9 @@ public final class RedisLockRegistry
 				if (!acquired) {
 					this.localLock.unlock();
 				}
+				else {
+					this.holdCount++;
+				}
 				return acquired;
 			}
 			catch (Exception e) {
@@ -564,7 +571,8 @@ public final class RedisLockRegistry
 			if (!this.localLock.isHeldByCurrentThread()) {
 				throw new IllegalStateException("You do not own lock at " + this.lockKey);
 			}
-			if (this.localLock.getHoldCount() > 1) {
+			if (this.holdCount > 1) {
+				this.holdCount--;
 				this.localLock.unlock();
 				return;
 			}
@@ -609,6 +617,7 @@ public final class RedisLockRegistry
 				ReflectionUtils.rethrowRuntimeException(e);
 			}
 			finally {
+				this.holdCount--;
 				this.localLock.unlock();
 			}
 		}
