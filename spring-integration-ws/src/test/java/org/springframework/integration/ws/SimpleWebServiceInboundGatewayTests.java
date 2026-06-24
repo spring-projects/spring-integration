@@ -32,7 +32,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 
@@ -103,8 +103,9 @@ public class SimpleWebServiceInboundGatewayTests {
 		gateway.setReplyTimeout(10);
 		when(requestChannel.send(isA(Message.class), anyLong())).thenReturn(false);
 		when(request.getPayloadSource()).thenReturn(payloadSource);
-		assertThatExceptionOfType(MessageDeliveryException.class)
-				.isThrownBy(() -> gateway.invoke(context));
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gateway.invoke(context))
+				.withMessage("Failed to process a WebService message");
 	}
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {

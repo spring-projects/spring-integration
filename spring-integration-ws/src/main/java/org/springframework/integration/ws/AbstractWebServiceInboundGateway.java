@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.expression.ExpressionException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -62,7 +61,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	@Override
-	public void invoke(MessageContext messageContext) throws Exception { // NOSONAR - external interface
+	public void invoke(MessageContext messageContext) {
 		if (!isRunning()) {
 			throw new ServiceUnavailableException("503 Service Unavailable");
 		}
@@ -70,14 +69,10 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 
 		try {
 			this.activeCount.incrementAndGet();
-			this.doInvoke(messageContext);
+			doInvoke(messageContext);
 		}
-		catch (Exception e) {
-			while ((e instanceof MessagingException || e instanceof ExpressionException) && // NOSONAR
-					e.getCause() instanceof Exception exception) {
-				e = exception;
-			}
-			throw e;
+		catch (Exception ex) {
+			throw new MessagingException("Failed to process a WebService message", ex);
 		}
 		finally {
 			this.activeCount.decrementAndGet();
