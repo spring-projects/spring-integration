@@ -173,6 +173,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 		private final ReentrantLock delegate;
 
+		private int holdCount;
+
 		JdbcLock(LockRepository client, Duration idleBetweenTries, String path) {
 			this.mutex = client;
 			this.idleBetweenTries = idleBetweenTries;
@@ -192,6 +194,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 					while (!doLock()) {
 						Thread.sleep(this.idleBetweenTries.toMillis());
 					}
+					this.holdCount++;
 					break;
 				}
 				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
@@ -226,6 +229,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 							throw new InterruptedException();
 						}
 					}
+					this.holdCount++;
 					break;
 				}
 				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
@@ -270,6 +274,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 					if (!acquired) {
 						this.delegate.unlock();
 					}
+					else {
+						this.holdCount++;
+					}
 					return acquired;
 				}
 				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
@@ -295,7 +302,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			if (!this.delegate.isHeldByCurrentThread()) {
 				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
 			}
-			if (this.delegate.getHoldCount() > 1) {
+			if (this.holdCount > 1) {
+				this.holdCount--;
 				this.delegate.unlock();
 				return;
 			}
@@ -322,6 +330,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 				}
 			}
 			finally {
+				this.holdCount--;
 				this.delegate.unlock();
 			}
 		}
