@@ -1136,11 +1136,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	@Test
 	void sharedDelegateIsDeletedFromRedisOnUnlock() throws Exception {
 		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry1.setRedisLockType(this.testRedisLockType);
 		// setCacheCapacity(2) gives mask=1 in DefaultLockRegistry → only 2 slots, guaranteed collision in ≤3 keys
 		registry1.setCacheCapacity(2);
 		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry2.setRedisLockType(this.testRedisLockType);
 
 		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
 		String keyB = null;
