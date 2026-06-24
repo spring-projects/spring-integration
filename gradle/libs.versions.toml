@@ -64,7 +64,7 @@ springSecurityVersion = "7.1.0"
 springVersion = "7.0.8"
 springWsVersion = "5.0.2"
 testcontainersVersion = "2.0.5"
-tomcatVersion = "11.0.22"
+tomcatVersion = "11.0.23"
 xmlUnitVersion = "2.12.0"
 xstreamVersion = "1.4.21"
 ztZipVersion = "1.17"
@@ -160,4 +160,4 @@ antora = { id = "org.antora", version = "1.0.0" }
 io-spring-antora-generate-yml = { id = "io.spring.antora.generate-antora-yml", version = "0.0.1" }
 protobuf = { id = "com.google.protobuf", version = "0.10.0" }
 aggregate-javadoc = { id = "io.freefair.aggregate-javadoc", version = "9.5.0" }
-nullability = { id = "io.spring.nullability", version = "0.0.13" }
+nullability = { id = "io.spring.nullability", version = "0.0.14" }
