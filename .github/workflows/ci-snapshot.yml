@@ -12,6 +12,8 @@ on:
     branches:
       - main
       - '*.x'
+    paths-ignore:
+      - '.github/dependabot.yml'
 
   schedule:
     - cron: '0 5 * * *'
