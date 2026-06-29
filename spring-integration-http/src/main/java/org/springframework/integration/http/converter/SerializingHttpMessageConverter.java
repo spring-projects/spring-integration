@@ -80,8 +80,8 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	/**
 	 * Add package/class patterns to the allowed list.
 	 * @param allowedPatterns the patterns to add.
-	 * @see #setAllowedPatterns(String...)
 	 * @since 5.5.22
+	 * @see #setAllowedPatterns(String...)
 	 */
 	public void addAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.addAllowedPatterns(allowedPatterns);
