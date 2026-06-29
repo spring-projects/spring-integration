@@ -32,6 +32,7 @@ import org.zeroturnaround.zip.ZipEntrySource;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
@@ -49,6 +50,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -138,7 +140,7 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 		Object zippedData;
 		if (ZipResultType.FILE.equals(this.zipResultType)) {
-			final File zippedFile = new File(this.workDirectory, zipFileName);
+			final File zippedFile = FileUtils.newFileInDirectoryIfValid(this.workDirectory, zipFileName);
 			try {
 				FileCopyUtils.copy(zippedBytes, zippedFile);
 			}

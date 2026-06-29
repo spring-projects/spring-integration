@@ -19,6 +19,8 @@ package org.springframework.integration.zip.transformer;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -31,17 +33,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.zip.ZipUtil;
 
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -227,6 +233,23 @@ public class ZipTransformerTests implements TestApplicationContextAware {
 
 		assertThat(outputZipFile).exists().isFile().hasExtension("zip");
 		assertThat(SpringZipUtils.isValid(outputZipFile)).isTrue();
+	}
+
+	@Test
+	void testTraversalInFilename() {
+		ZipTransformer fileTransformer = new ZipTransformer();
+		fileTransformer.setZipResultType(ZipResultType.FILE);
+		fileTransformer.setWorkDirectory(this.workDir);
+		fileTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		fileTransformer.afterPropertiesSet();
+
+		Message<byte[]> message = MessageBuilder.withPayload("file content".getBytes(StandardCharsets.UTF_8))
+				.setHeader(FileHeaders.FILENAME, "../../../../test.zip")
+				.build();
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> fileTransformer.transform(message))
+				.withRootCauseInstanceOf(InvalidPathException.class)
+				.withStackTraceContaining("trying to leave the target output directory");
 	}
 
 	private File createTestFile(int size) {

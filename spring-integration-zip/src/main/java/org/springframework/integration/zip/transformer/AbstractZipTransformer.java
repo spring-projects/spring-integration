@@ -17,6 +17,8 @@
 package org.springframework.integration.zip.transformer;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -28,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.1
  */
@@ -37,10 +40,18 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 
 	protected ZipResultType zipResultType = ZipResultType.FILE;
 
-	protected File workDirectory =
-			new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer");
+	protected File workDirectory = getDefaultWorkDirectory();
 
 	protected boolean deleteFiles;
+
+	private static File getDefaultWorkDirectory() {
+		try {
+			return new File(System.getProperty("java.io.tmpdir"), "ziptransformer").getCanonicalFile();
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
 
 	/**
 	 * If the payload is an instance of {@link File}, this property specifies
