@@ -46,6 +46,7 @@ public class JsonTransformersSymmetricalTests {
 		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
 
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer();
+		jsonToObjectTransformer.setTrustedPackages("*");
 		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
 		assertThat(result).isInstanceOf(List.class);
 		assertThat(((List<?>) result).get(0)).isEqualTo(person);
