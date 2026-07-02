@@ -69,6 +69,7 @@ ztZipVersion = "1.17"
 
 [libraries]
 apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "apacheSshdVersion" }
+apache-artemis-bom = { module = "org.apache.artemis:artemis-bom", version.ref = "artemisVersion" }
 apache-avro = { module = "org.apache.avro:avro", version.ref = "avroVersion" }
 apache-camel-bom = { module = "org.apache.camel:camel-bom", version.ref = "camelVersion" }
 apache-commons-dbcp2 = { module = "org.apache.commons:commons-dbcp2", version.ref = "commonsDbcp2Version" }

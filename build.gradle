@@ -103,6 +103,7 @@ allprojects {
 		dependencyManagement(platform(libs.spring.security.bom))
 		dependencyManagement(platform(libs.spring.ws.bom))
 		dependencyManagement(platform(libs.org.mongodb.driver.bom))
+		dependencyManagement(platform(libs.apache.artemis.bom))
 	}
 }
 
@@ -644,8 +645,8 @@ project('spring-integration-jms') {
         api 'org.springframework:spring-jms'
         provided libs.jakarta.jms.api
 
-        testImplementation "org.apache.activemq:artemis-server:${libs.versions.artemisVersion.get()}"
-        testImplementation "org.apache.activemq:artemis-jakarta-client:${libs.versions.artemisVersion.get()}"
+        testImplementation 'org.apache.activemq:artemis-server'
+        testImplementation 'org.apache.activemq:artemis-jakarta-client'
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
@@ -793,7 +794,7 @@ project('spring-integration-stomp') {
         testImplementation project(':spring-integration-websocket')
         testImplementation project(':spring-integration-websocket').sourceSets.test.output
         testImplementation project(':spring-integration-event')
-        testImplementation "org.apache.activemq:artemis-stomp-protocol:${libs.versions.artemisVersion.get()}"
+        testImplementation "org.apache.activemq:artemis-stomp-protocol"
         testImplementation libs.apache.tomcat.embed.websocket
         testImplementation 'tools.jackson.core:jackson-databind'
 
