@@ -79,7 +79,7 @@ xref:handler-advice/classes.adoc#retry-advice[`RequestHandlerRetryAdvice`].
 The `ErrorMessageStrategy` is used to build an `ErrorMessage` based on the provided exception and an `AttributeAccessor` context.
 It can be injected into any `MessageProducerSupport` or `MessagingGatewaySupport`.
 The `requestMessage` is stored under `ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY` in the `AttributeAccessor` context.
-The `ErrorMessageStrategy` can use that `requestMessage` as the `originalMessage` property of the `ErrorMessage` it creates.
+The `ErrorMessageStrategy` can use that `requestMessage` as the `originalMessage` property of the `ErrorMessage` it creates, preserving the `requestMessage` headers.
 The `DefaultErrorMessageStrategy` does exactly that.
 
 Starting with version 5.2, all the `MessageHandlingException` instances thrown by the framework components, includes a component `BeanDefinition` resource and source to determine a configuration point form the exception.

@@ -19,3 +19,6 @@ Java 17 is still the baseline, but Java 25 is supported.
 
 [[x7.2-general-changes]]
 === General Changes
+
+The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
+See xref:error-handling.adoc[] for more information.
