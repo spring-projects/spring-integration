@@ -118,7 +118,7 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.
 org-aspectj-aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjVersion" }
 org-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjVersion" }
 org-awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitilityVersion" }
-org-checkerframework-checker-qual = { module = 'org.checkerframework:checker-qual', version = '4.2.0' }
+org-checkerframework-checker-qual = { module = 'org.checkerframework:checker-qual', version = '4.2.1' }
 org-codelibs-jcifs = { module = "org.codelibs:jcifs", version.ref = "jcifsVersion" }
 org-eclipse-angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "mailVersion" }
 org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", version.ref = "mailVersion" }
