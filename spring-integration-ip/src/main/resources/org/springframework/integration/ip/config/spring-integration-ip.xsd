@@ -951,6 +951,18 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="trusted-ack-addresses" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							A comma-delimited list of host:port patterns (supporting '*' wildcards) that
+							are trusted sources for acknowledgment requests. Only packets whose
+							ip_ackTo header value matches one of these patterns will cause an acknowledgment
+							to be sent back. By default no patterns are set and no acknowledgments are sent.
+							The format matches that used by UnicastSendingMessageHandler, e.g.
+							'myhost:12345' or '192.168.*:*'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

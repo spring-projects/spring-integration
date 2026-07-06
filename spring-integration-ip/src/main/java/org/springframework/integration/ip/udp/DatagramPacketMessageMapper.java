@@ -239,7 +239,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		int port = packet.getPort();
 		// Peek at the message in case they didn't configure us for ack but the sending
 		// side expects it.
-		if (this.acknowledge || startsWith(buffer, IpHeaders.ACK_ADDRESS)) {
+		if (this.acknowledge) {
 			try {
 				String headersString = new String(packet.getData(), offset, length, this.charset);
 				Matcher matcher = UDP_HEADERS_PATTERN.matcher(headersString);

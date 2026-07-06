@@ -257,6 +257,14 @@ public class ParserUnitTests {
 	UnicastReceivingChannelAdapter udpAutoAdapter;
 
 	@Autowired
+	@Qualifier("testInUdpSingleTrustedAck")
+	UnicastReceivingChannelAdapter udpInSingleTrustedAck;
+
+	@Autowired
+	@Qualifier("testInUdpMultiTrustedAck")
+	UnicastReceivingChannelAdapter udpInMultiTrustedAck;
+
+	@Autowired
 	TcpNetServerConnectionFactory secureServer;
 
 	@Autowired
@@ -654,6 +662,25 @@ public class ParserUnitTests {
 	@Test
 	public void testAutoUdp() {
 		assertThat(TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel")).isSameAs(udpAutoChannel);
+	}
+
+	@Test
+	public void testInUdpNoTrustedAckAddresses() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
+		assertThat((String[]) dfa.getPropertyValue("trustedAckAddresses")).isEmpty();
+	}
+
+	@Test
+	public void testInUdpSingleTrustedAckAddress() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(udpInSingleTrustedAck);
+		assertThat((String[]) dfa.getPropertyValue("trustedAckAddresses")).containsExactly("127.0.0.1:*");
+	}
+
+	@Test
+	public void testInUdpMultipleTrustedAckAddresses() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(udpInMultiTrustedAck);
+		assertThat((String[]) dfa.getPropertyValue("trustedAckAddresses"))
+				.containsExactlyInAnyOrder("127.0.0.1:*", "192.168.1.*:*");
 	}
 
 	@Test
