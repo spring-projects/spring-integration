@@ -53,6 +53,8 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 				IpAdapterParserUtils.LOOKUP_HOST);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.UDP_SOCKET_CUSTOMIZER);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.TRUSTED_ACK_ADDRESSES);
 		return builder.getBeanDefinition();
 	}
 
