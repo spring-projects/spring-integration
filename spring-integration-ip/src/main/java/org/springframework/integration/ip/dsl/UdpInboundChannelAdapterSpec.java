@@ -29,6 +29,7 @@ import org.springframework.scheduling.TaskScheduler;
  * A {@link MessageProducerSpec} for {@link UnicastReceivingChannelAdapter}s.
  *
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  *
@@ -162,6 +163,20 @@ public class UdpInboundChannelAdapterSpec
 	 */
 	public UdpInboundChannelAdapterSpec configureSocket(SocketCustomizer customizer) {
 		this.target.setSocketCustomizer(customizer);
+		return this;
+	}
+
+	/**
+	 * Set patterns for trusted acknowledgment addresses. Only packets whose
+	 * {@code ip_ackTo} header matches one of these patterns will trigger an acknowledgment.
+	 * By default, patterns are unset to ensure no acknowledgments are sent.
+	 * @param trustedAckAddresses the patterns.
+	 * @return the spec.
+	 * @since 5.5.22
+	 * @see UnicastReceivingChannelAdapter#setTrustedAckAddresses(String...)
+	 */
+	public UdpInboundChannelAdapterSpec trustedAckAddresses(String... trustedAckAddresses) {
+		this.target.setTrustedAckAddresses(trustedAckAddresses);
 		return this;
 	}
 

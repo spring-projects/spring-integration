@@ -23,7 +23,8 @@
 		port="0"
 		receive-buffer-size="500"
 		multicast="false"
-		check-length="true" />
+		check-length="true"
+		trusted-ack-addresses="*" />
 
 	<beans:import resource="testIp-common-context.xml" />
 

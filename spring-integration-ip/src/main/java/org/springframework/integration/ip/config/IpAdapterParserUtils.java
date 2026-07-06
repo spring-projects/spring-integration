@@ -135,6 +135,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String UDP_SOCKET_CUSTOMIZER = "socket-customizer";
 
+	public static final String TRUSTED_ACK_ADDRESSES = "trusted-ack-addresses";
+
 	private IpAdapterParserUtils() {
 	}
 

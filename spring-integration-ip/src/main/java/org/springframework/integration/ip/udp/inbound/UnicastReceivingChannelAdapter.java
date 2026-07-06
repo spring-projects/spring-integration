@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.Lock;
@@ -41,6 +40,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 
 /**
  * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a
@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -69,6 +70,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	private SocketCustomizer socketCustomizer = (aSocket) -> {
 	};
+
+	private String[] trustedAckAddresses = { };
 
 	/**
 	 * Construct a UnicastReceivingChannelAdapter that listens on the specified port.
@@ -108,6 +111,26 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public void setSocketCustomizer(SocketCustomizer socketCustomizer) {
 		Assert.notNull(socketCustomizer, "'socketCustomizer' cannot be null");
 		this.socketCustomizer = socketCustomizer;
+	}
+
+	/**
+	 * Set patterns for trusted acknowledgment addresses. Only packets whose
+	 * {@link IpHeaders#ACK_ADDRESS} header matches one of these patterns will trigger
+	 * an acknowledgment. Patterns support {@code *} wildcards via
+	 * {@link PatternMatchUtils#simpleMatch(String, String)}.
+	 * The address format is {@code host:port}, matching the format set by
+	 * {@code UnicastSendingMessageHandler}.
+	 * By default, no patterns are set.
+	 * Setting trustedAckAddresses implies acknowledgments will be sent.
+	 * Packets from non-matching addresses will not receive an acknowledgment,
+	 * and a {@link MessagingException} is thrown.
+	 * @param trustedAckAddresses the patterns to trust.
+	 * @since 5.5.22
+	 */
+	public void setTrustedAckAddresses(String... trustedAckAddresses) {
+		Assert.notEmpty(trustedAckAddresses, "Trusted ACK address patterns must not be null or empty");
+		this.trustedAckAddresses = trustedAckAddresses.clone();
+		this.mapper.setAcknowledge(true);
 	}
 
 	@Override
@@ -171,25 +194,26 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			return;
 		}
 		byte[] ack = id.toString().getBytes();
-		String ackAddress = Objects.requireNonNull(headers.get(IpHeaders.ACK_ADDRESS, String.class)).trim();
+		String ackAddress = headers.get(IpHeaders.ACK_ADDRESS, String.class);
 		Matcher mat = ADDRESS_PATTERN.matcher(ackAddress);
 		if (!mat.matches()) {
 			throw new MessagingException(message,
 					"Ack requested but could not decode acknowledgment address: " + ackAddress);
 		}
+		if (!PatternMatchUtils.simpleMatch(this.trustedAckAddresses, ackAddress)) {
+			throw new MessagingException(message, ackAddress + " is not a trusted address");
+		}
 		String host = mat.group(1);
 		int port = Integer.parseInt(mat.group(2));
 		InetSocketAddress whereTo = new InetSocketAddress(host, port);
 		logger.debug(() -> "Sending ack for " + id + " to " + ackAddress);
-		try {
+		try (DatagramSocket out = new DatagramSocket()) {
 			DatagramPacket ackPack = new DatagramPacket(ack, ack.length, whereTo);
-			DatagramSocket out = new DatagramSocket();
 			if (this.soSendBufferSize > 0) {
 				out.setSendBufferSize(this.soSendBufferSize);
 			}
 			this.socketCustomizer.configure(out);
 			out.send(ackPack);
-			out.close();
 		}
 		catch (IOException ex) {
 			throw new MessagingException(message, "Failed to send acknowledgment to: " + ackAddress, ex);

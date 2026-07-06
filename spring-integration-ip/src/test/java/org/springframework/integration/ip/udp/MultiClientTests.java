@@ -107,6 +107,7 @@ public class MultiClientTests implements TestApplicationContextAware {
 		adapter.setOutputChannel(queue);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.setTrustedAckAddresses("localhost:*");
 		adapter.afterPropertiesSet();
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
@@ -157,6 +158,7 @@ public class MultiClientTests implements TestApplicationContextAware {
 		adapter.setOutputChannel(queue);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.setTrustedAckAddresses("localhost:*");
 		adapter.afterPropertiesSet();
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
