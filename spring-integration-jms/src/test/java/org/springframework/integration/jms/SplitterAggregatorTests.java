@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.3
  */
@@ -98,6 +99,7 @@ public class SplitterAggregatorTests extends ActiveMQMultiContextTests {
 				poller = @Poller(fixedDelay = "1000", maxMessagesPerPoll = "10"))
 		public MessageSource<Object> fromJms() {
 			JmsDestinationPollingSource source = new JmsDestinationPollingSource(new JmsTemplate(connectionFactory));
+			source.setHeaderMapper(new DefaultJmsHeaderMapper("*"));
 			source.setDestinationName("splitterAggregator");
 			return source;
 		}

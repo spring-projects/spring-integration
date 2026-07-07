@@ -12,9 +12,14 @@
 	<util:constant id="jmsConnectionFactory"
 				   static-field="org.springframework.integration.jms.ActiveMQMultiContextTests.amqFactory"/>
 
+	<bean id="headerMapper" class="org.springframework.integration.jms.DefaultJmsHeaderMapper">
+		<constructor-arg value="*"/>
+	</bean>
+
 	<int-jms:message-driven-channel-adapter channel="toOut"
 											connection-factory="jmsConnectionFactory"
 											acknowledge="transacted"
+											header-mapper="headerMapper"
 											destination-name="outcatQ1"/>
 
 	<int:publish-subscribe-channel id="toOut"/>
@@ -22,6 +27,7 @@
 	<int-jms:outbound-channel-adapter channel="toOut" order="1"
 									  connection-factory="jmsConnectionFactory"
 									  destination-name="outcatQ2"
+									  header-mapper="headerMapper"
 									  session-transacted="true"/>
 
 	<int:service-activator input-channel="toOut" order="2" ref="aborter"/>
