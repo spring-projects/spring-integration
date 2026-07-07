@@ -46,6 +46,7 @@ import java.util.concurrent.Executors
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0.5
  */
@@ -106,7 +107,7 @@ class JmsDslKotlinTests : ActiveMQMultiContextTests() {
 
 		@Bean
 		fun jmsHeaderMapper(): DefaultJmsHeaderMapper {
-			val jmsHeaderMapper = DefaultJmsHeaderMapper()
+			val jmsHeaderMapper = DefaultJmsHeaderMapper("*")
 			jmsHeaderMapper.setMapInboundDeliveryMode(true)
 			jmsHeaderMapper.setMapInboundExpiration(true)
 			return jmsHeaderMapper

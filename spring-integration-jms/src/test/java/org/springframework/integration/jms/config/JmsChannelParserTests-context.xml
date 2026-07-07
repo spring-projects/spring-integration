@@ -86,4 +86,8 @@
 	<jms:channel id="withContainerClassSpEL" queue-name="custom.container.queue"
 		container-class="#{'org.springframework.integration.jms.config.JmsChannelParserTests$CustomTestMessageListenerContainer'}" />
 
+	<jms:channel id="channelWithHeaderMapper" queue-name="test.queue" header-mapper="testHeaderMapper"/>
+
+	<bean id="testHeaderMapper" class="org.springframework.integration.jms.config.TestJmsHeaderMapper"/>
+
 </beans>
