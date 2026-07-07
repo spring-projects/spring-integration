@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakusky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -72,6 +73,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");

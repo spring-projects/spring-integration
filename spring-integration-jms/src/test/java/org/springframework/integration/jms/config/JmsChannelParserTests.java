@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.channel.PollableJmsChannel;
 import org.springframework.integration.jms.channel.SubscribableJmsChannel;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -44,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatObject;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -114,6 +116,9 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private MessageChannel withContainerClassSpEL;
+
+	@Autowired
+	private MessageChannel channelWithHeaderMapper;
 
 	@Autowired
 	private MessageBuilderFactory messageBuilderFactory;
@@ -286,6 +291,15 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 	public void withContainerClassSpEL() {
 		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(withContainerClassSpEL, "container");
 		assertThat(container.getDestinationName()).isEqualTo("custom.container.queue");
+	}
+
+	@Test
+	public void channelWithHeaderMapper() {
+		assertThat(this.channelWithHeaderMapper).isInstanceOf(SubscribableJmsChannel.class);
+		JmsHeaderMapper headerMapper = (JmsHeaderMapper) TestUtils.getPropertyValue(this.channelWithHeaderMapper,
+				"headerMapper");
+		assertThat(headerMapper).isInstanceOf(TestJmsHeaderMapper.class);
+		assertThat(headerMapper.toHeaders(mock())).containsKeys("testProperty", "testAttribute");
 	}
 
 	static class TestDestinationResolver implements DestinationResolver {

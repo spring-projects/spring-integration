@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
@@ -67,6 +69,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.setConnectionFactory(ccf);
 		factoryBean.setDestination(queue);
 		factoryBean.setBeanFactory(mock());
+		factoryBean.setHeaderMapper(new DefaultJmsHeaderMapper("*"));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<>("test1"));
@@ -214,6 +217,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.setMessageSelector("property='value'");
 
 		factoryBean.setBeanFactory(mock());
+		factoryBean.setHeaderMapper(new DefaultJmsHeaderMapper("*"));
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<>("test1"));

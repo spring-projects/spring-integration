@@ -32,6 +32,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.jms.DynamicJmsTemplate;
+import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.channel.AbstractJmsChannel;
 import org.springframework.integration.jms.channel.PollableJmsChannel;
 import org.springframework.integration.jms.channel.SubscribableJmsChannel;
@@ -124,6 +125,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private @Nullable Long receiveTimeout;
 
 	private @Nullable Long recoveryInterval;
+
+	private @Nullable JmsHeaderMapper jmsHeaderMapper;
 
 	@SuppressWarnings("NullAway.Init")
 	private String beanName;
@@ -356,6 +359,15 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.jmsTemplateExplicitlySet = true;
 	}
 
+	/**
+	 * The mapper to be used by this factory.
+	 * @param headerMapper the {@link JmsHeaderMapper} to use
+	 * @since 5.5.22
+	 */
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		this.jmsHeaderMapper = headerMapper;
+	}
+
 	private void recordJmsTemplateOption() {
 		this.defaultTemplatePropertySet = true;
 	}
@@ -434,6 +446,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.channel.setBeanName(this.beanName);
 		BeanFactory beanFactory = this.getBeanFactory();
 		JavaUtils.INSTANCE
+				.acceptIfNotNull(this.jmsHeaderMapper, this.channel::setHeaderMapper)
 				.acceptIfNotNull(beanFactory, this.channel::setBeanFactory);
 		this.channel.afterPropertiesSet();
 		return this.channel;
