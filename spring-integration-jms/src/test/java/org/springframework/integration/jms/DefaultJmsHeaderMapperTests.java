@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSException;
 import jakarta.jms.Session;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -40,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class DefaultJmsHeaderMapperTests {
 
@@ -269,21 +271,43 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 	@Test
-	public void testContentTypePropertyMappedToHeader() throws JMSException {
+	void inboundHeaderFiltering() throws JMSException {
 		jakarta.jms.Message jmsMessage = new StubTextMessage();
-		jmsMessage.setStringProperty("content_type", "foo");
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		jmsMessage.setJMSDestination(new ActiveMQQueue("destination"));
+		jmsMessage.setJMSReplyTo(new ActiveMQQueue("replyTo"));
+		jmsMessage.setJMSCorrelationID("correlationId");
+		jmsMessage.setJMSType("java.lang.Object");
+		jmsMessage.setStringProperty(JmsHeaderMapper.CONTENT_TYPE_PROPERTY, "contentType");
+		jmsMessage.setStringProperty("test", "data");
+		jmsMessage.setStringProperty(MessageHeaders.ERROR_CHANNEL, "errorChannel");
+		jmsMessage.setStringProperty(MessageHeaders.CONTENT_TYPE, "messageContentType");
+
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("test");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
-		Object attrib = headers.get(MessageHeaders.CONTENT_TYPE);
-		assertThat(attrib).isNotNull();
-		assertThat(attrib).isEqualTo("foo");
+
+		assertThat(headers)
+				.doesNotContainKeys(
+						MessageHeaders.ERROR_CHANNEL,
+						MessageHeaders.CONTENT_TYPE
+				)
+				.containsEntry("test", "data");
+
+		mapper = new DefaultJmsHeaderMapper(); // MessageHeaders.CONTENT_TYPE is default property name.
+		headers = mapper.toHeaders(jmsMessage);
+
+		assertThat(headers)
+				.doesNotContainKeys(
+						MessageHeaders.ERROR_CHANNEL,
+						"test"
+				)
+				.containsEntry(MessageHeaders.CONTENT_TYPE, "messageContentType");
 	}
 
 	@Test
 	public void testUserDefinedPropertyMappedToHeader() throws JMSException {
 		jakarta.jms.Message jmsMessage = new StubTextMessage();
 		jmsMessage.setIntProperty("foo", 123);
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
 		Object attrib = headers.get("foo");
 		assertThat(attrib).isNotNull();
@@ -295,7 +319,7 @@ public class DefaultJmsHeaderMapperTests {
 	public void testUserDefinedPropertyMappedToHeaderWithCustomPrefix() throws JMSException {
 		jakarta.jms.Message jmsMessage = new StubTextMessage();
 		jmsMessage.setIntProperty("foo", 123);
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		mapper.setInboundPrefix("custom_");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
 		Object header = headers.get("custom_foo");
@@ -442,7 +466,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void attemptToReadDisallowedMessageIdPropertyIsNotFatal() throws JMSException {
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		jakarta.jms.Message jmsMessage = new StubTextMessage() {
 
 			@Override
@@ -459,7 +483,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void attemptToReadDisallowedCorrelationIdPropertyIsNotFatal() throws JMSException {
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		jakarta.jms.Message jmsMessage = new StubTextMessage() {
 
 			@Override
@@ -476,7 +500,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void attemptToReadDisallowedTypePropertyIsNotFatal() throws JMSException {
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		jakarta.jms.Message jmsMessage = new StubTextMessage() {
 
 			@Override
@@ -493,7 +517,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void attemptToReadDisallowedReplyToPropertyIsNotFatal() throws JMSException {
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		jakarta.jms.Message jmsMessage = new StubTextMessage() {
 
 			@Override
@@ -510,7 +534,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void attemptToReadDisallowedRedeliveredPropertyIsNotFatal() throws JMSException {
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		jakarta.jms.Message jmsMessage = new StubTextMessage() {
 
 			@Override
@@ -539,7 +563,7 @@ public class DefaultJmsHeaderMapperTests {
 
 		jakarta.jms.Message request = converter.toMessage(new Foo(), session);
 
-		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper("foo");
 		Map<String, Object> headers = mapper.toHeaders(request);
 
 		jakarta.jms.Message reply = converter.toMessage("foo", session);
