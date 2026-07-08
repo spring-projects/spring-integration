@@ -40,10 +40,11 @@ import org.springframework.util.Assert;
  * {@code AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)} calls
  * based on the {@code lockKey} from message.
  * <p>
- * If {@code lockKey} for the message is {@code null}, the no locking around the call.
+ * If {@code lockKey} for the message is {@code null}, then no locking around the call.
  * However, if {@link #setDiscardChannel(MessageChannel)} is provided, such a message will be sent there instead.
  *
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 6.5
  */
@@ -90,7 +91,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * @param lockRegistry the {@link LockRegistry} to use.
 	 * @param lockKeyFunction the function to evaluate a lock key against a request message.
 	 */
-	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Function<Message<?>, Object> lockKeyFunction) {
+	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Function<Message<?>, @Nullable Object> lockKeyFunction) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		Assert.notNull(lockKeyFunction, "'lockKeyFunction' must not be null");
 		this.lockRegistry = lockRegistry;
@@ -133,7 +134,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * against request message.
 	 * @param waitLockDurationFunction the function for duration.
 	 */
-	public void setWaitLockDurationFunction(Function<Message<?>, Duration> waitLockDurationFunction) {
+	public void setWaitLockDurationFunction(Function<Message<?>, @Nullable Duration> waitLockDurationFunction) {
 		this.waitLockDurationExpression = new FunctionExpression<>(waitLockDurationFunction);
 	}
 
