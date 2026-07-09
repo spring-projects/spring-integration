@@ -48,7 +48,7 @@ Starting with version 5.5.6, the `JdbcLockRegistry` supports automatic cache cle
 The default value is `100_000`.
 See its Javadocs for more information.
 The cache can be also cleaned via `expireUnusedOlderThan(long age)` API.
-When all the cached `JdbcLock` instances are acquired, and neither of them can be evicted, the `obtain(Object lockKey)` method throws a `CannotAcquireLockException`.
+When all the cached `JdbcLock` instances are acquired, and none of them can be evicted, the `obtain(Object lockKey)` method throws a `CannotAcquireLockException`.
 Another `CannotAcquireLockException` is also thrown on an attempt to lock a not cached `JdbcLock`.
 A fresh `obtain(Object lockKey)` for that lock key should be called.
 
