@@ -44,11 +44,13 @@ So the time to live can be highly reduced, and deployments can retake a lost loc
 
 NOTE: The lock renewal can be done only if the lock is held by the current thread.
 
-Starting with version 5.5.6, the `JdbcLockRegistry` is support automatically clean-up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
-The default value is `256`.
+Starting with version 5.5.6, the `JdbcLockRegistry` supports automatic cache clean-up for unused `JdbcLock` instances via `JdbcLockRegistry.setCacheCapacity()`.
+The default value is `100_000`.
 See its Javadocs for more information.
-This capacity number is also propagated into the `DefaultLockRegistry` used internally in the `JdbcLockRegistry` for a pool of shared `ReentrantLock` instances.
-So, if higher concurrent access (the number of unique lock keys used in parallel) is expected (or allowed) for the application, the `cacheCapacity` should be increased respectively, with the closest power of 2 in mind (essentially `Integer.highestOneBit(cacheCapacity + 1)`).
+The cache can be also cleaned via `expireUnusedOlderThan(long age)` API.
+When all the cached `JdbcLock` instances are acquired, and neither of them can be evicted, the `obtain(Object lockKey)` method throws a `CannotAcquireLockException`.
+Another `CannotAcquireLockException` is also thrown on an attempt to lock a not cached `JdbcLock`.
+A fresh `obtain(Object lockKey)` for that lock key should be called.
 
 Starting with version 6.0, the `DefaultLockRepository` can be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 

@@ -30,7 +30,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
@@ -46,6 +45,13 @@ import org.springframework.util.Assert;
  * {@link org.springframework.integration.support.locks.DefaultLockRegistry}, but the
  * locks taken will be global, as long as the underlying database supports the
  * "serializable" isolation level in its transactions.
+ * <p>
+ * The lock instances are cached by their key for future reuse.
+ * If all the locks in the cache are acquired,
+ * the {@link #obtain(Object)} method throws {@link CannotAcquireLockException}.
+ * Otherwise, the old, unused locks are evicted from the cache.
+ * An attempt to lock such an orphaned {@link JdbcLock} throws another {@link CannotAcquireLockException}
+ * to avoid double locking from different threads on the same key.
  *
  * @author Dave Syer
  * @author Artem Bilan
@@ -68,7 +74,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	private static final int DEFAULT_IDLE = 100;
 
-	private static final int DEFAULT_CAPACITY = 256;
+	private static final int DEFAULT_CAPACITY = 100_000;
 
 	private final Lock lock = new ReentrantLock();
 
@@ -80,7 +86,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, JdbcLock> eldest) {
-					return size() > JdbcLockRegistry.this.cacheCapacity;
+					return size() > JdbcLockRegistry.this.cacheCapacity
+							&& !eldest.getValue().isAcquiredInThisProcess();
 				}
 
 			};
@@ -98,8 +105,6 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
 
 	private final Duration ttl;
-
-	private DefaultLockRegistry defaultLockRegistry = new DefaultLockRegistry();
 
 	/**
 	 * Construct an instance based on the provided {@link LockRepository}.
@@ -134,24 +139,36 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param cacheCapacity The capacity of cached lock, (default 256 locks).
+	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
-	 * @see DefaultLockRegistry
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
 		this.cacheCapacity = cacheCapacity;
-		// Find the highest power of 2 for (n + 1), then subtract 1
-		int mask = Integer.highestOneBit(cacheCapacity + 1) - 1;
-		this.defaultLockRegistry = new DefaultLockRegistry(mask);
 	}
 
 	@Override
 	public DistributedLock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
-		String path = pathFor((String) lockKey);
+		String lockKeyToUse = (String) lockKey;
 		this.lock.lock();
 		try {
-			return this.locks.computeIfAbsent(path, key -> new JdbcLock(this.client, this.idleBetweenTries, key));
+			JdbcLock jdbcLock =
+					this.locks.computeIfAbsent(lockKeyToUse, key -> new JdbcLock(lockKeyToUse));
+			if (this.locks.size() > this.cacheCapacity) {
+				long now = System.currentTimeMillis();
+				this.locks.entrySet()
+						.removeIf(entry -> {
+							JdbcLock lock = entry.getValue();
+							return lock != jdbcLock && now - lock.getLastUsed() >= 0 && !lock.isAcquiredInThisProcess();
+						});
+				if (this.locks.size() > this.cacheCapacity) {
+					this.locks.remove(lockKeyToUse);
+					throw new CannotAcquireLockException("There are already " +
+							this.cacheCapacity + " unique JDBC locks acquired in the application " +
+							"from " + this + ". Cannot obtain more at the moment.");
+				}
+			}
+			return jdbcLock;
 		}
 		finally {
 			this.lock.unlock();
@@ -180,41 +197,37 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	@Override
 	public void renewLock(Object lockKey) {
-		this.renewLock(lockKey, this.ttl);
+		renewLock(lockKey, this.ttl);
 	}
 
 	@Override
 	public void renewLock(Object lockKey, Duration customTtl) {
 		JdbcLock jdbcLock = (JdbcLock) obtain(lockKey);
 		if (!jdbcLock.renew(customTtl)) {
-			throw new IllegalStateException("Could not renew lock " + lockKey);
+			throw new IllegalStateException("Could not renew lock for: " + lockKey);
 		}
 	}
 
-	private static Duration convertToDuration(long time, TimeUnit timeUnit) {
-		long timeInMilliseconds = TimeUnit.MILLISECONDS.convert(time, timeUnit);
-		return Duration.ofMillis(timeInMilliseconds);
+	@Override
+	public String toString() {
+		return "JdbcLockRegistry{" +
+				"client=" + this.client +
+				'}';
 	}
 
 	private final class JdbcLock implements DistributedLock {
 
-		private final LockRepository mutex;
-
-		private final Duration idleBetweenTries;
+		private final String key;
 
 		private final String path;
 
+		private final ReentrantLock delegate = new ReentrantLock();
+
 		private volatile long lastUsed = System.currentTimeMillis();
 
-		private final ReentrantLock delegate;
-
-		private int holdCount;
-
-		JdbcLock(LockRepository client, Duration idleBetweenTries, String path) {
-			this.mutex = client;
-			this.idleBetweenTries = idleBetweenTries;
-			this.path = path;
-			this.delegate = (ReentrantLock) JdbcLockRegistry.this.defaultLockRegistry.obtain(this.path);
+		JdbcLock(String key) {
+			this.key = key;
+			this.path = pathFor(key);
 		}
 
 		public long getLastUsed() {
@@ -232,30 +245,29 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			while (true) {
 				try {
 					while (!doLock(ttl)) {
-						Thread.sleep(this.idleBetweenTries.toMillis());
+						Thread.sleep(JdbcLockRegistry.this.idleBetweenTries.toMillis());
 					}
-					this.holdCount++;
 					break;
 				}
 				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 					// try again
 				}
-				catch (InterruptedException e) {
+				catch (InterruptedException ex) {
 					/*
 					 * This method must be uninterruptible so catch and ignore
 					 * interrupts and only break out of the while loop when
 					 * we get the lock.
 					 */
 				}
-				catch (Exception e) {
+				catch (Exception ex) {
 					this.delegate.unlock();
-					rethrowAsLockException(e);
+					rethrowAsLockException(ex);
 				}
 			}
 		}
 
-		private void rethrowAsLockException(Exception e) {
-			throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
+		private void rethrowAsLockException(Exception ex) {
+			throw new CannotAcquireLockException("Failed to lock for: " + this.key, ex);
 		}
 
 		@Override
@@ -264,15 +276,14 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			while (true) {
 				try {
 					while (!doLock(JdbcLockRegistry.this.ttl)) {
-						Thread.sleep(this.idleBetweenTries.toMillis());
+						Thread.sleep(JdbcLockRegistry.this.idleBetweenTries.toMillis());
 						if (Thread.currentThread().isInterrupted()) {
 							throw new InterruptedException();
 						}
 					}
-					this.holdCount++;
 					break;
 				}
-				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException ex) {
 					// try again
 				}
 				catch (InterruptedException ie) {
@@ -292,7 +303,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			try {
 				return tryLock(0, TimeUnit.MICROSECONDS);
 			}
-			catch (InterruptedException e) {
+			catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
 				return false;
 			}
@@ -313,29 +324,31 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			boolean acquired;
 			while (true) {
 				try {
-					while (!(acquired = doLock(ttl)) && System.currentTimeMillis() < expire) { //NOSONAR
-						Thread.sleep(this.idleBetweenTries.toMillis());
+					while (!(acquired = doLock(ttl)) && System.currentTimeMillis() < expire) {
+						Thread.sleep(JdbcLockRegistry.this.idleBetweenTries.toMillis());
 					}
 					if (!acquired) {
 						this.delegate.unlock();
 					}
-					else {
-						this.holdCount++;
-					}
 					return acquired;
 				}
-				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException ex) {
 					// try again
 				}
-				catch (Exception e) {
+				catch (Exception ex) {
 					this.delegate.unlock();
-					rethrowAsLockException(e);
+					rethrowAsLockException(ex);
 				}
 			}
 		}
 
 		private boolean doLock(Duration ttl) {
-			boolean acquired = this.mutex.acquire(this.path, ttl);
+			if (!JdbcLockRegistry.this.locks.containsKey(this.key)) {
+				throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache " +
+						"due to its unused period for " + (System.currentTimeMillis() - this.lastUsed) +
+						" milliseconds. Obtain a fresh one from " + JdbcLockRegistry.this);
+			}
+			boolean acquired = JdbcLockRegistry.this.client.acquire(this.path, ttl);
 			if (acquired) {
 				this.lastUsed = System.currentTimeMillis();
 			}
@@ -345,37 +358,36 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		@Override
 		public void unlock() {
 			if (!this.delegate.isHeldByCurrentThread()) {
-				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
+				throw new IllegalMonitorStateException("The current thread doesn't own a lock for: " + this.key);
 			}
-			if (this.holdCount > 1) {
-				this.holdCount--;
+			if (this.delegate.getHoldCount() > 1) {
 				this.delegate.unlock();
 				return;
 			}
 			try {
 				while (true) {
 					try {
-						if (this.mutex.delete(this.path)) {
+						if (JdbcLockRegistry.this.client.delete(this.path)) {
 							return;
 						}
 						else {
-							throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
-									"The integrity of data protected by this lock may have been compromised.");
+							throw new ConcurrentModificationException(
+									"Lock was released in the store due to expiration. " +
+											"The integrity of data protected by this lock may have been compromised.");
 						}
 					}
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
 					}
-					catch (ConcurrentModificationException e) {
-						throw e;
+					catch (ConcurrentModificationException ex) {
+						throw ex;
 					}
-					catch (Exception e) {
-						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
+					catch (Exception ex) {
+						throw new DataAccessResourceFailureException("Failed to release lock for: " + this.key, ex);
 					}
 				}
 			}
 			finally {
-				this.holdCount--;
 				this.delegate.unlock();
 			}
 		}
@@ -407,21 +419,21 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		 */
 		public boolean renew(Duration ttl) {
 			if (!this.delegate.isHeldByCurrentThread()) {
-				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
+				throw new IllegalMonitorStateException("The current thread doesn't hold a lock for: " + this.key);
 			}
 			while (true) {
 				try {
-					boolean renewed = this.mutex.renew(this.path, ttl);
+					boolean renewed = JdbcLockRegistry.this.client.renew(this.path, ttl);
 					if (renewed) {
 						this.lastUsed = System.currentTimeMillis();
 					}
 					return renewed;
 				}
-				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
+				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException ex) {
 					// try again
 				}
-				catch (Exception e) {
-					throw new DataAccessResourceFailureException("Failed to renew mutex at " + this.path, e);
+				catch (Exception ex) {
+					throw new DataAccessResourceFailureException("Failed to renew lock for: " + this.key, ex);
 				}
 			}
 		}
