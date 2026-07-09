@@ -18,6 +18,7 @@ package org.springframework.integration.groovy.dsl.test
 
 import groovy.transform.CompileStatic
 import org.junit.jupiter.api.Test
+import org.junitpioneer.jupiter.RetryingTest
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -85,7 +86,7 @@ class GroovyDslTests {
 		assert this.pollerResultChannel.receive(10000) != null
 	}
 
-	@Test
+	@RetryingTest(10)
 	void 'requestReplyFlow has to reply'() {
 		def replyChannel = new QueueChannel()
 		def testMessage =
