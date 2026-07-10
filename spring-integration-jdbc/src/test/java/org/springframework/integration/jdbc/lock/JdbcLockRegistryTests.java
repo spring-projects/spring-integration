@@ -728,6 +728,72 @@ class JdbcLockRegistryTests {
 				.withMessageStartingWith("The lock 'lock1' was evicted from the exhausted cache due to its unused period for");
 	}
 
+	@Test
+	void shrinkingCacheCapacityEvictsUnusedEntries() {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		registry.setCacheCapacity(2);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		lock1.lock();
+		try {
+			DistributedLock lock2 = registry.obtain("lock2");
+			registry.setCacheCapacity(1);
+			assertThatExceptionOfType(CannotAcquireLockException.class)
+					.isThrownBy(lock2::lock)
+					.havingCause()
+					.isInstanceOf(IllegalStateException.class)
+					.withMessageStartingWith(
+							"The lock 'lock2' was evicted from the exhausted cache due to its unused period for");
+		}
+		finally {
+			lock1.unlock();
+		}
+	}
+
+	@Test
+	void obtainDoesNotEvictCurrentlyHeldLockOfRequestedKey() {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		registry.setCacheCapacity(2);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		lock1.lock();
+		try {
+			DistributedLock lock2 = registry.obtain("lock2");
+			lock2.lock();
+			try {
+				// Shrinking the capacity below the number of currently held locks forces
+				// the next `obtain` for an already-cached, held key to see `size() > cacheCapacity`.
+				registry.setCacheCapacity(1);
+
+				Map<String, Lock> registryLocks = getRegistryLocks(registry);
+
+				assertThat(registryLocks).containsKeys("lock1", "lock2");
+
+				assertThat(registry.obtain("lock1")).isSameAs(lock1);
+
+				assertThat(registryLocks).containsKeys("lock1", "lock2");
+
+				assertThatNoException().isThrownBy(lock1::lock);
+
+				lock1.unlock();
+			}
+			finally {
+				lock2.unlock();
+			}
+		}
+		finally {
+			lock1.unlock();
+		}
+	}
+
 	private static Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks");
 	}

@@ -139,10 +139,17 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	/**
 	 * Set the capacity of cached locks.
+	 * If the number of currently cached locks exceeds the new capacity,
+	 * this method tries to evict unused locks.
 	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
+	 * @see #expireUnusedOlderThan(long)
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
+		Assert.isTrue(cacheCapacity > 0, "'cacheCapacity' must be greater than 0");
+		if (this.locks.size() > cacheCapacity) {
+			expireUnusedOlderThan(0);
+		}
 		this.cacheCapacity = cacheCapacity;
 	}
 
@@ -154,7 +161,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		try {
 			JdbcLock jdbcLock =
 					this.locks.computeIfAbsent(lockKeyToUse, key -> new JdbcLock(lockKeyToUse));
-			if (this.locks.size() > this.cacheCapacity) {
+
+			if (!jdbcLock.isAcquiredInThisProcess() && this.locks.size() > this.cacheCapacity) {
 				long now = System.currentTimeMillis();
 				this.locks.entrySet()
 						.removeIf(entry -> {
@@ -168,6 +176,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 							"from " + this + ". Cannot obtain more at the moment.");
 				}
 			}
+
 			return jdbcLock;
 		}
 		finally {
@@ -187,7 +196,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						JdbcLock lock = entry.getValue();
-						return now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess();
+						return now - lock.getLastUsed() >= age && !lock.isAcquiredInThisProcess();
 					});
 		}
 		finally {
