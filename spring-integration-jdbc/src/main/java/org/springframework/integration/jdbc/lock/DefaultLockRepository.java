@@ -459,6 +459,14 @@ public class DefaultLockRepository
 						this.template.update(this.renewQuery, ttlEpochMillis(ttlDuration), this.region, lock, this.id) == 1);
 	}
 
+	@Override
+	public String toString() {
+		return "DefaultLockRepository{" +
+				"id='" + this.id + '\'' +
+				", region='" + this.region + '\'' +
+				'}';
+	}
+
 	private static LocalDateTime ttlEpochMillis(Duration ttl) {
 		return currentTime().plus(ttl);
 	}

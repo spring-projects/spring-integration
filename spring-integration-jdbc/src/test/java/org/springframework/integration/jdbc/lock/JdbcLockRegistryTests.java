@@ -41,9 +41,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -465,7 +465,7 @@ class JdbcLockRegistryTests {
 					Thread.currentThread().interrupt();
 				}
 				String keyId = "foo:" + finalI;
-				remainLockCheckQueue.offer(toUUID(keyId));
+				remainLockCheckQueue.offer(keyId);
 				Lock obtain = registry.obtain(keyId);
 				obtain.lock();
 				obtain.unlock();
@@ -502,7 +502,7 @@ class JdbcLockRegistryTests {
 		Lock obtainLock0 = registry.obtain(REMAIN_DUMMY_LOCK_KEY);
 		obtainLock0.lock();
 		obtainLock0.unlock();
-		remainLockCheckQueue.offer(toUUID(REMAIN_DUMMY_LOCK_KEY));
+		remainLockCheckQueue.offer(REMAIN_DUMMY_LOCK_KEY);
 
 		for (int i = dummyLockCnt; i < threadCnt + dummyLockCnt; i++) {
 			int finalI = i;
@@ -515,7 +515,7 @@ class JdbcLockRegistryTests {
 					Thread.currentThread().interrupt();
 				}
 				String keyId = "foo:" + finalI;
-				remainLockCheckQueue.offer(toUUID(keyId));
+				remainLockCheckQueue.offer(keyId);
 				Lock obtain = registry.obtain(keyId);
 				obtain.lock();
 				obtain.unlock();
@@ -543,18 +543,16 @@ class JdbcLockRegistryTests {
 
 		registry.obtain("foo:4");
 
-		assertThat(getRegistryLocks(registry)).hasSize(3);
-		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:2"),
-				toUUID("foo:3"),
-				toUUID("foo:4"));
+		assertThat(getRegistryLocks(registry))
+				.hasSize(3)
+				.containsKeys("foo:2", "foo:3", "foo:4");
 
 		//capacity 3->4
 		registry.setCacheCapacity(capacityCnt);
 		registry.obtain("foo:5");
-		assertThat(getRegistryLocks(registry)).hasSize(4);
-		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
-				toUUID("foo:4"),
-				toUUID("foo:5"));
+		assertThat(getRegistryLocks(registry))
+				.hasSize(4)
+				.containsKeys("foo:3", "foo:4", "foo:5");
 	}
 
 	@Test
@@ -635,7 +633,7 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
-	void noSecondLockOnEviction() throws InterruptedException {
+	void notUsedLockIsEvictedOnCacheLimit() throws InterruptedException {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
 		client.setApplicationContext(this.context);
 		client.afterPropertiesSet();
@@ -663,11 +661,11 @@ class JdbcLockRegistryTests {
 				});
 
 		assertThat(furtherLocksLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		// Two new locks to trigger cache eviction for the 'lock1'
+		// Two new locks to overcharge the cache.
+		// The 'lock2' is evicted by 'lock3' because it is not locked.
 		registry.obtain("lock2");
 		registry.obtain("lock3");
 
-		// Request 'lock1' again: will trigger new JdbcLock instance
 		DistributedLock lock1 = registry.obtain("lock1");
 
 		// Cannot lock because 'lock1' is still locked by another thread
@@ -682,69 +680,56 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
-	void sharedDelegateIsDeletedFromDbOnUnlock() throws Exception {
-		DefaultLockRepository client1 = newLockRepository();
-		DefaultLockRepository client2 = newLockRepository();
-
-		JdbcLockRegistry registry1 = new JdbcLockRegistry(client1);
-		// setCacheCapacity(2) gives mask=1 in DefaultLockRegistry → only 2 slots, guaranteed collision in ≤3 keys
-		registry1.setCacheCapacity(2);
-		JdbcLockRegistry registry2 = new JdbcLockRegistry(client2);
-
-		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
-		String keyB = null;
-		DistributedLock lockA = null;
-		DistributedLock lockB = null;
-		outer:
-		for (int i = 0; i < 10; i++) {
-			for (int j = i + 1; j < 10; j++) {
-				keyB = "key-" + j;
-				DistributedLock la = registry1.obtain("key-" + i);
-				DistributedLock lb = registry1.obtain(keyB);
-				if (TestUtils.getPropertyValue(la, "delegate") == TestUtils.getPropertyValue(lb, "delegate")) {
-
-					lockA = la;
-					lockB = lb;
-					break outer;
-				}
-			}
-		}
-		assertThat(lockA)
-				.as("Could not find two lock keys mapping to the same DefaultLockRegistry slot")
-				.isNotNull();
-
-		lockA.lock();
-		// Shared delegate: delegate.holdCount becomes 2 after this call
-		lockB.lock();
-
-		// Unlock B first — before the fix, delegate.getHoldCount()>1 short-circuited and skipped the DB delete
-		lockB.unlock();
-
-		// Another process must be able to acquire keyB immediately (its DB row must be deleted)
-		DistributedLock lockBOtherProcess = registry2.obtain(keyB);
-		assertThat(lockBOtherProcess.tryLock(500, TimeUnit.MILLISECONDS))
-				.as("DB row for '" + keyB + "' was not deleted on unlock — orphaned lock detected")
-				.isTrue();
-		lockBOtherProcess.unlock();
-
-		assertThatNoException().isThrownBy(lockA::unlock);
-	}
-
-	private DefaultLockRepository newLockRepository() {
-		DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+	void cannotAcquireLockExceptionOnCacheLimit() {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
 		client.setApplicationContext(this.context);
 		client.afterPropertiesSet();
 		client.afterSingletonsInstantiated();
-		return client;
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		registry.setCacheCapacity(2);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		lock1.lock();
+		try {
+			DistributedLock lock2 = registry.obtain("lock2");
+			lock2.lock();
+			try {
+				assertThatExceptionOfType(CannotAcquireLockException.class)
+						.isThrownBy(() -> registry.obtain("lock3"))
+						.withMessageStartingWith("There are already 2 unique JDBC locks acquired in the application")
+						.withMessageEndingWith("Cannot obtain more at the moment.");
+			}
+			finally {
+				lock2.unlock();
+			}
+		}
+		finally {
+			lock1.unlock();
+		}
+	}
+
+	@Test
+	void unusedLockIsStale() {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		registry.setCacheCapacity(1);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		registry.obtain("lock2");
+
+		assertThatExceptionOfType(CannotAcquireLockException.class)
+				.isThrownBy(lock1::lock)
+				.havingCause()
+				.isInstanceOf(IllegalStateException.class)
+				.withMessageStartingWith("The lock 'lock1' was evicted from the exhausted cache due to its unused period for");
 	}
 
 	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRegistryLocks(JdbcLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
-	}
-
-	private static String toUUID(String key) {
-		return UUIDConverter.getUUID(key).toString();
 	}
 
 }
