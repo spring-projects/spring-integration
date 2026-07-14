@@ -49,6 +49,7 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -1071,7 +1072,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	}
 
 	@Test
-	void noSecondLockOnEviction() throws InterruptedException {
+	void notUsedLockIsEvictedOnCacheLimit() throws InterruptedException {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
 		registry.setCacheCapacity(2);
@@ -1096,11 +1097,11 @@ class RedisLockRegistryTests implements RedisContainerTest {
 				});
 
 		assertThat(furtherLocksLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		// Two new locks to trigger cache eviction for the 'lock1'
+		// Two new locks to overcharge the cache.
+		// The 'lock2' is evicted by 'lock3' because it is not locked.
 		registry.obtain("lock2");
 		registry.obtain("lock3");
 
-		// Request 'lock1' again: will trigger new RedisLock instance
 		DistributedLock lock1 = registry.obtain("lock1");
 
 		// Cannot lock because 'lock1' is still locked by another thread
@@ -1112,6 +1113,50 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			lock1.lock();
 			lock1.unlock();
 		});
+	}
+
+	@Test
+	void cannotAcquireLockExceptionOnCacheLimit() {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		registry.setCacheCapacity(2);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		lock1.lock();
+		try {
+			DistributedLock lock2 = registry.obtain("lock2");
+			lock2.lock();
+			try {
+				assertThatExceptionOfType(CannotAcquireLockException.class)
+						.isThrownBy(() -> registry.obtain("lock3"))
+						.withMessageStartingWith("There are already 2 unique Redis locks acquired in the application")
+						.withMessageEndingWith("Cannot obtain more at the moment.");
+			}
+			finally {
+				lock2.unlock();
+			}
+		}
+		finally {
+			lock1.unlock();
+		}
+		registry.destroy();
+	}
+
+	@Test
+	void unusedLockIsStale() {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		registry.setCacheCapacity(1);
+
+		DistributedLock lock1 = registry.obtain("lock1");
+		registry.obtain("lock2");
+
+		assertThatExceptionOfType(CannotAcquireLockException.class)
+				.isThrownBy(lock1::lock)
+				.havingCause()
+				.isInstanceOf(IllegalStateException.class)
+				.withMessageStartingWith("The lock 'lock1' was evicted from the exhausted cache.");
+		registry.destroy();
 	}
 
 	@Test
@@ -1183,56 +1228,6 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Thread.sleep(100);
 		}
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
-	}
-
-	@Test
-	void sharedDelegateIsDeletedFromRedisOnUnlock() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry1.setRedisLockType(this.testRedisLockType);
-		// setCacheCapacity(2) gives mask=1 in DefaultLockRegistry → only 2 slots, guaranteed collision in ≤3 keys
-		registry1.setCacheCapacity(2);
-		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry2.setRedisLockType(this.testRedisLockType);
-
-		// Find two distinct lock keys that share the same ReentrantLock (same DefaultLockRegistry slot)
-		String keyB = null;
-		DistributedLock lockA = null;
-		DistributedLock lockB = null;
-		outer:
-		for (int i = 0; i < 10; i++) {
-			for (int j = i + 1; j < 10; j++) {
-				DistributedLock la = registry1.obtain("key-" + i);
-				DistributedLock lb = registry1.obtain("key-" + j);
-				if (TestUtils.getPropertyValue(la, "localLock") == TestUtils.getPropertyValue(lb, "localLock")) {
-					keyB = "key-" + j;
-					lockA = la;
-					lockB = lb;
-					break outer;
-				}
-			}
-		}
-		assertThat(lockA)
-				.as("Could not find two lock keys mapping to the same DefaultLockRegistry slot")
-				.isNotNull();
-
-		lockA.lock();
-		// Shared localLock: localLock.holdCount becomes 2 after this call
-		lockB.lock();
-
-		// Unlock B first — before the fix, localLock.getHoldCount()>1 short-circuited and skipped the Redis delete
-		lockB.unlock();
-
-		// Another process must be able to acquire keyB immediately (its Redis key must be deleted)
-		DistributedLock lockBOtherProcess = registry2.obtain(keyB);
-		assertThat(lockBOtherProcess.tryLock(500, TimeUnit.MILLISECONDS))
-				.as("Redis key for '" + keyB + "' was not deleted on unlock — orphaned lock detected")
-				.isTrue();
-		lockBOtherProcess.unlock();
-
-		assertThatNoException().isThrownBy(lockA::unlock);
-
-		registry1.destroy();
-		registry2.destroy();
 	}
 
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
