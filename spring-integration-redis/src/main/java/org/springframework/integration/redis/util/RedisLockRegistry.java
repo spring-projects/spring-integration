@@ -62,7 +62,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
@@ -82,14 +81,21 @@ import org.springframework.util.ReflectionUtils;
  * Locks are reentrant.
  * <p>
  * <b>However, locks are scoped by the registry; a lock from a different registry with the
- * same key (even if the registry uses the same 'registryKey') are different
+ * same key (even if the registry uses the same 'registryKey') is different
  * locks, and the second cannot be acquired by the same thread while the first is
  * locked.</b>
  * <p>
- * <b>Note: This is not intended for low latency applications.</b> It is intended
+ * <b>Note: This is not intended for low-latency applications.</b> It is intended
  * for resource locking across multiple JVMs.
  * <p>
  * {@link Condition}s are not supported.
+ * <p>
+ * The lock instances are cached by their key for future reuse.
+ * If all the locks in the cache are acquired,
+ * the {@link #obtain(Object)} method throws {@link CannotAcquireLockException}.
+ * Otherwise, the old, unused locks are evicted from the cache.
+ * An attempt to lock such an orphaned {@link RedisLock} throws another {@link CannotAcquireLockException}
+ * to avoid double locking from different threads on the same key.
  *
  * @author Gary Russell
  * @author Konstantin Yakimov
@@ -118,15 +124,13 @@ public final class RedisLockRegistry
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
-	private static final int DEFAULT_CAPACITY = 256;
+	private static final int DEFAULT_CAPACITY = 100_000;
 
 	private static final int DEFAULT_IDLE = 100;
 
 	private final Lock lock = new ReentrantLock();
 
 	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
-
-	private DefaultLockRegistry defaultLockRegistry = new DefaultLockRegistry();
 
 	private final Map<String, RedisLock> locks =
 			new LinkedHashMap<>(16, 0.75F, true) {
@@ -136,7 +140,8 @@ public final class RedisLockRegistry
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, RedisLock> eldest) {
-					return size() > RedisLockRegistry.this.cacheCapacity;
+					return size() > RedisLockRegistry.this.cacheCapacity
+							&& !eldest.getValue().isAcquiredInThisProcess();
 				}
 
 			};
@@ -258,14 +263,18 @@ public final class RedisLockRegistry
 
 	/**
 	 * Set the capacity of cached locks.
-	 * @param cacheCapacity The capacity of cached lock, (default 256 locks).
+	 * If the number of currently cached locks exceeds the new capacity,
+	 * this method tries to evict unused locks.
+	 * @param cacheCapacity The capacity of cached lock, (default 100_000).
 	 * @since 5.5.6
+	 * @see #expireUnusedOlderThan(long)
 	 */
 	public void setCacheCapacity(int cacheCapacity) {
+		Assert.isTrue(cacheCapacity > 0, "'cacheCapacity' must be greater than 0");
+		if (this.locks.size() > cacheCapacity) {
+			expireUnusedOlderThan(0);
+		}
 		this.cacheCapacity = cacheCapacity;
-		// Find the highest power of 2 for (n + 1), then subtract 1 to get the mask
-		int mask = Integer.highestOneBit(cacheCapacity + 1) - 1;
-		this.defaultLockRegistry = new DefaultLockRegistry(mask);
 	}
 
 	/**
@@ -299,7 +308,22 @@ public final class RedisLockRegistry
 		String path = (String) lockKey;
 		this.lock.lock();
 		try {
-			return this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
+			RedisLock redisLock = this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
+			if (!redisLock.isAcquiredInThisProcess() && this.locks.size() > this.cacheCapacity) {
+				this.locks.entrySet()
+						.removeIf(entry -> {
+							RedisLock lock = entry.getValue();
+							return lock != redisLock && !lock.isAcquiredInThisProcess();
+						});
+
+				if (this.locks.size() > this.cacheCapacity) {
+					this.locks.remove(path);
+					throw new CannotAcquireLockException("There are already " +
+							this.cacheCapacity + " unique Redis locks acquired in the application " +
+							"from " + this + ". Cannot obtain more at the moment.");
+				}
+			}
+			return redisLock;
 		}
 		finally {
 			this.lock.unlock();
@@ -314,11 +338,7 @@ public final class RedisLockRegistry
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						RedisLock lock = entry.getValue();
-						long lockedAt = lock.getLockedAt();
-						return now - lockedAt > age
-								// 'lockedAt = 0' means that the lock is still not acquired!
-								&& lockedAt > 0
-								&& !lock.isAcquiredInThisProcess();
+						return now - lock.getLockedAt() >= age && !lock.isAcquiredInThisProcess();
 					});
 		}
 		finally {
@@ -366,6 +386,13 @@ public final class RedisLockRegistry
 		if (!redisLock.renew(ttl.toMillis())) {
 			throw new IllegalStateException("Could not renew mutex at " + path);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "RedisLockRegistry{" +
+				"registryKey=" + this.registryKey +
+				'}';
 	}
 
 	/**
@@ -426,21 +453,21 @@ public final class RedisLockRegistry
 		public static final RedisScript<Boolean> RENEW_REDIS_SCRIPT =
 				new DefaultRedisScript<>(RENEW_SCRIPT, Boolean.class);
 
+		private final String key;
+
 		protected final String lockKey;
 
 		protected final BoundValueOperations<String, String> boundValueOps;
 
-		private final ReentrantLock localLock;
+		private final ReentrantLock localLock = new ReentrantLock();
 
-		private int holdCount;
-
-		private volatile long lockedAt;
+		private volatile long lockedAt = System.currentTimeMillis();
 
 		private volatile @Nullable ScheduledFuture<?> renewFuture;
 
 		private RedisLock(String path) {
+			this.key = path;
 			this.lockKey = constructLockKey(path);
-			this.localLock = (ReentrantLock) RedisLockRegistry.this.defaultLockRegistry.obtain(this.lockKey);
 			this.boundValueOps = RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey);
 		}
 
@@ -479,7 +506,6 @@ public final class RedisLockRegistry
 			while (true) {
 				try {
 					if (tryRedisLock(-1L, ttl.toMillis())) {
-						this.holdCount++;
 						return;
 					}
 				}
@@ -507,7 +533,6 @@ public final class RedisLockRegistry
 			while (true) {
 				try {
 					if (tryRedisLock(-1L, RedisLockRegistry.this.expireAfter.toMillis())) {
-						this.holdCount++;
 						return;
 					}
 				}
@@ -549,9 +574,6 @@ public final class RedisLockRegistry
 				if (!acquired) {
 					this.localLock.unlock();
 				}
-				else {
-					this.holdCount++;
-				}
 				return acquired;
 			}
 			catch (Exception e) {
@@ -562,6 +584,10 @@ public final class RedisLockRegistry
 		}
 
 		private boolean tryRedisLock(long time, long expireAfter) throws ExecutionException, InterruptedException {
+			if (!RedisLockRegistry.this.locks.containsKey(this.key)) {
+				throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache. " +
+						"Obtain a fresh one from " + RedisLockRegistry.this);
+			}
 			final boolean acquired = tryRedisLockInner(time, expireAfter);
 			if (acquired) {
 				if (LOGGER.isDebugEnabled()) {
@@ -590,8 +616,7 @@ public final class RedisLockRegistry
 			if (!this.localLock.isHeldByCurrentThread()) {
 				throw new IllegalStateException("You do not own lock at " + this.lockKey);
 			}
-			if (this.holdCount > 1) {
-				this.holdCount--;
+			if (this.localLock.getHoldCount() > 1) {
 				this.localLock.unlock();
 				return;
 			}
@@ -636,7 +661,6 @@ public final class RedisLockRegistry
 				ReflectionUtils.rethrowRuntimeException(e);
 			}
 			finally {
-				this.holdCount--;
 				this.localLock.unlock();
 			}
 		}
@@ -717,7 +741,7 @@ public final class RedisLockRegistry
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss.SSS");
 			return "RedisLock [lockKey=" + this.lockKey
 					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
-					+ ", clientId=" + RedisLockRegistry.this.clientId
+					+ ", clientId=" + RedisLockRegistry.this
 					+ "]";
 		}
 
@@ -726,7 +750,7 @@ public final class RedisLockRegistry
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
-			result = prime * result + ((this.lockKey == null) ? 0 : this.lockKey.hashCode());
+			result = prime * result + this.lockKey.hashCode();
 			result = prime * result + Long.hashCode(this.lockedAt);
 			result = prime * result + RedisLockRegistry.this.clientId.hashCode();
 			return result;
@@ -736,9 +760,6 @@ public final class RedisLockRegistry
 		public boolean equals(Object obj) {
 			if (this == obj) {
 				return true;
-			}
-			if (obj == null) {
-				return false;
 			}
 			if (getClass() != obj.getClass()) {
 				return false;
@@ -813,7 +834,7 @@ public final class RedisLockRegistry
 						return true;
 					}
 					try {
-						//if short expireAfter key expire for ttl, no receive unlock msg
+						//if short expireAfter key expire for ttl, no received unlock msg
 						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter.toMillis();
 						future.get(waitTime, TimeUnit.MILLISECONDS);
 					}
@@ -929,7 +950,8 @@ public final class RedisLockRegistry
 		protected boolean removeLockKeyInnerUnlink() {
 			if (RedisLockRegistry.this.supportsCasCadOperations) {
 				try {
-					return RedisLockRegistry.this.redisTemplate.delete(this.lockKey, it -> it.ifEquals().value(RedisLockRegistry.this.clientId));
+					return RedisLockRegistry.this.redisTemplate.delete(this.lockKey,
+							it -> it.ifEquals().value(RedisLockRegistry.this.clientId));
 				}
 				catch (RedisSystemException | InvalidDataAccessApiUsageException ex) {
 					if (isCasCadNotSupportedError(ex)) {
