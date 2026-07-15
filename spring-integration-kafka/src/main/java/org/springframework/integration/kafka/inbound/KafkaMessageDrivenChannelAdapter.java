@@ -78,6 +78,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Urs Keller
  * @author Jooyoung Pyoung
+ * @author Zernov Oleksii
  *
  * @since 5.4
  */
@@ -144,7 +145,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
-			this.recordListener.setMessageConverter(messageConverter);
 		}
 		else if (JacksonPresent.isJackson2Present()) {
 			var headerMapper = new org.springframework.kafka.support.DefaultKafkaHeaderMapper();
@@ -152,8 +152,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
-			this.recordListener.setMessageConverter(messageConverter);
 		}
+
+		this.recordListener.setMessageConverter(messageConverter);
 
 		if (this.mode.equals(ListenerMode.batch)) {
 			var batchMessagingMessageConverter = new BatchMessagingMessageConverter(messageConverter);

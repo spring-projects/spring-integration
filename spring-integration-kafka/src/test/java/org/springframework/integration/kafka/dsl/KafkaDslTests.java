@@ -97,6 +97,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Anshul Mehra
  * @author Jooyoung Pyoung
  * @author Glenn Renfro
+ * @author Zernov Oleksii
  *
  * @since 5.4
  */
