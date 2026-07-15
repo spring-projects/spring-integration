@@ -97,7 +97,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Anshul Mehra
  * @author Jooyoung Pyoung
  * @author Glenn Renfro
- * @author Zernov Oleksii
+ * @author Oleksii Zernov
  *
  * @since 5.4
  */
@@ -282,11 +282,11 @@ public class KafkaDslTests {
 
 	@Test
 	void testBatchListener() {
-		this.kafkaTemplate.send(TEST_TOPIC10, "foo");
+		this.kafkaTemplate.send(TEST_TOPIC10, "testData");
 
 		Message<?> receive = this.listeningFromKafkaResults3.receive(20000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("foo");
+		assertThat(receive.getPayload()).isEqualTo("testData");
 		MessageHeaders headers = receive.getHeaders();
 		assertThat(headers.get(MessageHeaders.ID)).isNotNull();
 	}
@@ -368,10 +368,7 @@ public class KafkaDslTests {
 			return IntegrationFlow
 					.from(Kafka
 							.messageDrivenChannelAdapter(consumerFactory(),
-									KafkaMessageDrivenChannelAdapter.ListenerMode.batch, TEST_TOPIC10)
-							.configureListenerContainer(c ->
-									c.ackMode(ContainerProperties.AckMode.MANUAL)
-											.id("topic10ListenerContainer")))
+									KafkaMessageDrivenChannelAdapter.ListenerMode.batch, TEST_TOPIC10))
 					.split()
 					.channel(c -> c.queue("listeningFromKafkaResults3"))
 					.get();
