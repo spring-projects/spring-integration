@@ -97,6 +97,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Anshul Mehra
  * @author Jooyoung Pyoung
  * @author Glenn Renfro
+ * @author Oleksii Zernov
  *
  * @since 5.4
  */
@@ -123,6 +124,8 @@ public class KafkaDslTests {
 
 	static final String TEST_TOPIC8 = "test-topic8";
 
+	static final String TEST_TOPIC10 = "test-topic10";
+
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
 	private MessageChannel sendToKafkaFlowInput;
@@ -132,6 +135,9 @@ public class KafkaDslTests {
 
 	@Autowired
 	private PollableChannel listeningFromKafkaResults2;
+
+	@Autowired
+	private PollableChannel listeningFromKafkaResults3;
 
 	@Autowired
 	@Qualifier("kafkaProducer1.handler")
@@ -154,6 +160,9 @@ public class KafkaDslTests {
 	@Autowired(required = false)
 	@Qualifier("kafkaTemplate:" + TEST_TOPIC2)
 	private KafkaTemplate<?, ?> kafkaTemplateTopic2;
+
+	@Autowired
+	private KafkaTemplate<Integer, String> kafkaTemplate;
 
 	@Autowired
 	private JsonKafkaHeaderMapper mapper;
@@ -195,6 +204,7 @@ public class KafkaDslTests {
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
+			assertThat(headers.get(MessageHeaders.ID)).isNotNull();
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC1);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(i + 1);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
@@ -211,6 +221,7 @@ public class KafkaDslTests {
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
+			assertThat(headers.get(MessageHeaders.ID)).isNotNull();
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC2);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(i + 1);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
@@ -267,6 +278,17 @@ public class KafkaDslTests {
 				.isNotNull()
 				.extracting("payload")
 				.isEqualTo("foo");
+	}
+
+	@Test
+	void testBatchListener() {
+		this.kafkaTemplate.send(TEST_TOPIC10, "testData");
+
+		Message<?> receive = this.listeningFromKafkaResults3.receive(20000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("testData");
+		MessageHeaders headers = receive.getHeaders();
+		assertThat(headers.get(MessageHeaders.ID)).isNotNull();
 	}
 
 	@Configuration
@@ -338,6 +360,17 @@ public class KafkaDslTests {
 							f -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("listeningFromKafkaResults2"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow batchListenerFromKafkaFlow() {
+			return IntegrationFlow
+					.from(Kafka
+							.messageDrivenChannelAdapter(consumerFactory(),
+									KafkaMessageDrivenChannelAdapter.ListenerMode.batch, TEST_TOPIC10))
+					.split()
+					.channel(c -> c.queue("listeningFromKafkaResults3"))
 					.get();
 		}
 
