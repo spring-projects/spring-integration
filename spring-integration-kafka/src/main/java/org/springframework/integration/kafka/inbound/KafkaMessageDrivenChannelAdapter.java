@@ -57,6 +57,7 @@ import org.springframework.kafka.support.JacksonPresent;
 import org.springframework.kafka.support.JsonKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
+import org.springframework.kafka.support.converter.BatchMessagingMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessageConverter;
@@ -77,6 +78,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Urs Keller
  * @author Jooyoung Pyoung
+ * @author Oleksii Zernov
  *
  * @since 5.4
  */
@@ -143,8 +145,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					JacksonMessagingUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
-			this.recordListener.setMessageConverter(messageConverter);
-			this.batchListener.setMessageConverter(messageConverter);
 		}
 		else if (JacksonPresent.isJackson2Present()) {
 			var headerMapper = new org.springframework.kafka.support.DefaultKafkaHeaderMapper();
@@ -152,8 +152,15 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 					org.springframework.integration.support.json.JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES
 							.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
-			this.recordListener.setMessageConverter(messageConverter);
-			this.batchListener.setMessageConverter(messageConverter);
+		}
+
+		this.recordListener.setMessageConverter(messageConverter);
+
+		if (this.mode.equals(ListenerMode.batch)) {
+			var batchMessagingMessageConverter = new BatchMessagingMessageConverter(messageConverter);
+			batchMessagingMessageConverter.setGenerateMessageId(true);
+			batchMessagingMessageConverter.setGenerateTimestamp(true);
+			this.batchListener.setBatchMessageConverter(batchMessagingMessageConverter);
 		}
 	}
 
