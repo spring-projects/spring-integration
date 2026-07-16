@@ -53,6 +53,7 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Uwez Khan
  *
  * @since 2.0
  */
@@ -98,7 +99,8 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	@Override
 	public void afterPropertiesSet() {
 		File baseDir = new File(this.baseDirectory);
-		if (!baseDir.mkdirs() && !baseDir.exists() && this.logger.isWarnEnabled()) {
+		boolean baseDirectoryCreated = baseDir.mkdirs();
+		if (!baseDirectoryCreated && !baseDir.exists() && this.logger.isWarnEnabled()) {
 			this.logger.warn("Failed to create directories for " + baseDir);
 		}
 		this.file = new File(baseDir, this.fileName);
@@ -106,6 +108,13 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			if (!this.file.exists() && !this.file.createNewFile() && this.logger.isWarnEnabled()) {
 				this.logger.warn("Failed to create file " + this.file);
 			}
+			// Only tighten the directory if this instance created it, to avoid changing
+			// the permissions of a pre-existing, possibly shared, directory.
+			if (baseDirectoryCreated) {
+				restrictToOwner(baseDir);
+				baseDir.setExecutable(true, true);
+			}
+			restrictToOwner(this.file);
 		}
 		catch (Exception ex) {
 			throw new IllegalArgumentException("Failed to create metadata-store file '"
@@ -231,6 +240,14 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			this.logger.warn("Failed to load entry from the persistent store. This may result in a duplicate " +
 					"entry after this component is restarted", e);
 		}
+	}
+
+	private static void restrictToOwner(File target) {
+		target.setReadable(false, false);
+		target.setWritable(false, false);
+		target.setExecutable(false, false);
+		target.setReadable(true, true);
+		target.setWritable(true, true);
 	}
 
 }
