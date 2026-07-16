@@ -298,6 +298,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		if (!this.deserializerExplicitlySet) {
 			this.deserializer = new AllowListDeserializingConverter(classLoader);
+			this.mapper = new MessageRowMapper(this.deserializer);
 		}
 	}
 
