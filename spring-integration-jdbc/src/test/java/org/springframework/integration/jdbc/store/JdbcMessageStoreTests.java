@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
@@ -152,6 +153,20 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo("foo");
+	}
+
+	@Test
+	public void testAllowedPatternsAppliedAfterSetBeanClassLoader() {
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+		this.messageStore.addAllowedPatterns("com.example.*");
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
 	}
 
 	@Test
