@@ -33,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Uwez Khan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -89,6 +91,22 @@ public class PropertiesPersistingMetadataStoreTests {
 		assertThat(persistentProperties).isNotNull();
 		assertThat(persistentProperties.size()).isEqualTo(1);
 		assertThat(persistentProperties.get("foo")).isEqualTo("bar");
+	}
+
+	@Test
+	public void metadataStoreFileAndCreatedDirectoryAreOwnerOnly() throws Exception {
+		File baseDir = new File(folder, "secure-store");
+		File file = new File(baseDir, "metadata-store.properties");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.setBaseDirectory(baseDir.getAbsolutePath());
+		metadataStore.afterPropertiesSet();
+		metadataStore.put("lastProcessedId", "42");
+		metadataStore.close();
+
+		assertThat(file).exists();
+
+		assertThat(file).canRead().canWrite();
+		assertThat(baseDir).canRead().canWrite().isExecutable();
 	}
 
 }
