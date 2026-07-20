@@ -21,6 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +84,44 @@ public class AcceptOnceFileListFilterTests {
 		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
 		CompositeFileListFilter<String> composite = new CompositeFileListFilter<>(Collections.singletonList(filter));
 		doTestRollback(composite);
+	}
+
+	@Test
+	void testConcurrentAcceptAndRemoveDoesNotCorruptSeenSet() throws InterruptedException {
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
+		int fileCount = 5000;
+		try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
+			CountDownLatch latch = new CountDownLatch(fileCount * 2);
+			AtomicBoolean failed = new AtomicBoolean();
+
+			for (int i = 0; i < fileCount; i++) {
+				String file = "file" + i;
+				executorService.execute(() -> {
+					try {
+						filter.accept(file);
+					}
+					catch (Exception ex) {
+						failed.set(true);
+					}
+					finally {
+						latch.countDown();
+					}
+				});
+				executorService.execute(() -> {
+					try {
+						filter.remove(file);
+					}
+					catch (Exception ex) {
+						failed.set(true);
+					}
+					finally {
+						latch.countDown();
+					}
+				});
+			}
+			assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+			assertThat(failed.get()).isFalse();
+		}
 	}
 
 	protected void doTestRollback(ReversibleFileListFilter<String> filter) {
