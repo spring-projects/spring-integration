@@ -16,16 +16,16 @@
 
 package org.springframework.integration.file.filters;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
@@ -87,40 +87,22 @@ public class AcceptOnceFileListFilterTests {
 	}
 
 	@Test
-	void testConcurrentAcceptAndRemoveDoesNotCorruptSeenSet() throws InterruptedException {
+	void testConcurrentAcceptAndRemoveDoesNotCorruptSeenSet() {
 		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
 		int fileCount = 5000;
-		try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
-			CountDownLatch latch = new CountDownLatch(fileCount * 2);
-			AtomicBoolean failed = new AtomicBoolean();
-
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		try {
+			List<CompletableFuture<Void>> futures = new ArrayList<>(fileCount * 2);
 			for (int i = 0; i < fileCount; i++) {
 				String file = "file" + i;
-				executorService.execute(() -> {
-					try {
-						filter.accept(file);
-					}
-					catch (Exception ex) {
-						failed.set(true);
-					}
-					finally {
-						latch.countDown();
-					}
-				});
-				executorService.execute(() -> {
-					try {
-						filter.remove(file);
-					}
-					catch (Exception ex) {
-						failed.set(true);
-					}
-					finally {
-						latch.countDown();
-					}
-				});
+				futures.add(CompletableFuture.runAsync(() -> filter.accept(file), executorService));
+				futures.add(CompletableFuture.runAsync(() -> filter.remove(file), executorService));
 			}
-			assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
-			assertThat(failed.get()).isFalse();
+			assertThat(CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)))
+					.succeedsWithin(30, TimeUnit.SECONDS);
+		}
+		finally {
+			executorService.shutdownNow();
 		}
 	}
 

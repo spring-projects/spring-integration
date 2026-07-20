@@ -916,11 +916,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 					// remove lock
 					registry.expireUnusedOlderThan(EXPIRATION_TIME_MILLIS);
 					// obtain new lock and try to acquire
-					Lock lock = registry.obtain(lockKey);
-					lock.tryLock(LOCK_WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS);
-					lock.unlock();
-
-					lock1.set(lock);
+					lock1.set(obtainAndLock(registry, lockKey, LOCK_WAIT_TIME_MILLIS));
 				}
 				catch (InterruptedException ignore) {
 				}
@@ -932,11 +928,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 					// remove lock
 					registry.expireUnusedOlderThan(EXPIRATION_TIME_MILLIS);
 					// obtain new lock and try to acquire
-					Lock lock = registry.obtain(lockKey);
-					lock.tryLock(LOCK_WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS);
-					lock.unlock();
-
-					lock2.set(lock);
+					lock2.set(obtainAndLock(registry, lockKey, LOCK_WAIT_TIME_MILLIS));
 				}
 				catch (InterruptedException ignore) {
 				}
@@ -953,6 +945,28 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 
 		registry.destroy();
+	}
+
+	/**
+	 * Obtains a lock for the key and tries to acquire it, retrying with a fresh
+	 * {@link Lock} whenever the previously obtained one has been concurrently evicted
+	 * from the registry cache (as documented for an unused, not yet locked entry).
+	 */
+	private static Lock obtainAndLock(RedisLockRegistry registry, String lockKey, long lockWaitTimeMillis)
+			throws InterruptedException {
+
+		for (int attempt = 0; attempt < 100; attempt++) {
+			try {
+				Lock lock = registry.obtain(lockKey);
+				lock.tryLock(lockWaitTimeMillis, TimeUnit.MILLISECONDS);
+				lock.unlock();
+				return lock;
+			}
+			catch (CannotAcquireLockException evicted) {
+				// The obtained lock was evicted from the cache before it could be used; retry with a fresh one.
+			}
+		}
+		throw new IllegalStateException("Could not obtain and lock '" + lockKey + "' after 100 attempts");
 	}
 
 	@Test
