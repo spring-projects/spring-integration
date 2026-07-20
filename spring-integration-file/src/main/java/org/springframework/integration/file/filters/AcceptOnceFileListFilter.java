@@ -16,10 +16,10 @@
 
 package org.springframework.integration.file.filters;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,11 +29,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.integration.file.inbound.FileReadingMessageSource;
 
 /**
- * {@link FileListFilter} that passes files only one time. This can
- * conveniently be used to prevent duplication of files, as is done in
- * {@link FileReadingMessageSource}.
+ * A {@link FileListFilter} that passes files only one time.
+ * This can conveniently be used to prevent duplication of files,
+ * as is done in {@link FileReadingMessageSource}.
  * <p>
- * This implementation is thread safe.
+ * This implementation is thread-safe.
  *
  * @param <F> the file type.
  *
@@ -49,14 +49,13 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	private final @Nullable Queue<F> seen;
 
-	private final Set<F> seenSet = new HashSet<>();
+	private final Set<F> seenSet = ConcurrentHashMap.newKeySet();
 
 	private final Lock monitor = new ReentrantLock();
 
 	/**
-	 * Creates an AcceptOnceFileListFilter that is based on a bounded queue. If the queue overflows,
-	 * files that fall out will be passed through this filter again if passed to the
-	 * {@link #filterFiles(Object[])}
+	 * Create the instance based on a bounded queue. If the queue overflows,
+	 * files that fall out will be passed through this filter again if passed to the {@link #filterFiles(Object[])}
 	 * @param maxCapacity the maximum number of Files to maintain in the 'seen' queue.
 	 */
 	public AcceptOnceFileListFilter(int maxCapacity) {
@@ -64,7 +63,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	}
 
 	/**
-	 * Creates an AcceptOnceFileListFilter based on an unbounded queue.
+	 * Create the instance based on an unbounded queue.
 	 */
 	public AcceptOnceFileListFilter() {
 		this.seen = null;
