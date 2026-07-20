@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -301,11 +302,13 @@ public final class RedisLockRegistry
 		try {
 			RedisLock redisLock = this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
 			if (!redisLock.isAcquiredInThisProcess() && this.locks.size() > this.cacheCapacity) {
-				this.locks.entrySet()
-						.removeIf(entry -> {
-							RedisLock lock = entry.getValue();
-							return lock != redisLock && !lock.isAcquiredInThisProcess();
-						});
+				Iterator<Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
+				while (this.locks.size() > this.cacheCapacity && iterator.hasNext()) {
+					RedisLock lock = iterator.next().getValue();
+					if (lock != redisLock && !lock.isAcquiredInThisProcess()) {
+						iterator.remove();
+					}
+				}
 
 				if (this.locks.size() > this.cacheCapacity) {
 					this.locks.remove(path);

@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.lock;
 import java.io.Serial;
 import java.time.Duration;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -163,12 +164,13 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 					this.locks.computeIfAbsent(lockKeyToUse, key -> new JdbcLock(lockKeyToUse));
 
 			if (!jdbcLock.isAcquiredInThisProcess() && this.locks.size() > this.cacheCapacity) {
-				long now = System.currentTimeMillis();
-				this.locks.entrySet()
-						.removeIf(entry -> {
-							JdbcLock lock = entry.getValue();
-							return lock != jdbcLock && now - lock.getLastUsed() >= 0 && !lock.isAcquiredInThisProcess();
-						});
+				Iterator<Entry<String, JdbcLock>> iterator = this.locks.entrySet().iterator();
+				while (this.locks.size() > this.cacheCapacity && iterator.hasNext()) {
+					JdbcLock lock = iterator.next().getValue();
+					if (lock != jdbcLock && !lock.isAcquiredInThisProcess()) {
+						iterator.remove();
+					}
+				}
 				if (this.locks.size() > this.cacheCapacity) {
 					this.locks.remove(lockKeyToUse);
 					throw new CannotAcquireLockException("There are already " +
