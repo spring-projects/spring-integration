@@ -22,10 +22,10 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -151,7 +151,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		assertThat(new File("test/subdir/A.TEST.a").exists()).isTrue();
 		assertThat(new File("test/subdir/B.TEST.a").exists()).isTrue();
 
-		TestUtils.<HashSet<?>>getPropertyValue(localAcceptOnceFilter, "seenSet").clear();
+		TestUtils.<Set<?>>getPropertyValue(localAcceptOnceFilter, "seenSet").clear();
 
 		File aFile = new File("test/subdir/A.TEST.a");
 		aFile.delete();
@@ -192,7 +192,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		synchronizer.synchronizeToLocalDirectory(localDirectory);
 
 		File[] files = localDirectory.listFiles();
-		assertThat(files.length).isEqualTo(3);
+		assertThat(files).hasSize(3);
 
 		for (File f : files) {
 			f.delete();
@@ -200,7 +200,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 
 		synchronizer.synchronizeToLocalDirectory(localDirectory);
 
-		assertThat(localDirectory.list().length).isEqualTo(0);
+		assertThat(localDirectory.list()).isEmpty();
 	}
 
 	private static void recursiveDelete(File file) {
@@ -240,7 +240,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 
 		@Override
 		protected FTPClient createClientInstance() {
-			if (this.ftpFiles.size() == 0) {
+			if (this.ftpFiles.isEmpty()) {
 				this.init();
 			}
 
