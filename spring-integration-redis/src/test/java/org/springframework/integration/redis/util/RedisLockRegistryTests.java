@@ -979,7 +979,6 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	@Test
 	void testLockRenew() {
 		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
-		registry.setRedisLockType(redisLockType);
 		final Lock lock = registry.obtain("foo");
 
 		assertThat(lock.tryLock()).isTrue();
@@ -1187,12 +1186,13 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	private void waitForExpire(String key) throws Exception {
 		StringRedisTemplate template = createTemplate();
 		int n = 0;
-		while (n++ < 100 && template.keys(this.registryKey + ":" + key).size() > 0) {
+		while (n++ < 100 && !template.keys(this.registryKey + ":" + key).isEmpty()) {
 			Thread.sleep(100);
 		}
 		assertThat(n < 100).as(key + " key did not expire").isTrue();
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Map<String, Lock> getRedisLockRegistryLocks(RedisLockRegistry registry) {
 		return TestUtils.getPropertyValue(registry, "locks", Map.class);
 	}
