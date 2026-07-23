@@ -3,8 +3,9 @@
         testImplementation project(':spring-integration-stream')
         testImplementation project(':spring-integration-event')
 
+        testImplementation 'tools.jackson.core:jackson-databind'
+
         testRuntimeOnly libs.com.esotericsoftware.kryo
-        testRuntimeOnly 'tools.jackson.core:jackson-databind'
     }
 
     tasks.withType(JavaForkOptions) {

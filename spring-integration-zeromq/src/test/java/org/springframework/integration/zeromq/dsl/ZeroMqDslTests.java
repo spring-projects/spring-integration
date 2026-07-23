@@ -33,6 +33,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.zeromq.ZeroMqHeaders;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
@@ -46,6 +47,7 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -79,10 +81,13 @@ public class ZeroMqDslTests {
 			IntegrationFlow consumerFlow =
 					IntegrationFlow.from(
 									ZeroMq.inboundChannelAdapter(this.context, SocketType.SUB)
+											.messageMapper(new EmbeddedHeadersJsonMessageMapper("*"))
 											.connectUrl("tcp://localhost:" + this.subPubZeroMqProxy.getBackendPort())
 											.topics("someTopic")
 											.consumeDelay(Duration.ofMillis(100)))
-							.channel(ZeroMq.zeroMqChannel(this.context).zeroMqProxy(this.pullPushZeroMqProxy))
+							.channel(ZeroMq.zeroMqChannel(this.context)
+									.messageMapper(new EmbeddedHeadersJsonMessageMapper("*"))
+									.zeroMqProxy(this.pullPushZeroMqProxy))
 							.transform(Transformers.objectToString())
 							.handle(results::offer)
 							.get();
