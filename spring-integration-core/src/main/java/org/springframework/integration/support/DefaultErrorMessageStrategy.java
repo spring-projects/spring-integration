@@ -24,12 +24,13 @@ import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * A simple {@link ErrorMessageStrategy} implementations which produces
- * a error message with original message if the {@link AttributeAccessor} has
+ * an error message with original message if the {@link AttributeAccessor} has
  * {@link ErrorMessageUtils#INPUT_MESSAGE_CONTEXT_KEY} attribute.
- * Otherwise plain {@link ErrorMessage} with the {@code throwable} as {@code payload}.
+ * Otherwise, plain {@link ErrorMessage} with the {@code throwable} as {@code payload}.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 4.3.10
  *
@@ -41,8 +42,8 @@ public class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor attributes) {
 		Object inputMessage = attributes == null ? null
 				: attributes.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		if (inputMessage instanceof Message) {
-			return new ErrorMessage(throwable, (Message<?>) inputMessage);
+		if (inputMessage instanceof Message<?> message) {
+			return new ErrorMessage(throwable, message.getHeaders(), message);
 		}
 		else {
 			return new ErrorMessage(throwable);

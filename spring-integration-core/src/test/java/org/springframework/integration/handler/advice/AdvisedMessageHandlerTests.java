@@ -77,6 +77,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jiandong Ma
  *
  * @since 2.2
  */
@@ -550,10 +551,11 @@ public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!", Map.of("source", "upstream"));
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
 		assertThat(error).isNotNull();
+		assertThat(error.getHeaders()).containsEntry("source", "upstream");
 		assertThat(error.getPayload())
 				.asInstanceOf(InstanceOfAssertFactories.THROWABLE)
 				.isInstanceOf(MessagingException.class)
