@@ -48,8 +48,10 @@ import org.springframework.messaging.support.GenericMessage;
  * rendered in JSON and the payload unchanged.
  * Otherwise, message is fully serialized and deserialized with Jackson object mapper.
  * <p>
- * By default, all headers are included; you can provide simple patterns to specify a
- * subset of headers.
+ * By default, embed no headers apart from the standard {@link MessageHeaders#ID},
+ * {@link MessageHeaders#TIMESTAMP} and {@link MessageHeaders#CONTENT_TYPE} headers;
+ * always embed those (when present) to restore them on the receiving side.
+ * Provide simple patterns to specify additional headers to embed.
  * <p>
  * If neither expected format is detected, nor an error occurs during conversion, the
  * payload of the message is the original {@code byte[]}.
@@ -76,6 +78,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  * @deprecated Since 7.0 in favor of {@link EmbeddedHeadersJsonMessageMapper} for Jackson 3.
@@ -97,16 +100,20 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	private boolean caseSensitive;
 
 	/**
-	 * Construct an instance that embeds all headers, using the default
-	 * JSON Object mapper.
+	 * Construct an instance that embeds no headers besides the standard
+	 * {@link MessageHeaders#ID}, {@link MessageHeaders#TIMESTAMP} and
+	 * {@link MessageHeaders#CONTENT_TYPE}; use the default JSON Object mapper.
 	 */
 	public EmbeddedJsonHeadersMessageMapper() {
-		this("*");
+		this("");
 	}
 
 	/**
-	 * Construct an instance that embeds headers matching the supplied patterns, using
-	 * the default JSON object mapper.
+	 * Construct an instance that embeds headers matching the supplied patterns;
+	 * use the default JSON object mapper. Always embed the standard
+	 * {@link MessageHeaders#ID}, {@link MessageHeaders#TIMESTAMP} and
+	 * {@link MessageHeaders#CONTENT_TYPE} headers (when present) regardless of the
+	 * supplied patterns.
 	 * @param headerPatterns the patterns.
 	 * @see PatternMatchUtils#smartMatch(String, String...)
 	 */
@@ -115,17 +122,21 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	/**
-	 * Construct an instance that embeds all headers, using the
-	 * supplied JSON object mapper.
+	 * Construct an instance that embeds no headers besides the standard
+	 * {@link MessageHeaders#ID}, {@link MessageHeaders#TIMESTAMP} and
+	 * {@link MessageHeaders#CONTENT_TYPE}; use the supplied JSON object mapper.
 	 * @param objectMapper the object mapper.
 	 */
 	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper) {
-		this(objectMapper, "*");
+		this(objectMapper, "");
 	}
 
 	/**
-	 * Construct an instance that embeds headers matching the supplied patterns using the
-	 * supplied JSON object mapper.
+	 * Construct an instance that embeds headers matching the supplied patterns;
+	 * use the supplied JSON object mapper. Always embed the standard
+	 * {@link MessageHeaders#ID}, {@link MessageHeaders#TIMESTAMP} and
+	 * {@link MessageHeaders#CONTENT_TYPE} headers (when present) regardless of the
+	 * supplied patterns.
 	 * @param objectMapper the object mapper.
 	 * @param headerPatterns the patterns.
 	 */
@@ -174,13 +185,6 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			Message<?> messageToEncode = message;
 
 			if (!this.allHeaders) {
-				if (!headersToEncode.containsKey(MessageHeaders.ID)) {
-					headersToEncode.put(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
-				}
-				if (!headersToEncode.containsKey(MessageHeaders.TIMESTAMP)) {
-					headersToEncode.put(MessageHeaders.TIMESTAMP, -1L);
-				}
-
 				messageToEncode = new MutableMessage<>(message.getPayload(), headersToEncode);
 			}
 
@@ -193,12 +197,18 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		}
 	}
 
-	private Map<String, Object> pruneHeaders(MessageHeaders messageHeaders) {
-		return messageHeaders
+	private Map<String, Object> pruneHeaders(Map<String, Object> headers) {
+		return headers
 				.entrySet()
 				.stream()
-				.filter(e -> matchHeader(e.getKey()))
+				.filter(e -> isStandardHeader(e.getKey()) || matchHeader(e.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
+
+	private static boolean isStandardHeader(String header) {
+		return MessageHeaders.ID.equals(header)
+				|| MessageHeaders.TIMESTAMP.equals(header)
+				|| MessageHeaders.CONTENT_TYPE.equals(header);
 	}
 
 	private boolean matchHeader(String header) {
@@ -233,7 +243,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		}
 		if (message == null) {
 			try {
-				message = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
+				message = decodeJson(bytes);
 			}
 			catch (Exception ex) {
 				this.logger.debug("Failed to decode JSON", ex);
@@ -271,6 +281,8 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 					buffer.get(payloadBytes);
 					payload = payloadBytes;
 
+					headers = this.allHeaders ? headers : pruneHeaders(headers);
+
 					if (headersToAdd != null) {
 						headersToAdd.forEach(headers::putIfAbsent);
 					}
@@ -280,6 +292,17 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			}
 		}
 		return null;
+	}
+
+	private Message<?> decodeJson(byte[] bytes) throws IOException {
+		Message<?> decoded = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
+		if (this.allHeaders) {
+			return decoded;
+		}
+		else {
+			Map<String, Object> prunedHeaders = pruneHeaders(decoded.getHeaders());
+			return new GenericMessage<>(decoded.getPayload(), new MutableMessageHeaders(prunedHeaders));
+		}
 	}
 
 }

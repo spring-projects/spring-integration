@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Jooyoung Pyoung
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -40,7 +41,7 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 
 	@Test
 	public void testEmbedAll() {
-		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("*");
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertThat(mapper.toMessage(mapper.fromMessage(message))).isEqualTo(message);
 	}
@@ -50,11 +51,11 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper(MessageHeaders.ID);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		byte[] encodedMessage = mapper.fromMessage(message);
-		// some delay for a fresh timestamp on a decoded message
+		// some delay to prove the original timestamp (not a fresh one) is restored
 		Thread.sleep(2);
 		Message<?> decoded = mapper.toMessage(encodedMessage);
 		assertThat(decoded.getPayload()).isEqualTo(message.getPayload());
-		assertThat(decoded.getHeaders().getTimestamp()).isNotEqualTo(message.getHeaders().getTimestamp());
+		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
 
 		JsonMapper jsonMapper = new JsonMapper();
 		Map<String, Object> encodedMessageToCheck =
@@ -68,12 +69,12 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headersToCheck = (Map<String, Object>) headers;
-		assertThat(headersToCheck).doesNotContainKey(MessageHeaders.TIMESTAMP);
+		assertThat(headersToCheck).containsKey(MessageHeaders.TIMESTAMP);
 	}
 
 	@Test
 	public void testBytesEmbedAll() throws Exception {
-		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("*");
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Thread.sleep(2);
 		byte[] bytes = mapper.fromMessage(message);
@@ -102,7 +103,7 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 		bb.get(headerBytes);
 		String headers = new String(headerBytes);
 		assertThat(headers).contains(message.getHeaders().getId().toString());
-		assertThat(headers).doesNotContain(MessageHeaders.TIMESTAMP);
+		assertThat(headers).contains(MessageHeaders.TIMESTAMP);
 		assertThat(headers).doesNotContain("bar");
 		assertThat(bb.getInt()).isEqualTo(3);
 		assertThat(bb.remaining()).isEqualTo(3);
@@ -127,14 +128,14 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 
 	@Test
 	public void testBytesDecodeAll() {
-		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("*");
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
 		assertThat(decoded).isEqualTo(message);
 	}
 
 	@Test
-	public void testDontMapIdButOthers() {
+	public void testStandardHeadersAlwaysIncludedEvenWhenExcludedByPattern() {
 		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper("!" + MessageHeaders.ID, "*");
 		GenericMessage<String> message = new GenericMessage<>("foo", Collections.singletonMap("bar", "baz"));
 		byte[] encodedMessage = mapper.fromMessage(message);
@@ -151,14 +152,56 @@ public class EmbeddedHeadersJsonMessageMapperTests {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headersToCheck = (Map<String, Object>) headers;
-		assertThat(headersToCheck).doesNotContainKey(MessageHeaders.ID);
-		assertThat(headersToCheck).containsKey(MessageHeaders.TIMESTAMP);
-		assertThat(headersToCheck).containsKey("bar");
+		assertThat(headersToCheck).containsKeys(MessageHeaders.ID, MessageHeaders.TIMESTAMP, "bar");
 
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
 		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
-		assertThat(decoded.getHeaders().getId()).isNotEqualTo(message.getHeaders().getId());
+		assertThat(decoded.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
 		assertThat(decoded.getHeaders().get("bar")).isEqualTo("baz");
+	}
+
+	@Test
+	public void testStandardHeadersAlwaysEmbeddedByDefault() throws InterruptedException {
+		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper();
+		GenericMessage<String> message =
+				new GenericMessage<>("foo", Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "text/plain"));
+		Thread.sleep(2);
+		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
+		assertThat(decoded.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
+		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
+		assertThat(decoded.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isEqualTo("text/plain");
+	}
+
+	@Test
+	public void testUntrustedHeadersOnWireArePrunedOnDecodeNativeFormat() {
+		EmbeddedHeadersJsonMessageMapper untrustedProducer = new EmbeddedHeadersJsonMessageMapper("*");
+		GenericMessage<byte[]> message =
+				new GenericMessage<>("test".getBytes(), Collections.singletonMap("untrusted", "attacker-value"));
+		byte[] bytesOnTheWire = untrustedProducer.fromMessage(message);
+
+		EmbeddedHeadersJsonMessageMapper restrictedConsumer = new EmbeddedHeadersJsonMessageMapper();
+		Message<?> decoded = restrictedConsumer.toMessage(bytesOnTheWire);
+
+		assertThat(decoded.getHeaders().get("untrusted")).isNull();
+		assertThat(decoded.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
+		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
+	}
+
+	@Test
+	public void testUntrustedHeadersOnWireArePrunedOnDecodeJson() {
+		EmbeddedHeadersJsonMessageMapper untrustedProducer = new EmbeddedHeadersJsonMessageMapper("*");
+		untrustedProducer.setRawBytes(false);
+		GenericMessage<String> message =
+				new GenericMessage<>("test", Collections.singletonMap("untrusted", "attacker-value"));
+		byte[] bytesOnTheWire = untrustedProducer.fromMessage(message);
+
+		EmbeddedHeadersJsonMessageMapper restrictedConsumer = new EmbeddedHeadersJsonMessageMapper();
+		restrictedConsumer.setRawBytes(false);
+		Message<?> decoded = restrictedConsumer.toMessage(bytesOnTheWire);
+
+		assertThat(decoded.getHeaders().get("untrusted")).isNull();
+		assertThat(decoded.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
+		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
 	}
 
 }

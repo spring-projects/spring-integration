@@ -139,7 +139,7 @@ public class BackToBackAdapterTests implements MosquittoContainerTest {
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		EmbeddedHeadersJsonMessageMapper mapper = new EmbeddedHeadersJsonMessageMapper(
-				JacksonMessagingUtils.messagingAwareMapper("org.springframework"));
+				JacksonMessagingUtils.messagingAwareMapper("org.springframework"), "*");
 		DefaultPahoMessageConverter converter = new DefaultPahoMessageConverter();
 		converter.setBytesMessageMapper(mapper);
 		converter.setBeanFactory(mock(BeanFactory.class));
