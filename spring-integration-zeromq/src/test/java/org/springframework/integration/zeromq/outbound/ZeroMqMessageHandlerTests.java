@@ -98,7 +98,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
-		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper());
+		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper("*"));
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
 
@@ -112,7 +112,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 					assertThat(msg).isNotNull();
 					assertThat(msg.unwrap().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
 					Message<?> capturedMessage =
-							new EmbeddedHeadersJsonMessageMapper().toMessage(msg.getFirst().getData());
+							new EmbeddedHeadersJsonMessageMapper("*").toMessage(msg.getFirst().getData());
 					assertThat(capturedMessage).isEqualTo(testMessage);
 					msg.destroy();
 				});
@@ -164,7 +164,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
-		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper());
+		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper("*"));
 		messageHandler.wrapTopic(false);
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
@@ -179,7 +179,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 					assertThat(msg).isNotNull();
 					assertThat(msg.pop().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
 					Message<?> capturedMessage =
-							new EmbeddedHeadersJsonMessageMapper().toMessage(msg.getFirst().getData());
+							new EmbeddedHeadersJsonMessageMapper("*").toMessage(msg.getFirst().getData());
 					assertThat(capturedMessage).isEqualTo(testMessage);
 					msg.destroy();
 				});
@@ -196,7 +196,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
-		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper());
+		messageHandler.setMessageMapper(new EmbeddedHeadersJsonMessageMapper("*"));
 		messageHandler.wrapTopic(false);
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
@@ -216,7 +216,7 @@ public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 					assertThat(msg).isNotNull();
 					assertThat(msg.pop().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
 					Message<?> capturedMessage =
-							new EmbeddedHeadersJsonMessageMapper().toMessage(msg.getFirst().getData());
+							new EmbeddedHeadersJsonMessageMapper("*").toMessage(msg.getFirst().getData());
 					assertThat(capturedMessage).isEqualTo(testMessage);
 					msg.destroy();
 				});

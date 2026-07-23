@@ -418,7 +418,7 @@ public class TcpMessageMapperTests {
 				.setHeader("bar", "baz")
 				.build();
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		mapper.setBytesMessageMapper(new EmbeddedHeadersJsonMessageMapper());
+		mapper.setBytesMessageMapper(new EmbeddedHeadersJsonMessageMapper("*"));
 		mapper.setBeanFactory(mock());
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
