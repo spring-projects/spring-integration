@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
@@ -93,6 +95,11 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 	@Override
 	protected void onInit() {
 		super.onInit();
+
+		Path workDirectoryPath = this.workDirectory.toPath();
+
+		Assert.isTrue(!Files.isSymbolicLink(workDirectoryPath),
+				() -> "The 'workDirectory' [" + this.workDirectory + "] must not be a symbolic link.");
 
 		if (!this.workDirectory.exists()) {
 			logger.info(() -> "Creating work directory: " + this.workDirectory);

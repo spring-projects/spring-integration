@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -30,6 +31,8 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.zip.ZipException;
 import org.zeroturnaround.zip.ZipUtil;
@@ -49,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  *
@@ -423,6 +427,25 @@ public class UnZipTransformerTests {
 			}
 		}
 		return new ByteArrayInputStream(baos.toByteArray());
+	}
+
+	@Test
+	@EnabledOnOs(value = {OS.LINUX, OS.MAC},
+			disabledReason = "Requires Files.createSymbolicLink(), which needs elevated privilege on Windows")
+	public void workDirectoryAsSymbolicLinkIsRejected() throws IOException {
+		File realTargetDir = new File(this.workDir, "real-target");
+		realTargetDir.mkdirs();
+
+		File symlinkedWorkDir = new File(this.workDir, "ziptransformer-symlink");
+		Files.createSymbolicLink(symlinkedWorkDir.toPath(), realTargetDir.toPath());
+
+		UnZipTransformer unZipTransformer = new UnZipTransformer();
+		unZipTransformer.setWorkDirectory(symlinkedWorkDir);
+		unZipTransformer.setBeanFactory(this.testApplicationContext);
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(unZipTransformer::afterPropertiesSet)
+				.withMessageContaining("must not be a symbolic link");
 	}
 
 	@Configuration(proxyBeanMethods = false)
