@@ -16,13 +16,9 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
@@ -34,7 +30,6 @@ import org.springframework.integration.codec.Codec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.DecodingTransformer;
 import org.springframework.integration.transformer.EncodingPayloadTransformer;
@@ -309,33 +304,6 @@ public abstract class Transformers {
 	 */
 	public static StreamTransformer fromStream(String charset) {
 		return new StreamTransformer(charset);
-	}
-
-	@SuppressWarnings({"unchecked", "NullAway"})
-	static <I, O> Flux<Message<O>> transformWithFunction(Publisher<Message<I>> publisher,
-			Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
-
-		return Flux.from(publisher)
-				.flatMap(message ->
-						Mono.deferContextual(ctx -> {
-							ctx.get(RequestMessageHolder.class).set(message);
-							return Mono.just(message);
-						}))
-				.transform(fluxFunction)
-				.flatMap(data ->
-						data instanceof Message<?>
-								? Mono.just((Message<O>) data)
-								: Mono.deferContextual(ctx -> Mono.just(ctx.get(RequestMessageHolder.class).get()))
-								.map(requestMessage ->
-										MessageBuilder.withPayload(data)
-												.copyHeaders(requestMessage.getHeaders())
-												.build()))
-				.contextWrite(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
-	}
-
-	@SuppressWarnings("serial")
-	private static final class RequestMessageHolder extends AtomicReference<Message<?>> {
-
 	}
 
 }

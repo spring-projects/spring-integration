@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.junitpioneer.jupiter.RetryingTest;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -54,6 +56,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.ReactiveMessageSourceProducer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -63,6 +66,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -203,9 +207,11 @@ public class ReactiveStreamsTests {
 
 		IntegrationFlow integrationFlow = f -> f
 				.splitWith((splitter) -> splitter.delimiters(","))
-				.<String, String>fluxTransform(flux -> flux
-						.map(Message::getPayload)
-						.map(String::toUpperCase))
+				.<String, Message<String>>fluxTransform(flux -> flux
+						.map(message ->
+								MessageBuilder.withPayload(message.getPayload().toUpperCase())
+										.copyHeaders(message.getHeaders())
+										.build()))
 				.aggregate(a -> a
 						.outputProcessor(group -> group
 								.getMessages()
@@ -227,6 +233,41 @@ public class ReactiveStreamsTests {
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("A,B,C,D,E");
+
+		integrationFlowRegistration.destroy();
+	}
+
+	@Test
+	void testFluxTransformThrowsWhenFunctionEmitsRawPayload() {
+		IntegrationFlow integrationFlow =
+				f -> f
+						.<String, String>fluxTransform(flux -> flux
+								.map(Message::getPayload))
+						.channel(new QueueChannel());
+
+		IntegrationFlowContext.IntegrationFlowRegistration integrationFlowRegistration =
+				this.integrationFlowContext.registration(integrationFlow).register();
+
+		MessageChannel inputChannel = integrationFlowRegistration.getInputChannel();
+
+		AtomicReference<Throwable> droppedError = new AtomicReference<>();
+		Hooks.onErrorDropped(droppedError::set);
+		try {
+			// The reactive subscription chain settles asynchronously, so retry the send
+			// until the channel has a subscriber; a failed attempt delivers nothing.
+			await().atMost(Duration.ofSeconds(5))
+					.ignoreExceptions()
+					.until(() -> inputChannel.send(new GenericMessage<>("test")));
+
+			await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertThat(droppedError.get()).isNotNull());
+			assertThat(droppedError.get())
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessage(
+							"The 'fluxFunction' must emit a Message<?> for every element; got: class java.lang.String");
+		}
+		finally {
+			Hooks.resetOnErrorDropped();
+		}
 
 		integrationFlowRegistration.destroy();
 	}
