@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.apache.commons.logging.Log;
@@ -35,6 +36,11 @@ import org.springframework.util.Assert;
 
 /**
  * Base Class for {@link ScriptExecutor}.
+ * <p>
+ * Per JSR-223 ({@link javax.script.ScriptEngineFactory#getParameter(String)}),
+ * a {@code null} "THREADING" parameter means the engine must not be used
+ * to evaluate scripts concurrently from multiple threads.
+ * Such an engine is guarded with {@code synchronized} in {@link #executeScript(ScriptSource, Map)}.
  *
  * @author David Turanski
  * @author Mark Fisher
@@ -50,10 +56,13 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	private final ScriptEngine scriptEngine;
 
+	private final boolean threadSafeEngine;
+
 	protected AbstractScriptExecutor(String language) {
 		Assert.hasText(language, "language must not be empty");
 		this.scriptEngine = new ScriptEngineManager().getEngineByName(language);
 		Assert.notNull(this.scriptEngine, () -> invalidLanguageMessage(language));
+		this.threadSafeEngine = isThreadSafe(this.scriptEngine);
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Using script engine : " + this.scriptEngine.getFactory().getEngineName());
 		}
@@ -62,6 +71,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	protected AbstractScriptExecutor(ScriptEngine scriptEngine) {
 		Assert.notNull(scriptEngine, "'scriptEngine' must not be null.");
 		this.scriptEngine = scriptEngine;
+		this.threadSafeEngine = isThreadSafe(scriptEngine);
 	}
 
 	public ScriptEngine getScriptEngine() {
@@ -81,10 +91,15 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 			Bindings bindings = null;
 			if (variables != null && !variables.isEmpty()) {
 				bindings = new SimpleBindings(variables);
-				result = this.scriptEngine.eval(script, bindings);
+			}
+
+			if (this.threadSafeEngine) {
+				result = eval(script, bindings);
 			}
 			else {
-				result = this.scriptEngine.eval(script);
+				synchronized (this.scriptEngine) {
+					result = eval(script, bindings);
+				}
 			}
 
 			result = postProcess(result, this.scriptEngine, script, bindings);
@@ -97,6 +112,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 		catch (Exception e) {
 			throw new ScriptingException(e.getMessage(), e);
 		}
+	}
+
+	private Object eval(String script, @Nullable Bindings bindings) throws ScriptException {
+		return bindings != null ? this.scriptEngine.eval(script, bindings) : this.scriptEngine.eval(script);
 	}
 
 	/**
@@ -113,6 +132,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 		return ScriptEngineManager.class.getName() +
 				" is unable to create a script engine for language '" + language + "'.\n" +
 				"This may be due to a missing language implementation or an invalid language name.";
+	}
+
+	private static boolean isThreadSafe(ScriptEngine scriptEngine) {
+		return scriptEngine.getFactory().getParameter("THREADING") != null;
 	}
 
 }
