@@ -36,10 +36,13 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -54,6 +57,7 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.dsl.BaseIntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
@@ -240,6 +244,37 @@ public class ManualFlowTests {
 		assertThat(n).isLessThan(100);
 
 		assertThat(additionalBean.destroyed).isTrue();
+	}
+
+	@Test
+	void additionalBeanReceivesDependencyInjection() {
+		SupportComponent supportComponent = new SupportComponent();
+		IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(BaseIntegrationFlowDefinition::bridge)
+						.id("dependencyInjectionFlow")
+						.addBean("testSupportComponent", supportComponent)
+						.register();
+
+		assertThat(this.beanFactory.containsBean("testSupportComponent")).isTrue();
+		assertThat(supportComponent.dependency).isNotNull();
+
+		flowRegistration.destroy();
+	}
+
+	@Test
+	void additionalBeanPostProcessorReplacementIsPreserved() {
+		ProxiedComponent proxiedComponent = new ProxiedComponent();
+		IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(BaseIntegrationFlowDefinition::bridge)
+						.id("proxyPreservingFlow")
+						.addBean("testProxiedComponent", proxiedComponent)
+						.register();
+
+		Object registeredBean = this.beanFactory.getBean("testProxiedComponent");
+		assertThat(AopUtils.isAopProxy(registeredBean)).isTrue();
+		assertThat(registeredBean).isNotSameAs(proxiedComponent);
+
+		flowRegistration.destroy();
 	}
 
 	@Test
@@ -536,6 +571,43 @@ public class ManualFlowTests {
 		public MessageChannel doNotOverrideChannel() {
 			return new DirectChannel();
 		}
+
+		@Bean
+		Dependency dependency() {
+			return new Dependency();
+		}
+
+		@Bean
+		static BeanPostProcessor proxyingBeanPostProcessor() {
+			return new BeanPostProcessor() {
+
+				@Override
+				public Object postProcessAfterInitialization(Object bean, String beanName) {
+					if (bean instanceof ProxiedComponent) {
+						ProxyFactory proxyFactory = new ProxyFactory(bean);
+						proxyFactory.setProxyTargetClass(true);
+						return proxyFactory.getProxy();
+					}
+					return bean;
+				}
+
+			};
+		}
+
+	}
+
+	private static class Dependency {
+
+	}
+
+	private static class SupportComponent {
+
+		@Autowired
+		Dependency dependency;
+
+	}
+
+	static class ProxiedComponent {
 
 	}
 
