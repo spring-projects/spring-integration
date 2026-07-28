@@ -4,6 +4,9 @@
 
 Starting with version 6.4, the HTTP module provides an `@EnableControlBusController` configuration class annotation to expose the `ControlBusController` as a REST service at the `/control-bus` path.
 The `ControlBusControllerConfiguration` underneath enables eager initialization for the `ControlBusCommandRegistry` to expose all the available control bus commands for the mentioned REST service.
+
+IMPORTANT: Since Control Bus is powerful enough to make changes into the system state, it is recommended to secure the `/control-bus` endpoints (for example, with Spring Security) and expose the Control Bus Controller only into DMZ.
+
 The `/control-bus` GET request returns all the control bus commands for the application in a format like this:
 
 [source,json]
