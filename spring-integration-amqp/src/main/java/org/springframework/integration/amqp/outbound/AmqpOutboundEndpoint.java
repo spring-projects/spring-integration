@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Jun Cho
  *
  * @since 2.1
  */
@@ -95,6 +96,12 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	 * received within the confirm timeout or a negative acknowledgment or returned
 	 * message is received, an exception will be thrown. Does not apply to the gateway
 	 * since it blocks awaiting the reply.
+	 * <p>
+	 * When there is no correlation data for the message and the connection factory is
+	 * configured for simple publisher confirms, the message is sent within the scope of a
+	 * {@code RabbitTemplate.invoke()} operation and {@code waitForConfirmsOrDie()} is used
+	 * instead. A returned message does not fail the send in that case; it is published to
+	 * the return channel, if one is configured.
 	 * @param waitForConfirm true to block until the confirmation or timeout is received.
 	 * @since 5.2
 	 * @see #setConfirmTimeout(long)
@@ -156,6 +163,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 						+ "does not support returned messages; none will be received");
 			}
 		}
+		if (this.waitForConfirm && !usesSimplePublisherConfirms() && !usesCorrelatedPublisherConfirms()) {
+			this.logger.warn("The 'waitForConfirm' is set to true but the underlying connection factory "
+					+ "does not support publisher confirms; no confirmations will be awaited");
+		}
 		Duration confirmTimeout = getConfirmTimeout();
 		if (confirmTimeout != null) {
 			this.waitForConfirmTimeout = confirmTimeout;
@@ -179,6 +190,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		}
 		if (this.multiSend && requestMessage.getPayload() instanceof Iterable) {
 			multiSend(requestMessage, exchangeName, routingKey);
+			return null;
+		}
+		else if (this.waitForConfirm && correlationData == null && usesSimplePublisherConfirms()) {
+			sendAndWaitForConfirms(exchangeName, routingKey, requestMessage);
 			return null;
 		}
 		else {
@@ -206,6 +221,28 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 			}
 			return null;
 		});
+	}
+
+	private void sendAndWaitForConfirms(@Nullable String exchangeName, @Nullable String routingKey,
+			Message<?> requestMessage) {
+
+		RabbitTemplate rabbitTemplateToUse = this.rabbitTemplate;
+		Assert.notNull(rabbitTemplateToUse, "The 'RabbitTemplate' must be provided to wait for confirms.");
+		rabbitTemplateToUse.<@Nullable Object>invoke(template -> {
+			doRabbitSend(exchangeName, routingKey, requestMessage, null, rabbitTemplateToUse);
+			template.waitForConfirmsOrDie(this.waitForConfirmTimeout.toMillis());
+			return null;
+		});
+	}
+
+	private boolean usesSimplePublisherConfirms() {
+		return this.rabbitTemplate != null
+				&& this.rabbitTemplate.getConnectionFactory().isSimplePublisherConfirms();
+	}
+
+	private boolean usesCorrelatedPublisherConfirms() {
+		return this.rabbitTemplate != null
+				&& this.rabbitTemplate.getConnectionFactory().isPublisherConfirms();
 	}
 
 	private void waitForConfirm(Message<?> requestMessage, CorrelationData correlationData) {
