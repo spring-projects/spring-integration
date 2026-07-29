@@ -1309,9 +1309,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 				if (this.correlationKey != null) {
 					Log debugLogger = LogFactory.getLog("si.jmsgateway.debug");
 					if (debugLogger.isDebugEnabled()) {
-						Object siMessage = this.messageConverter.fromMessage(message);
-						debugLogger.debug("No pending reply for " + siMessage + " with correlationId: "
-								+ correlationId + " pending replies: " + this.replies.keySet());
+						debugLogger.debug("No pending reply for message of type " + message.getJMSType()
+								+ " with correlationId: " + correlationId
+								+ " pending replies: " + this.replies.keySet());
 					}
 					throw new IllegalStateException("No sender waiting for reply");
 				}
