@@ -162,6 +162,15 @@ The mentioned above validation and filtering might be applied to them before the
 
 - `spring-integration-file`
  * `file_name`
+ * `delete_source_files`
+ * `destination_directory`
+ * `destination_directory_expression`
+ * `original_file`
+ * `relative_path`
+ * `rename_to`
+ * `remote_diretory`
+ * `remote_file`
+
 
 - `spring-integration-ip`
  * `ip_ackTo`
