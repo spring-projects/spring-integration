@@ -166,6 +166,9 @@ The mentioned above validation and filtering might be applied to them before the
 - `spring-integration-ip`
  * `ip_ackTo`
 
+- `spring-integration-jdbc`
+ * `stored_procedure_expression`
+
 - `spring-integration-jmx`
  * `jmx_objectName`
  * `jmx_operationName`
