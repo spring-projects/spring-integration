@@ -41,7 +41,6 @@ import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -266,7 +265,7 @@ public class IntegrationFlowBeanPostProcessor
 					}
 					else if (component instanceof FixedSubscriberChannel fixedSubscriberChannel) {
 						String channelBeanName = fixedSubscriberChannel.getComponentName();
-						if ("Unnamed fixed subscriber channel" .equals(channelBeanName)) {
+						if ("Unnamed fixed subscriber channel".equals(channelBeanName)) {
 							channelBeanName = flowNamePrefix + "channel" +
 									BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
 						}
@@ -518,7 +517,8 @@ public class IntegrationFlowBeanPostProcessor
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
 
-		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
+		this.beanFactory.registerBeanDefinition(beanName, beanDefinition);
+		// Force early FactoryBean#getObject() resolution, e.g. for ConsumerEndpointFactoryBean et al.
 		this.beanFactory.getBean(beanName);
 	}
 
@@ -535,8 +535,11 @@ public class IntegrationFlowBeanPostProcessor
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
 
-		this.beanFactory.registerSingleton(beanName, component);
-		this.beanFactory.initializeBean(component, beanName);
+		this.beanFactory.autowireBean(component);
+		Object initializedComponent = this.beanFactory.initializeBean(component, beanName);
+		// Register the post-processed (e.g. possibly proxied) instance, not the raw one.
+		this.beanFactory.registerSingleton(beanName, initializedComponent);
+		// Force early FactoryBean#getObject() resolution, e.g. for ConsumerEndpointFactoryBean et al.
 		this.beanFactory.getBean(beanName);
 	}
 
