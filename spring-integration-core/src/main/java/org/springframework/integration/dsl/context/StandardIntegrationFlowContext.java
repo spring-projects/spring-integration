@@ -164,8 +164,11 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 				componentSourceAware.setComponentDescription(description);
 			}
 		}
-		this.beanFactory.registerSingleton(beanName, bean);
-		return (B) this.beanFactory.initializeBean(bean, beanName);
+		this.beanFactory.autowireBean(bean);
+		B initializedBean = (B) this.beanFactory.initializeBean(bean, beanName);
+		// Register the post-processed (e.g. possibly proxied) instance, not the raw one.
+		this.beanFactory.registerSingleton(beanName, initializedBean);
+		return initializedBean;
 	}
 
 	/**
@@ -175,8 +178,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * @return the IntegrationFlowRegistration for provided {@code id} or {@code null}
 	 */
 	@Override
-	@Nullable
-	public IntegrationFlowRegistration getRegistrationById(String flowId) {
+	public @Nullable IntegrationFlowRegistration getRegistrationById(String flowId) {
 		return this.registry.get(flowId);
 	}
 
