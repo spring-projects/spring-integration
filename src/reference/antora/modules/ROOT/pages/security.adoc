@@ -168,7 +168,7 @@ The mentioned above validation and filtering might be applied to them before the
  * `file_remoteDirectory`
  * `file_remoteFile`
 
-NOTE: The following settings in `FileWritingMessageHandler` are also sensitive: `deleteSourceFiles`, `destinationDirectoryExpression`.
+NOTE: The following setting in `FileWritingMessageHandler` is also sensitive: `destinationDirectoryExpression`.
 
 - `spring-integration-ip`
  * `ip_ackTo`
