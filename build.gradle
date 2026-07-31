@@ -107,6 +107,12 @@ allprojects {
 	}
 }
 
+apply from: "${rootProject.projectDir}/publish-maven.gradle"
+
+if (System.getenv('ARTIFACTORY_USERNAME')) {
+	apply from: "${rootProject.projectDir}/commercial-settings.gradle"
+}
+
 configure(javaProjects) { subproject ->
     apply plugin: 'java-library'
     apply plugin: 'eclipse'
@@ -115,8 +121,6 @@ configure(javaProjects) { subproject ->
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
     apply plugin: 'io.spring.nullability'
-
-    apply from: "${rootDir}/gradle/publish-maven.gradle"
 
     def scopeAttribute = Attribute.of('dependency.scope', String)
 
@@ -945,7 +949,6 @@ project('spring-integration-bom') {
     description = 'Spring Integration (Bill of Materials)'
 
     apply plugin: 'java-platform'
-    apply from: "${rootDir}/gradle/publish-maven.gradle"
 
     dependencies {
         constraints {
@@ -1117,8 +1120,6 @@ tasks.register('dist') {
     group = 'Distribution'
     description = 'Builds -dist, -docs and -schema distribution archives.'
 }
-
-apply from: "$rootDir/gradle/publish-maven.gradle"
 
 publishing {
     publications {
