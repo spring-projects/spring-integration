@@ -2,85 +2,20 @@
 = What's New?
 
 [[spring-integration-intro-new]]
-For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 7.1.
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 7.2.
 
 If you are interested in the changes and features that were introduced in earlier versions, see the xref:history.adoc[Change History].
 
-[[what-s-new-in-spring-integration-7-1]]
-== What's New in Spring Integration 7.1?
+[[what-s-new-in-spring-integration-7-2]]
+== What's New in Spring Integration 7.2?
 
-For more details, see the https://github.com/spring-projects/spring-integration/issues[GitHub Issues] that were resolved as part of the 7.1 development process.
+For more details, see the https://github.com/spring-projects/spring-integration/issues[GitHub Issues] that were resolved as part of the 7.2 development process.
 
 In general, the project has been moved to the latest dependency versions.
 Java 17 is still the baseline, but Java 25 is supported.
 
-[[x7.1-new-components]]
+[[x7.2-new-components]]
 === New Components
 
-[[x7.1-cloudevents]]
-==== CloudEvents Support
-
-The new `spring-integration-cloudevents` module has been introduced to support CloudEvents specification.
-See xref:cloudevents.adoc[] for more information.
-
-[[x7.1-grpc]]
-==== gRPC Support
-
-The new `spring-integration-grpc` module has been introduced to support gRPC framework.
-See xref:grpc.adoc[] for more information.
-
-[[x7.1-general-changes]]
+[[x7.2-general-changes]]
 === General Changes
-
-The `MessageTransformingHandler.requiresReply` flag cannot be modified: an `UnsupportedOperationException` is thrown from the overridden `setRequiresReply()` method to indicate the transformer pattern cannot produce nulls for replies.
-See xref:transformer.adoc[] for more information.
-
-A new `spring.integration.annotations.enable` property is introduced to control method-level annotations processing.
-See xref:configuration/annotations.adoc[] for more information.
-
-[[x7.1-web-services-changes]]
-=== Web Services Support Changes
-
-The Web Services Outbound Gateway now can rely on the provided `WebServiceTemplate.defaultUri`.
-See xref:ws.adoc[] for more information.
-
-[[x7.1-testing-changes]]
-=== Testing Support Changes
-
-The `TestUtils.getPropertyValue()` with a `Class<?>` argument has been deprecated in favor of the change on the overloaded method from an `Object` return type to the generic argument.
-This gives a flexible casting of the extracted value to the expected type in tests logic.
-See xref:testing.adoc[] for more information.
-
-[[x7.1-redis-changes]]
-=== Redis Support Changes
-
-The `RedisMessageStore.doRemove` now uses `GETDEL` instead of `GET` + `UNLINK` for Redis 6.2+ by default.
-Use `RedisMessageStore.setUseUnlink(true)` to use `GET` + `UNLINK` when atomicity is not required and `GETDEL` causes noticeable Redis latency.
-The Redis module now provides a Java DSL API via its dedicated `org.springframework.integration.redis.dsl.Redis` factory.
-The RedisLockRegistry now uses native Redis CAS/CAD commands for lock renewal and release (Redis 8.4+), with automatic fallback to Lua scripts for older Redis versions.
-See xref:redis.adoc[] for more information.
-
-[[x7.1-jms-changes]]
-=== JMS Support Changes
-
-JMS-backed message channels now map headers to JMS message properties and back.
-See xref:jms.adoc[] for more information.
-
-JMS DSL now allows the user to set the `JmsTemplate`.
-When using an external `JmsTemplate` it must be configured prior to when it is set, because the DSL can only set the
-configurations for the default `JmsTemplate`.
-
-[[x7.1-http-changes]]
-=== HTTP Support Changes
-
-The `HttpRequestExecutingMessageHandler` (its XML and Java DSL) now can be used with a `RestClient`.
-The `RestTemplate` configuration is deprecated.
-See xref:http.adoc[] for more information.
-
-[[x7.1-mqtt-changes]]
-=== MQTT Changes
-
-For payloads other than `byte[]` or `String`, the `Mqttv5PahoMessageHandler` now delegates the conversion to the configured `MessageConverter` via `toMessage()`, instead of via `fromMessage()`.
-The `Mqttv5PahoMessageDrivenChannelAdapter` now delegates inbound `payloadType` conversion to the configured `SmartMessageConverter` via `fromMessage()`.
-This is a breaking change for custom MQTT v5 converters that relied on the previous reversed method call, but it aligns both channel adapters with the Spring Messaging converter contract.
-See xref:mqtt.adoc[] for more information.
