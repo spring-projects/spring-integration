@@ -26,11 +26,10 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
+import org.springframework.http.converter.multipart.MultipartHttpMessageConverter;
 import org.springframework.integration.http.multipart.DefaultMultipartFileReader;
 import org.springframework.integration.http.multipart.MultipartFileReader;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
@@ -41,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * An {@link HttpMessageConverter} implementation that delegates to an instance of
- * {@link AllEncompassingFormHttpMessageConverter} while adding the capability to <i>read</i>
+ * {@link MultipartHttpMessageConverter} while adding the capability to <i>read</i>
  * <code>multipart/form-data</code> content in an HTTP request.
  *
  * @author Mark Fisher
@@ -52,7 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
-	private final FormHttpMessageConverter wrappedConverter = new AllEncompassingFormHttpMessageConverter();
+	private final MultipartHttpMessageConverter wrappedConverter = new MultipartHttpMessageConverter();
 
 	private MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
 
