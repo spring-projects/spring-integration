@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +125,6 @@ public class HttpDslTests {
 	}
 
 	@Test
-	@Disabled("See https://github.com/spring-projects/spring-integration/issues/11235")
 	public void testHttpProxyFlow() throws Exception {
 		RestTestClient restTestClient = RestTestClient.bindTo(this.mockMvc).build();
 		ClientHttpRequestFactory mockRequestFactory =
