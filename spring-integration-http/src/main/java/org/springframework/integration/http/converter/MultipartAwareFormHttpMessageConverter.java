@@ -20,12 +20,15 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -39,19 +42,32 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * An {@link HttpMessageConverter} implementation that delegates to an instance of
- * {@link MultipartHttpMessageConverter} while adding the capability to <i>read</i>
- * <code>multipart/form-data</code> content in an HTTP request.
+ * An {@link HttpMessageConverter} implementation that delegates URL-encoded form data
+ * to a {@link FormHttpMessageConverter} and multipart data to a
+ * {@link MultipartHttpMessageConverter}, while adding the capability to <i>read</i>
+ * {@code multipart/form-data} content in an HTTP request.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Dongliang Xie
  *
  * @since 2.0
  */
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
-	private final MultipartHttpMessageConverter wrappedConverter = new MultipartHttpMessageConverter();
+	private static final ResolvableType FORM_DATA_TYPE =
+			ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, String.class);
+
+	private final FormHttpMessageConverter formConverter = new FormHttpMessageConverter();
+
+	private final MultipartHttpMessageConverter multipartConverter = new MultipartHttpMessageConverter();
+
+	private final List<MediaType> supportedMediaTypes = Stream
+			.concat(this.formConverter.getSupportedMediaTypes().stream(),
+					this.multipartConverter.getSupportedMediaTypes().stream())
+			.distinct()
+			.toList();
 
 	private MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
 
@@ -60,7 +76,8 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	 * @param charset The charset.
 	 */
 	public void setCharset(Charset charset) {
-		this.wrappedConverter.setCharset(charset);
+		this.formConverter.setCharset(charset);
+		this.multipartConverter.setCharset(charset);
 	}
 
 	/**
@@ -74,7 +91,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	@Override
 	public List<MediaType> getSupportedMediaTypes() {
-		return this.wrappedConverter.getSupportedMediaTypes();
+		return this.supportedMediaTypes;
 	}
 
 	@Override
@@ -93,7 +110,16 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	@Override
 	public boolean canWrite(Class<?> clazz, @Nullable MediaType mediaType) {
-		return this.wrappedConverter.canWrite(clazz, mediaType);
+		if (!MultiValueMap.class.isAssignableFrom(clazz)) {
+			return false;
+		}
+		if (mediaType == null) {
+			return true;
+		}
+		if (MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType)) {
+			return this.formConverter.canWrite(clazz, mediaType);
+		}
+		return this.multipartConverter.canWrite(clazz, mediaType);
 	}
 
 	@Override
@@ -102,12 +128,17 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 		MediaType contentType = inputMessage.getHeaders().getContentType();
 		if (!MediaType.MULTIPART_FORM_DATA.includes(contentType)) {
-			return this.wrappedConverter.read(clazz, inputMessage);
+			return readForm(inputMessage);
 		}
 		Assert.state(inputMessage instanceof MultipartHttpInputMessage,
 				"A request with 'multipart/form-data' Content-Type must be a MultipartHttpInputMessage. "
 						+ "Be sure to provide a 'multipartResolver' bean in the ApplicationContext.");
 		return readMultipart((MultipartHttpInputMessage) inputMessage);
+	}
+
+	@SuppressWarnings("unchecked")
+	private MultiValueMap<String, ?> readForm(HttpInputMessage inputMessage) throws IOException {
+		return (MultiValueMap<String, ?>) this.formConverter.read(FORM_DATA_TYPE, inputMessage, Map.of());
 	}
 
 	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
@@ -130,7 +161,36 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	public void write(MultiValueMap<String, ?> map, @Nullable MediaType contentType, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 
-		this.wrappedConverter.write(map, contentType, outputMessage);
+		if (isMultipart(map, contentType)) {
+			this.multipartConverter.write(map, contentType, outputMessage);
+		}
+		else if (contentType == null || MediaType.APPLICATION_FORM_URLENCODED.includes(contentType)) {
+			this.formConverter.write(toFormData(map), contentType, outputMessage);
+		}
+		else {
+			throw new HttpMessageNotWritableException("Unsupported Content-Type: " + contentType);
+		}
+	}
+
+	private boolean isMultipart(MultiValueMap<String, ?> map, @Nullable MediaType contentType) {
+		if (contentType != null) {
+			return this.multipartConverter.canWrite(MultiValueMap.class, contentType);
+		}
+		for (List<?> values : map.values()) {
+			for (Object value : values) {
+				if (value != null && !(value instanceof String)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static MultiValueMap<String, String> toFormData(MultiValueMap<String, ?> map) {
+		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>(map.size());
+		map.forEach((name, values) -> values.forEach((value) ->
+				formData.add(name, value != null ? String.valueOf(value) : null)));
+		return formData;
 	}
 
 }
