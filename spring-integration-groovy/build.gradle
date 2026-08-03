@@ -1,0 +1,23 @@
+description = 'Spring Integration Groovy Support'
+
+apply plugin: 'groovy'
+
+dependencies {
+    api project(':spring-integration-scripting')
+    api 'org.apache.groovy:groovy'
+    api 'org.springframework:spring-context-support'
+
+    testImplementation 'org.springframework:spring-web'
+
+    testRuntimeOnly 'org.apache.groovy:groovy-dateutil'
+}
+
+tasks.withType(JavaForkOptions) {
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+}
+
+tasks.withType(GroovyCompile).configureEach {
+    options.fork = true
+    sourceCompatibility = JavaVersion.VERSION_17
+    options.encoding = 'UTF-8'
+}

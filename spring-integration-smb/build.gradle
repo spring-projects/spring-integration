@@ -1,0 +1,7 @@
+description = 'Spring Integration SMB Support'
+dependencies {
+    api project(':spring-integration-file')
+    api libs.org.codelibs.jcifs
+
+    testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
+}

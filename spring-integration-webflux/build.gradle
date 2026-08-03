@@ -1,0 +1,22 @@
+description = 'Spring Integration HTTP Support'
+dependencies {
+    api(project(':spring-integration-http')) {
+        exclude group: 'org.springframework', module: 'spring-webmvc'
+    }
+    api 'org.springframework:spring-webflux'
+    optionalApi 'io.projectreactor.netty:reactor-netty-http'
+
+    testImplementation libs.jakarta.servlet.api
+    testImplementation 'org.springframework:spring-webmvc'
+    testImplementation 'org.springframework.security:spring-security-config'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'tools.jackson.core:jackson-databind'
+    testImplementation 'io.micrometer:micrometer-observation-test'
+    testImplementation('io.micrometer:micrometer-tracing-integration-test') {
+        exclude group: 'io.opentelemetry'
+        exclude group: 'com.wavefront'
+        exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
+    }
+
+    testRuntimeOnly libs.com.jayway.jsonpath
+}

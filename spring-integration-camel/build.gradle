@@ -1,0 +1,10 @@
+description = 'Spring Integration support for Apache Camel'
+
+dependencies {
+    api 'org.apache.camel:camel-core-model'
+
+    testImplementation 'org.apache.camel:camel-test-junit5'
+    testImplementation('org.apache.camel:camel-spring') {
+        exclude group: 'org.springframework'
+    }
+}

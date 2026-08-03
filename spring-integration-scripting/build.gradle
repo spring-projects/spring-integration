@@ -1,0 +1,14 @@
+description = 'Spring Integration Scripting Support'
+dependencies {
+    optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
+    optionalApi libs.org.graalvm.sdk.graal.sdk
+    optionalApi libs.org.graalvm.polyglot.js
+    optionalApi libs.org.graalvm.polyglot.python
+
+    testImplementation libs.org.jruby.complete
+    testImplementation 'org.apache.groovy:groovy-jsr223'
+}
+
+tasks.withType(JavaForkOptions) {
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+}

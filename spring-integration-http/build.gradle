@@ -1,0 +1,14 @@
+description = 'Spring Integration HTTP Support'
+dependencies {
+    api 'org.springframework:spring-webmvc'
+    optionalApi libs.jakarta.servlet.api
+    optionalApi libs.com.rometools.rome
+    optionalApi 'org.springframework:spring-webflux'
+
+    testImplementation 'org.springframework.security:spring-security-messaging'
+    testImplementation 'org.springframework.security:spring-security-config'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'tools.jackson.core:jackson-databind'
+
+    testRuntimeOnly libs.com.jayway.jsonpath
+}

@@ -1,0 +1,6 @@
+description = 'Spring Integration ZeroMQ Support'
+dependencies {
+    api libs.org.zeromq.jeromq
+
+    optionalApi 'tools.jackson.core:jackson-databind'
+}

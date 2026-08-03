@@ -1,0 +1,4 @@
+description = 'Spring Integration Testing Framework'
+dependencies {
+    api project(':spring-integration-test-support')
+}

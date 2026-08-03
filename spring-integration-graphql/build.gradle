@@ -1,0 +1,6 @@
+description = 'Spring Integration GraphQL Support'
+dependencies {
+    api libs.spring.graphql
+
+    testImplementation 'org.springframework:spring-web'
+}

@@ -1,0 +1,14 @@
+description = 'Spring Integration STOMP Support'
+dependencies {
+    optionalApi 'org.springframework:spring-websocket'
+
+    testImplementation project(':spring-integration-websocket')
+    testImplementation rootProject.project(':spring-integration-websocket').sourceSets.test.output
+    testImplementation project(':spring-integration-event')
+    testImplementation 'org.apache.artemis:artemis-stomp-protocol'
+    testImplementation libs.apache.tomcat.embed.websocket
+    testImplementation 'tools.jackson.core:jackson-databind'
+
+    testRuntimeOnly 'org.springframework:spring-webmvc'
+    testRuntimeOnly 'io.projectreactor.netty:reactor-netty-http'
+}

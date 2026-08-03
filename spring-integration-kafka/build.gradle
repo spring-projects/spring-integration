@@ -1,0 +1,7 @@
+description = 'Spring Integration for Apache Kafka'
+dependencies {
+    api 'org.springframework.kafka:spring-kafka'
+
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'tools.jackson.core:jackson-databind'
+}

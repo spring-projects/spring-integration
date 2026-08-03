@@ -1,0 +1,13 @@
+description = 'Spring Integration File Support'
+dependencies {
+    api libs.commons.io
+    optionalApi 'com.fasterxml.jackson.core:jackson-annotations'
+
+    testImplementation project(':spring-integration-redis')
+    testImplementation rootProject.project(':spring-integration-redis').sourceSets.test.output
+    testImplementation project(':spring-integration-jdbc')
+    testImplementation libs.com.h2database.h2
+    testImplementation libs.io.lettuce.core
+    testImplementation libs.com.jayway.jsonpath
+    testImplementation 'tools.jackson.core:jackson-databind'
+}

@@ -1,0 +1,6 @@
+description = 'Spring Integration Zookeeper Support'
+dependencies {
+    api libs.apache.curator.recipes
+
+    testImplementation libs.apache.curator.test
+}

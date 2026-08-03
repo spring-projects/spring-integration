@@ -1,0 +1,11 @@
+description = 'Spring Integration SFTP Support'
+dependencies {
+    api project(':spring-integration-file')
+    api 'org.springframework:spring-context-support'
+    api libs.apache.sshd.sftp
+
+    testImplementation project(':spring-integration-event')
+    testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
+
+    testRuntimeOnly 'net.i2p.crypto:eddsa:0.3.0'
+}

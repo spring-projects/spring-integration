@@ -1,0 +1,10 @@
+description = 'Spring Integration Hazelcast Support'
+dependencies {
+    api libs.com.hazelcast
+
+    testImplementation project(':spring-integration-jmx')
+}
+
+tasks.withType(JavaForkOptions) {
+    jvmArgs '-Dhazelcast.logging.type=log4j2'
+}

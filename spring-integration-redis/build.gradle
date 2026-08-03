@@ -1,0 +1,7 @@
+description = 'Spring Integration Redis Support'
+dependencies {
+    api 'org.springframework.data:spring-data-redis'
+
+    testImplementation libs.io.lettuce.core
+    testImplementation 'tools.jackson.core:jackson-databind'
+}

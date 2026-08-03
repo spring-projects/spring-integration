@@ -1,0 +1,8 @@
+description = 'Spring Integration Support for Apache Cassandra'
+
+dependencies {
+    api 'org.springframework.data:spring-data-cassandra'
+
+    testImplementation 'org.testcontainers:testcontainers-cassandra'
+    testRuntimeOnly libs.commons.io
+}

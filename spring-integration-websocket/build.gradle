@@ -1,0 +1,11 @@
+description = 'Spring Integration WebSockets Support'
+dependencies {
+    api 'org.springframework:spring-websocket'
+    optionalApi 'org.springframework:spring-webmvc'
+    optionalApi libs.jakarta.servlet.api
+
+    testImplementation project(':spring-integration-event')
+    testImplementation libs.apache.tomcat.embed.websocket
+
+    testRuntimeOnly 'tools.jackson.core:jackson-databind'
+}
