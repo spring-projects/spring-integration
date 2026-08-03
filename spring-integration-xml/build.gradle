@@ -1,0 +1,14 @@
+description = 'Spring Integration XML Support'
+dependencies {
+    api 'org.springframework:spring-oxm'
+    api 'org.springframework.ws:spring-xml'
+
+    optionalApi 'org.springframework.ws:spring-ws-core'
+
+    testImplementation libs.com.sun.jaxb
+    testImplementation libs.org.xmlunit.assertj3
+}
+
+tasks.withType(JavaForkOptions) {
+    jvmArgs '--add-opens', 'java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+}

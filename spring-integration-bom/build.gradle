@@ -1,0 +1,19 @@
+description = 'Spring Integration (Bill of Materials)'
+
+apply plugin: 'java-platform'
+
+dependencies {
+    constraints {
+        rootProject.ext.javaProjects.sort { it.name }.each {
+            api it
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.javaPlatform
+        }
+    }
+}

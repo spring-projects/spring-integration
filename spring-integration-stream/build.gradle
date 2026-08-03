@@ -1,0 +1,5 @@
+description = 'Spring Integration Stream Support'
+
+tasks.withType(JavaForkOptions) {
+    jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED'
+}

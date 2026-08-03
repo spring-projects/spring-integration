@@ -1,0 +1,5 @@
+description = 'Spring Integration Zip Support'
+dependencies {
+    api project(':spring-integration-file')
+    api libs.org.zeroturnaround.zt.zip
+}

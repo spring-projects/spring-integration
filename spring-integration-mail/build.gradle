@@ -1,0 +1,10 @@
+description = 'Spring Integration Mail Support'
+dependencies {
+    api 'org.springframework:spring-context-support'
+
+    optionalApi libs.org.eclipse.angus.jakarta.mail
+
+    testImplementation libs.com.icegreen.greenmail
+
+    testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
+}

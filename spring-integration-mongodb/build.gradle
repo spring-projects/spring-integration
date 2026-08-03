@@ -1,0 +1,9 @@
+description = 'Spring Integration MongoDB Support'
+dependencies {
+    api 'org.springframework.data:spring-data-mongodb'
+
+    optionalApi 'org.mongodb:mongodb-driver-sync'
+    optionalApi 'org.mongodb:mongodb-driver-reactivestreams'
+
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
+}

@@ -1,0 +1,12 @@
+description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
+dependencies {
+    api libs.org.hamcrest
+    api libs.org.mockito.core
+    api libs.org.assertj.core
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-messaging'
+    api 'org.springframework:spring-test'
+
+    optionalApi 'org.junit.jupiter:junit-jupiter-api'
+    optionalApi 'org.apache.logging.log4j:log4j-core'
+}

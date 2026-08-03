@@ -1,0 +1,4 @@
+description = 'Spring Integration Syslog Support'
+dependencies {
+    api project(':spring-integration-ip')
+}

@@ -1,0 +1,9 @@
+description = 'Spring Integration FTP Support'
+dependencies {
+    api project(':spring-integration-file')
+    api libs.commons.net
+    api 'org.springframework:spring-context-support'
+    optionalApi libs.apache.ftpserver.core
+
+    testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
+}

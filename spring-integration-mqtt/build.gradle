@@ -1,0 +1,8 @@
+description = 'Spring Integration MQTT Support'
+dependencies {
+    optionalApi libs.org.eclipse.paho.client.mqttv3
+    optionalApi libs.org.eclipse.paho.mqttv5.client
+
+    testImplementation project(':spring-integration-jmx')
+    testImplementation 'tools.jackson.core:jackson-databind'
+}

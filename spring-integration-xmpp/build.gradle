@@ -1,0 +1,9 @@
+description = 'Spring Integration XMPP Support'
+dependencies {
+    api libs.org.igniterealtime.smack.tcp
+    api libs.org.igniterealtime.smack.java8
+    api libs.org.igniterealtime.smack.extensions
+
+    testImplementation project(':spring-integration-stream')
+    testImplementation libs.org.igniterealtime.smack.experimental
+}

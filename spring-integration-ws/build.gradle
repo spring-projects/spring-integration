@@ -1,0 +1,18 @@
+description = 'Spring Integration Web Services Support'
+dependencies {
+    api 'org.springframework:spring-oxm'
+    api 'org.springframework:spring-webmvc'
+    api('org.springframework.ws:spring-ws-core') {
+        exclude group: 'org.glassfish.jaxb'
+    }
+
+    optionalApi libs.com.sun.jaxb
+
+    testImplementation libs.com.thoughtworks.xstream
+    testImplementation 'org.springframework.ws:spring-ws-support'
+    testImplementation 'org.springframework:spring-jms'
+    testImplementation libs.jakarta.jms.api
+    testImplementation libs.org.igniterealtime.smack.tcp
+    testImplementation libs.org.igniterealtime.smack.extensions
+    testImplementation libs.org.eclipse.angus.mail
+}

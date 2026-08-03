@@ -1,0 +1,6 @@
+description = 'Spring Integration R2DBC Support'
+dependencies {
+    api 'org.springframework.data:spring-data-r2dbc'
+
+    testImplementation libs.io.r2dbc.h2
+}

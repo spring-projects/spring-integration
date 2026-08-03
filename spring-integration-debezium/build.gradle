@@ -1,0 +1,13 @@
+description = 'Spring Integration Debezium Support'
+dependencies {
+    api(libs.io.debezium.embedded) {
+        exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
+        exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
+        exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
+        exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
+        exclude group: 'javax.activation', module: 'javax.activation-api'
+    }
+
+    testImplementation libs.io.debezium.connector.mysql
+    testImplementation 'org.testcontainers:testcontainers-mysql'
+}

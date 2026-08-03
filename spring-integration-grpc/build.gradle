@@ -1,0 +1,36 @@
+	description = 'Spring Integration gRPC Support'
+
+	apply plugin: 'com.google.protobuf'
+
+	configurations {
+		[compileProtoPath, testCompileProtoPath].each {
+			it.extendsFrom(dependencyManagement)
+		}
+	}
+
+	dependencies {
+		api 'io.grpc:grpc-stub'
+
+        testImplementation 'io.grpc:grpc-protobuf'
+		testImplementation 'io.grpc:grpc-inprocess'
+		testImplementation 'com.google.protobuf:protobuf-java'
+	}
+
+	protobuf {
+		protoc {
+			artifact = "com.google.protobuf:protoc:${libs.versions.protobufVersion.get()}"
+		}
+		plugins {
+			grpc {
+				artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpcVersion.get()}"
+			}
+		}
+		generateProtoTasks {
+			// Only generate for test source set, not main
+			ofSourceSet('test')*.plugins {
+				grpc {
+					option '@generated=omit'
+				}
+			}
+		}
+	}

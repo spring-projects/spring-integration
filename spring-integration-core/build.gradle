@@ -1,0 +1,56 @@
+    description = 'Spring Integration Core'
+
+    apply plugin: 'com.google.protobuf'
+
+	configurations {
+		[compileProtoPath, testCompileProtoPath].each {
+			it.extendsFrom(dependencyManagement)
+		}
+	}
+
+	dependencies {
+        api 'org.springframework:spring-aop'
+        api 'org.springframework:spring-context'
+        api 'org.springframework:spring-messaging'
+        api 'org.springframework:spring-tx'
+        api 'io.projectreactor:reactor-core'
+        api 'io.micrometer:micrometer-observation'
+
+        optionalApi 'tools.jackson.core:jackson-databind'
+        optionalApi('tools.jackson.module:jackson-module-kotlin') {
+            exclude group: 'org.jetbrains.kotlin'
+        }
+        optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+        optionalApi('com.fasterxml.jackson.module:jackson-module-kotlin') {
+            exclude group: 'org.jetbrains.kotlin'
+        }
+        optionalApi 'com.google.protobuf:protobuf-java'
+        optionalApi libs.com.jayway.jsonpath
+        optionalApi libs.com.esotericsoftware.kryo
+        optionalApi 'io.micrometer:micrometer-core'
+        optionalApi('io.micrometer:micrometer-tracing') {
+            exclude group: 'aopalliance'
+        }
+        optionalApi libs.io.github.resilience4j.ratelimiter
+        optionalApi libs.apache.avro
+        optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
+
+        testImplementation 'com.google.protobuf:protobuf-java-util'
+        testImplementation libs.org.aspectj.aspectjweaver
+        testImplementation 'io.micrometer:micrometer-observation-test'
+        testImplementation('io.micrometer:micrometer-tracing-integration-test') {
+            exclude group: 'io.opentelemetry'
+            exclude group: 'com.wavefront'
+            exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
+        }
+    }
+
+    protobuf {
+        protoc {
+            artifact = "com.google.protobuf:protoc:${libs.versions.protobufVersion.get()}"
+        }
+    }
+

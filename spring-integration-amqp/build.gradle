@@ -1,0 +1,11 @@
+description = 'Spring Integration AMQP Support'
+dependencies {
+    api 'org.springframework.amqp:spring-rabbitmq-client'
+    optionalApi 'org.springframework.amqp:spring-rabbit-stream'
+
+    testImplementation 'org.springframework.amqp:spring-rabbit-junit'
+    testImplementation project(':spring-integration-stream')
+    testImplementation 'org.springframework:spring-web'
+    testImplementation 'org.testcontainers:testcontainers-rabbitmq'
+    testImplementation 'tools.jackson.core:jackson-databind'
+}

@@ -1,0 +1,9 @@
+description = 'Spring Integration JPA Support'
+dependencies {
+    api 'org.springframework:spring-orm'
+    optionalApi libs.jakarta.persistence.api
+
+    testImplementation 'org.springframework.data:spring-data-jpa'
+    testImplementation libs.com.h2database.h2
+    testImplementation libs.org.hibernate.core
+}
