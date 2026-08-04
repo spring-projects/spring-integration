@@ -38,6 +38,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -172,6 +173,45 @@ public class CamelMessageHandlerTests extends CamelTestSupport implements TestAp
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("Async reply for: test async data");
+	}
+
+	@Test
+	void inOutPatternWithNullReplyBodyProducesNoReply() throws InterruptedException {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<String> messageUnderTest =
+				MessageBuilder.withPayload("test data")
+						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
+						.build();
+
+		MockEndpoint mockEndpoint = getMockEndpoint("mock:result");
+		mockEndpoint.whenAnyExchangeReceived(exchange -> exchange.getMessage().setBody(null));
+
+		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
+		camelMessageHandler.setEndpointUri("direct:simple");
+		camelMessageHandler.setExchangePattern(ExchangePattern.InOut);
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		camelMessageHandler.afterPropertiesSet();
+
+		camelMessageHandler.handleMessage(messageUnderTest);
+
+		mockEndpoint.assertIsSatisfied();
+
+		assertThat(replyChannel.receive(0)).isNull();
+	}
+
+	@Test
+	void noEndpointUriAndNoDefaultEndpointThrowsIllegalStateException() {
+		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		camelMessageHandler.afterPropertiesSet();
+
+		Message<String> messageUnderTest = new GenericMessage<>("Hello Camel!");
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> camelMessageHandler.handleMessage(messageUnderTest))
+				.havingCause()
+				.isInstanceOf(IllegalStateException.class)
+				.withMessageContaining("No 'endpointUri' provided and the 'producerTemplate' has no default endpoint");
 	}
 
 	@Override

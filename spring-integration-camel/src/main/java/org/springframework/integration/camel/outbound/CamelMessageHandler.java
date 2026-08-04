@@ -229,7 +229,10 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 			return this.producerTemplate.getCamelContext().getEndpoint(endpointUri);
 		}
 		else {
-			return this.producerTemplate.getDefaultEndpoint();
+			Endpoint defaultEndpoint = this.producerTemplate.getDefaultEndpoint();
+			Assert.state(defaultEndpoint != null,
+					"No 'endpointUri' provided and the 'producerTemplate' has no default endpoint");
+			return defaultEndpoint;
 		}
 	}
 
@@ -255,13 +258,18 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	@Nullable
 	private AbstractIntegrationMessageBuilder<?> buildReply(ExchangePattern exchangePattern, Exchange result) {
-		if (result.isFailed()) {
-			throw CamelExecutionException.wrapCamelExecutionException(result, result.getException());
+		Exception exception = result.getException();
+		if (exception != null) {
+			throw CamelExecutionException.wrapCamelExecutionException(result, exception);
 		}
 		if (exchangePattern.isOutCapable()) {
 			org.apache.camel.Message out = result.getMessage();
+			Object body = out.getBody();
+			if (body == null) {
+				return null;
+			}
 			return getMessageBuilderFactory()
-					.withPayload(out.getBody())
+					.withPayload(body)
 					.copyHeaders(this.headerMapper.toHeaders(out));
 		}
 		else {
