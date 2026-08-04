@@ -42,40 +42,40 @@ import org.springframework.util.xml.DomUtils;
  */
 final class HttpAdapterParsingUtils {
 
-	static final String[] SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
+	static final String[] LOCAL_CLIENT_REFERENCE_ATTRIBUTES = {
 			"request-factory", "error-handler", "message-converters"
 	};
 
-	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
-		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-			if (element.hasAttribute(attributeName)) {
-				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
-								+ attributeName + "' attribute is not allowed, " +
-								"it must be set on the provided template instead",
-						parserContext.extractSource(element));
-			}
-		}
+	private static final LocalClientKind REST_TEMPLATE_KIND =
+			new LocalClientKind("rest-template", "the provided template", "RestTemplate.uriTemplateHandler");
 
-		if (element.hasAttribute("encoding-mode")) {
-			parserContext.getReaderContext().error("When providing a 'rest-template' reference, " +
-							"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.",
-					parserContext.extractSource(element));
-		}
+	private static final LocalClientKind REST_CLIENT_KIND =
+			new LocalClientKind("rest-client", "the provided client", "RestClient.Builder.uriBuilderFactory");
+
+	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
+		verifyNoLocalClientAttributes(element, parserContext, REST_TEMPLATE_KIND);
 	}
 
 	static void verifyNoRestClientAttributes(Element element, ParserContext parserContext) {
-		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+		verifyNoLocalClientAttributes(element, parserContext, REST_CLIENT_KIND);
+	}
+
+	private static void verifyNoLocalClientAttributes(Element element, ParserContext parserContext,
+			LocalClientKind clientKind) {
+
+		for (String attributeName : LOCAL_CLIENT_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
-				parserContext.getReaderContext().error("When providing a 'rest-client' reference, the '"
-								+ attributeName + "' attribute is not allowed, " +
-								"it must be set on the provided client instead",
+				parserContext.getReaderContext().error("When providing a '" + clientKind.referenceAttributeName()
+								+ "' reference, the '" + attributeName + "' attribute is not allowed, " +
+								"it must be set on " + clientKind.targetInstanceDescription() + " instead",
 						parserContext.extractSource(element));
 			}
 		}
 
 		if (element.hasAttribute("encoding-mode")) {
-			parserContext.getReaderContext().error("When providing a 'rest-client' reference, " +
-							"the 'encoding-mode' must be set on the 'RestClient.Builder.uriBuilderFactory' property.",
+			parserContext.getReaderContext().error("When providing a '" + clientKind.referenceAttributeName()
+							+ "' reference, the 'encoding-mode' must be set on the '"
+							+ clientKind.encodingModeTargetProperty() + "' property.",
 					parserContext.extractSource(element));
 		}
 	}
@@ -195,6 +195,10 @@ final class HttpAdapterParsingUtils {
 	}
 
 	private HttpAdapterParsingUtils() {
+	}
+
+	private record LocalClientKind(String referenceAttributeName, String targetInstanceDescription,
+								String encodingModeTargetProperty) {
 	}
 
 }

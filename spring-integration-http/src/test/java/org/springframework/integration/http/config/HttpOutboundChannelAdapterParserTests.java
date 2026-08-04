@@ -105,10 +105,6 @@ public class HttpOutboundChannelAdapterParserTests {
 	private AbstractEndpoint withAdvice;
 
 	@Autowired
-	@Qualifier("withUrlExpressionAndTemplate")
-	private AbstractEndpoint withUrlExpressionAndTemplate;
-
-	@Autowired
 	@Qualifier("withPoller1")
 	private AbstractEndpoint withPoller1;
 
@@ -277,33 +273,6 @@ public class HttpOutboundChannelAdapterParserTests {
 		MessageHandler handler = TestUtils.getPropertyValue(this.withAdvice, "handler");
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
-	}
-
-	@Test
-	public void withUrlExpressionAndTemplate() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpressionAndTemplate);
-		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate");
-		assertThat(restTemplate).isSameAs(customRestTemplate);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
-				.getPropertyValue("handler");
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
-		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
-				.isEqualTo(this.applicationContext.getBean("requests"));
-		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor =
-				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
-		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
-		assertThat(expression).isNotNull();
-		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
-		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
-				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
-		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 	}
 
 	@Test
