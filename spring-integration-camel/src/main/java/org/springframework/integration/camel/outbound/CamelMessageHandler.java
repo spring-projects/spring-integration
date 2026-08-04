@@ -258,9 +258,8 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	@Nullable
 	private AbstractIntegrationMessageBuilder<?> buildReply(ExchangePattern exchangePattern, Exchange result) {
-		if (result.isFailed()) {
-			Exception exception = result.getException();
-			Assert.state(exception != null, "Exchange has failed and has no exception");
+		Exception exception = result.getException();
+		if (exception != null) {
 			throw CamelExecutionException.wrapCamelExecutionException(result, exception);
 		}
 		if (exchangePattern.isOutCapable()) {
