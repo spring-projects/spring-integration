@@ -5,12 +5,12 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/http https://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
-	<bean id="restTemplate" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.client.RestTemplate" type="java.lang.Class"/>
+	<bean id="restClient" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.web.client.RestClient" type="java.lang.Class"/>
 	</bean>
 
-	<int-http:outbound-gateway url="/testRestTemplate"
-							   rest-template="restTemplate"
+	<int-http:outbound-gateway url="/testRestClient"
+							   rest-client="restClient"
 							   encoding-mode="NONE"/>
 
 </beans>

@@ -19,6 +19,8 @@ package org.springframework.integration.http.outbound;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
@@ -27,6 +29,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -43,7 +46,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 /**
  * A {@link org.springframework.messaging.MessageHandler}
  * implementation that executes HTTP requests by delegating
- * to a {@link RestTemplate} or {@link RestClient} instance.
+ * to a {@link RestClient} or {@link RestTemplate} instance.
  * If the 'expectReply' flag is set to true (the default)
  * then a reply Message will be generated from the HTTP response. If that response contains
  * a body, it will be used as the reply Message's payload. Otherwise the reply Message's
@@ -63,6 +66,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Wallace Wadge
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -217,8 +221,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
+	 * @deprecated Use {@link #setErrorHandler(Predicate, RestClient.ResponseSpec.ErrorHandler)}
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		assertLocalClient("errorHandler");
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
@@ -227,10 +233,35 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	/**
-	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
+	 * Set the {@link RestClient.ResponseSpec.ErrorHandler} for the underlying {@link RestClient}, applied to any
+	 * {@link HttpStatusCode#isError() error} response status.
+	 * @param errorHandler The error handler.
+	 * @since 7.2
+	 */
+	public void setErrorHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
+		setErrorHandler(HttpStatusCode::isError, errorHandler);
+	}
+
+	/**
+	 * Set the status {@link Predicate} and {@link RestClient.ResponseSpec.ErrorHandler} for the underlying
+	 * {@link RestClient}.
+	 * @param predicate the predicate for the response status to match for this error handler.
+	 * @param errorHandler The error handler.
+	 * @since 7.2
+	 */
+	public void setErrorHandler(Predicate<HttpStatusCode> predicate, RestClient.ResponseSpec.ErrorHandler errorHandler) {
+		assertLocalClient("errorHandler");
+		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
+		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
+
+		localRestClientBuilder.defaultStatusHandler(predicate, errorHandler);
+	}
+
+	/**
+	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestClient}.
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
-	 * @see RestTemplate#setMessageConverters(java.util.List)
+	 * @see RestClient.Builder#configureMessageConverters(Consumer)
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		assertLocalClient("messageConverters");
@@ -244,9 +275,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	/**
-	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
+	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestClient}.
 	 * @param requestFactory The request factory.
-	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
+	 * @see RestClient.Builder#requestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
 		assertLocalClient("requestFactory");
