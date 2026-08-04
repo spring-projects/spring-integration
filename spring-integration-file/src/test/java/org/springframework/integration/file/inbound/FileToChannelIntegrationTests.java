@@ -29,6 +29,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Iwein Fuld
@@ -60,7 +61,7 @@ public class FileToChannelIntegrationTests {
 		Message<?> result = this.resultChannel.receive(10000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
-		assertThat(file).doesNotExist();
+		await().until(() -> !file.exists());
 	}
 
 	@Test
