@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -61,6 +63,7 @@ public class Jsr223ServiceActivatorTests {
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
+	@Disabled("Remove Disabled when https://github.com/oracle/graalpython/issues/1065 is added to a release ")
 	@Test
 	public void referencedScript() throws Exception {
 
