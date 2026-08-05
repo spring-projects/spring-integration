@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -246,12 +246,17 @@ public class FileTests {
 	@Qualifier("fileSplitter.handler")
 	private MessageHandler fileSplitter;
 
-	@RetryingTest(10)
+	@Test
 	public void testFileSplitterFlow() throws Exception {
-		FileOutputStream file = new FileOutputStream(new File(tmpDir, "foo.tmp"));
+		// Populate the file with a name not matching the filter and rename it atomically afterward:
+		// otherwise the source may poll the file in the middle of writing and split an incomplete content.
+		File fileToSplit = new File(tmpDir, "foo.tmp");
+		File fileToMove = new File(tmpDir, "foo.writing");
+		FileOutputStream file = new FileOutputStream(fileToMove);
 		file.write(("HelloWorld" + System.lineSeparator() + "Ã¤Ã¶Ã¼ÃŸ").getBytes(StandardCharsets.US_ASCII));
 		file.flush();
 		file.close();
+		java.nio.file.Files.move(fileToMove.toPath(), fileToSplit.toPath(), StandardCopyOption.ATOMIC_MOVE);
 
 		Message<?> receive = this.fileSplittingResultChannel.receive(10000);
 		assertThat(receive).isNotNull();
