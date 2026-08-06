@@ -20,9 +20,7 @@ import java.io.Serial;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,13 +29,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.zookeeper.KeeperException;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
-import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -83,20 +80,6 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 	private final boolean trackingTime;
 
-	private AsyncTaskExecutor mutexTaskExecutor = new ThreadPoolTaskExecutor();
-
-	{
-		ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) this.mutexTaskExecutor;
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		// A queue would make this executor effectively single-threaded, so concurrent `tryLock()` calls
-		// would serialize behind a single connection check - and time out on a slow or lost connection.
-		threadPoolTaskExecutor.setQueueCapacity(0);
-		threadPoolTaskExecutor.setBeanName("ZookeeperLockRegistryExecutor");
-		threadPoolTaskExecutor.initialize();
-	}
-
-	private boolean mutexTaskExecutorExplicitlySet;
-
 	private int cacheCapacity = DEFAULT_CAPACITY;
 
 	/**
@@ -133,18 +116,18 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 	/**
 	 * Set an {@link AsyncTaskExecutor} to use when establishing (and testing) the
-	 * connection with Zookeeper. This must be performed asynchronously so the
-	 * {@link Lock#tryLock(long, TimeUnit)} contract can be honored. While an executor is
-	 * used internally, an external executor may be required in some environments, for
-	 * example those that require the use of a {@code WorkManagerTaskExecutor}.
+	 * connection with Zookeeper.
 	 * @param mutexTaskExecutor the executor.
 	 * @since 4.2.10
+	 * @deprecated since 7.0.6 with no replacement.
+	 * The connection state is now determined via a non-blocking
+	 * {@link org.apache.curator.CuratorZookeeperClient#isConnected()}, so no executor
+	 * is involved into locking anymore and this option has no effect.
 	 */
+	@Deprecated(since = "7.0.6", forRemoval = true)
+	@SuppressWarnings("unused")
 	public void setMutexTaskExecutor(AsyncTaskExecutor mutexTaskExecutor) {
-		Assert.notNull(mutexTaskExecutor, "'mutexTaskExecutor' cannot be null");
-		((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
-		this.mutexTaskExecutor = mutexTaskExecutor;
-		this.mutexTaskExecutorExplicitlySet = true;
+		LOGGER.warn("The 'mutexTaskExecutor' is not used anymore and will be removed in a future release.");
 	}
 
 	/**
@@ -163,7 +146,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		ZkLock lock;
 		this.locksLock.lock();
 		try {
-			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, p));
 		}
 		finally {
 			this.locksLock.unlock();
@@ -201,11 +184,13 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 	}
 
+	/**
+	 * No-op since version 7.0.6: this registry does not manage any resource of its own anymore.
+	 * The {@link CuratorFramework} client is provided externally, therefore it has to be closed
+	 * by the calling side as well.
+	 */
 	@Override
 	public void destroy() {
-		if (!this.mutexTaskExecutorExplicitlySet) {
-			((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
-		}
 	}
 
 	/**
@@ -260,16 +245,13 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		private final InterProcessMutex mutex;
 
-		private final AsyncTaskExecutor mutexTaskExecutor;
-
 		private final String path;
 
 		private long lastUsed;
 
-		ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path) {
+		ZkLock(CuratorFramework client, String path) {
 			this.client = client;
 			this.mutex = new InterProcessMutex(client, path);
-			this.mutexTaskExecutor = mutexTaskExecutor;
 			this.path = path;
 		}
 
@@ -320,39 +302,32 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			Future<Boolean> future = null;
 			try {
 				long startTime = System.currentTimeMillis();
-
-				future = this.mutexTaskExecutor.submit(() -> {
-					try {
-						return ZkLock.this.client.checkExists().forPath("/") != null;
-					}
-					catch (Exception e) {
-						throw new IllegalStateException(e);
-					}
-				});
-
 				long waitTime = unit.toMillis(time);
 
-				boolean connected = future.get(waitTime, TimeUnit.MILLISECONDS);
+				// The non-blocking state check first; only an unconnected client is waited for,
+				// interruptibly and within the requested time, to let a re-connect happen.
+				if (!this.client.getZookeeperClient().isConnected() &&
+						!this.client.blockUntilConnected((int) Math.min(waitTime, Integer.MAX_VALUE),
+								TimeUnit.MILLISECONDS)) {
 
-				if (!connected) {
-					future.cancel(true);
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("No Zookeeper connection to acquire mutex at " + this.path);
 					}
 					return false;
 				}
-				else {
-					waitTime = Math.max(0, waitTime - (System.currentTimeMillis() - startTime));
-					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
-				}
+
+				waitTime = Math.max(0, waitTime - (System.currentTimeMillis() - startTime));
+				return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
 			}
-			catch (@SuppressWarnings("unused") TimeoutException e) {
-				future.cancel(true);
+			catch (KeeperException.ConnectionLossException | KeeperException.SessionExpiredException |
+					KeeperException.OperationTimeoutException e) {
+
+				// The connection may be lost between the state check and the acquisition:
+				// this is a `false` for the `Lock.tryLock()` contract, not an error.
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
+					LOGGER.debug("Lost the Zookeeper connection to acquire mutex at " + this.path, e);
 				}
 				return false;
 			}

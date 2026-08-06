@@ -84,6 +84,10 @@ For unbounded strategies (such as the default), you need to periodically invoke 
 Starting with version 5.5.6, the `ZookeeperLockRegistry` is support automatically clean up cache for ZkLock in `ZookeeperLockRegistry.locks` via `ZookeeperLockRegistry.setCacheCapacity()`.
 See its JavaDocs for more information.
 
+Starting with version 7.0.6, the `ZookeeperLockRegistry` checks the Zookeeper connection state via a non-blocking `CuratorZookeeperClient.isConnected()` instead of an asynchronous `checkExists()` call against the server.
+Therefore, no internal `TaskExecutor` is involved into locking anymore, and the `setMutexTaskExecutor()` is deprecated with no replacement.
+An unconnected client is still waited for - interruptibly and within the time requested for a `Lock.tryLock(long, TimeUnit)` - to let a re-connect happen.
+
 [[zk-leadership]]
 == Zookeeper Leadership Event Handling
 
