@@ -339,7 +339,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				if (!connected) {
 					future.cancel(true);
-					LOGGER.warn("No Zookeeper connection to acquire mutex at " + this.path);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("No Zookeeper connection to acquire mutex at " + this.path);
+					}
 					return false;
 				}
 				else {
@@ -349,7 +351,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
 				future.cancel(true);
-				LOGGER.warn("Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
+				}
 				return false;
 			}
 			catch (InterruptedException e) {
