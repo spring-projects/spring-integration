@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
@@ -303,41 +302,41 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void voidLockFailsWhenServerDown() throws Exception {
 		// This test brings the server down, so it must not use the one shared by the rest of the class:
 		// a failure to restart it would leave every subsequent test blocked forever in `InterProcessMutex.acquire()`.
-		try (TestingServer ownTestingServer = new TestingServer();
-				CuratorFramework ownClient =
-						CuratorFrameworkFactory.newClient(ownTestingServer.getConnectString(),
-								new BoundedExponentialBackoffRetry(100, 1000, 3))) {
+		try (var server = new TestingServer()) {
+			try (var client = CuratorFrameworkFactory.newClient(server.getConnectString(),
+					new BoundedExponentialBackoffRetry(100, 1000, 3))) {
 
-			ownClient.start();
+				client.start();
 
-			ZookeeperLockRegistry registry = new ZookeeperLockRegistry(ownClient);
+				ZookeeperLockRegistry registry = new ZookeeperLockRegistry(client);
 
-			Lock lock1 = registry.obtain("foo");
-			lock1.lock();
+				Lock lock1 = registry.obtain("foo");
+				lock1.lock();
 
-			ownTestingServer.stop();
+				server.stop();
 
-			Lock lock2 = registry.obtain("bar");
+				Lock lock2 = registry.obtain("bar");
 
-			assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
-					.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
+				assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
+						.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
 
-			ownTestingServer.restart();
+				server.restart();
 
-			assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
-					.as("Should have been able to lock with zookeeper server restarted!").isTrue();
+				assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
+						.as("Should have been able to lock with zookeeper server restarted!").isTrue();
 
-			assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
+				assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
 
-			Lock lock3 = registry.obtain("foobar");
+				Lock lock3 = registry.obtain("foobar");
 
-			assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
+				assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
 
-			lock1.unlock();
-			lock1.unlock();
-			lock2.unlock();
-			lock3.unlock();
-			registry.destroy();
+				lock1.unlock();
+				lock1.unlock();
+				lock2.unlock();
+				lock3.unlock();
+				registry.destroy();
+			}
 		}
 	}
 
@@ -572,6 +571,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		public boolean bounded() {
 			return false;
 		}
+
 	}
 
 }

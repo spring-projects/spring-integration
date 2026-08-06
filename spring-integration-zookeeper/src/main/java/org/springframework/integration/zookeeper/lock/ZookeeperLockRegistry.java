@@ -295,8 +295,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 		public void lockInterruptibly() throws InterruptedException {
 			// this is a bit ugly, but...
 			while (!tryLock(1, TimeUnit.SECONDS)) {
-				// The tryLock() above may return 'false' without blocking at all,
-				// e.g. when Zookeeper is not reachable.
+				// The tryLock() above may return 'false' without blocking at all, e.g. when Zookeeper is not reachable.
 				// Therefore, the interrupt status has to be checked explicitly
 				// to avoid an endless, silent spin in this loop.
 				if (Thread.interrupted()) {
