@@ -27,6 +27,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
@@ -53,6 +55,8 @@ import org.springframework.util.Assert;
  *
  */
 public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, DisposableBean {
+
+	private static final Log LOGGER = LogFactory.getLog(ZookeeperLockRegistry.class);
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
@@ -84,6 +88,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 	{
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) this.mutexTaskExecutor;
 		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		// A queue would make this executor effectively single-threaded, so concurrent `tryLock()` calls
+		// would serialize behind a single connection check - and time out on a slow or lost connection.
+		threadPoolTaskExecutor.setQueueCapacity(0);
 		threadPoolTaskExecutor.setBeanName("ZookeeperLockRegistryExecutor");
 		threadPoolTaskExecutor.initialize();
 	}
@@ -286,12 +293,19 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
-			boolean locked = false;
 			// this is a bit ugly, but...
-			while (!locked) {
-				locked = tryLock(1, TimeUnit.SECONDS);
+			while (!tryLock(1, TimeUnit.SECONDS)) {
+				// The tryLock() above may return 'false' without blocking at all,
+				// e.g. when Zookeeper is not reachable.
+				// Therefore, the interrupt status has to be checked explicitly
+				// to avoid an endless, silent spin in this loop.
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Interrupted while acquiring mutex at " + this.path);
+				}
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Mutex at " + this.path + " is not acquired yet; retrying...");
+				}
 			}
-
 		}
 
 		@Override
@@ -326,15 +340,17 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				if (!connected) {
 					future.cancel(true);
+					LOGGER.warn("No Zookeeper connection to acquire mutex at " + this.path);
 					return false;
 				}
 				else {
-					waitTime = waitTime - (System.currentTimeMillis() - startTime);
+					waitTime = Math.max(0, waitTime - (System.currentTimeMillis() - startTime));
 					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
 				}
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
 				future.cancel(true);
+				LOGGER.warn("Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
 				return false;
 			}
 			catch (InterruptedException e) {
