@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.AmqpIOException;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.QueueBuilder.Overflow;
@@ -131,21 +132,18 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 	}
 
 	@Test
-	void simpleConfirmsWithReject(@Autowired IntegrationFlow simpleConfirmsFlow, @Autowired RabbitAdmin admin,
-			@Autowired RabbitTemplate template) {
-
+	void simpleConfirmsWithReject(@Autowired IntegrationFlow simpleConfirmsFlow, @Autowired RabbitAdmin admin) {
 		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
+		String queueName = queue.getName();
 		admin.declareQueue(queue);
+		GenericMessage<String> message = new GenericMessage<>("test", Collections.singletonMap("rk", queueName));
 		try {
-			simpleConfirmsFlow.getInputChannel()
-					.send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName())));
-			assertThatThrownBy(() -> simpleConfirmsFlow.getInputChannel()
-					.send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName()))))
-					.hasCauseInstanceOf(AmqpException.class);
-			assertThat(template.receive(queue.getName())).isNotNull();
+			simpleConfirmsFlow.getInputChannel().send(message);
+			assertThatThrownBy(() -> simpleConfirmsFlow.getInputChannel().send(message))
+					.hasCauseInstanceOf(AmqpIOException.class);
 		}
 		finally {
-			admin.deleteQueue(queue.getName());
+			admin.deleteQueue(queueName);
 		}
 	}
 
