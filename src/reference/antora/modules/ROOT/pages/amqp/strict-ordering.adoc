@@ -55,5 +55,9 @@ Notice that the same `RabbitTemplate` (which implements `RabbitOperations`) is u
 The advice runs the downstream flow within the template's `invoke` method so that all operations run on the same channel.
 If the optional timeout is provided, when the flow completes, the advice calls the `waitForConfirmsOrDie` method, which throws an exception if the confirmations are not received within the specified time.
 
+NOTE: The outbound adapter opens a scoped operation of its own when `multi-send` is used, and also when `wait-for-confirm` is set with simple publisher confirms.
+Do not use those options on an adapter whose flow is already wrapped by a `BoundRabbitChannelAdvice` that shares the same `RabbitTemplate`, because nested scopes are not supported.
+The advice already waits for the confirmations of all the messages sent within its scope.
+
 IMPORTANT: There must be no thread hands-off in the downstream flow (`QueueChannel`, `ExecutorChannel`, and others).
 
