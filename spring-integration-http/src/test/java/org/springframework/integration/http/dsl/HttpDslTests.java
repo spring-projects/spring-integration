@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +48,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -69,7 +67,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.test.web.servlet.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
@@ -99,6 +97,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Oleksii Komlyk
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
+ * @author Dongliang Xie
  *
  * @since 5.0
  */
@@ -126,11 +125,9 @@ public class HttpDslTests {
 	}
 
 	@Test
-	@Disabled("See https://github.com/spring-projects/spring-integration/issues/11235")
 	public void testHttpProxyFlow() throws Exception {
-		RestTestClient restTestClient = RestTestClient.bindTo(this.mockMvc).build();
 		ClientHttpRequestFactory mockRequestFactory =
-				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory");
+				new MockMvcClientHttpRequestFactory(this.mockMvc);
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
 		this.serviceInternalGatewayHandler.afterPropertiesSet();
 
