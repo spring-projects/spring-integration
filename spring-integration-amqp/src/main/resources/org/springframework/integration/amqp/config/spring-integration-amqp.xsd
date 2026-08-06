@@ -73,6 +73,8 @@
 									When there is no correlation data for the message and the connection factory is
 									configured for simple publisher confirms, the message is sent within the scope of
 									a RabbitTemplate.invoke() operation and waitForConfirmsOrDie() is used instead.
+									A returned message does not fail the send in that case; it is published to the
+									return channel, if one is configured.
 								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>

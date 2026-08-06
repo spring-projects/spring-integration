@@ -128,8 +128,10 @@ With correlated publisher confirms, the message also needs correlation data, whi
 The thread will block for up to `confirm-timeout` (or 5 seconds by default).
 If a timeout occurs, a `MessageTimeoutException` will be thrown.
 If returns are enabled and a message is returned, or any other exception occurs while awaiting the confirmation, a `MessageHandlingException` will be thrown, with an appropriate message.
-When there is no correlation data for the message and the connection factory is configured for simple publisher confirms, the message is sent within the scope of a `RabbitTemplate.invoke()` operation and `waitForConfirmsOrDie()` is used instead.
-A returned message does not fail the send in that case; it is published to the `return-channel`, if one is configured.
+With simple publisher confirms and no correlation data, the adapter sends the message within the scope of a `RabbitTemplate.invoke()` operation and calls `waitForConfirmsOrDie()` instead.
+A returned message then does not fail the send; it is published to the `return-channel`, if one is configured.
+This option cannot be combined with a `BoundRabbitChannelAdvice` that shares the same `RabbitTemplate`, since both open a scoped operation.
+Also see xref:amqp/strict-ordering.adoc[Strict Message Ordering].
 <15> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, `amqp_returnRoutingKey`.
