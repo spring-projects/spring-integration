@@ -84,9 +84,15 @@ For unbounded strategies (such as the default), you need to periodically invoke 
 Starting with version 5.5.6, the `ZookeeperLockRegistry` is support automatically clean up cache for ZkLock in `ZookeeperLockRegistry.locks` via `ZookeeperLockRegistry.setCacheCapacity()`.
 See its JavaDocs for more information.
 
-Starting with version 7.0.6, the `ZookeeperLockRegistry` checks the Zookeeper connection state via a non-blocking `CuratorZookeeperClient.isConnected()` instead of an asynchronous `checkExists()` call against the server.
-Therefore, no internal `TaskExecutor` is involved into locking anymore, and the `setMutexTaskExecutor()` is deprecated with no replacement.
-An unconnected client is still waited for - interruptibly and within the time requested for a `Lock.tryLock(long, TimeUnit)` - to let a re-connect happen.
+Starting with version 7.0.6, the `ZookeeperLockRegistry` awaits the Zookeeper connection via a `CuratorFramework.blockUntilConnected()` instead of an asynchronous `checkExists()` call against the server.
+The wait happens interruptibly and only within the time requested for a `Lock.tryLock(long, TimeUnit)`.
+Therefore, no internal `TaskExecutor` is involved in locking anymore, and the `setMutexTaskExecutor()` is deprecated with no replacement.
+In addition, a connection loss, an expired session or an operation timeout from the mutex acquisition is now reported as a `false` from the `Lock.tryLock()` instead of an exception.
+
+IMPORTANT: The `Lock.tryLock(long, TimeUnit)` bounds only the wait for a connection and for the mutex itself.
+The acquisition is delegated to a Curator `InterProcessMutex` which goes through a retry loop, and that loop waits for a connection on its own - up to the `connectionTimeoutMs` of the `CuratorFramework` plus its `RetryPolicy` budget.
+Therefore, when the connection is lost silently, for example, a network partition where the socket is not closed, the requested time may be exceeded: the Zookeeper client reports itself as connected until its own read timeout expires (two-thirds of the session timeout).
+Configure the `connectionTimeoutMs` and `RetryPolicy` of the `CuratorFramework` below the expected lock timeout when a tight bound is essential.
 
 [[zk-leadership]]
 == Zookeeper Leadership Event Handling

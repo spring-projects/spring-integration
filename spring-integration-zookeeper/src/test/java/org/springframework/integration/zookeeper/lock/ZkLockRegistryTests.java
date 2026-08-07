@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -317,8 +318,36 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 				Lock lock2 = registry.obtain("bar");
 
+				long startTime = System.currentTimeMillis();
+
 				assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
 						.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
+
+				assertThat(System.currentTimeMillis() - startTime)
+						.as("The tryLock() must not block far beyond the time requested!").isLessThan(10_000);
+
+				Lock lock4 = registry.obtain("interruptible");
+				CountDownLatch lockAttemptLatch = new CountDownLatch(1);
+				AtomicReference<Exception> lockException = new AtomicReference<>();
+
+				Thread lockThread = new Thread(() -> {
+					try {
+						lock4.lockInterruptibly();
+					}
+					catch (Exception ex) {
+						lockException.set(ex);
+					}
+					finally {
+						lockAttemptLatch.countDown();
+					}
+				});
+				lockThread.start();
+
+				lockThread.interrupt();
+
+				assertThat(lockAttemptLatch.await(10, TimeUnit.SECONDS))
+						.as("The lockInterruptibly() must not spin forever with zookeeper server stopped!").isTrue();
+				assertThat(lockException.get()).isInstanceOf(InterruptedException.class);
 
 				server.restart();
 

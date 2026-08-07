@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.zookeeper.KeeperException;
@@ -40,6 +41,17 @@ import org.springframework.util.Assert;
 /**
  * {@link ExpirableLockRegistry} implementation using Zookeeper, or more specifically,
  * Curator {@link InterProcessMutex}.
+ * <p>
+ * The {@link Lock#tryLock(long, TimeUnit)} of the locks from this registry bounds only the wait
+ * for a Zookeeper connection and for the mutex itself.
+ * The acquisition is delegated to an {@link InterProcessMutex} which internally goes through
+ * a Curator retry loop, and that loop waits for a connection on its own - up to the
+ * {@code connectionTimeoutMs} of the {@link CuratorFramework} plus its {@code RetryPolicy} budget.
+ * Therefore, when the connection is lost silently, e.g. a network partition where the socket is not
+ * closed, the requested time may be exceeded: the Zookeeper client reports itself as connected until
+ * its own read timeout expires (two-thirds of the session timeout).
+ * The {@code connectionTimeoutMs} and {@code RetryPolicy} have to be configured below the expected
+ * lock timeout when a tight bound is essential.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -120,13 +132,12 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 	 * @param mutexTaskExecutor the executor.
 	 * @since 4.2.10
 	 * @deprecated since 7.0.6 with no replacement.
-	 * The connection state is now determined via a non-blocking
-	 * {@link org.apache.curator.CuratorZookeeperClient#isConnected()}, so no executor
-	 * is involved into locking anymore and this option has no effect.
+	 * The connection is now awaited via a {@link CuratorFramework#blockUntilConnected(int, TimeUnit)},
+	 * so no executor is involved in locking anymore and this option has no effect.
 	 */
 	@Deprecated(since = "7.0.6", forRemoval = true)
-	@SuppressWarnings("unused")
 	public void setMutexTaskExecutor(AsyncTaskExecutor mutexTaskExecutor) {
+		Assert.notNull(mutexTaskExecutor, "'mutexTaskExecutor' cannot be null");
 		LOGGER.warn("The 'mutexTaskExecutor' is not used anymore and will be removed in a future release.");
 	}
 
@@ -275,17 +286,23 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
+			// The Lock contract: the interrupt status set on entry means no acquisition attempt at all.
+			checkInterruption();
 			// this is a bit ugly, but...
 			while (!tryLock(1, TimeUnit.SECONDS)) {
 				// The tryLock() above may return 'false' without blocking at all, e.g. when Zookeeper is not reachable.
 				// Therefore, the interrupt status has to be checked explicitly
 				// to avoid an endless, silent spin in this loop.
-				if (Thread.interrupted()) {
-					throw new InterruptedException("Interrupted while acquiring mutex at " + this.path);
-				}
+				checkInterruption();
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Mutex at " + this.path + " is not acquired yet; retrying...");
 				}
+			}
+		}
+
+		private void checkInterruption() throws InterruptedException {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Interrupted while acquiring mutex at " + this.path);
 			}
 		}
 
@@ -306,11 +323,20 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 				long startTime = System.currentTimeMillis();
 				long waitTime = unit.toMillis(time);
 
-				// The non-blocking state check first; only an unconnected client is waited for,
-				// interruptibly and within the requested time, to let a re-connect happen.
-				if (!this.client.getZookeeperClient().isConnected() &&
-						!this.client.blockUntilConnected((int) Math.min(waitTime, Integer.MAX_VALUE),
-								TimeUnit.MILLISECONDS)) {
+				// Both Curator's state machines have to agree before the acquisition is attempted:
+				// the `CuratorZookeeperClient` reacts to a closed socket immediately, while its
+				// `ConnectionStateManager` may still report a connection for a while.
+				// An acquisition against such a stale state blocks in the Curator retry loop
+				// far beyond the requested time.
+				// Hence the second `isConnected()` after a successful `blockUntilConnected()`:
+				// the latter is served from the `ConnectionStateManager` alone, so it may return `true`
+				// immediately, without consuming any of the `waitTime`, while the socket is already gone.
+				// The same re-check also covers a connection which has flapped back down
+				// right after `blockUntilConnected()` has unblocked.
+				CuratorZookeeperClient zookeeperClient = this.client.getZookeeperClient();
+				if (!zookeeperClient.isConnected() &&
+						(!this.client.blockUntilConnected((int) Math.min(waitTime, Integer.MAX_VALUE),
+								TimeUnit.MILLISECONDS) || !zookeeperClient.isConnected())) {
 
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("No Zookeeper connection to acquire mutex at " + this.path);

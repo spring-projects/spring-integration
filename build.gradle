@@ -231,8 +231,10 @@ subprojects { subproject ->
             systemProperty 'junit.jupiter.execution.timeout.default', '30 m'
         }
         else {
-            // Fail a stuck test with a stack trace of its thread
+            // Interrupt a stuck test and report a stack trace of its thread
             // instead of stalling the whole build with no output at all.
+            // The default `SAME_THREAD` mode still waits for the invocation to return,
+            // so a test wedged in a non-interruptible call is not aborted.
             systemProperty 'junit.jupiter.execution.timeout.default', '10 m'
         }
 
