@@ -303,78 +303,77 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void voidLockFailsWhenServerDown() throws Exception {
 		// This test brings the server down, so it must not use the one shared by the rest of the class:
 		// a failure to restart it would leave every subsequent test blocked forever in `InterProcessMutex.acquire()`.
-		try (var server = new TestingServer()) {
-			try (var client = CuratorFrameworkFactory.newClient(server.getConnectString(),
-					new BoundedExponentialBackoffRetry(100, 1000, 3))) {
+		try (var server = new TestingServer();
+				var client = CuratorFrameworkFactory.newClient(server.getConnectString(),
+						new BoundedExponentialBackoffRetry(100, 1000, 3))) {
 
-				client.start();
+			client.start();
 
-				ZookeeperLockRegistry registry = new ZookeeperLockRegistry(client);
+			ZookeeperLockRegistry registry = new ZookeeperLockRegistry(client);
 
-				Lock lock1 = registry.obtain("foo");
-				lock1.lock();
+			Lock lock1 = registry.obtain("foo");
+			lock1.lock();
 
-				server.stop();
+			server.stop();
 
-				Lock lock2 = registry.obtain("bar");
+			Lock lock2 = registry.obtain("bar");
 
-				long startTime = System.currentTimeMillis();
+			long startTime = System.currentTimeMillis();
 
-				assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
-						.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
+			assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
+					.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
 
-				assertThat(System.currentTimeMillis() - startTime)
-						.as("The tryLock() must not block far beyond the time requested!").isLessThan(3_000);
+			assertThat(System.currentTimeMillis() - startTime)
+					.as("The tryLock() must not block far beyond the time requested!").isLessThan(3_000);
 
-				// The `lockInterruptibly()` retries until it succeeds, so with the server down
-				// an interrupt is the only way out of its loop.
-				Lock lock4 = registry.obtain("interruptible");
-				CountDownLatch lockAttemptLatch = new CountDownLatch(1);
-				AtomicReference<Exception> lockException = new AtomicReference<>();
+			// The `lockInterruptibly()` retries until it succeeds, so with the server down
+			// an interrupt is the only way out of its loop.
+			Lock interruptibleLock = registry.obtain("interruptible");
+			CountDownLatch lockAttemptLatch = new CountDownLatch(1);
+			AtomicReference<Exception> lockException = new AtomicReference<>();
 
-				Thread lockThread = new Thread(() -> {
-					try {
-						lock4.lockInterruptibly();
-					}
-					catch (Exception ex) {
-						lockException.set(ex);
-					}
-					finally {
-						lockAttemptLatch.countDown();
-					}
-				});
-				lockThread.start();
+			Thread lockThread = new Thread(() -> {
+				try {
+					interruptibleLock.lockInterruptibly();
+				}
+				catch (Exception ex) {
+					lockException.set(ex);
+				}
+				finally {
+					lockAttemptLatch.countDown();
+				}
+			});
+			lockThread.start();
 
-				lockThread.interrupt();
+			lockThread.interrupt();
 
-				assertThat(lockAttemptLatch.await(10, TimeUnit.SECONDS))
-						.as("The lockInterruptibly() must return on an interrupt with zookeeper server stopped!")
-						.isTrue();
-				assertThat(lockException.get())
-						.as("The lockInterruptibly() must propagate the interrupt, not swallow it in its loop")
-						.isInstanceOf(InterruptedException.class);
+			assertThat(lockAttemptLatch.await(10, TimeUnit.SECONDS))
+					.as("The lockInterruptibly() must return on an interrupt with zookeeper server stopped!")
+					.isTrue();
+			assertThat(lockException.get())
+					.as("The lockInterruptibly() must propagate the interrupt, not attempt an acquisition")
+					.isInstanceOf(InterruptedException.class);
 
-				// Otherwise a failed assertion above would leave this thread racing for the lock below.
-				lockThread.join(10_000);
-				assertThat(lockThread.isAlive()).isFalse();
+			// Otherwise a failed assertion above would leave this thread racing for the lock below.
+			lockThread.join(10_000);
+			assertThat(lockThread.isAlive()).isFalse();
 
-				server.restart();
+			server.restart();
 
-				assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
-						.as("Should have been able to lock with zookeeper server restarted!").isTrue();
+			assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
+					.as("Should have been able to lock with zookeeper server restarted!").isTrue();
 
-				assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
+			assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
 
-				Lock lock3 = registry.obtain("foobar");
+			Lock lock3 = registry.obtain("foobar");
 
-				assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
+			assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
 
-				lock1.unlock();
-				lock1.unlock();
-				lock2.unlock();
-				lock3.unlock();
-				registry.destroy();
-			}
+			lock1.unlock();
+			lock1.unlock();
+			lock2.unlock();
+			lock3.unlock();
+			registry.destroy();
 		}
 	}
 

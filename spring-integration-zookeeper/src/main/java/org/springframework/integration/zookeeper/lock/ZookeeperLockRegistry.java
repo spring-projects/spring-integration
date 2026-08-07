@@ -343,14 +343,15 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 					return false;
 				}
 				else {
-					// A slow connection check must not pass a negative deadline to the mutex.
+					// Defensive: never hand the mutex a negative deadline.
 					waitTime = Math.max(0, waitTime - (System.currentTimeMillis() - startTime));
 					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
 				}
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
 				future.cancel(true);
-				LOGGER.debug(() -> "Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
+				LOGGER.debug(() ->
+						"Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
 				return false;
 			}
 			catch (InterruptedException e) {
