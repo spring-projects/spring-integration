@@ -31,6 +31,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
@@ -53,6 +54,8 @@ import org.springframework.util.Assert;
  *
  */
 public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, DisposableBean {
+
+	private static final LogAccessor LOGGER = new LogAccessor(ZookeeperLockRegistry.class);
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
@@ -118,7 +121,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 	 */
 	public ZookeeperLockRegistry(CuratorFramework client, KeyToPathStrategy keyToPath) {
 		Assert.notNull(client, "'client' cannot be null");
-		Assert.notNull(client, "'keyToPath' cannot be null");
+		Assert.notNull(keyToPath, "'keyToPath' cannot be null");
 		this.client = client;
 		this.keyToPath = keyToPath;
 		this.trackingTime = !keyToPath.bounded();
@@ -286,12 +289,22 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
-			boolean locked = false;
+			// The Lock contract: the interrupt status set on entry means no acquisition attempt at all.
+			checkInterruption();
 			// this is a bit ugly, but...
-			while (!locked) {
-				locked = tryLock(1, TimeUnit.SECONDS);
+			while (!tryLock(1, TimeUnit.SECONDS)) {
+				// In practice an interrupt is raised from the connection check the tryLock() blocks in.
+				// This is only a guard for the paths where the tryLock() returns 'false' instead,
+				// so this loop cannot silently spin on with the interrupt status set.
+				checkInterruption();
+				LOGGER.debug(() -> "Mutex at " + this.path + " is not acquired yet; retrying...");
 			}
+		}
 
+		private void checkInterruption() throws InterruptedException {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Interrupted while acquiring mutex at " + this.path);
+			}
 		}
 
 		@Override
@@ -326,18 +339,25 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				if (!connected) {
 					future.cancel(true);
+					LOGGER.debug(() -> "No Zookeeper connection to acquire mutex at " + this.path);
 					return false;
 				}
 				else {
-					waitTime = waitTime - (System.currentTimeMillis() - startTime);
+					// Defensive: never hand the mutex a negative deadline.
+					waitTime = Math.max(0, waitTime - (System.currentTimeMillis() - startTime));
 					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
 				}
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
 				future.cancel(true);
+				LOGGER.debug(() ->
+						"Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
 				return false;
 			}
 			catch (InterruptedException e) {
+				// Otherwise the abandoned connection check keeps the single executor thread busy
+				// for the whole `connectionTimeoutMs`, and every subsequent `tryLock()` queues behind it.
+				future.cancel(true);
 				Thread.currentThread().interrupt();
 				throw e;
 			}
