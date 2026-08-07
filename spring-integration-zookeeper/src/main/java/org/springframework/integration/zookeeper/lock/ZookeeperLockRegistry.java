@@ -27,12 +27,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
@@ -56,7 +55,7 @@ import org.springframework.util.Assert;
  */
 public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, DisposableBean {
 
-	private static final Log LOGGER = LogFactory.getLog(ZookeeperLockRegistry.class);
+	private static final LogAccessor LOGGER = new LogAccessor(ZookeeperLockRegistry.class);
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
@@ -298,9 +297,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 				// This is only a guard for the paths where the tryLock() returns 'false' instead,
 				// so this loop cannot silently spin on with the interrupt status set.
 				checkInterruption();
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Mutex at " + this.path + " is not acquired yet; retrying...");
-				}
+				LOGGER.debug(() -> "Mutex at " + this.path + " is not acquired yet; retrying...");
 			}
 		}
 
@@ -342,9 +339,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 
 				if (!connected) {
 					future.cancel(true);
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("No Zookeeper connection to acquire mutex at " + this.path);
-					}
+					LOGGER.debug(() -> "No Zookeeper connection to acquire mutex at " + this.path);
 					return false;
 				}
 				else {
@@ -355,9 +350,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
 				future.cancel(true);
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
-				}
+				LOGGER.debug(() -> "Timed out while checking the Zookeeper connection to acquire mutex at " + this.path);
 				return false;
 			}
 			catch (InterruptedException e) {
