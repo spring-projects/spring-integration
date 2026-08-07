@@ -122,7 +122,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 	 */
 	public ZookeeperLockRegistry(CuratorFramework client, KeyToPathStrategy keyToPath) {
 		Assert.notNull(client, "'client' cannot be null");
-		Assert.notNull(client, "'keyToPath' cannot be null");
+		Assert.notNull(keyToPath, "'keyToPath' cannot be null");
 		this.client = client;
 		this.keyToPath = keyToPath;
 		this.trackingTime = !keyToPath.bounded();
