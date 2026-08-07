@@ -354,6 +354,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, Dispo
 				return false;
 			}
 			catch (InterruptedException e) {
+				// Otherwise the abandoned connection check keeps the single executor thread busy
+				// for the whole `connectionTimeoutMs`, and every subsequent `tryLock()` queues behind it.
+				future.cancel(true);
 				Thread.currentThread().interrupt();
 				throw e;
 			}
