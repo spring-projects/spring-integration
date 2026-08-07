@@ -324,14 +324,18 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 						.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
 
 				assertThat(System.currentTimeMillis() - startTime)
-						.as("The tryLock() must not block far beyond the time requested!").isLessThan(10_000);
+						.as("The tryLock() must not block far beyond the time requested!").isLessThan(3_000);
 
+				// The `lockInterruptibly()` retries until it succeeds, so with the server down
+				// an interrupt is the only way out: it must not be swallowed by the retry loop.
 				Lock lock4 = registry.obtain("interruptible");
+				CountDownLatch lockAttemptStartedLatch = new CountDownLatch(1);
 				CountDownLatch lockAttemptLatch = new CountDownLatch(1);
 				AtomicReference<Exception> lockException = new AtomicReference<>();
 
 				Thread lockThread = new Thread(() -> {
 					try {
+						lockAttemptStartedLatch.countDown();
 						lock4.lockInterruptibly();
 					}
 					catch (Exception ex) {
@@ -343,11 +347,16 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				});
 				lockThread.start();
 
+				assertThat(lockAttemptStartedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 				lockThread.interrupt();
 
 				assertThat(lockAttemptLatch.await(10, TimeUnit.SECONDS))
 						.as("The lockInterruptibly() must not spin forever with zookeeper server stopped!").isTrue();
 				assertThat(lockException.get()).isInstanceOf(InterruptedException.class);
+
+				// Otherwise a failed assertion above would leave this thread racing for the lock below.
+				lockThread.join(10_000);
+				assertThat(lockThread.isAlive()).isFalse();
 
 				server.restart();
 
