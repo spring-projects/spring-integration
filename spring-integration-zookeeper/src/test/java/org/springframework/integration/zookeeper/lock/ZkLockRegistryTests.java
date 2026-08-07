@@ -55,7 +55,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testLock() throws Exception {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new TestKeyToPathStrategy());
 		for (int i = 0; i < 10; i++) {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("orders");
 			lock.lock();
 			try {
 				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks")).hasSize(1);
@@ -75,7 +75,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testLockInterruptibly() throws Exception {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("orders");
 			lock.lockInterruptibly();
 			try {
 				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks")).hasSize(1);
@@ -91,10 +91,10 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testReentrantLock() {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
-			Lock lock1 = registry.obtain("foo");
+			Lock lock1 = registry.obtain("orders");
 			lock1.lock();
 			try {
-				Lock lock2 = registry.obtain("foo");
+				Lock lock2 = registry.obtain("orders");
 				assertThat(lock2).isSameAs(lock1);
 				lock2.lock();
 				lock2.unlock();
@@ -110,10 +110,10 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testReentrantLockInterruptibly() throws Exception {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
-			Lock lock1 = registry.obtain("foo");
+			Lock lock1 = registry.obtain("orders");
 			lock1.lockInterruptibly();
 			try {
-				Lock lock2 = registry.obtain("foo");
+				Lock lock2 = registry.obtain("orders");
 				assertThat(lock2).isSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
@@ -129,10 +129,10 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testTwoLocks() throws Exception {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
-			Lock lock1 = registry.obtain("foo");
+			Lock lock1 = registry.obtain("orders");
 			lock1.lockInterruptibly();
 			try {
-				Lock lock2 = registry.obtain("bar");
+				Lock lock2 = registry.obtain("invoices");
 				assertThat(lock2).isNotSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
@@ -147,13 +147,13 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	@Test
 	public void testTwoThreadsSecondFailsToGetLock() throws Exception {
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		final Lock lock1 = registry.obtain("foo");
+		final Lock lock1 = registry.obtain("orders");
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		Future<Object> result = executorService.submit(() -> {
-			Lock lock2 = registry.obtain("foo");
+			Lock lock2 = registry.obtain("orders");
 			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
 			latch.countDown();
 			try {
@@ -177,7 +177,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	@Test
 	public void testTwoThreads() throws Exception {
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		final Lock lock1 = registry.obtain("foo");
+		final Lock lock1 = registry.obtain("orders");
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
@@ -185,7 +185,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock1.lockInterruptibly();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		executorService.execute(() -> {
-			Lock lock2 = registry.obtain("foo");
+			Lock lock2 = registry.obtain("orders");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
@@ -214,7 +214,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testTwoThreadsDifferentRegistries() throws Exception {
 		final ZookeeperLockRegistry registry1 = new ZookeeperLockRegistry(this.client);
 		final ZookeeperLockRegistry registry2 = new ZookeeperLockRegistry(this.client);
-		final Lock lock1 = registry1.obtain("foo");
+		final Lock lock1 = registry1.obtain("orders");
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
@@ -222,7 +222,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock1.lockInterruptibly();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		executorService.execute(() -> {
-			Lock lock2 = registry2.obtain("foo");
+			Lock lock2 = registry2.obtain("orders");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
@@ -251,7 +251,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	@Test
 	public void testTwoThreadsWrongOneUnlocks() throws Exception {
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
-		final Lock lock = registry.obtain("foo");
+		final Lock lock = registry.obtain("orders");
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -281,7 +281,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client,
 				key -> "/SpringIntegration-LockRegistry/singleLock");
 		for (int i = 0; i < 10; i++) {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("orders");
 			lock.lock();
 			try {
 				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(registry, "locks")).hasSize(1);
@@ -311,16 +311,16 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 			ZookeeperLockRegistry registry = new ZookeeperLockRegistry(client);
 
-			Lock lock1 = registry.obtain("foo");
-			lock1.lock();
+			Lock ordersLock = registry.obtain("orders");
+			ordersLock.lock();
 
 			server.stop();
 
-			Lock lock2 = registry.obtain("bar");
+			Lock invoicesLock = registry.obtain("invoices");
 
 			long startTime = System.currentTimeMillis();
 
-			assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
+			assertThat(invoicesLock.tryLock(1, TimeUnit.SECONDS))
 					.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
 
 			assertThat(System.currentTimeMillis() - startTime)
@@ -360,19 +360,21 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 			server.restart();
 
-			assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
+			assertThat(invoicesLock.tryLock(10, TimeUnit.SECONDS))
 					.as("Should have been able to lock with zookeeper server restarted!").isTrue();
 
-			assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
+			assertThat(ordersLock.tryLock(1, TimeUnit.SECONDS))
+					.as("Should have still held the lock obtained before the server went down!").isTrue();
 
-			Lock lock3 = registry.obtain("foobar");
+			Lock shipmentsLock = registry.obtain("shipments");
 
-			assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
+			assertThat(shipmentsLock.tryLock(1, TimeUnit.SECONDS))
+					.as("Should have been able to obtain a new lock!").isTrue();
 
-			lock1.unlock();
-			lock1.unlock();
-			lock2.unlock();
-			lock3.unlock();
+			ordersLock.unlock();
+			ordersLock.unlock();
+			invoicesLock.unlock();
+			shipmentsLock.unlock();
 			registry.destroy();
 		}
 	}
@@ -381,7 +383,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 	public void testTryLock() throws Exception {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("orders");
 
 			int n = 0;
 			while (!lock.tryLock() && n++ < 100) {
@@ -417,7 +419,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
-				String keyId = "foo:" + finalI;
+				String keyId = "orders:" + finalI;
 				Lock obtain = registry.obtain(keyId);
 				maincountDownLatch.countDown();
 				obtain.lock();
@@ -451,7 +453,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		//Removed due to capcity limit
 		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
-			Lock obtainLock0 = registry.obtain("foo:" + i);
+			Lock obtainLock0 = registry.obtain("orders:" + i);
 			obtainLock0.lock();
 			obtainLock0.unlock();
 		}
@@ -466,7 +468,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
-				String keyId = "foo:" + finalI;
+				String keyId = "orders:" + finalI;
 				remainLockCheckQueue.offer(toKey(keyId));
 				Lock obtain = registry.obtain(keyId);
 				obtain.lock();
@@ -487,7 +489,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final int DUMMY_LOCK_CNT = 3;
 
 		final int CAPACITY_CNT = THREAD_CNT + 1;
-		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
+		final String REMAIN_DUMMY_LOCK_KEY = "orders:1";
 
 		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
@@ -497,7 +499,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		//Removed due to capcity limit
 		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
-			Lock obtainLock0 = registry.obtain("foo:" + i);
+			Lock obtainLock0 = registry.obtain("orders:" + i);
 			obtainLock0.lock();
 			obtainLock0.unlock();
 		}
@@ -517,7 +519,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
-				String keyId = "foo:" + finalI;
+				String keyId = "orders:" + finalI;
 				remainLockCheckQueue.offer(toKey(keyId));
 				Lock obtain = registry.obtain(keyId);
 				obtain.lock();
@@ -538,23 +540,23 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		registry.setCacheCapacity(CAPACITY_CNT);
 
-		registry.obtain("foo:1");
-		registry.obtain("foo:2");
-		registry.obtain("foo:3");
+		registry.obtain("orders:1");
+		registry.obtain("orders:2");
+		registry.obtain("orders:3");
 
 		//capacity 4->3
 		registry.setCacheCapacity(CAPACITY_CNT - 1);
 
-		registry.obtain("foo:4");
+		registry.obtain("orders:4");
 
 		assertThat(getRegistryLocks(registry)).hasSize(3);
-		assertThat(getRegistryLocks(registry)).containsKeys(toKey("foo:2"), toKey("foo:3"), toKey("foo:4"));
+		assertThat(getRegistryLocks(registry)).containsKeys(toKey("orders:2"), toKey("orders:3"), toKey("orders:4"));
 
 		//capacity 3->4
 		registry.setCacheCapacity(CAPACITY_CNT);
-		registry.obtain("foo:5");
+		registry.obtain("orders:5");
 		assertThat(getRegistryLocks(registry)).hasSize(4);
-		assertThat(getRegistryLocks(registry)).containsKeys(toKey("foo:3"), toKey("foo:4"), toKey("foo:5"));
+		assertThat(getRegistryLocks(registry)).containsKeys(toKey("orders:3"), toKey("orders:4"), toKey("orders:5"));
 		registry.destroy();
 	}
 
