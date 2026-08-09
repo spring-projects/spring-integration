@@ -132,10 +132,12 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 	}
 
 	@Test
-	void simpleConfirmsWithReject(@Autowired IntegrationFlow simpleConfirmsFlow, @Autowired RabbitAdmin admin) {
+	void simpleConfirmsWithReject(@Autowired IntegrationFlow simpleConfirmsFlow,
+			@Autowired RabbitAdmin simpleConfirmsAdmin) {
+
 		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
 		String queueName = queue.getName();
-		admin.declareQueue(queue);
+		simpleConfirmsAdmin.declareQueue(queue);
 		GenericMessage<String> message = new GenericMessage<>("test", Collections.singletonMap("rk", queueName));
 		try {
 			simpleConfirmsFlow.getInputChannel().send(message);
@@ -143,7 +145,7 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 					.hasCauseInstanceOf(AmqpIOException.class);
 		}
 		finally {
-			admin.deleteQueue(queueName);
+			simpleConfirmsAdmin.deleteQueue(queueName);
 		}
 	}
 
@@ -201,6 +203,11 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 		@Bean
 		public RabbitTemplate simpleConfirmsTemplate(ConnectionFactory simpleConfirmsCf) {
 			return new RabbitTemplate(simpleConfirmsCf);
+		}
+
+		@Bean
+		public RabbitAdmin simpleConfirmsAdmin(ConnectionFactory simpleConfirmsCf) {
+			return new RabbitAdmin(simpleConfirmsCf);
 		}
 
 		@Bean
