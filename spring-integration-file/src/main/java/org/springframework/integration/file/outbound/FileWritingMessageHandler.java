@@ -117,6 +117,7 @@ import org.springframework.util.StringUtils;
  * @author Trung Pham
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Thomas Knall
  *
  * @since 7.0
  */
@@ -986,8 +987,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private static void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
 		if (!destinationDirectory.exists() && autoCreateDirectory) {
-			Assert.isTrue(destinationDirectory.mkdirs(),
-					() -> "Destination directory [" + destinationDirectory + "] could not be created.");
+			try {
+				Files.createDirectories(destinationDirectory.toPath());
+			}
+			catch (IOException ex) {
+				throw new IllegalArgumentException(
+						"Destination directory [" + destinationDirectory + "] could not be created.", ex);
+			}
 		}
 		Assert.isTrue(destinationDirectory.exists(),
 				() -> "Destination directory [" + destinationDirectory + "] does not exist.");

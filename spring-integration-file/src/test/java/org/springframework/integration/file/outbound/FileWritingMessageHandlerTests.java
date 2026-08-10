@@ -29,6 +29,10 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -47,6 +51,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -83,6 +88,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Alen Turkovic
+ * @author Thomas Knall
  */
 public class FileWritingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -708,6 +714,41 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 			.isThrownBy(() -> handler.handleMessage(message))
 			.withStackTraceContaining("trying to leave the target output directory")
 			.withRootCauseInstanceOf(InvalidPathException.class);
+	}
+
+	@Test
+	public void concurrentWritesToSameNewDestinationDirectory() throws Exception {
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(
+				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("directory")));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		handler.setExpectReply(false);
+		handler.afterPropertiesSet();
+
+		int concurrency = 8;
+		ExecutorService executorService = Executors.newFixedThreadPool(concurrency);
+		try {
+			for (int round = 0; round < 50; round++) {
+				File directory = new File(this.tempDir, "destination-" + round);
+				CountDownLatch writesDone = new CountDownLatch(concurrency);
+				for (int i = 0; i < concurrency; i++) {
+					Message<String> message = MessageBuilder.withPayload("test data")
+							.setHeader("directory", directory.getAbsolutePath())
+							.setHeader(FileHeaders.FILENAME, "file-" + i + ".txt")
+							.build();
+					executorService.execute(() -> {
+						handler.handleMessage(message);
+						writesDone.countDown();
+					});
+				}
+				assertThat(writesDone.await(10, TimeUnit.SECONDS)).isTrue();
+				for (int i = 0; i < concurrency; i++) {
+					assertThat(new File(directory, "file-" + i + ".txt")).exists();
+				}
+			}
+		}
+		finally {
+			executorService.shutdownNow();
+		}
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {
