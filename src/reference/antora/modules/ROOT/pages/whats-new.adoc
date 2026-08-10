@@ -22,3 +22,11 @@ Java 17 is still the baseline, but Java 25 is supported.
 
 The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
 See xref:error-handling.adoc[] for more information.
+
+[[x7.2-amqp-changes]]
+=== AMQP Support Changes
+
+The `wait-for-confirm` option on the outbound channel adapter now also works with simple publisher confirms.
+When the message has no correlation data, the send is performed within the scope of a `RabbitTemplate.invoke()` operation and `waitForConfirmsOrDie()` is used.
+A warning is now logged when the option is set but the connection factory supports no publisher confirms at all.
+See xref:amqp/outbound-channel-adapter.adoc[] for more information.

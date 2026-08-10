@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.AmqpIOException;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.QueueBuilder.Overflow;
@@ -53,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jun Cho
  *
  * @since 5.2
  *
@@ -63,14 +65,18 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 
 	static final String QUEUE_TEST_CONFIRM_OK = "testConfirmOk";
 
+	static final String QUEUE_TEST_SIMPLE_CONFIRMS = "testSimpleConfirms";
+
 	@BeforeAll
 	static void initQueue() throws IOException, InterruptedException {
 		RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + QUEUE_TEST_CONFIRM_OK);
+		RABBITMQ.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + QUEUE_TEST_SIMPLE_CONFIRMS);
 	}
 
 	@AfterAll
 	static void deleteQueue() throws IOException, InterruptedException {
 		RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + QUEUE_TEST_CONFIRM_OK);
+		RABBITMQ.execInContainer("rabbitmqadmin", "delete", "queue", "name=" + QUEUE_TEST_SIMPLE_CONFIRMS);
 	}
 
 	@Test
@@ -118,6 +124,31 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 		admin.deleteQueue(queue.getName());
 	}
 
+	@Test
+	void simpleConfirmsOk(@Autowired IntegrationFlow simpleConfirmsFlow, @Autowired RabbitTemplate template) {
+		simpleConfirmsFlow.getInputChannel()
+				.send(new GenericMessage<>("test", Collections.singletonMap("rk", QUEUE_TEST_SIMPLE_CONFIRMS)));
+		assertThat(template.receive(QUEUE_TEST_SIMPLE_CONFIRMS)).isNotNull();
+	}
+
+	@Test
+	void simpleConfirmsWithReject(@Autowired IntegrationFlow simpleConfirmsFlow,
+			@Autowired RabbitAdmin simpleConfirmsAdmin) {
+
+		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
+		String queueName = queue.getName();
+		simpleConfirmsAdmin.declareQueue(queue);
+		GenericMessage<String> message = new GenericMessage<>("test", Collections.singletonMap("rk", queueName));
+		try {
+			simpleConfirmsFlow.getInputChannel().send(message);
+			assertThatThrownBy(() -> simpleConfirmsFlow.getInputChannel().send(message))
+					.hasCauseInstanceOf(AmqpIOException.class);
+		}
+		finally {
+			simpleConfirmsAdmin.deleteQueue(queueName);
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class Config {
@@ -139,6 +170,14 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 		}
 
 		@Bean
+		public IntegrationFlow simpleConfirmsFlow(RabbitTemplate simpleConfirmsTemplate) {
+			return f -> f.handle(Amqp.outboundAdapter(simpleConfirmsTemplate)
+					.exchangeName("")
+					.routingKeyFunction(msg -> msg.getHeaders().get("rk", String.class))
+					.waitForConfirm(true));
+		}
+
+		@Bean
 		public CachingConnectionFactory cf() {
 			CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
 			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
@@ -152,6 +191,23 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 			rabbitTemplate.setMandatory(true);
 			rabbitTemplate.setReceiveTimeout(10_000);
 			return rabbitTemplate;
+		}
+
+		@Bean
+		public CachingConnectionFactory simpleConfirmsCf() {
+			CachingConnectionFactory ccf = new CachingConnectionFactory(RabbitTestContainer.amqpPort());
+			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.SIMPLE);
+			return ccf;
+		}
+
+		@Bean
+		public RabbitTemplate simpleConfirmsTemplate(ConnectionFactory simpleConfirmsCf) {
+			return new RabbitTemplate(simpleConfirmsCf);
+		}
+
+		@Bean
+		public RabbitAdmin simpleConfirmsAdmin(ConnectionFactory simpleConfirmsCf) {
+			return new RabbitAdmin(simpleConfirmsCf);
 		}
 
 		@Bean
