@@ -37,3 +37,10 @@ See xref:amqp/outbound-channel-adapter.adoc[] for more information.
 The `METADATA_VALUE` column in the `JdbcMetadataStore` schema scripts is now `NOT NULL`.
 Existing databases created with older scripts should remove any null-valued rows and alter the column to `NOT NULL` when upgrading.
 See xref:jdbc/metadata-store.adoc[] for more information.
+
+[[x7.2-http-changes]]
+=== HTTP Support Changes
+
+The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration.
+The `HttpRequestExecutingMessageHandler` also gains `setDefaultStatusHandler(RestClient.ResponseSpec.ErrorHandler)` and `setDefaultStatusHandler(Predicate<HttpStatusCode>, RestClient.ResponseSpec.ErrorHandler)` methods (with matching Java DSL `errorHandler()` overloads) to configure `RestClient`-based error handling.
+See xref:http/outbound.adoc[] for more information.

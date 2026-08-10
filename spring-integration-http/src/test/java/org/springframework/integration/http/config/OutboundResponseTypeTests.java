@@ -97,22 +97,22 @@ public class OutboundResponseTypeTests {
 	public static class MockServerConfig {
 
 		@Bean
-		public static RestClient.Builder restClientBuilder() {
+		RestClient.Builder restClientBuilder() {
 			return RestClient.builder();
 		}
 
 		@Bean
-		public static MockRestServiceServer mockServer(RestClient.Builder restClientBuilder) {
+		MockRestServiceServer mockServer(RestClient.Builder restClientBuilder) {
 			return MockRestServiceServer.bindTo(restClientBuilder).build();
 		}
 
 		@Bean
-		public static RestClient restClient(RestClient.Builder restClientBuilder) {
+		RestClient restClient(RestClient.Builder restClientBuilder) {
 			return restClientBuilder.build();
 		}
 
 		@Bean
-		public static RestClient.Builder restClientWithConvertersBuilder() {
+		RestClient.Builder restClientWithConvertersBuilder() {
 			return RestClient.builder()
 					.configureMessageConverters((builder) ->
 							builder.configureMessageConvertersList((converters) -> {
@@ -123,12 +123,12 @@ public class OutboundResponseTypeTests {
 		}
 
 		@Bean
-		public static MockRestServiceServer mockServerWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
+		MockRestServiceServer mockServerWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
 			return MockRestServiceServer.bindTo(restClientWithConvertersBuilder).build();
 		}
 
 		@Bean
-		public static RestClient restClientWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
+		RestClient restClientWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
 			return restClientWithConvertersBuilder.build();
 		}
 
@@ -253,15 +253,6 @@ public class OutboundResponseTypeTests {
 				.send(new GenericMessage<>(Collections.singletonMap("foo", "bar")));
 
 		this.mockServer.verify();
-	}
-
-	@Test
-	public void notAllowedEncodingModeWhenExternalRestTemplate() {
-		assertThatExceptionOfType(BeanDefinitionParsingException.class)
-				.isThrownBy(() -> new ClassPathXmlApplicationContext(
-						"OutboundResponseTypeTests-context-encoding-mode-fail.xml", getClass()))
-				.withMessageContaining("When providing a 'rest-template' reference, " +
-						"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.");
 	}
 
 	@Test

@@ -221,7 +221,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
-	 * @deprecated Use {@link #setErrorHandler(Predicate, RestClient.ResponseSpec.ErrorHandler)}
+	 * @deprecated Use {@link #setDefaultStatusHandler(RestClient.ResponseSpec.ErrorHandler)}
+	 * or {@link #setDefaultStatusHandler(Predicate, RestClient.ResponseSpec.ErrorHandler)}
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	@Deprecated(since = "7.2", forRemoval = true)
@@ -238,8 +239,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param errorHandler The error handler.
 	 * @since 7.2
 	 */
-	public void setErrorHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
-		setErrorHandler(HttpStatusCode::isError, errorHandler);
+	public void setDefaultStatusHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
+		setDefaultStatusHandler(HttpStatusCode::isError, errorHandler);
 	}
 
 	/**
@@ -249,7 +250,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param errorHandler The error handler.
 	 * @since 7.2
 	 */
-	public void setErrorHandler(Predicate<HttpStatusCode> predicate, RestClient.ResponseSpec.ErrorHandler errorHandler) {
+	public void setDefaultStatusHandler(Predicate<HttpStatusCode> predicate,
+			RestClient.ResponseSpec.ErrorHandler errorHandler) {
+
 		assertLocalClient("errorHandler");
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");

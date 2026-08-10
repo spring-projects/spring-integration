@@ -122,9 +122,9 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 * @since 7.2
 	 */
-	public HttpMessageHandlerSpec errorHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
+	public HttpMessageHandlerSpec defaultStatusHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
 		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
-		this.target.setErrorHandler(errorHandler);
+		this.target.setDefaultStatusHandler(errorHandler);
 		return _this();
 	}
 
@@ -140,7 +140,7 @@ public class HttpMessageHandlerSpec
 			RestClient.ResponseSpec.ErrorHandler errorHandler) {
 
 		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
-		this.target.setErrorHandler(predicate, errorHandler);
+		this.target.setDefaultStatusHandler(predicate, errorHandler);
 		return _this();
 	}
 

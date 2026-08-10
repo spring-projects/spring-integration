@@ -393,7 +393,7 @@ public class HttpDslTests {
 									.uriVariable("params", "payload")
 									.expectedResponseType(String.class)
 									.extractResponseBody(false)
-									.errorHandler(new HttpProxyResponseErrorHandler()),
+									.defaultStatusHandler(new HttpProxyResponseErrorHandler()),
 							e -> e.id("serviceInternalGateway"))
 					.get();
 		}
