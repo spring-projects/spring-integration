@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.inbound;
 
 import java.lang.reflect.Type;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.retry.RetryListener;
@@ -137,6 +139,24 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 	static final String topic6 = "testTopic6";
 
+	private final List<KafkaMessageDrivenChannelAdapter<?, ?>> adapters = new ArrayList<>();
+
+	/**
+	 * Register an adapter for an unconditional stop in the {@link #stopAdapters()}.
+	 * The tests share a single embedded broker for the whole class, so an adapter left
+	 * running by a failed test keeps re-polling that broker and fails the rest of them.
+	 */
+	private <K, V> KafkaMessageDrivenChannelAdapter<K, V> register(KafkaMessageDrivenChannelAdapter<K, V> adapter) {
+		this.adapters.add(adapter);
+		return adapter;
+	}
+
+	@AfterEach
+	void stopAdapters() {
+		this.adapters.forEach(KafkaMessageDrivenChannelAdapter::stop);
+		this.adapters.clear();
+	}
+
 	@Test
 	void testInboundRecord(EmbeddedKafkaBroker embeddedKafka) {
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test1", true);
@@ -145,7 +165,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerProperties containerProps = new ContainerProperties(topic1);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container));
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -234,7 +255,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerProperties containerProps = new ContainerProperties(topic4);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container));
 		AtomicReference<MessageHistory> receivedMessageHistory = new AtomicReference<>();
 		MessageChannel out = new DirectChannel() {
 
@@ -302,7 +324,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container));
 		MessageChannel out = new DirectChannel() {
 
 			@Override
@@ -351,7 +374,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 		container.setCommonErrorHandler(new DefaultErrorHandler());
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container));
 		MessageChannel out = new DirectChannel() {
 
 			@Override
@@ -412,8 +436,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		containerProps.setIdleEventInterval(100L);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container,
-				ListenerMode.batch);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container, ListenerMode.batch));
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 
@@ -511,7 +535,8 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		ContainerProperties containerProps = new ContainerProperties(topic3);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter =
+				register(new KafkaMessageDrivenChannelAdapter<>(container));
 		adapter.setRecordMessageConverter(new StringJacksonJsonMessageConverter());
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
@@ -558,11 +583,11 @@ class MessageDrivenAdapterTests implements TestApplicationContextAware {
 		KafkaMessageListenerContainer<Integer, Foo> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 
-		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = Kafka
+		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = register(Kafka
 				.messageDrivenChannelAdapter(container, ListenerMode.record)
 				.recordMessageConverter(new StringJacksonJsonMessageConverter())
 				.payloadType(Foo.class)
-				.getObject();
+				.getObject());
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
