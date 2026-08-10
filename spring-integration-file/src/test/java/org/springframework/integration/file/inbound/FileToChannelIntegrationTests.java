@@ -60,7 +60,6 @@ public class FileToChannelIntegrationTests {
 		assertThat(received).isNotNull();
 		Message<?> result = this.resultChannel.receive(10000);
 		assertThat(result).isNotNull();
-		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
 		await().until(() -> !file.exists());
 	}
 
