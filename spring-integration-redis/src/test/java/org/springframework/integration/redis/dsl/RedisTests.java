@@ -86,6 +86,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.1
  */
@@ -196,7 +197,8 @@ class RedisTests implements RedisContainerTest {
 		// Given
 		int numToTest = 10;
 		final CountDownLatch latch = new CountDownLatch(numToTest);
-		List<org.springframework.data.redis.connection.Message> receivedMessages = new ArrayList<>();
+		List<org.springframework.data.redis.connection.Message> receivedMessages =
+				Collections.synchronizedList(new ArrayList<>());
 		MessageListenerAdapter listener = new MessageListenerAdapter() {
 
 			@Override
