@@ -246,8 +246,13 @@ configure(javaProjects) { subproject ->
 			languageVersion = JavaLanguageVersion.of(project.findProperty('testJavaVersion') ?: 25)
 		}
 
+        // The `org.gradle.jvmargs` in the `gradle.properties` applies only to the Gradle daemon:
+        // forked test JVMs default to 512 MB, which `:spring-integration-core:test` exhausts.
+        maxHeapSize = '1g'
+
         jvmArgs '-Xshare:off',
-				'--enable-native-access=ALL-UNNAMED'
+				'--enable-native-access=ALL-UNNAMED',
+				'-XX:+HeapDumpOnOutOfMemoryError'
 
 		if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
 			systemProperty 'java.io.tmpdir', '/private/tmp'
