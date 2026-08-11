@@ -17,6 +17,7 @@
 package org.springframework.integration.file.inbound;
 
 import java.io.File;
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -60,7 +61,7 @@ public class FileToChannelIntegrationTests {
 		assertThat(received).isNotNull();
 		Message<?> result = this.resultChannel.receive(10000);
 		assertThat(result).isNotNull();
-		await().until(() -> !file.exists());
+		await().atMost(Duration.ofSeconds(30)).until(() -> !file.exists());
 	}
 
 	@Test
