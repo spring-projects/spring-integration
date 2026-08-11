@@ -285,8 +285,8 @@ It is also acceptable to submit test cases on a per GH issue basis.
 
 Use `git rebase --interactive`, `git add --patch` and other tools to "squash" multiple commits into atomic changes.
 In addition to the man pages for git, there are many resources online to help you understand how these tools work.
-However, we recommend doing this only for the first commit in the PR.
-All the subsequent commits added after review should preserve the history for better context of the previous and current changes.
+However, we recommend doing this only for the first commit when you open the pull request.
+Do not squash any subsequent commits added after the PR has been opened and review has started; those should be preserved as-is for easier change history review.
 
 ## Use your real name in git commits
 
