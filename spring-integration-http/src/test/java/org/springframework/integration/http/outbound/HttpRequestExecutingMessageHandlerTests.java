@@ -47,6 +47,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
@@ -715,6 +716,48 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> handler.setRequestFactory(mock()))
 				.withMessageContaining("externally configured RestClient");
+	}
+
+	@Test
+	public void defaultStatusHandlerAppliesOnlyToMatchingPredicate() throws IOException {
+		ClientHttpRequestFactory requestFactory = mock(ClientHttpRequestFactory.class);
+		ClientHttpRequest clientRequest = mock(ClientHttpRequest.class);
+		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class))).thenReturn(clientRequest);
+
+		AtomicReference<HttpStatusCode> handledStatus = new AtomicReference<>();
+
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration");
+		handler.setRequestFactory(requestFactory);
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExpectedResponseType(String.class);
+		handler.defaultStatusHandler(HttpStatusCode::is4xxClientError,
+				(request, response) -> handledStatus.set(response.getStatusCode()));
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+		handler.setOutputChannel(new QueueChannel());
+
+		ClientHttpResponse response = mock(ClientHttpResponse.class);
+		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+		when(response.getHeaders()).thenReturn(new HttpHeaders());
+		when(clientRequest.execute()).thenReturn(response);
+
+		handler.handleMessage(new GenericMessage<>("request"));
+
+		assertThat(handledStatus.get())
+				.isEqualTo(HttpStatus.NOT_FOUND);
+
+		handledStatus.set(null);
+
+		when(response.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+		when(clientRequest.execute()).thenReturn(response);
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("request")))
+				.withCauseInstanceOf(RestClientException.class);
+
+		assertThat(handledStatus.get())
+				.isNull();
 	}
 
 	@Test
