@@ -250,6 +250,8 @@ configure(javaProjects) { subproject ->
         // forked test JVMs default to 512 MB, which `:spring-integration-core:test` exhausts.
         maxHeapSize = '1g'
 
+        forkEvery = 300
+
         jvmArgs '-Xshare:off',
 				'--enable-native-access=ALL-UNNAMED',
 				'-XX:+HeapDumpOnOutOfMemoryError'
