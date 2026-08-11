@@ -35,9 +35,6 @@ CREATE TABLE INT_METADATA_STORE  (
 );
 ----
 
-`METADATA_VALUE` is non-null (since 7.2).
-Existing databases created with older scripts should remove any null-valued rows and alter the column to `NOT NULL` when upgrading.
-
 You can change the `INT_` prefix to match the target database design requirements.
 You can also configure `JdbcMetadataStore` to use the custom prefix.
 

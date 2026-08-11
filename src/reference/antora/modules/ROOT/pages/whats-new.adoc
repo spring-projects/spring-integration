@@ -30,3 +30,10 @@ The `wait-for-confirm` option on the outbound channel adapter now also works wit
 When the message has no correlation data, the send is performed within the scope of a `RabbitTemplate.invoke()` operation and `waitForConfirmsOrDie()` is used.
 A warning is now logged when the option is set but the connection factory supports no publisher confirms at all.
 See xref:amqp/outbound-channel-adapter.adoc[] for more information.
+
+[[x7.2-jdbc-changes]]
+=== JDBC Support Changes
+
+The `METADATA_VALUE` column in the `JdbcMetadataStore` schema scripts is now `NOT NULL`.
+Existing databases created with older scripts should remove any null-valued rows and alter the column to `NOT NULL` when upgrading.
+See xref:jdbc/metadata-store.adoc[] for more information.

@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Bojan Vukasovic
  * @author Artem Bilan
+ * @author Burak Kalayci
  *
  * @since 5.0
  */
@@ -138,14 +139,14 @@ public class JdbcMetadataStoreTests {
 	@Test
 	void putIfAbsentRejectsNullValue() {
 		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> this.metadataStore.putIfAbsent("foo", null))
+				.isThrownBy(() -> this.metadataStore.putIfAbsent("testKey", null))
 				.withMessageContaining("value");
 	}
 
 	@Test
 	void putRejectsNullValue() {
 		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> this.metadataStore.put("foo", null))
+				.isThrownBy(() -> this.metadataStore.put("testKey", null))
 				.withMessageContaining("value");
 	}
 
