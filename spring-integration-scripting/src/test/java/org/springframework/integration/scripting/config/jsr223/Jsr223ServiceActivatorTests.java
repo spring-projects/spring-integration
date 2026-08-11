@@ -63,7 +63,7 @@ public class Jsr223ServiceActivatorTests {
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
-	@Disabled("Remove Disabled when https://github.com/oracle/graalpython/issues/1065 is added to a release ")
+	@Disabled("Until https://github.com/oracle/graalpython/issues/1065")
 	@Test
 	public void referencedScript() throws Exception {
 
