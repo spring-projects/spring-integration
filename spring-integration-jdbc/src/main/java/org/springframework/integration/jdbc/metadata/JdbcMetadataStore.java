@@ -42,6 +42,12 @@ import org.springframework.util.StringUtils;
  * <code>org/springframework/integration/jdbc/schema-*.sql</code>,
  * where <code>*</code> is the target database type.
  * <p>
+ * The {@code METADATA_VALUE} column is {@code NOT NULL}. Values passed to
+ * {@link #put(String, String)} and {@link #putIfAbsent(String, String)} must be non-null;
+ * a {@code null} value cannot be stored and is rejected by the API.
+ * Existing databases created with older schema scripts should migrate the column to
+ * {@code NOT NULL} (and remove any rows with a {@code null} value) when upgrading.
+ * <p>
  * The transaction management is required to use this {@link ConcurrentMetadataStore}.
  * <p>
  * This class implements {@link SmartLifecycle} and calls
@@ -54,6 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Sanghun Lee
+ * @author Burak Kalayci
  *
  * @since 5.0
  */
