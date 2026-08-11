@@ -26,7 +26,9 @@ import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Bojan Vukasovic
  * @author Artem Bilan
+ * @author Burak Kalayci
  *
  * @since 5.0
  */
@@ -122,6 +125,29 @@ public class JdbcMetadataStoreTests {
 					.withRootCauseExactlyInstanceOf(StandardException.class)
 					.withStackTraceContaining("Table/View 'TEST_METADATA_STORE' does not exist");
 		}
+	}
+
+	@Test
+	void metadataValueColumnRejectsNull() {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
+		assertThatExceptionOfType(DataIntegrityViolationException.class)
+				.isThrownBy(() -> jdbcTemplate.update(
+						"INSERT INTO INT_METADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) VALUES (?, ?, ?)",
+						"nullValued", null, "DEFAULT"));
+	}
+
+	@Test
+	void putIfAbsentRejectsNullValue() {
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> this.metadataStore.putIfAbsent("testKey", null))
+				.withMessageContaining("value");
+	}
+
+	@Test
+	void putRejectsNullValue() {
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> this.metadataStore.put("testKey", null))
+				.withMessageContaining("value");
 	}
 
 }
