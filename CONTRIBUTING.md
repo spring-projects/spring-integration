@@ -230,7 +230,7 @@ As this may cause lots of typing, we recommend creating a global alias, e.g. `gi
 git config --global alias.logg 'log --graph --pretty=oneline'
 ```
 
-This command, will provide the following output, which in this case shows a nice linear history:
+This command will provide the following output, which in this case shows a nice linear history:
 
 ```
 * c129a02e6c752b49bacd4a445092a44f66c2a1e9 GH-2721 Increase Timers on JDBC Delayer Tests
@@ -241,7 +241,7 @@ This command, will provide the following output, which in this case shows a nice
 * 56f9581b85a8a40bbcf2461ffc0753212669a68d Update Spring Social Twitter version to 1.0.4
 ```
 
-If you see intersecting lines, that usually means that you forgot to rebase you branch.
+If you see intersecting lines, that usually means that you forgot to rebase your branch.
 As mentioned earlier, **please rebase against main** before issuing a pull request.
 
 ## Follow the Code Style
@@ -319,19 +319,25 @@ For long-running tests, use `./gradlew clean testAll`.
 
 ## Provide a Link to the GitHub issue in the Associated Pull Request
 
-Add a GitHub issue link to your first commit comment of the pull request on the last line, so your commit message may look like this:
+Add a GitHub issue link to your first commit message as `Fixes: <issue_url>`.
+Prefix this commit headline with `GH-<issue_number>: `.
+The commit message body should talk briefly about the problem and summerize fixes as items, desirable in a "why?" style.
+For example:
 
 ```
-    GH-1639: Add <spel-function> support
+GH-11185: Fix concurrency in the AcceptOnceFileListFilter
 
-    Fixes: gh-1639
+Fixes: https://github.com/spring-projects/spring-integration/issues/11185
 
-    * add `<spel-function>` XSD element
-    * add `SpelFunctionParser`
-    * add `SpelFunctionRegistrar` to avoid introducing some confused 'Method'-bean
-    * add `SpelFunctionRegistrar` collaboration with `IntegrationEvaluationContextFactoryBean`
-    * some refactoring for `IntegrationEvaluationContextFactoryBean`
-    * polishing some failed tests after this change
+A race between `accept()` (holding the lock, performing `seenSet.add()` which may trigger a `HashMap` resize)
+and an unsynchronized `remove()` from another thread can corrupt the `HashSet` internal table.
+
+* Fix `AcceptOnceFileListFilter` to use `ConcurrentHashMap.newKeySet()` for the `seenSet`
+
+**Auto-cherry-pick to `7.0.x`**
 ```
+
+NOTE: The `Auto-cherry-pick to` sentence is usually done by project committers for deliberatelly clean cherry-picked commits.
+Might be applied on merge after review.
 
 Please, follow Chris Beams' recommendations in regard to the good commit message: [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit).
