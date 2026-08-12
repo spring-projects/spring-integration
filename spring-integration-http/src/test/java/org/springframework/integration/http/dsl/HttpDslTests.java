@@ -75,10 +75,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.UnknownHttpStatusCodeException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -434,20 +431,8 @@ public class HttpDslTests {
 			MediaType contentType = response.getHeaders().getContentType();
 			Charset charset = contentType != null ? contentType.getCharset() : null;
 			byte[] body = (charset != null ? "Error".getBytes(charset) : "Error".getBytes());
-			RestClientResponseException ex;
-			if (response.getStatusCode().is4xxClientError()) {
-				ex = HttpClientErrorException.create("400 error", response.getStatusCode(), response.getStatusText(),
+			throw HttpClientErrorException.create("400 error", response.getStatusCode(), response.getStatusText(),
 						response.getHeaders(), body, charset);
-			}
-			else if (response.getStatusCode().is5xxServerError()) {
-				ex = HttpServerErrorException.create("500 error", response.getStatusCode(), response.getStatusText(),
-						response.getHeaders(), body, charset);
-			}
-			else {
-				ex = new UnknownHttpStatusCodeException("unknown error", response.getStatusCode().value(),
-						response.getStatusText(), response.getHeaders(), body, charset);
-			}
-			throw ex;
 		}
 
 	}

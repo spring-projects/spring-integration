@@ -61,6 +61,7 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -76,6 +77,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -720,9 +722,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 	@Test
 	public void defaultStatusHandlerAppliesOnlyToMatchingPredicate() throws IOException {
-		ClientHttpRequestFactory requestFactory = mock(ClientHttpRequestFactory.class);
 		ClientHttpRequest clientRequest = mock();
-		when(requestFactory.createRequest(any(), any())).thenReturn(clientRequest);
+		ClientHttpRequestFactory requestFactory = (uri, httpMethod) -> clientRequest;
 
 		AtomicReference<HttpStatusCode> handledStatus = new AtomicReference<>();
 
@@ -737,9 +738,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.afterPropertiesSet();
 		handler.setOutputChannel(new QueueChannel());
 
-		ClientHttpResponse response = mock();
-		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
-		when(response.getHeaders()).thenReturn(new HttpHeaders());
+		MockClientHttpResponse response = new MockClientHttpResponse(new byte[0], HttpStatus.NOT_FOUND);
 		when(clientRequest.execute()).thenReturn(response);
 
 		handler.handleMessage(new GenericMessage<>("request"));
@@ -749,10 +748,10 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		handledStatus.set(null);
 
-		when(response.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+		response = new MockClientHttpResponse(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
 		when(clientRequest.execute()).thenReturn(response);
 
-		assertThatException()
+		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("request")))
 				.withCauseInstanceOf(RestClientException.class);
 
