@@ -801,6 +801,7 @@
 				</xsd:appinfo>
 				<xsd:documentation>
 					[DEPRECATED] The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+					Use 'rest-client' instead.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -819,7 +820,7 @@
 		<xsd:attribute name="request-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
+	Reference to a ClientHttpRequestFactory to be used by the underlying RestClient or RestTemplate.
 					]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -845,7 +846,7 @@
 				<xsd:documentation>
 					Provide a reference to a list of HttpMessageConverter instances. If specified,
 					these converters will replace all default converters that would normally
-					be present on the underlying RestTemplate.
+					be present on the underlying RestClient or RestTemplate.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

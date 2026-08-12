@@ -47,6 +47,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
@@ -60,9 +61,11 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
@@ -75,6 +78,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -715,6 +719,42 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> handler.setRequestFactory(mock()))
 				.withMessageContaining("externally configured RestClient");
+	}
+
+	@Test
+	public void defaultStatusHandlerAppliesOnlyToMatchingPredicate() throws IOException {
+		MockClientHttpRequest clientRequest = new MockClientHttpRequest();
+		clientRequest.setResponse(new MockClientHttpResponse(new byte[0], HttpStatus.NOT_FOUND));
+		ClientHttpRequestFactory requestFactory = (uri, httpMethod) -> clientRequest;
+
+		AtomicReference<HttpStatusCode> handledStatus = new AtomicReference<>();
+
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration");
+		handler.setRequestFactory(requestFactory);
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExpectedResponseType(String.class);
+		handler.defaultStatusHandler(HttpStatusCode::is4xxClientError,
+				(request, response) -> handledStatus.set(response.getStatusCode()));
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+		handler.setOutputChannel(new QueueChannel());
+
+		handler.handleMessage(new GenericMessage<>("request"));
+
+		assertThat(handledStatus.get())
+				.isEqualTo(HttpStatus.NOT_FOUND);
+
+		handledStatus.set(null);
+
+		clientRequest.setResponse(new MockClientHttpResponse(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR));
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("request")))
+				.withCauseInstanceOf(RestClientException.class);
+
+		assertThat(handledStatus.get())
+				.isNull();
 	}
 
 	@Test

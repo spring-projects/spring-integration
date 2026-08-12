@@ -113,7 +113,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(restClientRef));
 		}
 		else {
-			for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+			for (String referenceAttributeName : HttpAdapterParsingUtils.LOCAL_CLIENT_REFERENCE_ATTRIBUTES) {
 				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");

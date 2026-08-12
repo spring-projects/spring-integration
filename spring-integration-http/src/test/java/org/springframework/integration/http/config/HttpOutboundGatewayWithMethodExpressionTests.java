@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -31,7 +34,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -43,7 +46,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-@SpringJUnitConfig
+@SpringJUnitConfig(HttpOutboundGatewayWithMethodExpressionTests.MockServerConfig.class)
 @DirtiesContext
 public class HttpOutboundGatewayWithMethodExpressionTests {
 
@@ -57,13 +60,32 @@ public class HttpOutboundGatewayWithMethodExpressionTests {
 	private PollableChannel replyChannel;
 
 	@Autowired
-	private RestTemplate restTemplate;
-
 	private MockRestServiceServer mockServer;
+
+	@Configuration
+	@ImportResource("classpath:org/springframework/integration/http/config/HttpOutboundGatewayWithMethodExpressionTests-context.xml")
+	public static class MockServerConfig {
+
+		@Bean
+		public static RestClient.Builder restClientBuilder() {
+			return RestClient.builder();
+		}
+
+		@Bean
+		public static MockRestServiceServer mockServer(RestClient.Builder restClientBuilder) {
+			return MockRestServiceServer.bindTo(restClientBuilder).build();
+		}
+
+		@Bean
+		public static RestClient restClient(RestClient.Builder restClientBuilder, MockRestServiceServer mockServer) {
+			return restClientBuilder.build();
+		}
+
+	}
 
 	@BeforeEach
 	public void setup() {
-		this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
+		this.mockServer.reset();
 	}
 
 	@Test

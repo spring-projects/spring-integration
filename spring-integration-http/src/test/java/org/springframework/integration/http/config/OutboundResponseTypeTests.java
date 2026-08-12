@@ -23,12 +23,17 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -36,7 +41,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -49,18 +54,19 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
-@SpringJUnitConfig
+@SpringJUnitConfig(OutboundResponseTypeTests.MockServerConfig.class)
 @DirtiesContext
 public class OutboundResponseTypeTests {
 
 	@Autowired
-	private RestTemplate restTemplate;
+	private MockRestServiceServer mockServer;
 
 	@Autowired
-	private RestTemplate restTemplateWithConverters;
+	private MockRestServiceServer mockServerWithConverters;
 
 	@Autowired
 	private QueueChannel replyChannel;
@@ -86,11 +92,52 @@ public class OutboundResponseTypeTests {
 	@Autowired
 	private MessageChannel contentTypePropagationChannel;
 
-	private MockRestServiceServer mockServer;
+	@Configuration
+	@ImportResource("classpath:org/springframework/integration/http/config/OutboundResponseTypeTests-context.xml")
+	public static class MockServerConfig {
+
+		@Bean
+		RestClient.Builder restClientBuilder() {
+			return RestClient.builder();
+		}
+
+		@Bean
+		MockRestServiceServer mockServer(RestClient.Builder restClientBuilder) {
+			return MockRestServiceServer.bindTo(restClientBuilder).build();
+		}
+
+		@Bean
+		RestClient restClient(RestClient.Builder restClientBuilder) {
+			return restClientBuilder.build();
+		}
+
+		@Bean
+		RestClient.Builder restClientWithConvertersBuilder() {
+			return RestClient.builder()
+					.configureMessageConverters((builder) ->
+							builder.configureMessageConvertersList((converters) -> {
+								converters.clear();
+								converters.add(new SerializingHttpMessageConverter());
+								converters.add(new StringHttpMessageConverter());
+							}));
+		}
+
+		@Bean
+		MockRestServiceServer mockServerWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
+			return MockRestServiceServer.bindTo(restClientWithConvertersBuilder).build();
+		}
+
+		@Bean
+		RestClient restClientWithConverters(RestClient.Builder restClientWithConvertersBuilder) {
+			return restClientWithConvertersBuilder.build();
+		}
+
+	}
 
 	@BeforeEach
 	public void setup() {
-		this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
+		this.mockServer.reset();
+		this.mockServerWithConverters.reset();
 	}
 
 	@Test
@@ -137,8 +184,7 @@ public class OutboundResponseTypeTests {
 
 	@Test
 	public void testWithResponseTypeExpressionSetAsClass() {
-		this.mockServer = MockRestServiceServer.createServer(this.restTemplateWithConverters);
-		this.mockServer.expect(requestTo("/testApps/outboundResponse"))
+		this.mockServerWithConverters.expect(requestTo("/testApps/outboundResponse"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
@@ -147,7 +193,7 @@ public class OutboundResponseTypeTests {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload() instanceof String).isTrue();
 
-		this.mockServer.verify();
+		this.mockServerWithConverters.verify();
 	}
 
 	@Test
@@ -210,12 +256,12 @@ public class OutboundResponseTypeTests {
 	}
 
 	@Test
-	public void notAllowedEncodingModeWhenExternalRestTemplate() {
+	public void notAllowedEncodingModeWhenExternalRestClient() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
 				.isThrownBy(() -> new ClassPathXmlApplicationContext(
-						"OutboundResponseTypeTests-context-encoding-mode-fail.xml", getClass()))
-				.withMessageContaining("When providing a 'rest-template' reference, " +
-						"the 'encoding-mode' must be set on the 'RestTemplate.uriTemplateHandler' property.");
+						"OutboundResponseTypeTests-context-encoding-mode-fail-rest-client.xml", getClass()))
+				.withMessageContaining("When providing a 'rest-client' reference, " +
+						"the 'encoding-mode' must be set on the 'RestClient.Builder.uriBuilderFactory' property.");
 	}
 
 }

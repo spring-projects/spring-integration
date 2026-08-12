@@ -10,45 +10,34 @@
 		http://www.springframework.org/schema/beans
 		https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
-
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
-							   rest-template="restTemplate"
+							   rest-client="restClient"
 							   request-channel="requestChannel"
 							   reply-channel="replyChannel"/>
 
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
-							   rest-template="restTemplate"
+							   rest-client="restClient"
 							   request-channel="resTypeSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="java.lang.String"/>
 
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
-							   rest-template="restTemplate"
+							   rest-client="restClient"
 							   request-channel="resPrimitiveStringPresentationChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="[B"/>
 
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
-							   rest-template="restTemplate"
+							   rest-client="restClient"
 							   request-channel="resTypeExpressionSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type-expression="payload"/>
 
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
-							   rest-template="restTemplateWithConverters"
+							   rest-client="restClientWithConverters"
 							   request-channel="resTypeExpressionSetSerializationChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type-expression="payload"/>
-
-	<bean id="restTemplateWithConverters" class="org.springframework.web.client.RestTemplate">
-		<property name="messageConverters">
-			<list>
-				<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
-				<bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
-			</list>
-		</property>
-	</bean>
 
 	<int-http:outbound-gateway url="/testApps/outboundResponse"
 							   request-channel="invalidResponseTypeChannel"
@@ -56,7 +45,7 @@
 
 	<int:chain input-channel="contentTypePropagationChannel" output-channel="nullChannel">
 		<int:object-to-json-transformer/>
-		<int-http:outbound-gateway url="/testApps/outboundResponse" rest-template="restTemplate"/>
+		<int-http:outbound-gateway url="/testApps/outboundResponse" rest-client="restClient"/>
 	</int:chain>
 
 	<int:channel id="replyChannel">

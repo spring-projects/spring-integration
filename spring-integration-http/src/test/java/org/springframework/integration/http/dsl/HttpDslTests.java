@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.dsl;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -72,8 +74,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -388,7 +390,7 @@ public class HttpDslTests {
 									.uriVariable("params", "payload")
 									.expectedResponseType(String.class)
 									.extractResponseBody(false)
-									.errorHandler(new HttpProxyResponseErrorHandler()),
+									.defaultStatusHandler(new HttpProxyResponseErrorHandler()),
 							e -> e.id("serviceInternalGateway"))
 					.get();
 		}
@@ -422,13 +424,15 @@ public class HttpDslTests {
 
 	}
 
-	public static class HttpProxyResponseErrorHandler extends DefaultResponseErrorHandler {
+	public static class HttpProxyResponseErrorHandler implements RestClient.ResponseSpec.ErrorHandler {
 
 		@Override
-		protected byte[] getResponseBody(ClientHttpResponse response) {
-			Charset charset = getCharset(response);
-			String content = "Error";
-			return charset != null ? content.getBytes(charset) : content.getBytes();
+		public void handle(HttpRequest request, ClientHttpResponse response) throws IOException {
+			MediaType contentType = response.getHeaders().getContentType();
+			Charset charset = contentType != null ? contentType.getCharset() : null;
+			byte[] body = (charset != null ? "Error".getBytes(charset) : "Error".getBytes());
+			throw HttpClientErrorException.create("400 error", response.getStatusCode(), response.getStatusText(),
+						response.getHeaders(), body, charset);
 		}
 
 	}
