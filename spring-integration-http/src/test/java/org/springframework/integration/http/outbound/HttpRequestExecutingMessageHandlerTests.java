@@ -721,8 +721,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	@Test
 	public void defaultStatusHandlerAppliesOnlyToMatchingPredicate() throws IOException {
 		ClientHttpRequestFactory requestFactory = mock(ClientHttpRequestFactory.class);
-		ClientHttpRequest clientRequest = mock(ClientHttpRequest.class);
-		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class))).thenReturn(clientRequest);
+		ClientHttpRequest clientRequest = mock();
+		when(requestFactory.createRequest(any(), any())).thenReturn(clientRequest);
 
 		AtomicReference<HttpStatusCode> handledStatus = new AtomicReference<>();
 
@@ -737,7 +737,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.afterPropertiesSet();
 		handler.setOutputChannel(new QueueChannel());
 
-		ClientHttpResponse response = mock(ClientHttpResponse.class);
+		ClientHttpResponse response = mock();
 		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
 		when(response.getHeaders()).thenReturn(new HttpHeaders());
 		when(clientRequest.execute()).thenReturn(response);

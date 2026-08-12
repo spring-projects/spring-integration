@@ -221,7 +221,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
-	 * @deprecated Use {@link #defaultStatusHandler(RestClient.ResponseSpec.ErrorHandler)}
+	 * @deprecated Use {@link #setDefaultStatusHandler(RestClient.ResponseSpec.ErrorHandler)}
 	 * or {@link #defaultStatusHandler(Predicate, RestClient.ResponseSpec.ErrorHandler)}
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
@@ -239,7 +239,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param errorHandler The error handler.
 	 * @since 7.2
 	 */
-	public void defaultStatusHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
+	public void setDefaultStatusHandler(RestClient.ResponseSpec.ErrorHandler errorHandler) {
 		defaultStatusHandler(HttpStatusCode::isError, errorHandler);
 	}
 
