@@ -65,6 +65,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
@@ -722,7 +723,8 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 	@Test
 	public void defaultStatusHandlerAppliesOnlyToMatchingPredicate() throws IOException {
-		ClientHttpRequest clientRequest = mock();
+		MockClientHttpRequest clientRequest = new MockClientHttpRequest();
+		clientRequest.setResponse(new MockClientHttpResponse(new byte[0], HttpStatus.NOT_FOUND));
 		ClientHttpRequestFactory requestFactory = (uri, httpMethod) -> clientRequest;
 
 		AtomicReference<HttpStatusCode> handledStatus = new AtomicReference<>();
@@ -738,9 +740,6 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.afterPropertiesSet();
 		handler.setOutputChannel(new QueueChannel());
 
-		MockClientHttpResponse response = new MockClientHttpResponse(new byte[0], HttpStatus.NOT_FOUND);
-		when(clientRequest.execute()).thenReturn(response);
-
 		handler.handleMessage(new GenericMessage<>("request"));
 
 		assertThat(handledStatus.get())
@@ -748,8 +747,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		handledStatus.set(null);
 
-		response = new MockClientHttpResponse(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
-		when(clientRequest.execute()).thenReturn(response);
+		clientRequest.setResponse(new MockClientHttpResponse(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR));
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("request")))
