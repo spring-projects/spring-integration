@@ -49,6 +49,7 @@ import org.springframework.util.ClassUtils;
  * Utilities for adapting integration components to/from reactive types.
  *
  * @author Artem Bilan
+ * @author Fardan An
  *
  * @since 5.3
  */
@@ -122,21 +123,29 @@ public final class IntegrationReactiveUtils {
 	 * or falls back to 1-second duration.
 	 * If a produced message has an
 	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#ACKNOWLEDGMENT_CALLBACK} header
-	 * it is ack'ed in the {@link Mono#doOnSuccess} and nack'ed in the {@link Mono#doOnError}.
+	 * it is ack'ed in {@link Flux#doOnNext} when this flux emits to its subscriber,
+	 * and nack'ed in the {@link Mono#doOnError}.
+	 * <p>
+	 * Cancellation while {@link MessageSource#receive()} is in flight (the sink is already {@code CANCELLED})
+	 * is handled by Reactor's discard hook on this flux. Only a {@link PollableChannel} adapted
+	 * through {@link #messageChannelToFlux(MessageChannel)} is best-effort re-queued
+	 * via non-blocking {@link PollableChannel#send(Message, long)}
+	 * (interceptor chain is re-entered; FIFO is not preserved if the queue is not empty; a
+	 * full bounded channel is logged and the message is not nack'd).
+	 * A direct {@code messageSourceToFlux(() -> channel.receive(0))} lambda is not re-queued.
+	 * Other sources are left unacknowledged so the source's own redelivery
+	 * (broker requeue, uncommitted offset) can recover them. The discard hook only sees drops
+	 * at or upstream of this flux; operators a caller adds afterward
+	 * ({@code ReactiveStreamsConsumer.setReactiveCustomizer}, a {@code flatMap} on the
+	 * {@code ReactiveMessageHandler} path) use a different context and are not rescued here.
 	 * @param messageSource the {@link MessageSource} to adapt.
 	 * @param <T> the expected payload type.
 	 * @return a {@link Flux} which pulls messages from the {@link MessageSource} on demand.
 	 */
 	@SuppressWarnings("NullAway")
 	public static <T> Flux<Message<T>> messageSourceToFlux(MessageSource<T> messageSource) {
-		return Mono.
-				<Message<T>>create(monoSink ->
-				monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
-				.doOnSuccess((message) -> {
-					if (message != null) {
-						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));
-					}
-				})
+		return Mono.<Message<T>>create(monoSink ->
+						monoSink.onRequest((value) -> monoSink.success(messageSource.receive())))
 				.doOnError(MessagingException.class,
 						(ex) -> {
 							Message<?> failedMessage = ex.getFailedMessage();
@@ -152,7 +161,10 @@ public final class IntegrationReactiveUtils {
 										Mono.delay(ctx.getOrDefault(DELAY_WHEN_EMPTY_KEY,
 												DEFAULT_DELAY_WHEN_EMPTY)))))
 				.repeat()
-				.retryWhen(Retry.indefinitely().filter(MessagingException.class::isInstance));
+				.doOnDiscard(Message.class, (message) -> handleUndeliveredMessage(messageSource, message))
+				.retryWhen(Retry.indefinitely().filter(MessagingException.class::isInstance))
+				.doOnNext((message) ->
+						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message)));
 	}
 
 	/**
@@ -161,7 +173,8 @@ public final class IntegrationReactiveUtils {
 	 * is returned as is because it is already a {@link Publisher};
 	 * - a {@link SubscribableChannel} is subscribed with a {@link MessageHandler}
 	 * for the {@link Sinks.Many#tryEmitNext(Object)} which is returned from this method;
-	 * - a {@link PollableChannel} is wrapped into a {@link MessageSource} lambda and reuses
+	 * - a {@link PollableChannel} is wrapped into a {@link PollableChannelMessageSource} so
+	 * cancelled in-flight receives can be re-queued, and reuses
 	 * {@link #messageSourceToFlux(MessageSource)}.
 	 * @param messageChannel the {@link MessageChannel} to adapt.
 	 * @param <T> the expected payload type.
@@ -175,12 +188,21 @@ public final class IntegrationReactiveUtils {
 		else if (messageChannel instanceof SubscribableChannel) {
 			return adaptSubscribableChannelToPublisher((SubscribableChannel) messageChannel);
 		}
-		else if (messageChannel instanceof PollableChannel) {
-			return messageSourceToFlux(() -> (Message<T>) ((PollableChannel) messageChannel).receive(0));
+		else if (messageChannel instanceof PollableChannel pollableChannel) {
+			return messageSourceToFlux(new PollableChannelMessageSource<>(pollableChannel));
 		}
 		else {
 			throw new IllegalArgumentException("The 'messageChannel' must be an instance of Publisher, " +
 					"SubscribableChannel or PollableChannel, not: " + messageChannel);
+		}
+	}
+
+	private static void handleUndeliveredMessage(MessageSource<?> messageSource, @Nullable Message<?> message) {
+		if (message == null) {
+			return;
+		}
+		if (messageSource instanceof PollableChannelMessageSource<?> pollableChannelMessageSource) {
+			pollableChannelMessageSource.returnMessage(message);
 		}
 	}
 
@@ -200,7 +222,7 @@ public final class IntegrationReactiveUtils {
 					switch (sink.tryEmitNext((Message<T>) messageToEmit)) {
 						case FAIL_NON_SERIALIZED:
 						case FAIL_OVERFLOW:
-							LockSupport.parkNanos(1000); // NOSONAR
+							LockSupport.parkNanos(1000);
 							break;
 						case FAIL_ZERO_SUBSCRIBER:
 							throw new IllegalStateException("The [" + sink +
@@ -218,6 +240,22 @@ public final class IntegrationReactiveUtils {
 			return sink.asFlux()
 					.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));
 		});
+	}
+
+	private record PollableChannelMessageSource<T>(PollableChannel channel) implements MessageSource<T> {
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public @Nullable Message<T> receive() {
+			return (Message<T>) this.channel.receive(0);
+		}
+
+		void returnMessage(Message<?> message) {
+			if (!this.channel.send(message, 0)) {
+				LOGGER.warn("Failed to return undelivered message to pollable channel [" + this.channel + "]");
+			}
+		}
+
 	}
 
 }
