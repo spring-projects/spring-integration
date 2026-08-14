@@ -67,11 +67,13 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Shiliang Li
  * @author Arun Sethumadhavan
  * @author Glenn Renfro
+ * @author Burak Kalayci
  *
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
+	@SuppressWarnings("removal")
 	private final @Nullable RestTemplate restTemplate;
 
 	private volatile @Nullable RestClient restClient;
@@ -113,6 +115,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(String uri, @Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
 		/*
@@ -131,6 +134,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		this(uriExpression, restTemplate, null);
 	}
@@ -162,6 +166,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		this(uriExpression, null, restClient);
 	}
 
+	@SuppressWarnings("removal")
 	private HttpRequestExecutingMessageHandler(Expression uriExpression,
 			@Nullable RestTemplate restTemplate, @Nullable RestClient restClient) {
 
@@ -226,6 +231,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	@Deprecated(since = "7.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		assertLocalClient("errorHandler");
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
@@ -325,6 +331,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		}
 	}
 
+	@SuppressWarnings("removal")
 	private ResponseEntity<?> exchangeWithRestTemplate(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Map<String, ?> uriVariables) {
 

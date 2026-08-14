@@ -16,23 +16,24 @@
 
 package org.springframework.integration.http;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.PropertyAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
@@ -45,7 +46,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -54,11 +55,17 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 3.0
  */
@@ -115,31 +122,19 @@ public class HttpProxyScenarioTests {
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		RestTemplate template = Mockito.spy(new RestTemplate());
-
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
-		Mockito.doAnswer(invocation -> {
-					String uri = invocation.getArgument(0);
-					assertThat(uri).isEqualTo("http://testServer/test?foo=bar&FOO=BAR");
-					HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-					HttpHeaders httpHeaders = httpEntity.getHeaders();
-					assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
-					assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
-					assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
+		injectRestClient(this.handler, httpEntity -> {
+			HttpHeaders httpHeaders = httpEntity.getHeaders();
+			assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
+			assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
+			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
 
-					HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
-					responseHeaders.set("Connection", "close");
-					responseHeaders.set("Content-Disposition", contentDispositionValue);
-					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-				}).when(template)
-				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
-						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
-
-		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
-		dfa.setPropertyValue("localRestClientBuilder", null);
-		dfa.setPropertyValue("restClient", null);
-		dfa.setPropertyValue("restTemplate", template);
+			HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
+			responseHeaders.set("Connection", "close");
+			responseHeaders.set("Content-Disposition", contentDispositionValue);
+			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
+		}, uri -> assertThat(uri).isEqualTo("http://testServer/test?foo=bar&FOO=BAR"));
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(attributes);
@@ -176,33 +171,21 @@ public class HttpProxyScenarioTests {
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		RestTemplate template = Mockito.spy(new RestTemplate());
-		Mockito.doAnswer(invocation -> {
-					String uri = invocation.getArgument(0);
-					assertThat(uri).isEqualTo("http://testServer/testmp");
-					HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-					HttpHeaders httpHeaders = httpEntity.getHeaders();
-					assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
-					assertThat(httpHeaders.getContentType().toString())
-							.isEqualTo("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
+		injectRestClient(this.handlermp, httpEntity -> {
+			HttpHeaders httpHeaders = httpEntity.getHeaders();
+			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
+			assertThat(httpHeaders.getContentType().toString())
+					.isEqualTo("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
 
-					HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
-					assertThat(entity.getBody()).isInstanceOf(MultiValueMap.class);
-					assertThat(((MultiValueMap<String, ?>) entity.getBody()).getFirst("foo"))
-							.isEqualTo("foo".getBytes());
+			assertThat(httpEntity.getBody()).isInstanceOf(MultiValueMap.class);
+			assertThat(((MultiValueMap<String, ?>) httpEntity.getBody()).getFirst("foo"))
+					.isEqualTo("foo".getBytes());
 
-					HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
-					responseHeaders.set("Connection", "close");
-					responseHeaders.set("Content-Type", "text/plain");
-					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-				}).when(template)
-				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
-						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
-
-		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
-		dfa.setPropertyValue("localRestClientBuilder", null);
-		dfa.setPropertyValue("restClient", null);
-		dfa.setPropertyValue("restTemplate", template);
+			HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
+			responseHeaders.set("Connection", "close");
+			responseHeaders.set("Content-Type", "text/plain");
+			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
+		}, uri -> assertThat(uri).isEqualTo("http://testServer/testmp"));
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(attributes);
@@ -213,6 +196,46 @@ public class HttpProxyScenarioTests {
 		assertThat(response.getContentType()).isEqualTo("text/plain");
 
 		RequestContextHolder.resetRequestAttributes();
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void injectRestClient(HttpRequestExecutingMessageHandler handler,
+			Function<HttpEntity<?>, ResponseEntity<?>> exchange,
+			Consumer<String> uriAsserter) {
+
+		RestClient restClient = mock(RestClient.class);
+		RestClient.RequestBodyUriSpec spec = mock(RestClient.RequestBodyUriSpec.class);
+		RestClient.ResponseSpec responseSpec = mock(RestClient.ResponseSpec.class);
+		HttpHeaders headers = new HttpHeaders();
+		AtomicReference<Object> body = new AtomicReference<>();
+		AtomicReference<ResponseEntity<?>> response = new AtomicReference<>();
+
+		when(restClient.method(any())).thenReturn(spec);
+		when(spec.uri(any(URI.class))).thenAnswer(invocation -> {
+			uriAsserter.accept(invocation.getArgument(0).toString());
+			return spec;
+		});
+		when(spec.uri(anyString(), anyMap())).thenAnswer(invocation -> {
+			uriAsserter.accept(invocation.getArgument(0));
+			return spec;
+		});
+		when(spec.headers(any())).thenAnswer(invocation -> {
+			Consumer<HttpHeaders> headerConsumer = invocation.getArgument(0);
+			headerConsumer.accept(headers);
+			return spec;
+		});
+		when(spec.body(any(Object.class))).thenAnswer(invocation -> {
+			body.set(invocation.getArgument(0));
+			return spec;
+		});
+		when(spec.retrieve()).thenAnswer(invocation -> {
+			response.set(exchange.apply(new HttpEntity<>(body.get(), headers)));
+			return responseSpec;
+		});
+		when(responseSpec.toEntity(any(Class.class))).thenAnswer(invocation -> response.get());
+		when(responseSpec.toBodilessEntity()).thenAnswer(invocation -> response.get());
+
+		new DirectFieldAccessor(handler).setPropertyValue("restClient", restClient);
 	}
 
 }
