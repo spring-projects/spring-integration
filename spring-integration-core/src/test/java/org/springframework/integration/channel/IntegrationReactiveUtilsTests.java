@@ -19,8 +19,10 @@ package org.springframework.integration.channel;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -32,16 +34,22 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.concurrent.Queues;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.IntegrationReactiveUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Sergei Egorov
  * @author Artem Bilan
+ * @author Fardan An
  *
  * @since 5.1.9
  */
@@ -148,6 +156,43 @@ class IntegrationReactiveUtilsTests {
 
 		assertThat(retryAttempts.get()).isEqualTo(-1);
 		assertThat(finalException.get()).hasMessage("non-retryable RuntimeException");
+	}
+
+	@Test
+	void undeliveredMessageNackedWhenCancelledDuringBlockingReceive() throws InterruptedException {
+		CountDownLatch receiveBlocked = new CountDownLatch(1);
+		AtomicBoolean releaseReceive = new AtomicBoolean();
+		AtomicReference<AcknowledgmentCallback.Status> ackStatus = new AtomicReference<>();
+		AtomicReference<Message<?>> delivered = new AtomicReference<>();
+
+		Message<?> testMessage = MessageBuilder.withPayload("test")
+				.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+						(AcknowledgmentCallback) ackStatus::set)
+				.build();
+
+		MessageSource<Object> blockingSource = () -> {
+			receiveBlocked.countDown();
+			while (!releaseReceive.get()) {
+				LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10)); // NOSONAR busy wait
+			}
+			@SuppressWarnings("unchecked")
+			Message<Object> message = (Message<Object>) testMessage;
+			return message;
+		};
+
+		Disposable subscription = IntegrationReactiveUtils.messageSourceToFlux(blockingSource)
+				.subscribe(delivered::set);
+
+		assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
+
+		subscription.dispose();
+		releaseReceive.set(true);
+
+		await().atMost(Duration.ofSeconds(5))
+				.until(() -> ackStatus.get() == AcknowledgmentCallback.Status.REJECT);
+
+		assertThat(delivered.get()).isNull();
+		assertThat(ackStatus.get()).isEqualTo(AcknowledgmentCallback.Status.REJECT);
 	}
 
 }
