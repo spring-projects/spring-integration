@@ -293,25 +293,20 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 		verify(testSubscriber).onSubscribe(captor.capture());
 		captor.getValue().request(1);
 
-		assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(testChannel.getQueueSize()).isZero();
-
-		reactiveConsumer.stop();
-		releaseReceive.set(true);
+		try {
+			assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(testChannel.getQueueSize()).isZero();
+			reactiveConsumer.stop();
+		}
+		finally {
+			releaseReceive.set(true);
+		}
 
 		await().atMost(Duration.ofSeconds(5))
-				.until(() -> delivered.get() != null || testChannel.getQueueSize() > 0);
+				.until(() -> testChannel.getQueueSize() > 0);
 
-		boolean wasDelivered = delivered.get() != null;
-		boolean wasRequeued = testChannel.getQueueSize() > 0;
-		assertThat(wasDelivered ^ wasRequeued).isTrue();
-
-		if (wasDelivered) {
-			assertThat(delivered.get()).isSameAs(testMessage);
-		}
-		else {
-			assertThat(testChannel.receive(0)).isSameAs(testMessage);
-		}
+		assertThat(delivered.get()).isNull();
+		assertThat(testChannel.receive(0)).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
 	}

@@ -44,7 +44,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author Sergei Egorov
@@ -159,8 +158,9 @@ class IntegrationReactiveUtilsTests {
 	}
 
 	@Test
-	void undeliveredMessageNackedWhenCancelledDuringBlockingReceive() throws InterruptedException {
+	void undeliveredMessageNotAcknowledgedWhenCancelledDuringBlockingReceive() throws InterruptedException {
 		CountDownLatch receiveBlocked = new CountDownLatch(1);
+		CountDownLatch receiveCompleted = new CountDownLatch(1);
 		AtomicBoolean releaseReceive = new AtomicBoolean();
 		AtomicReference<AcknowledgmentCallback.Status> ackStatus = new AtomicReference<>();
 		AtomicReference<Message<?>> delivered = new AtomicReference<>();
@@ -172,27 +172,33 @@ class IntegrationReactiveUtilsTests {
 
 		MessageSource<Object> blockingSource = () -> {
 			receiveBlocked.countDown();
-			while (!releaseReceive.get()) {
-				LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10)); // NOSONAR busy wait
+			try {
+				while (!releaseReceive.get()) {
+					LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10)); // NOSONAR busy wait
+				}
+				@SuppressWarnings("unchecked")
+				Message<Object> message = (Message<Object>) testMessage;
+				return message;
 			}
-			@SuppressWarnings("unchecked")
-			Message<Object> message = (Message<Object>) testMessage;
-			return message;
+			finally {
+				receiveCompleted.countDown();
+			}
 		};
 
 		Disposable subscription = IntegrationReactiveUtils.messageSourceToFlux(blockingSource)
 				.subscribe(delivered::set);
 
-		assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
+		try {
+			assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
+			subscription.dispose();
+		}
+		finally {
+			releaseReceive.set(true);
+		}
 
-		subscription.dispose();
-		releaseReceive.set(true);
-
-		await().atMost(Duration.ofSeconds(5))
-				.until(() -> ackStatus.get() == AcknowledgmentCallback.Status.REJECT);
-
+		assertThat(receiveCompleted.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(delivered.get()).isNull();
-		assertThat(ackStatus.get()).isEqualTo(AcknowledgmentCallback.Status.REJECT);
+		assertThat(ackStatus.get()).isNull();
 	}
 
 }
