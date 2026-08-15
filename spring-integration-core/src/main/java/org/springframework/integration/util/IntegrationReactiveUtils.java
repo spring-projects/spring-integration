@@ -127,11 +127,13 @@ public final class IntegrationReactiveUtils {
 	 * the {@link Mono#doOnError}.
 	 * <p>
 	 * Cancellation while {@link MessageSource#receive()} is in flight (the sink is already
-	 * {@code CANCELLED}) is handled by Reactor's discard hook on this flux. A
-	 * {@link PollableChannel} source is best-effort re-queued via non-blocking
-	 * {@link PollableChannel#send(Message, long)} (interceptor chain is re-entered; FIFO is not
-	 * preserved if the queue is not empty; a full bounded channel is logged and the message is
-	 * not nack'd). Other sources are left unacknowledged so the source's own redelivery
+	 * {@code CANCELLED}) is handled by Reactor's discard hook on this flux. Only a
+	 * {@link PollableChannel} adapted through {@link #messageChannelToFlux(MessageChannel)}
+	 * is best-effort re-queued via non-blocking {@link PollableChannel#send(Message, long)}
+	 * (interceptor chain is re-entered; FIFO is not preserved if the queue is not empty; a
+	 * full bounded channel is logged and the message is not nack'd). A direct
+	 * {@code messageSourceToFlux(() -> channel.receive(0))} lambda is not re-queued.
+	 * Other sources are left unacknowledged so the source's own redelivery
 	 * (broker requeue, uncommitted offset) can recover them. The discard hook only sees drops
 	 * at or upstream of this flux; operators a caller adds afterward
 	 * ({@code ReactiveStreamsConsumer.setReactiveCustomizer}, a {@code flatMap} on the

@@ -197,6 +197,9 @@ class IntegrationReactiveUtilsTests {
 		}
 
 		assertThat(receiveCompleted.await(10, TimeUnit.SECONDS)).isTrue();
+		CountDownLatch singleIdle = new CountDownLatch(1);
+		Schedulers.single().schedule(singleIdle::countDown);
+		assertThat(singleIdle.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(delivered.get()).isNull();
 		assertThat(ackStatus.get()).isNull();
 	}
