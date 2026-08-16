@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import jakarta.jms.Message;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
@@ -100,9 +101,9 @@ public class OutboundGatewayConnectionTests {
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(amqConnectionFactory);
 		template.setReceiveTimeout(5000);
-		jakarta.jms.Message request = template.receive(requestQueue1);
+		Message request = template.receive(requestQueue1);
 		assertThat(request).isNotNull();
-		final jakarta.jms.Message jmsReply = request;
+		final Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNotNull();

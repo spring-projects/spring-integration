@@ -31,6 +31,7 @@ import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.http.inbound.CrossOrigin;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.result.condition.NameValueExpression;
@@ -141,7 +142,7 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
 	private @Nullable RequestMappingInfo getMappingForEndpoint(WebFluxInboundEndpoint endpoint) {
-		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
+		RequestMapping requestMappingAnnotation =
 				HttpContextUtils.convertRequestMappingToAnnotation(endpoint.getRequestMapping());
 		if (requestMappingAnnotation != null) {
 			return createRequestMappingInfo(requestMappingAnnotation, getCustomTypeCondition(endpoint.getClass()));
