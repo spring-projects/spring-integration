@@ -16,6 +16,8 @@
 
 package org.springframework.integration.util;
 
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.reactor.MonoKt;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
@@ -38,7 +40,7 @@ public final class CoroutinesUtils {
 	}
 
 	public static boolean isContinuationType(Class<?> candidate) {
-		return KotlinDetector.isKotlinPresent() && kotlin.coroutines.Continuation.class.isAssignableFrom(candidate);
+		return KotlinDetector.isKotlinPresent() && Continuation.class.isAssignableFrom(candidate);
 	}
 
 	@Nullable
@@ -47,8 +49,8 @@ public final class CoroutinesUtils {
 		Assert.state(isContinuation(continuation), () ->
 				"The 'continuation' must be an instance of 'kotlin.coroutines.Continuation', but it is: "
 						+ continuation.getClass());
-		return (T) kotlinx.coroutines.reactor.MonoKt.awaitSingleOrNull(
-				source, (kotlin.coroutines.Continuation<T>) continuation);
+		return (T) MonoKt.awaitSingleOrNull(
+				source, (Continuation<T>) continuation);
 	}
 
 	private CoroutinesUtils() {

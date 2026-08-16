@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import com.rabbitmq.client.amqp.Environment;
 import com.rabbitmq.client.amqp.impl.AmqpEnvironmentBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +95,7 @@ class AmqpClientTests implements RabbitTestContainer {
 	static class ContextConfiguration {
 
 		@Bean
-		com.rabbitmq.client.amqp.Environment environment() {
+		Environment environment() {
 			return new AmqpEnvironmentBuilder()
 					.connectionSettings()
 					.port(RabbitTestContainer.amqpPort())
@@ -103,7 +104,7 @@ class AmqpClientTests implements RabbitTestContainer {
 		}
 
 		@Bean
-		AmqpConnectionFactory connectionFactory(com.rabbitmq.client.amqp.Environment environment) {
+		AmqpConnectionFactory connectionFactory(Environment environment) {
 			return new SingleAmqpConnectionFactory(environment);
 		}
 

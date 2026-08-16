@@ -16,6 +16,7 @@
 
 package org.springframework.integration.grpc.outbound;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.grpc.ManagedChannel;
@@ -347,7 +348,7 @@ class GrpcClientOutboundGatewayMultiMethodTests {
 			public StreamObserver<HelloRequest> helloToEveryOne(StreamObserver<HelloReply> responseObserver) {
 				return new StreamObserver<>() {
 
-					private final java.util.List<String> names = new java.util.ArrayList<>();
+					private final List<String> names = new ArrayList<>();
 
 					@Override
 					public void onNext(HelloRequest value) {

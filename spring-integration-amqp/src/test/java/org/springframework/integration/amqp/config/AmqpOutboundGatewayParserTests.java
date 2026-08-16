@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
 import org.springframework.integration.channel.QueueChannel;
@@ -97,7 +98,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
 		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "lazyConnect")).isTrue();
-		assertThat(TestUtils.<org.springframework.expression.Expression>getPropertyValue(gateway, "delayExpression")
+		assertThat(TestUtils.<Expression>getPropertyValue(gateway, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
 	}
 
