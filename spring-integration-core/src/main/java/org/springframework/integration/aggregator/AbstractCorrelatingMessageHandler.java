@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import java.io.IOException;
+import java.io.ObjectInputFilter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,14 +25,26 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiFunction;
 
+import io.grpc.BindableService;
+import io.grpc.Channel;
+import io.grpc.ManagedChannel;
+import io.grpc.Server;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.stub.StreamObserver;
 import org.aopalliance.aop.Advice;
 import org.jspecify.annotations.Nullable;
 
@@ -44,6 +58,28 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.aggregator.agent.CorrelatingMessageMapper;
+import org.springframework.integration.aggregator.agent.CorrelatingPayloadCodec;
+import org.springframework.integration.aggregator.agent.EmbabelCorrelatingAgentService;
+import org.springframework.integration.aggregator.agent.JavaSerializationCorrelatingPayloadCodec;
+import org.springframework.integration.aggregator.agent.grpc.ApplyDecisionResponse;
+import org.springframework.integration.aggregator.agent.grpc.ApplyForceCompleteDecisionRequest;
+import org.springframework.integration.aggregator.agent.grpc.ApplyMessageDecisionRequest;
+import org.springframework.integration.aggregator.agent.grpc.CorrelatingAgentPortGrpc;
+import org.springframework.integration.aggregator.agent.grpc.CorrelatingDependencyPortGrpc;
+import org.springframework.integration.aggregator.agent.grpc.DecisionOutcome;
+import org.springframework.integration.aggregator.agent.grpc.EvaluateForceCompleteRequest;
+import org.springframework.integration.aggregator.agent.grpc.EvaluateMessageRequest;
+import org.springframework.integration.aggregator.agent.grpc.ForceCompleteAssessment;
+import org.springframework.integration.aggregator.agent.grpc.ForceCompleteDecision;
+import org.springframework.integration.aggregator.agent.grpc.ForceCompleteRequest;
+import org.springframework.integration.aggregator.agent.grpc.ForceCompleteResponse;
+import org.springframework.integration.aggregator.agent.grpc.HandleMessageRequest;
+import org.springframework.integration.aggregator.agent.grpc.HandleMessageResponse;
+import org.springframework.integration.aggregator.agent.grpc.LifecycleRequest;
+import org.springframework.integration.aggregator.agent.grpc.MessageAssessment;
+import org.springframework.integration.aggregator.agent.grpc.MessageDecision;
+import org.springframework.integration.aggregator.agent.grpc.MessageEnvelope;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -63,6 +99,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
@@ -114,6 +151,26 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new ConcurrentHashMap<>();
+
+	private Duration correlatingAgentDeadline = Duration.ofSeconds(30);
+
+	private CorrelatingPayloadCodec payloadCodec = new JavaSerializationCorrelatingPayloadCodec();
+
+	private ObjectInputFilter deserializationFilter = JavaSerializationCorrelatingPayloadCodec.defaultFilter();
+
+	@Nullable
+	private Channel correlatingAgentChannel;
+
+	@Nullable
+	private ManagedChannel managedCorrelatingAgentChannel;
+
+	@Nullable
+	private Server correlatingAgentServer;
+
+	private CorrelatingAgentPortGrpc.@Nullable CorrelatingAgentPortBlockingStub correlatingAgent;
+
+	@Nullable
+	private CorrelatingDependencyGateway correlatingDependencyGateway;
 
 	private MessageGroupProcessor outputProcessor;
 
@@ -212,6 +269,63 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		this.lockRegistry = lockRegistry;
 		this.lockRegistrySet = true;
+	}
+
+	/**
+	 * Configure an externally managed channel for the correlating agent port.
+	 * When omitted, an in-process Embabel agent and dependency gateway are created.
+	 * @param channel the agent channel
+	 * @since 7.2
+	 */
+	public void setCorrelatingAgentChannel(Channel channel) {
+		Assert.state(this.correlatingAgent == null, "The correlating agent has already been initialized");
+		Assert.notNull(channel, "'channel' must not be null");
+		this.correlatingAgentChannel = channel;
+	}
+
+	/**
+	 * Return the gRPC dependency port that gives an externally hosted correlating agent
+	 * access to this handler's strategies, store, processor, channels, locks, timeouts,
+	 * and application events. Add this service to a gRPC server reachable by the agent.
+	 * @return the dependency port service
+	 * @since 7.2
+	 */
+	public BindableService getCorrelatingDependencyPort() {
+		initializeCorrelatingAgent();
+		CorrelatingDependencyGateway dependencyGateway = this.correlatingDependencyGateway;
+		Assert.state(dependencyGateway != null, "The correlating dependency port could not be initialized");
+		return dependencyGateway;
+	}
+
+	/**
+	 * Configure the deadline applied to each agent invocation.
+	 * @param deadline the positive deadline
+	 * @since 7.2
+	 */
+	public void setCorrelatingAgentDeadline(Duration deadline) {
+		Assert.notNull(deadline, "'deadline' must not be null");
+		Assert.isTrue(!deadline.isNegative() && !deadline.isZero(), "'deadline' must be greater than zero");
+		this.correlatingAgentDeadline = deadline;
+	}
+
+	/**
+	 * Configure the payload codec used at the gRPC boundary.
+	 * @param payloadCodec the payload codec
+	 * @since 7.2
+	 */
+	public void setPayloadCodec(CorrelatingPayloadCodec payloadCodec) {
+		Assert.notNull(payloadCodec, "'payloadCodec' must not be null");
+		this.payloadCodec = payloadCodec;
+	}
+
+	/**
+	 * Configure the mandatory filter applied when payloads are deserialized.
+	 * @param deserializationFilter the object input filter
+	 * @since 7.2
+	 */
+	public void setDeserializationFilter(ObjectInputFilter deserializationFilter) {
+		Assert.notNull(deserializationFilter, "'deserializationFilter' must not be null");
+		this.deserializationFilter = deserializationFilter;
 	}
 
 	public final void setMessageStore(MessageGroupStore store) {
@@ -451,6 +565,36 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (this.releaseStrategy instanceof GroupConditionProvider groupConditionProvider) {
 			this.groupConditionSupplier = groupConditionProvider.getGroupConditionSupplier();
 		}
+
+		initializeCorrelatingAgent();
+	}
+
+	private synchronized void initializeCorrelatingAgent() {
+		if (this.correlatingAgent != null) {
+			return;
+		}
+		CorrelatingDependencyGateway dependencyGateway = new CorrelatingDependencyGateway();
+		this.correlatingDependencyGateway = dependencyGateway;
+		Channel channel = this.correlatingAgentChannel;
+		if (channel == null) {
+			String serverName = InProcessServerBuilder.generateName();
+			ManagedChannel managedChannel = InProcessChannelBuilder.forName(serverName).directExecutor().build();
+			try {
+				this.correlatingAgentServer = InProcessServerBuilder.forName(serverName)
+						.directExecutor()
+						.addService(dependencyGateway)
+						.addService(new EmbabelCorrelatingAgentService(managedChannel))
+						.build()
+						.start();
+			}
+			catch (IOException ex) {
+				managedChannel.shutdownNow();
+				throw new IllegalStateException("Failed to start the in-process correlating agent", ex);
+			}
+			this.managedCorrelatingAgentChannel = managedChannel;
+			channel = managedChannel;
+		}
+		this.correlatingAgent = CorrelatingAgentPortGrpc.newBlockingStub(channel);
 	}
 
 	private MessageGroupProcessor createGroupTimeoutProcessor() {
@@ -554,72 +698,56 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
-		Assert.state(correlationKey != null,
-				"Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
-
-		this.logger.debug(() -> "Handling message with correlationKey [" + correlationKey + "]: " + message);
-
-		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
-		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
-
-		boolean noOutput = true;
-		try {
-			lock.lockInterruptibly();
-			try {
-				noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
-			}
-			finally {
-				if (noOutput || !this.releaseLockBeforeSend) {
-					lock.unlock();
-				}
-			}
+		String invocationId = UUID.randomUUID().toString();
+		CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub agent = obtainCorrelatingAgent();
+		CorrelatingDependencyGateway dependencyGateway = this.correlatingDependencyGateway;
+		if (dependencyGateway != null) {
+			dependencyGateway.register(invocationId, message);
 		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(message, "Interrupted getting lock in the [" + this + ']', e);
+		try {
+			MessageEnvelope envelope = CorrelatingMessageMapper.toEnvelope(message, this.payloadCodec);
+			HandleMessageResponse response = agent
+					.withDeadlineAfter(this.correlatingAgentDeadline.toNanos(), TimeUnit.NANOSECONDS)
+					.handleMessage(HandleMessageRequest.newBuilder()
+							.setInvocationId(invocationId)
+							.setMessage(envelope)
+							.build());
+			Assert.state(response.getOutcome() != DecisionOutcome.DECISION_OUTCOME_UNSPECIFIED
+					&& response.getOutcome() != DecisionOutcome.STALE,
+					() -> "Correlating agent returned an invalid outcome: " + response.getOutcome());
+		}
+		catch (StatusRuntimeException ex) {
+			String description = ex.getStatus().getDescription();
+			RuntimeException cause;
+			if (description != null && description.startsWith("DEPENDENCY_FAILURE: ")) {
+				String dependencyMessage = description.substring("DEPENDENCY_FAILURE: ".length());
+				cause = dependencyMessage.contains("Null correlation")
+						? new IllegalStateException(dependencyMessage)
+						: new RuntimeException(dependencyMessage);
+			}
+			else {
+				cause = ex;
+			}
+			throw new MessageHandlingException(message, "Correlating agent invocation failed in [" + this + ']', cause);
+		}
+		catch (RuntimeException ex) {
+			throw new MessageHandlingException(message, "Correlating agent invocation failed in [" + this + ']', ex);
+		}
+		finally {
+			if (dependencyGateway != null) {
+				dependencyGateway.unregister(invocationId);
+			}
 		}
 	}
 
-	private boolean processMessageForGroup(Message<?> message, Object correlationKey, UUID groupIdUuid, Lock lock) {
-		boolean noOutput = true;
-		cancelScheduledFutureIfAny(correlationKey, groupIdUuid, true);
-		MessageGroup messageGroup = this.messageStore.getMessageGroup(correlationKey);
-		if (this.sequenceAware) {
-			messageGroup = new SequenceAwareMessageGroup(messageGroup);
+	private CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub obtainCorrelatingAgent() {
+		CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub agent = this.correlatingAgent;
+		if (agent == null) {
+			initializeCorrelatingAgent();
+			agent = this.correlatingAgent;
 		}
-
-		if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
-			MessageGroup messageGroupToLog = messageGroup;
-			this.logger.trace(() -> "Adding message to group [ " + messageGroupToLog + "]");
-			messageGroup = store(correlationKey, message);
-
-			messageGroup = setGroupConditionIfAny(message, messageGroup);
-
-			if (this.releaseStrategy.canRelease(messageGroup)) {
-				Collection<Message<?>> completedMessages = null;
-				try {
-					noOutput = false;
-					completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
-				}
-				finally {
-					// Possible clean (implementation dependency) up
-					// even if there was an exception processing messages
-					afterRelease(messageGroup, completedMessages);
-				}
-				if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
-					removeEmptyGroupAfterTimeout(groupIdUuid, this.minimumTimeoutForEmptyGroups);
-				}
-			}
-			else {
-				scheduleGroupToForceComplete(messageGroup);
-			}
-		}
-		else {
-			noOutput = false;
-			discardMessage(message, lock);
-		}
-		return noOutput;
+		Assert.state(agent != null, "The correlating agent could not be initialized");
+		return agent;
 	}
 
 	private void cancelScheduledFutureIfAny(Object correlationKey, UUID groupIdUuid, boolean mayInterruptIfRunning) {
@@ -631,21 +759,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						"Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ " + correlationKey + "].");
 			}
 		}
-	}
-
-	private MessageGroup setGroupConditionIfAny(Message<?> message, MessageGroup messageGroup) {
-		MessageGroup messageGroupToUse = messageGroup;
-
-		if (this.groupConditionSupplier != null) {
-			String condition = this.groupConditionSupplier.apply(message, messageGroupToUse.getCondition());
-			this.messageStore.setGroupCondition(messageGroupToUse.getGroupId(), condition);
-			messageGroupToUse = this.messageStore.getMessageGroup(messageGroupToUse.getGroupId());
-			if (this.sequenceAware) {
-				messageGroupToUse = new SequenceAwareMessageGroup(messageGroupToUse);
-			}
-		}
-
-		return messageGroupToUse;
 	}
 
 	protected boolean isExpireGroupsUponCompletion() {
@@ -746,13 +859,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	private void discardMessage(Message<?> message, Lock lock) {
-		if (this.releaseLockBeforeSend) {
-			lock.unlock();
-		}
-		discardMessage(message);
-	}
-
 	private void discardMessage(Message<?> message) {
 		MessageChannel messageChannel = getDiscardChannel();
 		if (messageChannel != null) {
@@ -778,99 +884,42 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		afterRelease(group, completedMessages);
 	}
 
-	protected void forceComplete(MessageGroup group) { // NOSONAR Complexity
-		Object correlationKey = group.getGroupId();
-		// UUIDConverter is no-op if already converted
-		UUID groupId = UUIDConverter.getUUID(correlationKey);
-		Lock lock = this.lockRegistry.obtain(groupId.toString());
-		boolean removeGroup = true;
-		boolean noOutput = true;
-		try {
-			lock.lockInterruptibly();
-			try {
-				cancelScheduledFutureIfAny(correlationKey, groupId, false);
-				MessageGroup groupNow = group;
-				/*
-				 * If the group argument is not already complete,
-				 * re-fetch it because it might have changed while we were waiting on
-				 * its lock. If the last modified timestamp changed, defer the completion
-				 * because the selection condition may have changed such that the group
-				 * would no longer be eligible. If the timestamp changed, it's a completely new
-				 * group and should not be reaped on this cycle.
-				 *
-				 * If the group argument is already complete, do not re-fetch.
-				 * Note: not all message stores provide a direct reference to its internal
-				 * group so the initial 'isComplete()` will only return true for those stores if
-				 * the group was already complete at the time of its selection as a candidate.
-				 *
-				 * If the group is marked complete, only consider it
-				 * for reaping if it's empty (and both timestamps are unaltered).
-				 */
-				if (!group.isComplete()) {
-					groupNow = this.messageStore.getMessageGroup(correlationKey);
-				}
-				long lastModifiedNow = groupNow.getLastModified();
-				int groupSize = groupNow.size();
-
-				if ((!groupNow.isComplete() || groupSize == 0)
-						&& group.getLastModified() == lastModifiedNow
-						&& group.getTimestamp() == groupNow.getTimestamp()) {
-
-					if (groupSize > 0) {
-						noOutput = false;
-						if (this.releaseStrategy.canRelease(groupNow)) {
-							completeGroup(correlationKey, groupNow, lock);
-						}
-						else {
-							expireGroup(correlationKey, groupNow, lock);
-						}
-						if (!this.expireGroupsUponTimeout) {
-							afterRelease(groupNow, groupNow.getMessages(), true);
-							removeGroup = false;
-						}
-					}
-					else {
-						/*
-						 * By default, empty groups are removed on the same schedule as non-empty
-						 * groups. A longer timeout for empty groups can be enabled by
-						 * setting minimumTimeoutForEmptyGroups.
-						 */
-						removeGroup =
-								lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
-						if (removeGroup) {
-							this.logger.debug(() -> "Removing empty group: " + correlationKey);
-						}
-					}
-				}
-				else {
-					removeGroup = false;
-					this.logger.debug(() -> "Group expiry candidate (" + correlationKey +
-							") has changed - it may be reconsidered for a future expiration");
-				}
-			}
-			catch (MessageDeliveryException e) {
-				removeGroup = false;
-				this.logger.debug(() -> "Group expiry candidate (" + correlationKey +
-						") has been affected by MessageDeliveryException - " +
-						"it may be reconsidered for a future expiration one more time");
-				throw e;
-			}
-			finally {
-				try {
-					if (removeGroup) {
-						remove(group);
-					}
-				}
-				finally {
-					if (noOutput || !this.releaseLockBeforeSend) {
-						lock.unlock();
-					}
-				}
-			}
+	protected void forceComplete(MessageGroup group) {
+		String invocationId = UUID.randomUUID().toString();
+		CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub agent = obtainCorrelatingAgent();
+		CorrelatingDependencyGateway dependencyGateway = this.correlatingDependencyGateway;
+		if (dependencyGateway != null) {
+			dependencyGateway.register(invocationId, group);
 		}
-		catch (@SuppressWarnings("unused") InterruptedException ie) {
-			Thread.currentThread().interrupt();
-			this.logger.debug("Thread was interrupted while trying to obtain lock");
+		try {
+			ForceCompleteResponse response = agent
+					.withDeadlineAfter(this.correlatingAgentDeadline.toNanos(), TimeUnit.NANOSECONDS)
+					.forceComplete(ForceCompleteRequest.newBuilder()
+							.setInvocationId(invocationId)
+							.setGroupId(this.payloadCodec.encode(group.getGroupId()))
+							.setCandidateTimestamp(group.getTimestamp())
+							.setCandidateLastModified(group.getLastModified())
+							.build());
+			Assert.state(response.getOutcome() != DecisionOutcome.DECISION_OUTCOME_UNSPECIFIED
+					&& response.getOutcome() != DecisionOutcome.STALE,
+					() -> "Correlating agent returned an invalid force-complete outcome: " + response.getOutcome());
+		}
+		catch (StatusRuntimeException ex) {
+			String description = ex.getStatus().getDescription();
+			if (description != null && description.startsWith("MESSAGE_DELIVERY: ")) {
+				Message<?> failedMessage = Objects.requireNonNull(group.getOne(), "The expiring group is empty");
+				throw new MessageDeliveryException(failedMessage,
+						description.substring("MESSAGE_DELIVERY: ".length()), ex);
+			}
+			throw new IllegalStateException("Correlating agent force-complete invocation failed in [" + this + ']', ex);
+		}
+		catch (RuntimeException ex) {
+			throw new IllegalStateException("Correlating agent force-complete invocation failed in [" + this + ']', ex);
+		}
+		finally {
+			if (dependencyGateway != null) {
+				dependencyGateway.unregister(invocationId);
+			}
 		}
 	}
 
@@ -1009,11 +1058,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public void destroy() {
 		this.expireGroupScheduledFutures.values().forEach(future -> future.cancel(true));
+		Server server = this.correlatingAgentServer;
+		if (server != null) {
+			server.shutdownNow();
+		}
+		ManagedChannel channel = this.managedCorrelatingAgentChannel;
+		if (channel != null) {
+			channel.shutdownNow();
+		}
 	}
 
 	@Override
 	public void start() {
 		if (!this.running) {
+			CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub agent = this.correlatingAgent;
+			if (agent != null) {
+				agent.withDeadlineAfter(this.correlatingAgentDeadline.toNanos(), TimeUnit.NANOSECONDS)
+						.start(LifecycleRequest.getDefaultInstance());
+			}
 			this.running = true;
 			if (this.outputProcessor instanceof Lifecycle lifecycle) {
 				lifecycle.start();
@@ -1034,6 +1096,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public void stop() {
 		if (this.running) {
+			CorrelatingAgentPortGrpc.CorrelatingAgentPortBlockingStub agent = this.correlatingAgent;
+			if (agent != null) {
+				agent.withDeadlineAfter(this.correlatingAgentDeadline.toNanos(), TimeUnit.NANOSECONDS)
+						.stop(LifecycleRequest.getDefaultInstance());
+			}
 			this.running = false;
 			if (this.outputProcessor instanceof Lifecycle lifecycle) {
 				lifecycle.stop();
@@ -1058,6 +1125,446 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	public void purgeOrphanedGroups() {
 		Assert.isTrue(this.expireTimeout > 0, "'expireTimeout' must be more than 0.");
 		this.messageStore.expireMessageGroups(this.expireTimeout);
+	}
+
+	private final class CorrelatingDependencyGateway
+			extends CorrelatingDependencyPortGrpc.CorrelatingDependencyPortImplBase {
+
+		private final Map<String, Message<?>> localMessages = new ConcurrentHashMap<>();
+
+		private final Map<String, MessageAssessment> assessments = new ConcurrentHashMap<>();
+
+		private final Map<String, OperationContext> operations = new ConcurrentHashMap<>();
+
+		private final Map<String, MessageGroup> forceGroups = new ConcurrentHashMap<>();
+
+		void register(String invocationId, Message<?> message) {
+			this.localMessages.put(invocationId, message);
+		}
+
+		void register(String invocationId, MessageGroup group) {
+			this.forceGroups.put(invocationId, group);
+		}
+
+		void unregister(String invocationId) {
+			this.localMessages.remove(invocationId);
+			this.assessments.remove(invocationId);
+			this.operations.remove(invocationId);
+			this.forceGroups.remove(invocationId);
+		}
+
+		@Override
+		public void evaluateMessage(EvaluateMessageRequest request,
+				StreamObserver<MessageAssessment> responseObserver) {
+
+			try {
+				OperationContext operation = obtainOperation(request.getInvocationId(), request.getMessage());
+				Message<?> message = operation.message();
+				Object correlationKey = operation.correlationKey();
+				Lock lock = obtainGroupLock(correlationKey);
+				lock.lockInterruptibly();
+				try {
+					MessageGroup storedGroup = AbstractCorrelatingMessageHandler.this.messageStore
+							.getMessageGroup(correlationKey);
+					MessageGroup group = AbstractCorrelatingMessageHandler.this.sequenceAware
+							? new SequenceAwareMessageGroup(storedGroup) : storedGroup;
+					boolean messagePresent = containsMessage(group, message);
+					boolean canAdd = !group.isComplete() && (messagePresent || group.canAdd(message));
+					ConditionAssessment condition = assessCondition(message, group, messagePresent);
+					boolean canRelease = false;
+					if (canAdd) {
+						MessageGroup candidate =
+								createCandidateGroup(storedGroup, message, messagePresent, condition.value());
+						canRelease = AbstractCorrelatingMessageHandler.this.releaseStrategy.canRelease(candidate);
+					}
+					MessageAssessment assessment = MessageAssessment.newBuilder()
+							.setInvocationId(request.getInvocationId())
+							.setVersion(groupVersion(storedGroup))
+							.setGroupComplete(group.isComplete())
+							.setCanAdd(canAdd)
+							.setCanReleaseAfterStore(canRelease)
+							.setMessagePresent(messagePresent)
+							.setConditionEvaluated(condition.evaluated())
+							.setConditionPresent(condition.value() != null)
+							.setCondition(condition.value() != null ? condition.value() : "")
+							.build();
+					this.assessments.put(request.getInvocationId(), assessment);
+					responseObserver.onNext(assessment);
+					responseObserver.onCompleted();
+				}
+				finally {
+					lock.unlock();
+				}
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				responseObserver.onError(Status.CANCELLED.withDescription("Interrupted obtaining the group lock")
+						.withCause(ex).asRuntimeException());
+			}
+			catch (RuntimeException ex) {
+				responseObserver.onError(toStatusException(ex));
+			}
+		}
+
+		@Override
+		@SuppressWarnings("NullAway") // MessageGroupStore accepts null to reset a group condition.
+		public void applyMessageDecision(ApplyMessageDecisionRequest request,
+				StreamObserver<ApplyDecisionResponse> responseObserver) {
+
+			boolean lockHeld = false;
+			Lock lock = null;
+			try {
+				MessageAssessment assessment = this.assessments.get(request.getInvocationId());
+				validateMessageDecision(request.getDecision(), assessment);
+				OperationContext operation = obtainOperation(request.getInvocationId(), request.getMessage());
+				Message<?> message = operation.message();
+				Object correlationKey = operation.correlationKey();
+				UUID groupId = UUIDConverter.getUUID(correlationKey);
+				lock = AbstractCorrelatingMessageHandler.this.lockRegistry.obtain(groupId.toString());
+				lock.lockInterruptibly();
+				lockHeld = true;
+				MessageGroup storedGroup = AbstractCorrelatingMessageHandler.this.messageStore
+						.getMessageGroup(correlationKey);
+				long currentVersion = groupVersion(storedGroup);
+				if (currentVersion != request.getExpectedVersion()) {
+					respond(responseObserver, DecisionOutcome.STALE, currentVersion, "Group version changed");
+					return;
+				}
+
+				MessageGroup group = AbstractCorrelatingMessageHandler.this.sequenceAware
+						? new SequenceAwareMessageGroup(storedGroup) : storedGroup;
+				boolean messagePresent = containsMessage(group, message);
+				if (request.getDecision() == MessageDecision.DISCARD) {
+					if (AbstractCorrelatingMessageHandler.this.releaseLockBeforeSend) {
+						lock.unlock();
+						lockHeld = false;
+					}
+					discardMessage(this.localMessages.getOrDefault(request.getInvocationId(), message));
+					respond(responseObserver, DecisionOutcome.DISCARDED, currentVersion, "Message discarded");
+					return;
+				}
+
+				if (group.isComplete() || (!messagePresent && !group.canAdd(message))) {
+					respond(responseObserver, DecisionOutcome.STALE, currentVersion, "Group no longer accepts message");
+					return;
+				}
+				cancelScheduledFutureIfAny(correlationKey, groupId, true);
+				if (!messagePresent) {
+					group = store(correlationKey, message);
+					if (request.getConditionEvaluated()) {
+						AbstractCorrelatingMessageHandler.this.messageStore.setGroupCondition(group.getGroupId(),
+								request.getConditionPresent() ? request.getCondition() : null);
+						group = AbstractCorrelatingMessageHandler.this.messageStore.getMessageGroup(group.getGroupId());
+					}
+					if (AbstractCorrelatingMessageHandler.this.sequenceAware) {
+						group = new SequenceAwareMessageGroup(group);
+					}
+				}
+
+				if (request.getDecision() == MessageDecision.STORE_AND_RELEASE) {
+					Collection<Message<?>> completedMessages = null;
+					if (AbstractCorrelatingMessageHandler.this.releaseLockBeforeSend) {
+						lockHeld = false;
+					}
+					try {
+						completedMessages = completeGroup(message, correlationKey, group, lock);
+					}
+					finally {
+						afterRelease(group, completedMessages);
+					}
+					if (!isExpireGroupsUponCompletion()
+							&& AbstractCorrelatingMessageHandler.this.minimumTimeoutForEmptyGroups > 0) {
+
+						removeEmptyGroupAfterTimeout(groupId,
+								AbstractCorrelatingMessageHandler.this.minimumTimeoutForEmptyGroups);
+					}
+					respond(responseObserver, DecisionOutcome.RELEASED, groupVersion(group), "Group released");
+				}
+				else if (request.getDecision() == MessageDecision.STORE_AND_WAIT) {
+					scheduleGroupToForceComplete(group);
+					respond(responseObserver, DecisionOutcome.WAITING, groupVersion(group), "Message stored");
+				}
+				else {
+					throw new IllegalArgumentException("Unsupported message decision: " + request.getDecision());
+				}
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				responseObserver.onError(Status.CANCELLED.withDescription("Interrupted obtaining the group lock")
+						.withCause(ex).asRuntimeException());
+			}
+			catch (RuntimeException ex) {
+				responseObserver.onError(toStatusException(ex));
+			}
+			finally {
+				if (lockHeld && lock != null) {
+					lock.unlock();
+				}
+			}
+		}
+
+		@Override
+		public void evaluateForceComplete(EvaluateForceCompleteRequest request,
+				StreamObserver<ForceCompleteAssessment> responseObserver) {
+
+			try {
+				Object correlationKey = decodeGroupId(request.getGroupId());
+				Lock lock = obtainGroupLock(correlationKey);
+				lock.lockInterruptibly();
+				try {
+					MessageGroup group = this.forceGroups.get(request.getInvocationId());
+					if (group == null || !group.isComplete()) {
+						group = AbstractCorrelatingMessageHandler.this.messageStore.getMessageGroup(correlationKey);
+					}
+					this.forceGroups.put(request.getInvocationId(), group);
+					int size = group.size();
+					boolean unchanged = request.getCandidateTimestamp() == group.getTimestamp()
+							&& request.getCandidateLastModified() == group.getLastModified();
+					boolean eligible = unchanged && (!group.isComplete() || size == 0);
+					if (eligible && size == 0) {
+						eligible = group.getLastModified()
+								<= (System.currentTimeMillis()
+										- AbstractCorrelatingMessageHandler.this.minimumTimeoutForEmptyGroups);
+					}
+					ForceCompleteAssessment assessment = ForceCompleteAssessment.newBuilder()
+							.setInvocationId(request.getInvocationId())
+							.setVersion(groupVersion(group))
+							.setEligible(eligible)
+							.setEmpty(size == 0)
+							.setCanRelease(eligible && size > 0
+									&& AbstractCorrelatingMessageHandler.this.releaseStrategy.canRelease(group))
+							.build();
+					responseObserver.onNext(assessment);
+					responseObserver.onCompleted();
+				}
+				finally {
+					lock.unlock();
+				}
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				responseObserver.onError(Status.CANCELLED.withDescription("Interrupted obtaining the group lock")
+						.withCause(ex).asRuntimeException());
+			}
+			catch (RuntimeException ex) {
+				responseObserver.onError(toStatusException(ex));
+			}
+		}
+
+		@Override
+		public void applyForceCompleteDecision(ApplyForceCompleteDecisionRequest request,
+				StreamObserver<ApplyDecisionResponse> responseObserver) {
+
+			Lock lock = null;
+			boolean lockHeld = false;
+			boolean removeGroup = false;
+			MessageGroup group = null;
+			try {
+				Object correlationKey = decodeGroupId(request.getGroupId());
+				UUID groupId = UUIDConverter.getUUID(correlationKey);
+				lock = AbstractCorrelatingMessageHandler.this.lockRegistry.obtain(groupId.toString());
+				lock.lockInterruptibly();
+				lockHeld = true;
+				group = this.forceGroups.get(request.getInvocationId());
+				if (group == null) {
+					group = AbstractCorrelatingMessageHandler.this.messageStore.getMessageGroup(correlationKey);
+				}
+				long currentVersion = groupVersion(group);
+				if (currentVersion != request.getExpectedVersion()) {
+					respond(responseObserver, DecisionOutcome.STALE, currentVersion, "Group version changed");
+					return;
+				}
+				cancelScheduledFutureIfAny(correlationKey, groupId, false);
+				ForceCompleteDecision decision = request.getDecision();
+				if (decision == ForceCompleteDecision.IGNORE) {
+					respond(responseObserver, DecisionOutcome.IGNORED, currentVersion, "Group is not eligible");
+					return;
+				}
+				if (decision == ForceCompleteDecision.REMOVE_EMPTY) {
+					removeGroup = true;
+					respond(responseObserver, DecisionOutcome.REMOVED, currentVersion, "Empty group removed");
+					return;
+				}
+				if (decision == ForceCompleteDecision.RELEASE) {
+					if (AbstractCorrelatingMessageHandler.this.releaseLockBeforeSend) {
+						lockHeld = false;
+					}
+					completeGroup(correlationKey, group, lock);
+				}
+				else if (decision == ForceCompleteDecision.EXPIRE) {
+					if (AbstractCorrelatingMessageHandler.this.releaseLockBeforeSend) {
+						lockHeld = false;
+					}
+					expireGroup(correlationKey, group, lock);
+				}
+				else {
+					throw new IllegalArgumentException("Unsupported force-complete decision: " + decision);
+				}
+				if (!AbstractCorrelatingMessageHandler.this.expireGroupsUponTimeout) {
+					afterRelease(group, group.getMessages(), true);
+				}
+				else {
+					removeGroup = true;
+				}
+				respond(responseObserver,
+						decision == ForceCompleteDecision.RELEASE ? DecisionOutcome.RELEASED : DecisionOutcome.EXPIRED,
+						currentVersion, "Group force-completed");
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				responseObserver.onError(Status.CANCELLED.withDescription("Interrupted obtaining the group lock")
+						.withCause(ex).asRuntimeException());
+			}
+			catch (MessageDeliveryException ex) {
+				removeGroup = false;
+				responseObserver.onError(toStatusException(ex));
+			}
+			catch (RuntimeException ex) {
+				responseObserver.onError(toStatusException(ex));
+			}
+			finally {
+				try {
+					if (removeGroup && group != null) {
+						remove(group);
+					}
+				}
+				finally {
+					if (lockHeld && lock != null) {
+						lock.unlock();
+					}
+				}
+			}
+		}
+
+		private Message<?> decodeMessage(String invocationId, MessageEnvelope envelope) {
+			Message<?> localMessage = this.localMessages.get(invocationId);
+			Map<String, Object> localHeaders = localMessage != null
+					? new HashMap<>(localMessage.getHeaders())
+					: Collections.emptyMap();
+			return CorrelatingMessageMapper.fromEnvelope(envelope,
+					AbstractCorrelatingMessageHandler.this.payloadCodec,
+					AbstractCorrelatingMessageHandler.this.deserializationFilter, localHeaders);
+		}
+
+		private OperationContext obtainOperation(String invocationId, MessageEnvelope envelope) {
+			OperationContext operation = this.operations.get(invocationId);
+			if (operation == null) {
+				Message<?> message = decodeMessage(invocationId, envelope);
+				operation = new OperationContext(message, resolveCorrelationKey(message));
+				this.operations.put(invocationId, operation);
+			}
+			return operation;
+		}
+
+		private Object decodeGroupId(org.springframework.integration.aggregator.agent.grpc.SerializedObject groupId) {
+			Object result = AbstractCorrelatingMessageHandler.this.payloadCodec.decode(groupId,
+					AbstractCorrelatingMessageHandler.this.deserializationFilter);
+			Assert.state(result != null, "Correlating group id cannot be null");
+			return result;
+		}
+
+		private Object resolveCorrelationKey(Message<?> message) {
+			Object correlationKey = AbstractCorrelatingMessageHandler.this.correlationStrategy
+					.getCorrelationKey(message);
+			Assert.state(correlationKey != null,
+					"Null correlation not allowed. Maybe the CorrelationStrategy is failing?");
+			return correlationKey;
+		}
+
+		private Lock obtainGroupLock(Object correlationKey) {
+			return AbstractCorrelatingMessageHandler.this.lockRegistry
+					.obtain(UUIDConverter.getUUID(correlationKey).toString());
+		}
+
+		private ConditionAssessment assessCondition(Message<?> message, MessageGroup group, boolean messagePresent) {
+			if (AbstractCorrelatingMessageHandler.this.groupConditionSupplier == null || messagePresent) {
+				return new ConditionAssessment(false, group.getCondition());
+			}
+			return new ConditionAssessment(true,
+					AbstractCorrelatingMessageHandler.this.groupConditionSupplier.apply(message, group.getCondition()));
+		}
+
+		private MessageGroup createCandidateGroup(MessageGroup group, Message<?> message, boolean messagePresent,
+				@Nullable String condition) {
+
+			List<Message<?>> messages = new ArrayList<>(group.getMessages());
+			if (!messagePresent) {
+				messages.add(message);
+			}
+			MessageGroup candidate = new SimpleMessageGroup(messages, group.getGroupId(), group.getTimestamp(),
+					group.isComplete());
+			candidate.setLastModified(group.getLastModified());
+			candidate.setLastReleasedMessageSequenceNumber(group.getLastReleasedMessageSequenceNumber());
+			candidate.setCondition(condition);
+			if (AbstractCorrelatingMessageHandler.this.sequenceAware) {
+				MessageGroup sequenceCandidate = new SequenceAwareMessageGroup(candidate);
+				sequenceCandidate.setLastReleasedMessageSequenceNumber(candidate.getLastReleasedMessageSequenceNumber());
+				sequenceCandidate.setCondition(condition);
+				candidate = sequenceCandidate;
+			}
+			return candidate;
+		}
+
+		private void validateMessageDecision(MessageDecision decision, @Nullable MessageAssessment assessment) {
+			Assert.state(assessment != null, "No assessment exists for the correlating decision");
+			MessageDecision expected;
+			if (assessment.getGroupComplete()
+					|| (!assessment.getMessagePresent() && !assessment.getCanAdd())) {
+				expected = MessageDecision.DISCARD;
+			}
+			else {
+				expected = assessment.getCanReleaseAfterStore()
+						? MessageDecision.STORE_AND_RELEASE
+						: MessageDecision.STORE_AND_WAIT;
+			}
+			Assert.state(decision == expected,
+					() -> "Correlating agent decision " + decision + " is inconsistent with assessment " + expected);
+		}
+
+		private boolean containsMessage(MessageGroup group, Message<?> message) {
+			Object messageId = message.getHeaders().get(MessageHeaders.ID);
+			return group.getMessages().stream()
+					.anyMatch(candidate -> ObjectUtils.nullSafeEquals(messageId,
+							candidate.getHeaders().get(MessageHeaders.ID)));
+		}
+
+		private long groupVersion(MessageGroup group) {
+			if (group.size() == 0 && !group.isComplete() && group.getLastModified() == 0) {
+				return 0;
+			}
+			long version = 31 * group.getTimestamp() + group.getLastModified();
+			version = 31 * version + group.size();
+			version = 31 * version + (group.isComplete() ? 1 : 0);
+			for (Message<?> message : group.getMessages()) {
+				version = 31 * version + ObjectUtils.nullSafeHashCode(message.getHeaders().get(MessageHeaders.ID));
+			}
+			return version;
+		}
+
+		private void respond(StreamObserver<ApplyDecisionResponse> responseObserver, DecisionOutcome outcome,
+				long currentVersion, String detail) {
+
+			responseObserver.onNext(ApplyDecisionResponse.newBuilder()
+					.setOutcome(outcome)
+					.setCurrentVersion(currentVersion)
+					.setDetail(detail)
+					.build());
+			responseObserver.onCompleted();
+		}
+
+		private StatusRuntimeException toStatusException(RuntimeException exception) {
+			String description = exception instanceof MessageDeliveryException
+					? "MESSAGE_DELIVERY: " + exception.getMessage()
+					: "DEPENDENCY_FAILURE: " + exception.getMessage();
+			return Status.INTERNAL.withDescription(description).withCause(exception).asRuntimeException();
+		}
+
+	}
+
+	private record ConditionAssessment(boolean evaluated, @Nullable String value) {
+	}
+
+	private record OperationContext(Message<?> message, Object correlationKey) {
 	}
 
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {

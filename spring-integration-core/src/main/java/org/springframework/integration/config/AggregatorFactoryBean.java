@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.io.ObjectInputFilter;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.grpc.Channel;
 import org.aopalliance.aop.Advice;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ import org.springframework.integration.aggregator.DelegatingMessageGroupProcesso
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.aggregator.agent.CorrelatingPayloadCodec;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -105,6 +108,14 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private @Nullable Function<MessageGroup, Map<String, Object>> headersFunction;
 
 	private @Nullable BiFunction<Message<?>, String, String> groupConditionSupplier;
+
+	private @Nullable Channel correlatingAgentChannel;
+
+	private @Nullable Duration correlatingAgentDeadline;
+
+	private @Nullable CorrelatingPayloadCodec payloadCodec;
+
+	private @Nullable ObjectInputFilter deserializationFilter;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
@@ -199,6 +210,22 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.groupConditionSupplier = groupConditionSupplier;
 	}
 
+	public void setCorrelatingAgentChannel(Channel correlatingAgentChannel) {
+		this.correlatingAgentChannel = correlatingAgentChannel;
+	}
+
+	public void setCorrelatingAgentDeadline(Duration correlatingAgentDeadline) {
+		this.correlatingAgentDeadline = correlatingAgentDeadline;
+	}
+
+	public void setPayloadCodec(CorrelatingPayloadCodec payloadCodec) {
+		this.payloadCodec = payloadCodec;
+	}
+
+	public void setDeserializationFilter(ObjectInputFilter deserializationFilter) {
+		this.deserializationFilter = deserializationFilter;
+	}
+
 	/**
 	 * Set to {@code false} to send to discard channel a whole expired group as a single message.
 	 * @param discardIndividuallyOnExpiry  false to discard the whole group as one message.
@@ -237,6 +264,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
+				.acceptIfNotNull(this.correlatingAgentChannel, aggregator::setCorrelatingAgentChannel)
+				.acceptIfNotNull(this.correlatingAgentDeadline, aggregator::setCorrelatingAgentDeadline)
+				.acceptIfNotNull(this.payloadCodec, aggregator::setPayloadCodec)
+				.acceptIfNotNull(this.deserializationFilter, aggregator::setDeserializationFilter)
 				.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
 				.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
 				.acceptIfNotNull(this.lockRegistry, (Consumer<LockRegistry<?>>) aggregator::setLockRegistry)

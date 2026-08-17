@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.time.Duration;
+
 import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -23,6 +25,7 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -66,6 +69,10 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String RELEASE_LOCK = "release-lock-before-send";
 
+	private static final String CORRELATING_AGENT_CHANNEL = "correlating-agent-channel";
+
+	private static final String CORRELATING_AGENT_DEADLINE = "correlating-agent-deadline";
+
 	protected void doParse(BeanDefinitionBuilder builder, Element element, @Nullable BeanMetadataElement processor,
 			ParserContext parserContext) {
 		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE,
@@ -107,6 +114,13 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 				"expireDurationMillis");
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "group-condition-supplier");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, CORRELATING_AGENT_CHANNEL);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "payload-codec");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserialization-filter");
+		String agentDeadline = element.getAttribute(CORRELATING_AGENT_DEADLINE);
+		if (StringUtils.hasText(agentDeadline)) {
+			builder.addPropertyValue("correlatingAgentDeadline", Duration.parse(agentDeadline));
+		}
 	}
 
 }

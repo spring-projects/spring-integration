@@ -56,7 +56,10 @@
 				pop-sequence="false"
 				order="5"
 				expire-duration="10000"
-				expire-timeout="250">
+				expire-timeout="250"
+				correlating-agent-deadline="PT5S"
+				payload-codec="payloadCodec"
+				deserialization-filter="deserializationFilter">
 		<expire-transactional/>
 	</aggregator>
 
@@ -68,6 +71,12 @@
 	</beans:bean>
 
 	<beans:bean id="store" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<beans:bean id="payloadCodec"
+				class="org.springframework.integration.aggregator.agent.JavaSerializationCorrelatingPayloadCodec"/>
+
+	<beans:bean id="deserializationFilter"
+				class="org.springframework.integration.config.AggregatorParserTests$AllowAllFilter"/>
 
 	<channel id="aggregatorWithExpressionsInput"/>
 	<channel id="aggregatorWithExpressionsOutput"/>

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.io.ObjectInputFilter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -201,6 +202,12 @@ public class AggregatorParserTests {
 		assertThat(TestUtils.<Long>getPropertyValue(consumer, "expireTimeout")).isEqualTo(250L);
 		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "expireDuration"))
 				.isEqualTo(Duration.ofSeconds(10));
+		assertThat(TestUtils.<Duration>getPropertyValue(consumer, "correlatingAgentDeadline"))
+				.isEqualTo(Duration.ofSeconds(5));
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "payloadCodec"))
+				.isSameAs(this.context.getBean("payloadCodec"));
+		assertThat(TestUtils.<Object>getPropertyValue(consumer, "deserializationFilter"))
+				.isSameAs(this.context.getBean("deserializationFilter"));
 	}
 
 	@Test
@@ -343,6 +350,15 @@ public class AggregatorParserTests {
 		@org.springframework.integration.annotation.CorrelationStrategy
 		public Object correlate(Message<?> m) {
 			return new IntegrationMessageHeaderAccessor(m).getCorrelationId();
+		}
+
+	}
+
+	public static class AllowAllFilter implements ObjectInputFilter {
+
+		@Override
+		public Status checkInput(FilterInfo filterInfo) {
+			return Status.ALLOWED;
 		}
 
 	}

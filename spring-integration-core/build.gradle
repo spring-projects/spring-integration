@@ -15,6 +15,14 @@
         api 'org.springframework:spring-tx'
         api 'io.projectreactor:reactor-core'
         api 'io.micrometer:micrometer-observation'
+        api 'com.google.protobuf:protobuf-java'
+        api 'io.grpc:grpc-protobuf'
+        api 'io.grpc:grpc-stub'
+
+        implementation 'io.grpc:grpc-inprocess'
+        implementation("com.embabel.agent:embabel-agent-api:${libs.versions.embabelVersion.get()}") {
+            transitive = false
+        }
 
         optionalApi 'tools.jackson.core:jackson-databind'
         optionalApi('tools.jackson.module:jackson-module-kotlin') {
@@ -48,9 +56,33 @@
         }
     }
 
-    protobuf {
-        protoc {
-            artifact = "com.google.protobuf:protoc:${libs.versions.protobufVersion.get()}"
-        }
-    }
+	protobuf {
+		protoc {
+			artifact = "com.google.protobuf:protoc:${libs.versions.protobufVersion.get()}"
+		}
+		plugins {
+			grpc {
+				artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpcVersion.get()}"
+			}
+		}
+		generateProtoTasks {
+			all()*.plugins {
+				grpc {
+					option '@generated=omit'
+				}
+			}
+		}
+	}
+
+	tasks.named('checkstyleMain') {
+		source = fileTree('src/main/java') {
+			include '**/*.java'
+		}
+	}
+
+	tasks.named('checkstyleTest') {
+		source = fileTree('src/test/java') {
+			include '**/*.java'
+		}
+	}
 

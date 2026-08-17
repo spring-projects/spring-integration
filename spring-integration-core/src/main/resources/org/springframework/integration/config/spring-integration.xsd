@@ -4087,6 +4087,50 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="correlating-agent-channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="io.grpc.Channel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to an externally managed gRPC channel for the correlating agent port.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="correlating-agent-deadline" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							An ISO-8601 Duration applied as the deadline for correlating agent calls.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="payload-codec" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type
+										type="org.springframework.integration.aggregator.agent.CorrelatingPayloadCodec"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to the codec used for payloads crossing the gRPC boundary.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="deserialization-filter" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.io.ObjectInputFilter"/>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to the mandatory filter applied during Java object deserialization.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

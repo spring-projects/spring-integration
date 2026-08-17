@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package spring.integration.aggregator.agent;
+
+option java_package = "org.springframework.integration.aggregator.agent.grpc";
+option java_multiple_files = true;
+option java_outer_classname = "CorrelatingAgentProto";
+
+service CorrelatingAgentPort {
+  rpc HandleMessage(HandleMessageRequest) returns (HandleMessageResponse);
+  rpc ForceComplete(ForceCompleteRequest) returns (ForceCompleteResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc Start(LifecycleRequest) returns (LifecycleResponse);
+  rpc Stop(LifecycleRequest) returns (LifecycleResponse);
+}
+
+service CorrelatingDependencyPort {
+  rpc EvaluateMessage(EvaluateMessageRequest) returns (MessageAssessment);
+  rpc ApplyMessageDecision(ApplyMessageDecisionRequest) returns (ApplyDecisionResponse);
+  rpc EvaluateForceComplete(EvaluateForceCompleteRequest) returns (ForceCompleteAssessment);
+  rpc ApplyForceCompleteDecision(ApplyForceCompleteDecisionRequest) returns (ApplyDecisionResponse);
+}
+
+message SerializedObject {
+  bytes data = 1;
+  string class_name = 2;
+  uint32 format_version = 3;
+  string content_type = 4;
+  bool null_value = 5;
+}
+
+message HeaderList {
+  repeated HeaderValue values = 1;
+}
+
+message HeaderMap {
+  map<string, HeaderValue> values = 1;
+}
+
+message HeaderValue {
+  string java_type = 1;
+  oneof value {
+    string string_value = 2;
+    int32 int_value = 3;
+    int64 long_value = 4;
+    bool boolean_value = 5;
+    double double_value = 6;
+    bytes bytes_value = 7;
+    string uuid_value = 8;
+    HeaderList list_value = 9;
+    HeaderMap map_value = 10;
+  }
+}
+
+message MessageEnvelope {
+  SerializedObject payload = 1;
+  map<string, HeaderValue> headers = 2;
+}
+
+message HandleMessageRequest {
+  string invocation_id = 1;
+  MessageEnvelope message = 2;
+}
+
+enum MessageDecision {
+  MESSAGE_DECISION_UNSPECIFIED = 0;
+  STORE_AND_WAIT = 1;
+  STORE_AND_RELEASE = 2;
+  DISCARD = 3;
+}
+
+enum ForceCompleteDecision {
+  FORCE_COMPLETE_DECISION_UNSPECIFIED = 0;
+  RELEASE = 1;
+  EXPIRE = 2;
+  REMOVE_EMPTY = 3;
+  IGNORE = 4;
+}
+
+enum DecisionOutcome {
+  DECISION_OUTCOME_UNSPECIFIED = 0;
+  WAITING = 1;
+  RELEASED = 2;
+  DISCARDED = 3;
+  EXPIRED = 4;
+  REMOVED = 5;
+  IGNORED = 6;
+  STALE = 7;
+}
+
+message EvaluateMessageRequest {
+  string invocation_id = 1;
+  MessageEnvelope message = 2;
+}
+
+message MessageAssessment {
+  string invocation_id = 1;
+  int64 version = 2;
+  bool group_complete = 3;
+  bool can_add = 4;
+  bool can_release_after_store = 5;
+  bool message_present = 6;
+  bool condition_evaluated = 7;
+  bool condition_present = 8;
+  string condition = 9;
+}
+
+message ApplyMessageDecisionRequest {
+  string invocation_id = 1;
+  MessageEnvelope message = 2;
+  int64 expected_version = 3;
+  MessageDecision decision = 4;
+  bool condition_evaluated = 5;
+  bool condition_present = 6;
+  string condition = 7;
+}
+
+message ApplyDecisionResponse {
+  DecisionOutcome outcome = 1;
+  int64 current_version = 2;
+  string detail = 3;
+}
+
+message HandleMessageResponse {
+  DecisionOutcome outcome = 1;
+  uint32 attempts = 2;
+}
+
+message ForceCompleteRequest {
+  string invocation_id = 1;
+  SerializedObject group_id = 2;
+  int64 candidate_timestamp = 3;
+  int64 candidate_last_modified = 4;
+}
+
+message EvaluateForceCompleteRequest {
+  string invocation_id = 1;
+  SerializedObject group_id = 2;
+  int64 candidate_timestamp = 3;
+  int64 candidate_last_modified = 4;
+}
+
+message ForceCompleteAssessment {
+  string invocation_id = 1;
+  int64 version = 2;
+  bool eligible = 3;
+  bool empty = 4;
+  bool can_release = 5;
+}
+
+message ApplyForceCompleteDecisionRequest {
+  string invocation_id = 1;
+  SerializedObject group_id = 2;
+  int64 expected_version = 3;
+  ForceCompleteDecision decision = 4;
+}
+
+message ForceCompleteResponse {
+  DecisionOutcome outcome = 1;
+  uint32 attempts = 2;
+}
+
+message HealthRequest {
+}
+
+message HealthResponse {
+  bool serving = 1;
+  string agent = 2;
+}
+
+message LifecycleRequest {
+}
+
+message LifecycleResponse {
+  bool running = 1;
+}

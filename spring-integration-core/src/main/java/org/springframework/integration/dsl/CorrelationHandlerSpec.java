@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.io.ObjectInputFilter;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import io.grpc.Channel;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
@@ -30,6 +32,7 @@ import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.aggregator.agent.CorrelatingPayloadCodec;
 import org.springframework.integration.config.CorrelationStrategyFactoryBean;
 import org.springframework.integration.config.ReleaseStrategyFactoryBean;
 import org.springframework.integration.expression.FunctionExpression;
@@ -72,6 +75,50 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	public S messageStore(MessageGroupStore messageStore) {
 		Assert.notNull(messageStore, "'messageStore' must not be null.");
 		this.handler.setMessageStore(messageStore);
+		return _this();
+	}
+
+	/**
+	 * Configure an externally managed gRPC channel for the correlating agent.
+	 * @param channel the agent channel
+	 * @return the handler spec
+	 * @since 7.2
+	 */
+	public S correlatingAgentChannel(Channel channel) {
+		this.handler.setCorrelatingAgentChannel(channel);
+		return _this();
+	}
+
+	/**
+	 * Configure the deadline for correlating agent calls.
+	 * @param deadline the positive deadline
+	 * @return the handler spec
+	 * @since 7.2
+	 */
+	public S correlatingAgentDeadline(Duration deadline) {
+		this.handler.setCorrelatingAgentDeadline(deadline);
+		return _this();
+	}
+
+	/**
+	 * Configure the codec used for message payloads crossing the gRPC boundary.
+	 * @param payloadCodec the payload codec
+	 * @return the handler spec
+	 * @since 7.2
+	 */
+	public S payloadCodec(CorrelatingPayloadCodec payloadCodec) {
+		this.handler.setPayloadCodec(payloadCodec);
+		return _this();
+	}
+
+	/**
+	 * Configure the filter applied to Java object deserialization.
+	 * @param deserializationFilter the object input filter
+	 * @return the handler spec
+	 * @since 7.2
+	 */
+	public S deserializationFilter(ObjectInputFilter deserializationFilter) {
+		this.handler.setDeserializationFilter(deserializationFilter);
 		return _this();
 	}
 
