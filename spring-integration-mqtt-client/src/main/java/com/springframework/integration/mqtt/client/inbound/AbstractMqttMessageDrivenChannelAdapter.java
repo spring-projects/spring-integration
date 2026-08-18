@@ -19,6 +19,7 @@ package com.springframework.integration.mqtt.client.inbound;
 import java.util.concurrent.Executor;
 
 import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.MqttClientBuilderBase;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.springframework.integration.mqtt.client.core.MqttClientManager;
 import org.jspecify.annotations.Nullable;
@@ -40,7 +41,7 @@ import org.springframework.util.Assert;
  *
  * @since 7.2
  */
-public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClient, B>
+public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClient, B extends MqttClientBuilderBase<B>>
 		extends MessageProducerSupport implements ApplicationEventPublisherAware, MqttClientManager.ConnectCallback {
 
 	protected @Nullable B mqttClientBuilder;

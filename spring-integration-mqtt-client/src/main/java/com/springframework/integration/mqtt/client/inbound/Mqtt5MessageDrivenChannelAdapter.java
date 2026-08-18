@@ -73,6 +73,7 @@ public class Mqtt5MessageDrivenChannelAdapter
 
 	// [End]
 
+	@SuppressWarnings("this-escape")
 	public Mqtt5MessageDrivenChannelAdapter(Mqtt5ClientBuilder mqttClientBuilder, String topic) {
 		super(mqttClientBuilder, topic);
 		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)

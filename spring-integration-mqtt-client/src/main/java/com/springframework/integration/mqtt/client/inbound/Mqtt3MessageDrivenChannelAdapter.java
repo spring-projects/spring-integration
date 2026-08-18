@@ -54,6 +54,7 @@ public class Mqtt3MessageDrivenChannelAdapter
 
 	private Mqtt3Connect mqttConnect = Mqtt3ConnectView.DEFAULT;
 
+	@SuppressWarnings("this-escape")
 	public Mqtt3MessageDrivenChannelAdapter(Mqtt3ClientBuilder mqttClientBuilder, String topic) {
 		super(mqttClientBuilder, topic);
 		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)

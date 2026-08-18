@@ -23,6 +23,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.MqttClientBuilderBase;
 import com.springframework.integration.mqtt.client.inbound.AbstractMqttMessageDrivenChannelAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +44,7 @@ import org.springframework.util.Assert;
  *
  * @since 7.2
  */
-public abstract class AbstractMqttClientManager<T extends MqttClient, B>
+public abstract class AbstractMqttClientManager<T extends MqttClient, B extends MqttClientBuilderBase<B>>
 		implements MqttClientManager<T>, ApplicationEventPublisherAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());

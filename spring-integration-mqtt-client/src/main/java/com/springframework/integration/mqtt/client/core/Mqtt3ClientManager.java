@@ -39,7 +39,8 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 
 	private Mqtt3Connect mqttConnect = Mqtt3ConnectView.DEFAULT;
 
-	protected Mqtt3ClientManager(Mqtt3ClientBuilder mqttClientBuilder) {
+	@SuppressWarnings("this-escape")
+	public Mqtt3ClientManager(Mqtt3ClientBuilder mqttClientBuilder) {
 		super(mqttClientBuilder);
 
 		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)

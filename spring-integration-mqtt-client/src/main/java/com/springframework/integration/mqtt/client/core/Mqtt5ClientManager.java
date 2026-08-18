@@ -43,7 +43,8 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 
 	private Mqtt5Disconnect mqttDisConnect = MqttDisconnect.DEFAULT;
 
-	protected Mqtt5ClientManager(Mqtt5ClientBuilder mqttClientBuilder) {
+	@SuppressWarnings("this-escape")
+	public Mqtt5ClientManager(Mqtt5ClientBuilder mqttClientBuilder) {
 		super(mqttClientBuilder);
 
 		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)
