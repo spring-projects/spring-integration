@@ -26,7 +26,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
-import com.springframework.integration.mqtt.client.HiveMQContainer;
+import com.springframework.integration.mqtt.client.HiveMQContainerTest;
 import com.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import com.springframework.integration.mqtt.client.support.MqttClientBuilderHelper;
 import com.springframework.integration.mqtt.client.support.MqttHeaders;
@@ -54,7 +54,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt3MessageDrivenChannelAdapterTests implements HiveMQContainer {
+class Mqtt3MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
 
 	static final String CAR_DEVICE_TOPIC_WILDCARD = "mqtt-v3-inbound-car-device/#";
 

@@ -151,7 +151,7 @@ public class Mqtt5MessageDrivenChannelAdapter
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.mqttClientBuilder != null) {
+		if (this.mqttClientBuilder != null && !this.isConnected()) {
 			try {
 				this.mqttClient.toBlocking().connect(this.mqttConnect);
 			}
@@ -165,7 +165,7 @@ public class Mqtt5MessageDrivenChannelAdapter
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (this.mqttClientBuilder != null) {
+		if (this.mqttClientBuilder != null && this.isConnected()) {
 			try {
 				this.mqttClient.toBlocking().disconnect(this.mqttDisConnect);
 			}

@@ -153,6 +153,14 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 		this.payloadType = payloadType;
 	}
 
+	/**
+	 * Return whether the mqttClient isConnected.
+	 * @return whether the mqttClient isConnected.
+	 */
+	public boolean isConnected() {
+		return this.mqttClient.getState().isConnected();
+	}
+
 	@Override
 	public String getComponentType() {
 		return "mqtt:inbound-channel-adapter";

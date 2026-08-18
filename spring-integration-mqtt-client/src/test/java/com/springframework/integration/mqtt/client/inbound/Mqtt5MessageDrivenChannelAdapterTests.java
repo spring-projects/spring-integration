@@ -29,7 +29,7 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5ClientBuilder;
 import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperties;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
-import com.springframework.integration.mqtt.client.HiveMQContainer;
+import com.springframework.integration.mqtt.client.HiveMQContainerTest;
 import com.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import com.springframework.integration.mqtt.client.support.MqttClientBuilderHelper;
 import com.springframework.integration.mqtt.client.support.MqttHeaders;
@@ -57,7 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt5MessageDrivenChannelAdapterTests implements HiveMQContainer {
+class Mqtt5MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
 
 	static final String CAR_DEVICE_TOPIC_WILDCARD = "mqtt-v5-inbound-car-device/#";
 

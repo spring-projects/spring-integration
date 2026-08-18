@@ -16,6 +16,7 @@
 
 package com.springframework.integration.mqtt.client.inbound;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -24,10 +25,14 @@ import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
-import com.springframework.integration.mqtt.client.HiveMQContainer;
+import com.springframework.integration.mqtt.client.HiveMQContainerTest;
+import com.springframework.integration.mqtt.client.ToxiproxyContainerTest;
 import com.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
+import eu.rekawek.toxiproxy.Proxy;
+import eu.rekawek.toxiproxy.ToxiproxyClient;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,42 +53,65 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainer {
+class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainerTest, ToxiproxyContainerTest {
 
 	static final String TOPIC = "topic-for-mqtt-v3-automatic-reconnect";
 
-	static final CountDownLatch subscribeFirstLatch = new CountDownLatch(1);
+	static final CountDownLatch subscribedLatch = new CountDownLatch(1);
 
-	static final CountDownLatch connectSecondLatch = new CountDownLatch(2);
+	static final CountDownLatch connectedLatches = new CountDownLatch(2);
+
+	static final CountDownLatch disconnectedLatch = new CountDownLatch(1);
 
 	@Autowired
 	QueueChannel outputChannel;
 
-	Mqtt3BlockingClient mqtt3TestClient;
+	static Mqtt3BlockingClient mqtt3TestClient;
 
-	@BeforeEach
-	void setUp() {
+	static Proxy toxiproxy;
+
+	@BeforeAll
+	static void setup() throws IOException {
+		var proxyClient = new ToxiproxyClient(PROXY_CONTAINER.getHost(), PROXY_CONTAINER.getControlPort());
+		toxiproxy = proxyClient.createProxy("hivemqProxy", "0.0.0.0:" + PROXY_PORT_FOR_HIVEMQ, "hivemq-broker:" + HIVEMQ_PORT);
+		toxiproxy.enable();
+
 		mqtt3TestClient = Mqtt3Client.builder()
 				.identifier("mqtt3-reconnect-test-client")
-				.serverHost(HIVEMQ_CONTAINER.getHost())
-				.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort())
+				.serverHost(PROXY_CONTAINER.getHost())
+				.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_HIVEMQ))
 				.buildBlocking();
 		mqtt3TestClient.connect();
 	}
 
+	@AfterAll
+	static void cleanup() throws IOException {
+		if (mqtt3TestClient != null && mqtt3TestClient.getState().isConnected()) {
+			mqtt3TestClient.disconnect();
+		}
+
+		if (toxiproxy != null) {
+			toxiproxy.disable();
+			toxiproxy.delete();
+		}
+	}
+
 	@Test
-	void messageReceivedAfterAutomaticReConnection() throws InterruptedException {
+	void messageReceivedAfterAutomaticReConnection() throws InterruptedException, IOException {
 		// subscribe done
-		assertThat(subscribeFirstLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(subscribedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		// Given
 		mqtt3TestClient.publishWith().topic(TOPIC).payload("payload-1".getBytes()).send();
 		// Then
 		Assertions.assertThat(outputChannel.receive(10000)).isNotNull();
-		// broken down and up
-		HIVEMQ_CONTAINER.stop();
-		HIVEMQ_CONTAINER.start();
-		// await reconnect, manual resubscribe not need.
-		Assertions.assertThat(connectSecondLatch.await(30, TimeUnit.SECONDS)).isTrue();
+
+		// broker down and up
+		toxiproxy.disable();
+		Assertions.assertThat(disconnectedLatch.await(30, TimeUnit.SECONDS)).isTrue();
+		toxiproxy.enable();
+		// await reconnect, manual resubscribe does not need.
+		Assertions.assertThat(connectedLatches.await(30, TimeUnit.SECONDS)).isTrue();
+
 		// Given
 		mqtt3TestClient.connect();
 		mqtt3TestClient.publishWith().topic(TOPIC).payload("payload-2".getBytes()).send();
@@ -98,13 +126,14 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainer {
 		@Bean
 		Mqtt3ClientBuilder mqtt3ClientBuilder() {
 			return Mqtt3Client.builder()
-					.serverHost(HIVEMQ_CONTAINER.getHost())
-					.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort())
+					.serverHost(PROXY_CONTAINER.getHost())
+					.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_HIVEMQ))
 					.automaticReconnect()
 					.initialDelay(1, TimeUnit.SECONDS)
 					.maxDelay(2, TimeUnit.SECONDS)
 					.applyAutomaticReconnect()
-					.addConnectedListener(ctx -> connectSecondLatch.countDown());
+					.addConnectedListener(ctx -> connectedLatches.countDown())
+					.addDisconnectedListener(ctx -> disconnectedLatch.countDown());
 		}
 
 		@Bean
@@ -126,7 +155,7 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainer {
 
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
-			subscribeFirstLatch.countDown();
+			subscribedLatch.countDown();
 		}
 
 	}
