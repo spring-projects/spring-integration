@@ -17,6 +17,7 @@
 package org.springframework.integration.zip.config.xml;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.zip.Deflater;
 
@@ -55,7 +56,7 @@ public class ZipTransformerParserTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	public void testZipTransformerParserWithDefaults() {
+	public void testZipTransformerParserWithDefaults() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("zipTransformerWithDefaults", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -85,7 +86,8 @@ public class ZipTransformerParserTests {
 		assertThat(fileNameGenerator).isInstanceOf(DefaultFileNameGenerator.class);
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isFalse();
@@ -93,7 +95,7 @@ public class ZipTransformerParserTests {
 	}
 
 	@Test
-	public void testZipTransformerParserWithExplicitSettings() {
+	public void testZipTransformerParserWithExplicitSettings() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("zipTransformer", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -123,7 +125,8 @@ public class ZipTransformerParserTests {
 		assertThat(fileNameGenerator).isInstanceOf(DefaultFileNameGenerator.class);
 		assertThat(zipResultType).isEqualTo(ZipResultType.BYTE_ARRAY);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(compressionLevel).isEqualTo(2);

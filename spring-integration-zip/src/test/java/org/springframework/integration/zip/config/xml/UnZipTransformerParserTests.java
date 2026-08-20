@@ -17,6 +17,7 @@
 package org.springframework.integration.zip.config.xml;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class UnZipTransformerParserTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	public void testUnZipTransformerParserWithDefaults() {
+	public void testUnZipTransformerParserWithDefaults() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformerWithDefaults", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -80,7 +81,8 @@ public class UnZipTransformerParserTests {
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isFalse();
@@ -91,7 +93,7 @@ public class UnZipTransformerParserTests {
 	}
 
 	@Test
-	public void testUnZipTransformerParserWithExplicitSettings() {
+	public void testUnZipTransformerParserWithExplicitSettings() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformer", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -118,7 +120,8 @@ public class UnZipTransformerParserTests {
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isTrue();
