@@ -34,7 +34,6 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -48,7 +47,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Shiliang Li
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -75,14 +74,6 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Autowired
 	@Qualifier("fullConfig")
 	private AbstractEndpoint fullConfig;
-
-	@Autowired
-	@Qualifier("restTemplateConfig")
-	private AbstractEndpoint restTemplateConfig;
-
-	@Autowired
-	@Qualifier("customRestTemplate")
-	private RestTemplate customRestTemplate;
 
 	@Autowired
 	@Qualifier("restClientConfig")
@@ -183,13 +174,6 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void restTemplateConfig() {
-		RestTemplate restTemplate =
-				TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate");
-		assertThat(restTemplate).isEqualTo(customRestTemplate);
-	}
-
-	@Test
 	public void restClientConfig() {
 		RestClient restClient = TestUtils.getPropertyValue(this.restClientConfig, "handler.restClient");
 		assertThat(restClient).isEqualTo(this.customRestClient);
@@ -215,8 +199,8 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void withUrlAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
-		RestTemplate restTemplate = TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate");
-		assertThat(restTemplate).isSameAs(customRestTemplate);
+		RestClient restClient = TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restClient");
+		assertThat(restClient).isSameAs(this.customRestClient);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -224,11 +208,6 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor =
-				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())

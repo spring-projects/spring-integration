@@ -37,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 5.0
  */
@@ -90,6 +91,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestTemplate restTemplate) {
 		return outboundChannelAdapter(uri, toRestClient(restTemplate));
 	}
@@ -115,6 +117,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
 		return outboundChannelAdapter(uri, toRestClient(restTemplate));
 	}
@@ -142,6 +145,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
 
@@ -174,6 +178,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -243,6 +248,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestTemplate restTemplate) {
 		return outboundGateway(uri, toRestClient(restTemplate));
 	}
@@ -268,6 +274,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
 		return outboundGateway(uri, toRestClient(restTemplate));
 	}
@@ -295,6 +302,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
 
@@ -327,6 +335,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -360,6 +369,7 @@ public final class Http {
 		return new HttpMessageHandlerSpec(uriExpression, restClient);
 	}
 
+	@SuppressWarnings("removal")
 	private static @Nullable RestClient toRestClient(@Nullable RestTemplate restTemplate) {
 		return restTemplate != null ? RestClient.create(restTemplate) : null;
 	}
