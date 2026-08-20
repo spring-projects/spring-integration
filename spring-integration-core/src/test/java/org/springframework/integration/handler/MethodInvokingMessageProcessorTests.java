@@ -1119,7 +1119,8 @@ public class MethodInvokingMessageProcessorTests implements TestApplicationConte
 		foo = (Foo) new ProxyFactory(foo).getProxy();
 
 		SpelExpressionParser expressionParser =
-				new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
+				new SpelExpressionParser(SpelParserConfiguration.builder().compilerMode(SpelCompilerMode.IMMEDIATE).
+						build());
 
 		Expression expression = expressionParser.parseExpression("#target.handle(#root)");
 

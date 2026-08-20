@@ -27,6 +27,7 @@ import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -139,6 +140,9 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 				MessageConverter converter = this.jmsTemplate.getMessageConverter();
 				if (converter != null) {
 					object = converter.fromMessage(jmsMessage);
+					if (object == null) {
+						throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
+					}
 				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =

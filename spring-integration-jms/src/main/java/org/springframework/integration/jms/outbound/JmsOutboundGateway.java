@@ -65,6 +65,7 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -780,6 +781,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			result = this.messageConverter.fromMessage(jmsReply);
 			logger.debug(() ->
 					"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+			if (result == null) {
+				throw new MessageConversionException("Message converter returned null for: " + jmsReply);
+			}
 		}
 		else {
 			result = jmsReply;

@@ -60,6 +60,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.listener.adapter.ListenerExecutionFailedException;
 import org.springframework.jms.support.JmsUtils;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -408,6 +409,9 @@ public class ChannelPublishingJmsMessageListener
 				result = this.messageConverter.fromMessage(jmsMessage);
 				this.logger.debug(() -> "converted JMS Message [" + jmsMessage + "] to integration Message payload ["
 						+ result + "]");
+				if (result == null) {
+					throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
+				}
 			}
 			else {
 				result = jmsMessage;

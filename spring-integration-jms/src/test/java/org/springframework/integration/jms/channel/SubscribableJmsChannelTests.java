@@ -45,6 +45,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsHeaders;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -280,6 +281,26 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		assertThatExceptionOfType(MessageDeliveryException.class)
 				.isThrownBy(() -> listener.onMessage(new StubTextMessage("Hello, world!")))
 				.withMessageContaining("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.");
+	}
+
+	@Test
+	public void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(connectionFactory);
+		factoryBean.setDestinationName("nullPayloadSubscribableQueue");
+		factoryBean.setBeanName("nullPayloadChannel");
+		factoryBean.setMessageConverter(mock());
+		factoryBean.setBeanFactory(mock());
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
+		channel.afterPropertiesSet();
+
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
+		MessageListener listener = (MessageListener) container.getMessageListener();
+
+		// A JMS message converted to a null payload is a conversion failure, not a message to discard.
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> listener.onMessage(new StubTextMessage("Hello, world!")));
 	}
 
 	@Test

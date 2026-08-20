@@ -140,13 +140,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private static final ExpressionParser EXPRESSION_PARSER_DEFAULT = EXPRESSION_PARSER;
 
 	private static final ExpressionParser EXPRESSION_PARSER_OFF =
-			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.OFF, null));
+			new SpelExpressionParser(SpelParserConfiguration.builder().compilerMode(SpelCompilerMode.OFF).build());
 
 	private static final ExpressionParser EXPRESSION_PARSER_IMMEDIATE =
-			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
+			new SpelExpressionParser(SpelParserConfiguration.builder().compilerMode(SpelCompilerMode.IMMEDIATE).build());
 
 	private static final ExpressionParser EXPRESSION_PARSER_MIXED =
-			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
+			new SpelExpressionParser(SpelParserConfiguration.builder().compilerMode(SpelCompilerMode.MIXED).build());
 
 	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
