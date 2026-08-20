@@ -17,6 +17,7 @@
 package org.springframework.integration.jms.channel;
 
 import jakarta.jms.JMSException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -93,10 +94,13 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 		return true;
 	}
 
-	protected Message<?> fromJmsMessage(jakarta.jms.Message message) {
+	protected @Nullable Message<?> fromJmsMessage(jakarta.jms.Message message) {
 		MessageConverter converter = this.jmsTemplate.getMessageConverter();
 		try {
 			Object converted = converter.fromMessage(message);
+			if (converted == null) {
+				return null;
+			}
 			Message<?> messageToSend;
 			if (converted instanceof Message<?> convertedMessage) {
 				messageToSend = convertedMessage;

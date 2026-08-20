@@ -161,6 +161,11 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 	private void receiveAndDispatch(jakarta.jms.Message message) {
 		Message<?> messageToSend = fromJmsMessage(message);
+		if (messageToSend == null) {
+			this.logger.debug(() -> "The JMS Message [" + message
+					+ "] has been converted to null; discarding it for jms-channel '" + getFullChannelName() + "'.");
+			return;
+		}
 		try {
 			this.dispatcher.dispatch(messageToSend);
 		}

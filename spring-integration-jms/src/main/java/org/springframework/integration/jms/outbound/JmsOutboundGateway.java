@@ -763,7 +763,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 
 			if (reply instanceof jakarta.jms.Message jmsMessage) {
-				return buildReply(jmsMessage);
+				AbstractIntegrationMessageBuilder<?> replyBuilder = buildReply(jmsMessage);
+				if (replyBuilder == null && this.requiresReply) {
+					throw new MessageTimeoutException(requestMessage,
+							"the JMS reply has been converted to null payload, but a reply is required");
+				}
+				return replyBuilder;
 			}
 			else {
 				return reply;
@@ -774,12 +779,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private AbstractIntegrationMessageBuilder<?> buildReply(jakarta.jms.Message jmsReply) throws JMSException {
+	private @Nullable AbstractIntegrationMessageBuilder<?> buildReply(jakarta.jms.Message jmsReply) throws JMSException {
 		Object result;
 		if (this.extractReplyPayload) {
 			result = this.messageConverter.fromMessage(jmsReply);
 			logger.debug(() ->
 					"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+			if (result == null) {
+				return null;
+			}
 		}
 		else {
 			result = jmsReply;
