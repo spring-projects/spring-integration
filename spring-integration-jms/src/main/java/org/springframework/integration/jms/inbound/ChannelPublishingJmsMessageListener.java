@@ -408,6 +408,9 @@ public class ChannelPublishingJmsMessageListener
 				result = this.messageConverter.fromMessage(jmsMessage);
 				this.logger.debug(() -> "converted JMS Message [" + jmsMessage + "] to integration Message payload ["
 						+ result + "]");
+				if (result == null) {
+					throw new MessagingException("The JMS Message converter returned null payload for: " + jmsMessage);
+				}
 			}
 			else {
 				result = jmsMessage;

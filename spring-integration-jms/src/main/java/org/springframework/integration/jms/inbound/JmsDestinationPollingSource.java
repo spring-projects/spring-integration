@@ -139,6 +139,9 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 				MessageConverter converter = this.jmsTemplate.getMessageConverter();
 				if (converter != null) {
 					object = converter.fromMessage(jmsMessage);
+					if (object == null) {
+						return null;
+					}
 				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =
