@@ -239,6 +239,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 		adapter.setOutputChannel(channel);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setApplicationEventPublisher(TEST_INTEGRATION_CONTEXT);
+		adapter.setTrustedAckAddresses("*");
 		adapter.afterPropertiesSet();
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);

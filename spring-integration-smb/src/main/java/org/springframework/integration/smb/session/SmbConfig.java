@@ -61,9 +61,9 @@ public class SmbConfig {
 	private String shareAndDir;
 
 	/**
-	 * Defaults to and follows the jCIFS library default of 'SMB1'.
+	 * Defaults to {@link DialectVersion#SMB202}.
 	 */
-	private DialectVersion smbMinVersion = DialectVersion.SMB1;
+	private DialectVersion smbMinVersion = DialectVersion.SMB202;
 
 	/**
 	 * Defaults to and follows the jCIFS library default of 'SMB311'.
@@ -139,6 +139,7 @@ public class SmbConfig {
 	/**
 	 * Gets the desired minimum SMB version value for what the Windows server will allow
 	 * during protocol transport negotiation.
+	 * Defaults to {@link DialectVersion#SMB202}.
 	 * @return one of SMB1, SMB202, SMB210, SMB300, SMB302 or SMB311
 	 */
 	public DialectVersion getSmbMinVersion() {

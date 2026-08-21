@@ -17,6 +17,7 @@
 package org.springframework.integration.zip.config.xml;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class UnZipTransformerParserTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	public void testUnZipTransformerParserWithDefaults() {
+	public void testUnZipTransformerParserWithDefaults() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformerWithDefaults", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -67,6 +68,9 @@ public class UnZipTransformerParserTests {
 		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory");
 		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles");
 		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult");
+		Long maxUncompressedSize = (Long) TestUtils.getPropertyValue(unZipTransformer, "maxUncompressedSize");
+		Integer maxEntryCount = (Integer) TestUtils.getPropertyValue(unZipTransformer, "maxEntryCount");
+		Double maxCompressionRatio = (Double) TestUtils.getPropertyValue(unZipTransformer, "maxCompressionRatio");
 
 		assertThat(charset).isNotNull();
 		assertThat(zipResultType).isNotNull();
@@ -77,15 +81,19 @@ public class UnZipTransformerParserTests {
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isFalse();
 		assertThat(expectSingleResult).isFalse();
+		assertThat(maxUncompressedSize).isEqualTo(1024 * 1024 * 100);
+		assertThat(maxEntryCount).isEqualTo(1000);
+		assertThat(maxCompressionRatio).isEqualTo(100);
 	}
 
 	@Test
-	public void testUnZipTransformerParserWithExplicitSettings() {
+	public void testUnZipTransformerParserWithExplicitSettings() throws IOException {
 		EventDrivenConsumer consumer = this.context.getBean("unzipTransformer", EventDrivenConsumer.class);
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel");
@@ -112,11 +120,29 @@ public class UnZipTransformerParserTests {
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
-				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
+				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer")
+						.getCanonicalFile());
 		assertThat(workDirectory.exists()).isTrue();
 		assertThat(workDirectory.isDirectory()).isTrue();
 		assertThat(deleteFiles).isTrue();
 		assertThat(expectSingleResult).isTrue();
+	}
+
+	@Test
+	public void testUnZipTransformerParserWithSizeConstraints() {
+		EventDrivenConsumer consumer =
+				this.context.getBean("unzipTransformerWithSizeConstraints", EventDrivenConsumer.class);
+
+		UnZipTransformer unZipTransformer = (UnZipTransformer) TestUtils.getPropertyValue(consumer,
+				"handler.transformer");
+
+		Long maxUncompressedSize = (Long) TestUtils.getPropertyValue(unZipTransformer, "maxUncompressedSize");
+		Integer maxEntryCount = (Integer) TestUtils.getPropertyValue(unZipTransformer, "maxEntryCount");
+		Double maxCompressionRatio = (Double) TestUtils.getPropertyValue(unZipTransformer, "maxCompressionRatio");
+
+		assertThat(maxUncompressedSize).isEqualTo(2048);
+		assertThat(maxEntryCount).isEqualTo(5);
+		assertThat(maxCompressionRatio).isEqualTo(10.5);
 	}
 
 }

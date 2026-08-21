@@ -37,6 +37,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
@@ -96,6 +97,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(connectionFactory);
 		factoryBean.setDestination(this.queue);
+		factoryBean.setHeaderMapper(new DefaultJmsHeaderMapper("*"));
 		factoryBean.setBeanFactory(mock());
 		factoryBean.afterPropertiesSet();
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();

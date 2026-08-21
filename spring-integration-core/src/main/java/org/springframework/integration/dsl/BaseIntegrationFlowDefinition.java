@@ -2455,6 +2455,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link FluxMessageChannel} to start a reactive processing for upstream data,
 	 * wrap it to a {@link Flux}, apply provided {@link Function} via {@link Flux#transform(Function)}
 	 * and emit the result to one more {@link FluxMessageChannel}, subscribed in the downstream flow.
+	 * <p>{@code fluxFunction} must emit a {@link Message} for every element it produces; it is entirely
+	 * responsible for building that {@link Message} and copying over whatever headers of the originating
+	 * request {@link Message} it wants to retain. There is no automatic header propagation for elements
+	 * that are not already a {@link Message} - an {@link IllegalStateException} is thrown instead, since
+	 * there is no reliable way to determine which request such an element originated from, e.g. when
+	 * {@code fluxFunction} is asynchronous, concurrent, reordering or changes the number of elements.
 	 * @param fluxFunction the {@link Function} to process data reactive manner.
 	 * @param <I> the input payload type.
 	 * @param <O> the output type.
@@ -2470,7 +2476,16 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		Publisher<Message<I>> upstream = (Publisher<Message<I>>) currentChannel;
 
-		Flux<Message<O>> result = Transformers.transformWithFunction(upstream, fluxFunction);
+		Flux<Message<O>> result =
+				Flux.from(fluxFunction.apply(Flux.from(upstream)))
+						.map(data -> {
+							if (data instanceof Message<?> message) {
+								return (Message<O>) message;
+							}
+							throw new IllegalStateException(
+									"The 'fluxFunction' must emit a Message<?> for every element; got: "
+											+ data.getClass());
+						});
 
 		FluxMessageChannel downstream = new FluxMessageChannel();
 		downstream.subscribeTo((Flux<Message<?>>) (Flux<?>) result);

@@ -449,6 +449,18 @@
 
 	<int:bridge input-channel="udpAutoChannel" output-channel="nullChannel" />
 
+	<ip:udp-inbound-channel-adapter id="testInUdpSingleTrustedAck"
+		channel="udpChannel"
+		port="0"
+		trusted-ack-addresses="127.0.0.1:*"
+	/>
+
+	<ip:udp-inbound-channel-adapter id="testInUdpMultiTrustedAck"
+		channel="udpChannel"
+		port="0"
+		trusted-ack-addresses="127.0.0.1:*, 192.168.1.*:*"
+	/>
+
 	<bean id="failCF" class="org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory">
 		<constructor-arg>
 			<list>
