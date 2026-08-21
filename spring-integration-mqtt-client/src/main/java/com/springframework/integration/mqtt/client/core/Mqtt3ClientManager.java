@@ -67,13 +67,13 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 	public void start() {
 		this.lock.lock();
 		try {
-			try {
+			if (!this.isConnected()) {
 				this.mqttClient.toBlocking().connect(this.mqttConnect);
 			}
-			catch (RuntimeException ex) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-				logger.error("Could not start client manager", ex);
-			}
+		}
+		catch (RuntimeException ex) {
+			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			logger.error("Could not start client manager", ex);
 		}
 		finally {
 			this.lock.unlock();
@@ -84,12 +84,12 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 	public void stop() {
 		this.lock.lock();
 		try {
-			try {
+			if (this.isConnected()) {
 				this.mqttClient.toBlocking().disconnect();
 			}
-			catch (RuntimeException ex) {
-				logger.error("Could not disconnect from the client", ex);
-			}
+		}
+		catch (RuntimeException ex) {
+			logger.error("Could not disconnect from the client", ex);
 		}
 		finally {
 			this.lock.unlock();

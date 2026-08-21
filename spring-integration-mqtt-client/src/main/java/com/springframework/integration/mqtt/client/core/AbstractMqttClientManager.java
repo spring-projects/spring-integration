@@ -113,18 +113,12 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, B extends 
 
 	@Override
 	public boolean isRunning() {
-		return true;
+		return this.isConnected();
 	}
 
 	@Override
 	public boolean isConnected() {
-		this.lock.lock();
-		try {
-			return this.mqttClient.getState().isConnected();
-		}
-		finally {
-			this.lock.unlock();
-		}
+		return this.mqttClient.getState().isConnected();
 	}
 
 }

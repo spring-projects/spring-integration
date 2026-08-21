@@ -99,6 +99,9 @@ public class Mqtt3MessageDrivenChannelAdapter
 				logger.error(ex, "MQTT client failed to connect.");
 			}
 		}
+		if (this.isConnected() && !this.isSubscribed.getAndSet(true)) {
+			subscribe();
+		}
 	}
 
 	@Override
@@ -121,7 +124,9 @@ public class Mqtt3MessageDrivenChannelAdapter
 
 	@Override
 	public void onClientConnected(MqttClientConnectedContext mqttClientConnectedContext) {
-		if (isActive() && !this.isSubscribed) {
+		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
+		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
+		if (isActive() && !this.isSubscribed.getAndSet(true)) {
 			subscribe();
 		}
 	}
@@ -144,12 +149,12 @@ public class Mqtt3MessageDrivenChannelAdapter
 		}
 		subscribeFuture.whenComplete((subAck, throwable) -> {
 			if (throwable == null) {
-				this.isSubscribed = true;
+				this.isSubscribed.set(true);
 				String msg = "MQTT client subscribe topic: " + topic;
 				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, msg));
 			}
 			else {
-				this.isSubscribed = false;
+				this.isSubscribed.set(false);
 				logger.error(throwable, "MQTT client failed to subscribe topic : " + topic);
 				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, throwable));
 			}

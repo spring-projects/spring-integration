@@ -17,6 +17,7 @@
 package com.springframework.integration.mqtt.client.inbound;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.MqttClientBuilderBase;
@@ -53,7 +54,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 
 	protected final String topic;
 
-	protected boolean isSubscribed;
+	protected AtomicBoolean isSubscribed = new AtomicBoolean(false);
 
 	// [Start] subscription options for both v3 and v5
 
