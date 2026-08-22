@@ -17,12 +17,16 @@
 package org.springframework.integration.file.outbound;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.PosixFilePermission;
@@ -90,6 +94,7 @@ import static org.mockito.Mockito.when;
  * @author Alen Turkovic
  * @author Glenn Renfro
  * @author Thomas Knall
+ * @author Jiwoo Lee
  */
 public class FileWritingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -774,6 +779,49 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isInstanceOf(File.class);
 		return (File) result.getPayload();
+	}
+
+	@Test
+	void closeFailureIsReportedAndTheFileIsNotPromoted(@TempDir File localRoot) throws Exception {
+		File out = new File(localRoot, "out");
+		// A writer whose close() fails the way a full disk does: the buffered content
+		// never reaches the file and the IOException surfaces from close().
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(out) {
+
+			@Override
+			protected BufferedWriter createWriter(File fileToWriteTo, boolean append)
+					throws FileNotFoundException {
+
+				Writer target;
+				try {
+					target = new FileWriter(fileToWriteTo, append);
+				}
+				catch (IOException ex) {
+					throw new FileNotFoundException(ex.getMessage());
+				}
+				return new BufferedWriter(target) {
+
+					@Override
+					public void close() throws IOException {
+						target.close();
+						throw new IOException("No space left on device");
+					}
+
+				};
+			}
+
+		};
+		handler.setFileNameGenerator(message -> "payload.txt");
+		handler.setOutputChannel(new NullChannel());
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		handler.setApplicationContext(new GenericApplicationContext());
+		handler.afterPropertiesSet();
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("important payload")))
+				.withStackTraceContaining("java.io.IOException: No space left on device");
+
+		assertThat(new File(out, "payload.txt")).doesNotExist();
 	}
 
 }
