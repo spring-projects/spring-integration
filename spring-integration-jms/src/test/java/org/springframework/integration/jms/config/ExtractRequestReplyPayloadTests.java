@@ -19,6 +19,8 @@ package org.springframework.integration.jms.config;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.jms.JMSException;
+import jakarta.jms.ObjectMessage;
+import jakarta.jms.TextMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -240,7 +242,7 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			Message<?> origMessage = null;
 			try {
-				origMessage = (Message<?>) ((jakarta.jms.ObjectMessage) message.getPayload()).getObject();
+				origMessage = (Message<?>) ((ObjectMessage) message.getPayload()).getObject();
 			}
 			catch (JMSException e) {
 				fail("failed to deserialize message");
@@ -251,7 +253,7 @@ public class ExtractRequestReplyPayloadTests extends ActiveMQMultiContextTests {
 
 	private MessageHandler unwrapTextMessageAndEchoHandler() {
 		return message -> {
-			assertThat(message.getPayload()).isInstanceOf(jakarta.jms.TextMessage.class);
+			assertThat(message.getPayload()).isInstanceOf(TextMessage.class);
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			String payload = null;

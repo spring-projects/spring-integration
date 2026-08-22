@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail.inbound;
 
+import jakarta.mail.MessagingException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -29,6 +30,6 @@ import org.jspecify.annotations.Nullable;
  */
 public interface MailReceiver {
 
-	Object @Nullable [] receive() throws jakarta.mail.MessagingException;
+	Object @Nullable [] receive() throws MessagingException;
 
 }

@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
@@ -195,7 +196,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			messageProperties.setConsumerQueue(this.queue);
 			Map<String, @Nullable Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
-			var amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
+			var amqpMessage = new Message(resp.getBody(), messageProperties);
 			Object payload;
 			if (this.batchingStrategy.canDebatch(messageProperties)) {
 				List<Object> payloads = new ArrayList<>();

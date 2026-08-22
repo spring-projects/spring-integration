@@ -23,6 +23,7 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jspecify.annotations.Nullable;
 
@@ -122,7 +123,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 		@Override
 		public void processStanza(Stanza packet) {
-			if (packet instanceof org.jivesoftware.smack.packet.Message xmppMessage) {
+			if (packet instanceof Message xmppMessage) {
 				Map<String, ?> mappedHeaders =
 						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage.asBuilder());
 

@@ -691,7 +691,7 @@ public class ImapMailReceiverTests implements TestApplicationContextAware {
 				try {
 					receiver.receive();
 				}
-				catch (jakarta.mail.MessagingException e) {
+				catch (MessagingException e) {
 					if (e.getCause() instanceof NullPointerException) {
 						failed.getAndIncrement();
 					}
