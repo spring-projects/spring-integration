@@ -81,4 +81,4 @@ See xref:amqp/rmq-streams.adoc[`RabbitMQ Stream Queue Support`] for more informa
 == JDBC Changes
 
 The `DefaultLockRepository` now exposes setters for `insert`, `update` and `renew` queries.
-See xref:jdbc.adoc#jdbc-lock-registry[ JDBC Lock Registry] for more information.
+See xref:jdbc/lock-registry.adoc[JDBC Lock Registry] for more information.

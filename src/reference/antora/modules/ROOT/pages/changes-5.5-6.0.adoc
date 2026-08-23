@@ -167,7 +167,7 @@ See xref:kafka.adoc[Spring for Apache Kafka Support] for more information.
 
 The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 
-See xref:jdbc.adoc#jdbc-lock-registry[JDBC Lock Registry] for more information.
+See xref:jdbc/lock-registry.adoc[JDBC Lock Registry] for more information.
 
 [[x6.0-tcp]]
 == TCP/IP Changes

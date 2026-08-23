@@ -52,7 +52,7 @@ See xref:graph.adoc#integration-graph[Integration Graph] for more information.
 === JDBC Lock Registry
 
 We added `JdbcLockRegistry` for distributed locks shared through a database table.
-See xref:jdbc.adoc#jdbc-lock-registry[JDBC Lock Registry] for more information.
+See xref:jdbc/lock-registry.adoc[JDBC Lock Registry] for more information.
 
 [[leaderinitiator-for-lockregistry]]
 === `LeaderInitiator` for `LockRegistry`
