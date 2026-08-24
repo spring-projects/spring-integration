@@ -36,6 +36,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alexander Makarov
  *
  * @since 2.2
  */
@@ -84,13 +85,9 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 
 	@Override
 	public boolean equals(@Nullable Object o) {
-		if (super.equals(o)) {
-			return true;
-		}
-		if (o instanceof AdviceMessage<?> that) {
-			return Objects.equals(this.inputMessage, that.inputMessage);
-		}
-		return false;
+		return o instanceof AdviceMessage<?> that
+				&& super.equals(o)
+				&& Objects.equals(this.inputMessage, that.inputMessage);
 	}
 
 	@Override
