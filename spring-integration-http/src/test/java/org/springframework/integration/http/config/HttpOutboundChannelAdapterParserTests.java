@@ -16,7 +16,6 @@
 
 package org.springframework.integration.http.config;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -45,7 +45,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
@@ -267,15 +266,10 @@ public class HttpOutboundChannelAdapterParserTests {
 								getClass()));
 	}
 
-	public static class StubErrorHandler implements ResponseErrorHandler {
+	public static class StubErrorHandler implements RestClient.ResponseSpec.ErrorHandler {
 
 		@Override
-		public boolean hasError(ClientHttpResponse response) {
-			return false;
-		}
-
-		@Override
-		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) {
+		public void handle(HttpRequest request, ClientHttpResponse response) {
 		}
 
 	}
