@@ -30,9 +30,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * The {@link BaseHttpMessageHandlerSpec} implementation for the {@link HttpRequestExecutingMessageHandler}.
@@ -58,7 +56,7 @@ public class HttpMessageHandlerSpec
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(URI uri, org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		this(new ValueExpression<>(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
@@ -67,7 +65,7 @@ public class HttpMessageHandlerSpec
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	protected HttpMessageHandlerSpec(String uri, @Nullable RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(String uri, org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
@@ -76,7 +74,8 @@ public class HttpMessageHandlerSpec
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(Expression uriExpression,
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		this(uriExpression, restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
@@ -94,7 +93,8 @@ public class HttpMessageHandlerSpec
 	}
 
 	/**
-	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
+	 * Set the {@link ClientHttpRequestFactory} for the underlying
+	 * {@link org.springframework.web.client.RestTemplate}.
 	 * @param requestFactory The request factory.
 	 * @return the spec
 	 * @deprecated Since 7.2 in favor of {@link RestClient}-based configuration.
@@ -107,14 +107,16 @@ public class HttpMessageHandlerSpec
 	}
 
 	/**
-	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
+	 * Set the {@link org.springframework.web.client.ResponseErrorHandler} for the underlying
+	 * {@link org.springframework.web.client.RestTemplate}.
 	 * @param errorHandler The error handler.
 	 * @return the spec
 	 * @deprecated Since 7.2 in favor of {@link RestClient.ResponseSpec.ErrorHandler}.
 	 */
 	@Deprecated(since = "7.2", forRemoval = true)
 	@SuppressWarnings("removal")
-	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
+	public HttpMessageHandlerSpec errorHandler(
+			org.springframework.web.client.ResponseErrorHandler errorHandler) {
 		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
 		this.target.setErrorHandler(errorHandler);
 		return _this();
