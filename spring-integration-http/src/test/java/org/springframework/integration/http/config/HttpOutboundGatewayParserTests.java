@@ -60,7 +60,6 @@ import static org.mockito.Mockito.mock;
  * @author Biju Kunjummen
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
- * @author Burak Kalayci
  */
 @SpringJUnitConfig
 @DirtiesContext

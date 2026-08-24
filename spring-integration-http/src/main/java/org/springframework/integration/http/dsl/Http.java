@@ -29,7 +29,6 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingMessaging
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * The HTTP components Factory.
@@ -84,15 +83,16 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
-	 * based on provided {@link URI} and {@link RestTemplate}.
+	 * based on provided {@link URI} and {@link org.springframework.web.client.RestTemplate}.
 	 * @param uri the {@link URI} to send requests.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri,
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		return outboundChannelAdapter(uri, toRestClient(restTemplate));
 	}
 
@@ -110,15 +110,16 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
-	 * based on provided {@code uri} and {@link RestTemplate}.
+	 * based on provided {@code uri} and {@link org.springframework.web.client.RestTemplate}.
 	 * @param uri the {@code uri} to send requests.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri,
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		return outboundChannelAdapter(uri, toRestClient(restTemplate));
 	}
 
@@ -137,9 +138,9 @@ public final class Http {
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
 	 * based on provided {@code Function} to evaluate target {@code uri} against request message
-	 * and {@link RestTemplate} for HTTP exchanges.
+	 * and {@link org.springframework.web.client.RestTemplate} for HTTP exchanges.
 	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
@@ -147,7 +148,7 @@ public final class Http {
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
-			RestTemplate restTemplate) {
+			org.springframework.web.client.RestTemplate restTemplate) {
 
 		return outboundChannelAdapter(new FunctionExpression<>(uriFunction), toRestClient(restTemplate));
 	}
@@ -171,16 +172,16 @@ public final class Http {
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
 	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
-	 * against request message and {@link RestTemplate} for HTTP exchanges.
+	 * against request message and {@link org.springframework.web.client.RestTemplate} for HTTP exchanges.
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
-			@Nullable RestTemplate restTemplate) {
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 
 		return outboundChannelAdapter(uriExpression, toRestClient(restTemplate));
 	}
@@ -241,15 +242,16 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
-	 * based on provided {@link URI} and {@link RestTemplate}.
+	 * based on provided {@link URI} and {@link org.springframework.web.client.RestTemplate}.
 	 * @param uri the {@link URI} to send requests.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundGateway(URI uri,
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		return outboundGateway(uri, toRestClient(restTemplate));
 	}
 
@@ -267,15 +269,16 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
-	 * based on provided {@code uri} and {@link RestTemplate}.
+	 * based on provided {@code uri} and {@link org.springframework.web.client.RestTemplate}.
 	 * @param uri the {@code uri} to send requests.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
-	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundGateway(String uri,
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		return outboundGateway(uri, toRestClient(restTemplate));
 	}
 
@@ -294,9 +297,9 @@ public final class Http {
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
 	 * based on provided {@code Function} to evaluate target {@code uri} against request message
-	 * and {@link RestTemplate} for HTTP exchanges.
+	 * and {@link org.springframework.web.client.RestTemplate} for HTTP exchanges.
 	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
@@ -304,7 +307,7 @@ public final class Http {
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
-			RestTemplate restTemplate) {
+			org.springframework.web.client.RestTemplate restTemplate) {
 
 		return outboundGateway(new FunctionExpression<>(uriFunction), toRestClient(restTemplate));
 	}
@@ -328,16 +331,16 @@ public final class Http {
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
 	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
-	 * against request message and {@link RestTemplate} for HTTP exchanges.
+	 * against request message and {@link org.springframework.web.client.RestTemplate} for HTTP exchanges.
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
-	 * @param restTemplate {@link RestTemplate} to use.
+	 * @param restTemplate {@link org.springframework.web.client.RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression,
-			@Nullable RestTemplate restTemplate) {
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 
 		return outboundGateway(uriExpression, toRestClient(restTemplate));
 	}
@@ -370,7 +373,8 @@ public final class Http {
 	}
 
 	@SuppressWarnings("removal")
-	private static @Nullable RestClient toRestClient(@Nullable RestTemplate restTemplate) {
+	private static @Nullable RestClient toRestClient(
+			org.springframework.web.client.@Nullable RestTemplate restTemplate) {
 		return restTemplate != null ? RestClient.create(restTemplate) : null;
 	}
 

@@ -203,9 +203,9 @@ public class HttpProxyScenarioTests {
 			Function<HttpEntity<?>, ResponseEntity<?>> exchange,
 			Consumer<String> uriAsserter) {
 
-		RestClient restClient = mock(RestClient.class);
-		RestClient.RequestBodyUriSpec spec = mock(RestClient.RequestBodyUriSpec.class);
-		RestClient.ResponseSpec responseSpec = mock(RestClient.ResponseSpec.class);
+		RestClient restClient = mock();
+		RestClient.RequestBodyUriSpec spec = mock();
+		RestClient.ResponseSpec responseSpec = mock();
 		HttpHeaders headers = new HttpHeaders();
 		AtomicReference<Object> body = new AtomicReference<>();
 		AtomicReference<ResponseEntity<?>> response = new AtomicReference<>();
