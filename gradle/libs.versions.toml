@@ -5,11 +5,11 @@ micrometerVersion = "1.18.0-SNAPSHOT"
 reactorVersion = "2026.0.0-SNAPSHOT"
 springAmqpVersion = "4.2.0-SNAPSHOT"
 springDataVersion = "2026.1.0-SNAPSHOT"
-springGraphqlVersion = "2.0.5"
+springGraphqlVersion = "2.1.0-SNAPSHOT"
 springKafkaVersion = "4.2.0-SNAPSHOT"
 springSecurityVersion = "7.2.0-SNAPSHOT"
 springVersion = "7.1.0-M1"
-springWsVersion = "5.0.2"
+springWsVersion = "5.1.0-SNAPSHOT"
 
 # Third-party dependencies
 apacheSshdVersion = "2.19.0"
