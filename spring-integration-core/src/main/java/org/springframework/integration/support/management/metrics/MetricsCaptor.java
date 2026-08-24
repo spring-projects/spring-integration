@@ -50,7 +50,7 @@ public interface MetricsCaptor {
 	 * @param f the function.
 	 * @return the builder.
 	 */
-	GaugeBuilder gaugeBuilder(String name, @Nullable Object obj, ToDoubleFunction<Object> f);
+	GaugeBuilder gaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f);
 
 	/**
 	 * Start a sample collection.
