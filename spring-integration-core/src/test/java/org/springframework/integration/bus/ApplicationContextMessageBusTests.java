@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Mark Fisher
@@ -169,9 +171,17 @@ public class ApplicationContextMessageBusTests implements TestApplicationContext
 		this.context.registerEndpoint("testEndpoint2", endpoint2);
 		this.context.refresh();
 		inputChannel.send(new GenericMessage<>("testing"));
-		Message<?> message1 = outputChannel1.receive(100);
-		Message<?> message2 = outputChannel2.receive(0);
-		assertThat(message1 == null ^ message2 == null).as("exactly one message should be null").isTrue();
+		AtomicReference<Message<?>> message1 = new AtomicReference<>();
+		AtomicReference<Message<?>> message2 = new AtomicReference<>();
+		await().atMost(Duration.ofSeconds(10))
+				.until(() -> {
+					message1.compareAndSet(null, outputChannel1.receive(0));
+					message2.compareAndSet(null, outputChannel2.receive(0));
+					return message1.get() != null || message2.get() != null;
+				});
+		assertThat(message1.get() == null ^ message2.get() == null)
+				.as("exactly one message should be null")
+				.isTrue();
 	}
 
 	@Test
