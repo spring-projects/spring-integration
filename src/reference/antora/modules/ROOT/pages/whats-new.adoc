@@ -43,3 +43,8 @@ See xref:jdbc/metadata-store.adoc[] for more information.
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
+
+[[x7.2-jms-changes]]
+=== JMS Support Changes
+Spring Integration supports Spring Framework's ability to return `null` when converting a JMS `Message` where the payload has not been set.
+This also means that if a Spring `Message` uses the payload of a JMS `Message` that is null, a  `MessageConversionException` will be thrown.

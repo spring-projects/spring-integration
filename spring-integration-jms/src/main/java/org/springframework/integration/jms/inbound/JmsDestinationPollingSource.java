@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -125,6 +126,7 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	 * Will receive a JMS {@link jakarta.jms.Message} converting and returning it as
 	 * a Spring Integration {@link Message}. This method will also use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
+	 * @throws MessageConversionException if the converter returns {@code null}.
 	 */
 	@Override
 	protected @Nullable Object doReceive() {
@@ -138,11 +140,9 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 			Object object = jmsMessage;
 			if (this.extractPayload) {
 				MessageConverter converter = this.jmsTemplate.getMessageConverter();
-				if (converter != null) {
-					object = converter.fromMessage(jmsMessage);
-					if (object == null) {
-						throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
-					}
+				object = converter.fromMessage(jmsMessage);
+				if (object == null) {
+					throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
 				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =

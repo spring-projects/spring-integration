@@ -35,11 +35,13 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Glenn Renfro
+ *
+ * @since 7.2
  */
 public class JmsDestinationPollingSourceTests implements TestApplicationContextAware {
 
 	@Test
-	public void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
+	void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
 		Message jmsMessage = new StubTextMessage("test");
 
 		MessageConverter converter = mock();
@@ -60,7 +62,7 @@ public class JmsDestinationPollingSourceTests implements TestApplicationContextA
 	}
 
 	@Test
-	public void payloadFromConverterIsUsed() throws Exception {
+	void payloadFromConverterIsUsed() throws Exception {
 		Message jmsMessage = new StubTextMessage("test");
 
 		MessageConverter converter = mock();

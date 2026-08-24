@@ -94,6 +94,11 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 		return true;
 	}
 
+	/**
+	 * Converts {@link jakarta.jms.Message} to a Spring {@link Message}.
+	 * @return Spring {@link Message}
+	 * @throws MessageConversionException if the converter returns {@code null}.
+	 */
 	protected Message<?> fromJmsMessage(jakarta.jms.Message message) {
 		MessageConverter converter = this.jmsTemplate.getMessageConverter();
 		try {

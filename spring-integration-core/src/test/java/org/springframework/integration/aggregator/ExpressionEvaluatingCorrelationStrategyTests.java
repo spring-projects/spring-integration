@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class ExpressionEvaluatingCorrelationStrategyTests implements TestApplicationContextAware {
 

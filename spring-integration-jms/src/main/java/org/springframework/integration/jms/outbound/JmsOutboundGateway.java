@@ -90,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -723,6 +724,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		return this.active;
 	}
 
+	/**
+	 * Handles an incoming request message by dispatching it over JMS and returning the reply.
+	 * Ensures the component is initialized before processing. If a reply container is configured,
+	 * it manages the container lifecycle by auto-starting it and scheduling an idle stopper task
+	 * when an idle timeout is defined.
+	 * @param requestMessage the Spring Integration {@link Message} to process and send
+	 * @return the processed reply object or built reply message, or {@code null} if no reply
+	 *         was received and a reply is not required
+	 * @throws MessageTimeoutException if no response is received within the timeout period
+	 *         and {@code requiresReply} is enabled
+	 * @throws MessageHandlingException if a underlying {@link jakarta.jms.JMSException} occurs
+	 *         during message handling
+	 * @throws MessageConversionException if payload extraction for a JMS reply produces a {@code null} using
+	 * 		   {@link SimpleMessageConverter}.
+	 */
 	@Override
 	protected @Nullable Object handleRequestMessage(final Message<?> requestMessage) {
 		if (!this.initialized) {

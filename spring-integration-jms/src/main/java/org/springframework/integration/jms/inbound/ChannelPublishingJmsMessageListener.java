@@ -83,6 +83,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -400,6 +401,19 @@ public class ChannelPublishingJmsMessageListener
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * Processes an incoming JMS message, transforms it into a Spring Integration message,
+	 * delegates execution to the message gateway, and optionally constructs and sends a reply.
+	 * If inbound message conversion or header mapping fails, the error is routed to the configured
+	 * error channel on the gateway delegate. If no error channel is present, the runtime exception
+	 * is rethrown. When {@code expectReply} is enabled, the resulting reply is converted back to a JMS message,
+	 * populated with headers and correlation identifiers from the original request, and dispatched
+	 * to the resolved JMS destination.
+	 * @param jmsMessage the incoming {@link jakarta.jms.Message} to process
+	 * @param session the active JMS {@link jakarta.jms.Session} associated with the listener
+	 * @throws JMSException if a native JMS error occurs while processing, resolving destinations, or sending replies
+	 * @throws MessageConversionException if payload extraction produces a {@code null} result when required
+	 */
 	@Override
 	public void onMessage(jakarta.jms.Message jmsMessage, Session session) throws JMSException {
 		Message<?> requestMessage;
