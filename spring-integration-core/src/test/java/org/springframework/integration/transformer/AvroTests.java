@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import java.util.Date;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -60,6 +61,11 @@ import static org.mockito.Mockito.verify;
 @DirtiesContext
 @LogLevels(categories = "foo", level = "DEBUG")
 public class AvroTests {
+
+	@BeforeAll
+	static void beforeAll() {
+		System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", "*");
+	}
 
 	@Test
 	@LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
