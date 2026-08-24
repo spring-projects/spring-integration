@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -53,6 +55,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -101,6 +105,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -146,6 +152,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
@@ -161,6 +169,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
@@ -176,6 +186,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
