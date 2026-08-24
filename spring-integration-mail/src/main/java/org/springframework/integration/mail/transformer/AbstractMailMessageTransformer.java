@@ -40,6 +40,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Amlan Mishra
  */
 public abstract class AbstractMailMessageTransformer<T> implements Transformer, BeanFactoryAware {
 
@@ -73,7 +74,9 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer, 
 		}
 		AbstractIntegrationMessageBuilder<T> builder;
 		builder = doTransform(mailMessage);
-		return builder.copyHeaders(extractHeaderMapFromMailMessage(mailMessage)).build();
+		return builder.copyHeaders(extractHeaderMapFromMailMessage(mailMessage))
+				.copyHeadersIfAbsent(message.getHeaders())
+				.build();
 	}
 
 	protected abstract AbstractIntegrationMessageBuilder<T> doTransform(jakarta.mail.Message mailMessage);
