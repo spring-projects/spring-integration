@@ -818,10 +818,8 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 
 	@Test
 	public void testGetConcurrentCreateSameLocalDirectory(@TempDir File localRoot) throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
+		SessionFactory sessionFactory = mock();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
-		// A non-ValueExpression skips the eager setupLocalDirectory() in afterPropertiesSet(),
-		// so the directory is created per message on the calling thread.
 		gw.setLocalDirectoryExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("localDir")));
 		gw.afterPropertiesSet();
@@ -849,7 +847,6 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 				File localDirectory = new File(localRoot, "local-" + round);
 				CountDownLatch getsDone = new CountDownLatch(concurrency);
 				for (int i = 0; i < concurrency; i++) {
-					// A distinct remote file per thread; only the destination directory is shared.
 					Message<String> message = MessageBuilder.withPayload("f" + i)
 							.setHeader("localDir", localDirectory.getAbsolutePath())
 							.build();
@@ -857,7 +854,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 						try {
 							gw.handleRequestMessage(message);
 						}
-						catch (Throwable ex) { // NOSONAR - the race surfaces as an unchecked exception
+						catch (Throwable ex) {
 							failure.compareAndSet(null, ex);
 						}
 						finally {
