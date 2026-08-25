@@ -22,6 +22,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 /**
  * @author Jonas Partner
@@ -29,7 +30,7 @@ import org.springframework.core.io.ClassPathResource;
 public class TestTemplatesFactory implements FactoryBean<Templates> {
 
 	public Templates getObject() throws Exception {
-		org.springframework.core.io.Resource xslResource = new ClassPathResource("test.xsl", getClass());
+		Resource xslResource = new ClassPathResource("test.xsl", getClass());
 		return TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}
 

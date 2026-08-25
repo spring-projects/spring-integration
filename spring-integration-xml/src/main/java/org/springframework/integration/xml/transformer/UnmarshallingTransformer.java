@@ -36,6 +36,7 @@ import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.ws.mime.MimeMessage;
 import org.springframework.xml.transform.StringSource;
 
 /**
@@ -164,7 +165,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 		}
 
 		@Nullable Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
-			if (payload instanceof org.springframework.ws.mime.MimeMessage mimeMessage) {
+			if (payload instanceof MimeMessage mimeMessage) {
 				return org.springframework.ws.support.MarshallingUtils.unmarshal(this.delegate,
 					mimeMessage);
 			}
