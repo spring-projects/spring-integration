@@ -261,7 +261,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 	}
 
 	@SuppressWarnings("unchecked")
-	@RetryingTest(20)
+	@RetryingTest(3)
 	@DisabledOnJre(JRE.JAVA_17)
 	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
