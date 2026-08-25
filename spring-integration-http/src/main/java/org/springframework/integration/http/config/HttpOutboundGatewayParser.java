@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 

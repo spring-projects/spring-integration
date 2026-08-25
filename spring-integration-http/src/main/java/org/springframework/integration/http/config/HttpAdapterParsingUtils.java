@@ -38,6 +38,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 2.0.2
  */

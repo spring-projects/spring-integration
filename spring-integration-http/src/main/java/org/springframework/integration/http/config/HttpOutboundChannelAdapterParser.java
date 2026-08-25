@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 2.0
  */
