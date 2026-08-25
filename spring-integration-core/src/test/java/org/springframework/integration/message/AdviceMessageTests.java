@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,24 +28,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Alexander Makarov
+ *
+ * @since 7.0.7
  */
 public class AdviceMessageTests {
 
-	@Test
-	public void equalsWhenPayloadHeadersAndInputMessageMatch() {
-		Message<?> inputMessage = new GenericMessage<>("input");
-		MessageHeaders headers = new GenericMessage<>("ignored").getHeaders();
+	private static final Message<?> INPUT_MESSAGE = new GenericMessage<>("input");
 
-		AdviceMessage<String> one = new AdviceMessage<>("test", headers, inputMessage);
-		AdviceMessage<String> two = new AdviceMessage<>("test", headers, inputMessage);
+	@Test
+	void equalsWhenPayloadHeadersAndInputMessageMatch() {
+		MessageHeaders headers = new MessageHeaders(null);
+
+		AdviceMessage<String> one = new AdviceMessage<>("test", headers, INPUT_MESSAGE);
+		AdviceMessage<String> two = new AdviceMessage<>("test", headers, INPUT_MESSAGE);
 
 		assertThat(one).isEqualTo(two);
 		assertThat(one.hashCode()).isEqualTo(two.hashCode());
 	}
 
 	@Test
-	public void notEqualsWhenInputMessageDiffers() {
-		MessageHeaders headers = new GenericMessage<>("ignored").getHeaders();
+	void notEqualsWhenInputMessageDiffers() {
+		MessageHeaders headers = new MessageHeaders(null);
 
 		AdviceMessage<String> one = new AdviceMessage<>("test", headers, new GenericMessage<>("input1"));
 		AdviceMessage<String> two = new AdviceMessage<>("test", headers, new GenericMessage<>("input2"));
@@ -54,42 +57,36 @@ public class AdviceMessageTests {
 	}
 
 	@Test
-	public void notEqualsWhenPayloadDiffersButInputMessageIsShared() {
-		Message<?> inputMessage = new GenericMessage<>("input");
-
-		AdviceMessage<String> one = new AdviceMessage<>("test1", inputMessage);
-		AdviceMessage<String> two = new AdviceMessage<>("test2", inputMessage);
+	void notEqualsWhenPayloadDiffersButInputMessageIsShared() {
+		AdviceMessage<String> one = new AdviceMessage<>("test1", INPUT_MESSAGE);
+		AdviceMessage<String> two = new AdviceMessage<>("test2", INPUT_MESSAGE);
 
 		assertThat(one).isNotEqualTo(two);
 	}
 
 	@Test
-	public void notEqualsWhenHeadersDifferButPayloadAndInputMessageAreShared() {
-		Message<?> inputMessage = new GenericMessage<>("input");
-
-		AdviceMessage<String> one = new AdviceMessage<>("test", Map.of("testHeader", "one"), inputMessage);
-		AdviceMessage<String> two = new AdviceMessage<>("test", Map.of("testHeader", "two"), inputMessage);
+	void notEqualsWhenHeadersDifferButPayloadAndInputMessageAreShared() {
+		AdviceMessage<String> one = new AdviceMessage<>("test", Map.of("testHeader", "one"), INPUT_MESSAGE);
+		AdviceMessage<String> two = new AdviceMessage<>("test", Map.of("testHeader", "two"), INPUT_MESSAGE);
 
 		assertThat(one).isNotEqualTo(two);
 	}
 
 	@Test
-	public void notEqualsPlainGenericMessage() {
-		Message<?> inputMessage = new GenericMessage<>("input");
-		MessageHeaders headers = new GenericMessage<>("ignored").getHeaders();
+	void notEqualsPlainGenericMessage() {
+		MessageHeaders headers = new MessageHeaders(null);
 
-		AdviceMessage<String> adviceMessage = new AdviceMessage<>("test", headers, inputMessage);
+		AdviceMessage<String> adviceMessage = new AdviceMessage<>("test", headers, INPUT_MESSAGE);
 		GenericMessage<String> genericMessage = new GenericMessage<>("test", headers);
 
 		assertThat(adviceMessage).isNotEqualTo(genericMessage);
 	}
 
 	@Test
-	public void notEqualsNullOrOtherType() {
+	void notEqualsNullOrOtherType() {
 		AdviceMessage<String> adviceMessage = new AdviceMessage<>("test", new GenericMessage<>("input"));
 
-		assertThat(adviceMessage).isNotEqualTo(null);
-		assertThat(adviceMessage).isNotEqualTo("test");
+		assertThat(adviceMessage).isNotEqualTo(null).isNotEqualTo("test");
 	}
 
 }
