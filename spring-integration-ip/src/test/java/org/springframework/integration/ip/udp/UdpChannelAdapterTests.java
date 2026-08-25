@@ -263,6 +263,7 @@ public class UdpChannelAdapterTests implements TestApplicationContextAware {
 	@SuppressWarnings("unchecked")
 	@RetryingTest(3)
 	@DisabledOnJre(JRE.JAVA_17)
+	@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Multicast tests are unreliable on Windows CI runners")
 	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =

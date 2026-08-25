@@ -52,7 +52,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.0
  */
 @Multicast
-@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
+@DisabledOnOs(value = {OS.MAC, OS.WINDOWS},
+		disabledReason = "Multicast tests do not work on MacOS and are unreliable on Windows CI runners")
 @DisabledOnJre(JRE.JAVA_17)
 public class DatagramPacketMulticastSendingHandlerTests implements TestApplicationContextAware {
 
