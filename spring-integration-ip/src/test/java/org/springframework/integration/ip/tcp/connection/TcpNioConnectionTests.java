@@ -140,6 +140,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+		Message<byte[]> message = MessageBuilder.withPayload(new byte[1000000]).build();
 		TcpNioClientConnectionFactory factory =
 				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setLookupHost(true);
@@ -149,11 +150,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				connectionId.set(tcpConnectionOpenEvent.getConnectionId());
 			}
 		});
-		factory.setSoTimeout(100);
+		// Has to cover the set up of this test as well:
+		// an idle connection is reaped 'soTimeout' after it is created
+		factory.setSoTimeout(1000);
 		factory.start();
 		try {
 			TcpConnection connection = factory.getConnection();
-			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
+			connection.send(message);
 		}
 		catch (MessagingException e) {
 			assertThat(e).hasCauseInstanceOf(SocketTimeoutException.class);
@@ -187,13 +190,16 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+		Message<String> message = new GenericMessage<>("Test");
 		TcpNioClientConnectionFactory factory =
 				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
-		factory.setSoTimeout(100);
+		// Has to cover the set up of this test as well:
+		// an idle connection is reaped 'soTimeout' after it is created
+		factory.setSoTimeout(1000);
 		factory.start();
 		TcpConnection connection = factory.getConnection();
-		connection.send(new GenericMessage<>("Test"));
+		connection.send(message);
 		with().pollInterval(Duration.ofMillis(10))
 				.await()
 				.atMost(Duration.ofSeconds(10))
