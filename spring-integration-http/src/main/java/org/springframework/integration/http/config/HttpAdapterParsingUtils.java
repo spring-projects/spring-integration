@@ -26,6 +26,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -37,6 +38,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 2.0.2
  */
@@ -51,6 +53,19 @@ final class HttpAdapterParsingUtils {
 
 	private static final LocalClientKind REST_CLIENT_KIND =
 			new LocalClientKind("rest-client", "the provided client", "RestClient.Builder.uriBuilderFactory");
+
+	static void configureLocalClientAttributes(BeanDefinitionBuilder builder, Element element) {
+		for (String referenceAttributeName : LOCAL_CLIENT_REFERENCE_ATTRIBUTES) {
+			if ("error-handler".equals(referenceAttributeName)) {
+				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName,
+						"defaultStatusHandler");
+			}
+			else {
+				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			}
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
+	}
 
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
 		verifyNoLocalClientAttributes(element, parserContext, REST_TEMPLATE_KIND);

@@ -45,7 +45,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +64,7 @@ import static org.mockito.Mockito.mock;
 @DirtiesContext
 public class HttpOutboundGatewayParserTests {
 
-	public static final ResponseErrorHandler mockResponseErrorHandler = mock();
+	public static final RestClient.ResponseSpec.ErrorHandler mockResponseErrorHandler = mock();
 
 	@Autowired
 	@Qualifier("minimalConfig")
