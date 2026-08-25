@@ -56,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisabledOnJre(JRE.JAVA_17)
 public class DatagramPacketMulticastSendingHandlerTests implements TestApplicationContextAware {
 
-	@RetryingTest(20)
+	@RetryingTest(3)
 	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket;
 		try {
@@ -125,7 +125,7 @@ public class DatagramPacketMulticastSendingHandlerTests implements TestApplicati
 		socket.close();
 	}
 
-	@RetryingTest(20)
+	@RetryingTest(3)
 	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket = new MulticastSocket();
 		final int testPort = socket.getLocalPort();
