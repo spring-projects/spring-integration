@@ -107,7 +107,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicat
 		CompositeFileListFilter<FTPFile> filter = new CompositeFileListFilter<>(filters);
 		synchronizer.setFilter(filter);
 
-		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+		ExpressionParser expressionParser =
+				new SpelExpressionParser(SpelParserConfiguration.builder().autoGrowCollections()
+						.autoGrowNullReferences().build());
 		Expression expression = expressionParser.parseExpression("'subdir/' + #this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
 		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);

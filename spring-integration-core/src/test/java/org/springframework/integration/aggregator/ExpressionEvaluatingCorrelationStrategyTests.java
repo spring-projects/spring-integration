@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class ExpressionEvaluatingCorrelationStrategyTests implements TestApplicationContextAware {
 
@@ -57,8 +58,9 @@ public class ExpressionEvaluatingCorrelationStrategyTests implements TestApplica
 	}
 
 	@Test
-	public void testCorrelationKeyWithMethodInvokingExpression() throws Exception {
-		ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	public void testCorrelationKeyWithMethodInvokingExpression() {
+		ExpressionParser parser = new SpelExpressionParser(SpelParserConfiguration.builder().autoGrowNullReferences()
+				.autoGrowCollections().build());
 		Expression expression = parser.parseExpression("payload.substring(0,1)");
 		strategy = new ExpressionEvaluatingCorrelationStrategy(expression);
 		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);

@@ -60,6 +60,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.listener.adapter.ListenerExecutionFailedException;
 import org.springframework.jms.support.JmsUtils;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -82,6 +83,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -399,6 +401,15 @@ public class ChannelPublishingJmsMessageListener
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * Convert the JMS message to a Spring Integration message and send it to the gateway,
+	 * optionally sending a reply back to the JMS destination.
+	 * @param jmsMessage the incoming {@link jakarta.jms.Message} to process
+	 * @param session the active JMS {@link jakarta.jms.Session} associated with the listener
+	 * @throws JMSException if a native JMS error occurs while processing, resolving destinations, or sending replies
+	 * @throws MessageConversionException if request payload extraction produces a {@code null} result and no
+	 * error channel is configured, or if the reply message cannot be converted to a JMS message
+	 */
 	@Override
 	public void onMessage(jakarta.jms.Message jmsMessage, Session session) throws JMSException {
 		Message<?> requestMessage;
@@ -406,8 +417,13 @@ public class ChannelPublishingJmsMessageListener
 			final Object result;
 			if (this.extractRequestPayload) {
 				result = this.messageConverter.fromMessage(jmsMessage);
-				this.logger.debug(() -> "converted JMS Message [" + jmsMessage + "] to integration Message payload ["
-						+ result + "]");
+				if (result == null) {
+					throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
+				}
+				else {
+					this.logger.debug(() -> "converted JMS Message [" + jmsMessage + "] to integration Message payload ["
+							+ result + "]");
+				}
 			}
 			else {
 				result = jmsMessage;

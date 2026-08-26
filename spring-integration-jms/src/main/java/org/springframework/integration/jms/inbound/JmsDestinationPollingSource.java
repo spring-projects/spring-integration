@@ -27,6 +27,7 @@ import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -121,9 +123,11 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	}
 
 	/**
-	 * Will receive a JMS {@link jakarta.jms.Message} converting and returning it as
-	 * a Spring Integration {@link Message}. This method will also use the current
+	 * Receive a JMS {@link jakarta.jms.Message}, converting and returning it as
+	 * a Spring Integration {@link Message}. Use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
+	 * @throws MessagingException if header mapping or payload conversion fails, e.g. wrapping a
+	 * {@link MessageConversionException} when the converter returns {@code null} or fails to convert.
 	 */
 	@Override
 	protected @Nullable Object doReceive() {
@@ -137,8 +141,9 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 			Object object = jmsMessage;
 			if (this.extractPayload) {
 				MessageConverter converter = this.jmsTemplate.getMessageConverter();
-				if (converter != null) {
-					object = converter.fromMessage(jmsMessage);
+				object = converter.fromMessage(jmsMessage);
+				if (object == null) {
+					throw new MessageConversionException("Message converter returned null for: " + jmsMessage);
 				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =
