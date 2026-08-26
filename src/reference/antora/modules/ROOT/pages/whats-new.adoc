@@ -46,5 +46,8 @@ See the xref:http.adoc[HTTP Support] chapter for more information about these an
 
 [[x7.2-jms-changes]]
 === JMS Support Changes
-Spring Integration supports Spring Framework's ability to return `null` when converting a JMS `Message` where the payload has not been set.
-This also means that if a Spring `Message` uses the payload of a JMS `Message` that is null, a  `MessageConversionException` will be thrown.
+
+Spring Framework's JMS `MessageConverter` implementations may now return `null` from `fromMessage()` when a JMS `Message` has no payload.
+A `null` payload conversion is treated as a conversion failure, a `MessageConversionException` is then thrown.
+This affects `AbstractJmsChannel`, `JmsDestinationPollingSource`, `ChannelPublishingJmsMessageListener`, and `JmsOutboundGateway`.
+See xref:jms.adoc[JMS Support] for more information.

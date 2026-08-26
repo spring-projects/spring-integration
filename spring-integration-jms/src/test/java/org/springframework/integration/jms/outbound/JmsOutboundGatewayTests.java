@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.jms.Connection;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.StubConnection;
 import org.springframework.integration.jms.outbound.JmsOutboundGateway.ReplyContainerProperties;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
@@ -57,7 +59,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -166,21 +167,25 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		ConnectionFactory connectionFactory = mock();
 		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestinationName("testDestination");
-		MessageConverter converter = mock();
-		gateway.setMessageConverter(converter);
+		gateway.setReplyDestinationName("testReplyDestination");
+		gateway.setCorrelationKey("JMSCorrelationID");
+		gateway.setMessageConverter(new MessageConverter() {
+
+			@Override
+			public Message toMessage(Object object, Session session) throws JMSException {
+				return session.createTextMessage((String) object);
+			}
+
+			@Override
+			public Object fromMessage(Message message) {
+				return null;
+			}
+
+		});
 		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
-		Connection connection = mock();
+		Connection connection = new StubConnection("reply");
 		when(connectionFactory.createConnection()).thenReturn(connection);
-		Session session = mock();
-		when(connection.createSession(false, Session.AUTO_ACKNOWLEDGE)).thenReturn(session);
-		when(session.createTemporaryQueue()).thenReturn(mock());
-		when(session.createQueue("testDestination")).thenReturn(mock());
-		when(converter.toMessage(any(), eq(session))).thenReturn(mock());
-		when(session.createProducer(any())).thenReturn(mock());
-		MessageConsumer consumer = mock();
-		when(session.createConsumer(any())).thenReturn(consumer);
-		when(consumer.receive(anyLong())).thenReturn(mock());
 
 		gateway.afterPropertiesSet();
 

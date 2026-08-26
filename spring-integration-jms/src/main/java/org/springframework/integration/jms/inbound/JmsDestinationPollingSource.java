@@ -123,10 +123,11 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	}
 
 	/**
-	 * Will receive a JMS {@link jakarta.jms.Message} converting and returning it as
-	 * a Spring Integration {@link Message}. This method will also use the current
+	 * Receive a JMS {@link jakarta.jms.Message}, converting and returning it as
+	 * a Spring Integration {@link Message}. Use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
-	 * @throws MessageConversionException if the converter returns {@code null}.
+	 * @throws MessagingException if header mapping or payload conversion fails, e.g. wrapping a
+	 * {@link MessageConversionException} when the converter returns {@code null} or fails to convert.
 	 */
 	@Override
 	protected @Nullable Object doReceive() {

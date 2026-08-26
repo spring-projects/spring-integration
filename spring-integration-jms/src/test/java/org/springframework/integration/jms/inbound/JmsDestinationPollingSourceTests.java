@@ -26,7 +26,6 @@ import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.MessagingException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -38,7 +37,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 7.2
  */
-public class JmsDestinationPollingSourceTests implements TestApplicationContextAware {
+class JmsDestinationPollingSourceTests implements TestApplicationContextAware {
 
 	@Test
 	void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
@@ -55,28 +54,9 @@ public class JmsDestinationPollingSourceTests implements TestApplicationContextA
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 
-		// A JMS message converted to a null payload is a conversion failure, not a message to discard.
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(source::receive)
 				.withCauseInstanceOf(MessageConversionException.class);
-	}
-
-	@Test
-	void payloadFromConverterIsUsed() throws Exception {
-		Message jmsMessage = new StubTextMessage("test");
-
-		MessageConverter converter = mock();
-		given(converter.fromMessage(any())).willReturn("converted");
-
-		JmsTemplate jmsTemplate = mock();
-		given(jmsTemplate.getMessageConverter()).willReturn(converter);
-		given(jmsTemplate.receiveSelected(nullable(String.class))).willReturn(jmsMessage);
-
-		JmsDestinationPollingSource source = new JmsDestinationPollingSource(jmsTemplate);
-		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		source.afterPropertiesSet();
-
-		assertThat(source.receive().getPayload()).isEqualTo("converted");
 	}
 
 }

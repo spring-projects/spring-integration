@@ -32,7 +32,6 @@ import org.apache.activemq.artemis.reader.MessageUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
@@ -42,6 +41,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.JmsHeaders;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -49,6 +49,8 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -100,35 +102,15 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.setDestinationName("nullPayloadPollableQueue");
 		factoryBean.setPubSubDomain(false);
 		factoryBean.setBeanFactory(mock());
+		MessageConverter messageConverter = spy(new SimpleMessageConverter());
+		given(messageConverter.fromMessage(any())).willReturn(null);
+		factoryBean.setMessageConverter(messageConverter);
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		assertThat(channel.send(new GenericMessage<>("test1"))).isTrue();
 
-		// A JMS message converted to a null payload is a conversion failure, not a message to discard.
-		new DirectFieldAccessor(channel).setPropertyValue("jmsTemplate", nullConvertingTemplate(ccf));
-
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> channel.receive(10000));
-	}
-
-	private static JmsTemplate nullConvertingTemplate(CachingConnectionFactory ccf) {
-		JmsTemplate jmsTemplate = new JmsTemplate(ccf);
-		jmsTemplate.setDefaultDestinationName("nullPayloadPollableQueue");
-		jmsTemplate.setReceiveTimeout(10000);
-		jmsTemplate.setMessageConverter(new MessageConverter() {
-
-			@Override
-			public Object fromMessage(jakarta.jms.Message message) {
-				return null;
-			}
-
-			@Override
-			public jakarta.jms.Message toMessage(Object object, jakarta.jms.Session session) {
-				throw new UnsupportedOperationException();
-			}
-
-		});
-		return jmsTemplate;
 	}
 
 	@Test

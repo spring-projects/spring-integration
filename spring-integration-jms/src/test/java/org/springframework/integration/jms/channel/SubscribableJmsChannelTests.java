@@ -298,7 +298,6 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
 		MessageListener listener = (MessageListener) container.getMessageListener();
 
-		// A JMS message converted to a null payload is a conversion failure, not a message to discard.
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> listener.onMessage(new StubTextMessage("Hello, world!")));
 	}

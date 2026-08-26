@@ -725,9 +725,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Handles an incoming request message by dispatching it over JMS and returning the reply.
-	 * Ensures the component is initialized before processing. If a reply container is configured,
-	 * it manages the container lifecycle by auto-starting it and scheduling an idle stopper task
+	 * Handle an incoming request message by dispatching it over JMS and returning the reply.
+	 * Ensure the component is initialized before processing. If a reply container is configured,
+	 * manage the container lifecycle by auto-starting it and scheduling an idle stopper task
 	 * when an idle timeout is defined.
 	 * @param requestMessage the Spring Integration {@link Message} to process and send
 	 * @return the processed reply object or built reply message, or {@code null} if no reply
@@ -736,8 +736,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 *         and {@code requiresReply} is enabled
 	 * @throws MessageHandlingException if a underlying {@link jakarta.jms.JMSException} occurs
 	 *         during message handling
-	 * @throws MessageConversionException if payload extraction for a JMS reply produces a {@code null} using
-	 * 		   {@link SimpleMessageConverter}.
+	 * @throws MessageConversionException if the configured {@link MessageConverter} fails to convert the
+	 * request payload to a JMS message, or if it fails to convert the JMS reply, including when payload
+	 * extraction for the reply produces a {@code null} result.
 	 */
 	@Override
 	protected @Nullable Object handleRequestMessage(final Message<?> requestMessage) {
