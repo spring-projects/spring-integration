@@ -796,10 +796,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		Object result;
 		if (this.extractReplyPayload) {
 			result = this.messageConverter.fromMessage(jmsReply);
-			logger.debug(() ->
-					"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
 			if (result == null) {
 				throw new MessageConversionException("Message converter returned null for: " + jmsReply);
+			}
+			else {
+				logger.debug(() ->
+						"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
 			}
 		}
 		else {

@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.jms.Connection;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Destination;
-import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
@@ -169,25 +168,13 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 		gateway.setRequestDestinationName("testDestination");
 		gateway.setReplyDestinationName("testReplyDestination");
 		gateway.setCorrelationKey("JMSCorrelationID");
-		gateway.setMessageConverter(new MessageConverter() {
-
-			@Override
-			public Message toMessage(Object object, Session session) throws JMSException {
-				return session.createTextMessage((String) object);
-			}
-
-			@Override
-			public Object fromMessage(Message message) {
-				return null;
-			}
-
-		});
-		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		MessageConverter messageConverter = mock();
+		when(messageConverter.toMessage(any(), any())).thenReturn(mock());
+		gateway.setMessageConverter(messageConverter);
+		gateway.setBeanFactory(mock());
 
 		Connection connection = new StubConnection("reply");
 		when(connectionFactory.createConnection()).thenReturn(connection);
-
-		gateway.afterPropertiesSet();
 
 		// A JMS reply converted to a null payload is a conversion failure, not a discarded reply.
 		assertThatExceptionOfType(MessageHandlingException.class)

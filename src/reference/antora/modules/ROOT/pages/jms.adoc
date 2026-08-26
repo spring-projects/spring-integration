@@ -860,6 +860,7 @@ The `HeaderMappingMessageConverter` itself delegates to a target `MessageConvert
 
 IMPORTANT: If `MessageConverter.fromMessage()` returns `null` (for example, because the JMS `Message` has no payload), Spring Integration treats this as a conversion failure and throws a `MessageConversionException`, rather than silently discarding the message.
 This applies to the inbound channel adapters, the inbound and outbound gateways, and JMS-backed message channels.
+See <<jms-channel>>.
 
 [[jms-channel]]
 == JMS-backed Message Channels
@@ -931,7 +932,7 @@ Use `subscription` to name the subscription.
 Starting with version 7.1, the `AbstractJmsChannel` and its implementations use a `DefaultJmsHeaderMapper` internally to map all headers from the message-to-send to JMS message properties; and on consuming side, map all JMS message properties into message headers.
 The custom header-mapping and payload conversion logic can be done by the `org.springframework.jms.support.converter.MessagingMessageConverter` injection into the `JmsTemplate` used for `AbstractJmsChannel` instances.
 
-Starting with version 7.2, if the `MessageConverter` returns `null` when converting an incoming JMS `Message`, `AbstractJmsChannel` (and, therefore, `SubscribableJmsChannel` and `PollableJmsChannel`) treats it as a conversion failure and throws a `MessageConversionException` rather than discarding the message.
+Starting with version 7.2, if the `MessageConverter` returns `null` when converting an incoming JMS `Message`, the `AbstractJmsChannel` implementations treat it as a conversion failure and throw a `MessageConversionException` rather than discarding the message.
 
 [[jms-selectors]]
 == Using JMS Message Selectors

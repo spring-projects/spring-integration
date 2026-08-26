@@ -19,9 +19,6 @@ package org.springframework.integration.jms.inbound;
 import jakarta.jms.Message;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConversionException;
@@ -50,15 +47,7 @@ class JmsDestinationPollingSourceTests {
 		given(jmsTemplate.getMessageConverter()).willReturn(converter);
 		given(jmsTemplate.receiveSelected(any())).willReturn(jmsMessage);
 
-		BeanFactory beanFactory = mock();
-		String evaluationContextBeanName = IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
-		given(beanFactory.containsBean(evaluationContextBeanName)).willReturn(true);
-		given(beanFactory.getBean(evaluationContextBeanName, StandardEvaluationContext.class))
-				.willReturn(new StandardEvaluationContext());
-
 		JmsDestinationPollingSource source = new JmsDestinationPollingSource(jmsTemplate);
-		source.setBeanFactory(beanFactory);
-		source.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(source::receive)

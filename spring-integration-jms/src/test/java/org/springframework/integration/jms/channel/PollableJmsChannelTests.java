@@ -103,8 +103,6 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		given(jmsTemplate.receive()).willReturn(jmsMessage);
 
 		PollableJmsChannel channel = new PollableJmsChannel(jmsTemplate);
-		channel.setBeanFactory(mock());
-		channel.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> channel.receive(10000));

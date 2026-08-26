@@ -30,6 +30,7 @@ import org.apache.activemq.artemis.reader.MessageUtil;
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -42,6 +43,7 @@ import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsHeaders;
@@ -57,6 +59,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -285,21 +288,19 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
-		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
-		factoryBean.setConnectionFactory(connectionFactory);
-		factoryBean.setDestinationName("nullPayloadSubscribableQueue");
-		factoryBean.setBeanName("nullPayloadChannel");
-		factoryBean.setMessageConverter(mock());
-		factoryBean.setBeanFactory(mock());
-		factoryBean.afterPropertiesSet();
-		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
+		AbstractMessageListenerContainer container = mock();
+		JmsTemplate jmsTemplate = mock();
+		when(jmsTemplate.getMessageConverter()).thenReturn(mock());
+
+		SubscribableJmsChannel channel = new SubscribableJmsChannel(container, jmsTemplate);
+		channel.setBeanFactory(mock());
 		channel.afterPropertiesSet();
 
-		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(channel, "container");
-		MessageListener listener = (MessageListener) container.getMessageListener();
+		ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+		verify(container).setMessageListener(listenerCaptor.capture());
 
 		assertThatExceptionOfType(MessageConversionException.class)
-				.isThrownBy(() -> listener.onMessage(new StubTextMessage("Hello, world!")));
+				.isThrownBy(() -> listenerCaptor.getValue().onMessage(new StubTextMessage("Hello, world!")));
 	}
 
 	@Test
