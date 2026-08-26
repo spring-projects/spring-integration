@@ -19,8 +19,10 @@ package org.springframework.integration.jms.inbound;
 import jakarta.jms.Message;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jms.StubTextMessage;
-import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -28,7 +30,6 @@ import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -37,21 +38,26 @@ import static org.mockito.Mockito.mock;
  *
  * @since 7.2
  */
-class JmsDestinationPollingSourceTests implements TestApplicationContextAware {
+class JmsDestinationPollingSourceTests {
 
 	@Test
 	void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
 		Message jmsMessage = new StubTextMessage("test");
 
 		MessageConverter converter = mock();
-		given(converter.fromMessage(any())).willReturn(null);
 
 		JmsTemplate jmsTemplate = mock();
 		given(jmsTemplate.getMessageConverter()).willReturn(converter);
-		given(jmsTemplate.receiveSelected(nullable(String.class))).willReturn(jmsMessage);
+		given(jmsTemplate.receiveSelected(any())).willReturn(jmsMessage);
+
+		BeanFactory beanFactory = mock();
+		String evaluationContextBeanName = IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
+		given(beanFactory.containsBean(evaluationContextBeanName)).willReturn(true);
+		given(beanFactory.getBean(evaluationContextBeanName, StandardEvaluationContext.class))
+				.willReturn(new StandardEvaluationContext());
 
 		JmsDestinationPollingSource source = new JmsDestinationPollingSource(jmsTemplate);
-		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.setBeanFactory(beanFactory);
 		source.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessagingException.class)

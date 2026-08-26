@@ -34,6 +34,7 @@ import org.mockito.Mockito;
 
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
+import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -41,7 +42,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.JmsHeaders;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -49,7 +49,6 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -95,19 +94,17 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
-		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
-		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
-		ccf.setCacheConsumers(false);
-		factoryBean.setConnectionFactory(ccf);
-		factoryBean.setDestinationName("nullPayloadPollableQueue");
-		factoryBean.setPubSubDomain(false);
-		factoryBean.setBeanFactory(mock());
-		MessageConverter messageConverter = spy(new SimpleMessageConverter());
-		given(messageConverter.fromMessage(any())).willReturn(null);
-		factoryBean.setMessageConverter(messageConverter);
-		factoryBean.afterPropertiesSet();
-		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
-		assertThat(channel.send(new GenericMessage<>("test1"))).isTrue();
+		jakarta.jms.Message jmsMessage = new StubTextMessage("test");
+
+		MessageConverter messageConverter = mock();
+
+		JmsTemplate jmsTemplate = mock();
+		given(jmsTemplate.getMessageConverter()).willReturn(messageConverter);
+		given(jmsTemplate.receive()).willReturn(jmsMessage);
+
+		PollableJmsChannel channel = new PollableJmsChannel(jmsTemplate);
+		channel.setBeanFactory(mock());
+		channel.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessageConversionException.class)
 				.isThrownBy(() -> channel.receive(10000));

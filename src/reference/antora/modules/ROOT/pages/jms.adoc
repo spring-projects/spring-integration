@@ -859,7 +859,7 @@ This means that the 'extract-request-payload' and 'extract-reply-payload' proper
 The `HeaderMappingMessageConverter` itself delegates to a target `MessageConverter` while also mapping the Spring Integration `MessageHeaders` to JMS message properties and back again.
 
 IMPORTANT: If `MessageConverter.fromMessage()` returns `null` (for example, because the JMS `Message` has no payload), Spring Integration treats this as a conversion failure and throws a `MessageConversionException`, rather than silently discarding the message.
-This applies to the inbound and outbound channel adapters, the inbound and outbound gateways, and JMS-backed message channels (see xref:jms.adoc#jms-channel[JMS-backed Message Channels]).
+This applies to the inbound channel adapters, the inbound and outbound gateways, and JMS-backed message channels.
 
 [[jms-channel]]
 == JMS-backed Message Channels
