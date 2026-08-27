@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.input.Tailer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -182,6 +183,66 @@ public class FileTailingMessageProducerTests implements TestApplicationContextAw
 		assertThat(eventRaised).as("idle event did not emit").isTrue();
 		adapter.stop();
 		file.delete();
+		taskScheduler.destroy();
+	}
+
+	@Test
+	public void apacheTailerRestartsAfterUnderlyingThreadDies() throws Exception {
+		ApacheCommonsFileTailingMessageProducer adapter = new ApacheCommonsFileTailingMessageProducer();
+		adapter.setPollingDelay(50);
+		adapter.setEnd(false);
+		adapter.setTailAttemptsDelay(200);
+		this.adapter = adapter;
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.setApplicationEventPublisher(event -> logger.debug(event));
+		File file = new File(this.testDir, "diesAndRestarts");
+		file.delete();
+		adapter.setFile(file);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
+		adapter.start();
+		waitForField(adapter, "tailer");
+
+		FileOutputStream fos = new FileOutputStream(file);
+		fos.write("hello0\n".getBytes());
+		fos.close();
+		Message<?> message = outputChannel.receive(10000);
+		assertThat(message).as("expected a non-null message").isNotNull();
+		assertThat(message.getPayload()).isEqualTo("hello0");
+
+		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Tailer diedTailer = (Tailer) accessor.getPropertyValue("tailer");
+		diedTailer.close();
+
+		int n = 0;
+		Tailer restartedTailer;
+		while (true) {
+			restartedTailer = (Tailer) accessor.getPropertyValue("tailer");
+			if (restartedTailer != diedTailer) {
+				break;
+			}
+			if (n++ > 100) {
+				fail("adapter did not restart the tailer after it died");
+			}
+			Thread.sleep(100);
+		}
+
+		fos = new FileOutputStream(file, true);
+		fos.write("hello1\n".getBytes());
+		fos.close();
+
+		message = outputChannel.receive(10000);
+		assertThat(message).as("expected the restarted tailer to replay the file from the start").isNotNull();
+		assertThat(message.getPayload()).isEqualTo("hello0");
+
+		message = outputChannel.receive(10000);
+		assertThat(message).as("expected a non-null message after restart").isNotNull();
+		assertThat(message.getPayload()).isEqualTo("hello1");
+
 		taskScheduler.destroy();
 	}
 
