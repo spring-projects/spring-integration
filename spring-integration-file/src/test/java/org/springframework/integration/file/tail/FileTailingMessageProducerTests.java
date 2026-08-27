@@ -196,7 +196,8 @@ public class FileTailingMessageProducerTests implements TestApplicationContextAw
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setApplicationEventPublisher(event -> logger.debug(event));
+		adapter.setApplicationEventPublisher(event -> {
+		});
 		File file = new File(this.testDir, "diesAndRestarts");
 		file.delete();
 		adapter.setFile(file);
@@ -211,7 +212,7 @@ public class FileTailingMessageProducerTests implements TestApplicationContextAw
 		fos.write("hello0\n".getBytes());
 		fos.close();
 		Message<?> message = outputChannel.receive(10000);
-		assertThat(message).as("expected a non-null message").isNotNull();
+		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("hello0");
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
@@ -236,11 +237,11 @@ public class FileTailingMessageProducerTests implements TestApplicationContextAw
 		fos.close();
 
 		message = outputChannel.receive(10000);
-		assertThat(message).as("expected the restarted tailer to replay the file from the start").isNotNull();
+		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("hello0");
 
 		message = outputChannel.receive(10000);
-		assertThat(message).as("expected a non-null message after restart").isNotNull();
+		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("hello1");
 
 		taskScheduler.destroy();
