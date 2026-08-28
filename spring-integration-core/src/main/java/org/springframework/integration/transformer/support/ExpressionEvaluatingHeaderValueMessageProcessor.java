@@ -22,13 +22,14 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 
 /**
- * @param <T> the paylaod type.
+ * The {@link AbstractHeaderValueMessageProcessor} extension for SpEL-based header value processing.
+ *
+ * @param <T> the payload type.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -38,8 +39,7 @@ import org.springframework.messaging.Message;
 public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T>
 		implements BeanFactoryAware {
 
-	private static final ExpressionParser EXPRESSION_PARSER =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
 
@@ -51,7 +51,7 @@ public class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends Abstract
 	 * @param expectedType the type for return value of {@code expression} evaluation result.
 	 */
 	public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, @Nullable Class<T> expectedType) {
-		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
+		this.targetProcessor = new ExpressionEvaluatingMessageProcessor<>(expression, expectedType);
 	}
 
 	/**

@@ -23,14 +23,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * {@link CorrelationStrategy} implementation that evaluates an expression.
+ * The {@link CorrelationStrategy} implementation that evaluates an expression.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
@@ -38,8 +37,7 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware {
 
-	private static final ExpressionParser EXPRESSION_PARSER =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final ExpressionEvaluatingMessageProcessor<Object> processor;
 

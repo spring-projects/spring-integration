@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -66,8 +67,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	/**
 	 * Customized SpelExpressionParser to allow specifying nested properties when the parent is null.
 	 */
-	private static final SpelExpressionParser SPEL_PARSER =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser SPEL_PARSER =
+			new SpelExpressionParser(
+					SpelParserConfiguration.builder()
+							.autoGrowNullReferences()
+							.build());
 
 	private Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<>();
 
@@ -326,8 +330,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 								"Wrong 'headerExpressions' [" + headerExpressions
 								+ "] configuration for " + getComponentName());
 			}
-			if (entry.getValue() instanceof BeanFactoryAware) {
-				((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
+			if (entry.getValue() instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
 			}
 		}
 	}
@@ -481,9 +485,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * sendAndReceiveMessage method.
 	 */
 	private static final class Gateway extends MessagingGatewaySupport {
-
-		Gateway() {
-		}
 
 		@Override
 		protected @Nullable Message<?> sendAndReceiveMessage(Object object) {
