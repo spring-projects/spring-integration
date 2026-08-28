@@ -662,12 +662,12 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 			assertThat(closing.await(5, TimeUnit.SECONDS)).isTrue();
 			// The close() is in progress (blocked); the file must still be tracked as open
 			// so that a concurrent stop() does not consider the handler fully flushed.
-			assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "fileStates")).hasSize(1);
+			assertThat((Map<?, ?>) TestUtils.getPropertyValue(handler, "fileStates")).hasSize(1);
 
 			proceedClose.countDown();
 			flush.get(5, TimeUnit.SECONDS);
 
-			assertThat(TestUtils.<Map<?, ?>>getPropertyValue(handler, "fileStates")).isEmpty();
+			assertThat((Map<?, ?>) TestUtils.getPropertyValue(handler, "fileStates")).isEmpty();
 			verify(out).close();
 		}
 		finally {
@@ -766,11 +766,12 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'base/../../../escaped.txt'");
 		handler.setFileNameGenerator(fileNameGenerator);
+		handler.setBeanFactory(mock());
 
 		assertThatExceptionOfType(MessagingException.class)
-			.isThrownBy(() -> handler.handleMessage(message))
-			.withStackTraceContaining("trying to leave the target output directory")
-			.withRootCauseInstanceOf(InvalidPathException.class);
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("trying to leave the target output directory")
+				.withRootCauseInstanceOf(InvalidPathException.class);
 	}
 
 	@Test

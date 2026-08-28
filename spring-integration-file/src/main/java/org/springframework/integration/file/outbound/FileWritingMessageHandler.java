@@ -829,14 +829,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			if (appendNoFlush) {
 				String absolutePath = fileToWriteTo.getAbsolutePath();
 				state = this.fileStates.get(absolutePath);
-				if (state != null // NOSONAR
-						&& (state.closing
-								|| (isString && state.stream != null) || (!isString && state.writer != null))) {
+
+				if (state != null &&
+						(state.closing || (isString && state.stream != null) ||
+								(!isString && state.writer != null))) {
+
 					if (!state.closing) {
 						state.close();
 					}
 					state = null;
 				}
+
 				if (state == null) {
 					if (isString) {
 						state = new FileState(createWriter(fileToWriteTo, true),
@@ -933,9 +936,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		try {
 			for (Entry<String, FileState> entry : this.fileStates.entrySet()) {
 				FileState state = entry.getValue();
-				if (!state.closing
-						&& flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite,
-								filterMessage)) {
+				if (!state.closing &&
+						flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
+
 					state.closing = true;
 					toRemove.put(entry.getKey(), state);
 				}
@@ -963,15 +966,16 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		boolean interrupted = false;
 		for (Entry<String, FileState> entry : toRemove.entrySet()) {
 			FileState state = entry.getValue();
+			String key = entry.getKey();
 			if (!interrupted && state.close()) {
 				this.lock.lock();
 				try {
-					this.fileStates.remove(entry.getKey(), state);
+					this.fileStates.remove(key, state);
 				}
 				finally {
 					this.lock.unlock();
 				}
-				FileWritingMessageHandler.this.logger.debug(() -> "Flushed: " + entry.getKey());
+				FileWritingMessageHandler.this.logger.debug(() -> "Flushed: " + key);
 			}
 			else { // interrupted (stop); leave it in 'fileStates' to be retried
 				interrupted = true;
@@ -979,7 +983,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		if (interrupted) {
-			FileWritingMessageHandler.this.logger.debug(() -> "Interrupted during flush");
+			FileWritingMessageHandler.this.logger.debug("Interrupted during flush");
 		}
 	}
 
@@ -1109,6 +1113,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					FileState state = entry.getValue();
 					if (!state.closing && (state.lastWrite < expired ||
 							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired))) {
+
 						state.closing = true;
 						toRemove.put(entry.getKey(), state);
 					}
