@@ -19,8 +19,6 @@ package org.springframework.integration.jdbc.outbound;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jdbc.storedproc.User;
@@ -40,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class StoredProcOutboundChannelAdapterWithinChainTests {
 
 	@Autowired

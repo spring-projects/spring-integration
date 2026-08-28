@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.outbound;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -35,6 +34,7 @@ import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -47,9 +47,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Pratap Chandra Deo
  */
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
-public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplicationContextAware {
+public class StoredProcMessageHandlerH2IntegrationTests implements TestApplicationContextAware {
 
 	private static EmbeddedDatabase embeddedDatabase;
 
@@ -59,8 +59,8 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	public static void setUp() {
 		embeddedDatabase =
 				new EmbeddedDatabaseBuilder()
-						.setType(EmbeddedDatabaseType.DERBY)
-						.addScript("classpath:derby-stored-procedures.sql")
+						.setType(EmbeddedDatabaseType.H2)
+						.addScript("classpath:h2-stored-procedures.sql")
 						.build();
 		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
 	}
@@ -76,11 +76,12 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	}
 
 	@Test
-	public void testDerbyStoredProcedureInsertWithDefaultSqlSource() {
+	public void testStoredProcedureInsertWithDefaultSqlSource() {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
+		configureCreateUserCall(storedProcExecutor);
 		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
@@ -98,7 +99,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	}
 
 	@Test
-	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() throws Exception {
+	public void testStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() throws Exception {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
@@ -107,6 +108,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		configureCreateUserCall(storedProcExecutor);
 		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
@@ -125,7 +127,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	}
 
 	@Test
-	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndSpelProcName() throws Exception {
+	public void testStoredProcInsertWithDefaultSqlSourceAndSpelProcName() throws Exception {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 		ExpressionFactoryBean efb = new ExpressionFactoryBean("headers.headerWithProcedureName");
@@ -134,6 +136,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		configureCreateUserCall(storedProcExecutor);
 		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
@@ -152,7 +155,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	}
 
 	@Test
-	public void testDerbyStoredProcedureInsertWithExpression() {
+	public void testStoredProcedureInsertWithExpression() {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
@@ -164,6 +167,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		procedureParameters.add(new ProcedureParameter("email", null, "payload.email.toUpperCase()"));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
+		configureCreateUserCall(storedProcExecutor);
 		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
@@ -181,19 +185,20 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 	}
 
 	@Test
-	public void testDerbyStoredProcedureInsertWithHeaderExpression() {
+	public void testStoredProcedureInsertWithHeaderExpression() {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
 
 		final List<ProcedureParameter> procedureParameters = new ArrayList<>();
-		procedureParameters.add(new ProcedureParameter("USERNAME", null,
+		procedureParameters.add(new ProcedureParameter("username", null,
 				"headers[business_id] + '_' + payload.username"));
 		procedureParameters.add(new ProcedureParameter("password", "static_password", null));
 		procedureParameters.add(new ProcedureParameter("email", "static_email", null));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
+		configureCreateUserCall(storedProcExecutor);
 		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
@@ -211,6 +216,14 @@ public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplic
 		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("1234_Eric.Cartman");
 		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("static_password");
 		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("static_email");
+	}
+
+	private static void configureCreateUserCall(StoredProcExecutor storedProcExecutor) {
+		storedProcExecutor.setIgnoreColumnMetaData(true);
+		storedProcExecutor.setSqlParameters(List.of(
+				new SqlParameter("username", Types.VARCHAR),
+				new SqlParameter("password", Types.VARCHAR),
+				new SqlParameter("email", Types.VARCHAR)));
 	}
 
 }

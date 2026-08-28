@@ -16,31 +16,25 @@
 
 package org.springframework.integration.jdbc.outbound;
 
-import java.sql.CallableStatement;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.handler.ReplyRequiredException;
-import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlReturnType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -52,7 +46,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 /**
@@ -61,7 +54,6 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 	@Autowired
@@ -87,9 +79,6 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
-	@Autowired
-	SqlReturnType clobSqlReturnType;
-
 	@Test
 	public void executeStoredProcedureWithMessageHeader() {
 		User user1 = new User("First User", "my first password", "email1");
@@ -113,7 +102,13 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		assertThat(message)
 				.extracting(Message::getPayload)
 				.asInstanceOf(list(User.class))
-				.hasSize(2);
+				.hasSize(1)
+				.first()
+				.satisfies(user -> {
+					assertThat(user.getUsername()).isEqualTo("Second User");
+					assertThat(user.getPassword()).isEqualTo("my second password");
+					assertThat(user.getEmail()).isEqualTo("email2");
+				});
 	}
 
 	@Test
@@ -138,8 +133,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 	@Test
 	@Transactional
-	public void testInt2865SqlReturnType() throws Exception {
-		Mockito.reset(this.clobSqlReturnType);
+	public void testGetMessageFunctionReturnsJson() throws Exception {
 		Message<String> testMessage = MessageBuilder.withPayload("TEST").setHeader("FOO", "BAR").build();
 		String messageId = testMessage.getHeaders().getId().toString();
 		String jsonMessage = new JsonOutboundMessageMapper().fromMessage(testMessage);
@@ -150,19 +144,23 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		Message<?> resultMessage = this.output2Channel.receive(10000);
 		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
-		assertThat(resultPayload instanceof String).isTrue();
+		if (resultPayload instanceof List<?> resultList) {
+			assertThat(resultList).hasSize(1);
+			resultPayload = resultList.get(0);
+		}
+		assertThat(resultPayload).isInstanceOf(String.class);
 		Message<?> message = new JsonInboundMessageMapper(String.class, new JacksonJsonMessageParser())
 				.toMessage((String) resultPayload);
 		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
 		assertThat(message.getHeaders().get("FOO")).isEqualTo(testMessage.getHeaders().get("FOO"));
-		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
-				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq(null));
 	}
 
 	@Test
-	public void testNoIllegalArgumentButRequiresReplyException() {
-		assertThatExceptionOfType(ReplyRequiredException.class)
-				.isThrownBy(() -> this.getMessageChannel.send(new GenericMessage<>("foo")));
+	public void testGetMessageForUnknownIdReturnsEmptyResult() {
+		this.getMessageChannel.send(new GenericMessage<>("foo"));
+		Message<?> resultMessage = this.output2Channel.receive(10000);
+		assertThat(resultMessage).isNotNull();
+		assertThat(resultMessage.getPayload()).asInstanceOf(list(Object.class)).isEmpty();
 	}
 
 	static class Counter {

@@ -26,7 +26,6 @@ commonsIoVersion = "2.22.0"
 commonsNetVersion = "3.13.0"
 curatorVersion = "5.9.0"
 debeziumVersion = "3.6.1.Final"
-derbyVersion = "10.17.1.0"
 ftpServerVersion = "1.2.1"
 graalvmVersion = "25.2.4"
 greenmailVersion = "2.1.13"
@@ -80,9 +79,6 @@ apache-camel-bom = { module = "org.apache.camel:camel-bom", version.ref = "camel
 apache-commons-dbcp2 = { module = "org.apache.commons:commons-dbcp2", version.ref = "commonsDbcp2Version" }
 apache-curator-recipes = { module = "org.apache.curator:curator-recipes", version.ref = "curatorVersion" }
 apache-curator-test = { module = "org.apache.curator:curator-test", version.ref = "curatorVersion" }
-apache-derby = { module = "org.apache.derby:derby", version.ref = "derbyVersion" }
-apache-derbyclient = { module = "org.apache.derby:derbyclient", version.ref = "derbyVersion" }
-apache-derbytools = { module = "org.apache.derby:derbytools", version.ref = "derbyVersion" }
 apache-ftpserver-core = { module = "org.apache.ftpserver:ftpserver-core", version.ref = "ftpServerVersion" }
 apache-groovy-bom = { module = "org.apache.groovy:groovy-bom", version.ref = "groovyVersion" }
 apache-logging-log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", version.ref = "log4jVersion" }

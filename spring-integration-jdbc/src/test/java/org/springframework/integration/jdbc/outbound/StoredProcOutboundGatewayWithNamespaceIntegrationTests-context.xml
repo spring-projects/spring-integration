@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
+	<import resource="classpath:h2-stored-procedures-setup-context.xml"/>
 
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
@@ -20,8 +20,12 @@
 										   stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="dataSource"
 										   auto-startup="true"
 										   id="gateway"
+										   ignore-column-meta-data="true"
 										   expect-single-result="true"
 										   reply-channel="outputChannel">
+		<int-jdbc:sql-parameter-definition name="username" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="password" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="email" type="VARCHAR"/>
 		<int-jdbc:parameter name="username" expression="payload.username"/>
 		<int-jdbc:parameter name="password" expression="payload.password"/>
 		<int-jdbc:parameter name="email" expression="@testService.quote(payload.email)"/>
@@ -40,7 +44,11 @@
 
 	<int:chain input-channel="storedProcOutboundGatewayInsideChain" output-channel="replyChannel">
 		<int-jdbc:stored-proc-outbound-gateway stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="dataSource"
+											   ignore-column-meta-data="true"
 											   expect-single-result="true">
+			<int-jdbc:sql-parameter-definition name="username" type="VARCHAR"/>
+			<int-jdbc:sql-parameter-definition name="password" type="VARCHAR"/>
+			<int-jdbc:sql-parameter-definition name="email" type="VARCHAR"/>
 			<int-jdbc:returning-resultset name="out"
 										  row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper"/>
 		</int-jdbc:stored-proc-outbound-gateway>

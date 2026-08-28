@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc.dsl;
 
-import java.sql.CallableStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
@@ -26,9 +25,6 @@ import javax.sql.DataSource;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +38,6 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jdbc.BeanPropertySqlParameterSourceFactory;
 import org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory;
 import org.springframework.integration.jdbc.StoredProcExecutor;
-import org.springframework.integration.jdbc.config.JdbcTypesEnum;
-import org.springframework.integration.jdbc.storedproc.ClobSqlReturnType;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
@@ -53,9 +47,8 @@ import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.SqlReturnType;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -77,14 +70,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 class JdbcTests {
 
 	@Autowired
 	private JdbcTemplate h2JdbcTemplate;
-
-	@Autowired
-	private JdbcTemplate derbyJdbcTemplate;
 
 	@Autowired
 	private QueueChannel inboundFlowPollerChannel;
@@ -120,9 +109,6 @@ class JdbcTests {
 
 	@Autowired
 	private QueueChannel storedProcOutboundGatewayReplyChannel;
-
-	@Autowired
-	private SqlReturnType clobSqlReturnType;
 
 	@Test
 	void testInboundFlow() {
@@ -186,7 +172,7 @@ class JdbcTests {
 	@Test
 	void testStoredProcOutboundFlow() {
 		storedProcOutboundFlowInputChannel.send(new GenericMessage<>(new User("username", "password", "email")));
-		Map<String, Object> map = this.derbyJdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
+		Map<String, Object> map = this.h2JdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 		assertThat(map)
 				.containsEntry("USERNAME", "username")
 				.containsEntry("PASSWORD", "password")
@@ -194,27 +180,27 @@ class JdbcTests {
 	}
 
 	@Test
-	@Transactional(transactionManager = "derbyTransactionManager")
+	@Transactional(transactionManager = "h2TransactionManager")
 	void testStoredProcOutboundGateway() throws SQLException {
-		Mockito.reset(this.clobSqlReturnType);
 		Message<String> testMessage = MessageBuilder.withPayload("TEST").setHeader("FOO", "BAR").build();
 		String messageId = testMessage.getHeaders().getId().toString();
 		String jsonMessage = new JsonOutboundMessageMapper().fromMessage(testMessage);
-		this.derbyJdbcTemplate.update("INSERT INTO json_message VALUES (?,?)", messageId, jsonMessage);
+		this.h2JdbcTemplate.update("INSERT INTO json_message VALUES (?,?)", messageId, jsonMessage);
 
 		this.storedProcOutboundGatewayInputChannel.send(new GenericMessage<>(messageId));
 		Message<?> resultMessage = this.storedProcOutboundGatewayReplyChannel.receive(10_000);
 
 		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
+		if (resultPayload instanceof List<?> resultList) {
+			assertThat(resultList).hasSize(1);
+			resultPayload = resultList.get(0);
+		}
 		assertThat(resultPayload).isInstanceOf(String.class);
 		Message<?> message = new JsonInboundMessageMapper(String.class, new JacksonJsonMessageParser())
 				.toMessage((String) resultPayload);
 		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
 		assertThat(message.getHeaders().get("FOO")).isEqualTo(testMessage.getHeaders().get("FOO"));
-		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
-				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq(null));
-
 	}
 
 	@Configuration
@@ -293,9 +279,13 @@ class JdbcTests {
 		}
 
 		@Bean
-		StoredProcExecutorSpec storedProcExecutor(DataSource derbyDataSource) {
-			return Jdbc.storedProcExecutorSpec(derbyDataSource)
+		StoredProcExecutorSpec storedProcExecutor(DataSource h2DataSource) {
+			return Jdbc.storedProcExecutorSpec(h2DataSource)
+					.ignoreColumnMetaData(true)
 					.storedProcedureName("CREATE_USER")
+					.sqlParameter(new SqlParameter("username", Types.VARCHAR))
+					.sqlParameter(new SqlParameter("password", Types.VARCHAR))
+					.sqlParameter(new SqlParameter("email", Types.VARCHAR))
 					.sqlParameterSourceFactory(new BeanPropertySqlParameterSourceFactory())
 					.usePayloadAsParameterSource(true);
 		}
@@ -307,33 +297,28 @@ class JdbcTests {
 		}
 
 		@Bean
-		public IntegrationFlow storedProcOutboundGateway(DataSource derbyDataSource) {
+		public IntegrationFlow storedProcOutboundGateway(DataSource h2DataSource) {
 
 			return flow -> flow
-					.handle(Jdbc.storedProcOutboundGateway(derbyDataSource)
+					.handle(Jdbc.storedProcOutboundGateway(h2DataSource)
 							.requiresReply(true)
 							.expectSingleResult(true)
 							.configurerStoredProcExecutor(configurer -> configurer
 									.storedProcedureNameExpression(new ValueExpression<>("GET_MESSAGE"))
-									.ignoreColumnMetaData(false)
+									.ignoreColumnMetaData(true)
 									.isFunction(false)
 									.procedureParameters(List.of(
 											new ProcedureParameter("message_id", null, "payload")
 									))
 									.sqlParameters(List.of(
-											new SqlParameter("message_id", Types.VARCHAR),
-											new SqlOutParameter("message_json", Types.CLOB, null, clobSqlReturnType())
+											new SqlParameter("message_id", Types.VARCHAR)
 									))
+									.returningResultSetRowMapper("out", new SingleColumnRowMapper<>(String.class))
 									.returnValueRequired(false)
 									.skipUndeclaredResults(true)
 									.jdbcCallOperationsCacheSize(10)
 							))
 					.channel(c -> c.queue("storedProcOutboundGatewayReplyChannel"));
-		}
-
-		@Bean
-		public ClobSqlReturnType clobSqlReturnType() {
-			return Mockito.spy(new ClobSqlReturnType());
 		}
 
 		@Bean
@@ -345,31 +330,13 @@ class JdbcTests {
 		}
 
 		@Bean
-		public DataSource derbyDataSource() {
-			return new EmbeddedDatabaseBuilder()
-					.setType(EmbeddedDatabaseType.DERBY)
-					.addScripts("classpath:derby-stored-procedures.sql")
-					.build();
-		}
-
-		@Bean
 		public JdbcTemplate h2JdbcTemplate(DataSource h2DataSource) {
 			return new JdbcTemplate(h2DataSource);
 		}
 
 		@Bean
-		public JdbcTemplate derbyJdbcTemplate(DataSource derbyDataSource) {
-			return new JdbcTemplate(derbyDataSource);
-		}
-
-		@Bean
 		public PlatformTransactionManager h2TransactionManager() {
 			return new DataSourceTransactionManager(h2DataSource());
-		}
-
-		@Bean
-		public PlatformTransactionManager derbyTransactionManager() {
-			return new DataSourceTransactionManager(derbyDataSource());
 		}
 
 	}
