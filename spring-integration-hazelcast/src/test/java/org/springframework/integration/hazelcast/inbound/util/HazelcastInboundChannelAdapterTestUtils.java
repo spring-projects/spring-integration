@@ -19,7 +19,6 @@ package org.springframework.integration.hazelcast.inbound.util;
 import java.util.Collection;
 import java.util.Map;
 
-import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.collection.ICollection;
 import com.hazelcast.core.DistributedObjectEvent;
 import com.hazelcast.core.EntryEventType;
@@ -37,7 +36,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * Util Class for Hazelcast Inbound Channel Adapters Test Support.
@@ -70,7 +69,7 @@ public final class HazelcastInboundChannelAdapterTestUtils {
 		assertThat(msg).isNotNull();
 		assertThat(msg.getPayload()).isNotNull();
 		assertThat(msg.getHeaders().get(HazelcastHeaders.MEMBER)).isNotNull();
-		assertThat(msg.getHeaders().get(HazelcastHeaders.EVENT_TYPE).toString()).isEqualTo(event.toString());
+		assertThat(msg.getHeaders().get(HazelcastHeaders.EVENT_TYPE, String.class)).isEqualTo(event.toString());
 	}
 
 	public static void testEventDrivenForADDEDDistributedMapEntryEvent(
@@ -333,35 +332,21 @@ public final class HazelcastInboundChannelAdapterTestUtils {
 
 		distributedMap.destroy();
 
-		msg = channel.receive(TIMEOUT);
-		try {
-			// Since Hazelcast 3.6 we can use DistributedObjectEvent.getDistributedObject() for DESTROYED objects.
-			verifyDistributedObjectEvent(msg, DistributedObjectEvent.EventType.DESTROYED, distributedObjectName);
-			fail("DistributedObjectDestroyedException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(DistributedObjectDestroyedException.class);
-		}
+		assertThatExceptionOfType(DistributedObjectDestroyedException.class)
+				.isThrownBy(() -> verifyDistributedObjectEvent(channel.receive(TIMEOUT),
+						DistributedObjectEvent.EventType.DESTROYED, distributedObjectName));
 	}
 
-	private static void verifyMembershipEvent(final Message<?> msg,
-			final int membershipEvent) {
-		assertThat(msg).isNotNull();
-		assertThat(msg.getPayload()).isNotNull();
-		assertThat(msg.getPayload() instanceof MembershipEvent).isTrue();
-		assertThat(((MembershipEvent) msg.getPayload()).getEventType()).isEqualTo(membershipEvent);
-		assertThat(((MembershipEvent) msg.getPayload()).getMember()).isNotNull();
-	}
+	private static void verifyDistributedObjectEvent(Message<?> msg, DistributedObjectEvent.EventType eventType,
+			String distributedObjectName) {
 
-	private static void verifyDistributedObjectEvent(final Message<?> msg,
-			final DistributedObjectEvent.EventType eventType,
-			final String distributedObjectName) {
 		assertThat(msg).isNotNull();
 		assertThat(msg.getPayload()).isNotNull();
 		assertThat(msg.getPayload() instanceof DistributedObjectEvent).isTrue();
-		assertThat(((DistributedObjectEvent) msg.getPayload()).getEventType()).isEqualTo(eventType);
-		assertThat(distributedObjectName).as((((DistributedObjectEvent) msg.getPayload()).getDistributedObject())
-				.getName()).isNotNull();
+		DistributedObjectEvent event = (DistributedObjectEvent) msg.getPayload();
+		assertThat(event.getEventType()).isEqualTo(eventType);
+		assertThat(event.getObjectName()).isEqualTo(distributedObjectName);
+		assertThat(event.getDistributedObject().getName()).isNotNull();
 	}
 
 	private HazelcastInboundChannelAdapterTestUtils() {
