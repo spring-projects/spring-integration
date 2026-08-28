@@ -32,6 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -621,6 +622,62 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 	}
 
 	@Test
+	public void fileStateNotRemovedUntilActuallyClosed() throws Exception {
+		File tempFolder = new File(tempDir, UUID.randomUUID().toString());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		BufferedOutputStream out = spy(new BufferedOutputStream(baos));
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder) {
+
+			@Override
+			protected BufferedOutputStream createOutputStream(File fileToWriteTo, boolean append) {
+				return out;
+			}
+
+		};
+		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
+		handler.setFileNameGenerator(message -> "foo.txt");
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+		handler.setOutputChannel(new NullChannel());
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		handler.setFlushInterval(30000);
+		handler.afterPropertiesSet();
+		handler.start();
+
+		handler.handleMessage(new GenericMessage<>("foo".getBytes()));
+
+		CountDownLatch closing = new CountDownLatch(1);
+		CountDownLatch proceedClose = new CountDownLatch(1);
+		willAnswer(invocation -> {
+			closing.countDown();
+			proceedClose.await(5, TimeUnit.SECONDS);
+			return null;
+		}).given(out).close();
+
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		try {
+			Future<?> flush = executor.submit(() -> handler.flushIfNeeded((path, first, last) -> true));
+
+			assertThat(closing.await(5, TimeUnit.SECONDS)).isTrue();
+			// The close() is in progress (blocked); the file must still be tracked as open
+			// so that a concurrent stop() does not consider the handler fully flushed.
+			assertThat((Map<?, ?>) TestUtils.getPropertyValue(handler, "fileStates")).hasSize(1);
+
+			proceedClose.countDown();
+			flush.get(5, TimeUnit.SECONDS);
+
+			assertThat((Map<?, ?>) TestUtils.getPropertyValue(handler, "fileStates")).isEmpty();
+			verify(out).close();
+		}
+		finally {
+			executor.shutdownNow();
+			handler.stop();
+			taskScheduler.destroy();
+		}
+	}
+
+	@Test
 	public void replaceIfDifferent() throws IOException {
 		QueueChannel output = new QueueChannel();
 		this.handler.setOutputChannel(output);
@@ -709,11 +766,12 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'base/../../../escaped.txt'");
 		handler.setFileNameGenerator(fileNameGenerator);
+		handler.setBeanFactory(mock());
 
 		assertThatExceptionOfType(MessagingException.class)
-			.isThrownBy(() -> handler.handleMessage(message))
-			.withStackTraceContaining("trying to leave the target output directory")
-			.withRootCauseInstanceOf(InvalidPathException.class);
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("trying to leave the target output directory")
+				.withRootCauseInstanceOf(InvalidPathException.class);
 	}
 
 	@Test

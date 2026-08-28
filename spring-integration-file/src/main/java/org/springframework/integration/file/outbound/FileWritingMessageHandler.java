@@ -35,7 +35,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -830,12 +829,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			if (appendNoFlush) {
 				String absolutePath = fileToWriteTo.getAbsolutePath();
 				state = this.fileStates.get(absolutePath);
-				if (state != null // NOSONAR
-						&& ((isString && state.stream != null) || (!isString && state.writer != null))) {
-					state.close();
+
+				if (state != null &&
+						(state.closing || (isString && state.stream != null) ||
+								(!isString && state.writer != null))) {
+
+					if (!state.closing) {
+						state.close();
+					}
 					state = null;
-					this.fileStates.remove(absolutePath);
 				}
+
 				if (state == null) {
 					if (isString) {
 						state = new FileState(createWriter(fileToWriteTo, true),
@@ -930,12 +934,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Map<String, FileState> toRemove = new HashMap<>();
 		this.lock.lock();
 		try {
-			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-			while (iterator.hasNext()) {
-				Entry<String, FileState> entry = iterator.next();
+			for (Entry<String, FileState> entry : this.fileStates.entrySet()) {
 				FileState state = entry.getValue();
-				if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
-					iterator.remove();
+				if (!state.closing &&
+						flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
+
+					state.closing = true;
 					toRemove.put(entry.getKey(), state);
 				}
 			}
@@ -959,29 +963,27 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private void doFlush(Map<String, FileState> toRemove) {
-		Map<String, FileState> toRestore = new HashMap<>();
 		boolean interrupted = false;
 		for (Entry<String, FileState> entry : toRemove.entrySet()) {
-			if (!interrupted && entry.getValue().close()) {
-				FileWritingMessageHandler.this.logger.debug(() -> "Flushed: " + entry.getKey());
+			FileState state = entry.getValue();
+			String key = entry.getKey();
+			if (!interrupted && state.close()) {
+				this.lock.lock();
+				try {
+					this.fileStates.remove(key, state);
+				}
+				finally {
+					this.lock.unlock();
+				}
+				FileWritingMessageHandler.this.logger.debug(() -> "Flushed: " + key);
 			}
-			else { // interrupted (stop), re-add
+			else { // interrupted (stop); leave it in 'fileStates' to be retried
 				interrupted = true;
-				toRestore.put(entry.getKey(), entry.getValue());
+				state.closing = false;
 			}
 		}
 		if (interrupted) {
-			FileWritingMessageHandler.this.logger.debug(() ->
-					"Interrupted during flush; not flushed: " + toRestore.keySet());
-			this.lock.lock();
-			try {
-				for (Entry<String, FileState> entry : toRestore.entrySet()) {
-					this.fileStates.putIfAbsent(entry.getKey(), entry.getValue());
-				}
-			}
-			finally {
-				this.lock.unlock();
-			}
+			FileWritingMessageHandler.this.logger.debug("Interrupted during flush");
 		}
 	}
 
@@ -1054,6 +1056,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private volatile long lastWrite;
 
+		private volatile boolean closing;
+
 		FileState(BufferedWriter writer, Lock lock) {
 			this.writer = writer;
 			this.stream = null;
@@ -1105,15 +1109,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			try {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
-				Iterator<Entry<String, FileState>> iterator =
-						FileWritingMessageHandler.this.fileStates.entrySet().iterator();
-				while (iterator.hasNext()) {
-					Entry<String, FileState> entry = iterator.next();
+				for (Entry<String, FileState> entry : FileWritingMessageHandler.this.fileStates.entrySet()) {
 					FileState state = entry.getValue();
-					if (state.lastWrite < expired ||
-							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
+					if (!state.closing && (state.lastWrite < expired ||
+							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired))) {
+
+						state.closing = true;
 						toRemove.put(entry.getKey(), state);
-						iterator.remove();
 					}
 				}
 			}
