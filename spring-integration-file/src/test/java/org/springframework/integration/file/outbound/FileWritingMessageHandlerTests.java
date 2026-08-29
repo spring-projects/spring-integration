@@ -782,8 +782,8 @@ public class FileWritingMessageHandlerTests implements TestApplicationContextAwa
 	}
 
 	@Test
-	void closeFailureIsReportedAndTheFileIsNotPromoted(@TempDir File localRoot) throws Exception {
-		File out = new File(localRoot, "out");
+	void closeFailureIsReportedAndTheFileIsNotPromoted() throws Exception {
+		File out = new File(this.tempDir, "out");
 		// A writer whose close() fails the way a full disk does: the buffered content
 		// never reaches the file and the IOException surfaces from close().
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(out) {
