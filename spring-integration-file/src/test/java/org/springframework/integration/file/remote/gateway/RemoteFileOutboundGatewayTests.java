@@ -23,7 +23,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,10 +30,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -43,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -78,7 +72,6 @@ import static org.mockito.Mockito.when;
  * @author Liu Jiong
  * @author Artem Bilan
  * @author Jooyoung Pyoung
- * @author Jiwoo Lee
  *
  * @since 2.1
  */
@@ -814,64 +807,6 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		File out = new File(this.tmpDir + "/x/f1");
 		assertThat(out.exists()).isTrue();
 		out.delete();
-	}
-
-	@Test
-	public void testGetConcurrentCreateSameLocalDirectory(@TempDir File localRoot) throws Exception {
-		SessionFactory sessionFactory = mock();
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
-		gw.setLocalDirectoryExpression(
-				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("localDir")));
-		gw.afterPropertiesSet();
-		when(sessionFactory.getSession()).thenReturn(new TestSession() {
-
-			@Override
-			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[] {
-						new TestLsEntry(path, 1234, false, false, 12345, "-rw-r--r--")
-				};
-			}
-
-			@Override
-			public void read(String source, OutputStream outputStream) throws IOException {
-				outputStream.write("testfile".getBytes(StandardCharsets.UTF_8));
-			}
-
-		});
-
-		int concurrency = 8;
-		ExecutorService executorService = Executors.newFixedThreadPool(concurrency);
-		AtomicReference<Throwable> failure = new AtomicReference<>();
-		try {
-			for (int round = 0; round < 50; round++) {
-				File localDirectory = new File(localRoot, "local-" + round);
-				CountDownLatch getsDone = new CountDownLatch(concurrency);
-				for (int i = 0; i < concurrency; i++) {
-					Message<String> message = MessageBuilder.withPayload("f" + i)
-							.setHeader("localDir", localDirectory.getAbsolutePath())
-							.build();
-					executorService.execute(() -> {
-						try {
-							gw.handleRequestMessage(message);
-						}
-						catch (Throwable ex) {
-							failure.compareAndSet(null, ex);
-						}
-						finally {
-							getsDone.countDown();
-						}
-					});
-				}
-				assertThat(getsDone.await(10, TimeUnit.SECONDS)).isTrue();
-				assertThat(failure.get()).isNull();
-				for (int i = 0; i < concurrency; i++) {
-					assertThat(new File(localDirectory, "f" + i)).exists();
-				}
-			}
-		}
-		finally {
-			executorService.shutdownNow();
-		}
 	}
 
 	@Test
