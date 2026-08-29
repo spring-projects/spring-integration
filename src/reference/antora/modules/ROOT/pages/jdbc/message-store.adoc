@@ -70,7 +70,7 @@ Spring Integration provides support for the following relational databases:
 * HSQLDB
 * MySQL
 * Oracle
-* Derby
+* Derby (deprecated)
 * H2
 * SqlServer
 * Sybase
