@@ -163,7 +163,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private ProducerRecordCreator<K, V> producerRecordCreator =
 			(message, topic, partition, timestamp, key, value, headers) ->
-					new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
+					new ProducerRecord<K, V>(topic, partition, timestamp, key, value, headers);
 
 	private int timeoutBuffer = DEFAULT_TIMEOUT_BUFFER;
 
