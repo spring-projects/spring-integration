@@ -85,7 +85,7 @@ public class HazelcastMetadataStore implements ListenableMetadataStore, Initiali
 	}
 
 	@Override
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		assertKey(key);
 		return this.map.remove(key);
 	}
