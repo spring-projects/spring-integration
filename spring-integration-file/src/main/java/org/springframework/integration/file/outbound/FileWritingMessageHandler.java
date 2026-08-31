@@ -117,6 +117,7 @@ import org.springframework.util.StringUtils;
  * @author Christian Tzolov
  * @author Ngoc Nhan
  * @author Thomas Knall
+ * @author Jiwoo Lee
  *
  * @since 7.0
  */
@@ -673,24 +674,43 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				bos.write(System.lineSeparator().getBytes());
 			}
 		}
-		finally {
-			cleanUpFileState(fileToWriteTo, state, bos);
+		catch (IOException | RuntimeException ex) {
+			cleanUpFileStateSuppressing(ex, fileToWriteTo, state, bos);
+			throw ex;
 		}
+		cleanUpFileState(fileToWriteTo, state, bos);
 	}
 
-	private void cleanUpFileState(File fileToWriteTo, @Nullable FileState state, @Nullable Closeable closeable) {
-		try {
-			if (state == null || this.flushTask == null) {
+	private void cleanUpFileState(File fileToWriteTo, @Nullable FileState state, @Nullable Closeable closeable)
+			throws IOException {
+
+		if (state == null || this.flushTask == null) {
+			try {
 				if (closeable != null) {
 					closeable.close();
 				}
+			}
+			finally {
 				clearState(fileToWriteTo, state);
 			}
-			else {
-				state.lastWrite = System.currentTimeMillis();
-			}
+		}
+		else {
+			state.lastWrite = System.currentTimeMillis();
+		}
+	}
+
+	/**
+	 * Clean up after a write that has already failed, adding any failure from the clean up
+	 * to the exception which is on its way out, the way try-with-resources does.
+	 */
+	private void cleanUpFileStateSuppressing(Throwable primary, File fileToWriteTo, @Nullable FileState state,
+			@Nullable Closeable closeable) {
+
+		try {
+			cleanUpFileState(fileToWriteTo, state, closeable);
 		}
 		catch (IOException ex) {
+			primary.addSuppressed(ex);
 		}
 	}
 
@@ -732,9 +752,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				bos.write(System.lineSeparator().getBytes());
 			}
 		}
-		finally {
-			cleanUpFileState(fileToWriteTo, state, bos);
+		catch (IOException | RuntimeException ex) {
+			cleanUpFileStateSuppressing(ex, fileToWriteTo, state, bos);
+			throw ex;
 		}
+		cleanUpFileState(fileToWriteTo, state, bos);
 	}
 
 	private File handleStringMessage(String content, @Nullable File originalFile, File tempFile, File resultFile,
@@ -775,9 +797,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				writer.newLine();
 			}
 		}
-		finally {
-			cleanUpFileState(fileToWriteTo, state, writer);
+		catch (IOException | RuntimeException ex) {
+			cleanUpFileStateSuppressing(ex, fileToWriteTo, state, writer);
+			throw ex;
 		}
+		cleanUpFileState(fileToWriteTo, state, writer);
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile) {
