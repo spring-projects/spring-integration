@@ -88,6 +88,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  */
 public class JdbcMessageHandler extends AbstractMessageHandler {
 
+	@SuppressWarnings("NullAway") // ColumnMapRowMapper row values may be null for a SQL NULL column
 	private final ResultSetExtractor<List<Map<String, Object>>> generatedKeysResultSetExtractor =
 			new RowMapperResultSetExtractor<>(new ColumnMapRowMapper(), 1);
 
