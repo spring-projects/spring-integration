@@ -5,10 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY" />
+	<jdbc:embedded-database id="dataSource" type="H2" />
 
 	<jdbc:initialize-database data-source="dataSource">
-		<jdbc:script location="classpath:derby-stored-procedures.sql"/>
+		<jdbc:script location="classpath:h2-stored-procedures.sql"/>
 	</jdbc:initialize-database>
 
 	<bean class="org.springframework.jdbc.core.JdbcTemplate">

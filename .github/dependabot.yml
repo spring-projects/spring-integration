@@ -31,7 +31,6 @@ updates:
           - org.aspectj*
           - org.awaitility:awaitility
           - org.apache.commons:commons-dbcp2
-          - org.apache.derby
           - com.icegreen:greenmail
           - org.junit-pioneer*
           - org.hibernate.orm*

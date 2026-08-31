@@ -70,7 +70,7 @@ Spring Integration provides support for the following relational databases:
 * HSQLDB
 * MySQL
 * Oracle
-* Derby
+* Derby (deprecated)
 * H2
 * SqlServer
 * Sybase
@@ -127,7 +127,6 @@ When polling a message channel, you have the option to configure the associated 
 ====
 Keep in mind, though, that if you use a JDBC backed message channel, and you plan to poll the channel and consequently the message store transactional with multiple threads, you should ensure that you use a relational database that supports https://en.wikipedia.org/wiki/Multiversion_concurrency_control[Multiversion Concurrency Control] (MVCC).
 Otherwise, locking may be an issue and the performance, when using multiple threads, may not materialize as expected.
-For example, Apache Derby is problematic in that regard.
 
 To achieve better JDBC queue throughput and avoid issues when different threads may poll the same `Message` from the queue, it is *important* to set the `usingIdCache` property of `JdbcChannelMessageStore` to `true` when using databases that do not support MVCC.
 The following example shows how to do so:

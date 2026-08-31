@@ -6,7 +6,6 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.apache.derby" level="warn"/>
 		<Logger name="org.springframework.jdbc" level="warn"/>
 		<Logger name="org.springframework.integration" level="warn"/>
 		<Logger name="org.springframework.integration.jdbc" level="warn"/>

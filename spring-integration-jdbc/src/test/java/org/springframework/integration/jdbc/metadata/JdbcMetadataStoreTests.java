@@ -18,11 +18,8 @@ package org.springframework.integration.jdbc.metadata;
 
 import javax.sql.DataSource;
 
-import org.apache.derby.shared.common.error.StandardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextException;
@@ -46,7 +43,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class JdbcMetadataStoreTests {
 
 	@Autowired
@@ -122,8 +118,7 @@ public class JdbcMetadataStoreTests {
 			testApplicationContext.registerBean("jdbcMetadataStore", jdbcMetadataStore);
 			assertThatExceptionOfType(ApplicationContextException.class)
 					.isThrownBy(testApplicationContext::refresh)
-					.withRootCauseExactlyInstanceOf(StandardException.class)
-					.withStackTraceContaining("Table/View 'TEST_METADATA_STORE' does not exist");
+					.withStackTraceContaining("TEST_METADATA_STORE");
 		}
 	}
 
