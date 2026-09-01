@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import jakarta.mail.Authenticator;
+import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.aopalliance.aop.Advice;
@@ -43,6 +43,7 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.PropertiesBuilder;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.integration.util.CheckedFunction;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
@@ -53,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Freya Nair
+ * @author Amlan Mishra
  *
  * @since 5.0
  */
@@ -112,15 +114,15 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	/**
-	 * Configure a {@link Function} to select messages. The argument for the function
+	 * Configure a {@link CheckedFunction} to select messages. The argument for the function
 	 * is a {@link jakarta.mail.internet.MimeMessage}; {@code apply} returns a boolean
 	 * result (true means select the message).
 	 * @param selectorFunction the selectorFunction.
 	 * @return the spec.
 	 * @see FunctionExpression
 	 */
-	public ImapIdleChannelAdapterSpec selector(Function<MimeMessage, Boolean> selectorFunction) {
-		return selectorExpression(new FunctionExpression<>(selectorFunction));
+	public ImapIdleChannelAdapterSpec selector(CheckedFunction<MimeMessage, Boolean, MessagingException> selectorFunction) {
+		return selectorExpression(new FunctionExpression<>(selectorFunction.unchecked()));
 	}
 
 	/**
