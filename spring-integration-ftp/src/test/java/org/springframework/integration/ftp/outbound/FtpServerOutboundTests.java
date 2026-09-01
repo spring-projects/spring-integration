@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.FileSystemException;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -74,6 +75,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -84,7 +86,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doAnswer;
@@ -210,9 +212,17 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
-		assertThatCode(() -> this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt")))
-				.hasRootCauseInstanceOf(FileSystemException.class)
-				.hasStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory");
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() ->
+						this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt")))
+				.withStackTraceContaining(
+						"java.lang.IllegalArgumentException: Failed to make local directory: "
+								+ File.separator + File.separator + "ftpSource" + File.separator + "?:")
+				.havingRootCause()
+				// On Windows, the invalid '?' and ':' characters are rejected by File.toPath()
+				// itself (InvalidPathException) before any file system access is attempted;
+				// on other platforms the failure comes from the actual directory creation attempt.
+				.isInstanceOfAny(FileSystemException.class, InvalidPathException.class);
 	}
 
 	@Test
