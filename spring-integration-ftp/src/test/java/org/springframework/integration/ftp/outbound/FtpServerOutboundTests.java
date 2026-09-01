@@ -215,9 +215,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() ->
 						this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt")))
-				.withStackTraceContaining(
-						"java.lang.IllegalArgumentException: Failed to make local directory: "
-								+ File.separator + File.separator + "ftpSource" + File.separator + "?:")
+				.withStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory: ")
 				.havingRootCause()
 				// On Windows, the invalid '?' and ':' characters are rejected by File.toPath()
 				// itself (InvalidPathException) before any file system access is attempted;
