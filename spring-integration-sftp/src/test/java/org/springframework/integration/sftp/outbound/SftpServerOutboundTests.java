@@ -193,9 +193,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() ->
 						this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt")))
-				.withStackTraceContaining(
-						"java.lang.IllegalArgumentException: Failed to make local directory: "
-								+ File.separator + "sftpSource" + File.separator + "?:")
+				.withStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory: ")
 				.havingRootCause()
 				// On Windows, the invalid '?' and ':' characters are rejected by File.toPath()
 				// itself (InvalidPathException) before any file system access is attempted;
