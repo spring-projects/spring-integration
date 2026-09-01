@@ -93,7 +93,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
-import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.BDDMockito.willReturn;
@@ -915,26 +914,20 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(this.nullPublisher);
 		factory.start();
-		try {
-			await().atMost(Duration.ofSeconds(10))
-					.until(() -> TestUtils.getPropertyValue(factory, "selector") != null);
-			Selector realSelector = (Selector) new DirectFieldAccessor(factory).getPropertyValue("selector");
-			AtomicBoolean activeWhenSelectorClosed = new AtomicBoolean();
-			Selector trackingSelector = mock(Selector.class, delegatesTo(realSelector));
-			doAnswer(invocation -> {
-				activeWhenSelectorClosed.set(factory.isActive());
-				realSelector.close();
-				return null;
-			}).when(trackingSelector).close();
-			new DirectFieldAccessor(factory).setPropertyValue("selector", trackingSelector);
-			factory.stop();
-			assertThat(activeWhenSelectorClosed.get())
-					.as("active must be false before the NIO selector is closed on stop()")
-					.isFalse();
-		}
-		finally {
-			factory.stop();
-		}
+		await().until(() -> TestUtils.getPropertyValue(factory, "selector") != null);
+		Selector realSelector = (Selector) TestUtils.getPropertyValue(factory, "selector");
+		AtomicBoolean activeWhenSelectorClosed = new AtomicBoolean();
+		Selector trackingSelector = spy(realSelector);
+		doAnswer(invocation -> {
+			activeWhenSelectorClosed.set(factory.isActive());
+			realSelector.close();
+			return null;
+		}).when(trackingSelector).close();
+		new DirectFieldAccessor(factory).setPropertyValue("selector", trackingSelector);
+		factory.stop();
+		assertThat(activeWhenSelectorClosed.get())
+				.as("active must be false before the NIO selector is closed on stop()")
+				.isFalse();
 	}
 
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
