@@ -49,6 +49,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -106,6 +107,7 @@ import static org.mockito.Mockito.when;
  * @author John Anderson
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Burak Kalayci
  *
  * @since 2.0
  *
@@ -905,6 +907,27 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		assertThat(delayReadLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reeReference.get()).isNotNull();
 		threadPoolExecutor.shutdown();
+	}
+
+	@Test
+	public void stopClearsActiveFlagBeforeClosingSelector() throws IOException {
+		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
+		factory.setApplicationEventPublisher(this.nullPublisher);
+		factory.start();
+		await().until(() -> TestUtils.getPropertyValue(factory, "selector") != null);
+		Selector realSelector = (Selector) TestUtils.getPropertyValue(factory, "selector");
+		AtomicBoolean activeWhenSelectorClosed = new AtomicBoolean();
+		Selector trackingSelector = spy(realSelector);
+		doAnswer(invocation -> {
+			activeWhenSelectorClosed.set(factory.isActive());
+			realSelector.close();
+			return null;
+		}).when(trackingSelector).close();
+		new DirectFieldAccessor(factory).setPropertyValue("selector", trackingSelector);
+		factory.stop();
+		assertThat(activeWhenSelectorClosed.get())
+				.as("active must be false before the NIO selector is closed on stop()")
+				.isFalse();
 	}
 
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
