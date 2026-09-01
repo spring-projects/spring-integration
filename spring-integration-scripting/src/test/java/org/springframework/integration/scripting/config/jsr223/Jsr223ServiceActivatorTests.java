@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -45,7 +46,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Glenn Renfro
- * @author Pratap Chandra Deo
  *
  * @since 2.0
  */
@@ -63,6 +63,7 @@ public class Jsr223ServiceActivatorTests {
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
+	@Disabled("Until https://github.com/oracle/graalpython/issues/1065")
 	@Test
 	public void referencedScript() throws Exception {
 
@@ -80,14 +81,20 @@ public class Jsr223ServiceActivatorTests {
 		assertThat(value2.startsWith("python-test-2-foo (foo2) - bar")).isTrue();
 		assertThat(value3.startsWith("python-test-3-foo (foo2) - bar")).isTrue();
 
-		// Prototype date beans must yield a different suffix per invocation.
-		// GraalPy 25.1+ stringifies java.util.Date as an ISO datetime with offset
-		// (e.g. 2026-08-31 17:11:15+00:00), so ':' is no longer a usable delimiter.
-		String dates1 = value1.substring(value1.indexOf(" - :") + 4);
-		String dates2 = value2.substring(value2.indexOf(" - :") + 4);
-		String dates3 = value3.substring(value3.indexOf(" - :") + 4);
-		assertThat(dates1).isNotEqualTo(dates2);
-		assertThat(dates2).isNotEqualTo(dates3);
+		// because we are using 'prototype bean the suffix date will be
+		// different
+		assertThat(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":")))).isFalse();
+		assertThat(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value1.substring(value1.lastIndexOf(":")))).isFalse();
+
+		assertThat(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value3.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":")))).isFalse();
+
+		assertThat(value1.substring(value1.lastIndexOf(":") + 1)
+				.equals(value2.substring(value1.lastIndexOf(":") + 1))).isFalse();
+		assertThat(value2.substring(value1.lastIndexOf(":") + 1)
+				.equals(value3.substring(value1.lastIndexOf(":") + 1))).isFalse();
 
 		assertThat(replyChannel.receive(0)).isNull();
 	}
