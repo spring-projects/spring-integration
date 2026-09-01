@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.FileSystemException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -211,8 +212,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
 		assertThatCode(() -> this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt")))
-				.hasRootCauseInstanceOf(IllegalArgumentException.class)
-				.hasStackTraceContaining("Failed to make local directory");
+				.hasRootCauseInstanceOf(FileSystemException.class)
+				.hasStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory");
 	}
 
 	@Test

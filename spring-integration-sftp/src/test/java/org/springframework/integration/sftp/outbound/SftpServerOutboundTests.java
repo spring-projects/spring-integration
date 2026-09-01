@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -191,8 +192,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() ->
 						this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt")))
-				.withRootCauseInstanceOf(IllegalArgumentException.class)
-				.withStackTraceContaining("Failed to make local directory");
+				.withRootCauseInstanceOf(FileSystemException.class)
+				.withStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory");
 	}
 
 	@Test

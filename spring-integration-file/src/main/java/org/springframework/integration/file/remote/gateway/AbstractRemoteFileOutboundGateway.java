@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Mauro Molinari
  * @author Jooyoung Pyoung
+ * @author Jiwoo Lee
  *
  * @since 2.1
  */
@@ -1428,7 +1430,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, evaluationContext, message,
 				"Local Directory");
 		if (!localDir.exists()) {
-			Assert.isTrue(localDir.mkdirs(), () -> "Failed to make local directory: " + localDir);
+			try {
+				Files.createDirectories(localDir.toPath());
+			}
+			catch (IOException ex) {
+				throw new IllegalArgumentException("Failed to make local directory: " + localDir, ex);
+			}
 		}
 		return localDir;
 	}
