@@ -354,7 +354,7 @@ For many other non-reactive channel adapters thread pools are recommended to avo
 [[context-propagation]]
 == Reactive to Imperative Context Propagation
 
-When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and store them into a `Subscriber` context.
+When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://docs.micrometer.io/micrometer/reference/observation/introduction.html[Micrometer Observation] or `SecurityContextHolder`) and store them into a `Subscriber` context.
 The opposite operation is also possible when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.
 See more information in Project Reactor https://projectreactor.io/docs/core/release/reference/#context.propagation[documentation] about its special operators for context propagation.
 The storing and restoring context works smoothly if our whole solution is a single reactive stream composition since a `Subscriber` context is visible from downstream up to the beginning of the composition(`Flux` or `Mono`).
