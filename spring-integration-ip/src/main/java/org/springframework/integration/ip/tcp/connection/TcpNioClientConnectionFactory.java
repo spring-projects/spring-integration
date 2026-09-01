@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Christian Tzolov
  * @author Ngoc Nhan
  * @author Jooyoung Pyoung
+ * @author Burak Kalayci
  *
  * @since 2.0
  *
@@ -171,6 +172,7 @@ public class TcpNioClientConnectionFactory extends
 
 	@Override
 	public void stop() {
+		setActive(false);
 		Selector selectorToClose = this.selector;
 		if (selectorToClose != null) {
 			try {
