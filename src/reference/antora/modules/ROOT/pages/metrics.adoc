@@ -127,7 +127,7 @@ and
 By default, all meters are registered when first used.
 Now, with Micrometer, you can add `MeterFilter` s to the `MeterRegistry` to prevent some or all from being registered.
 You can filter out (deny) meters by any of the properties provided, `name`, `tag`, etc.
-See https://micrometer.io/docs/concepts#_meter_filters[Meter Filters] in the Micrometer documentation for more information.
+See https://docs.micrometer.io/micrometer/reference/concepts/meter-filters.html[Meter Filters] in the Micrometer documentation for more information.
 
 For example, given:
 
@@ -151,7 +151,7 @@ registry.config().meterFilter(MeterFilter.deny(id ->
 [[micrometer-observation]]
 == Micrometer Observation
 
-Starting with version 6.0, Spring Integration utilizes a Micrometer Observation abstraction which can handle metrics as well as https://micrometer.io/docs/tracing[tracing] via appropriate `ObservationHandler` configuration.
+Starting with version 6.0, Spring Integration utilizes a Micrometer Observation abstraction which can handle metrics as well as https://docs.micrometer.io/tracing/reference/[tracing] via appropriate `ObservationHandler` configuration.
 
 The observation handling is enabled on the `IntegrationManagement` components whenever an `ObservationRegistry` bean is present in the application context and an `@EnableIntegrationManagement` is configured.
 To customize what set of components should be instrumented, an `observationPatterns()` attribute is exposed on the `@EnableIntegrationManagement` annotation.
