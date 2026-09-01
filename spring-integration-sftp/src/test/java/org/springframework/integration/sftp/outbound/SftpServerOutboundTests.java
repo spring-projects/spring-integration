@@ -26,6 +26,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
+import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -189,11 +190,17 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
-		assertThatExceptionOfType(Exception.class)
+		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() ->
 						this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt")))
-				.withRootCauseInstanceOf(FileSystemException.class)
-				.withStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory");
+				.withStackTraceContaining(
+						"java.lang.IllegalArgumentException: Failed to make local directory: "
+								+ File.separator + "sftpSource" + File.separator + "?:")
+				.havingRootCause()
+				// On Windows, the invalid '?' and ':' characters are rejected by File.toPath()
+				// itself (InvalidPathException) before any file system access is attempted;
+				// on other platforms the failure comes from the actual directory creation attempt.
+				.isInstanceOfAny(FileSystemException.class, InvalidPathException.class);
 	}
 
 	@Test

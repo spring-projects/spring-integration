@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1433,7 +1434,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			try {
 				Files.createDirectories(localDir.toPath());
 			}
-			catch (IOException ex) {
+			catch (IOException | InvalidPathException ex) {
 				throw new IllegalArgumentException("Failed to make local directory: " + localDir, ex);
 			}
 		}
