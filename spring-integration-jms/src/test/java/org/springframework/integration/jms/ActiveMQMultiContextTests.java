@@ -25,8 +25,6 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.utils.ObjectInputStreamWithClassLoader;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.jms.connection.CachingConnectionFactory;
 
@@ -51,31 +49,25 @@ public abstract class ActiveMQMultiContextTests {
 	static {
 		amqFactory.setDeserializationAllowList(ObjectInputStreamWithClassLoader.CATCH_ALL_WILDCARD);
 		amqFactory.setRetryInterval(0);
-	}
-
-	@BeforeAll
-	public static void startUp() throws Exception {
-		Configuration configuration =
-				new ConfigurationImpl()
-						.setName("embedded-server")
-						.setPersistenceEnabled(false)
-						.setSecurityEnabled(false)
-						.setJMXManagementEnabled(false)
-						.setJournalDatasync(false)
-						.addAcceptorConfiguration(new TransportConfiguration(InVMAcceptorFactory.class.getName()))
-						.addAddressSetting("#",
-								new AddressSettings()
-										.setDeadLetterAddress(SimpleString.of("dla"))
-										.setExpiryAddress(SimpleString.of("expiry")));
-		broker.setConfiguration(configuration).start();
-		connectionFactory.setCacheConsumers(false);
-	}
-
-	@AfterAll
-	public static void shutDown() throws Exception {
-		connectionFactory.destroy();
-		amqFactory.createConnection().close();
-		broker.stop();
+		try {
+			Configuration configuration =
+					new ConfigurationImpl()
+							.setName("embedded-server")
+							.setPersistenceEnabled(false)
+							.setSecurityEnabled(false)
+							.setJMXManagementEnabled(false)
+							.setJournalDatasync(false)
+							.addAcceptorConfiguration(new TransportConfiguration(InVMAcceptorFactory.class.getName()))
+							.addAddressSetting("#",
+									new AddressSettings()
+											.setDeadLetterAddress(SimpleString.of("dla"))
+											.setExpiryAddress(SimpleString.of("expiry")));
+			broker.setConfiguration(configuration).start();
+			connectionFactory.setCacheConsumers(false);
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException("Failed to start an embedded ActiveMQ Artemis broker", ex);
+		}
 	}
 
 }
