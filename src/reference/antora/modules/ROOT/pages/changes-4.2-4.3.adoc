@@ -13,7 +13,7 @@ Version 4.3 added a number of new components.
 [[amqp-async-outbound-gateway]]
 === AMQP Async Outbound Gateway
 
-See xref:amqp.adoc#amqp-async-outbound-gateway[Asynchronous Outbound Gateway].
+See xref:amqp/async-outbound-gateway.adoc[Asynchronous Outbound Gateway].
 
 [[messagegroupfactory]]
 === `MessageGroupFactory`
@@ -58,7 +58,7 @@ See xref:jdbc/lock-registry.adoc[JDBC Lock Registry] for more information.
 === `LeaderInitiator` for `LockRegistry`
 
 We added `LeaderInitiator` implementation based on the `LockRegistry` strategy.
-See xref:endpoint.adoc#leadership-event-handling[Leadership Event Handling] for more information.
+See xref:leadership-event-handling.adoc[Leadership Event Handling] for more information.
 
 [[x4.3-general]]
 == General Changes
@@ -136,7 +136,7 @@ There is a change in behavior when a POJO aggregator releases a collection of `M
 This is rare, but, if your application does that, you need to make a small change to your POJO.
 See this xref:aggregator.adoc#agg-message-collection[IMPORTANT: The `SimpleMessageGroup.getMessages()` method returns an `unmodifiableCollection`.] note for more information.
 
-[[tcp/udp-changes]]
+[[tcp-udp-changes]]
 === TCP/UDP Changes
 
 This section describes general changes to the Spring Integration TCP/UDP functionality.
@@ -176,7 +176,7 @@ See xref:file/writing.adoc#file-writing-file-names[Generating File Names] for mo
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
 We added the `use-watch-service` and `watch-events` options to enable this behavior.
 We deprecated the top-level `WatchServiceDirectoryScanner` because of inconsistency around the API.
-See xref:file.adoc#watch-service-directory-scanner[`WatchServiceDirectoryScanner`] for more information.
+See xref:file/reading.adoc#watch-service-directory-scanner[`WatchServiceDirectoryScanner`] for more information.
 
 [[buffer-size]]
 ==== Buffer Size
@@ -238,7 +238,7 @@ See xref:amqp/channels.adoc[AMQP-backed Message Channels] for more information.
 
 This section describes general changes to the Spring Integration Redis functionality.
 
-[[list-push/pop-direction]]
+[[list-push-pop-direction]]
 ==== List Push/Pop Direction
 
 Previously, the queue channel adapters always used the Redis list in a fixed direction, pushing to the left end and reading from the right end.

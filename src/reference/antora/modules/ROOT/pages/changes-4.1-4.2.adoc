@@ -317,7 +317,7 @@ See xref:http.adoc[HTTP Support] for more information.
 
 This section describes general changes to the Spring Integration Gateway functionality.
 
-[[gateway-methods-can-return-completablefuture<?>]]
+[[gateway-methods-can-return-completablefuture]]
 ==== Gateway Methods can Return `CompletableFuture<?>`
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.

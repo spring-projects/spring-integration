@@ -167,7 +167,7 @@ For more information see xref:xml/xpath-header-enricher.adoc[XPath Header Enrich
 We introduced the `result-type` attribute for the `<int:object-to-json-transformer>`.
 This attribute provides the target type for the result of mapping an object to JSON.
 It supports `STRING` (the default) and `NODE`.
-For more information see xref:transformer.adoc#transformer-xpath-spel-function[Since version 3.0, Spring Integration also provides a built-in `#xpath` SpEL function for use in expressions.].
+For more information see xref:transformer.adoc#transformer-xpath-spel-function[Since version 3.0, Spring Integration also provides a built-in `#xpath` SpEL function for use in expressions].
 
 [[x4.0-jms-header-mapping]]
 === JMS Header Mapping
