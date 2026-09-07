@@ -83,6 +83,7 @@ import static org.mockito.Mockito.mock;
  * @author Glenn Renfro
  * @author Jiandong Ma
  * @author Yordan Tsintsov
+ * @author Jiwoo Lee
  *
  * @since 4.0
  *
@@ -417,6 +418,61 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry1.destroy();
 		registry2.destroy();
 		executorService.shutdown();
+	}
+
+	@Test
+	void testLockRestoresInterruptedStatus() throws Exception {
+		// A bounded expiry keeps the waiting thread polling: the pub-sub lock otherwise waits for a
+		// single unlock notification for the whole expiry, and the interrupt drops that subscription.
+		RedisLockRegistry registry1 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 1000);
+		registry1.setRedisLockType(testRedisLockType);
+		RedisLockRegistry registry2 = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 1000);
+		registry2.setRedisLockType(testRedisLockType);
+		Lock lock1 = registry1.obtain("foo");
+		lock1.lockInterruptibly();
+
+		// Contend once from this thread so that the pub-sub listener container is already started:
+		// starting it from the thread that gets interrupted breaks its Redis connection instead.
+		assertThat(registry2.obtain("foo").tryLock(100, TimeUnit.MILLISECONDS)).isFalse();
+
+		AtomicBoolean interrupted = new AtomicBoolean();
+		AtomicReference<Throwable> failure = new AtomicReference<>();
+		CountDownLatch waiting = new CountDownLatch(1);
+		CountDownLatch acquired = new CountDownLatch(1);
+
+		Thread thread = new Thread(() -> {
+			Lock lock2 = registry2.obtain("foo");
+			try {
+				waiting.countDown();
+				lock2.lock();
+				interrupted.set(Thread.currentThread().isInterrupted());
+				lock2.unlock();
+			}
+			catch (Throwable ex) {
+				failure.set(ex);
+			}
+			finally {
+				acquired.countDown();
+			}
+		});
+		thread.start();
+
+		assertThat(waiting.await(10, TimeUnit.SECONDS)).isTrue();
+		// The interrupt has to land while the other thread is still retrying, so that the
+		// InterruptedException it swallows is what clears the status before the lock is acquired.
+		Thread.sleep(100);
+		thread.interrupt();
+		Thread.sleep(100);
+		lock1.unlock();
+
+		assertThat(acquired.await(10, TimeUnit.SECONDS)).isTrue();
+		thread.join(10_000);
+		assertThat(failure.get()).isNull();
+
+		assertThat(interrupted.get()).isTrue();
+
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@Test

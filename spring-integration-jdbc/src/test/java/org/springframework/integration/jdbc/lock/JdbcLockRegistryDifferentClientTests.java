@@ -55,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Glenn Renfro
  * @author Alexandre Strubel
  * @author Eddie Cho
+ * @author Jiwoo Lee
  *
  * @since 4.3
  */
@@ -130,6 +131,55 @@ class JdbcLockRegistryDifferentClientTests {
 			assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 			assertThat(locked.get()).isTrue();
 		}
+	}
+
+	@Test
+	void testLockRestoresInterruptedStatus() throws Exception {
+		DefaultLockRepository client1 = new DefaultLockRepository(this.dataSource);
+		client1.setApplicationContext(this.context);
+		client1.afterPropertiesSet();
+		client1.afterSingletonsInstantiated();
+		DefaultLockRepository client2 = new DefaultLockRepository(this.dataSource);
+		client2.setApplicationContext(this.context);
+		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
+
+		JdbcLockRegistry registry2 = new JdbcLockRegistry(client2);
+		registry2.setIdleBetweenTries(Duration.ofMillis(10));
+
+		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
+		lock1.lockInterruptibly();
+
+		AtomicBoolean interrupted = new AtomicBoolean();
+		CountDownLatch waiting = new CountDownLatch(1);
+		CountDownLatch acquired = new CountDownLatch(1);
+
+		Thread thread = new Thread(() -> {
+			Lock lock2 = registry2.obtain("foo");
+			waiting.countDown();
+			lock2.lock();
+			try {
+				interrupted.set(Thread.currentThread().isInterrupted());
+			}
+			finally {
+				lock2.unlock();
+				acquired.countDown();
+			}
+		});
+		thread.start();
+
+		assertThat(waiting.await(10, TimeUnit.SECONDS)).isTrue();
+		// The interrupt has to land while the other thread is still retrying, so that the
+		// InterruptedException it swallows is what clears the status before the lock is acquired.
+		Thread.sleep(100);
+		thread.interrupt();
+		Thread.sleep(100);
+		lock1.unlock();
+
+		assertThat(acquired.await(10, TimeUnit.SECONDS)).isTrue();
+		thread.join(10_000);
+
+		assertThat(interrupted.get()).isTrue();
 	}
 
 	@Test
