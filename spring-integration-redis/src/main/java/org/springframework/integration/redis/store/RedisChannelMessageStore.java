@@ -158,7 +158,7 @@ public class RedisChannelMessageStore
 
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		Set<?> keys = this.redisTemplate.keys(this.beanName + ":*");
+		Set<Object> keys = this.redisTemplate.keys(this.beanName + ":*");
 		if (keys == null) {
 			return 0;
 		}
