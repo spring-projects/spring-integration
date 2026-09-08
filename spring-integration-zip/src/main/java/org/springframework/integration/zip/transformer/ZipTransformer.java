@@ -178,7 +178,9 @@ public class ZipTransformer extends AbstractZipTransformer {
 				fileExtension = FilenameUtils.EXTENSION_SEPARATOR_STR + fileExtension;
 			}
 
-			for (Object item : (Iterable<?>) payload) {
+			@SuppressWarnings("unchecked")
+			Iterable<Object> objectPayload = (Iterable<Object>) payload;
+			for (Object item : objectPayload) {
 
 				final ZipEntrySource zipEntrySource =
 						createZipEntrySource(item, lastModifiedDate, baseName + "_" + counter + fileExtension,
@@ -200,7 +202,9 @@ public class ZipTransformer extends AbstractZipTransformer {
 	private void deleteFilesIfAny(Object payload) {
 		if (this.deleteFiles) {
 			if (payload instanceof Iterable<?>) {
-				for (Object item : (Iterable<?>) payload) {
+				@SuppressWarnings("unchecked")
+				Iterable<Object> objectPayload = (Iterable<Object>) payload;
+				for (Object item : objectPayload) {
 					deleteFile(item);
 				}
 			}
