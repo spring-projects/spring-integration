@@ -199,7 +199,9 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		}
 		if (payload != null && this.updateSql != null) {
 			if (this.updatePerRow) {
-				for (Object row : payload) {
+				@SuppressWarnings("unchecked")
+				List<Object> objectPayload = (List<Object>) payload;
+				for (Object row : objectPayload) {
 					executeUpdateQuery(row);
 				}
 			}
