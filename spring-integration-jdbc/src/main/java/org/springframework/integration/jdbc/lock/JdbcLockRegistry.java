@@ -68,6 +68,7 @@ import org.springframework.util.Assert;
  * @author Christian Tzolov
  * @author Myeonghyeon Lee
  * @author Eddie Cho
+ * @author Jiwoo Lee
  *
  * @since 4.3
  */
@@ -253,26 +254,35 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		@Override
 		public void lock(Duration ttl) {
 			this.delegate.lock();
-			while (true) {
-				try {
-					while (!doLock(ttl)) {
-						Thread.sleep(JdbcLockRegistry.this.idleBetweenTries.toMillis());
+			boolean interrupted = false;
+			try {
+				while (true) {
+					try {
+						while (!doLock(ttl)) {
+							Thread.sleep(JdbcLockRegistry.this.idleBetweenTries.toMillis());
+						}
+						break;
 					}
-					break;
+					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
+						// try again
+					}
+					catch (InterruptedException ex) {
+						/*
+						 * This method must be uninterruptible so catch and ignore
+						 * interrupts and only break out of the while loop when
+						 * we get the lock.
+						 */
+						interrupted = true;
+					}
+					catch (Exception ex) {
+						this.delegate.unlock();
+						rethrowAsLockException(ex);
+					}
 				}
-				catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
-					// try again
-				}
-				catch (InterruptedException ex) {
-					/*
-					 * This method must be uninterruptible so catch and ignore
-					 * interrupts and only break out of the while loop when
-					 * we get the lock.
-					 */
-				}
-				catch (Exception ex) {
-					this.delegate.unlock();
-					rethrowAsLockException(ex);
+			}
+			finally {
+				if (interrupted) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}

@@ -16,7 +16,9 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.time.Duration;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.TransientDataAccessException;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.TransactionTimedOutException;
@@ -38,6 +41,7 @@ import static org.mockito.Mockito.when;
  * @author Olivier Hubaut
  * @author Fran Aranda
  * @author Eddie Cho
+ * @author Jiwoo Lee
  *
  * @since 5.2.11
  */
@@ -53,6 +57,26 @@ class JdbcLockRegistryDelegateTests {
 		registry = new JdbcLockRegistry(repository);
 
 		when(repository.acquire(anyString(), any())).thenReturn(true);
+	}
+
+	@Test
+	void testLockRestoresInterruptedStatus() {
+		final AtomicInteger attempts = new AtomicInteger();
+		when(repository.acquire(anyString(), any())).thenAnswer(invocation -> attempts.incrementAndGet() > 1);
+		when(repository.delete(anyString())).thenReturn(true);
+		registry.setIdleBetweenTries(Duration.ofMillis(10));
+		final DistributedLock lock = registry.obtain("foo");
+
+		Thread.currentThread().interrupt();
+		try {
+			lock.lock(Duration.ofSeconds(10));
+
+			assertThat(Thread.currentThread().isInterrupted()).isTrue();
+		}
+		finally {
+			Thread.interrupted();
+			lock.unlock();
+		}
 	}
 
 	@Test

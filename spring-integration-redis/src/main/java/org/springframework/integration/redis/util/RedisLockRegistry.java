@@ -110,6 +110,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Michal Domagala
  * @author Severin Kistler
  * @author Glenn Renfro
+ * @author Jiwoo Lee
  *
  * @since 4.0
  *
@@ -487,22 +488,31 @@ public final class RedisLockRegistry
 		@Override
 		public void lock(Duration ttl) {
 			this.localLock.lock();
-			while (true) {
-				try {
-					if (tryRedisLock(-1L, ttl.toMillis())) {
-						return;
+			boolean interrupted = false;
+			try {
+				while (true) {
+					try {
+						if (tryRedisLock(-1L, ttl.toMillis())) {
+							return;
+						}
+					}
+					catch (InterruptedException e) {
+						/*
+						 * This method must be uninterruptible so catch and ignore
+						 * interrupts and only break out of the while loop when
+						 * we get the lock.
+						 */
+						interrupted = true;
+					}
+					catch (Exception e) {
+						this.localLock.unlock();
+						rethrowAsLockException(e);
 					}
 				}
-				catch (InterruptedException e) {
-					/*
-					 * This method must be uninterruptible so catch and ignore
-					 * interrupts and only break out of the while loop when
-					 * we get the lock.
-					 */
-				}
-				catch (Exception e) {
-					this.localLock.unlock();
-					rethrowAsLockException(e);
+			}
+			finally {
+				if (interrupted) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}
