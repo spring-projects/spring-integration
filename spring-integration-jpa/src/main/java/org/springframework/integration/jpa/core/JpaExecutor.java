@@ -535,7 +535,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					this.jpaOperations.deleteInBatch((Iterable<?>) payload);
 				}
 				else {
-					for (Object entity : (Iterable<?>) payload) {
+					@SuppressWarnings("unchecked")
+					Iterable<Object> objectPayload = (Iterable<Object>) payload;
+					for (Object entity : objectPayload) {
 						this.jpaOperations.delete(entity);
 					}
 				}
