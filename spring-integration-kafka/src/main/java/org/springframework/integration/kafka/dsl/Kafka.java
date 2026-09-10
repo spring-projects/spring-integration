@@ -25,7 +25,9 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.ShareConsumerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.AbstractShareKafkaMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
@@ -331,6 +333,63 @@ public final class Kafka {
 	}
 
 	/**
+	 * Create an initial {@link KafkaShareMessageDrivenChannelAdapterSpec} for a Kafka
+	 * share group (KIP-932 queue) consumer, from an already configured container. If
+	 * the listener container is not already a bean it will be registered in the
+	 * application context. If the adapter spec has an {@code id}, the bean name will be
+	 * that id appended with '.container'. Otherwise, the bean name will be generated
+	 * from the container class name.
+	 * @param shareListenerContainer the {@link AbstractShareKafkaMessageListenerContainer}.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaShareMessageDrivenChannelAdapterSpec.
+	 * @since 7.2
+	 */
+	public static <K, V> KafkaShareMessageDrivenChannelAdapterSpec<K, V, ?> shareMessageDrivenChannelAdapter(
+			AbstractShareKafkaMessageListenerContainer<K, V> shareListenerContainer) {
+
+		return new KafkaShareMessageDrivenChannelAdapterSpec<>(shareListenerContainer);
+	}
+
+	/**
+	 * Create an initial
+	 * {@link KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec}
+	 * for a Kafka share group (KIP-932 queue) consumer.
+	 * @param shareConsumerFactory the {@link ShareConsumerFactory}.
+	 * @param containerProperties the {@link ContainerProperties} to use.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec.
+	 * @since 7.2
+	 */
+	public static <K, V>
+	KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec<K, V> shareMessageDrivenChannelAdapter(
+			ShareConsumerFactory<K, V> shareConsumerFactory, ContainerProperties containerProperties) {
+
+		return shareMessageDrivenChannelAdapter(
+				new KafkaShareMessageListenerContainerSpec<>(shareConsumerFactory, containerProperties));
+	}
+
+	/**
+	 * Create an initial
+	 * {@link KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec}
+	 * for a Kafka share group (KIP-932 queue) consumer.
+	 * @param shareConsumerFactory the {@link ShareConsumerFactory}.
+	 * @param topics the topics vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec.
+	 * @since 7.2
+	 */
+	public static <K, V>
+	KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec<K, V> shareMessageDrivenChannelAdapter(
+			ShareConsumerFactory<K, V> shareConsumerFactory, String... topics) {
+
+		return shareMessageDrivenChannelAdapter(
+				new KafkaShareMessageListenerContainerSpec<>(shareConsumerFactory, topics));
+	}
+
+	/**
 	 * Create an initial {@link KafkaProducerMessageHandlerSpec}.
 	 * @param kafkaTemplate the {@link ReplyingKafkaTemplate} to use
 	 * @param <K> the Kafka message key type.
@@ -460,6 +519,14 @@ public final class Kafka {
 
 		return new KafkaMessageDrivenChannelAdapterSpec
 				.KafkaMessageDrivenChannelAdapterListenerContainerSpec<>(spec, listenerMode);
+	}
+
+	private static <K, V>
+	KafkaShareMessageDrivenChannelAdapterSpec.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec<K, V> shareMessageDrivenChannelAdapter(
+			KafkaShareMessageListenerContainerSpec<K, V> spec) {
+
+		return new KafkaShareMessageDrivenChannelAdapterSpec
+				.KafkaShareMessageDrivenChannelAdapterListenerContainerSpec<>(spec);
 	}
 
 	private Kafka() {
