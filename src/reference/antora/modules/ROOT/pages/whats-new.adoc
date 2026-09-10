@@ -17,6 +17,9 @@ Java 17 is still the baseline, but Java 25 is supported.
 [[x7.2-new-components]]
 === New Components
 
+A new `KafkaShareMessageDrivenChannelAdapter` provides a message-driven inbound channel adapter for Apache Kafka share groups (queues), built on `spring-kafka`'s `ShareKafkaMessageListenerContainer`.
+See xref:kafka.adoc#kafka-share-inbound[Message-driven Channel Adapter for Share Groups] for more information.
+
 [[x7.2-general-changes]]
 === General Changes
 

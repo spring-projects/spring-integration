@@ -358,6 +358,104 @@ Notice that, in this case, the adapter is given an `id` (`topic2Adapter`).
 The container is registered in the application context with a name of `topic2Adapter.container`.
 If the adapter does not have an `id` property, the container's bean name is the container's fully qualified class name plus `#n`, where `n` is incremented for each container.
 
+[[kafka-share-inbound]]
+== Message-driven Channel Adapter for Share Groups
+
+Apache Kafka's share groups (https://cwiki.apache.org/confluence/display/KAFKA/KIP-932%3A+Queues+for+Kafka[KIP-932], "queues for Kafka") let several consumers cooperatively process records from the same partitions, with the broker distributing individual records rather than whole partitions.
+See the https://docs.spring.io/spring-kafka/reference/kafka/kafka-queues.html[Kafka Queues chapter] of the Spring for Apache Kafka reference for background.
+
+The `KafkaShareMessageDrivenChannelAdapter` (`org.springframework.integration.kafka.inbound.KafkaShareMessageDrivenChannelAdapter`) is the share-group counterpart of `KafkaMessageDrivenChannelAdapter`.
+It is built from a `spring-kafka` `ShareKafkaMessageListenerContainer` (a subclass of `AbstractShareKafkaMessageListenerContainer`) rather than an `AbstractMessageListenerContainer`, and it is a distinct component because the two container hierarchies are not interchangeable: share consumer containers support only explicit topics (no topic patterns, no partition assignment), no batch listeners, no consumer seeks, and no `CommonErrorHandler`.
+Consequently, this adapter has no `mode` (record only), no `RecordFilterStrategy` ack-discard flag, no retry template, and does not support pause/resume.
+
+IMPORTANT: A share consumer container must be constructed with explicit topics.
+Building one from a `Pattern` or a `TopicPartitionOffset` results in an `IllegalArgumentException` when the adapter is constructed, since the underlying Kafka `ShareConsumer` client supports only `subscribe(Collection<String>)`.
+
+=== Acknowledgment Modes
+
+The container's `ContainerProperties.ShareAckMode` determines how a delivered record is acknowledged:
+
+* `EXPLICIT` (the default) and `IMPLICIT` - the listener receives no acknowledgment handle.
+The container itself sends `ACCEPT` after the flow returns normally, and consults the container's `ShareConsumerRecordRecoverer` (default: reject, i.e. archive with no redelivery) when the flow throws.
+* `MANUAL` - the `ShareAcknowledgment` is provided in the `KafkaHeaders.ACKNOWLEDGMENT` message header (together with the `ShareConsumer` in `KafkaHeaders.CONSUMER`), and *whichever flow receives the message is responsible for calling exactly one of* `acknowledge()`, `release()`, or `reject()` on it.
+
+IMPORTANT: In `MANUAL` mode, the container will not poll again - and will not stop - until every record from the current poll has been terminally acknowledged.
+A flow that never acknowledges (or that hands the message off asynchronously without acknowledging) stalls the consumer thread permanently and prevents the adapter from stopping.
+If an error channel is configured, the error channel subscriber becomes responsible for acknowledging the failed record; the adapter itself acknowledges on the flow's behalf only in the two cases where no flow ever receives the message: it rejects a record that failed conversion, and it accepts a record discarded by a `RecordFilterStrategy`.
+
+Because the acknowledgment and consumer headers exist only to support `MANUAL` mode, they are absent from messages produced in `EXPLICIT` and `IMPLICIT` mode.
+
+[[kafka-share-inbound-configuration]]
+=== Configuration
+
+The following example shows how to configure a share-group message-driven channel adapter:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow shareListenerFromKafkaFlow() {
+    return IntegrationFlow
+            .from(Kafka.shareMessageDrivenChannelAdapter(shareConsumerFactory(), "someTopic")
+                    .configureListenerContainer(c -> c
+                            .shareAckMode(ContainerProperties.ShareAckMode.MANUAL)
+                            .concurrency(3)
+                            .id("someTopicContainer")))
+            .handle(m -> {
+                ShareAcknowledgment ack = m.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, ShareAcknowledgment.class);
+                // process the payload...
+                ack.acknowledge();
+            })
+            .get();
+}
+
+@Bean
+public ShareConsumerFactory<String, String> shareConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.brokerAddress);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "someGroup");
+    // set more properties
+    return new DefaultShareConsumerFactory<>(props);
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+public KafkaShareMessageDrivenChannelAdapter<String, String>
+            adapter(ShareKafkaMessageListenerContainer<String, String> container) {
+    KafkaShareMessageDrivenChannelAdapter<String, String> adapter =
+            new KafkaShareMessageDrivenChannelAdapter<>(container);
+    adapter.setOutputChannel(received());
+    return adapter;
+}
+
+@Bean
+public ShareKafkaMessageListenerContainer<String, String> container() {
+    ContainerProperties properties = new ContainerProperties("someTopic");
+    // set more properties
+    return new ShareKafkaMessageListenerContainer<>(shareConsumerFactory(), properties);
+}
+
+@Bean
+public ShareConsumerFactory<String, String> shareConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.brokerAddress);
+    // set more properties
+    return new DefaultShareConsumerFactory<>(props);
+}
+----
+======
+
+There is no XML namespace support for this adapter.
+
+As with the Java DSL for the classic message-driven adapter, the listener container does not have to be declared as a separate `@Bean`; the DSL registers it in the application context, named `<id>.container` when the adapter spec has an `id`, or generated from the container class name otherwise.
+
 [[kafka-inbound-pollable]]
 == Inbound Channel Adapter
 
