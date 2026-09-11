@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  * An internal {@link RabbitAmqpTemplate} is used to send replies.
  *
  * @author Artem Bilan
+ * @author Kumar Gaurav
  *
  * @since 7.0
  *
@@ -269,8 +270,7 @@ public class AmqpClientInboundGateway extends MessagingGatewaySupport implements
 			}
 			else {
 				Assert.hasText(routingKey, "A 'replyTo' property must be provided in the requestMessage.");
-				String queue = routingKey.replaceFirst("queues/", "");
-				this.replyTemplate.send(queue, replyMessage).join();
+				this.replyTemplate.send(routingKey, replyMessage).join();
 			}
 		}
 		else {
