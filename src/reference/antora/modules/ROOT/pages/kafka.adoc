@@ -184,9 +184,9 @@ XML::
                                     kafka-template="template"
                                     auto-startup="false"
                                     channel="inputToKafka"
-                                    topic="foo"
+                                    topic="some-topic"
                                     sync="false"
-                                    message-key-expression="'bar'"
+                                    message-key-expression="'some-key'"
                                     send-failure-channel="failures"
                                     send-success-channel="successes"
                                     error-message-strategy="ems"
@@ -327,7 +327,7 @@ XML::
     </constructor-arg>
     <constructor-arg>
         <bean class="org.springframework.kafka.listener.config.ContainerProperties">
-            <constructor-arg name="topics" value="foo" />
+            <constructor-arg name="topics" value="some-topic" />
         </bean>
     </constructor-arg>
 

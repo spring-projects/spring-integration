@@ -98,11 +98,11 @@ public class KafkaShareDslTests {
 			DefaultKafkaProducerFactory<String, String> producerFactory =
 					new DefaultKafkaProducerFactory<>(producerProps);
 			KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
-			template.send(TEST_TOPIC, "key", "foo").get(10, TimeUnit.SECONDS);
+			template.send(TEST_TOPIC, "key", "test").get(10, TimeUnit.SECONDS);
 
 			Message<?> received = this.shareListeningResults.receive(30000);
 			assertThat(received).isNotNull();
-			assertThat(received.getPayload()).isEqualTo("FOO");
+			assertThat(received.getPayload()).isEqualTo("TEST");
 
 			assertThat(this.applicationContext.containsBean("shareContainer")).isTrue();
 			AbstractShareKafkaMessageListenerContainer<?, ?> container =

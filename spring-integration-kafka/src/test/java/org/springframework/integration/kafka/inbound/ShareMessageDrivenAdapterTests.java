@@ -141,7 +141,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, EXPLICIT_TOPIC, "key0", "foo", "key1", "bar");
+		produceRecords(embeddedKafka, EXPLICIT_TOPIC, "key0", "value0", "key1", "value1");
 
 		Message<?> received1 = out.receive(20000);
 		Message<?> received2 = out.receive(20000);
@@ -177,7 +177,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, MANUAL_TOPIC, "key0", "foo", "key1", "bar", "key2", "baz");
+		produceRecords(embeddedKafka, MANUAL_TOPIC, "key0", "value0", "key1", "value1", "key2", "value2");
 
 		for (int i = 0; i < 3; i++) {
 			Message<?> received = out.receive(20000);
@@ -217,7 +217,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, MANUAL_ERROR_TOPIC, "key0", "foo", "key1", "bar");
+		produceRecords(embeddedKafka, MANUAL_ERROR_TOPIC, "key0", "value0", "key1", "value1");
 
 		Message<?> errorMessage = errorChannel.receive(20000);
 		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
@@ -271,7 +271,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, CONVERSION_ERROR_TOPIC, "key0", "foo");
+		produceRecords(embeddedKafka, CONVERSION_ERROR_TOPIC, "key0", "value0");
 
 		Message<?> error = errorChannel.receive(20000);
 		assertThat(error).isNotNull();
@@ -319,7 +319,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, CONVERSION_ERROR_NO_CHANNEL_TOPIC, "key0", "foo");
+		produceRecords(embeddedKafka, CONVERSION_ERROR_NO_CHANNEL_TOPIC, "key0", "value0");
 
 		assertThat(recovererLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(recovererAction.get()).isEqualTo(AcknowledgeType.REJECT);
@@ -371,18 +371,18 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		KafkaShareMessageDrivenChannelAdapter<String, String> adapter =
 				register(new KafkaShareMessageDrivenChannelAdapter<>(container));
 		adapter.setRecordMessageConverter(new StringJacksonJsonMessageConverter());
-		adapter.setPayloadType(Foo.class);
+		adapter.setPayloadType(TestPayload.class);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		produceRecords(embeddedKafka, PAYLOAD_TYPE_TOPIC, "key0", "{\"bar\":\"baz\"}");
+		produceRecords(embeddedKafka, PAYLOAD_TYPE_TOPIC, "key0", "{\"value\":\"test\"}");
 
 		Message<?> received = out.receive(20000);
 		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo(new Foo("baz"));
+		assertThat(received.getPayload()).isEqualTo(new TestPayload("test"));
 	}
 
 	@Test
@@ -402,7 +402,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		ShareConsumerFactory<String, String> consumerFactory = Mockito.mock();
 		AbstractShareKafkaMessageListenerContainer<String, String> container =
 				new ShareKafkaMessageListenerContainer<>(consumerFactory,
-						new ContainerProperties(Pattern.compile("foo.*")));
+						new ContainerProperties(Pattern.compile("share-.*")));
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new KafkaShareMessageDrivenChannelAdapter<>(container))
@@ -462,7 +462,7 @@ class ShareMessageDrivenAdapterTests implements TestApplicationContextAware {
 		}
 	}
 
-	record Foo(String bar) {
+	record TestPayload(String value) {
 
 	}
 
