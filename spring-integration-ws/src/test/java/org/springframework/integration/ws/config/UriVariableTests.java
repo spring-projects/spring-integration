@@ -31,6 +31,8 @@ import jakarta.jms.Queue;
 import jakarta.jms.Session;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.packet.StanzaFactory;
+import org.jivesoftware.smack.packet.id.UuidStanzaIdSource;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -206,20 +208,17 @@ public class UriVariableTests {
 	}
 
 	@Test
-	public void testInt2720XmppUriVariables() throws Exception {
+	@Disabled("Until XMPP fix in Spring WS")
+	public void testXmppUriVariables() throws Exception {
+		Mockito.when(this.xmppConnection.getStanzaFactory())
+				.thenReturn(new StanzaFactory(UuidStanzaIdSource.INSTANCE));
 
 		willThrow(new WebServiceIOException("intentional"))
 				.given(this.xmppConnection).sendStanza(Mockito.any(Stanza.class));
 
 		Message<?> message = MessageBuilder.withPayload("<spring/>").setHeader("to", "user").build();
-		try {
-			this.inputXmpp.send(message);
-		}
-		catch (MessageHandlingException e) {
-			// expected
-			Class<?> causeType = e.getCause().getClass();
-			assertThat(WebServiceIOException.class.equals(causeType)).isTrue(); // offline
-		}
+		assertThatExceptionOfType(WebServiceIOException.class)
+				.isThrownBy(() -> this.inputXmpp.send(message));
 
 		ArgumentCaptor<Stanza> argument = ArgumentCaptor.forClass(Stanza.class);
 		Mockito.verify(this.xmppConnection).sendStanza(argument.capture());
