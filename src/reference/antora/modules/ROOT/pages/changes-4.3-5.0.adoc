@@ -59,7 +59,7 @@ See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for m
 We added a JDBC implementation of the `MetadataStore` implementation.
 This is useful when you need to ensure transactional boundaries for metadata.
 
-See xref:jdbc.adoc#jdbc-metadata-store[JDBC Metadata Store] for more information.
+See xref:jdbc/metadata-store.adoc[JDBC Metadata Store] for more information.
 
 [[x5.0-general]]
 == General Changes
@@ -77,7 +77,7 @@ All the request-reply endpoints (based on `AbstractReplyProducingMessageHandler`
 See xref:handler-advice/tx-handle-message.adoc[Transaction Support] for more information.
 
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
-See xref:endpoint.adoc#endpoint-roles[Endpoint Roles] for more information.
+See xref:endpoint-roles.adoc[Endpoint Roles] for more information.
 
 By default, POJO methods are now invoked by using an `InvocableHandlerMethod`, but you can configure them to use SpEL, as before.
 See xref:overview.adoc#pojo-invocation[POJO Method invocation] for more information.
@@ -100,7 +100,7 @@ The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now s
 See xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration] for more information.
 
 When a candidate failed to acquire the lock, the `LockRegistryLeaderInitiator` now emits a new `OnFailedToAcquireMutexEvent` through `DefaultLeaderEventPublisher`.
-See `xref:endpoint.adoc#leadership-event-handling[Leadership Event Handling]` for more information.
+See `xref:leadership-event-handling.adoc[Leadership Event Handling]` for more information.
 
 [[gateway-changes]]
 === Gateway Changes

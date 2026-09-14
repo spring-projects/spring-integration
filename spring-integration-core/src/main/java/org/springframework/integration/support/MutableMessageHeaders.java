@@ -72,7 +72,10 @@ public class MutableMessageHeaders extends MessageHeaders {
 		super.getRawHeaders().clear();
 	}
 
+	// MessageHeaders.remove() always throws, so its @NonNull return is vacuous;
+	// the real Map.remove() delegated to here below is @Nullable.
 	@Override
+	@SuppressWarnings("NullAway")
 	public Object remove(Object key) {
 		return super.getRawHeaders().remove(key);
 	}

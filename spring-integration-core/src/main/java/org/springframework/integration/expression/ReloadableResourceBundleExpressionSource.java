@@ -28,17 +28,16 @@ import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.log.LogAccessor;
+import org.springframework.core.log.LogMessage;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 import org.springframework.util.DefaultPropertiesPersister;
@@ -71,7 +70,7 @@ import org.springframework.util.StringUtils;
  */
 public class ReloadableResourceBundleExpressionSource implements ExpressionSource, ResourceLoaderAware {
 
-	private static final Log LOGGER = LogFactory.getLog(ReloadableResourceBundleExpressionSource.class);
+	private static final LogAccessor LOGGER = new LogAccessor(ReloadableResourceBundleExpressionSource.class);
 
 	private static final String PROPERTIES_SUFFIX = ".properties";
 
@@ -98,7 +97,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 	private final Lock cachedMergedPropertiesMonitor = new ReentrantLock();
 
-	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private final ExpressionParser parser = new SpelExpressionParser();
 
 	private String[] basenames = {};
 
@@ -439,20 +438,16 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				try {
 					fileTimestamp = resource.lastModified();
 					if (propHolder != null && propHolder.getFileTimestamp() == fileTimestamp) {
-						if (LOGGER.isDebugEnabled()) {
-							LOGGER.debug("Re-caching properties for filename [" + filename
-									+ "] - file hasn't been modified");
-						}
+						LOGGER.debug(() ->
+								"Re-caching properties for filename [" + filename + "] - file hasn't been modified");
 						propHolder.setRefreshTimestamp(refreshTimestamp);
 						return propHolder;
 					}
 				}
 				catch (IOException ex) {
 					// Probably a class path resource: cache it forever.
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug(resource
-								+ " could not be resolved in the file system - assuming that is hasn't changed", ex);
-					}
+					LOGGER.debug(ex, () ->
+							resource + " could not be resolved in the file system - assuming that is hasn't changed");
 				}
 			}
 			propHolder = load(filename, resource, fileTimestamp);
@@ -460,9 +455,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 		else {
 			// Resource does not exist.
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("No properties file found for [" + filename + "] - neither plain properties nor XML");
-			}
+			LOGGER.debug(() -> "No properties file found for [" + filename + "] - neither plain properties nor XML");
 			// Empty holder representing "not found".
 			propHolder = new PropertiesHolder();
 		}
@@ -487,9 +480,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			propHolder = new PropertiesHolder(props, fileTimestamp);
 		}
 		catch (IOException ex) {
-			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("Could not parse properties file [" + resource.getFilename() + "]", ex);
-			}
+			LOGGER.warn(ex, () -> "Could not parse properties file [" + resource.getFilename() + "]");
 			// Empty holder representing "not valid".
 			propHolder = new PropertiesHolder();
 		}
@@ -508,9 +499,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			Properties props = new Properties();
 			String resourceFilename = resource.getFilename();
 			if (resourceFilename != null && resourceFilename.endsWith(XML_SUFFIX)) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Loading properties [" + resourceFilename + "]");
-				}
+				LOGGER.debug(() -> "Loading properties [" + resourceFilename + "]");
 				this.propertiesPersister.loadFromXml(props, is);
 			}
 			else {
@@ -531,17 +520,12 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			encoding = this.defaultEncoding;
 		}
 		if (encoding != null) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Loading properties ["
-						+ (resourceFilename == null ? resource : resourceFilename)
-						+ "] with encoding '" + encoding + "'");
-			}
+			LOGGER.debug(LogMessage.format("Loading properties [%s]  with encoding '%s'",
+					resourceFilename == null ? resource : resourceFilename, encoding));
 			this.propertiesPersister.load(props, new InputStreamReader(is, encoding));
 		}
 		else {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename) + "]");
-			}
+			LOGGER.debug(() -> "Loading properties [" + (resourceFilename == null ? resource : resourceFilename) + "]");
 			this.propertiesPersister.load(props, is);
 		}
 	}

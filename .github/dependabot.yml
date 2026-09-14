@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -29,7 +31,6 @@ updates:
           - org.aspectj*
           - org.awaitility:awaitility
           - org.apache.commons:commons-dbcp2
-          - org.apache.derby
           - com.icegreen:greenmail
           - org.junit-pioneer*
           - org.hibernate.orm*
@@ -53,6 +54,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -101,6 +104,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     ignore:
       - dependency-name: '*'
         update-types:
@@ -146,6 +151,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
@@ -161,6 +168,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
@@ -176,6 +185,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    cooldown:
+      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:

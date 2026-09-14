@@ -23,7 +23,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,6 +67,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan
+ * @author Fardan An
  *
  * @since 5.0
  */
@@ -244,6 +247,65 @@ public class ReactiveStreamsConsumerTests implements TestApplicationContextAware
 		verify(testSubscriber, never()).onComplete();
 
 		assertThat(messages.isEmpty()).isTrue();
+
+		reactiveConsumer.stop();
+	}
+
+	@Test
+	void messageNotLostWhenStopDuringBlockingReceive() throws InterruptedException {
+		CountDownLatch receiveBlocked = new CountDownLatch(1);
+		AtomicBoolean releaseReceive = new AtomicBoolean();
+
+		QueueChannel testChannel = new QueueChannel(1) {
+
+			@Override
+			public Message<?> receive(long timeout) {
+				Message<?> message = super.receive(timeout);
+				if (message != null) {
+					receiveBlocked.countDown();
+					while (!releaseReceive.get()) {
+						LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10));
+					}
+				}
+				return message;
+			}
+
+		};
+
+		Subscriber<Message<?>> testSubscriber = mock();
+		AtomicReference<Message<?>> delivered = new AtomicReference<>();
+
+		willAnswer(i -> {
+			delivered.set(i.getArgument(0));
+			return null;
+		}).given(testSubscriber).onNext(any(Message.class));
+
+		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
+		reactiveConsumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+		verify(testSubscriber).onSubscribe(captor.capture());
+		captor.getValue().request(1);
+
+		try {
+			assertThat(receiveBlocked.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(testChannel.getQueueSize()).isZero();
+			reactiveConsumer.stop();
+		}
+		finally {
+			releaseReceive.set(true);
+		}
+
+		await().atMost(Duration.ofSeconds(5))
+				.until(() -> testChannel.getQueueSize() > 0);
+
+		assertThat(delivered.get()).isNull();
+		assertThat(testChannel.receive(0)).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
 	}

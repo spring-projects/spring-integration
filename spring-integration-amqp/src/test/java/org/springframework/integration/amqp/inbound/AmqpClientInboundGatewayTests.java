@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.Declarables;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbitmq.client.AmqpConnectionFactory;
@@ -72,7 +73,7 @@ public class AmqpClientInboundGatewayTests implements RabbitTestContainer {
 
 	@Test
 	void inboundGatewayExchangeWithAck() throws InterruptedException {
-		org.springframework.amqp.core.Message requestMessage =
+		Message requestMessage =
 				MessageBuilder.withBody("test data #2".getBytes())
 						.setMessageId("someMessageId")
 						.setContentType(MimeTypeUtils.TEXT_PLAIN_VALUE)

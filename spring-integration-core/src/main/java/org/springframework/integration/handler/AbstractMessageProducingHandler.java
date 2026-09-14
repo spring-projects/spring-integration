@@ -245,7 +245,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (!(result instanceof Flux<?>)
 				&& result instanceof Iterable<?> iterableResult
 				&& shouldSplitOutput(iterableResult)) {
-			for (Object o : iterableResult) {
+			@SuppressWarnings("unchecked")
+			Iterable<Object> objectResults = (Iterable<Object>) iterableResult;
+			for (Object o : objectResults) {
 				produceOutput(o, requestMessage);
 			}
 		}

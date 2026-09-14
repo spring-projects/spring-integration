@@ -167,6 +167,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				if (!CollectionUtils.isEmpty(invocationHeaders)) {
 					Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
 
+					@SuppressWarnings("NullAway") // ManagedMap's V has no @Nullable upper bound
 					Map<String, @Nullable Object> headerExpressions = new ManagedMap<>();
 					for (Element headerElement : invocationHeaders) {
 						BeanDefinition expressionDef = IntegrationNamespaceUtils

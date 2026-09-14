@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
-	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
+	<import resource="classpath:h2-stored-procedures-setup-context.xml"/>
 
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
@@ -20,6 +20,23 @@
 		<constructor-arg name="dataSource" ref="dataSource"/>
 		<property name="storedProcedureName" value="CREATE_USER_RETURN_ALL"/>
 		<property name="isFunction" value="false"/>
+		<property name="ignoreColumnMetaData" value="true"/>
+		<property name="sqlParameters">
+			<util:list>
+				<bean class="org.springframework.jdbc.core.SqlParameter">
+					<constructor-arg name="name" value="username"/>
+					<constructor-arg name="sqlType" value="12"/>
+				</bean>
+				<bean class="org.springframework.jdbc.core.SqlParameter">
+					<constructor-arg name="name" value="password"/>
+					<constructor-arg name="sqlType" value="12"/>
+				</bean>
+				<bean class="org.springframework.jdbc.core.SqlParameter">
+					<constructor-arg name="name" value="email"/>
+					<constructor-arg name="sqlType" value="12"/>
+				</bean>
+			</util:list>
+		</property>
 		<property name="procedureParameters">
 			<util:list>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">

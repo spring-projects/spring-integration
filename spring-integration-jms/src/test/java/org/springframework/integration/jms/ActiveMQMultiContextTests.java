@@ -26,7 +26,6 @@ import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.utils.ObjectInputStreamWithClassLoader;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.jms.connection.CachingConnectionFactory;
 
@@ -34,6 +33,10 @@ import org.springframework.jms.connection.CachingConnectionFactory;
  * Keeps an ActiveMQ open for the duration of
  * all tests (avoids cycling the transport each time the last
  * connection is closed).
+ * <p>
+ * The broker is started only once per JVM, but the shared {@link CachingConnectionFactory}
+ * is reset after each test class to not share its cached connection and sessions
+ * between independent test contexts.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -51,31 +54,30 @@ public abstract class ActiveMQMultiContextTests {
 	static {
 		amqFactory.setDeserializationAllowList(ObjectInputStreamWithClassLoader.CATCH_ALL_WILDCARD);
 		amqFactory.setRetryInterval(0);
-	}
-
-	@BeforeAll
-	public static void startUp() throws Exception {
-		Configuration configuration =
-				new ConfigurationImpl()
-						.setName("embedded-server")
-						.setPersistenceEnabled(false)
-						.setSecurityEnabled(false)
-						.setJMXManagementEnabled(false)
-						.setJournalDatasync(false)
-						.addAcceptorConfiguration(new TransportConfiguration(InVMAcceptorFactory.class.getName()))
-						.addAddressSetting("#",
-								new AddressSettings()
-										.setDeadLetterAddress(SimpleString.of("dla"))
-										.setExpiryAddress(SimpleString.of("expiry")));
-		broker.setConfiguration(configuration).start();
-		connectionFactory.setCacheConsumers(false);
+		try {
+			Configuration configuration =
+					new ConfigurationImpl()
+							.setName("embedded-server")
+							.setPersistenceEnabled(false)
+							.setSecurityEnabled(false)
+							.setJMXManagementEnabled(false)
+							.setJournalDatasync(false)
+							.addAcceptorConfiguration(new TransportConfiguration(InVMAcceptorFactory.class.getName()))
+							.addAddressSetting("#",
+									new AddressSettings()
+											.setDeadLetterAddress(SimpleString.of("dla"))
+											.setExpiryAddress(SimpleString.of("expiry")));
+			broker.setConfiguration(configuration).start();
+			connectionFactory.setCacheConsumers(false);
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException("Failed to start an embedded ActiveMQ Artemis broker", ex);
+		}
 	}
 
 	@AfterAll
-	public static void shutDown() throws Exception {
-		connectionFactory.destroy();
-		amqFactory.createConnection().close();
-		broker.stop();
+	public static void resetConnectionFactory() {
+		connectionFactory.resetConnection();
 	}
 
 }

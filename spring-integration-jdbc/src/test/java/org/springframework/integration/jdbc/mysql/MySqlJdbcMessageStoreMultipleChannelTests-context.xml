@@ -29,7 +29,7 @@
 
 	<int-jdbc:message-store id="messageStore" data-source="dataSource" region="MessageStoreMultipleChannelTests"/>
 
-	<context:property-placeholder location="int-${ENVIRONMENT:derby}.properties"
+	<context:property-placeholder location="int-${ENVIRONMENT:h2}.properties"
 								  system-properties-mode="OVERRIDE"
 								  ignore-unresolvable="true"
 								  order="1"/>

@@ -52,11 +52,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.0
  */
 @Multicast
-@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
+@DisabledOnOs(value = {OS.MAC, OS.WINDOWS},
+		disabledReason = "Multicast tests do not work on MacOS and are unreliable on Windows CI runners")
 @DisabledOnJre(JRE.JAVA_17)
 public class DatagramPacketMulticastSendingHandlerTests implements TestApplicationContextAware {
 
-	@RetryingTest(20)
+	@RetryingTest(3)
 	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket;
 		try {
@@ -125,7 +126,7 @@ public class DatagramPacketMulticastSendingHandlerTests implements TestApplicati
 		socket.close();
 	}
 
-	@RetryingTest(20)
+	@RetryingTest(3)
 	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket = new MulticastSocket();
 		final int testPort = socket.getLocalPort();

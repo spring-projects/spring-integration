@@ -98,7 +98,7 @@ public R2dbcMessageHandler r2dbcMessageHandler(R2dbcEntityTemplate r2dbcEntityTe
     messageHandler.setValuesExpression(new FunctionExpression<Message<?>>(Message::getPayload));
     messageHandler.setQueryType(R2dbcMessageHandler.Type.UPDATE);
     messageHandler.setCriteriaExpression(
-        EXPRESSION_PARSER.parseExpression("T(Criteria).where('id).is(headers.personId)));
+        EXPRESSION_PARSER.parseExpression("T(Criteria).where('id).is(headers.personId)"));
     return messageHandler;
 }
 ----

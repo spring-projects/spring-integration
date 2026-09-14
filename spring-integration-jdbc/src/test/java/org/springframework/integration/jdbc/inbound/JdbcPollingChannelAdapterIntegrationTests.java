@@ -25,8 +25,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,7 +45,6 @@ import static org.assertj.core.api.InstanceOfAssertFactories.type;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicationContextAware {
 
 	private static EmbeddedDatabase embeddedDatabase;
@@ -57,7 +54,7 @@ public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicatio
 	@BeforeAll
 	public static void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-		builder.setType(EmbeddedDatabaseType.DERBY)
+		builder.setType(EmbeddedDatabaseType.H2)
 				.addScript("classpath:org/springframework/integration/jdbc/inbound/pollingChannelAdapterIntegrationTest.sql");
 		embeddedDatabase = builder.build();
 		jdbcTemplate = new JdbcTemplate(embeddedDatabase);

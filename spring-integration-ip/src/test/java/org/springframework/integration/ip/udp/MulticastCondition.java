@@ -101,7 +101,11 @@ public class MulticastCondition implements BeforeAllCallback, ParameterResolver 
 	 * being skipped. Therefore, this probe performs the same round trip as the tests
 	 * do: send from a socket bound to the site-local address of the {@code nic} and
 	 * receive on a {@link MulticastSocket} joined to the group over that same
-	 * {@code nic}.
+	 * {@code nic}. The group is joined with a {@code null} {@link NetworkInterface}, deferring to
+	 * {@link MulticastSocket#setNetworkInterface(NetworkInterface)}, exactly like the
+	 * tests and the {@code MulticastReceivingChannelAdapter} do: passing the {@code nic}
+	 * into {@code joinGroup()} instead makes this probe pass on hosts where those tests
+	 * still receive nothing.
 	 * @param group the multicast group to probe.
 	 * @param nic the network interface to probe the group over.
 	 * @return true if the datagram sent to the group is received back.
@@ -117,14 +121,14 @@ public class MulticastCondition implements BeforeAllCallback, ParameterResolver 
 			receiver.setSoTimeout(PROBE_TIMEOUT);
 			InetAddress groupAddress = InetAddress.getByName(group);
 			InetSocketAddress groupSocketAddress = new InetSocketAddress(groupAddress, 0);
-			receiver.joinGroup(groupSocketAddress, nic);
+			receiver.joinGroup(groupSocketAddress, null);
 			try (DatagramSocket sender = new DatagramSocket(0, siteLocalAddress)) {
 				sender.send(new DatagramPacket(probe, probe.length,
 						new InetSocketAddress(groupAddress, receiver.getLocalPort())));
 			}
 			DatagramPacket received = new DatagramPacket(new byte[probe.length], probe.length);
 			receiver.receive(received);
-			receiver.leaveGroup(groupSocketAddress, nic);
+			receiver.leaveGroup(groupSocketAddress, null);
 			return Arrays.equals(probe, Arrays.copyOf(received.getData(), received.getLength()));
 		}
 		catch (Exception ex) {

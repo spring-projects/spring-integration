@@ -42,9 +42,9 @@ public class MailReceivingMessageSourceTests {
 		MimeMessage message3 = mock();
 		MimeMessage message4 = mock();
 
-		mailReceiver.messages.add(new jakarta.mail.Message[] {message1});
-		mailReceiver.messages.add(new jakarta.mail.Message[] {message2, message3});
-		mailReceiver.messages.add(new jakarta.mail.Message[] {message4});
+		mailReceiver.messages.add(new Message[] {message1});
+		mailReceiver.messages.add(new Message[] {message2, message3});
+		mailReceiver.messages.add(new Message[] {message4});
 
 		MailReceivingMessageSource source = new MailReceivingMessageSource(mailReceiver);
 		assertThat(source.receive().getPayload()).as("Wrong message for number 1").isEqualTo(message1);
@@ -64,7 +64,7 @@ public class MailReceivingMessageSourceTests {
 		}
 
 		@Override
-		public jakarta.mail.Message[] receive() {
+		public Message[] receive() {
 			return messages.poll();
 		}
 

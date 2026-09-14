@@ -37,7 +37,7 @@ import org.springframework.util.PatternMatchUtils;
  *
  * @since 6.0
  */
-public class CamelHeaderMapper implements HeaderMapper<org.apache.camel.Message> {
+public class CamelHeaderMapper implements HeaderMapper<Message> {
 
 	private static final LogAccessor LOGGER = new LogAccessor(CamelHeaderMapper.class);
 

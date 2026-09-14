@@ -17,6 +17,8 @@
 package org.springframework.integration.file.tail;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
@@ -43,6 +45,8 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	private boolean reopen = false;
 
 	private volatile @Nullable Tailer tailer;
+
+	private volatile @Nullable ScheduledFuture<?> restartFuture;
 
 	/**
 	 * The delay between checks of the file for new content in milliseconds.
@@ -87,6 +91,18 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
+		runTailer();
+	}
+
+	/**
+	 * Build and run a new {@link Tailer}, arranging for it to be restarted (after
+	 * {@link #getMissingFileDelay()}) should its background thread terminate while this
+	 * adapter is still active. The underlying {@code commons-io} {@link Tailer} can leave
+	 * its reader in a broken state and let the thread die if a file rotation is observed
+	 * concurrently with the replacement file being briefly absent; without a restart, such
+	 * an event would otherwise silently stop message production forever.
+	 */
+	private void runTailer() {
 		Tailer theTailer =
 				Tailer.builder()
 						.setDelayDuration(this.pollingDelay)
@@ -96,13 +112,25 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 						.setTailerListener(this.tailerListener)
 						.setStartThread(false)
 						.get();
-		getTaskExecutor().execute(theTailer);
 		this.tailer = theTailer;
+		getTaskExecutor().execute(() -> {
+			theTailer.run();
+			if (isActive()) {
+				long missingFileDelay = getMissingFileDelay();
+				publish("Tailer thread has died; restarting in " + missingFileDelay + " milliseconds");
+				this.restartFuture =
+						getTaskScheduler().schedule(this::runTailer, Instant.now().plusMillis(missingFileDelay));
+			}
+		});
 	}
 
 	@Override
 	protected void doStop() {
 		super.doStop();
+		ScheduledFuture<?> restartFutureToCancel = this.restartFuture;
+		if (restartFutureToCancel != null) {
+			restartFutureToCancel.cancel(true);
+		}
 		Tailer tailerToClose = this.tailer;
 		if (tailerToClose != null) {
 			tailerToClose.close();

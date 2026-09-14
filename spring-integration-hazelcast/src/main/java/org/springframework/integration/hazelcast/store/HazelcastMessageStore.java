@@ -70,7 +70,7 @@ public class HazelcastMessageStore extends AbstractKeyValueMessageStore {
 	}
 
 	@Override
-	protected Object doRemove(Object id) {
+	protected @Nullable Object doRemove(Object id) {
 		return this.map.remove(id);
 	}
 

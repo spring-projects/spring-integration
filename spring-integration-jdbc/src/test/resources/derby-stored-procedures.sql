@@ -1,6 +1,0 @@
-CREATE FUNCTION  CONVERT_STRING_TO_UPPER_CASE (invalue VARCHAR(50)) RETURNS VARCHAR(50)                      PARAMETER STYLE JAVA LANGUAGE JAVA EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyFunctions.convertStringToUpperCase';
-create table USERS(USERNAME varchar(100),PASSWORD varchar(100), EMAIL varchar(100));
-CREATE PROCEDURE CREATE_USER( IN username VARCHAR(100), IN password VARCHAR(100), IN email VARCHAR(100) )          PARAMETER STYLE JAVA LANGUAGE JAVA                                      EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.createUser';
-CREATE PROCEDURE CREATE_USER_RETURN_ALL(IN username VARCHAR(100), IN password VARCHAR(100), IN email VARCHAR(100)) PARAMETER STYLE JAVA LANGUAGE JAVA MODIFIES SQL DATA DYNAMIC RESULT SETS 1 EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.createUserAndReturnAll';
-create table JSON_MESSAGE(MESSAGE_ID CHAR(36), MESSAGE_JSON CLOB);
-CREATE PROCEDURE GET_MESSAGE(IN MESSAGE_ID CHAR(36), OUT MESSAGE_JSON CLOB) PARAMETER STYLE JAVA LANGUAGE JAVA EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.getMessage';

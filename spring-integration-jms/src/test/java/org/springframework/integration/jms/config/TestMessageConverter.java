@@ -34,7 +34,7 @@ public class TestMessageConverter implements MessageConverter {
 		return "converted-" + original;
 	}
 
-	public jakarta.jms.Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
+	public Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
 		return null;
 	}
 

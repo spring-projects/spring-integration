@@ -7,14 +7,18 @@
 		http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
+	<import resource="classpath:h2-stored-procedures-setup-context.xml"/>
 
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<constructor-arg ref="dataSource" />
 	</bean>
 
 	<int:chain input-channel="jdbcStoredProcOutboundChannelAdapterWithinChain">
-		<int-jdbc:stored-proc-outbound-channel-adapter stored-procedure-name="CREATE_USER" data-source="dataSource">
+		<int-jdbc:stored-proc-outbound-channel-adapter stored-procedure-name="CREATE_USER" data-source="dataSource"
+													   ignore-column-meta-data="true">
+			<int-jdbc:sql-parameter-definition name="username" type="VARCHAR"/>
+			<int-jdbc:sql-parameter-definition name="password" type="VARCHAR"/>
+			<int-jdbc:sql-parameter-definition name="email" type="VARCHAR"/>
 			<int-jdbc:parameter name="username" expression="payload.username"/>
 			<int-jdbc:parameter name="password" expression="payload.password"/>
 			<int-jdbc:parameter name="email" expression="payload.email"/>

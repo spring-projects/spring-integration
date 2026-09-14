@@ -64,7 +64,9 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		Class<?> entityClass = null;
 
-		for (Object object : entities) {
+		@SuppressWarnings("unchecked")
+		Iterable<Object> objectEntities = (Iterable<Object>) entities;
+		for (Object object : objectEntities) {
 			if (entityClass == null) {
 				entityClass = object.getClass();
 			}

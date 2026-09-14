@@ -65,6 +65,7 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -89,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -722,6 +724,22 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		return this.active;
 	}
 
+	/**
+	 * Handle an incoming request message by dispatching it over JMS and returning the reply.
+	 * Ensure the component is initialized before processing. If a reply container is configured,
+	 * manage the container lifecycle by auto-starting it and scheduling an idle stopper task
+	 * when an idle timeout is defined.
+	 * @param requestMessage the Spring Integration {@link Message} to process and send
+	 * @return the processed reply object or built reply message, or {@code null} if no reply
+	 *         was received and a reply is not required
+	 * @throws MessageTimeoutException if no response is received within the timeout period
+	 *         and {@code requiresReply} is enabled
+	 * @throws MessageHandlingException if a underlying {@link jakarta.jms.JMSException} occurs
+	 *         during message handling
+	 * @throws MessageConversionException if the configured {@link MessageConverter} fails to convert the
+	 * request payload to a JMS message, or if it fails to convert the JMS reply, including when payload
+	 * extraction for the reply produces a {@code null} result.
+	 */
 	@Override
 	protected @Nullable Object handleRequestMessage(final Message<?> requestMessage) {
 		if (!this.initialized) {
@@ -778,8 +796,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		Object result;
 		if (this.extractReplyPayload) {
 			result = this.messageConverter.fromMessage(jmsReply);
-			logger.debug(() ->
-					"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+			if (result == null) {
+				throw new MessageConversionException("Message converter returned null for: " + jmsReply);
+			}
+			else {
+				logger.debug(() ->
+						"converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+			}
 		}
 		else {
 			result = jmsReply;

@@ -58,6 +58,7 @@ import org.springframework.xml.transform.TransformerFactoryUtils;
 import org.springframework.xml.xpath.XPathException;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.springframework.xml.xpath.XPathParseException;
 
 /**
  * Message Splitter that uses an {@link XPathExpression} to split a
@@ -137,7 +138,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			this.jaxpExpression = xpath.compile(expression);
 		}
 		catch (XPathExpressionException e) {
-			throw new org.springframework.xml.xpath.XPathParseException(
+			throw new XPathParseException(
 					"Could not compile [" + expression + "] to a XPathExpression: " + e.getMessage(), e);
 		}
 	}

@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
+	<import resource="classpath:h2-stored-procedures-setup-context.xml"/>
 
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
@@ -24,11 +24,14 @@
 			stored-procedure-name-expression="headers['my_stored_procedure']"
 			auto-startup="true"
 			id="gateway"
-			ignore-column-meta-data="false"
+			ignore-column-meta-data="true"
 			is-function="false"
 			expect-single-result="true"
 			reply-channel="outputChannel">
 		<int:poller fixed-delay="100" error-channel="startErrorsChannel"/>
+		<int-jdbc:sql-parameter-definition name="username" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="password" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="email" type="VARCHAR"/>
 		<int-jdbc:parameter name="username" expression="payload.username"/>
 		<int-jdbc:parameter name="password" expression="payload.password"/>
 		<int-jdbc:parameter name="email"    expression="payload.email"/>
@@ -49,18 +52,14 @@
 										   data-source="dataSource"
 										   stored-procedure-name="GET_MESSAGE"
 										   ignore-column-meta-data="true"
+										   is-function="false"
 										   expect-single-result="true"
 										   reply-channel="output2Channel">
-		<int-jdbc:sql-parameter-definition name="message_id"/>
-		<int-jdbc:sql-parameter-definition name="message_json" type="CLOB" direction="OUT" type-name="" return-type="clobSqlReturnType"/>
+		<int-jdbc:sql-parameter-definition name="message_id" type="VARCHAR"/>
 		<int-jdbc:parameter name="message_id" expression="payload"/>
+		<int-jdbc:returning-resultset name="out"
+									  row-mapper="org.springframework.jdbc.core.SingleColumnRowMapper"/>
 	</int-jdbc:stored-proc-outbound-gateway>
-
-	<bean id="clobSqlReturnType" class="org.mockito.Mockito" factory-method="spy">
-		<constructor-arg>
-			<bean class="org.springframework.integration.jdbc.storedproc.ClobSqlReturnType"/>
-		</constructor-arg>
-	</bean>
 
 
 </beans>

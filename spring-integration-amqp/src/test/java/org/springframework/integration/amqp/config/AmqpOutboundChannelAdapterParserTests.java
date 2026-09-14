@@ -43,6 +43,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
@@ -118,7 +119,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler");
 		assertThat(TestUtils.<Object>getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
 		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "lazyConnect")).isFalse();
-		assertThat(TestUtils.<org.springframework.expression.Expression>getPropertyValue(endpoint, "delayExpression")
+		assertThat(TestUtils.<Expression>getPropertyValue(endpoint, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
 		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "headersMappedLast")).isFalse();
 

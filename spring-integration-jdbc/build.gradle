@@ -5,9 +5,6 @@ dependencies {
 
 	testImplementation libs.com.h2database.h2
 	testImplementation libs.org.hsqldb
-	testImplementation libs.apache.derby
-	testImplementation libs.apache.derbytools
-	testImplementation libs.apache.derbyclient
 	testImplementation libs.org.postgresql
 	testImplementation libs.apache.commons.dbcp2
 	testImplementation 'org.testcontainers:testcontainers-mysql'

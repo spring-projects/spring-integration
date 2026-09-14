@@ -237,6 +237,7 @@ public class MailTests {
 									.userFlag("testSIUserFlag")
 									.autoCloseFolder(false)
 									.simpleContent(true)
+									.selector(message -> message.getSubject().equals("Test Email"))
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true)
 									.poller(p -> p.fixedDelay(1000)))
@@ -256,6 +257,7 @@ public class MailTests {
 									.put("mail.imap.connectionpoolsize", "5"))
 							.shouldReconnectAutomatically(false)
 							.simpleContent(true)
+							.selector(message -> message.getSubject().equals("Test Email"))
 							.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();

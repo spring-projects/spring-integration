@@ -97,6 +97,9 @@ public class MockMessageSourceTests {
 
 		this.mockIntegrationContext.resetBeans("mySourceEndpoint");
 
+		// Discard any stray "baz" the repeating mock source produced before it was reset above.
+		this.results.purge(null);
+
 		this.mockIntegrationContext.substituteTriggerFor("mySourceEndpoint", new OnlyOnceTrigger());
 
 		receive = this.results.receive(10_000);

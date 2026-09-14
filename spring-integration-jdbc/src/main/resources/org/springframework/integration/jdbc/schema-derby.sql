@@ -1,3 +1,6 @@
+-- DEPRECATED since 7.2: Apache Derby is retired and this script is scheduled for removal.
+-- Prefer schema-h2.sql, schema-hsqldb.sql, or a currently supported database.
+
 CREATE TABLE INT_MESSAGE  (
 	MESSAGE_ID CHAR(36) NOT NULL,
 	REGION VARCHAR(100) NOT NULL,

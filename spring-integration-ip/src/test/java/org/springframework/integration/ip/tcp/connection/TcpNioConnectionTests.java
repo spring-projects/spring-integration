@@ -49,6 +49,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -106,6 +107,7 @@ import static org.mockito.Mockito.when;
  * @author John Anderson
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Burak Kalayci
  *
  * @since 2.0
  *
@@ -140,6 +142,7 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+		Message<byte[]> message = MessageBuilder.withPayload(new byte[1000000]).build();
 		TcpNioClientConnectionFactory factory =
 				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setLookupHost(true);
@@ -149,11 +152,13 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				connectionId.set(tcpConnectionOpenEvent.getConnectionId());
 			}
 		});
-		factory.setSoTimeout(100);
+		// Has to cover the set up of this test as well:
+		// an idle connection is reaped 'soTimeout' after it is created
+		factory.setSoTimeout(1000);
 		factory.start();
 		try {
 			TcpConnection connection = factory.getConnection();
-			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
+			connection.send(message);
 		}
 		catch (MessagingException e) {
 			assertThat(e).hasCauseInstanceOf(SocketTimeoutException.class);
@@ -187,13 +192,16 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 			}
 		});
 		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+		Message<String> message = new GenericMessage<>("Test");
 		TcpNioClientConnectionFactory factory =
 				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
-		factory.setSoTimeout(100);
+		// Has to cover the set up of this test as well:
+		// an idle connection is reaped 'soTimeout' after it is created
+		factory.setSoTimeout(1000);
 		factory.start();
 		TcpConnection connection = factory.getConnection();
-		connection.send(new GenericMessage<>("Test"));
+		connection.send(message);
 		with().pollInterval(Duration.ofMillis(10))
 				.await()
 				.atMost(Duration.ofSeconds(10))
@@ -899,6 +907,27 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 		assertThat(delayReadLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(reeReference.get()).isNotNull();
 		threadPoolExecutor.shutdown();
+	}
+
+	@Test
+	public void stopClearsActiveFlagBeforeClosingSelector() throws IOException {
+		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
+		factory.setApplicationEventPublisher(this.nullPublisher);
+		factory.start();
+		await().until(() -> TestUtils.getPropertyValue(factory, "selector") != null);
+		Selector realSelector = (Selector) TestUtils.getPropertyValue(factory, "selector");
+		AtomicBoolean activeWhenSelectorClosed = new AtomicBoolean();
+		Selector trackingSelector = spy(realSelector);
+		doAnswer(invocation -> {
+			activeWhenSelectorClosed.set(factory.isActive());
+			realSelector.close();
+			return null;
+		}).when(trackingSelector).close();
+		new DirectFieldAccessor(factory).setPropertyValue("selector", trackingSelector);
+		factory.stop();
+		assertThat(activeWhenSelectorClosed.get())
+				.as("active must be false before the NIO selector is closed on stop()")
+				.isFalse();
 	}
 
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {

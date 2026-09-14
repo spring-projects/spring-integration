@@ -23,7 +23,9 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Adama Sorho
  *
  * @since 2.2
+ * @deprecated since 7.2 for removal, as Apache Derby is retired.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 public class DerbyChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	@Override

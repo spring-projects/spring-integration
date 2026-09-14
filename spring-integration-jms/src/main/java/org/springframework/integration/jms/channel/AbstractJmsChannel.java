@@ -24,6 +24,7 @@ import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.DynamicJmsTemplateProperties;
 import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessagingMessageConverter;
 import org.springframework.messaging.Message;
@@ -93,10 +94,18 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 		return true;
 	}
 
+	/**
+	 * Convert {@link jakarta.jms.Message} to a Spring {@link Message}.
+	 * @return Spring {@link Message}
+	 * @throws MessageConversionException if the converter returns {@code null}.
+	 */
 	protected Message<?> fromJmsMessage(jakarta.jms.Message message) {
 		MessageConverter converter = this.jmsTemplate.getMessageConverter();
 		try {
 			Object converted = converter.fromMessage(message);
+			if (converted == null) {
+				throw new MessageConversionException("Message converter returned null for: " + message);
+			}
 			Message<?> messageToSend;
 			if (converted instanceof Message<?> convertedMessage) {
 				messageToSend = convertedMessage;

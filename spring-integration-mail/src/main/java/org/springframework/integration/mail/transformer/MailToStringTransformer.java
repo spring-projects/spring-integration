@@ -19,6 +19,7 @@ package org.springframework.integration.mail.transformer;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 
+import jakarta.mail.Message;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 
@@ -52,7 +53,7 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<String> doTransform(jakarta.mail.Message mailMessage) {
+	protected AbstractIntegrationMessageBuilder<String> doTransform(Message mailMessage) {
 		try {
 			String payload;
 			Object content = mailMessage.getContent();

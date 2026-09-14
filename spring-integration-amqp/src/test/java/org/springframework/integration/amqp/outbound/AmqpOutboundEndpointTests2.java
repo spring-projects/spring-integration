@@ -43,6 +43,7 @@ import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -50,6 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Gary Russell
@@ -138,9 +140,13 @@ public class AmqpOutboundEndpointTests2 implements RabbitTestContainer {
 		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
 		String queueName = queue.getName();
 		simpleConfirmsAdmin.declareQueue(queue);
-		GenericMessage<String> message = new GenericMessage<>("test", Collections.singletonMap("rk", queueName));
 		try {
+			Message<String> message = new GenericMessage<>("test", Collections.singletonMap("rk", queueName));
 			simpleConfirmsFlow.getInputChannel().send(message);
+
+			await().untilAsserted(() ->
+					assertThat(simpleConfirmsAdmin.getQueueInfo(queueName).getMessageCount()).isEqualTo(1));
+
 			assertThatThrownBy(() -> simpleConfirmsFlow.getInputChannel().send(message))
 					.hasCauseInstanceOf(AmqpIOException.class);
 		}

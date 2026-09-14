@@ -34,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -107,7 +108,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		JivePropertiesManager.addProperty(message, "foo", "foo");
 		JivePropertiesManager.addProperty(message, "bar", "bar");
 		stanzaListener.processStanza(message.build());
-		org.springframework.messaging.Message<?> siMessage = xmppInbound.receive(0);
+		Message<?> siMessage = xmppInbound.receive(0);
 		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
 		assertThat(siMessage.getHeaders().get("xmpp_to")).isEqualTo("oleg");
 	}

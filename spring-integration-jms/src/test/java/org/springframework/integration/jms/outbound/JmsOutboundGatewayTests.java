@@ -38,6 +38,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.jms.StubConnection;
 import org.springframework.integration.jms.outbound.JmsOutboundGateway.ReplyContainerProperties;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
@@ -46,11 +47,15 @@ import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.jms.support.converter.MessageConversionException;
+import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ObjectUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -153,6 +158,28 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implement
 			exec.shutdownNow();
 			taskScheduler.destroy();
 		}
+	}
+
+	@Test
+	public void nullPayloadFromConverterThrowsMessageConversionException() throws Exception {
+		JmsOutboundGateway gateway = new JmsOutboundGateway();
+		ConnectionFactory connectionFactory = mock();
+		gateway.setConnectionFactory(connectionFactory);
+		gateway.setRequestDestinationName("testDestination");
+		gateway.setReplyDestinationName("testReplyDestination");
+		gateway.setCorrelationKey("JMSCorrelationID");
+		MessageConverter messageConverter = mock();
+		when(messageConverter.toMessage(any(), any())).thenReturn(mock());
+		gateway.setMessageConverter(messageConverter);
+		gateway.setBeanFactory(mock());
+
+		Connection connection = new StubConnection("reply");
+		when(connectionFactory.createConnection()).thenReturn(connection);
+
+		// A JMS reply converted to a null payload is a conversion failure, not a discarded reply.
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test request")))
+				.withRootCauseInstanceOf(MessageConversionException.class);
 	}
 
 	@Test

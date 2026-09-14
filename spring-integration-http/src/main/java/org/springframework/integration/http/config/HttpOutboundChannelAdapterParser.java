@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Arun Sethumadhavan
+ * @author Burak Kalayci
  *
  * @since 2.0
  */
@@ -100,10 +101,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(restClientRef));
 		}
 		else {
-			for (String referenceAttributeName : HttpAdapterParsingUtils.LOCAL_CLIENT_REFERENCE_ATTRIBUTES) {
-				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
-			}
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
+			HttpAdapterParsingUtils.configureLocalClientAttributes(builder, element);
 		}
 		return builder;
 	}

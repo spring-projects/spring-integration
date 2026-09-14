@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
 
 import org.springframework.integration.hazelcast.HazelcastIntegrationTestUser;
@@ -167,7 +168,7 @@ public final class HazelcastOutboundChannelAdapterTestUtils {
 				private int index = 1;
 
 				@Override
-				public void onMessage(com.hazelcast.topic.Message message) {
+				public void onMessage(Message message) {
 					HazelcastIntegrationTestUser user =
 							(HazelcastIntegrationTestUser) message.getMessageObject();
 					verifyHazelcastIntegrationTestUser(user, index);

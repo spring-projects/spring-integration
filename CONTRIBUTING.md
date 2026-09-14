@@ -337,7 +337,9 @@ and an unsynchronized `remove()` from another thread can corrupt the `HashSet` i
 **Auto-cherry-pick to `7.0.x`**
 ```
 
-NOTE: The `Auto-cherry-pick to` sentence is usually done by project committers for deliberatelly clean cherry-picked commits.
+NOTE: The `Auto-cherry-pick to` sentence is usually done by project committers for deliberately clean cherry-picked commits.
 Might be applied on merge after review.
+
+NOTE: The code snippets (especially, Java annotations) in the commit message must be wrapped with back-ticks for better readability and to avoid inviting GitHub users via its mentioning (`@`) mechanism.
 
 Please, follow Chris Beams' recommendations in regard to the good commit message: [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit).

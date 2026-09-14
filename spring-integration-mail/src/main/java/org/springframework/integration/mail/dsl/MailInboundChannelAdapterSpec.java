@@ -20,9 +20,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import jakarta.mail.Authenticator;
+import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.jspecify.annotations.Nullable;
@@ -35,6 +35,7 @@ import org.springframework.integration.mail.inbound.AbstractMailReceiver;
 import org.springframework.integration.mail.inbound.MailReceivingMessageSource;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.PropertiesBuilder;
+import org.springframework.integration.util.CheckedFunction;
 import org.springframework.util.Assert;
 
 /**
@@ -46,6 +47,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Amlan Mishra
  *
  * @since 5.0
  */
@@ -101,16 +103,16 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 	}
 
 	/**
-	 * Configure a {@link Function} to select messages. The argument for the function
+	 * Configure a {@link CheckedFunction} to select messages. The argument for the function
 	 * is a {@link jakarta.mail.internet.MimeMessage}; {@code apply} returns a boolean
 	 * result (true means select the message).
 	 * @param selectorFunction the selectorFunction.
 	 * @return the spec.
 	 * @see FunctionExpression
 	 */
-	public S selector(Function<MimeMessage, Boolean> selectorFunction) {
+	public S selector(CheckedFunction<MimeMessage, Boolean, MessagingException> selectorFunction) {
 		assertReceiver();
-		this.receiver.setSelectorExpression(new FunctionExpression<>(selectorFunction));
+		this.receiver.setSelectorExpression(new FunctionExpression<>(selectorFunction.unchecked()));
 		return _this();
 	}
 

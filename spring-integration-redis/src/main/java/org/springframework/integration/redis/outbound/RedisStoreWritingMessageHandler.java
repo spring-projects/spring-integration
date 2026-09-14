@@ -344,8 +344,9 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 				});
 			}
 			else if (payload instanceof Collection<?>) {
+				Collection<Object> payloadAsCollection = (Collection<Object>) payload;
 				processInPipeline(() -> {
-					for (Object object : ((Collection<?>) payload)) {
+					for (Object object : payloadAsCollection) {
 						incrementOrOverwrite(ops, object, determineScore(message), zsetIncrementHeader);
 					}
 				});
