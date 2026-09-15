@@ -32,7 +32,6 @@ import org.springframework.util.MimeTypeUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -52,7 +51,7 @@ public class AmqpClientInboundGatewayUnitTests {
 				new AmqpClientInboundGateway(connectionFactory, "testQueue");
 
 		RabbitAmqpTemplate replyTemplate = mock();
-		given(replyTemplate.send(anyString(), any(org.springframework.amqp.core.Message.class)))
+		given(replyTemplate.send(any(), any()))
 				.willReturn(CompletableFuture.completedFuture(true));
 		new DirectFieldAccessor(amqpClientInboundGateway).setPropertyValue("replyTemplate", replyTemplate);
 
