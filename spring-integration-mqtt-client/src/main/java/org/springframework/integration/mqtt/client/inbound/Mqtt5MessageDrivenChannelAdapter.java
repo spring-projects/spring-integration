@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
-import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
@@ -47,8 +46,7 @@ import org.springframework.util.Assert;
  *
  * @since 7.2
  */
-public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt5Client>
-		implements MqttClientConnectedListener {
+public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt5Client> {
 
 	private HeaderMapper<Mqtt5Publish> headerMapper = new Mqtt5HeaderMapper();
 
@@ -107,16 +105,6 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		if (this.isConnected() && !this.isSubscribed.getAndSet(true)) {
 			subscribe();
 		}
-	}
-
-	@Override
-	protected void doStop() {
-		super.doStop();
-	}
-
-	@Override
-	public void onConnected(MqttClientConnectedContext context) {
-		onClientConnected(context);
 	}
 
 	@Override
@@ -189,12 +177,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			message = new GenericMessage<>(convertedPayload, headers);
 		}
 
-		try {
-			sendMessage(message);
-		}
-		catch (RuntimeException ex) {
-			sendErrorMessageIfNecessary(message, ex);
-		}
+		sendMessage(message);
 	}
 
 }

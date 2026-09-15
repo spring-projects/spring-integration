@@ -85,7 +85,7 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 			}
 		}
 		catch (RuntimeException ex) {
-			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error("Could not start client manager.", ex);
 		}
 		finally {
@@ -111,7 +111,7 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 
 	@Override
 	public void onConnected(MqttClientConnectedContext context) {
-		connectCallbacks.forEach(connectCallback -> connectCallback.onClientConnected(context));
+		this.connectCallbacks.forEach(connectCallback -> connectCallback.onClientConnected(context));
 	}
 
 }

@@ -72,7 +72,7 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 			}
 		}
 		catch (RuntimeException ex) {
-			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error("Could not start client manager", ex);
 		}
 		finally {
@@ -98,7 +98,7 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 
 	@Override
 	public void onConnected(MqttClientConnectedContext context) {
-		connectCallbacks.forEach(connectCallback -> connectCallback.onClientConnected(context));
+		this.connectCallbacks.forEach(connectCallback -> connectCallback.onClientConnected(context));
 	}
 
 }

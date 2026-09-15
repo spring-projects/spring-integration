@@ -141,7 +141,6 @@ class Mqtt5MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
 		// When
 		Message<?> petDeviceMessage = petDeviceOutputChannel.receive(10000);
 		// Then
-		// manual ack
 		assertThat(petDeviceMessage)
 				.returns("pet-payload-1".getBytes(), Message::getPayload)
 				.extracting(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK))

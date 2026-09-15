@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
-import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe;
@@ -43,8 +42,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @since 7.2
  */
-public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt3Client>
-		implements MqttClientConnectedListener {
+public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt3Client> {
 
 	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, String topic) {
 		super(mqttClientManager, topic);
@@ -57,16 +55,6 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		if (this.isConnected() && !this.isSubscribed.getAndSet(true)) {
 			subscribe();
 		}
-	}
-
-	@Override
-	protected void doStop() {
-		super.doStop();
-	}
-
-	@Override
-	public void onConnected(MqttClientConnectedContext context) {
-		onClientConnected(context);
 	}
 
 	@Override
@@ -135,12 +123,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			message = new GenericMessage<>(convertedPayload, headers);
 		}
 
-		try {
-			sendMessage(message);
-		}
-		catch (RuntimeException ex) {
-			sendErrorMessageIfNecessary(message, ex);
-		}
+		sendMessage(message);
 	}
 
 }
