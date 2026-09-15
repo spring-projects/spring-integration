@@ -102,6 +102,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Steven Pearce
  * @author Patryk Ziobron
+ * @author Rene Choi
  *
  * @since 7.0
  */
@@ -333,27 +334,37 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	@Override
 	public void start() {
-		if (!this.running.getAndSet(true)) {
-			if (this.directoryExpression instanceof ValueExpression) {
-				File directoryToCreate = this.directoryExpression.getValue(File.class);
-				if (directoryToCreate == null ||
-						(!directoryToCreate.exists() && this.autoCreateDirectory && !directoryToCreate.mkdirs())) {
+		if (this.running.compareAndSet(false, true)) {
+			try {
+				doStart();
+			}
+			catch (RuntimeException ex) {
+				this.running.set(false);
+				throw ex;
+			}
+		}
+	}
 
-					throw new IllegalStateException("Cannot create directory or its parents: " + directoryToCreate);
-				}
-				Assert.isTrue(directoryToCreate.exists(),
-						() -> "Source directory [" + directoryToCreate + "] does not exist.");
-				Assert.isTrue(directoryToCreate.isDirectory(),
-						() -> "Source path [" + directoryToCreate + "] does not point to a directory.");
-				Assert.isTrue(directoryToCreate.canRead(),
-						() -> "Source directory [" + directoryToCreate + "] is not readable.");
-				if (this.scanner instanceof WatchServiceDirectoryScanner watchServiceDirectoryScanner) {
-					watchServiceDirectoryScanner.directory = directoryToCreate;
-				}
+	private void doStart() {
+		if (this.directoryExpression instanceof ValueExpression) {
+			File directoryToCreate = this.directoryExpression.getValue(File.class);
+			if (directoryToCreate == null ||
+					(!directoryToCreate.exists() && this.autoCreateDirectory && !directoryToCreate.mkdirs())) {
+
+				throw new IllegalStateException("Cannot create directory or its parents: " + directoryToCreate);
 			}
-			if (this.scanner instanceof Lifecycle lifecycle) {
-				lifecycle.start();
+			Assert.isTrue(directoryToCreate.exists(),
+					() -> "Source directory [" + directoryToCreate + "] does not exist.");
+			Assert.isTrue(directoryToCreate.isDirectory(),
+					() -> "Source path [" + directoryToCreate + "] does not point to a directory.");
+			Assert.isTrue(directoryToCreate.canRead(),
+					() -> "Source directory [" + directoryToCreate + "] is not readable.");
+			if (this.scanner instanceof WatchServiceDirectoryScanner watchServiceDirectoryScanner) {
+				watchServiceDirectoryScanner.directory = directoryToCreate;
 			}
+		}
+		if (this.scanner instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 

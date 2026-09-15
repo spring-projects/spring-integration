@@ -23,6 +23,7 @@ import java.util.Comparator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileLocker;
@@ -31,6 +32,7 @@ import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,6 +44,7 @@ import static org.mockito.Mockito.when;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rene Choi
  */
 class FileReadingMessageSourceTests implements TestApplicationContextAware {
 
@@ -162,6 +165,33 @@ class FileReadingMessageSourceTests implements TestApplicationContextAware {
 		assertThat(source.receive().getPayload()).isSameAs(file1);
 		assertThat(source.receive()).isNull();
 		verify(inputDirectoryMock, times(2)).listFiles();
+	}
+
+	@Test
+	public void startIsRetriedAfterDirectoryCreationFailure(@TempDir File tempDir) throws IOException {
+		File blocker = new File(tempDir, "blocker");
+		assertThat(blocker.createNewFile()).isTrue();
+		File inputDirectory = new File(blocker, "input");
+
+		FileReadingMessageSource testSource = new FileReadingMessageSource();
+		testSource.setDirectory(inputDirectory);
+		testSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		testSource.afterPropertiesSet();
+
+		assertThatIllegalStateException()
+				.isThrownBy(testSource::start)
+				.withMessageContaining("Cannot create directory or its parents");
+
+		assertThat(testSource.isRunning()).isFalse();
+
+		assertThat(blocker.delete()).isTrue();
+
+		testSource.start();
+
+		assertThat(testSource.isRunning()).isTrue();
+		assertThat(inputDirectory).isDirectory();
+
+		testSource.stop();
 	}
 
 }
