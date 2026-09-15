@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpMessageListener;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.util.MimeTypeUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Kumar Gaurav
  *
- * @since 7.2
+ * @since 7.0.7
  */
 public class AmqpClientInboundGatewayUnitTests {
 
@@ -57,7 +57,7 @@ public class AmqpClientInboundGatewayUnitTests {
 		new DirectFieldAccessor(amqpClientInboundGateway).setPropertyValue("replyTemplate", replyTemplate);
 
 		DirectChannel requestChannel = new DirectChannel();
-		requestChannel.subscribe(new MessageTransformingHandler(message -> message));
+		requestChannel.subscribe(new BridgeHandler());
 
 		amqpClientInboundGateway.setRequestChannel(requestChannel);
 		amqpClientInboundGateway.setBeanFactory(mock());
@@ -73,8 +73,7 @@ public class AmqpClientInboundGatewayUnitTests {
 				TestUtils.getPropertyValue(amqpClientInboundGateway, "listenerContainer.messageListener");
 		messageListener.onAmqpMessage(amqpMessage, null);
 
-		ArgumentCaptor<org.springframework.amqp.core.Message> replyMessageCaptor =
-				ArgumentCaptor.forClass(org.springframework.amqp.core.Message.class);
+		ArgumentCaptor<org.springframework.amqp.core.Message> replyMessageCaptor = ArgumentCaptor.captor();
 		verify(replyTemplate).send(eq("queues/reply%20queue"), replyMessageCaptor.capture());
 
 		org.springframework.amqp.core.Message replyMessage = replyMessageCaptor.getValue();

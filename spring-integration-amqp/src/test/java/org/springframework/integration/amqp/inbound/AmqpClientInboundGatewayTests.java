@@ -151,18 +151,15 @@ public class AmqpClientInboundGatewayTests implements RabbitTestContainer {
 		}
 
 		@Bean
-		AmqpClientInboundGateway noConverterAmqpClientInboundGateway(AmqpConnectionFactory connectionFactory) {
+		AmqpClientInboundGateway replyQueueWithSpaceAmqpClientInboundGateway(AmqpConnectionFactory connectionFactory) {
 			AmqpClientInboundGateway amqpClientInboundGateway = new AmqpClientInboundGateway(connectionFactory, "q3");
-			amqpClientInboundGateway.setRequestChannelName("rawInputChannel");
-			amqpClientInboundGateway.setMessageConverter(null);
+			amqpClientInboundGateway.setRequestChannelName("q3InputChannel");
 			return amqpClientInboundGateway;
 		}
 
-		@ServiceActivator(inputChannel = "rawInputChannel")
-		Message toUpperCaseRaw(Message message) {
-			return MessageBuilder.withBody(new String(message.getBody()).toUpperCase().getBytes())
-					.setContentType(MimeTypeUtils.TEXT_PLAIN_VALUE)
-					.build();
+		@ServiceActivator(inputChannel = "q3InputChannel")
+		String toUpperCaseForQ3(String body) {
+			return body.toUpperCase();
 		}
 
 		@Bean
