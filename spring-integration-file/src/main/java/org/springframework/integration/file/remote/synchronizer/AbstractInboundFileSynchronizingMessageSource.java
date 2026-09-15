@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Venil Noronha
+ * @author Rene Choi
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		extends AbstractFetchLimitingMessageSource<File>
@@ -232,7 +233,13 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	@Override
 	public void start() {
 		this.running = true;
-		this.fileSource.start();
+		try {
+			this.fileSource.start();
+		}
+		catch (RuntimeException ex) {
+			this.running = false;
+			throw ex;
+		}
 	}
 
 	@Override
