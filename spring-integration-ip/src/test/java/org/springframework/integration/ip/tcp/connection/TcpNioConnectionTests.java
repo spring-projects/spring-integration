@@ -930,6 +930,29 @@ public class TcpNioConnectionTests implements TestApplicationContextAware {
 				.isFalse();
 	}
 
+	@Test
+	public void serverStopClearsActiveFlagBeforeClosingSelector() throws IOException {
+		TcpNioServerConnectionFactory factory = newTcpNioServerConnectionFactory();
+		factory.setApplicationEventPublisher(this.nullPublisher);
+		factory.registerListener(message -> {
+		});
+		factory.start();
+		await().until(() -> TestUtils.getPropertyValue(factory, "selector") != null);
+		Selector realSelector = (Selector) TestUtils.getPropertyValue(factory, "selector");
+		AtomicBoolean activeWhenSelectorClosed = new AtomicBoolean();
+		Selector trackingSelector = spy(realSelector);
+		doAnswer(invocation -> {
+			activeWhenSelectorClosed.set(factory.isActive());
+			realSelector.close();
+			return null;
+		}).when(trackingSelector).close();
+		new DirectFieldAccessor(factory).setPropertyValue("selector", trackingSelector);
+		factory.stop();
+		assertThat(activeWhenSelectorClosed.get())
+				.as("active must be false before the NIO selector is closed on stop()")
+				.isFalse();
+	}
+
 	private static void testMulti(boolean multiAccept) throws InterruptedException, IOException {
 		CountDownLatch serverReadyLatch = new CountDownLatch(1);
 		CountDownLatch latch = new CountDownLatch(21);
