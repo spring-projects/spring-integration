@@ -69,7 +69,8 @@ public class AmqpClientInboundGatewayUnitTests {
 		given(amqpMessage.replyTo()).willReturn("/queues/reply%20queue");
 
 		RabbitAmqpMessageListener messageListener =
-				TestUtils.getPropertyValue(amqpClientInboundGateway, "listenerContainer.messageListener");
+				TestUtils.getPropertyValue(amqpClientInboundGateway, "listenerContainer.messageListener",
+						RabbitAmqpMessageListener.class);
 		messageListener.onAmqpMessage(amqpMessage, null);
 
 		ArgumentCaptor<org.springframework.amqp.core.Message> replyMessageCaptor = ArgumentCaptor.captor();
