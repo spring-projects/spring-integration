@@ -313,7 +313,7 @@ public class IntegrationGraphServerTests {
 		@Bean
 		public ObservationRegistry observationRegistry(MeterRegistry meterRegistry) {
 			ObservationRegistry registry = ObservationRegistry.create();
-			registry.observationConfig().observationHandler(new DefaultMeterObservationHandler(meterRegistry));
+			registry.observationConfig().observationHandler(DefaultMeterObservationHandler.builder(meterRegistry).build());
 			return registry;
 		}
 
