@@ -13,7 +13,7 @@ springWsVersion = "5.1.0-SNAPSHOT"
 
 # Third-party dependencies
 apacheSshdVersion = "2.19.0"
-artemisVersion = "2.55.0"
+artemisVersion = "2.57.0"
 aspectjVersion = "1.9.25.1"
 assertjVersion = "3.27.7"
 assertkVersion = "0.28.1"
