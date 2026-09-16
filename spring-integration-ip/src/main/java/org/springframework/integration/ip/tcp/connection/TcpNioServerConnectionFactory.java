@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Burak Kalayci
  *
  * @since 2.0
  *
@@ -295,6 +296,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	@Override
 	public void stop() {
+		setActive(false);
 		Selector selectorToClose = this.selector;
 		if (selectorToClose != null) {
 			try {

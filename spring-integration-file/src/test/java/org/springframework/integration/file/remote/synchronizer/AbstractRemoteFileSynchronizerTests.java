@@ -50,6 +50,7 @@ import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -59,6 +60,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Venil Noronha
  * @author Glenn Renfro
+ * @author Rene Choi
  *
  * @since 4.0.4
  *
@@ -301,6 +303,33 @@ public class AbstractRemoteFileSynchronizerTests implements TestApplicationConte
 				.forEach(System.out::println);*/
 
 		assertThat(localDir.list()).contains("dir1", "dir2");
+	}
+
+	@Test
+	public void startIsRetriedWhenLocalDirectoryIsNotUsable(@TempDir File tempDir) throws IOException {
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(new AtomicInteger());
+		File localDirectory = new File(tempDir, "local");
+		source.setLocalDirectory(localDirectory);
+		source.afterPropertiesSet();
+
+		// The local directory is replaced by a regular file after the initialization.
+		assertThat(localDirectory.delete()).isTrue();
+		assertThat(localDirectory.createNewFile()).isTrue();
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(source::start)
+				.withMessageContaining("does not point to a directory");
+
+		assertThat(source.isRunning()).isFalse();
+
+		assertThat(localDirectory.delete()).isTrue();
+
+		source.start();
+
+		assertThat(source.isRunning()).isTrue();
+		assertThat(localDirectory).isDirectory();
+
+		source.stop();
 	}
 
 	@Test

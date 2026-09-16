@@ -31,7 +31,8 @@ import jakarta.jms.Queue;
 import jakarta.jms.Session;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
-import org.junit.jupiter.api.Disabled;
+import org.jivesoftware.smack.packet.StanzaFactory;
+import org.jivesoftware.smack.packet.id.UuidStanzaIdSource;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -137,9 +138,8 @@ public class UriVariableTests {
 		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20%26%20test2");
 	}
 
-	@Disabled("Until SF for URL parser")
 	@Test
-	public void testInt2720JmsUriVariables() throws JMSException, IOException {
+	public void testJmsUriVariables() throws JMSException, IOException {
 		final String destinationName = "SPRING.INTEGRATION.QUEUE";
 
 		Queue queue = Mockito.mock(Queue.class);
@@ -206,20 +206,20 @@ public class UriVariableTests {
 	}
 
 	@Test
-	public void testInt2720XmppUriVariables() throws Exception {
+	public void testXmppUriVariables() throws Exception {
+		Mockito.when(this.xmppConnection.getStanzaFactory())
+				.thenReturn(new StanzaFactory(UuidStanzaIdSource.INSTANCE));
 
 		willThrow(new WebServiceIOException("intentional"))
 				.given(this.xmppConnection).sendStanza(Mockito.any(Stanza.class));
 
 		Message<?> message = MessageBuilder.withPayload("<spring/>").setHeader("to", "user").build();
-		try {
-			this.inputXmpp.send(message);
-		}
-		catch (MessageHandlingException e) {
-			// expected
-			Class<?> causeType = e.getCause().getClass();
-			assertThat(WebServiceIOException.class.equals(causeType)).isTrue(); // offline
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.inputXmpp.send(message))
+				.havingCause()
+				.isInstanceOf(WebServiceIOException.class)
+				.withMessage("intentional");
 
 		ArgumentCaptor<Stanza> argument = ArgumentCaptor.forClass(Stanza.class);
 		Mockito.verify(this.xmppConnection).sendStanza(argument.capture());
