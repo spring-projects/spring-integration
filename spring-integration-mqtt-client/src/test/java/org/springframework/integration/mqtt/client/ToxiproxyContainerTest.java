@@ -40,7 +40,7 @@ public interface ToxiproxyContainerTest {
 	ToxiproxyContainer PROXY_CONTAINER = new ToxiproxyContainer("ghcr.io/shopify/toxiproxy:2.12.0")
 			.withNetwork(NETWORK);
 
-	int PROXY_PORT_FOR_HIVEMQ = 8666;
+	int PROXY_PORT_FOR_MQTT = 8666;
 
 	@BeforeAll
 	static void startContainer() {

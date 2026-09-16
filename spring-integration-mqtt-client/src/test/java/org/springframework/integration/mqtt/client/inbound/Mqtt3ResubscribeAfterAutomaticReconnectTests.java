@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.mqtt.client.HiveMQContainerTest;
+import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.ToxiproxyContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt3ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainerTest, ToxiproxyContainerTest {
+class Mqtt3ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest, ToxiproxyContainerTest {
 
 	static final String TOPIC = "topic-for-mqtt-v3-automatic-reconnect";
 
@@ -72,13 +72,13 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainerTes
 	@BeforeAll
 	static void setup() throws IOException {
 		var proxyClient = new ToxiproxyClient(PROXY_CONTAINER.getHost(), PROXY_CONTAINER.getControlPort());
-		toxiproxy = proxyClient.createProxy("hivemqProxy", "0.0.0.0:" + PROXY_PORT_FOR_HIVEMQ, "hivemq-broker:" + HIVEMQ_PORT);
+		toxiproxy = proxyClient.createProxy("hivemqProxy", "0.0.0.0:" + PROXY_PORT_FOR_MQTT, "hivemq-broker:" + MQTT_PORT);
 		toxiproxy.enable();
 
 		mqtt3TestClient = Mqtt3Client.builder()
 				.identifier("mqtt3-reconnect-test-client")
 				.serverHost(PROXY_CONTAINER.getHost())
-				.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_HIVEMQ))
+				.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_MQTT))
 				.buildBlocking();
 		mqtt3TestClient.connect();
 	}
@@ -126,13 +126,15 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements HiveMQContainerTes
 		Mqtt3ClientManager mqtt3ClientManager() {
 			var mqtt3ClientManager = new Mqtt3ClientManager(Mqtt3Client.builder()
 					.serverHost(PROXY_CONTAINER.getHost())
-					.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_HIVEMQ))
+					.serverPort(PROXY_CONTAINER.getMappedPort(PROXY_PORT_FOR_MQTT))
 					.automaticReconnect()
 					.initialDelay(1, TimeUnit.SECONDS)
 					.maxDelay(2, TimeUnit.SECONDS)
 					.applyAutomaticReconnect()
 					.addConnectedListener(ctx -> connectedLatches.countDown())
-					.addDisconnectedListener(ctx -> disconnectedLatch.countDown()));
+					.addDisconnectedListener(ctx -> disconnectedLatch.countDown())
+					.build()
+					.getConfig());
 			mqtt3ClientManager.setMqttConnect(new Mqtt3ConnectViewBuilder.Default()
 					.cleanSession(true) // looks even cleanStart is true, resubscribe can automatic happens after reconnect.
 					.build());

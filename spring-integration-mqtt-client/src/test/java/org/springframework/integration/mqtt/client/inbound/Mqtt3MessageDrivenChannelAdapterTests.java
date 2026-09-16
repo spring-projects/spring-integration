@@ -36,7 +36,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.mqtt.client.HiveMQContainerTest;
+import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt3ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
@@ -54,7 +54,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt3MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
+class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	static final String CAR_DEVICE_TOPIC_WILDCARD = "mqtt-v3-inbound-car-device/#";
 
@@ -80,8 +80,8 @@ class Mqtt3MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
 	static void setUp() {
 		mqtt3TestClient = Mqtt3Client.builder()
 				.identifier("mqtt5-test-client")
-				.serverHost(HIVEMQ_CONTAINER.getHost())
-				.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort())
+				.serverHost(MQTT_CONTAINER.getHost())
+				.serverPort(MQTT_CONTAINER.getFirstMappedPort())
 				.buildBlocking();
 		mqtt3TestClient.connect();
 	}
@@ -146,8 +146,10 @@ class Mqtt3MessageDrivenChannelAdapterTests implements HiveMQContainerTest {
 		@Bean
 		Mqtt3ClientManager mqtt3ClientManager() {
 			return new Mqtt3ClientManager(Mqtt3Client.builder()
-					.serverHost(HIVEMQ_CONTAINER.getHost())
-					.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort()));
+					.serverHost(MQTT_CONTAINER.getHost())
+					.serverPort(MQTT_CONTAINER.getFirstMappedPort())
+					.build()
+					.getConfig());
 		}
 
 		@Bean

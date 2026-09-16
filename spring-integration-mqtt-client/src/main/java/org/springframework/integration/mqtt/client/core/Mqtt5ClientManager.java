@@ -21,12 +21,11 @@ import com.hivemq.client.internal.mqtt.message.disconnect.MqttDisconnect;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5ClientBuilder;
+import com.hivemq.client.mqtt.mqtt5.Mqtt5ClientConfig;
 import com.hivemq.client.mqtt.mqtt5.message.connect.Mqtt5Connect;
 import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 
 import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.client.support.MqttClientBuilderHelper;
 import org.springframework.util.Assert;
 
 /**
@@ -36,26 +35,27 @@ import org.springframework.util.Assert;
  *
  * @since 7.2
  */
-public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, Mqtt5ClientBuilder>
+public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, Mqtt5ClientConfig>
 		implements MqttClientConnectedListener {
 
 	private Mqtt5Connect mqttConnect = MqttConnect.DEFAULT;
 
 	private Mqtt5Disconnect mqttDisConnect = MqttDisconnect.DEFAULT;
 
-	@SuppressWarnings("this-escape")
-	public Mqtt5ClientManager(Mqtt5ClientBuilder mqttClientBuilder) {
-		super(mqttClientBuilder);
+	public Mqtt5ClientManager(Mqtt5ClientConfig mqtt5ClientConfig) {
+		super(mqtt5ClientConfig);
+	}
 
-		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)
-				.addConnectedListener(Mqtt5ClientManager.this)
+	@Override
+	protected Mqtt5Client buildClient(Mqtt5ClientConfig mqttClientConfig) {
+		return this.createBaseClientBuilder(mqttClientConfig)
+				.useMqttVersion5()
+				.advancedConfig(mqttClientConfig.getAdvancedConfig())
+				.willPublish(mqttClientConfig.getWillPublish().orElse(null))
+				.simpleAuth(mqttClientConfig.getSimpleAuth().orElse(null))
+				.enhancedAuth(mqttClientConfig.getEnhancedAuthMechanism().orElse(null))
+				.addConnectedListener(this)
 				.build();
-
-		if (this.mqttClient.getConfig().getAutomaticReconnect().isEmpty()) {
-			logger.info("If this `MqttClientManager` is used from message-driven channel adapters, " +
-					"it is recommended to enable 'automaticReconnect' when set the 'mqttClientBuilder'. " +
-					"Otherwise connection check and reconnect should be done manually.");
-		}
 	}
 
 	/**

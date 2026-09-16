@@ -23,7 +23,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.hivemq.client.mqtt.MqttClient;
-import com.hivemq.client.mqtt.MqttClientBuilderBase;
+import com.hivemq.client.mqtt.MqttClientBuilder;
+import com.hivemq.client.mqtt.MqttClientConfig;
+import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect;
+import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
+import com.hivemq.client.mqtt.lifecycle.MqttClientDisconnectedListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,19 +35,20 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Abstract class for MQTT client managers which can be a base for any common v3/v5 client manager implementation.
  * Contains some basic utility and implementation-agnostic fields and methods.
  *
  * @param <T> MQTT client type
- * @param <B> MQTT client builder
+ * @param <C> MQTT client config
  *
  * @author Jiandong Ma
  *
  * @since 7.2
  */
-public abstract class AbstractMqttClientManager<T extends MqttClient, B extends MqttClientBuilderBase<B>>
+public abstract class AbstractMqttClientManager<T extends MqttClient, C extends MqttClientConfig>
 		implements ClientManager<T>, ApplicationEventPublisherAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
@@ -54,16 +59,70 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, B extends 
 
 	protected final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 
-	protected final B mqttClientBuilder;
+	protected final C mqttClientConfig;
 
-	@SuppressWarnings("NullAway.Init")
-	protected T mqttClient;
+	protected final T mqttClient;
 
 	@SuppressWarnings("NullAway.Init")
 	protected ApplicationEventPublisher applicationEventPublisher;
 
-	protected AbstractMqttClientManager(B mqttClientBuilder) {
-		this.mqttClientBuilder = mqttClientBuilder;
+	@SuppressWarnings("this-escape")
+	protected AbstractMqttClientManager(C mqttClientConfig) {
+		this.mqttClientConfig = mqttClientConfig;
+		if (this.mqttClientConfig.getAutomaticReconnect().isEmpty()) {
+			this.logger.info("If this `ClientManager` is used from message-driven channel adapters, " +
+					"it is recommended to enable 'automaticReconnect' when set the 'mqttClientBuilder'. " +
+					"Otherwise connection check and reconnect should be done manually.");
+		}
+		this.mqttClient = buildClient(mqttClientConfig);
+	}
+
+	/**
+	 * Build the mqttClient using the supplied {@link MqttClientConfig}.
+	 * @param mqttClientConfig the mqttClientConfig
+	 * @return the mqttClient
+	 */
+	protected abstract T buildClient(C mqttClientConfig);
+
+	/**
+	 * Create a base {@link MqttClientBuilder} populated with the supplied {@link MqttClientConfig}.
+	 * @param inputConfig the MqttClientConfig
+	 * @return the MqttClientBuilder
+	 */
+	protected MqttClientBuilder createBaseClientBuilder(MqttClientConfig inputConfig) {
+		MqttClientBuilder builder = MqttClient.builder();
+
+		if (inputConfig.getClientIdentifier().isPresent()) {
+			builder = builder.identifier(inputConfig.getClientIdentifier().get());
+		}
+
+		builder = builder
+				.serverAddress(inputConfig.getServerAddress())
+				.serverHost(inputConfig.getServerHost())
+				.serverPort(inputConfig.getServerPort())
+				.sslConfig(inputConfig.getSslConfig().orElse(null))
+				.webSocketConfig(inputConfig.getWebSocketConfig().orElse(null))
+				.transportConfig(inputConfig.getTransportConfig())
+				.executorConfig(inputConfig.getExecutorConfig())
+				// automaticReconnect(if any) will be auto registered in disconnectedListener.
+				// so have to skip appending this in the new built disconnectedListener list
+				.automaticReconnect(inputConfig.getAutomaticReconnect().orElse(null));
+
+		if (!CollectionUtils.isEmpty(inputConfig.getConnectedListeners())) {
+			for (MqttClientConnectedListener connectedListener : inputConfig.getConnectedListeners()) {
+				builder = builder.addConnectedListener(connectedListener);
+			}
+		}
+		if (!CollectionUtils.isEmpty(inputConfig.getDisconnectedListeners())) {
+			for (MqttClientDisconnectedListener disconnectedListener : inputConfig.getDisconnectedListeners()) {
+				if (disconnectedListener instanceof MqttClientAutoReconnect) {
+					continue;
+				}
+				builder = builder.addDisconnectedListener(disconnectedListener);
+			}
+		}
+
+		return builder;
 	}
 
 	@Override

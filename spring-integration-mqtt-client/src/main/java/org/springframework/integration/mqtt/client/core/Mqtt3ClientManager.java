@@ -20,11 +20,10 @@ import com.hivemq.client.internal.mqtt.message.connect.mqtt3.Mqtt3ConnectView;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
-import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientBuilder;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientConfig;
 import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3Connect;
 
 import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.client.support.MqttClientBuilderHelper;
 import org.springframework.util.Assert;
 
 /**
@@ -34,24 +33,23 @@ import org.springframework.util.Assert;
  *
  * @since 7.2
  */
-public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, Mqtt3ClientBuilder>
+public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, Mqtt3ClientConfig>
 		implements MqttClientConnectedListener {
 
 	private Mqtt3Connect mqttConnect = Mqtt3ConnectView.DEFAULT;
 
-	@SuppressWarnings("this-escape")
-	public Mqtt3ClientManager(Mqtt3ClientBuilder mqttClientBuilder) {
-		super(mqttClientBuilder);
+	public Mqtt3ClientManager(Mqtt3ClientConfig mqtt3ClientConfig) {
+		super(mqtt3ClientConfig);
+	}
 
-		this.mqttClient = MqttClientBuilderHelper.clone(mqttClientBuilder)
+	@Override
+	protected Mqtt3Client buildClient(Mqtt3ClientConfig mqttClientConfig) {
+		return this.createBaseClientBuilder(mqttClientConfig)
+				.useMqttVersion3()
+				.willPublish(mqttClientConfig.getWillPublish().orElse(null))
+				.simpleAuth(mqttClientConfig.getSimpleAuth().orElse(null))
 				.addConnectedListener(Mqtt3ClientManager.this)
 				.build();
-
-		if (this.mqttClient.getConfig().getAutomaticReconnect().isEmpty()) {
-			logger.info("If this `ClientManager` is used from message-driven channel adapters, " +
-					"it is recommended to enable 'automaticReconnect' when set the 'mqttClientBuilder'. " +
-					"Otherwise connection check and reconnect should be done manually.");
-		}
 	}
 
 	/**

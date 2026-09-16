@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.mqtt.client.HiveMQContainerTest;
+import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.inbound.Mqtt3MessageDrivenChannelAdapter;
 import org.springframework.messaging.Message;
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class Mqtt3ClientManagerTests implements HiveMQContainerTest {
+class Mqtt3ClientManagerTests implements MqttContainerTest {
 
 	static final String CAR_DEVICE_TOPIC = "client-manager-mqtt-v3-car-device";
 
@@ -69,8 +69,8 @@ class Mqtt3ClientManagerTests implements HiveMQContainerTest {
 	void setUp() {
 		mqtt3TestClient = Mqtt3Client.builder()
 				.identifier("client-manager-mqtt3-test-client")
-				.serverHost(HIVEMQ_CONTAINER.getHost())
-				.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort())
+				.serverHost(MQTT_CONTAINER.getHost())
+				.serverPort(MQTT_CONTAINER.getFirstMappedPort())
 				.buildBlocking();
 		mqtt3TestClient.connect();
 	}
@@ -98,8 +98,10 @@ class Mqtt3ClientManagerTests implements HiveMQContainerTest {
 		@Bean
 		Mqtt3ClientManager mqtt3ClientManager() {
 			var mqtt3ClientManager = new Mqtt3ClientManager(Mqtt3Client.builder()
-					.serverHost(HIVEMQ_CONTAINER.getHost())
-					.serverPort(HIVEMQ_CONTAINER.getFirstMappedPort()));
+					.serverHost(MQTT_CONTAINER.getHost())
+					.serverPort(MQTT_CONTAINER.getFirstMappedPort())
+					.build()
+					.getConfig());
 			mqtt3ClientManager.setMqttConnect(Mqtt3ConnectView.DEFAULT);
 			return mqtt3ClientManager;
 		}
