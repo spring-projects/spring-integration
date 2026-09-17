@@ -170,6 +170,7 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		@Bean
 		Mqtt5MessageDrivenChannelAdapter carDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel carDeviceOutputChannel) {
+
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, CAR_DEVICE_TOPIC_WILDCARD);
 			adapter.setOutputChannel(carDeviceOutputChannel);
 			adapter.setQos(MqttQos.AT_LEAST_ONCE);
@@ -185,6 +186,7 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		@Bean
 		Mqtt5MessageDrivenChannelAdapter petDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel petDeviceOutputChannel, Executor executor) {
+
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, PET_DEVICE_TOPIC);
 			adapter.setOutputChannel(petDeviceOutputChannel);
 			adapter.setManualAcknowledgement(true);

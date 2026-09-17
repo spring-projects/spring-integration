@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.client.core;
 
-import com.hivemq.client.internal.mqtt.message.connect.MqttConnect;
-import com.hivemq.client.internal.mqtt.message.disconnect.MqttDisconnect;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
@@ -26,7 +24,6 @@ import com.hivemq.client.mqtt.mqtt5.message.connect.Mqtt5Connect;
 import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
 
 import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEvent;
-import org.springframework.util.Assert;
 
 /**
  * A client manager implementation for MQTT v5 protocol.
@@ -38,9 +35,9 @@ import org.springframework.util.Assert;
 public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, Mqtt5ClientConfig>
 		implements MqttClientConnectedListener {
 
-	private Mqtt5Connect mqttConnect = MqttConnect.DEFAULT;
+	private Mqtt5Connect mqttConnect = Mqtt5Connect.builder().build();
 
-	private Mqtt5Disconnect mqttDisConnect = MqttDisconnect.DEFAULT;
+	private Mqtt5Disconnect mqttDisConnect = Mqtt5Disconnect.builder().build();
 
 	public Mqtt5ClientManager(Mqtt5ClientConfig mqtt5ClientConfig) {
 		super(mqtt5ClientConfig);
@@ -48,7 +45,7 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 
 	@Override
 	protected Mqtt5Client buildClient(Mqtt5ClientConfig mqttClientConfig) {
-		return this.createBaseClientBuilder(mqttClientConfig)
+		return createBaseClientBuilder(mqttClientConfig)
 				.useMqttVersion5()
 				.advancedConfig(mqttClientConfig.getAdvancedConfig())
 				.willPublish(mqttClientConfig.getWillPublish().orElse(null))
@@ -63,7 +60,6 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 	 * @param mqttConnect the mqttConnect
 	 */
 	public void setMqttConnect(Mqtt5Connect mqttConnect) {
-		Assert.notNull(mqttConnect, "'mqttConnect' must not be null.");
 		this.mqttConnect = mqttConnect;
 	}
 
@@ -72,7 +68,6 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 	 * @param mqttDisconnect the mqttDisconnect
 	 */
 	public void setMqttDisconnect(Mqtt5Disconnect mqttDisconnect) {
-		Assert.notNull(mqttDisconnect, "'mqttDisconnect' must not be null.");
 		this.mqttDisConnect = mqttDisconnect;
 	}
 
@@ -86,7 +81,7 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 		}
 		catch (RuntimeException ex) {
 			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-			logger.error("Could not start client manager.", ex);
+			logger.error(ex, "Could not start client manager.");
 		}
 		finally {
 			this.lock.unlock();
@@ -102,7 +97,7 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 			}
 		}
 		catch (RuntimeException ex) {
-			logger.error("Could not disconnect from the client", ex);
+			logger.error(ex, "Could not disconnect from the client");
 		}
 		finally {
 			this.lock.unlock();

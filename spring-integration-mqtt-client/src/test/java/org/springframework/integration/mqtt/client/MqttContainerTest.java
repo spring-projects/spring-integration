@@ -40,7 +40,7 @@ public interface MqttContainerTest {
 			.withCommand("mosquitto -c /mosquitto-no-auth.conf")
 			.withExposedPorts(MQTT_PORT)
 			.withNetwork(ToxiproxyContainerTest.NETWORK)
-			.withNetworkAliases("hivemq-broker");
+			.withNetworkAliases("mqtt-broker");
 
 	@BeforeAll
 	static void startContainer() {

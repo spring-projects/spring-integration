@@ -20,6 +20,7 @@ import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -33,7 +34,7 @@ import org.springframework.context.SmartLifecycle;
  *
  * @since 7.2
  */
-public interface ClientManager<T extends MqttClient> extends SmartLifecycle {
+public interface ClientManager<T extends MqttClient> extends SmartLifecycle, InitializingBean {
 
 	/**
 	 * The default phase of this client manager auto-start in {@link SmartLifecycle}.

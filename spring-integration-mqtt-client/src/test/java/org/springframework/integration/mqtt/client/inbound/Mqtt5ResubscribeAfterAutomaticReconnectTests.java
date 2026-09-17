@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.hivemq.client.internal.mqtt.message.connect.MqttConnectBuilder;
-import com.hivemq.client.internal.mqtt.message.disconnect.MqttDisconnect;
-import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
+import com.hivemq.client.mqtt.mqtt5.message.connect.Mqtt5Connect;
+import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
+import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5Subscription;
 import eu.rekawek.toxiproxy.Proxy;
 import eu.rekawek.toxiproxy.ToxiproxyClient;
 import org.junit.jupiter.api.AfterAll;
@@ -75,7 +75,7 @@ class Mqtt5ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 	@BeforeAll
 	static void setup() throws IOException {
 		var proxyClient = new ToxiproxyClient(PROXY_CONTAINER.getHost(), PROXY_CONTAINER.getControlPort());
-		toxiproxy = proxyClient.createProxy("hivemqProxy", "0.0.0.0:" + PROXY_PORT_FOR_MQTT, "hivemq-broker:" + MQTT_PORT);
+		toxiproxy = proxyClient.createProxy("mqttProxy", "0.0.0.0:" + PROXY_PORT_FOR_MQTT, "mqtt-broker:" + MQTT_PORT);
 		toxiproxy.enable();
 
 		mqtt5TestClient = Mqtt5Client.builder()
@@ -138,10 +138,10 @@ class Mqtt5ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 					.addDisconnectedListener(ctx -> disconnectedLatch.countDown())
 					.build()
 					.getConfig());
-			mqtt5ClientManager.setMqttConnect(new MqttConnectBuilder.Default()
+			mqtt5ClientManager.setMqttConnect(Mqtt5Connect.builder()
 					.cleanStart(true) // looks even cleanStart is true, resubscribe can automatic happens after reconnect.
 					.build());
-			mqtt5ClientManager.setMqttDisconnect(MqttDisconnect.DEFAULT);
+			mqtt5ClientManager.setMqttDisconnect(Mqtt5Disconnect.builder().build());
 			return mqtt5ClientManager;
 		}
 
@@ -153,14 +153,15 @@ class Mqtt5ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 		@Bean
 		Mqtt5MessageDrivenChannelAdapter mqtt5InboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel outputChannel) {
+
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, TOPIC);
 			adapter.setOutputChannel(outputChannel);
 			adapter.setQos(MqttQos.AT_LEAST_ONCE);
 			// below are default, for line coverage only
 			adapter.setHeaderMapper(new Mqtt5HeaderMapper());
-			adapter.setNoLocal(MqttSubscription.DEFAULT_NO_LOCAL);
-			adapter.setRetainHandling(MqttSubscription.DEFAULT_RETAIN_HANDLING);
-			adapter.setRetainAsPublished(MqttSubscription.DEFAULT_RETAIN_AS_PUBLISHED);
+			adapter.setNoLocal(Mqtt5Subscription.DEFAULT_NO_LOCAL);
+			adapter.setRetainHandling(Mqtt5Subscription.DEFAULT_RETAIN_HANDLING);
+			adapter.setRetainAsPublished(Mqtt5Subscription.DEFAULT_RETAIN_AS_PUBLISHED);
 			return adapter;
 		}
 

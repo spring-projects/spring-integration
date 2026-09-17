@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.hivemq.client.internal.mqtt.message.connect.mqtt3.Mqtt3ConnectViewBuilder;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
+import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3Connect;
 import eu.rekawek.toxiproxy.Proxy;
 import eu.rekawek.toxiproxy.ToxiproxyClient;
 import org.junit.jupiter.api.AfterAll;
@@ -72,7 +72,7 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 	@BeforeAll
 	static void setup() throws IOException {
 		var proxyClient = new ToxiproxyClient(PROXY_CONTAINER.getHost(), PROXY_CONTAINER.getControlPort());
-		toxiproxy = proxyClient.createProxy("hivemqProxy", "0.0.0.0:" + PROXY_PORT_FOR_MQTT, "hivemq-broker:" + MQTT_PORT);
+		toxiproxy = proxyClient.createProxy("mqttProxy", "0.0.0.0:" + PROXY_PORT_FOR_MQTT, "mqtt-broker:" + MQTT_PORT);
 		toxiproxy.enable();
 
 		mqtt3TestClient = Mqtt3Client.builder()
@@ -135,7 +135,7 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 					.addDisconnectedListener(ctx -> disconnectedLatch.countDown())
 					.build()
 					.getConfig());
-			mqtt3ClientManager.setMqttConnect(new Mqtt3ConnectViewBuilder.Default()
+			mqtt3ClientManager.setMqttConnect(Mqtt3Connect.builder()
 					.cleanSession(true) // looks even cleanStart is true, resubscribe can automatic happens after reconnect.
 					.build());
 			return mqtt3ClientManager;
@@ -149,6 +149,7 @@ class Mqtt3ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 		@Bean
 		Mqtt3MessageDrivenChannelAdapter mqtt3InboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager,
 				QueueChannel outputChannel) {
+
 			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, TOPIC);
 			adapter.setOutputChannel(outputChannel);
 			adapter.setQos(MqttQos.AT_LEAST_ONCE);

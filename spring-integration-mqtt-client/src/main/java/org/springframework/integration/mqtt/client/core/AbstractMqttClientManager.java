@@ -28,14 +28,11 @@ import com.hivemq.client.mqtt.MqttClientConfig;
 import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.lifecycle.MqttClientDisconnectedListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Abstract class for MQTT client managers which can be a base for any common v3/v5 client manager implementation.
@@ -51,7 +48,7 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractMqttClientManager<T extends MqttClient, C extends MqttClientConfig>
 		implements ClientManager<T>, ApplicationEventPublisherAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final LogAccessor logger = new LogAccessor(this.getClass());
 
 	protected final Lock lock = new ReentrantLock();
 
@@ -61,20 +58,24 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 
 	protected final C mqttClientConfig;
 
-	protected final T mqttClient;
+	@SuppressWarnings("NullAway.Init")
+	protected T mqttClient;
 
 	@SuppressWarnings("NullAway.Init")
 	protected ApplicationEventPublisher applicationEventPublisher;
 
-	@SuppressWarnings("this-escape")
 	protected AbstractMqttClientManager(C mqttClientConfig) {
-		this.mqttClientConfig = mqttClientConfig;
-		if (this.mqttClientConfig.getAutomaticReconnect().isEmpty()) {
+		if (mqttClientConfig.getAutomaticReconnect().isEmpty()) {
 			this.logger.info("If this `ClientManager` is used from message-driven channel adapters, " +
 					"it is recommended to enable 'automaticReconnect' when set the 'mqttClientBuilder'. " +
 					"Otherwise connection check and reconnect should be done manually.");
 		}
-		this.mqttClient = buildClient(mqttClientConfig);
+		this.mqttClientConfig = mqttClientConfig;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		this.mqttClient = buildClient(this.mqttClientConfig);
 	}
 
 	/**
@@ -108,18 +109,15 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 				// so have to skip appending this in the new built disconnectedListener list
 				.automaticReconnect(inputConfig.getAutomaticReconnect().orElse(null));
 
-		if (!CollectionUtils.isEmpty(inputConfig.getConnectedListeners())) {
-			for (MqttClientConnectedListener connectedListener : inputConfig.getConnectedListeners()) {
-				builder = builder.addConnectedListener(connectedListener);
-			}
+		for (MqttClientConnectedListener connectedListener : inputConfig.getConnectedListeners()) {
+			builder = builder.addConnectedListener(connectedListener);
 		}
-		if (!CollectionUtils.isEmpty(inputConfig.getDisconnectedListeners())) {
-			for (MqttClientDisconnectedListener disconnectedListener : inputConfig.getDisconnectedListeners()) {
-				if (disconnectedListener instanceof MqttClientAutoReconnect) {
-					continue;
-				}
-				builder = builder.addDisconnectedListener(disconnectedListener);
+
+		for (MqttClientDisconnectedListener disconnectedListener : inputConfig.getDisconnectedListeners()) {
+			if (disconnectedListener instanceof MqttClientAutoReconnect) {
+				continue;
 			}
+			builder = builder.addDisconnectedListener(disconnectedListener);
 		}
 
 		return builder;
@@ -127,7 +125,6 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		Assert.notNull(applicationEventPublisher, "'applicationEventPublisher' cannot be null");
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 

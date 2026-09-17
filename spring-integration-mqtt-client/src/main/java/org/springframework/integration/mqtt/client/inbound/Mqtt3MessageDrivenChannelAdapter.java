@@ -25,6 +25,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck;
+import com.hivemq.client.mqtt.mqtt3.message.unsubscribe.Mqtt3Unsubscribe;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mqtt.client.core.ClientManager;
@@ -46,14 +47,21 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, String topic) {
 		super(mqttClientManager, topic);
-		this.mqttClient = mqttClientManager.getClient();
 	}
 
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.isConnected() && !this.isSubscribed.getAndSet(true)) {
+		if (this.isConnected() && this.isSubscribed.compareAndSet(false, true)) {
 			subscribe();
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		super.doStop();
+		if (this.isConnected() && this.isSubscribed.compareAndSet(true, false)) {
+			unsubscribe();
 		}
 	}
 
@@ -61,7 +69,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	public void onClientConnected(MqttClientConnectedContext mqttClientConnectedContext) {
 		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
 		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
-		if (isActive() && !this.isSubscribed.getAndSet(true)) {
+		if (isActive() && this.isSubscribed.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -76,11 +84,11 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		CompletableFuture<Mqtt3SubAck> subscribeFuture;
 		if (this.executor != null) {
 			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt3Subscribe, this::messageListener, this.executor, this.manualAck);
+					.subscribe(mqtt3Subscribe, this::processMessage, this.executor, this.manualAck);
 		}
 		else {
 			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt3Subscribe, this::messageListener, this.manualAck);
+					.subscribe(mqtt3Subscribe, this::processMessage, this.manualAck);
 		}
 		subscribeFuture.whenComplete((subAck, throwable) -> {
 			if (throwable == null) {
@@ -96,7 +104,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		});
 	}
 
-	private void messageListener(Mqtt3Publish mqttMessage) {
+	private void processMessage(Mqtt3Publish mqttMessage) {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos());
 		headers.put(MqttHeaders.RECEIVED_RETAINED, mqttMessage.isRetain());
@@ -124,6 +132,21 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		}
 
 		sendMessage(message);
+	}
+
+	private void unsubscribe() {
+		Mqtt3Unsubscribe mqtt3Unsubscribe = Mqtt3Unsubscribe.builder()
+				.topicFilter(this.topic)
+				.build();
+		this.mqttClient.toAsync().unsubscribe(mqtt3Unsubscribe).whenComplete((Void, throwable) -> {
+			if (throwable == null) {
+				this.isSubscribed.set(false);
+			}
+			else {
+				this.isSubscribed.set(true);
+				logger.error(throwable, () -> "Error unsubscribing from " + this.topic);
+			}
+		});
 	}
 
 }

@@ -19,13 +19,14 @@ package org.springframework.integration.mqtt.client.inbound;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5Subscribe;
+import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5Subscription;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
+import com.hivemq.client.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -50,19 +51,14 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	private HeaderMapper<Mqtt5Publish> headerMapper = new Mqtt5HeaderMapper();
 
-	// [Start] Additional MQTT v5 subscription options
+	private boolean noLocal = Mqtt5Subscription.DEFAULT_NO_LOCAL;
 
-	private boolean noLocal = MqttSubscription.DEFAULT_NO_LOCAL;
+	private Mqtt5RetainHandling retainHandling = Mqtt5Subscription.DEFAULT_RETAIN_HANDLING;
 
-	private Mqtt5RetainHandling retainHandling = MqttSubscription.DEFAULT_RETAIN_HANDLING;
-
-	private boolean retainAsPublished = MqttSubscription.DEFAULT_RETAIN_AS_PUBLISHED;
-
-	// [End]
+	private boolean retainAsPublished = Mqtt5Subscription.DEFAULT_RETAIN_AS_PUBLISHED;
 
 	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, String topic) {
 		super(mqttClientManager, topic);
-		this.mqttClient = mqttClientManager.getClient();
 	}
 
 	/**
@@ -102,8 +98,16 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.isConnected() && !this.isSubscribed.getAndSet(true)) {
+		if (this.isConnected() && this.isSubscribed.compareAndSet(false, true)) {
 			subscribe();
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		super.doStop();
+		if (this.isConnected() && this.isSubscribed.compareAndSet(true, false)) {
+			unsubscribe();
 		}
 	}
 
@@ -111,7 +115,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	public void onClientConnected(MqttClientConnectedContext context) {
 		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
 		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
-		if (isActive() && !this.isSubscribed.getAndSet(true)) {
+		if (isActive() && !this.isSubscribed.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -129,11 +133,11 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		CompletableFuture<Mqtt5SubAck> subscribeFuture;
 		if (this.executor != null) {
 			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt5Subscribe, this::messageListener, this.executor, this.manualAck);
+					.subscribe(mqtt5Subscribe, this::processMessage, this.executor, this.manualAck);
 		}
 		else {
 			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt5Subscribe, this::messageListener, this.manualAck);
+					.subscribe(mqtt5Subscribe, this::processMessage, this.manualAck);
 		}
 		subscribeFuture.whenComplete(((mqtt5SubAck, throwable) -> {
 			if (throwable == null) {
@@ -149,7 +153,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		}));
 	}
 
-	private void messageListener(Mqtt5Publish mqtt5Publish) {
+	private void processMessage(Mqtt5Publish mqtt5Publish) {
 		Map<String, Object> headers = this.headerMapper.toHeaders(mqtt5Publish);
 
 		headers.put(MqttHeaders.RECEIVED_QOS, mqtt5Publish.getQos());
@@ -178,6 +182,21 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		}
 
 		sendMessage(message);
+	}
+
+	private void unsubscribe() {
+		Mqtt5Unsubscribe mqtt5Unsubscribe = Mqtt5Unsubscribe.builder()
+				.topicFilter(this.topic)
+				.build();
+		this.mqttClient.toAsync().unsubscribe(mqtt5Unsubscribe).whenComplete((mqtt5UnsubAck, throwable) -> {
+			if (throwable == null) {
+				this.isSubscribed.set(false);
+			}
+			else {
+				this.isSubscribed.set(true);
+				logger.error(throwable, () -> "Error unsubscribing from " + this.topic);
+			}
+		});
 	}
 
 }
