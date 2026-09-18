@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -63,7 +62,6 @@ public class Jsr223ServiceActivatorTests {
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
-	@Disabled("Until https://github.com/oracle/graalpython/issues/1065")
 	@Test
 	public void referencedScript() throws Exception {
 

@@ -12,8 +12,6 @@ updates:
       - 'type: dependency-upgrade'
     groups:
       development-dependencies:
-        update-types:
-          - patch
         patterns:
           - org.gradle.*
           - io.spring.*
