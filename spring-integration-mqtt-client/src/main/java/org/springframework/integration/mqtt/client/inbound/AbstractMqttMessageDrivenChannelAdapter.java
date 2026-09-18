@@ -45,9 +45,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 
 	protected final ClientManager<T> mqttClientManager;
 
-	protected final T mqttClient;
-
-	protected final String topic;
+	@SuppressWarnings("NullAway.Init")
+	protected T mqttClient;
 
 	protected AtomicBoolean isSubscribed = new AtomicBoolean(false);
 
@@ -65,11 +64,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 
 	protected Class<?> payloadType = byte[].class;
 
-	protected AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> mqttClientManager, String topic) {
-		this.mqttClientManager = mqttClientManager;
-		this.topic = topic;
+	protected String @Nullable [] topics;
 
-		this.mqttClient = mqttClientManager.getClient();
+	protected AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> mqttClientManager) {
+		this.mqttClientManager = mqttClientManager;
 	}
 
 	@Override
@@ -80,6 +78,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	@Override
 	protected void onInit() {
 		super.onInit();
+		this.mqttClient = this.mqttClientManager.getClient();
 		this.mqttClientManager.addCallback(this);
 		if (this.messageConverter == null) {
 			String messageConverterBeanName = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME;

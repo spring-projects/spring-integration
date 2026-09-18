@@ -28,6 +28,7 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperties;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
+import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5Subscription;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -187,7 +188,8 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		Mqtt5MessageDrivenChannelAdapter petDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel petDeviceOutputChannel, Executor executor) {
 
-			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, PET_DEVICE_TOPIC);
+			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, Mqtt5Subscription.builder()
+					.topicFilter(PET_DEVICE_TOPIC).build());
 			adapter.setOutputChannel(petDeviceOutputChannel);
 			adapter.setManualAcknowledgement(true);
 			adapter.setExecutor(executor);

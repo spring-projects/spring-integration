@@ -16,7 +16,9 @@
 
 package org.springframework.integration.mqtt.client.inbound;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,6 +26,7 @@ import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe;
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscription;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck;
 import com.hivemq.client.mqtt.mqtt3.message.unsubscribe.Mqtt3Unsubscribe;
 
@@ -35,6 +38,7 @@ import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v3.
@@ -45,8 +49,32 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt3Client> {
 
-	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, String topic) {
-		super(mqttClientManager, topic);
+	@SuppressWarnings("NullAway.Init")
+	private List<Mqtt3Subscription> subscriptions;
+
+	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, String... topics) {
+		super(mqttClientManager);
+		this.topics = topics;
+	}
+
+	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, Mqtt3Subscription... subscriptions) {
+		super(mqttClientManager);
+		this.subscriptions = Arrays.stream(subscriptions).toList();
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.subscriptions == null) {
+			Assert.notEmpty(this.topics, "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(this.topics)
+					.map(topic -> Mqtt3Subscription.builder()
+							.topicFilter(topic)
+							.qos(this.qos)
+							.build())
+					.toList();
+		}
+		Assert.notEmpty(this.subscriptions, "subscriptions must not be empty");
 	}
 
 	@Override
@@ -76,8 +104,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	private void subscribe() {
 		Mqtt3Subscribe mqtt3Subscribe = Mqtt3Subscribe.builder()
-				.topicFilter(this.topic)
-				.qos(this.qos)
+				.addSubscriptions(this.subscriptions)
 				.build();
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
@@ -93,12 +120,12 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		subscribeFuture.whenComplete((subAck, throwable) -> {
 			if (throwable == null) {
 				this.isSubscribed.set(true);
-				String msg = "MQTT client subscribe topic: " + this.topic;
+				String msg = "MQTT client subscribe to: " + this.subscriptions;
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, msg));
 			}
 			else {
 				this.isSubscribed.set(false);
-				logger.error(throwable, "MQTT client failed to subscribe topic : " + this.topic);
+				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, throwable));
 			}
 		});
@@ -136,7 +163,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	private void unsubscribe() {
 		Mqtt3Unsubscribe mqtt3Unsubscribe = Mqtt3Unsubscribe.builder()
-				.topicFilter(this.topic)
+				.addTopicFilters(this.subscriptions.stream().map(Mqtt3Subscription::getTopicFilter))
 				.build();
 		this.mqttClient.toAsync().unsubscribe(mqtt3Unsubscribe).whenComplete((Void, throwable) -> {
 			if (throwable == null) {
@@ -144,7 +171,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			}
 			else {
 				this.isSubscribed.set(true);
-				logger.error(throwable, () -> "Error unsubscribing from " + this.topic);
+				logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
 			}
 		});
 	}

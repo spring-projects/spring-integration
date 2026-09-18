@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt.client.inbound;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,8 +59,35 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	private boolean retainAsPublished = Mqtt5Subscription.DEFAULT_RETAIN_AS_PUBLISHED;
 
-	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, String topic) {
-		super(mqttClientManager, topic);
+	@SuppressWarnings("NullAway.Init")
+	private List<Mqtt5Subscription> subscriptions;
+
+	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, String... topics) {
+		super(mqttClientManager);
+		this.topics = topics;
+	}
+
+	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, Mqtt5Subscription... subscriptions) {
+		super(mqttClientManager);
+		this.subscriptions = Arrays.stream(subscriptions).toList();
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.subscriptions == null) {
+			Assert.notEmpty(this.topics, "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(this.topics)
+					.map(topic -> Mqtt5Subscription.builder()
+							.topicFilter(topic)
+							.qos(this.qos)
+							.noLocal(this.noLocal)
+							.retainHandling(this.retainHandling)
+							.retainAsPublished(this.retainAsPublished)
+							.build())
+					.toList();
+		}
+		Assert.notEmpty(this.subscriptions, "subscriptions must not be empty");
 	}
 
 	/**
@@ -115,18 +144,14 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	public void onClientConnected(MqttClientConnectedContext context) {
 		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
 		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
-		if (isActive() && !this.isSubscribed.compareAndSet(false, true)) {
+		if (isActive() && this.isSubscribed.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
 
 	private void subscribe() {
 		Mqtt5Subscribe mqtt5Subscribe = Mqtt5Subscribe.builder()
-				.topicFilter(this.topic)
-				.qos(this.qos)
-				.noLocal(this.noLocal)
-				.retainHandling(this.retainHandling)
-				.retainAsPublished(this.retainAsPublished)
+				.addSubscriptions(this.subscriptions)
 				.build();
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
@@ -142,12 +167,12 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		subscribeFuture.whenComplete(((mqtt5SubAck, throwable) -> {
 			if (throwable == null) {
 				this.isSubscribed.set(true);
-				String msg = "MQTT client subscribe topic: " + this.topic;
+				String msg = "MQTT client subscribe to: " + this.subscriptions;
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, msg));
 			}
 			else {
 				this.isSubscribed.set(false);
-				logger.error(throwable, "MQTT client failed to subscribe topic: " + this.topic);
+				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, throwable));
 			}
 		}));
@@ -186,7 +211,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 
 	private void unsubscribe() {
 		Mqtt5Unsubscribe mqtt5Unsubscribe = Mqtt5Unsubscribe.builder()
-				.topicFilter(this.topic)
+				.addTopicFilters(this.subscriptions.stream().map(Mqtt5Subscription::getTopicFilter))
 				.build();
 		this.mqttClient.toAsync().unsubscribe(mqtt5Unsubscribe).whenComplete((mqtt5UnsubAck, throwable) -> {
 			if (throwable == null) {
@@ -194,7 +219,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			}
 			else {
 				this.isSubscribed.set(true);
-				logger.error(throwable, () -> "Error unsubscribing from " + this.topic);
+				logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
 			}
 		});
 	}

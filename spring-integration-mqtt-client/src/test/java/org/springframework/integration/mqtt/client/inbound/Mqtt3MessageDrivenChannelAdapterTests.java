@@ -25,6 +25,7 @@ import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscription;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -177,7 +178,8 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		Mqtt3MessageDrivenChannelAdapter petDeviceInboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager,
 				QueueChannel petDeviceOutputChannel, Executor executor) {
 
-			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, PET_DEVICE_TOPIC);
+			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, Mqtt3Subscription.builder()
+					.topicFilter(PET_DEVICE_TOPIC).build());
 			adapter.setOutputChannel(petDeviceOutputChannel);
 			adapter.setManualAcknowledgement(true);
 			adapter.setExecutor(executor);
