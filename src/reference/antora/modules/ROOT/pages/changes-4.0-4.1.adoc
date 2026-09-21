@@ -127,7 +127,7 @@ See xref:splitter.adoc[Splitter] for more information.
 [[x4.1-aggregator]]
 === Aggregator
 
-`Aggregator` instancess now support a new attribute `expire-groups-upon-timeout`.
+`Aggregator` instances now support a new attribute `expire-groups-upon-timeout`.
 See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more information.
 
 [[x4.1-content-enricher-improvement]]
