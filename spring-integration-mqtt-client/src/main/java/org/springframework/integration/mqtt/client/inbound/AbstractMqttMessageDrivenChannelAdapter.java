@@ -46,33 +46,44 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	protected final ClientManager<T> mqttClientManager;
 
 	@SuppressWarnings("NullAway.Init")
-	protected T mqttClient;
+	private T mqttClient;
 
-	protected AtomicBoolean isSubscribed = new AtomicBoolean(false);
+	protected final AtomicBoolean isSubscribing = new AtomicBoolean();
 
-	protected MqttQos qos = MqttQos.AT_LEAST_ONCE;
+	protected final AtomicBoolean isSubscribed = new AtomicBoolean();
 
-	protected boolean manualAck = false;
+	private String @Nullable [] topics;
 
-	protected @Nullable Executor executor;
+	private MqttQos qos = MqttQos.AT_LEAST_ONCE;
+
+	private boolean manualAck;
+
+	private @Nullable Executor executor;
 
 	@SuppressWarnings("NullAway.Init")
-	protected ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	@SuppressWarnings("NullAway.Init")
 	protected SmartMessageConverter messageConverter;
 
-	protected Class<?> payloadType = byte[].class;
-
-	protected String @Nullable [] topics;
+	private Class<?> payloadType = byte[].class;
 
 	protected AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> mqttClientManager) {
 		this.mqttClientManager = mqttClientManager;
 	}
 
+	protected AbstractMqttMessageDrivenChannelAdapter(ClientManager<T> mqttClientManager, String... topics) {
+		this.mqttClientManager = mqttClientManager;
+		this.topics = topics;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
 	}
 
 	@Override
@@ -92,6 +103,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 		this.mqttClientManager.removeCallback(AbstractMqttMessageDrivenChannelAdapter.this);
 	}
 
+	protected T getClient() {
+		return this.mqttClient;
+	}
+
 	/**
 	 * Set the messageConverter to convert the payload to the expected payloadType.
 	 * @param messageConverter the messageConverter
@@ -99,6 +114,14 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	public void setMessageConverter(SmartMessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null.");
 		this.messageConverter = messageConverter;
+	}
+
+	protected SmartMessageConverter getMessageConverter() {
+		return this.messageConverter;
+	}
+
+	protected String @Nullable [] getTopics() {
+		return this.topics;
 	}
 
 	/**
@@ -110,12 +133,20 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 		this.qos = qos;
 	}
 
+	protected MqttQos getQos() {
+		return this.qos;
+	}
+
 	/**
 	 * Set whether the Publish messages are acknowledged manually.
 	 * @param manualAck true for manual ack.
 	 */
-	public void setManualAcknowledgement(boolean manualAck) {
+	public void setManualAck(boolean manualAck) {
 		this.manualAck = manualAck;
+	}
+
+	protected boolean isManualAck() {
+		return this.manualAck;
 	}
 
 	/**
@@ -127,6 +158,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 		this.executor = executor;
 	}
 
+	protected @Nullable Executor getExecutor() {
+		return this.executor;
+	}
+
 	/**
 	 * Set the type of the target message payload to produce after conversion from MQTT message.
 	 * Defaults to {@code byte[].class}. Can be set to {@code Mqtt5Publish} for v5 or {@code Mqtt3Publish}
@@ -136,6 +171,10 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	public void setPayloadType(Class<?> payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null.");
 		this.payloadType = payloadType;
+	}
+
+	protected Class<?> getPayloadType() {
+		return this.payloadType;
 	}
 
 	/**

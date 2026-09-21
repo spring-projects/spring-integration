@@ -17,7 +17,6 @@
 package org.springframework.integration.mqtt.client.core;
 
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
-import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3ClientConfig;
 import com.hivemq.client.mqtt.mqtt3.message.connect.Mqtt3Connect;
@@ -31,8 +30,7 @@ import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEve
  *
  * @since 7.2
  */
-public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, Mqtt3ClientConfig>
-		implements MqttClientConnectedListener {
+public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, Mqtt3ClientConfig> {
 
 	private Mqtt3Connect mqttConnect = Mqtt3Connect.builder().build();
 
@@ -41,11 +39,11 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 	}
 
 	@Override
-	protected Mqtt3Client buildClient(Mqtt3ClientConfig mqttClientConfig) {
-		return createBaseClientBuilder(mqttClientConfig)
+	protected Mqtt3Client buildClient() {
+		return createBaseClientBuilder(this.mqttClientConfig)
 				.useMqttVersion3()
-				.willPublish(mqttClientConfig.getWillPublish().orElse(null))
-				.simpleAuth(mqttClientConfig.getSimpleAuth().orElse(null))
+				.willPublish(this.mqttClientConfig.getWillPublish().orElse(null))
+				.simpleAuth(this.mqttClientConfig.getSimpleAuth().orElse(null))
 				.addConnectedListener(this)
 				.build();
 	}
@@ -62,12 +60,12 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 	public void start() {
 		this.lock.lock();
 		try {
-			if (!this.isConnected()) {
-				this.mqttClient.toBlocking().connect(this.mqttConnect);
+			if (!isConnected()) {
+				getClient().toBlocking().connect(this.mqttConnect);
 			}
 		}
 		catch (RuntimeException ex) {
-			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error(ex, "Could not start client manager");
 		}
 		finally {
@@ -79,8 +77,8 @@ public class Mqtt3ClientManager extends AbstractMqttClientManager<Mqtt3Client, M
 	public void stop() {
 		this.lock.lock();
 		try {
-			if (this.isConnected()) {
-				this.mqttClient.toBlocking().disconnect();
+			if (isConnected()) {
+				getClient().toBlocking().disconnect();
 			}
 		}
 		catch (RuntimeException ex) {

@@ -38,9 +38,9 @@ import org.springframework.util.PatternMatchUtils;
  *
  * @since 7.2
  */
-public class Mqtt5HeaderMapper implements HeaderMapper<Mqtt5Publish> {
+public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 
-	private static final LogAccessor LOGGER = new LogAccessor(Mqtt5HeaderMapper.class);
+	private static final LogAccessor LOGGER = new LogAccessor(MqttHeaderMapper.class);
 
 	private final String[] inboundHeaderNames = {"*"};
 

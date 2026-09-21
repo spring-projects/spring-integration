@@ -55,9 +55,7 @@ class Mqtt5ClientManagerTests implements MqttContainerTest {
 
 	static final String PET_DEVICE_TOPIC = "client-manager-mqtt-v5-pet-device";
 
-	static final CountDownLatch carDeviceTopicSubscribedLatch = new CountDownLatch(1);
-
-	static final CountDownLatch petDeviceTopicSubscribedLatch = new CountDownLatch(1);
+	static final CountDownLatch subscribedLatch = new CountDownLatch(2);
 
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
@@ -80,8 +78,7 @@ class Mqtt5ClientManagerTests implements MqttContainerTest {
 	@Test
 	void testMqtt5ClientManager() throws InterruptedException {
 		// Ensure subscription done first.
-		Assertions.assertThat(carDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
-		Assertions.assertThat(petDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		Assertions.assertThat(subscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		// Given
 		mqtt5TestClient.publishWith().topic(CAR_DEVICE_TOPIC).payload("car-payload".getBytes()).send();
 		mqtt5TestClient.publishWith().topic(PET_DEVICE_TOPIC).payload("pet-payload".getBytes()).send();
@@ -117,6 +114,7 @@ class Mqtt5ClientManagerTests implements MqttContainerTest {
 		@Bean
 		Mqtt5MessageDrivenChannelAdapter carDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel carDeviceOutputChannel) {
+
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, CAR_DEVICE_TOPIC);
 			adapter.setOutputChannel(carDeviceOutputChannel);
 			return adapter;
@@ -130,6 +128,7 @@ class Mqtt5ClientManagerTests implements MqttContainerTest {
 		@Bean
 		Mqtt5MessageDrivenChannelAdapter petDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
 				QueueChannel petDeviceOutputChannel) {
+
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, PET_DEVICE_TOPIC);
 			adapter.setOutputChannel(petDeviceOutputChannel);
 			return adapter;
@@ -137,13 +136,7 @@ class Mqtt5ClientManagerTests implements MqttContainerTest {
 
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
-			String beanName = ((Mqtt5MessageDrivenChannelAdapter) event.getSource()).getBeanName();
-			if (beanName.equals("carDeviceInboundChannelAdapter")) {
-				carDeviceTopicSubscribedLatch.countDown();
-			}
-			else if (beanName.equals("petDeviceInboundChannelAdapter")) {
-				petDeviceTopicSubscribedLatch.countDown();
-			}
+			subscribedLatch.countDown();
 		}
 
 	}

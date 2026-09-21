@@ -53,9 +53,7 @@ class Mqtt3ClientManagerTests implements MqttContainerTest {
 
 	static final String PET_DEVICE_TOPIC = "client-manager-mqtt-v3-pet-device";
 
-	static final CountDownLatch carDeviceTopicSubscribedLatch = new CountDownLatch(1);
-
-	static final CountDownLatch petDeviceTopicSubscribedLatch = new CountDownLatch(1);
+	static final CountDownLatch subscribedLatch = new CountDownLatch(2);
 
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
@@ -78,8 +76,7 @@ class Mqtt3ClientManagerTests implements MqttContainerTest {
 	@Test
 	void testMqtt3ClientManager() throws InterruptedException {
 		// Ensure subscription done first.
-		assertThat(carDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(petDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(subscribedLatch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		// Given
 		mqtt3TestClient.publishWith().topic(CAR_DEVICE_TOPIC).payload("car-payload".getBytes()).send();
 		mqtt3TestClient.publishWith().topic(PET_DEVICE_TOPIC).payload("pet-payload".getBytes()).send();
@@ -114,6 +111,7 @@ class Mqtt3ClientManagerTests implements MqttContainerTest {
 		@Bean
 		Mqtt3MessageDrivenChannelAdapter carDeviceInboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager,
 				QueueChannel carDeviceOutputChannel) {
+
 			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, CAR_DEVICE_TOPIC);
 			adapter.setOutputChannel(carDeviceOutputChannel);
 			return adapter;
@@ -127,6 +125,7 @@ class Mqtt3ClientManagerTests implements MqttContainerTest {
 		@Bean
 		Mqtt3MessageDrivenChannelAdapter petDeviceInboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager,
 				QueueChannel petDeviceOutputChannel) {
+
 			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, PET_DEVICE_TOPIC);
 			adapter.setOutputChannel(petDeviceOutputChannel);
 			return adapter;
@@ -134,13 +133,7 @@ class Mqtt3ClientManagerTests implements MqttContainerTest {
 
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
-			String beanName = ((Mqtt3MessageDrivenChannelAdapter) event.getSource()).getBeanName();
-			if (beanName.equals("carDeviceInboundChannelAdapter")) {
-				carDeviceTopicSubscribedLatch.countDown();
-			}
-			else if (beanName.equals("petDeviceInboundChannelAdapter")) {
-				petDeviceTopicSubscribedLatch.countDown();
-			}
+			subscribedLatch.countDown();
 		}
 
 	}

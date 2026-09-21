@@ -20,9 +20,6 @@ import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.SmartLifecycle;
-
 /**
  * A utility abstraction over MQTT client which can be used in any MQTT-related component
  * without need to handle generic client callbacks, reconnects etc.
@@ -34,12 +31,7 @@ import org.springframework.context.SmartLifecycle;
  *
  * @since 7.2
  */
-public interface ClientManager<T extends MqttClient> extends SmartLifecycle, InitializingBean {
-
-	/**
-	 * The default phase of this client manager auto-start in {@link SmartLifecycle}.
-	 */
-	int DEFAULT_MANAGER_PHASE = 0;
+public interface ClientManager<T extends MqttClient> {
 
 	/**
 	 * Return the managed client.

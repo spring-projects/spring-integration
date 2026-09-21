@@ -42,7 +42,7 @@ import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.ToxiproxyContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
-import org.springframework.integration.mqtt.client.support.Mqtt5HeaderMapper;
+import org.springframework.integration.mqtt.client.support.MqttHeaderMapper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -158,7 +158,7 @@ class Mqtt5ResubscribeAfterAutomaticReconnectTests implements MqttContainerTest,
 			adapter.setOutputChannel(outputChannel);
 			adapter.setQos(MqttQos.AT_LEAST_ONCE);
 			// below are default, for line coverage only
-			adapter.setHeaderMapper(new Mqtt5HeaderMapper());
+			adapter.setHeaderMapper(new MqttHeaderMapper());
 			adapter.setNoLocal(Mqtt5Subscription.DEFAULT_NO_LOCAL);
 			adapter.setRetainHandling(Mqtt5Subscription.DEFAULT_RETAIN_HANDLING);
 			adapter.setRetainAsPublished(Mqtt5Subscription.DEFAULT_RETAIN_AS_PUBLISHED);

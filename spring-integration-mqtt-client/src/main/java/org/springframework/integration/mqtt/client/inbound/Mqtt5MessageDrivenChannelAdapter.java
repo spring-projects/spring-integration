@@ -31,15 +31,16 @@ import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import com.hivemq.client.mqtt.mqtt5.message.unsubscribe.Mqtt5Unsubscribe;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.client.core.ClientManager;
-import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.client.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
-import org.springframework.integration.mqtt.client.support.Mqtt5HeaderMapper;
+import org.springframework.integration.mqtt.client.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConversionException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -51,7 +52,7 @@ import org.springframework.util.Assert;
  */
 public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter<Mqtt5Client> {
 
-	private HeaderMapper<Mqtt5Publish> headerMapper = new Mqtt5HeaderMapper();
+	private HeaderMapper<Mqtt5Publish> headerMapper = new MqttHeaderMapper();
 
 	private boolean noLocal = Mqtt5Subscription.DEFAULT_NO_LOCAL;
 
@@ -63,8 +64,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	private List<Mqtt5Subscription> subscriptions;
 
 	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, String... topics) {
-		super(mqttClientManager);
-		this.topics = topics;
+		super(mqttClientManager, topics);
 	}
 
 	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, Mqtt5Subscription... subscriptions) {
@@ -76,11 +76,11 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	protected void onInit() {
 		super.onInit();
 		if (this.subscriptions == null) {
-			Assert.notEmpty(this.topics, "topics must not be empty when subscriptions are not provided");
-			this.subscriptions = Arrays.stream(this.topics)
+			Assert.notEmpty(getTopics(), "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(getTopics())
 					.map(topic -> Mqtt5Subscription.builder()
 							.topicFilter(topic)
-							.qos(this.qos)
+							.qos(getQos())
 							.noLocal(this.noLocal)
 							.retainHandling(this.retainHandling)
 							.retainAsPublished(this.retainAsPublished)
@@ -127,7 +127,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.isConnected() && this.isSubscribed.compareAndSet(false, true)) {
+		if (isConnected() && !this.isSubscribed.get() && this.isSubscribing.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -135,7 +135,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (this.isConnected() && this.isSubscribed.compareAndSet(true, false)) {
+		if (isConnected() && this.isSubscribed.get()) {
 			unsubscribe();
 		}
 	}
@@ -144,7 +144,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	public void onClientConnected(MqttClientConnectedContext context) {
 		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
 		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
-		if (isActive() && this.isSubscribed.compareAndSet(false, true)) {
+		if (isActive() && !this.isSubscribed.get() && this.isSubscribing.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -156,24 +156,25 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
 		CompletableFuture<Mqtt5SubAck> subscribeFuture;
-		if (this.executor != null) {
-			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt5Subscribe, this::processMessage, this.executor, this.manualAck);
+		if (getExecutor() != null) {
+			subscribeFuture = getClient().toAsync()
+					.subscribe(mqtt5Subscribe, this::processMessage, getExecutor(), isManualAck());
 		}
 		else {
-			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt5Subscribe, this::processMessage, this.manualAck);
+			subscribeFuture = getClient().toAsync()
+					.subscribe(mqtt5Subscribe, this::processMessage, isManualAck());
 		}
 		subscribeFuture.whenComplete(((mqtt5SubAck, throwable) -> {
+			this.isSubscribing.set(false);
 			if (throwable == null) {
 				this.isSubscribed.set(true);
 				String msg = "MQTT client subscribe to: " + this.subscriptions;
-				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, msg));
+				getApplicationEventPublisher().publishEvent(new MqttSubscribedEvent(this, msg));
 			}
 			else {
 				this.isSubscribed.set(false);
 				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, throwable));
+				getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, throwable));
 			}
 		}));
 	}
@@ -185,25 +186,33 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		headers.put(MqttHeaders.RECEIVED_RETAINED, mqtt5Publish.isRetain());
 		headers.put(MqttHeaders.RECEIVED_TOPIC, mqtt5Publish.getTopic().toString());
 
-		if (this.manualAck) {
-			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, mqtt5Publish);
+		if (isManualAck()) {
+			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, new AcknowledgmentImpl(mqtt5Publish));
 		}
 
-		Object payload = Mqtt5Publish.class.isAssignableFrom(this.payloadType)
+		Object payload = Mqtt5Publish.class.isAssignableFrom(getPayloadType())
 				? mqtt5Publish
 				: mqtt5Publish.getPayloadAsBytes();
 
 		Message<?> message;
-		if (Mqtt5Publish.class.isAssignableFrom(this.payloadType) || byte[].class.isAssignableFrom(this.payloadType)) {
-			message = new GenericMessage<>(payload, headers);
+		if (Mqtt5Publish.class.isAssignableFrom(getPayloadType()) || byte[].class.isAssignableFrom(getPayloadType())) {
+			message = getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
 		}
 		else {
-			Message<?> messageToConvert = new GenericMessage<>(payload, headers);
-			Object convertedPayload = this.messageConverter.fromMessage(messageToConvert, this.payloadType);
+			Message<?> messageToConvert = MutableMessageBuilder.withPayload(payload, false)
+					.copyHeaders(headers)
+					.build();
+			Object convertedPayload = getMessageConverter().fromMessage(messageToConvert, getPayloadType());
 			if (convertedPayload == null) {
 				throw new MessageConversionException(messageToConvert, "Failed to convert from MQTT Message");
 			}
-			message = new GenericMessage<>(convertedPayload, headers);
+			message = getMessageBuilderFactory()
+					.withPayload(convertedPayload)
+					.copyHeaders(messageToConvert.getHeaders())
+					.build();
 		}
 
 		sendMessage(message);
@@ -213,15 +222,29 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		Mqtt5Unsubscribe mqtt5Unsubscribe = Mqtt5Unsubscribe.builder()
 				.addTopicFilters(this.subscriptions.stream().map(Mqtt5Subscription::getTopicFilter))
 				.build();
-		this.mqttClient.toAsync().unsubscribe(mqtt5Unsubscribe).whenComplete((mqtt5UnsubAck, throwable) -> {
-			if (throwable == null) {
-				this.isSubscribed.set(false);
-			}
-			else {
-				this.isSubscribed.set(true);
-				logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
-			}
-		});
+		getClient().toAsync()
+				.unsubscribe(mqtt5Unsubscribe)
+				.whenComplete((mqtt5UnsubAck, throwable) -> {
+					if (throwable == null) {
+						this.isSubscribed.set(false);
+					}
+					else {
+						this.isSubscribed.set(true);
+						logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
+					}
+				});
+	}
+
+	/**
+	 * Used to complete message arrival when {@link #isManualAck()} is true.
+	 */
+	private record AcknowledgmentImpl(Mqtt5Publish mqtt5Publish) implements SimpleAcknowledgment {
+
+		@Override
+		public void acknowledge() {
+			this.mqtt5Publish.acknowledge();
+		}
+
 	}
 
 }

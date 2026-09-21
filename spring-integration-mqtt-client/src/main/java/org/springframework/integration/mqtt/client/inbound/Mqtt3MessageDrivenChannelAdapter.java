@@ -31,13 +31,14 @@ import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck;
 import com.hivemq.client.mqtt.mqtt3.message.unsubscribe.Mqtt3Unsubscribe;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.client.core.ClientManager;
-import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.client.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConversionException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -53,8 +54,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	private List<Mqtt3Subscription> subscriptions;
 
 	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, String... topics) {
-		super(mqttClientManager);
-		this.topics = topics;
+		super(mqttClientManager, topics);
 	}
 
 	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, Mqtt3Subscription... subscriptions) {
@@ -66,11 +66,11 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	protected void onInit() {
 		super.onInit();
 		if (this.subscriptions == null) {
-			Assert.notEmpty(this.topics, "topics must not be empty when subscriptions are not provided");
-			this.subscriptions = Arrays.stream(this.topics)
+			Assert.notEmpty(getTopics(), "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(getTopics())
 					.map(topic -> Mqtt3Subscription.builder()
 							.topicFilter(topic)
-							.qos(this.qos)
+							.qos(getQos())
 							.build())
 					.toList();
 		}
@@ -80,7 +80,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (this.isConnected() && this.isSubscribed.compareAndSet(false, true)) {
+		if (isConnected() && !this.isSubscribed.get() && this.isSubscribing.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -88,7 +88,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (this.isConnected() && this.isSubscribed.compareAndSet(true, false)) {
+		if (isConnected() && this.isSubscribed.get()) {
 			unsubscribe();
 		}
 	}
@@ -97,7 +97,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	public void onClientConnected(MqttClientConnectedContext mqttClientConnectedContext) {
 		// this adapter may not active yet when triggered from ClientManager, so subscriptions are needed in doStart.
 		// Retain this code to handle scenarios where initial connection fails but later reconnection succeeds.
-		if (isActive() && this.isSubscribed.compareAndSet(false, true)) {
+		if (isActive() && !this.isSubscribed.get() && this.isSubscribing.compareAndSet(false, true)) {
 			subscribe();
 		}
 	}
@@ -109,53 +109,62 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
 		CompletableFuture<Mqtt3SubAck> subscribeFuture;
-		if (this.executor != null) {
-			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt3Subscribe, this::processMessage, this.executor, this.manualAck);
+		if (getExecutor() != null) {
+			subscribeFuture = getClient().toAsync()
+					.subscribe(mqtt3Subscribe, this::processMessage, getExecutor(), isManualAck());
 		}
 		else {
-			subscribeFuture = this.mqttClient.toAsync()
-					.subscribe(mqtt3Subscribe, this::processMessage, this.manualAck);
+			subscribeFuture = getClient().toAsync()
+					.subscribe(mqtt3Subscribe, this::processMessage, isManualAck());
 		}
 		subscribeFuture.whenComplete((subAck, throwable) -> {
+			this.isSubscribing.set(false);
 			if (throwable == null) {
 				this.isSubscribed.set(true);
 				String msg = "MQTT client subscribe to: " + this.subscriptions;
-				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, msg));
+				getApplicationEventPublisher().publishEvent(new MqttSubscribedEvent(this, msg));
 			}
 			else {
 				this.isSubscribed.set(false);
 				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
-				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, throwable));
+				getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, throwable));
 			}
 		});
 	}
 
-	private void processMessage(Mqtt3Publish mqttMessage) {
+	private void processMessage(Mqtt3Publish mqtt3Publish) {
 		Map<String, Object> headers = new HashMap<>();
-		headers.put(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos());
-		headers.put(MqttHeaders.RECEIVED_RETAINED, mqttMessage.isRetain());
-		headers.put(MqttHeaders.RECEIVED_TOPIC, mqttMessage.getTopic().toString());
+		headers.put(MqttHeaders.RECEIVED_QOS, mqtt3Publish.getQos());
+		headers.put(MqttHeaders.RECEIVED_RETAINED, mqtt3Publish.isRetain());
+		headers.put(MqttHeaders.RECEIVED_TOPIC, mqtt3Publish.getTopic().toString());
 
-		if (this.manualAck) {
-			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, mqttMessage);
+		if (isManualAck()) {
+			headers.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, new AcknowledgmentImpl(mqtt3Publish));
 		}
 
-		Object payload = Mqtt3Publish.class.isAssignableFrom(this.payloadType)
-				? mqttMessage
-				: mqttMessage.getPayloadAsBytes();
+		Object payload = Mqtt3Publish.class.isAssignableFrom(getPayloadType())
+				? mqtt3Publish
+				: mqtt3Publish.getPayloadAsBytes();
 
 		Message<?> message;
-		if (Mqtt3Publish.class.isAssignableFrom(this.payloadType) || byte[].class.isAssignableFrom(this.payloadType)) {
-			message = new GenericMessage<>(payload, headers);
+		if (Mqtt3Publish.class.isAssignableFrom(getPayloadType()) || byte[].class.isAssignableFrom(getPayloadType())) {
+			message = getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
 		}
 		else {
-			Message<?> messageToConvert = new GenericMessage<>(payload, headers);
-			Object convertedPayload = this.messageConverter.fromMessage(messageToConvert, this.payloadType);
+			Message<?> messageToConvert = MutableMessageBuilder.withPayload(payload, false)
+					.copyHeaders(headers)
+					.build();
+			Object convertedPayload = getMessageConverter().fromMessage(messageToConvert, getPayloadType());
 			if (convertedPayload == null) {
 				throw new MessageConversionException(messageToConvert, "Failed to convert from MQTT Message");
 			}
-			message = new GenericMessage<>(convertedPayload, headers);
+			message = getMessageBuilderFactory()
+					.withPayload(convertedPayload)
+					.copyHeaders(messageToConvert.getHeaders())
+					.build();
 		}
 
 		sendMessage(message);
@@ -165,15 +174,29 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		Mqtt3Unsubscribe mqtt3Unsubscribe = Mqtt3Unsubscribe.builder()
 				.addTopicFilters(this.subscriptions.stream().map(Mqtt3Subscription::getTopicFilter))
 				.build();
-		this.mqttClient.toAsync().unsubscribe(mqtt3Unsubscribe).whenComplete((Void, throwable) -> {
-			if (throwable == null) {
-				this.isSubscribed.set(false);
-			}
-			else {
-				this.isSubscribed.set(true);
-				logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
-			}
-		});
+		getClient().toAsync()
+				.unsubscribe(mqtt3Unsubscribe)
+				.whenComplete((Void, throwable) -> {
+					if (throwable == null) {
+						this.isSubscribed.set(false);
+					}
+					else {
+						this.isSubscribed.set(true);
+						logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
+					}
+				});
+	}
+
+	/**
+	 * Used to complete message arrival when {@link #isManualAck()} is true.
+	 */
+	private record AcknowledgmentImpl(Mqtt3Publish mqtt3Publish) implements SimpleAcknowledgment {
+
+		@Override
+		public void acknowledge() {
+			this.mqtt3Publish.acknowledge();
+		}
+
 	}
 
 }

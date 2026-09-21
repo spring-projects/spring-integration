@@ -29,6 +29,7 @@ import com.hivemq.client.mqtt.lifecycle.MqttClientAutoReconnect;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.lifecycle.MqttClientDisconnectedListener;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
@@ -46,7 +47,12 @@ import org.springframework.core.log.LogAccessor;
  * @since 7.2
  */
 public abstract class AbstractMqttClientManager<T extends MqttClient, C extends MqttClientConfig>
-		implements ClientManager<T>, ApplicationEventPublisherAware {
+		implements ClientManager<T>, InitializingBean, SmartLifecycle, ApplicationEventPublisherAware, MqttClientConnectedListener {
+
+	/**
+	 * The default phase of this client manager auto-start in {@link SmartLifecycle}.
+	 */
+	private static final int DEFAULT_MANAGER_PHASE = 0;
 
 	protected final LogAccessor logger = new LogAccessor(this.getClass());
 
@@ -59,10 +65,10 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 	protected final C mqttClientConfig;
 
 	@SuppressWarnings("NullAway.Init")
-	protected T mqttClient;
+	private T mqttClient;
 
 	@SuppressWarnings("NullAway.Init")
-	protected ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	protected AbstractMqttClientManager(C mqttClientConfig) {
 		if (mqttClientConfig.getAutomaticReconnect().isEmpty()) {
@@ -75,15 +81,14 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 
 	@Override
 	public void afterPropertiesSet() {
-		this.mqttClient = buildClient(this.mqttClientConfig);
+		this.mqttClient = buildClient();
 	}
 
 	/**
 	 * Build the mqttClient using the supplied {@link MqttClientConfig}.
-	 * @param mqttClientConfig the mqttClientConfig
 	 * @return the mqttClient
 	 */
-	protected abstract T buildClient(C mqttClientConfig);
+	protected abstract T buildClient();
 
 	/**
 	 * Create a base {@link MqttClientBuilder} populated with the supplied {@link MqttClientConfig}.
@@ -126,6 +131,10 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
 	}
 
 	/**

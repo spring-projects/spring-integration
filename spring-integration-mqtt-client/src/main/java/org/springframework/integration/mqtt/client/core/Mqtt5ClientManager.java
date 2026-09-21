@@ -17,7 +17,6 @@
 package org.springframework.integration.mqtt.client.core;
 
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
-import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5ClientConfig;
 import com.hivemq.client.mqtt.mqtt5.message.connect.Mqtt5Connect;
@@ -32,8 +31,7 @@ import org.springframework.integration.mqtt.client.event.MqttConnectionFailedEve
  *
  * @since 7.2
  */
-public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, Mqtt5ClientConfig>
-		implements MqttClientConnectedListener {
+public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, Mqtt5ClientConfig> {
 
 	private Mqtt5Connect mqttConnect = Mqtt5Connect.builder().build();
 
@@ -44,13 +42,13 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 	}
 
 	@Override
-	protected Mqtt5Client buildClient(Mqtt5ClientConfig mqttClientConfig) {
-		return createBaseClientBuilder(mqttClientConfig)
+	protected Mqtt5Client buildClient() {
+		return createBaseClientBuilder(this.mqttClientConfig)
 				.useMqttVersion5()
-				.advancedConfig(mqttClientConfig.getAdvancedConfig())
-				.willPublish(mqttClientConfig.getWillPublish().orElse(null))
-				.simpleAuth(mqttClientConfig.getSimpleAuth().orElse(null))
-				.enhancedAuth(mqttClientConfig.getEnhancedAuthMechanism().orElse(null))
+				.advancedConfig(this.mqttClientConfig.getAdvancedConfig())
+				.willPublish(this.mqttClientConfig.getWillPublish().orElse(null))
+				.simpleAuth(this.mqttClientConfig.getSimpleAuth().orElse(null))
+				.enhancedAuth(this.mqttClientConfig.getEnhancedAuthMechanism().orElse(null))
 				.addConnectedListener(this)
 				.build();
 	}
@@ -75,12 +73,12 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 	public void start() {
 		this.lock.lock();
 		try {
-			if (!this.isConnected()) {
-				this.mqttClient.toBlocking().connect(this.mqttConnect);
+			if (!isConnected()) {
+				getClient().toBlocking().connect(this.mqttConnect);
 			}
 		}
 		catch (RuntimeException ex) {
-			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			getApplicationEventPublisher().publishEvent(new MqttConnectionFailedEvent(this, ex));
 			logger.error(ex, "Could not start client manager.");
 		}
 		finally {
@@ -92,8 +90,8 @@ public class Mqtt5ClientManager extends AbstractMqttClientManager<Mqtt5Client, M
 	public void stop() {
 		this.lock.lock();
 		try {
-			if (this.isConnected()) {
-				this.mqttClient.toBlocking().disconnect(this.mqttDisConnect);
+			if (isConnected()) {
+				getClient().toBlocking().disconnect(this.mqttDisConnect);
 			}
 		}
 		catch (RuntimeException ex) {

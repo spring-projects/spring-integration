@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
@@ -135,9 +136,8 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		assertThat(petDeviceMessage)
 				.returns("pet-payload-1".getBytes(), Message::getPayload)
 				.extracting(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK))
-				.asInstanceOf(InstanceOfAssertFactories.type(Mqtt3Publish.class))
-				.isEqualTo(mqtt3Publish)
-				.satisfies(Mqtt3Publish::acknowledge);  // manual ack
+				.asInstanceOf(InstanceOfAssertFactories.type(SimpleAcknowledgment.class))
+				.satisfies(SimpleAcknowledgment::acknowledge); // manual ack
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -181,7 +181,7 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, Mqtt3Subscription.builder()
 					.topicFilter(PET_DEVICE_TOPIC).build());
 			adapter.setOutputChannel(petDeviceOutputChannel);
-			adapter.setManualAcknowledgement(true);
+			adapter.setManualAck(true);
 			adapter.setExecutor(executor);
 			return adapter;
 		}
