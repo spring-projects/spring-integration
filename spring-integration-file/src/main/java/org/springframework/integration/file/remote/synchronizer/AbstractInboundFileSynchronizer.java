@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -682,7 +683,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	private String buildMetadataKey(File file) {
-		return this.metadataStorePrefix + file.getAbsolutePath();
+		try {
+			return this.metadataStorePrefix + file.getCanonicalPath();
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	protected abstract boolean isFile(F file);

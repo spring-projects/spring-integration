@@ -278,9 +278,6 @@ configure(javaProjects) { subproject ->
 				'--enable-native-access=ALL-UNNAMED',
 				'-XX:+HeapDumpOnOutOfMemoryError'
 
-		if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
-			systemProperty 'java.io.tmpdir', '/private/tmp'
-		}
 
 	}
 

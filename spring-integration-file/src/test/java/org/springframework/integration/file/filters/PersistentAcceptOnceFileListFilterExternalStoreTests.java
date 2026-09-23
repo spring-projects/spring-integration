@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Bojan Vukasovic
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -117,12 +118,12 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
 		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
-		String ts = store.get("foo:" + file.getAbsolutePath());
+		String ts = store.get("foo:" + file.getCanonicalPath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
 		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
 		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
 		assertThat(filter.filterFiles(new File[] {file})).hasSize(1);
-		ts = store.get("foo:" + file.getAbsolutePath());
+		ts = store.get("foo:" + file.getCanonicalPath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
 		assertThat(filter.filterFiles(new File[] {file})).isEmpty();
 
@@ -133,7 +134,7 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 		Future<Integer> result = executorService
 				.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
-		store.put("foo:" + file.getAbsolutePath(), "43");
+		store.put("foo:" + file.getCanonicalPath(), "43");
 		latch1.countDown();
 		Integer theResult = result.get(10, TimeUnit.SECONDS);
 		assertThat(theResult).isEqualTo(Integer.valueOf(0)); // lost the race, key changed
