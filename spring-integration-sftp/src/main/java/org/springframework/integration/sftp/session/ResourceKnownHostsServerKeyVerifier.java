@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * The logic is similar to the {@link KnownHostsServerKeyVerifier}, but in read-only mode.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.0
  *
@@ -63,10 +64,21 @@ public class ResourceKnownHostsServerKeyVerifier implements ServerKeyVerifier {
 
 		String serverKeyType = KeyUtils.getKeyType(serverKey);
 
-		return matches.stream()
-				.filter(match -> serverKeyType.equals(match.getHostEntry().getKeyEntry().getKeyType()))
-				.filter(match -> KeyUtils.compareKeys(match.getServerKey(), serverKey))
-				.anyMatch(match -> !"revoked".equals(match.getHostEntry().getMarker()));
+		boolean foundMatch = false;
+
+		for (KnownHostsServerKeyVerifier.HostEntryPair match : matches) {
+			KnownHostEntry hostEntry = match.getHostEntry();
+			if (serverKeyType.equals(hostEntry.getKeyEntry().getKeyType())
+					&& KeyUtils.compareKeys(match.getServerKey(), serverKey)) {
+
+				// Immediate fail: A revoked entry overrides any non-revoked entry
+				if ("revoked".equals(hostEntry.getMarker())) {
+					return false;
+				}
+				foundMatch = true;
+			}
+		}
+		return foundMatch;
 	}
 
 	private static Supplier<Collection<KnownHostsServerKeyVerifier.HostEntryPair>> getKnownHostSupplier(
