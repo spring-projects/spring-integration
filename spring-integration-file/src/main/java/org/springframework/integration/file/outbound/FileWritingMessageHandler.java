@@ -998,14 +998,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private static void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
-		if (!destinationDirectory.exists() && autoCreateDirectory) {
-			try {
+		try {
+			if (!destinationDirectory.exists() && autoCreateDirectory) {
 				Files.createDirectories(destinationDirectory.toPath());
 			}
-			catch (IOException ex) {
-				throw new IllegalArgumentException(
-						"Destination directory [" + destinationDirectory + "] could not be created.", ex);
-			}
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException(
+					"Destination directory [" + destinationDirectory + "] could not be created.", ex);
 		}
 		Assert.isTrue(destinationDirectory.exists(),
 				() -> "Destination directory [" + destinationDirectory + "] does not exist.");

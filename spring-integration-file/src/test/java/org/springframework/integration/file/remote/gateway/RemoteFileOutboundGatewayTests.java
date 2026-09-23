@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -564,7 +565,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		@SuppressWarnings("unchecked")
 		MessageBuilder<File> out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
 		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
-		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertThat(out.getPayload()).isEqualTo(outFile.getCanonicalFile());
 		assertThat(outFile.exists()).isTrue();
 		outFile.delete();
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isNull();
@@ -614,17 +615,17 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 
 		gw.setFileExistsMode(FileExistsMode.IGNORE);
 		out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertThat(out.getPayload()).isEqualTo(outFile.getCanonicalFile());
 		assertContents("foo", outFile);
 
 		gw.setFileExistsMode(FileExistsMode.APPEND);
 		out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertThat(out.getPayload()).isEqualTo(outFile.getCanonicalFile());
 		assertContents("footestfile", outFile);
 
 		gw.setFileExistsMode(FileExistsMode.REPLACE);
 		out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertThat(out.getPayload()).isEqualTo(outFile.getCanonicalFile());
 		assertContents("testfile", outFile);
 
 		outFile.delete();
@@ -760,7 +761,7 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		@SuppressWarnings("unchecked")
 		MessageBuilder<File> out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("x/f1"));
 		File outFile = new File(this.tmpDir + "/f1").getCanonicalFile();
-		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertThat(out.getPayload()).isEqualTo(outFile.getCanonicalFile());
 		assertThat(outFile.exists()).isTrue();
 		assertThat(outFile.lastModified()).isEqualTo(modified.getTime());
 		outFile.delete();
@@ -1074,6 +1075,117 @@ public class RemoteFileOutboundGatewayTests implements TestApplicationContextAwa
 		assertThat(out.get(1)).isEqualTo("foo/buz.txt");
 		assertThat(written.get()).isEqualTo("foo/buz.txt.writing");
 		verify(session).rename("foo/buz.txt.writing", "foo/buz.txt");
+	}
+
+	@Test
+	void testMGetLocalDirectoryExpressionRejectsRemoteDirectoryTraversal() {
+		SessionFactory sessionFactory = mock();
+		TestRemoteFileOutboundGateway gw = createGateway(sessionFactory, new File(tempFolder, "localDirectory"));
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
+			@Override
+			public void read(String source, OutputStream outputStream) throws IOException {
+				outputStream.write("test".getBytes());
+			}
+
+			@Override
+			public TestLsEntry[] list(String path) {
+				return new TestLsEntry[] {
+						new TestLsEntry("a/../../../../../test.txt", 5, false, false, 1234,
+								"-r--r--r--")};
+			}
+
+		});
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("testremote/x/*")))
+				.havingRootCause()
+				.isInstanceOf(InvalidPathException.class)
+				.withMessageStartingWith("The provided directory cannot be traversal path");
+		assertThat(new File(tempFolder.getParentFile(), "test.txt")).doesNotExist();
+	}
+
+	/*
+	 * Covers the recursive reachability path to the same containment guard as
+	 * testMGetLocalDirectoryExpressionRejectsRemoteDirectoryTraversal: here the traversal arrives
+	 * through a server-supplied sub-directory name that recursion descends into and prepends via
+	 * enhanceNameWithSubDirectory, rather than through a single listing entry's file name.
+	 */
+	@Test
+	void testMGetRecursiveTraversalViaServerSuppliedSubDirectoryIsRejected() {
+		SessionFactory sessionFactory = mock();
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
+		File localDirectoryRoot = new File(tempFolder, "recursiveRoot");
+		gw.setLocalDirectoryExpressionString(
+				"'" + localDirectoryRoot.getAbsolutePath().replace(File.separatorChar, '/') + "/' + #remoteDirectory");
+		gw.setOptions("-R");
+		gw.afterPropertiesSet();
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
+			@Override
+			public void read(String source, OutputStream outputStream) throws IOException {
+				outputStream.write("test".getBytes());
+			}
+
+			@Override
+			public TestLsEntry[] list(String path) {
+				if ("testremote/x/".equals(path)) {
+					return new TestLsEntry[] {
+							new TestLsEntry("b/../../../../../../c", 0, true, false, 1234, "drw-r--r--")};
+				}
+				else {
+					return new TestLsEntry[] {
+							new TestLsEntry("test.txt", 4, false, false, 1234, "-r--r--r--")};
+				}
+			}
+
+		});
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("testremote/x/*")))
+				.havingRootCause()
+				.isInstanceOf(InvalidPathException.class)
+				.withMessageStartingWith("The provided directory cannot be traversal path");
+		assertThat(new File(tempFolder.getParentFile(), "test.txt")).doesNotExist();
+	}
+
+	@Test
+	void testMGetRejectsTraversalWhenEscapedLocalDirectoryAlreadyExists() throws IOException {
+		SessionFactory sessionFactory = mock();
+		File canonicalRoot = tempFolder.getCanonicalFile();
+		File localDirectoryRoot = new File(canonicalRoot, "existingEscapeRoot");
+		File escapedDirectory = new File(canonicalRoot, "existingEscapeTarget");
+		assertThat(localDirectoryRoot.mkdirs()).isTrue();
+		assertThat(escapedDirectory.mkdirs()).isTrue();
+		File escapedFile = new File(escapedDirectory, "test.txt");
+		TestRemoteFileOutboundGateway gw = createGateway(sessionFactory, localDirectoryRoot);
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
+			@Override
+			public void read(String source, OutputStream outputStream) throws IOException {
+				outputStream.write("test".getBytes());
+			}
+
+			@Override
+			public TestLsEntry[] list(String path) {
+				return new TestLsEntry[] {
+						new TestLsEntry("test.txt", 4, false, false, 1234, "-r--r--r--")};
+			}
+
+		});
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(
+						new GenericMessage<>("../" + escapedDirectory.getName() + "/*")))
+				.havingRootCause()
+				.isInstanceOf(InvalidPathException.class)
+				.withMessageStartingWith("The provided directory cannot be traversal path");
+		assertThat(escapedFile).doesNotExist();
+	}
+
+	private static TestRemoteFileOutboundGateway createGateway(SessionFactory sessionFactory, File localDirectoryRoot) {
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
+		gw.setLocalDirectoryExpressionString(
+				"'" + localDirectoryRoot.getAbsolutePath().replace(File.separatorChar, '/') + "/' + #remoteDirectory");
+		gw.afterPropertiesSet();
+		return gw;
 	}
 
 	abstract static class TestSession implements Session<TestLsEntry> {
