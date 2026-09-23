@@ -1418,14 +1418,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, evaluationContext, message,
 				"Local Directory");
-		if (!localDir.exists()) {
-			try {
+
+		try {
+			if (!localDir.getCanonicalPath().endsWith(localDir.getAbsolutePath())) {
+				throw new InvalidPathException(localDir.getPath(),
+						"The provided directory cannot be traversal path");
+			}
+			if (!localDir.exists()) {
 				Files.createDirectories(localDir.toPath());
 			}
-			catch (IOException | InvalidPathException ex) {
-				throw new IllegalArgumentException("Failed to make local directory: " + localDir, ex);
-			}
 		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException("Failed to make local directory: " + localDir, ex);
+		}
+
 		return localDir;
 	}
 
