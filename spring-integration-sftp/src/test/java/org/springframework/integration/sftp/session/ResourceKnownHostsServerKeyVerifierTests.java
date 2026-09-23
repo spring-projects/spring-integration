@@ -7,6 +7,7 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import org.apache.sshd.client.config.hosts.KnownHostEntry;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.config.keys.AuthorizedKeyEntry;
+import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
 import org.apache.sshd.common.random.JceRandomFactory;
 import org.apache.sshd.common.util.GenericUtils;
@@ -26,16 +28,19 @@ import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import org.mockito.Mockito;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 6.0
  */
@@ -66,15 +71,40 @@ public class ResourceKnownHostsServerKeyVerifierTests {
 				new FileSystemResource(KnownHostEntry.getDefaultKnownHostsFile()));
 
 		ClientFactoryManager manager = mock();
-		Mockito.when(manager.getRandomFactory()).thenReturn((Factory) JceRandomFactory.INSTANCE);
+		when(manager.getRandomFactory()).thenReturn((Factory) JceRandomFactory.INSTANCE);
 
 		HOST_KEYS.forEach((key, value) -> {
 			ClientSession session = mock();
-			Mockito.when(session.getFactoryManager()).thenReturn(manager);
+			when(session.getFactoryManager()).thenReturn(manager);
 
-			Mockito.when(session.getConnectAddress()).thenReturn(key);
+			when(session.getConnectAddress()).thenReturn(key);
 			assertThat(verifier.verifyServerKey(session, key, value)).isTrue();
 		});
+	}
+
+	@Test
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	void revokedEntryIsRejectedEvenWhenStaleNonRevokedDuplicateIsPresent() throws GeneralSecurityException {
+		String host = "sftp.example.com";
+
+		PublicKey key = KeyPairGenerator.getInstance("RSA").generateKeyPair().getPublic();
+		String encodedKey = PublicKeyEntry.toString(key);
+
+		// A stale, non-revoked line for the key is still present alongside
+		// the '@revoked' entry that an administrator added after the key was compromised.
+		String knownHosts =
+				host + " " + encodedKey + "\n" + "@revoked " + host + " " + encodedKey + "\n";
+
+		ResourceKnownHostsServerKeyVerifier verifier =
+				new ResourceKnownHostsServerKeyVerifier(new ByteArrayResource(knownHosts.getBytes()));
+
+		var address = new SshdSocketAddress(host, 22);
+		ClientSession session = mock(RETURNS_DEEP_STUBS);
+		when(session.getFactoryManager().getRandomFactory()).thenReturn((Factory) JceRandomFactory.INSTANCE);
+		when(session.getConnectAddress()).thenReturn(address);
+
+		assertThat(verifier.verifyServerKey(session, address, key))
+				.isFalse();
 	}
 
 	private static Map<SshdSocketAddress, KnownHostEntry> loadEntries(Path file) throws IOException {
