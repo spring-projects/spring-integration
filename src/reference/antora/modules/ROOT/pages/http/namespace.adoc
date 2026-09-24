@@ -45,6 +45,64 @@ The following example shows how to configure one:
     reply-channel="responses"/>
 ----
 
+[[http-java-serialization]]
+=== Java Serialization
+
+The `SerializingHttpMessageConverter` is not registered by default.
+To accept request bodies with the `application/x-java-serialized-object` content type, add this converter to the `inbound-channel-adapter` or the `inbound-gateway` by using the `message-converters` attribute (or the `messageConverters()` option of the Java DSL).
+
+WARNING: Deserializing Java objects from untrusted sources is dangerous.
+A crafted request body can chain classes available on the application classpath (so-called deserialization gadgets) to run arbitrary code while the object graph is being restored.
+Consider using a data format such as JSON for the endpoints exposed to untrusted clients.
+See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html[OWASP Deserialization Cheat Sheet] for more information.
+
+The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`, so you can restrict the classes to trust by configuring its `allowedPatterns`.
+A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
+The basic types (`String`, `Number` and its subclasses, primitives and arrays) are always allowed.
+Deserialization fails for any other class that does not match one of the patterns.
+
+IMPORTANT: For backward compatibility, all classes are deserialized when no patterns are configured.
+Always configure the allowed patterns when the converter reads requests from untrusted clients.
+
+The following example configures an inbound channel adapter to deserialize only classes from the `com.example.model` package:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow httpInboundFlow() {
+    SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
+    converter.setAllowedPatterns("com.example.model.*");
+    return IntegrationFlow
+            .from(Http.inboundChannelAdapter("/orders")
+                    .messageConverters(converter))
+            .channel("orders")
+            .get();
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<int-http:inbound-channel-adapter id="ordersInbound" channel="orders"
+    path="/orders"
+    message-converters="converters"/>
+
+<util:list id="converters">
+    <bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
+        <property name="allowedPatterns" value="com.example.model.*"/>
+    </bean>
+</util:list>
+----
+======
+
+Additional patterns can be added with the `addAllowedPatterns()` method.
+The same allowlist applies when the converter reads a response body for an HTTP outbound endpoint.
+
 [[http-request-mapping]]
 == Request Mapping Support
 
@@ -289,6 +347,7 @@ Since Spring Integration 2.2, the `SerializingHttpMessageConverter` has now been
 However, because this could cause incompatibility with existing applications, it was decided to no longer automatically add this converter to the HTTP endpoints.
 If you wish to use Java serialization, you can add the `SerializingHttpMessageConverter` to the appropriate endpoints, by using the `message-converters` attribute (when you use XML configuration) or by using the `setMessageConverters()` method (in Java configuration).
 Alternatively, you may wish to consider using JSON instead, which is enabled by having https://github.com/FasterXML/jackson[the Jackson library] on the classpath.
+See <<http-java-serialization>> for the security implications of Java deserialization.
 =====
 
 Beginning with Spring Integration 2.2, you can also determine the HTTP method dynamically by using SpEL and the `http-method-expression` attribute.
