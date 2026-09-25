@@ -50,6 +50,8 @@ The `DerbyChannelMessageStoreQueryProvider` and `schema-derby.sql` are deprecate
 === HTTP Support Changes
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
+The `SerializingHttpMessageConverter` now has a constructor that requires the patterns of classes allowed for deserialization.
+Its default constructor and `setAllowedPatterns()` method are deprecated.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
 [[x7.2-jms-changes]]

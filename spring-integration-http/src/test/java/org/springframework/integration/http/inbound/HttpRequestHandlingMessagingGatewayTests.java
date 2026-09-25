@@ -69,6 +69,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Hyun Lee
  *
  * @since 2.0
  */
@@ -250,7 +251,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestChannel(channel);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter());
+		converters.add(new SerializingHttpMessageConverter(TestBean.class.getName()));
 		gateway.setMessageConverters(converters);
 		gateway.afterPropertiesSet();
 		gateway.start();

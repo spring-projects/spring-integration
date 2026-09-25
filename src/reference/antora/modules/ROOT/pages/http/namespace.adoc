@@ -56,13 +56,17 @@ A crafted request body can chain classes available on the application classpath 
 Consider using a data format such as JSON for the endpoints exposed to untrusted clients.
 See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html[OWASP Deserialization Cheat Sheet] for more information.
 
-The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`, so you can restrict the classes to trust by configuring its `allowedPatterns`.
+The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`.
+Starting with version 7.2, use the `SerializingHttpMessageConverter(String... allowedPatterns)` constructor to specify the trusted classes.
+This constructor requires at least one pattern and rejects an empty pattern array.
 A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
 The basic types (`String`, `Number` and its subclasses, primitives and arrays) are always allowed.
 Deserialization fails for any other class that does not match one of the patterns.
 
-IMPORTANT: For backward compatibility, all classes are deserialized when no patterns are configured.
-Always configure the allowed patterns when the converter reads requests from untrusted clients.
+IMPORTANT: The default constructor and `setAllowedPatterns()` method are deprecated for removal since version 7.2.
+For backward compatibility, the deprecated default constructor still allows all classes when no patterns are configured.
+Passing `"*"` to the new constructor explicitly allows all classes; use it only when all sources are trusted.
+Always restrict the allowed patterns when the converter reads requests from untrusted clients.
 
 The following example configures an inbound channel adapter to deserialize only classes from the `com.example.model` package:
 
@@ -74,8 +78,8 @@ Java DSL::
 ----
 @Bean
 public IntegrationFlow httpInboundFlow() {
-    SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
-    converter.setAllowedPatterns("com.example.model.*");
+    SerializingHttpMessageConverter converter =
+            new SerializingHttpMessageConverter("com.example.model.*");
     return IntegrationFlow
             .from(Http.inboundChannelAdapter("/orders")
                     .messageConverters(converter))
@@ -94,7 +98,7 @@ XML::
 
 <util:list id="converters">
     <bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
-        <property name="allowedPatterns" value="com.example.model.*"/>
+        <constructor-arg value="com.example.model.*"/>
     </bean>
 </util:list>
 ----
