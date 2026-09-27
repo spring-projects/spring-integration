@@ -54,6 +54,7 @@ import org.springframework.util.DefaultPropertiesPersister;
  * @author Artem Bilan
  * @author Glenn Renfro
  * @author Uwez Khan
+ * @author Yingzi Zhang
  *
  * @since 2.0
  */
@@ -225,6 +226,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			this.persister.store(this.metadata, outputStream, "Last entry");
 		}
 		catch (IOException ex) {
+			this.dirty = true;
 			// not fatal for the functionality of the component
 			this.logger.warn("Failed to persist entry. This may result in a duplicate "
 					+ "entry after this component is restarted.", ex);

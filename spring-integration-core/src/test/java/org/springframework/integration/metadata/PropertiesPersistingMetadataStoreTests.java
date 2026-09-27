@@ -17,6 +17,7 @@
 package org.springframework.integration.metadata;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Uwez Khan
  * @author Glenn Renfro
+ * @author Yingzi Zhang
  *
  * @since 2.0
  */
@@ -107,6 +109,28 @@ public class PropertiesPersistingMetadataStoreTests {
 
 		assertThat(file).canRead().canWrite();
 		assertThat(baseDir).canRead().canWrite().isExecutable();
+	}
+
+	@Test
+	void retriesFlushAfterPersistenceFailure() throws Exception {
+		File baseDir = new File(folder, "retry-store");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.setBaseDirectory(baseDir.getAbsolutePath());
+		metadataStore.afterPropertiesSet();
+		metadataStore.put("lastProcessedId", "42");
+		File metadataFile = new File(baseDir, "metadata-store.properties");
+
+		Files.delete(metadataFile.toPath());
+		Files.delete(baseDir.toPath());
+		metadataStore.flush();
+
+		Files.createDirectory(baseDir.toPath());
+		metadataStore.flush();
+
+		PropertiesPersistingMetadataStore restored = new PropertiesPersistingMetadataStore();
+		restored.setBaseDirectory(baseDir.getAbsolutePath());
+		restored.afterPropertiesSet();
+		assertThat(restored.get("lastProcessedId")).isEqualTo("42");
 	}
 
 }
