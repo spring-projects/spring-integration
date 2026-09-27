@@ -3,7 +3,7 @@
 micrometerTracingVersion = "1.8.0-SNAPSHOT"
 micrometerVersion = "1.18.0-M2"
 reactorVersion = "2026.0.0-SNAPSHOT"
-springAmqpVersion = "4.2.0-M2"
+springAmqpVersion = "4.2.0-SNAPSHOT"
 springDataVersion = "2026.1.0-SNAPSHOT"
 springGraphqlVersion = "2.1.0-SNAPSHOT"
 springKafkaVersion = "4.2.0-SNAPSHOT"
