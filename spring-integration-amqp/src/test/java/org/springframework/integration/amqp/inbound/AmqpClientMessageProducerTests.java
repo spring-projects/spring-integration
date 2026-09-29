@@ -16,6 +16,8 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -28,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
@@ -38,6 +42,7 @@ import org.springframework.amqp.rabbitmq.client.RabbitAmqpAdmin;
 import org.springframework.amqp.rabbitmq.client.RabbitAmqpTemplate;
 import org.springframework.amqp.rabbitmq.client.SingleAmqpConnectionFactory;
 import org.springframework.amqp.rabbitmq.client.listener.RabbitAmqpListenerContainer;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jan Mohr
  *
  * @since 7.0
  */
@@ -161,6 +167,33 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 				.hasStackTraceContaining("Intentional conversion failure");
 	}
 
+	@Test
+	void unconvertibleMessageIsDeadLettered() throws Exception {
+		this.rabbitTemplate.send("queueForUnconvertible", invalidJson("not json"));
+
+		assertThat(receiveDeadLetteredBody()).isEqualTo("not json");
+	}
+
+	@Test
+	void unconvertibleBatchIsDeadLettered() throws Exception {
+		this.rabbitTemplate.send("queueForUnconvertibleBatch", invalidJson("not json #1"));
+		this.rabbitTemplate.send("queueForUnconvertibleBatch", invalidJson("not json #2"));
+
+		assertThat(List.of(receiveDeadLetteredBody(), receiveDeadLetteredBody()))
+				.containsExactlyInAnyOrder("not json #1", "not json #2");
+	}
+
+	private String receiveDeadLetteredBody() throws Exception {
+		byte[] body = this.rabbitTemplate.receive("dlq1").get(20, TimeUnit.SECONDS).getBody();
+		return new String(body, StandardCharsets.UTF_8);
+	}
+
+	private static org.springframework.amqp.core.Message invalidJson(String body) {
+		return MessageBuilder.withBody(body.getBytes(StandardCharsets.UTF_8))
+				.setContentType(MessageProperties.CONTENT_TYPE_JSON)
+				.build();
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -192,6 +225,16 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 		@Bean
 		Queue queueForError() {
 			return QueueBuilder.durable("queueForError").deadLetterExchange("dlx1").build();
+		}
+
+		@Bean
+		Queue queueForUnconvertible() {
+			return QueueBuilder.durable("queueForUnconvertible").deadLetterExchange("dlx1").build();
+		}
+
+		@Bean
+		Queue queueForUnconvertibleBatch() {
+			return QueueBuilder.durable("queueForUnconvertibleBatch").deadLetterExchange("dlx1").build();
 		}
 
 		@Bean
@@ -265,6 +308,27 @@ public class AmqpClientMessageProducerTests implements RabbitTestContainer {
 
 			var amqpClientMessageProducer = new AmqpClientMessageProducer(connectionFactory, "queueForError");
 			amqpClientMessageProducer.setOutputChannel(conversionChannel);
+			return amqpClientMessageProducer;
+		}
+
+		@Bean
+		AmqpClientMessageProducer unconvertibleAmqpClientMessageProducer(AmqpConnectionFactory connectionFactory) {
+			AmqpClientMessageProducer amqpClientMessageProducer =
+					new AmqpClientMessageProducer(connectionFactory, "queueForUnconvertible");
+			amqpClientMessageProducer.setOutputChannelName("nullChannel");
+			amqpClientMessageProducer.setMessageConverter(new JacksonJsonMessageConverter());
+			return amqpClientMessageProducer;
+		}
+
+		@Bean
+		AmqpClientMessageProducer unconvertibleBatchAmqpClientMessageProducer(
+				AmqpConnectionFactory connectionFactory) {
+
+			AmqpClientMessageProducer amqpClientMessageProducer =
+					new AmqpClientMessageProducer(connectionFactory, "queueForUnconvertibleBatch");
+			amqpClientMessageProducer.setOutputChannelName("nullChannel");
+			amqpClientMessageProducer.setMessageConverter(new JacksonJsonMessageConverter());
+			amqpClientMessageProducer.setBatchSize(2);
 			return amqpClientMessageProducer;
 		}
 
