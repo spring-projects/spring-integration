@@ -52,6 +52,7 @@ import org.springframework.messaging.Message;
  * @param afterReceivePostProcessors the post-processors to apply on the received AMQP message
  *
  * @author Artem Bilan
+ * @author Jan Mohr
  *
  * @since 7.0
  */
@@ -64,8 +65,8 @@ record IntegrationRabbitAmqpMessageListener(NamedComponent amqpInboundEndpoint,
 	@Override
 	public void onAmqpMessage(com.rabbitmq.client.amqp.Message amqpMessage, Consumer.@Nullable Context context) {
 		org.springframework.amqp.core.Message message = RabbitAmqpUtils.fromAmqpMessage(amqpMessage, context);
-		Message<?> messageToSend = toSpringMessage(message);
 		try {
+			Message<?> messageToSend = toSpringMessage(message);
 			this.requestAction.accept(messageToSend, message);
 		}
 		catch (Exception ex) {
@@ -76,6 +77,18 @@ record IntegrationRabbitAmqpMessageListener(NamedComponent amqpInboundEndpoint,
 
 	@Override
 	public void onMessageBatch(List<org.springframework.amqp.core.Message> messages) {
+		try {
+			Message<List<Message<?>>> messageToSend = toSpringMessage(messages);
+			this.requestAction.accept(messageToSend, null);
+		}
+		catch (Exception ex) {
+			throw new ListenerExecutionFailedException(
+					this.amqpInboundEndpoint.getComponentName() + ".onMessageBatch() failed", ex,
+					messages.toArray(org.springframework.amqp.core.Message[]::new));
+		}
+	}
+
+	private Message<List<Message<?>>> toSpringMessage(List<org.springframework.amqp.core.Message> messages) {
 		SimpleAcknowledgment acknowledgmentCallback = null;
 		List<Message<?>> springMessages = new ArrayList<>(messages.size());
 		for (org.springframework.amqp.core.Message message : messages) {
@@ -86,19 +99,9 @@ record IntegrationRabbitAmqpMessageListener(NamedComponent amqpInboundEndpoint,
 			springMessages.add(springMessage);
 		}
 
-		Message<List<Message<?>>> messageToSend =
-				MutableMessageBuilder.withPayload(springMessages)
-						.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
-						.build();
-
-		try {
-			this.requestAction.accept(messageToSend, null);
-		}
-		catch (Exception ex) {
-			throw new ListenerExecutionFailedException(
-					this.amqpInboundEndpoint.getComponentName() + ".onMessageBatch() failed", ex,
-					messages.toArray(org.springframework.amqp.core.Message[]::new));
-		}
+		return MutableMessageBuilder.withPayload(springMessages)
+				.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, acknowledgmentCallback)
+				.build();
 	}
 
 	private Message<?> toSpringMessage(org.springframework.amqp.core.Message message) {
