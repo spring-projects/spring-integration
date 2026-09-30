@@ -13,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gunnar Hillert
@@ -102,6 +106,46 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 		assertThat(messageFromDb).isNotNull();
 		assertThat(messageFromDb.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
+	}
+
+	@Test
+	public void testAllowedPatternsAppliedBeforeSetDeserializer() {
+		JdbcChannelMessageStore store = new JdbcChannelMessageStore(this.dataSource);
+		store.setRegion(REGION);
+		store.setChannelMessageStoreQueryProvider(this.queryProvider);
+		store.addAllowedPatterns("com.example.*");
+		store.setDeserializer(defaultDeserializer());
+		store.afterPropertiesSet();
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		store.addMessageToGroup(TEST_MESSAGE_GROUP, message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> store.pollMessageFromGroup(TEST_MESSAGE_GROUP))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsPermitMatchingTypesAfterSetDeserializer() {
+		JdbcChannelMessageStore store = new JdbcChannelMessageStore(this.dataSource);
+		store.setRegion(REGION);
+		store.setChannelMessageStoreQueryProvider(this.queryProvider);
+		store.addAllowedPatterns("org.springframework.*", "java.util.*");
+		store.setDeserializer(defaultDeserializer());
+		store.afterPropertiesSet();
+
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		store.addMessageToGroup(TEST_MESSAGE_GROUP, message);
+
+		Message<?> messageFromDb = store.pollMessageFromGroup(TEST_MESSAGE_GROUP);
+		assertThat(messageFromDb).isNotNull();
+		assertThat(messageFromDb.getPayload()).isEqualTo("test");
+	}
+
+	private Deserializer<Message<?>> defaultDeserializer() {
+		DefaultDeserializer defaultDeserializer = new DefaultDeserializer(getClass().getClassLoader());
+		return (inputStream) -> (Message<?>) defaultDeserializer.deserialize(inputStream);
 	}
 
 	private ChannelMessageStorePreparedStatementSetter getMessageGroupPreparedStatementSetter() {
