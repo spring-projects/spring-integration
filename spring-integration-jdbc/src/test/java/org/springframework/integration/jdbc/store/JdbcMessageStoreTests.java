@@ -204,6 +204,76 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
+	public void testAllowedPatternsAppliedBeforeSetBeanClassLoader() {
+		this.messageStore.setAllowedPatterns("com.example.*");
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsAppliedWithoutSetBeanClassLoader() {
+		this.messageStore.setAllowedPatterns("com.example.*");
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsRetainedWhenSetBeanClassLoaderCalledAgain() {
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+		this.messageStore.setAllowedPatterns("com.example.*");
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsAppliedBeforeSetDeserializer() {
+		this.messageStore.setAllowedPatterns("com.example.*");
+		DefaultDeserializer defaultDeserializer = new DefaultDeserializer(getClass().getClassLoader());
+		this.messageStore.setDeserializer(inputStream -> (Message<?>) defaultDeserializer.deserialize(inputStream));
+
+		Message<String> message = MessageBuilder.withPayload("malicious data").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsPermitMatchingTypesAfterSetBeanClassLoader() {
+		this.messageStore.addAllowedPatterns("org.springframework.*", "java.util.*");
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		Message<String> saved = this.messageStore.addMessage(message);
+
+		Message<?> result = this.messageStore.getMessage(saved.getHeaders().getId());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+	}
+
+	@Test
 	public void testAddAndGetWithDifferentRegion() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);

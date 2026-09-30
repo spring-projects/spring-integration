@@ -5,7 +5,9 @@
 package org.springframework.integration.jdbc.store;
 
 import java.sql.Types;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -136,6 +138,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private AllowListDeserializingConverter deserializer;
 
+	private final Set<String> allowedPatterns = new LinkedHashSet<>();
+
 	private SerializingConverter serializer;
 
 	@SuppressWarnings("NullAway.Init")
@@ -195,9 +199,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		AllowListDeserializingConverter newDeserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
-		newDeserializer.setAllowedPatterns(this.deserializer.getAllowedPatterns().toArray(new String[0]));
-		this.deserializer = newDeserializer;
+		AllowListDeserializingConverter allowListDeserializer =
+				new AllowListDeserializingConverter((Deserializer) deserializer);
+		allowListDeserializer.setAllowedPatterns(StringUtils.toStringArray(this.allowedPatterns));
+		this.deserializer = allowListDeserializer;
 	}
 
 	/**
@@ -209,6 +214,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @since 7.2
 	 */
 	public void setAllowedPatterns(String... patterns) {
+		this.allowedPatterns.clear();
+		Collections.addAll(this.allowedPatterns, patterns);
 		this.deserializer.setAllowedPatterns(patterns);
 	}
 
@@ -222,6 +229,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String... patterns) {
+		Collections.addAll(this.allowedPatterns, patterns);
 		this.deserializer.addAllowedPatterns(patterns);
 	}
 
