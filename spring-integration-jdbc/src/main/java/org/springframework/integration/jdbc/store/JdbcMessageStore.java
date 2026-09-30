@@ -8,10 +8,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -248,6 +251,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	private final AtomicBoolean started = new AtomicBoolean();
 
+	private final Set<String> allowedPatterns = new LinkedHashSet<>();
+
 	private String region = "DEFAULT";
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -285,8 +290,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		if (!this.deserializerExplicitlySet) {
-			this.deserializer = new AllowListDeserializingConverter(classLoader);
-			this.mapper = new MessageRowMapper(this.deserializer);
+			applyDeserializer(new AllowListDeserializingConverter(classLoader));
 		}
 	}
 
@@ -324,9 +328,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		applyDeserializer(new AllowListDeserializingConverter((Deserializer) deserializer));
 		this.deserializerExplicitlySet = true;
-		this.mapper = new MessageRowMapper(this.deserializer);
 	}
 
 	/**
@@ -337,6 +340,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String... patterns) {
+		Collections.addAll(this.allowedPatterns, patterns);
 		this.deserializer.addAllowedPatterns(patterns);
 	}
 
@@ -750,6 +754,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 			return messages.get(0);
 		}
 		return null;
+	}
+
+	private void applyDeserializer(AllowListDeserializingConverter deserializer) {
+		deserializer.addAllowedPatterns(StringUtils.toStringArray(this.allowedPatterns));
+		this.deserializer = deserializer;
+		this.mapper = new MessageRowMapper(deserializer);
 	}
 
 	private void doCreateMessageGroup(String groupKey, Timestamp createdDate) {
