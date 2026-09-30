@@ -30,18 +30,9 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 
 	protected ZipResultType zipResultType = ZipResultType.FILE;
 
-	protected File workDirectory = getDefaultWorkDirectory();
+	protected File workDirectory = new File(System.getProperty("java.io.tmpdir"), "ziptransformer");
 
 	protected boolean deleteFiles;
-
-	private static File getDefaultWorkDirectory() {
-		try {
-			return new File(System.getProperty("java.io.tmpdir"), "ziptransformer").getCanonicalFile();
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
 
 	/**
 	 * If the payload is an instance of {@link File}, this property specifies
@@ -92,6 +83,14 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 		if (!this.workDirectory.exists()) {
 			logger.info(() -> "Creating work directory: " + this.workDirectory);
 			Assert.isTrue(this.workDirectory.mkdirs(), () -> "Can't create the 'workDirectory': " + this.workDirectory);
+		}
+
+		try {
+			this.workDirectory = this.workDirectory.getCanonicalFile();
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException("Can't resolve the canonical path of the 'workDirectory' ["
+					+ this.workDirectory + "]", ex);
 		}
 	}
 

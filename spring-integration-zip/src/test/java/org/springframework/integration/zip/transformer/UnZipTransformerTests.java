@@ -436,6 +436,32 @@ public class UnZipTransformerTests {
 				.withMessageContaining("must not be a symbolic link");
 	}
 
+	@Test
+	@EnabledOnOs(value = {OS.LINUX, OS.MAC},
+			disabledReason = "Requires Files.createSymbolicLink(), which needs elevated privilege on Windows")
+	public void defaultWorkDirectoryAsSymbolicLinkIsRejected() throws IOException {
+		File realTargetDir = new File(this.workDir, "real-target");
+		realTargetDir.mkdirs();
+
+		File fakeTmpDir = new File(this.workDir, "tmp");
+		fakeTmpDir.mkdirs();
+		Files.createSymbolicLink(new File(fakeTmpDir, "ziptransformer").toPath(), realTargetDir.toPath());
+
+		String originalTmpDir = System.getProperty("java.io.tmpdir");
+		System.setProperty("java.io.tmpdir", fakeTmpDir.getAbsolutePath());
+		try {
+			UnZipTransformer unZipTransformer = new UnZipTransformer();
+			unZipTransformer.setBeanFactory(this.testApplicationContext);
+
+			assertThatIllegalArgumentException()
+					.isThrownBy(unZipTransformer::afterPropertiesSet)
+					.withMessageContaining("must not be a symbolic link");
+		}
+		finally {
+			System.setProperty("java.io.tmpdir", originalTmpDir);
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class TestConfiguration {
