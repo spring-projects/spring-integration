@@ -99,6 +99,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -111,7 +112,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static final String UNCHECKED = "unchecked";
 
-	private static final String DEFAULT_COLLECTION_NAME = "messages";
+	/**
+	 * The default collection name for the store.
+	 * @since 7.0.7
+	 */
+	public static final String DEFAULT_COLLECTION_NAME = "messages";
 
 	private static final String GROUP_ID_KEY = "_groupId";
 
@@ -139,12 +144,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
-	private String @Nullable [] allowedPatterns;
+	private final AllowListDeserializingConverter errorPayloadDeserializingConverter;
 
 	/**
-	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory}.and the default collection name.
+	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory} and the default collection name.
 	 * @param mongoDbFactory The mongodb factory.
+	 * @deprecated since 7.0.7 in favor of
+	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.0.7")
+	@SuppressWarnings("deprecation")
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
 	}
@@ -153,12 +164,51 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory} and collection name.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param collectionName The collection name.
+	 * @deprecated since 7.0.7 in favor of
+	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.0.7")
+	@SuppressWarnings("deprecation")
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName) {
+		this(mongoDbFactory, collectionName, new AllowListDeserializingConverter());
+	}
+
+	/**
+	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory}, collection name
+	 * and simple patterns for allowable packages/classes for deserialization.
+	 * Java serialization is used only for the payload of an
+	 * {@link org.springframework.messaging.support.ErrorMessage}, so the patterns must cover
+	 * the serialized object graph of the stored exceptions:
+	 * for example, the exception classes and their causes, {@link StackTraceElement} etc.
+	 * @param mongoDbFactory The mongodb factory.
+	 * @param collectionName The collection name, for example {@link #DEFAULT_COLLECTION_NAME}.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.0.7
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
+	 */
+	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
+			String... allowedPatterns) {
+
+		this(mongoDbFactory, assertCollectionName(collectionName),
+				new AllowListDeserializingConverter(allowedPatterns));
+	}
+
+	private MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName,
+			AllowListDeserializingConverter errorPayloadDeserializingConverter) {
+
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
+		this.errorPayloadDeserializingConverter = errorPayloadDeserializingConverter;
+	}
+
+	private static String assertCollectionName(String collectionName) {
+		Assert.hasText(collectionName, "'collectionName' must not be empty");
+		return collectionName;
 	}
 
 	@Override
@@ -175,12 +225,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
-	 * @param patterns the patterns.
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
+	 * @param patterns the patterns to add.
 	 * @since 5.4
 	 */
-	public void addAllowedPatterns(String @Nullable ... patterns) {
-		this.allowedPatterns = patterns != null ? Arrays.copyOf(patterns, patterns.length) : null;
+	public void addAllowedPatterns(String... patterns) {
+		this.errorPayloadDeserializingConverter.addAllowedPatterns(patterns);
 	}
 
 	/**
@@ -558,12 +609,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			converters.add(new DocumentToMessageHistoryConverter());
 			converters.add(new DocumentToGenericMessageConverter());
 			converters.add(new DocumentToMutableMessageConverter());
-			DocumentToErrorMessageConverter docToErrorMessageConverter = new DocumentToErrorMessageConverter();
-			if (MongoDbMessageStore.this.allowedPatterns != null) {
-				docToErrorMessageConverter.deserializingConverter
-						.addAllowedPatterns(MongoDbMessageStore.this.allowedPatterns);
-			}
-			converters.add(docToErrorMessageConverter);
+			converters.add(new DocumentToErrorMessageConverter());
 			converters.add(new DocumentToAdviceMessageConverter());
 			converters.add(new ThrowableToBytesConverter());
 
@@ -834,8 +880,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@ReadingConverter
 	private final class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
 
-		private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
-
 		DocumentToErrorMessageConverter() {
 		}
 
@@ -847,7 +891,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					MongoDbMessageStore.this.converter.normalizeHeaders(messageHeaders);
 
 			Binary binary = (Binary) source.get("payload");
-			Object payload = this.deserializingConverter.convert(Objects.requireNonNull(binary).getData());
+			Object payload = MongoDbMessageStore.this.errorPayloadDeserializingConverter
+					.convert(Objects.requireNonNull(binary).getData());
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers); // NOSONAR not null
 			enhanceHeaders(message.getHeaders(), headers);
 

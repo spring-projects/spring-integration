@@ -197,6 +197,76 @@ It builds a `MongoTemplate` from the provided `MongoDbFactory` and `MappingMongo
 The default name for the collection stored by the `ConfigurableMongoDbMessageStore` is `configurableStoreMessages`.
 We recommend using this implementation to create robust and flexible solutions when messages contain complex data types.
 
+[[mongodb-message-store-allowed-patterns]]
+=== Deserialization Allow List
+
+The `MongoDbMessageStore` uses Java serialization only for the payload of an `ErrorMessage`, and the `ConfigurableMongoDbMessageStore` (as well as the `MongoDbChannelMessageStore`) uses Java serialization for whole messages via the `MessageToBinaryConverter` and `BinaryToMessageConverter`.
+Both deserialize data through an `AllowListDeserializingConverter`.
+Starting with version 7.0.7, the trusted package and class patterns should be provided via one of these constructors:
+
+* `MongoDbMessageStore(MongoDatabaseFactory, String collectionName, String... allowedPatterns)`;
+* `ConfigurableMongoDbMessageStore(MongoDatabaseFactory, String collectionName, String... allowedPatterns)` and `MongoDbChannelMessageStore(MongoDatabaseFactory, String collectionName, String... allowedPatterns)`;
+* `BinaryToMessageConverter(String... allowedPatterns)`, when providing a custom `MappingMongoConverter`.
+
+Use the `DEFAULT_COLLECTION_NAME` constant of the respective store class for the default collection; the collection name must not be empty.
+These constructors reject an empty pattern list and any `null`, empty, or whitespace-only pattern.
+The `MongoDbMessageStore.addAllowedPatterns()` method extends the patterns and applies the same validation.
+An explicit `"*"` pattern allows all classes.
+See xref:transformer.adoc#deserialization-allow-list[Deserialization Allow List] for more information about the patterns.
+
+[tabs]
+======
+Java::
++
+[source, java, role="primary"]
+----
+@Bean
+MongoDbMessageStore mongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
+    return new MongoDbMessageStore(mongoDbFactory, MongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+            "org.springframework.messaging.MessagingException",
+            "org.springframework.core.NestedRuntimeException",
+            "java.lang.RuntimeException",
+            "java.lang.Exception",
+            "java.lang.Throwable",
+            "java.lang.StackTraceElement",
+            "java.util.Collections$*");
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<bean id="mongoDbMessageStore" class="o.s.i.mongodb.store.MongoDbMessageStore">
+    <constructor-arg ref="mongoDbFactory"/>
+    <constructor-arg value="messages"/>
+    <constructor-arg value="org.springframework.messaging.MessagingException,
+            org.springframework.core.NestedRuntimeException, java.lang.RuntimeException,
+            java.lang.Exception, java.lang.Throwable, java.lang.StackTraceElement, java.util.Collections$*"/>
+</bean>
+----
+======
+
+For the `ConfigurableMongoDbMessageStore` and `MongoDbChannelMessageStore`, the patterns must cover the whole serialized object graph of the stored messages: the message and its headers classes, the header values, and the payload.
+When a custom `MappingMongoConverter` is provided instead, it is responsible for the conversion; include a `MessageToBinaryConverter` and a `BinaryToMessageConverter` created with patterns in its custom conversions.
+
+[source, java]
+----
+@Bean
+MongoDbChannelMessageStore mongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory) {
+    return new MongoDbChannelMessageStore(mongoDbFactory, MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME,
+            "org.springframework.messaging.support.GenericMessage",
+            "org.springframework.messaging.MessageHeaders",
+            "java.util.UUID",
+            "java.util.HashMap",
+            "com.example.model.*");
+}
+----
+
+IMPORTANT: The `MongoDbMessageStore(MongoDatabaseFactory)`, `MongoDbMessageStore(MongoDatabaseFactory, String)`, `ConfigurableMongoDbMessageStore(MongoDatabaseFactory)`, `ConfigurableMongoDbMessageStore(MongoDatabaseFactory, String)`, `MongoDbChannelMessageStore(MongoDatabaseFactory)`, `MongoDbChannelMessageStore(MongoDatabaseFactory, String)` and `BinaryToMessageConverter()` constructors are deprecated since version 7.0.7.
+For backward compatibility, an instance created by them still deserializes all classes until patterns are configured.
+Since version 7.0.7, the `MongoDbMessageStore.addAllowedPatterns()` method adds to the existing patterns, instead of replacing them, and rejects `null` or empty patterns instead of restoring unrestricted deserialization.
+
 Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` provides a `setCreateIndexes(boolean)` (defaults to `true`) option which can be used to disable the auto indexes creation.
 The following example shows how to declare a bean and disable the auto indexes creation:
 

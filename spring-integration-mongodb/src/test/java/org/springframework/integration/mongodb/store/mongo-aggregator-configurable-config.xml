@@ -30,6 +30,8 @@
 	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
 		<constructor-arg
 				value="#{T (org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests).MONGO_DATABASE_FACTORY}"/>
+		<constructor-arg value="configurableStoreMessages"/>
+		<constructor-arg value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap"/>
 	</bean>
 
 </beans>

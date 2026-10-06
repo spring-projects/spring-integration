@@ -55,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Glenn Renfro
  * @since 5.5
  */
 @SpringJUnitConfig
@@ -161,7 +162,15 @@ public class FileAggregatorTests {
 					.split(Files.splitter().markers())
 					.aggregate(aggregator ->
 							aggregator.processor(new FileAggregator())
-									.messageStore(new JdbcMessageStore(dataSource)))
+									.messageStore(new JdbcMessageStore(dataSource,
+											"org.springframework.messaging.support.GenericMessage",
+											"org.springframework.messaging.MessageHeaders",
+											"java.util.UUID",
+											"java.util.HashMap",
+											"java.lang.Boolean",
+											"java.io.File",
+											"java.lang.Enum",
+											"org.springframework.integration.file.splitter.FileSplitter$FileMarker*")))
 					.channel(resultChannel());
 		}
 

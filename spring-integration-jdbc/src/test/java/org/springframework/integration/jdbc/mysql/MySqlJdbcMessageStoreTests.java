@@ -60,12 +60,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext
 public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 	private static final Log LOG = LogFactory.getLog(MySqlJdbcMessageStoreTests.class);
+
+	private static final String[] MESSAGE_PATTERNS = {
+			"org.springframework.messaging.support.GenericMessage",
+			"org.springframework.messaging.MessageHeaders",
+			"java.util.UUID",
+			"java.util.HashMap",
+			"java.lang.Boolean",
+			"org.springframework.integration.history.MessageHistory*",
+			"java.util.ArrayList",
+			"java.util.Properties",
+			"java.util.Hashtable"
+	};
 
 	@Autowired
 	private DataSource dataSource;
@@ -77,7 +90,7 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 	@BeforeEach
 	public void init() {
-		messageStore = new JdbcMessageStore(dataSource);
+		messageStore = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore.setRegion("JdbcMessageStoreTests");
 	}
 
@@ -443,10 +456,10 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 		final String region1 = "region1";
 		final String region2 = "region2";
 
-		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource);
+		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore1.setRegion(region1);
 
-		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource);
+		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore1.setRegion(region2);
 
 		final Message<String> message = MessageBuilder.withPayload("foo").build();

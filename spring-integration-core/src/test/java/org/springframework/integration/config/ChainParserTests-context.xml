@@ -131,7 +131,8 @@
 		</enricher>
 		<header-filter id="headerFilterWithinChain" header-names="foo"/>
 		<payload-serializing-transformer id="payloadSerializingTransformerWithinChain"/>
-		<payload-deserializing-transformer id="payloadDeserializingTransformerWithinChain"/>
+		<payload-deserializing-transformer id="payloadDeserializingTransformerWithinChain"
+			allow-list="org.springframework.integration.*"/>
 		<gateway id="gatewayWithinChain" request-channel="strings" reply-channel="numbers"
 				 request-timeout="1000" reply-timeout="100"/>
 		<object-to-string-transformer id="objectToStringTransformerWithinChain"/>

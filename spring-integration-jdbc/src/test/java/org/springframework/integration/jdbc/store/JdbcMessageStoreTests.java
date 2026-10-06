@@ -18,6 +18,7 @@ package org.springframework.integration.jdbc.store;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -69,6 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Dave Syer
@@ -78,11 +80,24 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Will Schipp
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
 public class JdbcMessageStoreTests  implements TestApplicationContextAware {
+
+	private static final String[] MESSAGE_PATTERNS = {
+			"org.springframework.messaging.support.GenericMessage",
+			"org.springframework.messaging.MessageHeaders",
+			"java.util.UUID",
+			"java.util.HashMap",
+			"java.lang.Boolean",
+			"org.springframework.integration.history.MessageHistory*",
+			"java.util.ArrayList",
+			"java.util.Properties",
+			"java.util.Hashtable"
+	};
 
 	@Autowired
 	private DataSource dataSource;
@@ -91,7 +106,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 
 	@BeforeEach
 	public void init() {
-		messageStore = new JdbcMessageStore(dataSource);
+		messageStore = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 	}
 
 	@Test
@@ -156,7 +171,9 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testAllowedPatternsAppliedAfterSetBeanClassLoader() {
+		this.messageStore = new JdbcMessageStore(this.dataSource);
 		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
 		this.messageStore.addAllowedPatterns("com.example.*");
 
@@ -475,10 +492,10 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 		final String region1 = "region1";
 		final String region2 = "region2";
 
-		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource);
+		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore1.setRegion(region1);
 
-		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource);
+		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore1.setRegion(region2);
 
 		final Message<String> message = MessageBuilder.withPayload("foo").build();
@@ -519,7 +536,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 		 * expected behavior is that the LAST message (2 of 2 repeat) should be on the discard channel
 		 * (discard behavior performed by the AbstractCorrelatingMessageHandler.handleMessageInternal)
 		 */
-		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
+		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		//init
 		String groupId = "group";
 		//build the messages
@@ -573,7 +590,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 		poolFactory.setPool(connPool);
 		PoolingDataSource<PoolableConnection> poolingDataSource = new PoolingDataSource<>(connPool);
 
-		JdbcMessageStore pooledMessageStore = new JdbcMessageStore(poolingDataSource);
+		JdbcMessageStore pooledMessageStore = new JdbcMessageStore(poolingDataSource, MESSAGE_PATTERNS);
 
 		CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
 		collectionArgumentResolver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
@@ -603,7 +620,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	@Test
 	void noTableThrowsExceptionOnStart() {
 		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
-			JdbcMessageStore jdbcMessageStore = new JdbcMessageStore(this.dataSource);
+			JdbcMessageStore jdbcMessageStore = new JdbcMessageStore(this.dataSource, MESSAGE_PATTERNS);
 			jdbcMessageStore.setTablePrefix("TEST_");
 			testApplicationContext.registerBean("jdbcMessageStore", jdbcMessageStore);
 			assertThatExceptionOfType(ApplicationContextException.class)
@@ -614,6 +631,123 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	public void methodForCollectionOfPayloads(Collection<String> payloads) {
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void legacyConstructorIsUnrestricted() {
+		JdbcMessageStore legacyStore = new JdbcMessageStore(this.dataSource);
+		Message<?> saved = legacyStore.addMessage(new GenericMessage<>(new UntrustedPayload()));
+		assertThat(legacyStore.getMessage(saved.getHeaders().getId()))
+				.extracting(Message::getPayload)
+				.isInstanceOf(UntrustedPayload.class);
+	}
+
+	@Test
+	public void patternsConstructorEnforcesAllowList() {
+		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, trustedPatterns());
+		assertTrustedAndUntrusted(store);
+	}
+
+	@Test
+	public void jdbcOperationsPatternsConstructorEnforcesAllowList() {
+		JdbcMessageStore store = new JdbcMessageStore(new JdbcTemplate(this.dataSource), trustedPatterns());
+		assertTrustedAndUntrusted(store);
+	}
+
+	@Test
+	public void patternsConstructorRejectsInvalidPatterns() {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JdbcMessageStore(this.dataSource, (String[]) null))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JdbcMessageStore(this.dataSource, new String[0]))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JdbcMessageStore(jdbcTemplate, "java.util.*", " "))
+				.withMessageContaining("whitespace-only");
+	}
+
+	@Test
+	public void patternsPreservedOnSetBeanClassLoader() {
+		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, trustedPatterns());
+		store.setBeanClassLoader(getClass().getClassLoader());
+		assertTrustedAndUntrusted(store);
+		assertThatIllegalArgumentException().isThrownBy(store::addAllowedPatterns);
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void legacyPatternsPreservedOnSetBeanClassLoader() {
+		JdbcMessageStore store = new JdbcMessageStore(this.dataSource);
+		store.addAllowedPatterns(trustedPatterns());
+		store.setBeanClassLoader(getClass().getClassLoader());
+		assertTrustedAndUntrusted(store);
+	}
+
+	@Test
+	public void patternsPreservedOnSetDeserializer() {
+		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, "com.example.*");
+		store.setSerializer((message, outputStream) -> outputStream.write(1));
+		store.setDeserializer(inputStream -> new GenericMessage<>("text"));
+		Message<?> saved = store.addMessage(new GenericMessage<>("text"));
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> store.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class);
+		assertThatIllegalArgumentException().isThrownBy(store::addAllowedPatterns);
+		store.addAllowedPatterns(GenericMessage.class.getName());
+		assertThat(store.getMessage(saved.getHeaders().getId())).isNotNull();
+	}
+
+	@Test
+	public void addAllowedPatternsAllowsPreviouslyRejectedClass() {
+		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, trustedPatterns());
+		Message<?> saved = store.addMessage(new GenericMessage<>(new UntrustedPayload()));
+		assertUnauthorized(store, saved);
+		assertThatIllegalArgumentException().isThrownBy(() -> store.addAllowedPatterns(""));
+		assertUnauthorized(store, saved);
+		store.addAllowedPatterns(UntrustedPayload.class.getName());
+		assertThat(store.getMessage(saved.getHeaders().getId()))
+				.extracting(Message::getPayload)
+				.isInstanceOf(UntrustedPayload.class);
+	}
+
+	private static String[] trustedPatterns() {
+		return new String[] {
+				"org.springframework.messaging.support.GenericMessage",
+				"org.springframework.messaging.MessageHeaders",
+				"java.util.UUID",
+				"java.util.HashMap",
+				"java.lang.Boolean",
+				TrustedPayload.class.getName()
+		};
+	}
+
+	private static void assertTrustedAndUntrusted(JdbcMessageStore store) {
+		Message<?> trusted = store.addMessage(new GenericMessage<>(new TrustedPayload()));
+		assertThat(store.getMessage(trusted.getHeaders().getId()))
+				.extracting(Message::getPayload)
+				.isInstanceOf(TrustedPayload.class);
+		Message<?> untrusted = store.addMessage(new GenericMessage<>(new UntrustedPayload()));
+		assertUnauthorized(store, untrusted);
+	}
+
+	private static void assertUnauthorized(JdbcMessageStore store, Message<?> saved) {
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> store.getMessage(saved.getHeaders().getId()))
+				.withCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@SuppressWarnings("serial")
+	private static final class TrustedPayload implements Serializable {
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class UntrustedPayload implements Serializable {
+
 	}
 
 }

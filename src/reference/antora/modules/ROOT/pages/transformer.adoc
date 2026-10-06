@@ -266,7 +266,7 @@ public IntegrationFlow someFlow() {
              .transform(Transformers.serializer())
              .channel("bytesOut")
              .channel("bytesIn")
-             .transform(Transformers.deserializer("com.mycom.*", "com.yourcom.*"))
+             .transform(Transformers.deserializer("com.example.model.*", "java.util.*"))
              .channel("objectsOut")
              .get();
 }
@@ -279,12 +279,62 @@ XML::
 <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
 <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"
-    allow-list="com.mycom.*,com.yourcom.*"/>
+    allow-list="com.example.model.*, java.util.*"/>
 ----
 ======
 
-IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `allow-list` of package and class patterns.
-By default, all classes are deserialized.
+[[deserialization-allow-list]]
+==== Deserialization Allow List
+
+The `PayloadDeserializingTransformer` delegates to an `AllowListDeserializingConverter`, which checks every class of the deserialized object graph against a list of trusted package and class patterns.
+A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
+The patterns must cover the whole serialized object graph, including collection classes such as `java.util.ArrayList` or `java.util.HashMap`.
+Deserialization fails with a `SecurityException` (wrapped in a `SerializationFailedException`) for any other class that does not match one of the patterns.
+
+Starting with version 7.0.7, the trusted patterns should be provided when the component is created, by using one of these options:
+
+* the `PayloadDeserializingTransformer(String... allowedPatterns)` constructor;
+* the `AllowListDeserializingConverter(String... allowedPatterns)`, `AllowListDeserializingConverter(ClassLoader, String...)` or `AllowListDeserializingConverter(Deserializer, String...)` constructors;
+* the `Transformers.deserializer(String...)` or `Transformers.deserializer(Deserializer, String...)` Java DSL factory methods (since version 7.0.7, calling them without patterns is deprecated and logs a warning; use `"*"` to allow all classes);
+* the `allow-list` attribute of the `<int:payload-deserializing-transformer>` XML element.
+
+Except for the deprecated DSL calls without patterns, these options reject an empty pattern list and any `null`, empty, or whitespace-only pattern with an `IllegalArgumentException`.
+The patterns can be replaced (`setAllowedPatterns()`) or extended (`addAllowedPatterns()`) later, but the same validation applies: the patterns can never be cleared to restore unrestricted deserialization.
+The patterns are preserved when a custom `Deserializer` is configured (for example, `setDeserializer()` on the transformer or the `deserializer` XML attribute), regardless of the configuration order.
+Note that, with a custom `Deserializer` (other than the `DefaultDeserializer`), only the class of the deserialization result is checked, which does not provide the same protection as checking classes during Java deserialization.
+
+An explicit `"*"` pattern allows all classes.
+Use it only when all the sources of data are trusted.
+
+The following example shows how to configure the transformer as a bean with a constructor argument:
+
+[tabs]
+======
+Java::
++
+[source, java, role="primary"]
+----
+@Bean
+public PayloadDeserializingTransformer deserializingTransformer() {
+    return new PayloadDeserializingTransformer("com.example.model.*", "java.util.*");
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<bean id="deserializingTransformer"
+      class="org.springframework.integration.transformer.PayloadDeserializingTransformer">
+    <constructor-arg value="com.example.model.*, java.util.*"/>
+</bean>
+----
+======
+
+IMPORTANT: The constructors which do not accept patterns (for example, `PayloadDeserializingTransformer()`, `AllowListDeserializingConverter()`, `AllowListDeserializingConverter(ClassLoader)` and `AllowListDeserializingConverter(Deserializer)`) are deprecated since version 7.0.7.
+For backward compatibility, an instance created by them (as well as by the `<int:payload-deserializing-transformer>` without the `allow-list` attribute) still deserializes all classes until patterns are configured.
+Since version 7.0.7, setting an empty pattern list is rejected for these instances as well, so it can no longer be used to restore unrestricted deserialization; use the `"*"` pattern instead.
+Always configure trusted patterns when deserializing data from untrusted sources.
 
 [[object-to-map-and-map-to-object-transformers]]
 === `Object`-to-`Map` and `Map`-to-`Object` Transformers

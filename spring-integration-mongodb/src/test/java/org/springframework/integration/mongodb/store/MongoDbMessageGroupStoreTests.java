@@ -25,6 +25,7 @@ import org.springframework.integration.store.MessageStore;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  */
 class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
@@ -32,7 +33,11 @@ class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTest
 	@Override
 	protected MongoDbMessageStore getMessageGroupStore() {
 		MongoDbMessageStore mongoDbMessageStore =
-				new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+						"org.springframework.messaging.MessagingException",
+						"java.lang.Throwable",
+						"java.lang.StackTraceElement");
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;

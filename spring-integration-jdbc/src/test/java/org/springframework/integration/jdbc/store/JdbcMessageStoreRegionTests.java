@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JdbcMessageStoreRegionTests {
 
@@ -61,13 +62,21 @@ public class JdbcMessageStoreRegionTests {
 		dataSource.shutdown();
 	}
 
+	private static final String[] MESSAGE_PATTERNS = {
+			"org.springframework.messaging.support.GenericMessage",
+			"org.springframework.messaging.MessageHeaders",
+			"java.util.UUID",
+			"java.util.HashMap",
+			"java.lang.Boolean"
+	};
+
 	@BeforeEach
 	public void beforeTest() {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
-		this.messageStore1 = new JdbcMessageStore(dataSource);
+		this.messageStore1 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		messageStore1.setRegion("region1");
 
-		this.messageStore2 = new JdbcMessageStore(dataSource);
+		this.messageStore2 = new JdbcMessageStore(dataSource, MESSAGE_PATTERNS);
 		this.messageStore2.setRegion("region2");
 	}
 

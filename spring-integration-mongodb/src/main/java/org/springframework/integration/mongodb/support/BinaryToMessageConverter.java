@@ -24,14 +24,47 @@ import org.springframework.integration.support.converter.AllowListDeserializingC
 import org.springframework.messaging.Message;
 
 /**
+ * A {@link Converter} to deserialize a {@link Message} from a {@link Binary} using Java serialization.
+ * <p>
+ * The trusted packages/classes should be provided via the
+ * {@link #BinaryToMessageConverter(String...)} constructor.
+ * The patterns must cover the whole serialized object graph of the stored messages:
+ * for example, the message and headers classes, the header values and the payload.
+ * For backward compatibility, the deprecated no-argument constructor creates an instance
+ * which deserializes all classes until patterns are configured.
+ *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 5.0
  */
 @ReadingConverter
 public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 
-	private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
+	private final AllowListDeserializingConverter deserializingConverter;
+
+	/**
+	 * Create an instance which deserializes all classes until patterns are configured.
+	 * @deprecated since 7.0.7 in favor of {@link #BinaryToMessageConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
+	 */
+	@Deprecated(since = "7.0.7")
+	@SuppressWarnings("deprecation")
+	public BinaryToMessageConverter() {
+		this.deserializingConverter = new AllowListDeserializingConverter();
+	}
+
+	/**
+	 * Create an instance with simple patterns for allowable packages/classes for deserialization.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.0.7
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
+	 */
+	public BinaryToMessageConverter(String... allowedPatterns) {
+		this.deserializingConverter = new AllowListDeserializingConverter(allowedPatterns);
+	}
 
 	@Override
 	public Message<?> convert(Binary source) {
@@ -41,7 +74,8 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	/**
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */

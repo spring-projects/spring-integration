@@ -18,10 +18,12 @@ package org.springframework.integration.dsl;
 
 import java.util.function.Function;
 
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.expression.Expression;
@@ -48,10 +50,13 @@ import org.springframework.messaging.Message;
  * {@link org.springframework.integration.transformer.Transformer}s.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
 public abstract class Transformers {
+
+	private static final LogAccessor LOGGER = new LogAccessor(LogFactory.getLog(Transformers.class));
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -209,15 +214,47 @@ public abstract class Transformers {
 		return transformer;
 	}
 
+	/**
+	 * Create a {@link PayloadDeserializingTransformer} with the provided simple patterns
+	 * for allowable packages/classes.
+	 * @param allowedPatterns the patterns; must not contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * Calling this method without patterns is deprecated since 7.0.7: the transformer deserializes
+	 * all classes until patterns are configured, and a warning is logged.
+	 * @return the {@link PayloadDeserializingTransformer}.
+	 * @see PayloadDeserializingTransformer#PayloadDeserializingTransformer(String...)
+	 */
 	public static PayloadDeserializingTransformer deserializer(String... allowedPatterns) {
 		return deserializer(null, allowedPatterns);
 	}
 
+	/**
+	 * Create a {@link PayloadDeserializingTransformer} with the provided {@link Deserializer}
+	 * and simple patterns for allowable packages/classes.
+	 * If the deserializer is not a {@link org.springframework.core.serializer.DefaultDeserializer},
+	 * only the class of the deserialization result is checked against the patterns.
+	 * @param deserializer the deserializer to use; if null, a
+	 * {@link org.springframework.core.serializer.DefaultDeserializer} is used.
+	 * @param allowedPatterns the patterns; must not contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * Calling this method without patterns is deprecated since 7.0.7: the transformer deserializes
+	 * all classes until patterns are configured, and a warning is logged.
+	 * @return the {@link PayloadDeserializingTransformer}.
+	 * @see PayloadDeserializingTransformer#PayloadDeserializingTransformer(String...)
+	 */
+	@SuppressWarnings("deprecation")
 	public static PayloadDeserializingTransformer deserializer(@Nullable Deserializer<Object> deserializer,
 			String... allowedPatterns) {
 
-		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.setAllowedPatterns(allowedPatterns);
+		PayloadDeserializingTransformer transformer;
+		if (allowedPatterns != null && allowedPatterns.length == 0) {
+			LOGGER.warn("Calling 'Transformers.deserializer()' without allowed patterns is deprecated "
+					+ "and deserializes all classes; provide trusted patterns or \"*\" explicitly.");
+			transformer = new PayloadDeserializingTransformer();
+		}
+		else {
+			transformer = new PayloadDeserializingTransformer(allowedPatterns);
+		}
 		if (deserializer != null) {
 			transformer.setDeserializer(deserializer);
 		}

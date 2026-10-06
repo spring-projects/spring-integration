@@ -28,6 +28,7 @@ import org.springframework.integration.transformer.PayloadDeserializingTransform
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PayloadDeserializingTransformerParser extends AbstractTransformerParser {
 
@@ -39,7 +40,9 @@ public class PayloadDeserializingTransformerParser extends AbstractTransformerPa
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "allow-list", "allowedPatterns");
+		if (element.hasAttribute("allow-list")) {
+			builder.addConstructorArgValue(element.getAttribute("allow-list"));
+		}
 	}
 
 }

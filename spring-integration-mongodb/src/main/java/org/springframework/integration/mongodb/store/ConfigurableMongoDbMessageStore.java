@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Ngoc Nhan
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 3.0
  */
@@ -73,6 +74,15 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		super(mongoTemplate, collectionName);
 	}
 
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory} and the default collection name.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @deprecated since 7.0.7 in favor of
+	 * {@link #ConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes.
+	 */
+	@Deprecated(since = "7.0.7")
 	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
@@ -83,8 +93,36 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		this(mongoDbFactory, mappingMongoConverter, DEFAULT_COLLECTION_NAME);
 	}
 
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory} and collection name.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param collectionName the collection name.
+	 * @deprecated since 7.0.7 in favor of
+	 * {@link #ConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes.
+	 */
+	@Deprecated(since = "7.0.7")
 	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
+	}
+
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory}, collection name
+	 * and simple patterns for allowable packages/classes for deserialization.
+	 * The patterns must cover the whole serialized object graph of the stored messages:
+	 * for example, the message and headers classes, the header values and the payload.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param collectionName the collection name, for example {@link #DEFAULT_COLLECTION_NAME}.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.0.7
+	 * @see org.springframework.integration.mongodb.support.BinaryToMessageConverter#BinaryToMessageConverter(String...)
+	 */
+	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
+			String... allowedPatterns) {
+
+		super(mongoDbFactory, collectionName, allowedPatterns);
 	}
 
 	public ConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,

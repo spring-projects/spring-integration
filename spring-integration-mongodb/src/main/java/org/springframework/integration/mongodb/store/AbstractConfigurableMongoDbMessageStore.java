@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Adama Sorho
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -85,6 +86,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	private @Nullable MappingMongoConverter mappingMongoConverter;
 
+	private final @Nullable BinaryToMessageConverter binaryToMessageConverter;
+
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
@@ -98,19 +101,71 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		this.collectionName = collectionName;
 		this.mongoTemplate = mongoTemplate;
 		this.mongoDbFactory = null;
+		this.binaryToMessageConverter = null;
 	}
 
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory} and collection name.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param collectionName the collection name.
+	 * @deprecated since 7.0.7 in favor of
+	 * {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes.
+	 */
+	@Deprecated(since = "7.0.7")
 	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
 
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory}, {@link MappingMongoConverter}
+	 * and collection name.
+	 * The provided {@link MappingMongoConverter} is responsible for the conversion of messages,
+	 * for example, with a {@link BinaryToMessageConverter} created with allowed patterns.
+	 * If the {@link MappingMongoConverter} is null, a default one is created which deserializes all classes;
+	 * use {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)} instead.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param mappingMongoConverter the {@link MappingMongoConverter} to use.
+	 * @param collectionName the collection name.
+	 */
+	@SuppressWarnings("deprecation")
 	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
 			@Nullable MappingMongoConverter mappingMongoConverter, String collectionName) {
+
+		this(mongoDbFactory, mappingMongoConverter, collectionName,
+				mappingMongoConverter == null ? new BinaryToMessageConverter() : null);
+	}
+
+	/**
+	 * Create an instance with the provided {@link MongoDatabaseFactory}, collection name
+	 * and simple patterns for allowable packages/classes for deserialization.
+	 * The patterns are used by a {@link BinaryToMessageConverter} of the default {@link MappingMongoConverter}
+	 * and must cover the whole serialized object graph of the stored messages:
+	 * for example, the message and headers classes, the header values and the payload.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * @param collectionName the collection name.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.0.7
+	 * @see BinaryToMessageConverter#BinaryToMessageConverter(String...)
+	 */
+	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
+			String... allowedPatterns) {
+
+		this(mongoDbFactory, null, collectionName, new BinaryToMessageConverter(allowedPatterns));
+	}
+
+	private AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+			@Nullable MappingMongoConverter mappingMongoConverter, String collectionName,
+			@Nullable BinaryToMessageConverter binaryToMessageConverter) {
+
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.hasText(collectionName, "'collectionName' must not be empty");
 		this.collectionName = collectionName;
 		this.mongoDbFactory = mongoDbFactory;
 		this.mappingMongoConverter = mappingMongoConverter;
+		this.binaryToMessageConverter = binaryToMessageConverter;
 	}
 
 	/**
@@ -151,7 +206,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
-				List<Object> customConverters = List.of(new MessageToBinaryConverter(), new BinaryToMessageConverter());
+				Assert.state(this.binaryToMessageConverter != null, "'binaryToMessageConverter' must not be null");
+				List<Object> customConverters =
+						List.of(new MessageToBinaryConverter(), this.binaryToMessageConverter);
 				this.mappingMongoConverter.setCustomConversions(new MongoCustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}

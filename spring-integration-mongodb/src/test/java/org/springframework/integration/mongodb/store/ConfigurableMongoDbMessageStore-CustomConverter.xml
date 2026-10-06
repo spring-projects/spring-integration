@@ -52,6 +52,8 @@
 	<poller default="true" fixed-delay="10000"/>
 
 	<beans:bean id="priorityMessageStore" parent="abstractMessageStore">
+		<beans:constructor-arg name="collectionName" value="channelMessages"/>
+		<beans:constructor-arg name="allowedPatterns" value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap"/>
 		<beans:property name="priorityEnabled" value="true"/>
 	</beans:bean>
 

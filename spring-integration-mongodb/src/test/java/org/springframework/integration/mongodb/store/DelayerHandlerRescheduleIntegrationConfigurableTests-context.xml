@@ -14,6 +14,9 @@
 				class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
 		<beans:constructor-arg
 				value="#{T (org.springframework.integration.mongodb.MongoDbContainerTest).createMongoDbFactory()}"/>
+		<beans:constructor-arg value="configurableStoreMessages"/>
+		<beans:constructor-arg
+				value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap, org.springframework.integration.handler.DelayHandler$DelayedMessageWrapper"/>
 	</beans:bean>
 
 	<channel id="output">

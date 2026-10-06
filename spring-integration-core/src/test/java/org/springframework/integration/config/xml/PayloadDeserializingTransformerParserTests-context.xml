@@ -9,6 +9,8 @@
 
 	<channel id="directInput"/>
 
+	<channel id="legacyDirectInput"/>
+
 	<channel id="queueInput">
 		<queue capacity="1"/>
 	</channel>
@@ -22,12 +24,34 @@
 	<payload-deserializing-transformer id="direct" input-channel="directInput" output-channel="output"
 		allow-list="*" />
 
+	<!-- Legacy configuration without 'allow-list': unrestricted -->
+	<payload-deserializing-transformer input-channel="legacyDirectInput" output-channel="output"/>
+
 	<payload-deserializing-transformer input-channel="queueInput" output-channel="output">
 		<poller fixed-delay="10000"/>
 	</payload-deserializing-transformer>
 
 	<payload-deserializing-transformer input-channel="customDeserializerInput" output-channel="output"
 		deserializer="customDeserializer"/>
+
+	<payload-deserializing-transformer id="allowListed" input-channel="allowListedInput" output-channel="output"
+		allow-list="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestBean, java.util.*"/>
+
+	<payload-deserializing-transformer id="allowListedCustomDeserializer"
+		input-channel="allowListedCustomDeserializerInput" output-channel="output"
+		deserializer="defaultDeserializer"
+		allow-list="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestBean"/>
+
+	<channel id="allowListedInput"/>
+
+	<channel id="allowListedCustomDeserializerInput"/>
+
+	<beans:bean id="defaultDeserializer" class="org.springframework.core.serializer.DefaultDeserializer"/>
+
+	<beans:bean id="constructorConfigured" class="org.springframework.integration.transformer.PayloadDeserializingTransformer">
+		<beans:constructor-arg
+			value="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestBean"/>
+	</beans:bean>
 
 	<beans:bean id="customDeserializer"
 		class="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestDeserializer"/>

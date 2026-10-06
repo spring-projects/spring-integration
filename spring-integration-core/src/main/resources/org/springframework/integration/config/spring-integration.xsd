@@ -2811,9 +2811,14 @@
 		<xsd:attribute name="allow-list">
 			<xsd:annotation>
 				<xsd:documentation>
-					When using the default Deserializer, a list of package/class patterns indicating
-					classes that are allowed to be deserialized. Consider providing this if you receive
-					data from untrusted sources. Example: "com.mycom.*, com.yourcom.*".
+					A comma-delimited list of package/class patterns indicating classes that are allowed
+					to be deserialized. Example: "com.example.model.*, java.util.*".
+					When provided, the list must not be empty or contain empty entries, and
+					the patterns are also applied when a custom 'deserializer' is configured
+					(in that case only the class of the deserialization result is checked).
+					Use "*" to explicitly allow all classes.
+					If omitted, all classes are deserialized (deprecated since 7.0.7);
+					always provide this if you receive data from untrusted sources.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

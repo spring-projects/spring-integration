@@ -41,7 +41,8 @@
 
 
 	<int:payload-deserializing-transformer input-channel="symmetricalRedisChannel"
-										   output-channel="symmetricalOutputChannel"/>
+										   output-channel="symmetricalOutputChannel"
+										   allow-list="java.util.UUID"/>
 
 	<int:channel id="symmetricalOutputChannel">
 		<int:queue/>
