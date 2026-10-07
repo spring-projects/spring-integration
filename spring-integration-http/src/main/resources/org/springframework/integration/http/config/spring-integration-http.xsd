@@ -285,8 +285,8 @@
 				<xsd:documentation>
 					In the case that a view-name is specified this attribute can be used to
 					override the default error code under which the handling exception is exposed.
-					Defaults to "spring.integration.http.handler.error" and is supplied with 3
-					parameters: the exception itself, its message and its stack trace as a String.
+					Defaults to "spring.integration.http.handler.error" and is supplied with 2
+					parameters: the exception itself and its message.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
