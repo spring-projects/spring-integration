@@ -478,20 +478,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		for (Message<?> message : messages) {
 			addMessage(message);
 		}
-		this.jdbcTemplate.batchUpdate(getQuery(Query.CREATE_GROUP_TO_MESSAGE),
-				Arrays.asList(messages),
-				100, // NOSONAR magic number
-				(ps, messageToAdd) -> {
-					Objects.requireNonNull(messageToAdd);
-					String messageId = getKey(Objects.requireNonNull(messageToAdd.getHeaders().getId()));
-					if (logger.isDebugEnabled()) {
-						logger.debug("Inserting message with id key=" + messageId +
-								" and created date=" + createdDate);
-					}
-					ps.setString(1, groupKey); // NOSONAR - magic number
-					ps.setString(2, messageId); // NOSONAR - magic number
-					ps.setString(3, JdbcMessageStore.this.region); // NOSONAR - magic number
-				});
+		List<Object[]> groupToMessageArgs =
+				Arrays.stream(messages)
+						.map((messageToAdd) -> {
+							String messageId = getKey(Objects.requireNonNull(messageToAdd.getHeaders().getId()));
+							if (logger.isDebugEnabled()) {
+								logger.debug("Inserting message with id key=" + messageId +
+										" and created date=" + createdDate);
+							}
+							return new Object[] {groupKey, messageId, this.region};
+						})
+						.toList();
+		this.jdbcTemplate.batchUpdate(getQuery(Query.CREATE_GROUP_TO_MESSAGE), groupToMessageArgs);
 
 		if (groupMetadata == null) {
 			try {
@@ -582,27 +580,20 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		if (logger.isDebugEnabled()) {
 			logger.debug("Removing messages from group with group key=" + groupKey);
 		}
+		List<String> messageKeys =
+				messages.stream()
+						.map((messageToRemove) -> getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId())))
+						.toList();
+
 		this.jdbcTemplate.batchUpdate(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP),
-				messages,
-				getRemoveBatchSize(),
-				(ps, messageToRemove) -> {
-					Objects.requireNonNull(messageToRemove);
-					ps.setString(1, groupKey);
-					ps.setString(2, getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId())));
-					ps.setString(3, this.region);
-				});
+				messageKeys.stream()
+						.map((key) -> new Object[] {groupKey, key, this.region})
+						.toList());
 
 		this.jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
-				messages,
-				getRemoveBatchSize(),
-				(ps, messageToRemove) -> {
-					Objects.requireNonNull(messageToRemove);
-					String key = getKey(Objects.requireNonNull(messageToRemove.getHeaders().getId()));
-					ps.setString(1, key);
-					ps.setString(2, this.region);
-					ps.setString(3, key);
-					ps.setString(4, this.region);
-				});
+				messageKeys.stream()
+						.map((key) -> new Object[] {key, this.region, key, this.region})
+						.toList());
 
 		updateMessageGroup(groupKey);
 	}
