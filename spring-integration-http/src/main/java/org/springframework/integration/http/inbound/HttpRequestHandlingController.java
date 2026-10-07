@@ -16,8 +16,6 @@
 
 package org.springframework.integration.http.inbound;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.HashMap;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -124,8 +122,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * The error code to use to signal an error in the message handling. In the case of an error this code will be
 	 * provided in an object error to be optionally translated in the standard MVC way using a
 	 * {@link org.springframework.context.MessageSource}.
-	 * The default value is <code>spring.integration.http.handler.error</code>. Three arguments are provided: the
-	 * exception, its message and its stack trace as a String.
+	 * The default value is <code>spring.integration.http.handler.error</code>. Two arguments are provided: the
+	 * exception and its message.
 	 * @param errorCode The error code to set.
 	 */
 	public void setErrorCode(String errorCode) {
@@ -191,9 +189,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 		}
 		catch (Exception e) {
 			MapBindingResult errors = new MapBindingResult(new HashMap<String, Object>(), "dummy");
-			PrintWriter stackTrace = new PrintWriter(new StringWriter());
-			e.printStackTrace(stackTrace);
-			errors.reject(this.errorCode, new Object[] {e, e.getMessage(), stackTrace.toString()},
+			errors.reject(this.errorCode, new Object[] {e, e.getMessage()},
 					"A Spring Integration handler raised an exception while handling an HTTP request.  " +
 							"The exception is of type " + e.getClass() + " and it has a message: (" +
 							e.getMessage() + ")");
