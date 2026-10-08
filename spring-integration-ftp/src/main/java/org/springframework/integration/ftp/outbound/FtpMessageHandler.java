@@ -16,6 +16,7 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.ftp.session.FtpSession;
 
 /**
  * The FTP specific {@link FileTransferringMessageHandler} extension. Based on the
@@ -57,6 +58,7 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 	@Override
 	protected void doChmod(RemoteFileTemplate<FTPFile> remoteFileTemplate, final String path, final int chmod) {
 		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
+			FtpSession.assertValidPath(path);
 			String chModCommand = "chmod " + Integer.toOctalString(chmod) + " " + path;
 			try {
 				client.sendSiteCommand(chModCommand);

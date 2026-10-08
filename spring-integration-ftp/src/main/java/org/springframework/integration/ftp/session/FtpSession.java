@@ -50,6 +50,7 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
+		assertValidPath(path);
 		if (!this.client.deleteFile(path)) {
 			throw new IOException("Failed to delete '" + path + SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
@@ -60,6 +61,7 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public FTPFile[] list(@Nullable String path) throws IOException {
+		assertValidPath(path);
 		FTPFile[] ftpFiles = this.client.listFiles(path);
 		String remoteDir = StringUtils.hasText(path) ? path : ".";
 		EnhancedFTPFile[] enhancedFtpFiles = new EnhancedFTPFile[ftpFiles.length];
@@ -75,6 +77,7 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public String[] listNames(@Nullable String path) throws IOException {
+		assertValidPath(path);
 		return this.client.listNames(path);
 	}
 
@@ -82,6 +85,7 @@ public class FtpSession implements Session<FTPFile> {
 	public void read(String path, OutputStream fos) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		Assert.notNull(fos, "outputStream must not be null");
+		assertValidPath(path);
 		boolean completed = this.client.retrieveFile(path, fos);
 		if (!completed) {
 			throw new IOException("Failed to copy '" + path +
@@ -94,6 +98,7 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public InputStream readRaw(String source) throws IOException {
+		assertValidPath(source);
 		if (!this.readingRaw.compareAndSet(false, true)) {
 			throw new IOException("Previous raw read was not finalized");
 		}
@@ -128,6 +133,7 @@ public class FtpSession implements Session<FTPFile> {
 	public void write(InputStream inputStream, String path) throws IOException {
 		Assert.notNull(inputStream, "inputStream must not be null");
 		Assert.hasText(path, "path must not be null or empty");
+		assertValidPath(path);
 		boolean completed = this.client.storeFile(path, inputStream);
 		if (!completed) {
 			throw new IOException("Failed to write to '" + path
@@ -142,6 +148,7 @@ public class FtpSession implements Session<FTPFile> {
 	public void append(InputStream inputStream, String path) throws IOException {
 		Assert.notNull(inputStream, "inputStream must not be null");
 		Assert.hasText(path, "path must not be null or empty");
+		assertValidPath(path);
 		boolean completed = this.client.appendFile(path, inputStream);
 		if (!completed) {
 			throw new IOException("Failed to append to '" + path
@@ -187,6 +194,8 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public void rename(String pathFrom, String pathTo) throws IOException {
+		assertValidPath(pathFrom);
+		assertValidPath(pathTo);
 		this.client.deleteFile(pathTo);
 		boolean completed = this.client.rename(pathFrom, pathTo);
 		if (!completed) {
@@ -200,17 +209,20 @@ public class FtpSession implements Session<FTPFile> {
 
 	@Override
 	public boolean mkdir(String remoteDirectory) throws IOException {
+		assertValidPath(remoteDirectory);
 		return this.client.makeDirectory(remoteDirectory);
 	}
 
 	@Override
 	public boolean rmdir(String directory) throws IOException {
+		assertValidPath(directory);
 		return this.client.removeDirectory(directory);
 	}
 
 	@Override
 	public boolean exists(String path) throws IOException {
 		Assert.hasText(path, "'path' must not be empty");
+		assertValidPath(path);
 
 		String[] names = this.client.listNames(path);
 		boolean exists = !ObjectUtils.isEmpty(names);
@@ -254,6 +266,26 @@ public class FtpSession implements Session<FTPFile> {
 		}
 		catch (IOException e) {
 			return false;
+		}
+	}
+
+	/**
+	 * Assert that a remote path does not contain characters which would break
+	 * the structure of an FTP control connection command: {@code CR}, {@code LF} or {@code NUL}.
+	 * @param path the remote path to check.
+	 * @throws IllegalArgumentException if the path contains any of those characters.
+	 * @since 5.5.23
+	 */
+	public static void assertValidPath(@Nullable String path) {
+		if (path != null) {
+			for (int i = 0; i < path.length(); i++) {
+				char c = path.charAt(i);
+				if (c == '\r' || c == '\n' || c == '\0') {
+					throw new IllegalArgumentException(
+							"The remote path must not contain CR, LF or NUL characters: '" +
+									path.replaceAll("[\r\n\0]", "?") + "'");
+				}
+			}
 		}
 	}
 
