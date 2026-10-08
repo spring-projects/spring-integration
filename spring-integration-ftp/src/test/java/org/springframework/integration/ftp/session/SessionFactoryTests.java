@@ -4,6 +4,7 @@
 
 package org.springframework.integration.ftp.session;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.Random;
@@ -43,6 +44,21 @@ import static org.mockito.Mockito.verify;
  *
  */
 class SessionFactoryTests {
+
+	@Test
+	void controlCharactersInPathAreRejected() {
+		FTPClient client = mock(FTPClient.class);
+		FtpSession session = new FtpSession(client);
+		String injected = "good.txt\r\nDELE victim.txt";
+
+		assertThatIllegalArgumentException().isThrownBy(() -> session.remove(injected));
+		assertThatIllegalArgumentException().isThrownBy(() -> session.write(InputStream.nullInputStream(), injected));
+		assertThatIllegalArgumentException().isThrownBy(() -> session.rename("good.txt", injected));
+		assertThatIllegalArgumentException().isThrownBy(() -> session.mkdir("dir\0"));
+		assertThatIllegalArgumentException().isThrownBy(() -> session.list("dir\n"));
+
+		Mockito.verifyNoInteractions(client);
+	}
 
 	@Test
 	void testFtpClientInteraction() throws Exception {

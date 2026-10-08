@@ -71,6 +71,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	 */
 	@Override
 	public boolean exists(final String path) {
+		FtpSession.assertValidPath(path);
 		Boolean exists = doExecuteWithClient(client -> {
 			try {
 				return switch (FtpRemoteFileTemplate.this.existsMode) {
