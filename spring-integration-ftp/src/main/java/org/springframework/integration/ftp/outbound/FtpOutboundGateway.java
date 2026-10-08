@@ -30,6 +30,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.ftp.session.FtpSession;
 import org.springframework.messaging.Message;
 
 /**
@@ -267,6 +268,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				currentWorkingDirectory = ftpClient.printWorkingDirectory();
 				String newWorkingDirectory =
 						workDirExpression.getValue(this.evaluationContext, message, String.class);
+				FtpSession.assertValidPath(newWorkingDirectory);
 				if (!Objects.equals(currentWorkingDirectory, newWorkingDirectory)) {
 					ftpClient.changeWorkingDirectory(newWorkingDirectory);
 					restoreWorkingDirectory = true;
@@ -305,6 +307,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	@Override
 	protected void doChmod(RemoteFileOperations<FTPFile> remoteFileOperations, final String path, final int chmod) {
 		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
+			FtpSession.assertValidPath(path);
 			String chModCommand = "chmod " + Integer.toOctalString(chmod) + " " + path;
 			try {
 				client.sendSiteCommand(chModCommand);
