@@ -382,7 +382,15 @@ public class PollerAdviceTests {
 		assertThat(TestUtils.<Object>getPropertyValue(adapter, "trigger.override")).isNotNull();
 		adapter.stop();
 		OtherAdvice sourceAdvice = ctx.getBean(OtherAdvice.class);
-		int count = sourceAdvice.calls;
+		// 'stop()' only interrupts an in-flight poll; wait for it to actually finish before taking the baseline.
+		int count;
+		int previousCount;
+		do {
+			previousCount = sourceAdvice.calls;
+			Thread.sleep(50);
+			count = sourceAdvice.calls;
+		}
+		while (count != previousCount);
 		assertThat(count).isGreaterThan(0);
 		((Foo) adapter.getMessageSource()).otherMethod();
 		assertThat(sourceAdvice.calls).isEqualTo(count);

@@ -314,7 +314,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Errors errors = (Errors) modelAndView.getModel().get("errors");
 		assertThat(errors.getErrorCount()).isEqualTo(1);
 		ObjectError error = errors.getAllErrors().get(0);
-		assertThat(error.getArguments().length).isEqualTo(3);
+		assertThat(error.getArguments()).hasSize(2);
 		assertThat(((String) error.getArguments()[1]).startsWith("failed to send Message"))
 				.as("Wrong message: " + error).isTrue();
 	}

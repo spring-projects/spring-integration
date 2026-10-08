@@ -53,7 +53,9 @@
 		merge-with-default-converters="true"/>
 
 	<util:list id="customConverters">
-		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
+			<beans:constructor-arg value="org.springframework.integration.http.config.*"/>
+		</beans:bean>
 	</util:list>
 
 	<inbound-gateway id="inboundControllerViewExp"

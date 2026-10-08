@@ -162,7 +162,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition channel(
 			@DelegatesTo(value = Channels, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.Channels')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.Channels')
 					Closure<MessageChannelSpec> channels) {
 
 		Function<Channels, MessageChannelSpec> function =
@@ -186,8 +186,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition publishSubscribeChannel(
 			Executor executor = null,
 			@DelegatesTo(value = PublishSubscribeSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
-					options = 'org.springframework.integration.dsl.PublishSubscribeSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.PublishSubscribeSpec')
 					Closure<?> publishSubscribeChannelConfigurer) {
 
 		this.delegate.publishSubscribeChannel executor, createConfigurerIfAny(publishSubscribeChannelConfigurer)
@@ -204,7 +203,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition publishSubscribeChannel(
 			BroadcastCapableChannel broadcastCapableChannel,
 			@DelegatesTo(value = BroadcastPublishSubscribeSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
+			@ClosureParams(value = SimpleType,
 					options = 'org.springframework.integration.dsl.BroadcastPublishSubscribeSpec')
 					Closure<?> publishSubscribeChannelConfigurer) {
 
@@ -227,7 +226,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition wireTap(
 			IntegrationFlow flow,
 			@DelegatesTo(value = WireTapSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.WireTapSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.WireTapSpec')
 					Closure<?> wireTapConfigurer = null) {
 
 		this.delegate.wireTap flow, createConfigurerIfAny(wireTapConfigurer)
@@ -248,7 +247,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition wireTap(
 			String wireTapChannel,
 			@DelegatesTo(value = WireTapSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.WireTapSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.WireTapSpec')
 					Closure<?> wireTapConfigurer = null) {
 
 		this.delegate.wireTap wireTapChannel, createConfigurerIfAny(wireTapConfigurer)
@@ -269,7 +268,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition wireTap(
 			MessageChannel wireTapChannel,
 			@DelegatesTo(value = WireTapSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.WireTapSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.WireTapSpec')
 					Closure<?> wireTapConfigurer = null) {
 
 		this.delegate.wireTap wireTapChannel, createConfigurerIfAny(wireTapConfigurer)
@@ -283,8 +282,8 @@ class GroovyIntegrationFlowDefinition {
 	 * @see GenericEndpointSpec
 	 */
 	GroovyIntegrationFlowDefinition controlBus(
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.controlBus createConfigurerIfAny(endpointConfigurer)
@@ -302,7 +301,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition transform(
 			@DelegatesTo(value = TransformerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.TransformerEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.TransformerEndpointSpec')
 					Closure<?> transformerConfigurer) {
 
 		this.delegate.transformWith createConfigurerIfAny(transformerConfigurer)
@@ -319,8 +318,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<P> GroovyIntegrationFlowDefinition convert(
 			Class<P> payloadType,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.convert payloadType, createConfigurerIfAny(endpointConfigurer)
@@ -338,7 +337,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition filter(
 			String expression,
 			@DelegatesTo(value = FilterEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.filter expression, createConfigurerIfAny(endpointConfigurer)
@@ -356,7 +355,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition filter(
 			Object service, String methodName = null,
 			@DelegatesTo(value = FilterEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.filter service, methodName, createConfigurerIfAny(endpointConfigurer)
@@ -373,7 +372,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition filter(
 			MessageProcessorSpec<?> messageProcessorSpec,
 			@DelegatesTo(value = FilterEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.filter messageProcessorSpec, createConfigurerIfAny(endpointConfigurer)
@@ -396,7 +395,7 @@ class GroovyIntegrationFlowDefinition {
 			@DelegatesTo(genericTypeIndex = 0, strategy = Closure.DELEGATE_FIRST)
 					Closure<Boolean> genericSelector,
 			@DelegatesTo(value = FilterEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.FilterEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		GenericSelector<P> lambdaWrapper = payload -> genericSelector(payload)
@@ -416,8 +415,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition handle(
 			String beanName, String methodName,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.handle beanName, methodName, createConfigurerIfAny(endpointConfigurer)
@@ -436,8 +435,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition handle(
 			Object service, String methodName = null,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.handle service, methodName, createConfigurerIfAny(endpointConfigurer)
@@ -458,8 +457,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<P> GroovyIntegrationFlowDefinition handle(
 			Class<P> expectedType, GenericHandler<P> handler,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		GenericHandler<P> lambdaWrapper = (payload, headers) -> handler(payload, headers)
@@ -476,8 +475,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition handle(
 			MessageProcessorSpec<?> messageProcessorSpec,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.handle messageProcessorSpec, createConfigurerIfAny(endpointConfigurer)
@@ -495,8 +494,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<H extends MessageHandler> GroovyIntegrationFlowDefinition handle(
 			MessageHandlerSpec<?, H> messageHandlerSpec,
-			@DelegatesTo(value = GenericEndpointSpec<H>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.handle messageHandlerSpec, createConfigurerIfAny(endpointConfigurer)
@@ -513,8 +512,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<H extends MessageHandler> GroovyIntegrationFlowDefinition handle(
 			H messageHandler,
-			@DelegatesTo(value = GenericEndpointSpec<H>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.handle messageHandler, createConfigurerIfAny(endpointConfigurer)
@@ -528,7 +527,7 @@ class GroovyIntegrationFlowDefinition {
 	 * @see GenericEndpointSpec
 	 */
 	GroovyIntegrationFlowDefinition bridge(
-			@DelegatesTo(value = GenericEndpointSpec<BridgeHandler>, strategy = Closure.DELEGATE_FIRST)
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
 			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
@@ -545,7 +544,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition delay(
 			@DelegatesTo(value = DelayerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.DelayerEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.DelayerEndpointSpec')
 					Closure<?> endpointConfigurer) {
 
 		this.delegate.delay createConfigurerIfAny(endpointConfigurer)
@@ -563,7 +562,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition enrich(
 			@DelegatesTo(value = EnricherSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.EnricherSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.EnricherSpec')
 					Closure<?> enricherConfigurer) {
 
 		this.delegate.enrich createConfigurerIfAny(enricherConfigurer)
@@ -579,7 +578,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition enrichHeaders(
 			@DelegatesTo(value = HeaderEnricherSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.HeaderEnricherSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.HeaderEnricherSpec')
 					Closure<?> enricherConfigurer) {
 
 		this.delegate.enrichHeaders createConfigurerIfAny(enricherConfigurer)
@@ -605,7 +604,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition splitWith(
 			@DelegatesTo(value = SplitterSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.SplitterSpec')
 					Closure<?> splitConfigurer) {
 
 		this.delegate.splitWith createConfigurerIfAny(splitConfigurer)
@@ -620,7 +619,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition headerFilter(
 			@DelegatesTo(value = HeaderFilterSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.HeaderFilterSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.HeaderFilterSpec')
 					Closure<?> headerFilterConfigurer) {
 
 		this.delegate.headerFilter createConfigurerIfAny(headerFilterConfigurer)
@@ -637,8 +636,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition claimCheckIn(
 			MessageStore messageStore,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.claimCheckIn messageStore, createConfigurerIfAny(endpointConfigurer)
@@ -657,8 +656,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition claimCheckOut(
 			MessageStore messageStore, boolean removeMessage = false,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.claimCheckOut messageStore, removeMessage, createConfigurerIfAny(endpointConfigurer)
@@ -677,7 +676,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition resequence(
 			@DelegatesTo(value = ResequencerSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.ResequencerSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.ResequencerSpec')
 					Closure<?> resequencer = null) {
 
 		this.delegate.resequence createConfigurerIfAny(resequencer)
@@ -704,7 +703,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition aggregate(
 			@DelegatesTo(value = AggregatorSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.AggregatorSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.AggregatorSpec')
 					Closure<?> aggregator = null) {
 
 		this.delegate.aggregate createConfigurerIfAny(aggregator)
@@ -720,8 +719,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition route(
 			String beanName, String method,
-			@DelegatesTo(value = RouterSpec<Object, MethodInvokingRouter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		this.delegate.route beanName, method, createConfigurerIfAny(routerConfigurer)
@@ -737,8 +736,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition route(
 			Object service, String methodName = null,
-			@DelegatesTo(value = RouterSpec<Object, MethodInvokingRouter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		this.delegate.route service, methodName, createConfigurerIfAny(routerConfigurer)
@@ -754,8 +753,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<T> GroovyIntegrationFlowDefinition route(
 			String expression,
-			@DelegatesTo(value = RouterSpec<T, ExpressionEvaluatingRouter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		this.delegate.route expression, createConfigurerIfAny(routerConfigurer)
@@ -776,8 +775,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<P, T> GroovyIntegrationFlowDefinition route(
 			Class<P> expectedType, Function<P, T> router,
-			@DelegatesTo(value = RouterSpec<T, MethodInvokingRouter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		Function<P, T> lambdaWrapper = payload -> router(payload)
@@ -795,8 +794,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition route(
 			MessageProcessorSpec<?> messageProcessorSpec,
-			@DelegatesTo(value = RouterSpec<Object, MethodInvokingRouter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		this.delegate.route messageProcessorSpec, createConfigurerIfAny(routerConfigurer)
@@ -812,7 +811,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition routeToRecipients(
 			@DelegatesTo(value = RecipientListRouterSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
+			@ClosureParams(value = SimpleType,
 					options = 'org.springframework.integration.dsl.RecipientListRouterSpec')
 					Closure<?> routerConfigurer = null) {
 
@@ -827,9 +826,8 @@ class GroovyIntegrationFlowDefinition {
 	 * @see ErrorMessageExceptionTypeRouter
 	 */
 	GroovyIntegrationFlowDefinition routeByException(
-			@DelegatesTo(value = RouterSpec<Class<? extends Throwable>, ErrorMessageExceptionTypeRouter>,
-					strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.RouterSpec')
+			@DelegatesTo(value = RouterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.RouterSpec')
 					Closure<?> routerConfigurer = null) {
 
 		this.delegate.routeByException createConfigurerIfAny(routerConfigurer)
@@ -846,8 +844,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	<R extends AbstractMessageRouter> GroovyIntegrationFlowDefinition route(
 			R router,
-			@DelegatesTo(value = GenericEndpointSpec<R>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.route router, createConfigurerIfAny(endpointConfigurer)
@@ -868,7 +866,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition gateway(
 			String requestChannel,
 			@DelegatesTo(value = GatewayEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.gateway requestChannel, createConfigurerIfAny(endpointConfigurer)
@@ -889,7 +887,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition gateway(
 			MessageChannel requestChannel,
 			@DelegatesTo(value = GatewayEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.gateway requestChannel, createConfigurerIfAny(endpointConfigurer)
@@ -907,7 +905,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition gateway(
 			IntegrationFlow flow,
 			@DelegatesTo(value = GatewayEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.GatewayEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.gateway flow, createConfigurerIfAny(endpointConfigurer)
@@ -970,10 +968,10 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition scatterGather(
 			MessageChannel scatterChannel,
 			@DelegatesTo(value = AggregatorSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.AggregatorSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.AggregatorSpec')
 					Closure<?> gatherer = null,
 			@DelegatesTo(value = ScatterGatherSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.ScatterGatherSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.ScatterGatherSpec')
 					Closure<?> scatterGather = null) {
 
 		this.delegate.scatterGather scatterChannel, createConfigurerIfAny(gatherer),
@@ -992,14 +990,14 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition scatterGather(
 			@DelegatesTo(value = RecipientListRouterSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
+			@ClosureParams(value = SimpleType,
 					options = 'org.springframework.integration.dsl.RecipientListRouterSpec')
 					Closure<?> scatterer,
 			@DelegatesTo(value = AggregatorSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.AggregatorSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.AggregatorSpec')
 					Closure<?> gatherer = null,
 			@DelegatesTo(value = ScatterGatherSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.ScatterGatherSpec')
+			@ClosureParams(value = SimpleType, options = 'org.springframework.integration.dsl.ScatterGatherSpec')
 					Closure<?> scatterGather = null) {
 
 		this.delegate.scatterGather createConfigurerIfAny(scatterer), createConfigurerIfAny(gatherer),
@@ -1017,7 +1015,7 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition barrier(long timeout,
 											@DelegatesTo(value = BarrierSpec, strategy = Closure.DELEGATE_FIRST)
-											@ClosureParams(value = SimpleType.class,
+											@ClosureParams(value = SimpleType,
 													options = 'org.springframework.integration.dsl.BarrierSpec')
 													Closure<?> barrierConfigurer = null) {
 
@@ -1033,8 +1031,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition trigger(
 			String triggerActionId,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType,
 					options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 
@@ -1050,8 +1048,8 @@ class GroovyIntegrationFlowDefinition {
 	 */
 	GroovyIntegrationFlowDefinition trigger(
 			MessageTriggerAction triggerAction,
-			@DelegatesTo(value = GenericEndpointSpec<ServiceActivatingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class,
+			@DelegatesTo(value = GenericEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType,
 					options = 'org.springframework.integration.dsl.GenericEndpointSpec')
 					Closure<?> endpointConfigurer = null) {
 

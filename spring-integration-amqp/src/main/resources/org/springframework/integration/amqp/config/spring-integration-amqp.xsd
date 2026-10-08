@@ -499,7 +499,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					The exchange name to use when sending Messages evaluated as an expression on the message (e.g.
-					'headers.exchange'). By default, this will be an emtpy String.
+					'headers.exchange'). By default, this will be an empty String.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

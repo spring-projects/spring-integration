@@ -55,6 +55,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * @author Artem Bilan
  * @author Gary Russell
  * @author Glenn Renfro
+ * @author Hyun Lee
  *
  * @since 2.2
  */
@@ -117,7 +118,7 @@ public class OutboundResponseTypeTests {
 					.configureMessageConverters((builder) ->
 							builder.configureMessageConvertersList((converters) -> {
 								converters.clear();
-								converters.add(new SerializingHttpMessageConverter());
+								converters.add(new SerializingHttpMessageConverter("java.util.*"));
 								converters.add(new StringHttpMessageConverter());
 							}));
 		}

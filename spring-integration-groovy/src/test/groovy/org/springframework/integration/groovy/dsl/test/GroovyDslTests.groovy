@@ -134,7 +134,7 @@ class GroovyDslTests {
 				integrationFlow(publisher) {
 					transform {
 						it.<Message<Integer>, Integer>transformer { it.payload * 2 }
-						expectedType Message<Integer>
+						expectedType Message
 						id 'foo'
 					}
 					channel fluxChannel
@@ -289,7 +289,7 @@ class GroovyDslTests {
 
 		@Bean
 		functionFlow() {
-			integrationFlow Function<byte[], String>,
+			integrationFlow Function,
 					{ beanName 'functionGateway' },
 					{
 						transform {
@@ -300,7 +300,7 @@ class GroovyDslTests {
 							transformer { it.toUpperCase() }
 						}
 						splitWith {
-							expectedType Message<?>
+							expectedType Message
 							function { it.payload }
 						}
 						splitWith {

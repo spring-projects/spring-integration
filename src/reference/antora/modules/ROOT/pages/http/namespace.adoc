@@ -45,6 +45,68 @@ The following example shows how to configure one:
     reply-channel="responses"/>
 ----
 
+[[http-java-serialization]]
+=== Java Serialization
+
+The `SerializingHttpMessageConverter` is not registered by default.
+To accept request bodies with the `application/x-java-serialized-object` content type, add this converter to the `inbound-channel-adapter` or the `inbound-gateway` by using the `message-converters` attribute (or the `messageConverters()` option of the Java DSL).
+
+WARNING: Deserializing Java objects from untrusted sources is dangerous.
+A crafted request body can chain classes available on the application classpath (so-called deserialization gadgets) to run arbitrary code while the object graph is being restored.
+Consider using a data format such as JSON for the endpoints exposed to untrusted clients.
+See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html[OWASP Deserialization Cheat Sheet] for more information.
+
+The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`.
+Starting with version 7.2, use the `SerializingHttpMessageConverter(String... allowedPatterns)` constructor to specify the trusted classes.
+This constructor requires at least one pattern and rejects an empty pattern array.
+A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
+The basic types (`String`, `Number` and its subclasses, primitives and arrays) are always allowed.
+Deserialization fails for any other class that does not match one of the patterns.
+
+IMPORTANT: The default constructor and `setAllowedPatterns()` method are deprecated for removal since version 7.2.
+For backward compatibility, the deprecated default constructor still allows all classes when no patterns are configured.
+Passing `"*"` to the new constructor explicitly allows all classes; use it only when all sources are trusted.
+Always restrict the allowed patterns when the converter reads requests from untrusted clients.
+
+The following example configures an inbound channel adapter to deserialize only classes from the `com.example.model` package:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow httpInboundFlow() {
+    SerializingHttpMessageConverter converter =
+            new SerializingHttpMessageConverter("com.example.model.*");
+    return IntegrationFlow
+            .from(Http.inboundChannelAdapter("/orders")
+                    .messageConverters(converter))
+            .channel("orders")
+            .get();
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<int-http:inbound-channel-adapter id="ordersInbound" channel="orders"
+    path="/orders"
+    message-converters="converters"/>
+
+<util:list id="converters">
+    <bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
+        <constructor-arg value="com.example.model.*"/>
+    </bean>
+</util:list>
+----
+======
+
+Additional patterns can be added with the `addAllowedPatterns()` method.
+The same allowlist applies when the converter reads a response body for an HTTP outbound endpoint.
+
 [[http-request-mapping]]
 == Request Mapping Support
 
@@ -116,7 +178,7 @@ The following example shows how to do so:
 For more information regarding handler mappings, see https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html[the Spring Framework Web Servlet documentation] or https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[the Spring Framework Web Reactive documentation].
 
 IMPORTANT: The `IntegrationRequestMappingHandlerMapping` extends the Spring MVC `RequestMappingHandlerMapping` class, inheriting most of its logic, especially `handleNoMatch(Set, String, HttpServletRequest)`, which throws a specific `4xx` error for the HTTP response, when mapping doesn't match for some reason, preventing calls to any remaining mapping handlers in the application context.
-For this reason, configuring the same path for both Spring Integration and Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported; the MVC mapping will not be found..
+For this reason, configuring the same path for both Spring Integration and Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported; the MVC mapping will not be found.
 
 [[http-cors]]
 == Cross-origin Resource Sharing (CORS) Support
@@ -289,6 +351,7 @@ Since Spring Integration 2.2, the `SerializingHttpMessageConverter` has now been
 However, because this could cause incompatibility with existing applications, it was decided to no longer automatically add this converter to the HTTP endpoints.
 If you wish to use Java serialization, you can add the `SerializingHttpMessageConverter` to the appropriate endpoints, by using the `message-converters` attribute (when you use XML configuration) or by using the `setMessageConverters()` method (in Java configuration).
 Alternatively, you may wish to consider using JSON instead, which is enabled by having https://github.com/FasterXML/jackson[the Jackson library] on the classpath.
+See <<http-java-serialization>> for the security implications of Java deserialization.
 =====
 
 Beginning with Spring Integration 2.2, you can also determine the HTTP method dynamically by using SpEL and the `http-method-expression` attribute.

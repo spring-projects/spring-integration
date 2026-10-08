@@ -65,7 +65,7 @@ public class AmqpClientInboundGatewayUnitTests {
 		com.rabbitmq.client.amqp.Message amqpMessage = mock();
 		given(amqpMessage.body()).willReturn("test data".getBytes());
 		given(amqpMessage.contentType()).willReturn(MimeTypeUtils.TEXT_PLAIN_VALUE);
-		given(amqpMessage.messageIdAsString()).willReturn("testMessageId");
+		given(amqpMessage.messageId()).willReturn("testMessageId");
 		given(amqpMessage.replyTo()).willReturn("/queues/reply%20queue");
 
 		RabbitAmqpMessageListener messageListener =

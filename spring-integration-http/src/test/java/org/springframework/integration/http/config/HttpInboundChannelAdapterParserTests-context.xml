@@ -41,7 +41,9 @@
 	<inbound-channel-adapter id="adapterNoCustomConverterNoDefaults" channel="requests" supported-methods="POST"/>
 
 	<util:list id="customConverters">
-		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
+			<beans:constructor-arg value="org.springframework.integration.http.config.*"/>
+		</beans:bean>
 	</util:list>
 
 	<inbound-channel-adapter id="putOrDeleteAdapter" channel="requests" supported-methods="PUT, delete"/>

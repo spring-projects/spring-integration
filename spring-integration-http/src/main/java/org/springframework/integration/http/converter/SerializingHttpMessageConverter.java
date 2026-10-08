@@ -28,6 +28,7 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -35,15 +36,17 @@ import org.springframework.util.FileCopyUtils;
  * {@link Serializable} instances.
  * <p>
  * Incoming requests are deserialized through an {@link AllowListDeserializingConverter}.
- * For backward compatibility no class restriction is applied by default; when this
- * converter is used to read requests from untrusted sources, configure an allowlist of
- * trusted classes/packages via {@link #setAllowedPatterns(String...)} or
- * {@link #addAllowedPatterns(String...)} to guard against unsafe Java deserialization.
+ * To guard against unsafe Java deserialization, the patterns of trusted classes/packages
+ * are provided via the {@link #SerializingHttpMessageConverter(String...)} constructor
+ * and can be extended with {@link #addAllowedPatterns(String...)}.
+ * For backward compatibility, no class restriction is applied when the deprecated default
+ * constructor is used and no patterns are configured.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  * @author Uwez Khan
+ * @author Hyun Lee
  *
  * @since 2.0
  */
@@ -56,9 +59,29 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 
 	/**
 	 * Creates a new instance of the {@code SerializingHttpMessageConverter}.
+	 * @deprecated Since 7.2 in favor of {@link #SerializingHttpMessageConverter(String...)}
+	 * with an explicit list of allowed patterns.
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public SerializingHttpMessageConverter() {
 		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
+	}
+
+	/**
+	 * Create a new instance with simple patterns for allowable packages/classes for deserialization.
+	 * The patterns will be applied in order until a match is found.
+	 * A class can be fully qualified, or a wildcard {@code '*'} is allowed at the
+	 * beginning or end of the class name.
+	 * Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The basic types ({@link String}, {@link Number}, arrays and primitives) are always
+	 * allowed.
+	 * @param allowedPatterns the patterns; must not be empty.
+	 * @since 7.2
+	 */
+	public SerializingHttpMessageConverter(String... allowedPatterns) {
+		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
+		Assert.notEmpty(allowedPatterns, "'allowedPatterns' must not be empty");
+		this.deserializingConverter.setAllowedPatterns(allowedPatterns);
 	}
 
 	/**
@@ -72,7 +95,9 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	 * unrestricted behavior).
 	 * @param allowedPatterns the patterns.
 	 * @since 5.5.22
+	 * @deprecated Since 7.2 in favor of {@link #SerializingHttpMessageConverter(String...)}.
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public void setAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.setAllowedPatterns(allowedPatterns);
 	}
@@ -81,7 +106,7 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	 * Add package/class patterns to the allowed list.
 	 * @param allowedPatterns the patterns to add.
 	 * @since 5.5.22
-	 * @see #setAllowedPatterns(String...)
+	 * @see #SerializingHttpMessageConverter(String...)
 	 */
 	public void addAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.addAllowedPatterns(allowedPatterns);

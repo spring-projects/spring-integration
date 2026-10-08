@@ -92,6 +92,7 @@ import static org.mockito.Mockito.when;
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
  * @author Burak Kalayci
+ * @author Hyun Lee
  */
 public class HttpRequestExecutingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -863,7 +864,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.setExpectedResponseType(Foo.class);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter());
+		converters.add(new SerializingHttpMessageConverter(Foo.class.getName()));
 		handler.setMessageConverters(converters);
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);
@@ -889,7 +890,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.setExpectedResponseType(GenericMessage.class);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter());
+		converters.add(new SerializingHttpMessageConverter("org.springframework.messaging.*", "java.util.*"));
 		handler.setMessageConverters(converters);
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);

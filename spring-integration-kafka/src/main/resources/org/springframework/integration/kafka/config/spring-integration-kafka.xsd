@@ -583,7 +583,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Specifies a timeout in milliseconds for how long the 'KafkaProducerMessageHandler'
-					should wait wait for send operation results. Defaults to 10 seconds.
+					should wait for send operation results. Defaults to 10 seconds.
 					The timeout is applied only in 'sync' mode.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -596,7 +596,7 @@
 				<xsd:documentation>
 					Specifies an expression that is evaluated to determine a timeout in milliseconds
 					for how long the 'KafkaProducerMessageHandler'
-					should wait wait for send operation results. Defaults to 10 seconds.
+					should wait for send operation results. Defaults to 10 seconds.
 					The timeout is applied only in 'sync' mode.
 				</xsd:documentation>
 			</xsd:annotation>

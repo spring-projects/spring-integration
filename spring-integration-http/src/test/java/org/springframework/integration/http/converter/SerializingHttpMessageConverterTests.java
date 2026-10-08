@@ -32,33 +32,22 @@ import org.springframework.http.HttpInputMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * Tests for the deserialization allowlist of {@link SerializingHttpMessageConverter}.
  *
  * @author Uwez Khan
  * @author Artem Bilan
+ * @author Hyun Lee
  *
  * @since 5.5.22
  */
 public class SerializingHttpMessageConverterTests {
 
 	@Test
-	public void readsAnyClassByDefault() throws Exception {
-		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
-
-		HashMap<String, String> payload = new HashMap<>();
-		payload.put("testKey", "testValue");
-
-		Serializable result = converter.readInternal(Serializable.class, message(serialize(payload)));
-
-		assertThat(result).isEqualTo(payload);
-	}
-
-	@Test
 	public void readsAllowedClassWhenPatternMatches() throws Exception {
-		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
-		converter.setAllowedPatterns("java.util.*");
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("java.util.*");
 
 		HashMap<String, String> payload = new HashMap<>();
 		payload.put("testKey", "testValue");
@@ -70,8 +59,7 @@ public class SerializingHttpMessageConverterTests {
 
 	@Test
 	public void allowsBasicTypesEvenWithRestrictivePatterns() throws Exception {
-		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
-		converter.setAllowedPatterns("com.example.*");
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
 
 		Serializable result = converter.readInternal(Serializable.class, message(serialize("a String payload")));
 
@@ -80,14 +68,30 @@ public class SerializingHttpMessageConverterTests {
 
 	@Test
 	public void rejectsClassNotOnAllowList() throws Exception {
-		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
-		converter.setAllowedPatterns("com.example.*");
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
 
 		byte[] body = serialize(new TestPayload());
 
 		assertThatExceptionOfType(SerializationFailedException.class)
 				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
 				.withRootCauseInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	public void readsClassAddedToAllowList() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
+		converter.addAllowedPatterns(TestPayload.class.getName());
+
+		Serializable result = converter.readInternal(Serializable.class, message(serialize(new TestPayload())));
+
+		assertThat(result).isInstanceOf(TestPayload.class);
+	}
+
+	@Test
+	public void requiresAllowedPatterns() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new SerializingHttpMessageConverter(new String[0]))
+				.withMessage("'allowedPatterns' must not be empty");
 	}
 
 	private static byte[] serialize(Serializable object) throws IOException {

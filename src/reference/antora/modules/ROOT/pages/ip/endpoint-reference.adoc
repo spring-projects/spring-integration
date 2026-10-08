@@ -239,7 +239,7 @@ See pool-size for thread requirements.
 | The size of the buffer used to receive `DatagramPackets`.
 Usually set to the maximum transmission unit (MTU) size.
 If a smaller buffer is used than the size of the sent packet, truncation can occur.
-You can detect this by using the `check-length` attribute..
+You can detect this by using the `check-length` attribute.
 
 | `check-length`
 | `true`, `false`

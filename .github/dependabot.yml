@@ -144,25 +144,6 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    cooldown:
-      default-days: 0
-    exclude-paths:
-      - '.github/workflows/release-train-*.yml'
-    labels:
-      - 'type: task'
-    groups:
-      development-dependencies:
-        patterns:
-          - '*'
-
-  - package-ecosystem: github-actions
-    target-branch: 7.1.x
-    directory: /
-    schedule:
-      interval: weekly
-      day: sunday
-    cooldown:
-      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:
@@ -178,8 +159,6 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    cooldown:
-      default-days: 0
     exclude-paths:
       - '.github/workflows/release-train-*.yml'
     labels:

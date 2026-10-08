@@ -59,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Biju Kunjummen
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Hyun Lee
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -143,7 +144,8 @@ public class HttpInboundGatewayParserTests {
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		SerializingHttpMessageConverter serializingHttpMessageConverter = new SerializingHttpMessageConverter();
+		SerializingHttpMessageConverter serializingHttpMessageConverter =
+				new SerializingHttpMessageConverter("java.util.*");
 		serializingHttpMessageConverter.setSupportedMediaTypes(
 				Collections.singletonList(new MediaType("application", "my-serialized")));
 		converters.add(serializingHttpMessageConverter);
