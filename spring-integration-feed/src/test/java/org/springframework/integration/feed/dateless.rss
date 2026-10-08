@@ -1,0 +1,20 @@
+<rss version="2.0">
+	<channel>
+		<title>Feed without entry dates</title>
+		<link>https://spring.io/projects/spring-integration</link>
+		<description>Only the feed has a publication date</description>
+		<pubDate>Wed, 07 Oct 2026 10:00:00 GMT</pubDate>
+		<item>
+			<title>First entry</title>
+			<guid isPermaLink="false">urn:entry:first</guid>
+		</item>
+		<item>
+			<title>Second entry</title>
+			<guid isPermaLink="false">urn:entry:second</guid>
+		</item>
+		<item>
+			<title>Third entry</title>
+			<guid isPermaLink="false">urn:entry:third</guid>
+		</item>
+	</channel>
+</rss>

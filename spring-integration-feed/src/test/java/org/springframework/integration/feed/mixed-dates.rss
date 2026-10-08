@@ -1,0 +1,20 @@
+<rss version="2.0">
+	<channel>
+		<title>Feed with mixed entry dates</title>
+		<link>https://spring.io/projects/spring-integration</link>
+		<description>Entries with and without publication dates</description>
+		<item>
+			<title>First undated entry</title>
+			<guid isPermaLink="false">urn:entry:first-undated</guid>
+		</item>
+		<item>
+			<title>Dated entry</title>
+			<guid isPermaLink="false">urn:entry:dated</guid>
+			<pubDate>Wed, 07 Oct 2026 10:00:00 GMT</pubDate>
+		</item>
+		<item>
+			<title>Second undated entry</title>
+			<guid isPermaLink="false">urn:entry:second-undated</guid>
+		</item>
+	</channel>
+</rss>

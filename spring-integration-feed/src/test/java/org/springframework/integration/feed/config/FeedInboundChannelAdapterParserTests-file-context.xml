@@ -15,6 +15,17 @@
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</feed:inbound-channel-adapter>
 
+	<feed:inbound-channel-adapter id="datelessFeedAdapter"
+								  channel="feedChannel"
+								  auto-startup="false"
+								  entry-date-function="entryDateFunction"
+								  resource="classpath:org/springframework/integration/feed/dateless.rss">
+		<int:poller fixed-rate="10000" max-messages-per-poll="100"/>
+	</feed:inbound-channel-adapter>
+
+	<bean id="entryDateFunction"
+		  class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests$FeedDateFunction"/>
+
 	<int:channel id="feedChannel">
 		<int:queue/>
 	</int:channel>
