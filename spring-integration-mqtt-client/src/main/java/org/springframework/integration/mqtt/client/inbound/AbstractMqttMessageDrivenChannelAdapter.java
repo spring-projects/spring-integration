@@ -100,7 +100,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	@Override
 	public void destroy() {
 		super.destroy();
-		this.mqttClientManager.removeCallback(AbstractMqttMessageDrivenChannelAdapter.this);
+		this.mqttClientManager.removeCallback(this);
 	}
 
 	protected T getClient() {

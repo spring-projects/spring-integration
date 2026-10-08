@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
@@ -57,7 +58,9 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		super(mqttClientManager, topics);
 	}
 
-	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager, Mqtt3Subscription... subscriptions) {
+	public Mqtt3MessageDrivenChannelAdapter(ClientManager<Mqtt3Client> mqttClientManager,
+			Mqtt3Subscription... subscriptions) {
+
 		super(mqttClientManager);
 		this.subscriptions = Arrays.stream(subscriptions).toList();
 	}
@@ -66,8 +69,9 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	protected void onInit() {
 		super.onInit();
 		if (this.subscriptions == null) {
-			Assert.notEmpty(getTopics(), "topics must not be empty when subscriptions are not provided");
-			this.subscriptions = Arrays.stream(getTopics())
+			String[] topics = getTopics();
+			Assert.notEmpty(topics, "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(topics)
 					.map(topic -> Mqtt3Subscription.builder()
 							.topicFilter(topic)
 							.qos(getQos())
@@ -109,9 +113,10 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
 		CompletableFuture<Mqtt3SubAck> subscribeFuture;
-		if (getExecutor() != null) {
+		Executor executor = getExecutor();
+		if (executor != null) {
 			subscribeFuture = getClient().toAsync()
-					.subscribe(mqtt3Subscribe, this::processMessage, getExecutor(), isManualAck());
+					.subscribe(mqtt3Subscribe, this::processMessage, executor, isManualAck());
 		}
 		else {
 			subscribeFuture = getClient().toAsync()
@@ -126,7 +131,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			}
 			else {
 				this.isSubscribed.set(false);
-				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
+				logger.error(throwable, () -> "MQTT client failed to subscribe: " + this.subscriptions);
 				getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, throwable));
 			}
 		});

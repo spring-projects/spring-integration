@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
@@ -67,7 +68,9 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		super(mqttClientManager, topics);
 	}
 
-	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager, Mqtt5Subscription... subscriptions) {
+	public Mqtt5MessageDrivenChannelAdapter(ClientManager<Mqtt5Client> mqttClientManager,
+			Mqtt5Subscription... subscriptions) {
+
 		super(mqttClientManager);
 		this.subscriptions = Arrays.stream(subscriptions).toList();
 	}
@@ -76,8 +79,9 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	protected void onInit() {
 		super.onInit();
 		if (this.subscriptions == null) {
-			Assert.notEmpty(getTopics(), "topics must not be empty when subscriptions are not provided");
-			this.subscriptions = Arrays.stream(getTopics())
+			String[] topics = getTopics();
+			Assert.notEmpty(topics, "topics must not be empty when subscriptions are not provided");
+			this.subscriptions = Arrays.stream(topics)
 					.map(topic -> Mqtt5Subscription.builder()
 							.topicFilter(topic)
 							.qos(getQos())
@@ -156,9 +160,10 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 		// since subscribe method is called from the onConnected callback,
 		// to avoid Netty thread freeze, do not use blocking subscribe.
 		CompletableFuture<Mqtt5SubAck> subscribeFuture;
-		if (getExecutor() != null) {
+		Executor executor = getExecutor();
+		if (executor != null) {
 			subscribeFuture = getClient().toAsync()
-					.subscribe(mqtt5Subscribe, this::processMessage, getExecutor(), isManualAck());
+					.subscribe(mqtt5Subscribe, this::processMessage, executor, isManualAck());
 		}
 		else {
 			subscribeFuture = getClient().toAsync()
@@ -173,7 +178,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 			}
 			else {
 				this.isSubscribed.set(false);
-				logger.error(throwable, "MQTT client failed to subscribe: " + this.subscriptions);
+				logger.error(throwable, () -> "MQTT client failed to subscribe: " + this.subscriptions);
 				getApplicationEventPublisher().publishEvent(new MqttProtocolErrorEvent(this, throwable));
 			}
 		}));

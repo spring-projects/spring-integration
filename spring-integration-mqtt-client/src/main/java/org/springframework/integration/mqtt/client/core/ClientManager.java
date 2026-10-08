@@ -18,7 +18,6 @@ package org.springframework.integration.mqtt.client.core;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedContext;
-import com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener;
 
 /**
  * A utility abstraction over MQTT client which can be used in any MQTT-related component
@@ -61,7 +60,7 @@ public interface ClientManager<T extends MqttClient> {
 	/**
 	 * A contract for a custom callback on {@code onConnected} event from the client.
 	 *
-	 * @see MqttClientConnectedListener#onConnected(MqttClientConnectedContext)
+	 * @see com.hivemq.client.mqtt.lifecycle.MqttClientConnectedListener#onConnected(MqttClientConnectedContext)
 	 */
 	@FunctionalInterface
 	interface ConnectCallback {

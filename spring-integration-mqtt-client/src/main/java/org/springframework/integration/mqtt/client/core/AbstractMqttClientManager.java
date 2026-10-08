@@ -47,22 +47,23 @@ import org.springframework.core.log.LogAccessor;
  * @since 7.2
  */
 public abstract class AbstractMqttClientManager<T extends MqttClient, C extends MqttClientConfig>
-		implements ClientManager<T>, InitializingBean, SmartLifecycle, ApplicationEventPublisherAware, MqttClientConnectedListener {
+		implements ClientManager<T>, InitializingBean, SmartLifecycle, ApplicationEventPublisherAware,
+		MqttClientConnectedListener {
 
 	/**
 	 * The default phase of this client manager auto-start in {@link SmartLifecycle}.
 	 */
 	private static final int DEFAULT_MANAGER_PHASE = 0;
 
-	protected final LogAccessor logger = new LogAccessor(this.getClass());
+	protected final LogAccessor logger = new LogAccessor(getClass());
 
 	protected final Lock lock = new ReentrantLock();
-
-	private int phase = DEFAULT_MANAGER_PHASE;
 
 	protected final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 
 	protected final C mqttClientConfig;
+
+	private int phase = DEFAULT_MANAGER_PHASE;
 
 	@SuppressWarnings("NullAway.Init")
 	private T mqttClient;
@@ -73,7 +74,7 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 	protected AbstractMqttClientManager(C mqttClientConfig) {
 		if (mqttClientConfig.getAutomaticReconnect().isEmpty()) {
 			this.logger.info("If this `ClientManager` is used from message-driven channel adapters, " +
-					"it is recommended to enable 'automaticReconnect' when set the 'mqttClientBuilder'. " +
+					"it is recommended to enable 'automaticReconnect' when build the 'mqttClientConfig'. " +
 					"Otherwise connection check and reconnect should be done manually.");
 		}
 		this.mqttClientConfig = mqttClientConfig;
@@ -177,7 +178,7 @@ public abstract class AbstractMqttClientManager<T extends MqttClient, C extends 
 
 	@Override
 	public boolean isRunning() {
-		return this.isConnected();
+		return isConnected();
 	}
 
 	@Override
