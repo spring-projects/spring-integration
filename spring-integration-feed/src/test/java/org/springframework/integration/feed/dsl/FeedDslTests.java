@@ -16,11 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Jialin Chen
  *
  * @since 5.0
  */
@@ -42,6 +45,9 @@ public class FeedDslTests {
 
 	@Autowired
 	private PollableChannel entries;
+
+	@Autowired
+	private PollableChannel datelessEntries;
 
 	@Autowired
 	private PropertiesPersistingMetadataStore metadataStore;
@@ -75,6 +81,17 @@ public class FeedDslTests {
 		metadataStoreFile.close();
 	}
 
+	@Test
+	public void testFeedEntryDateFunctionFlow() {
+		for (int i = 0; i < 3; i++) {
+			Message<?> message = this.datelessEntries.receive(10000);
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload()).isInstanceOfSatisfying(SyndEntry.class,
+					entry -> assertThat(entry.getPublishedDate()).isNull());
+		}
+		assertThat(this.datelessEntries.receive(100)).isNull();
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -97,6 +114,18 @@ public class FeedDslTests {
 									.preserveWireFeed(true),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.channel(c -> c.queue("entries"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow datelessFeedFlow() {
+			return IntegrationFlow
+					.from(Feed.inboundAdapter(
+									new ClassPathResource("org/springframework/integration/feed/dateless.rss"), "datelessFeed")
+									.metadataStore(new SimpleMetadataStore())
+									.entryDateFunction((entry, feed) -> feed.getPublishedDate()),
+							e -> e.poller(p -> p.fixedDelay(100)))
+					.channel(c -> c.queue("datelessEntries"))
 					.get();
 		}
 

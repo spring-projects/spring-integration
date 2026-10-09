@@ -5,11 +5,14 @@
 package org.springframework.integration.feed.config;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,7 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -74,6 +78,21 @@ public class FeedInboundChannelAdapterParserTests {
 		FeedEntryMessageSource source = TestUtils.getPropertyValue(adapter, "source");
 		assertThat(TestUtils.<Object>getPropertyValue(source, "metadataStore")).isNotNull();
 		context.close();
+	}
+
+	@Test
+	public void validateEntryDateFunction() {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass())) {
+
+			FeedEntryMessageSource source = context.getBean("datelessFeedAdapter.source", FeedEntryMessageSource.class);
+			for (int i = 0; i < 3; i++) {
+				Message<SyndEntry> message = source.receive();
+				assertThat(message).isNotNull();
+				assertThat(message.getPayload().getPublishedDate()).isNull();
+			}
+			assertThat(source.receive()).isNull();
+		}
 	}
 
 	@Test
@@ -124,6 +143,15 @@ public class FeedInboundChannelAdapterParserTests {
 				SourcePollingChannelAdapter.class);
 		assertThat(TestUtils.<Object>getPropertyValue(adapter, "outputChannel")).isSameAs(autoChannel);
 		context.close();
+	}
+
+	public static class FeedDateFunction implements BiFunction<SyndEntry, SyndFeed, Date> {
+
+		@Override
+		public Date apply(SyndEntry entry, SyndFeed feed) {
+			return feed.getPublishedDate();
+		}
+
 	}
 
 	public static class SampleService {

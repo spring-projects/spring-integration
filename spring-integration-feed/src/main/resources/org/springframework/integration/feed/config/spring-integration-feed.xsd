@@ -78,6 +78,21 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="entry-date-function" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a BiFunction that accepts a SyndEntry and its SyndFeed and returns a non-null Date.
+						The result replaces the entry's updated date and is used for sorting, selecting new entries,
+						and updating the metadata store. A null result causes an IllegalStateException.
+						When omitted, the entry's updated date is used, falling back to its published date.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.function.BiFunction"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="metadata-store" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>

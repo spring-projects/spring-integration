@@ -8,15 +8,24 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
@@ -29,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gary Russell
  * @author Aaron Loes
  * @author Artem Bilan
+ * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -96,6 +106,130 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		assertThat(time1 < time2).isTrue();
 		assertThat(time2 < time3).isTrue();
 		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testReceiveFeedWithDatelessEntriesSortedLast() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/mixed-dates.rss");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "mixedDates");
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle()).isEqualTo("Dated entry");
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle())
+				.isEqualTo("First undated entry");
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle())
+				.isEqualTo("Second undated entry");
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testReceiveFeedWithOnlyDatelessEntries() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "datelessEntries");
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testFeedDateFunctionAndRepeatWithMetadataStore() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		SimpleMetadataStore metadataStore = new SimpleMetadataStore();
+		AtomicInteger invocations = new AtomicInteger();
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "feedDate");
+		source.setMetadataStore(metadataStore);
+		source.setEntryDateFunction((entry, feed) -> {
+			invocations.incrementAndGet();
+			return feed.getPublishedDate();
+		});
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		for (int i = 0; i < 3; i++) {
+			Message<SyndEntry> message = source.receive();
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload().getPublishedDate()).isNull();
+			assertThat(message.getPayload().getUpdatedDate())
+					.isEqualTo(Date.from(Instant.parse("2026-10-07T10:00:00Z")));
+			assertThat(metadataStore.get("feedDate"))
+					.isEqualTo(Long.toString(Instant.parse("2026-10-07T10:00:00Z").toEpochMilli()));
+		}
+		assertThat(invocations).hasValue(3);
+		assertThat(source.receive()).isNull();
+
+		source = new FeedEntryMessageSource(resource, "feedDate");
+		source.setMetadataStore(metadataStore);
+		source.setEntryDateFunction((entry, feed) -> feed.getPublishedDate());
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testEntryDateFunctionControlsSortingAndFiltering() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
+		SimpleMetadataStore metadataStore = new SimpleMetadataStore();
+		metadataStore.put("customDates", "730000000000");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "customDates");
+		source.setMetadataStore(metadataStore);
+		source.setEntryDateFunction((entry, feed) -> new Date(2_000_000_000_000L - entry.getPublishedDate().getTime()));
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle().trim())
+				.isEqualTo("Check out Spring Integration forums");
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle().trim())
+				.isEqualTo("Spring Integration download");
+		assertThat(metadataStore.get("customDates")).isEqualTo("733911663000");
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testEntryDateFunctionReturningNull() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "nullEntryDates");
+		source.setEntryDateFunction((entry, feed) -> null);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(source::receive)
+				.withMessage("'entryDateFunction' must not return null");
+	}
+
+	@Test
+	public void testFeedDateFunctionWithUpdatedFeed(@TempDir Path directory) throws IOException {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		String feedContent = resource.getContentAsString(StandardCharsets.UTF_8);
+		Path feedFile = directory.resolve("feed.rss");
+		Files.writeString(feedFile, feedContent);
+		FeedEntryMessageSource source = new FeedEntryMessageSource(new FileSystemResource(feedFile), "updatedFeed");
+		source.setEntryDateFunction((entry, feed) -> feed.getPublishedDate());
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		for (int i = 0; i < 3; i++) {
+			assertThat(source.receive()).isNotNull();
+		}
+		assertThat(source.receive()).isNull();
+
+		Files.writeString(feedFile,
+				feedContent.replace("Wed, 07 Oct 2026 10:00:00 GMT", "Thu, 08 Oct 2026 10:00:00 GMT"));
+		for (int i = 0; i < 3; i++) {
+			assertThat(source.receive()).isNotNull();
+		}
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testNullEntryDateFunction() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "invalidDateFunction");
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> source.setEntryDateFunction(null))
+				.withMessage("'entryDateFunction' must not be null");
 	}
 
 	// verifies that when entry has been updated since publish, that is taken into

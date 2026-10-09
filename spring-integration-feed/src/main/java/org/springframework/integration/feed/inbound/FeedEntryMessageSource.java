@@ -18,6 +18,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -48,6 +49,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Aaron Loes
  * @author Christian Tzolov
+ * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -65,9 +67,11 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final Comparator<SyndEntry> syndEntryComparator =
 			Comparator.comparing(FeedEntryMessageSource::getLastModifiedDate,
-					Comparator.nullsFirst(Comparator.naturalOrder()));
+					Comparator.nullsLast(Comparator.naturalOrder()));
 
 	private final Lock feedMonitor = new ReentrantLock();
+
+	private @Nullable BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction;
 
 	private SyndFeedInput syndFeedInput = new SyndFeedInput();
 
@@ -112,6 +116,22 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	public void setMetadataStore(MetadataStore metadataStore) {
 		Assert.notNull(metadataStore, "'metadataStore' must not be null");
 		this.metadataStore = metadataStore;
+	}
+
+	/**
+	 * Specify a function to determine a non-null date for each entry in a feed.
+	 * The function is evaluated once per entry in each retrieved feed, and its result
+	 * replaces the entry's updated date before sorting and selecting new entries.
+	 * This date is also used to update the metadata store when the entry is emitted.
+	 * When no function is configured, the entry's updated date is used, falling back
+	 * to its published date. Entries without either date are emitted after new dated
+	 * entries, if any are present in the retrieved feed.
+	 * @param entryDateFunction the function, which must return a non-null date.
+	 * @since 7.2
+	 */
+	public void setEntryDateFunction(BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction) {
+		Assert.notNull(entryDateFunction, "'entryDateFunction' must not be null");
+		this.entryDateFunction = entryDateFunction;
 	}
 
 	/**
@@ -208,6 +228,14 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
+				BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction = this.entryDateFunction;
+				if (entryDateFunction != null) {
+					for (SyndEntry entry : retrievedEntries) {
+						Date entryDate = entryDateFunction.apply(entry, syndFeed);
+						Assert.state(entryDate != null, "'entryDateFunction' must not return null");
+						entry.setUpdatedDate(entryDate);
+					}
+				}
 				boolean withinNewEntries = false;
 				retrievedEntries.sort(this.syndEntryComparator);
 				for (SyndEntry entry : retrievedEntries) {
@@ -276,7 +304,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 				'}';
 	}
 
-	private static Date getLastModifiedDate(SyndEntry entry) {
+	private static @Nullable Date getLastModifiedDate(SyndEntry entry) {
 		return (entry.getUpdatedDate() != null) ? entry.getUpdatedDate() : entry.getPublishedDate();
 	}
 
