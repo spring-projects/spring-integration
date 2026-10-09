@@ -1,15 +1,15 @@
 [versions]
 # Spring Portfolio dependencies. Usually managed by release train
-micrometerTracingVersion = "1.6.8-SNAPSHOT"
-micrometerVersion = "1.16.8-SNAPSHOT"
-reactorVersion = "2025.0.8-SNAPSHOT"
-springAmqpVersion = "4.0.6-SNAPSHOT"
-springDataVersion = "2025.1.8-SNAPSHOT"
-springGraphqlVersion = "2.0.6-SNAPSHOT"
-springKafkaVersion = "4.0.8-SNAPSHOT"
-springSecurityVersion = "7.0.9-SNAPSHOT"
-springVersion = "7.0.10-SNAPSHOT"
-springWsVersion = "5.0.3-SNAPSHOT"
+micrometerTracingVersion = "1.6.8-INTERNAL-SNAPSHOT"
+micrometerVersion = "1.16.8-INTERNAL-SNAPSHOT"
+reactorVersion = "2025.0.8-INTERNAL-SNAPSHOT"
+springAmqpVersion = "4.0.6-INTERNAL-SNAPSHOT"
+springDataVersion = "2025.1.8-INTERNAL-SNAPSHOT"
+springGraphqlVersion = "2.0.6-INTERNAL-SNAPSHOT"
+springKafkaVersion = "4.0.8-INTERNAL-SNAPSHOT"
+springSecurityVersion = "7.0.9-INTERNAL-SNAPSHOT"
+springVersion = "7.0.10-INTERNAL-SNAPSHOT"
+springWsVersion = "5.0.3-INTERNAL-SNAPSHOT"
 
 # Third-party dependencies
 apacheSshdVersion = "2.16.0"
