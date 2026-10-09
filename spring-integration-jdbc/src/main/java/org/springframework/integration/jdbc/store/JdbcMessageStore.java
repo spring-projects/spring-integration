@@ -279,11 +279,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param dataSource a {@link DataSource}
-	 * @deprecated since 7.0.7 in favor of {@link #JdbcMessageStore(DataSource, String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(DataSource, String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public JdbcMessageStore(DataSource dataSource) {
 		this(new JdbcTemplate(dataSource));
@@ -297,7 +297,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * @param dataSource a {@link DataSource}
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(ClassLoader, String...)
 	 */
 	public JdbcMessageStore(DataSource dataSource, String... allowedPatterns) {
@@ -308,11 +308,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param jdbcOperations a {@link JdbcOperations}
 	 * @since 4.3.9
-	 * @deprecated since 7.0.7 in favor of {@link #JdbcMessageStore(JdbcOperations, String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(JdbcOperations, String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public JdbcMessageStore(JdbcOperations jdbcOperations) {
 		this(jdbcOperations, new AllowListDeserializingConverter(JdbcMessageStore.class.getClassLoader()));
@@ -326,7 +326,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * @param jdbcOperations a {@link JdbcOperations}
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(ClassLoader, String...)
 	 */
 	public JdbcMessageStore(JdbcOperations jdbcOperations, String... allowedPatterns) {
@@ -399,7 +399,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
 	}

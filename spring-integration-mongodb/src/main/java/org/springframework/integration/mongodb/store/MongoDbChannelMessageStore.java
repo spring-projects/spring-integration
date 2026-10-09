@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.Collection;
+
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
@@ -72,12 +74,12 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	/**
 	 * Create an instance with the provided {@link MongoDatabaseFactory} and the default collection name.
 	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
-	 * @deprecated since 7.0.7 in favor of
-	 * {@link #MongoDbChannelMessageStore(MongoDatabaseFactory, String, String...)}
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #MongoDbChannelMessageStore(MongoDatabaseFactory, String, Collection)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null, DEFAULT_COLLECTION_NAME);
 	}
@@ -92,12 +94,12 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	 * Create an instance with the provided {@link MongoDatabaseFactory} and collection name.
 	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
 	 * @param collectionName the collection name.
-	 * @deprecated since 7.0.7 in favor of
-	 * {@link #MongoDbChannelMessageStore(MongoDatabaseFactory, String, String...)}
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #MongoDbChannelMessageStore(MongoDatabaseFactory, String, Collection)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
@@ -111,11 +113,11 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	 * @param collectionName the collection name, for example {@link #DEFAULT_COLLECTION_NAME}.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see org.springframework.integration.mongodb.support.BinaryToMessageConverter#BinaryToMessageConverter(String...)
 	 */
 	public MongoDbChannelMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
-			String... allowedPatterns) {
+			Collection<String> allowedPatterns) {
 
 		super(mongoDbFactory, collectionName, allowedPatterns);
 	}

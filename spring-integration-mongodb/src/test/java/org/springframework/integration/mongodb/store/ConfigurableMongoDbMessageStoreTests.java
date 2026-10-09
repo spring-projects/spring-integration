@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -85,7 +86,7 @@ public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessage
 	protected MessageStore getMessageStore() {
 		ConfigurableMongoDbMessageStore mongoDbMessageStore =
 				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME, CONFIGURABLE_STORE_PATTERNS);
+						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(CONFIGURABLE_STORE_PATTERNS));
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
@@ -140,7 +141,7 @@ public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessage
 	void patternsConstructorEnforcesAllowList() {
 		ConfigurableMongoDbMessageStore store =
 				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME, MESSAGE_PATTERNS);
+						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(MESSAGE_PATTERNS));
 		initialize(store);
 
 		Message<?> trusted = store.addMessage(new GenericMessage<>(new TrustedPayload()));
@@ -156,7 +157,7 @@ public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessage
 	void channelMessageStorePatternsConstructorEnforcesAllowList() {
 		MongoDbChannelMessageStore store =
 				new MongoDbChannelMessageStore(MONGO_DATABASE_FACTORY,
-						MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME, MESSAGE_PATTERNS);
+						MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME, List.of(MESSAGE_PATTERNS));
 		initialize(store);
 		store.removeMessageGroup("allowListGroup");
 
@@ -179,15 +180,15 @@ public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessage
 		String collection = ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME;
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY, collection,
-						(String[]) null))
+						(Collection<String>) null))
 				.withMessage("'allowedPatterns' must not be empty");
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY, collection,
-						new String[0]))
+						List.of()))
 				.withMessage("'allowedPatterns' must not be empty");
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbChannelMessageStore(MONGO_DATABASE_FACTORY, collection,
-						"java.util.*", " "))
+						List.of("java.util.*", " ")))
 				.withMessageContaining("whitespace-only");
 	}
 

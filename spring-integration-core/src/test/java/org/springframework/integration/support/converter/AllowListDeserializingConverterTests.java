@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 /**
  * @author Glenn Renfro
  *
- * @since 7.0.7
+ * @since 7.2.0
  */
 class AllowListDeserializingConverterTests {
 
@@ -124,6 +124,7 @@ class AllowListDeserializingConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	void addAllowedPatternsAllowsPreviouslyRejectedClass() throws IOException {
 		AllowListDeserializingConverter converter = new AllowListDeserializingConverter(TRUSTED_BEAN);
 		assertUnauthorized(converter, serialize(new DeclinedBean()));
@@ -133,6 +134,7 @@ class AllowListDeserializingConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	void setAllowedPatternsReplacesPatterns() throws IOException {
 		AllowListDeserializingConverter converter = new AllowListDeserializingConverter(TRUSTED_BEAN);
 		converter.setAllowedPatterns(DeclinedBean.class.getName());
@@ -141,6 +143,7 @@ class AllowListDeserializingConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	void withDeserializerPreservesPatternsAndConstructionMode() throws IOException {
 		AllowListDeserializingConverter converter = new AllowListDeserializingConverter(TRUSTED_BEAN);
 		AllowListDeserializingConverter replaced =

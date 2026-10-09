@@ -15,7 +15,13 @@
 		<beans:constructor-arg
 				value="#{T (org.springframework.integration.mongodb.MongoDbContainerTest).createMongoDbFactory()}"/>
 		<beans:constructor-arg value="messages"/>
-		<beans:constructor-arg value="org.springframework.messaging.MessagingException, java.lang.Throwable, java.lang.StackTraceElement"/>
+		<beans:constructor-arg>
+			<beans:list>
+				<beans:value>org.springframework.messaging.MessagingException</beans:value>
+				<beans:value>java.lang.Throwable</beans:value>
+				<beans:value>java.lang.StackTraceElement</beans:value>
+			</beans:list>
+		</beans:constructor-arg>
 	</beans:bean>
 
 	<channel id="output">

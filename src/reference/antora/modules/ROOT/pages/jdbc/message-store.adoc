@@ -56,10 +56,10 @@ The table name prefix defaults to `INT_`.
 == Deserialization Allow List
 
 By default, the `JdbcMessageStore` and `JdbcChannelMessageStore` use Java serialization to store messages, and deserialize them through an `AllowListDeserializingConverter`.
-Starting with version 7.0.7, the trusted package and class patterns should be provided via the `JdbcMessageStore(DataSource, String...)`, `JdbcMessageStore(JdbcOperations, String...)`, `JdbcChannelMessageStore(String...)` or `JdbcChannelMessageStore(DataSource, String...)` constructors.
+Starting with version 7.2.0, the trusted package and class patterns should be provided via the `JdbcMessageStore(DataSource, String...)`, `JdbcMessageStore(JdbcOperations, String...)`, `JdbcChannelMessageStore(String...)` or `JdbcChannelMessageStore(DataSource, String...)` constructors.
 The patterns must cover the whole serialized object graph of the stored messages: the message and its headers classes, the header values, and the payload.
 These constructors reject an empty pattern list and any `null`, empty, or whitespace-only pattern.
-The patterns can be extended later with the `addAllowedPatterns()` method (with the same validation), and they are preserved when a custom `Deserializer` is configured via `setDeserializer()` or when the bean class loader is applied.
+The patterns are preserved when a custom `Deserializer` is configured via `setDeserializer()` or when the bean class loader is applied.
 An explicit `"*"` pattern allows all classes.
 See xref:transformer.adoc#deserialization-allow-list[Deserialization Allow List] for more information about the patterns.
 
@@ -108,8 +108,18 @@ XML::
 ----
 ======
 
-IMPORTANT: The `JdbcMessageStore(DataSource)`, `JdbcMessageStore(JdbcOperations)`, `JdbcChannelMessageStore()` and `JdbcChannelMessageStore(DataSource)` constructors are deprecated since version 7.0.7.
-For backward compatibility, a store created by them (as well as by the `<int-jdbc:message-store>` XML element, which has no allow-list option) still deserializes all classes until patterns are configured via `addAllowedPatterns()`.
+Starting with version 7.2.0, the `<int-jdbc:message-store>` XML element also provides an `allow-list` attribute (a comma-delimited list of patterns), which is passed to the respective `JdbcMessageStore` constructor:
+
+[source,xml]
+----
+<int-jdbc:message-store id="messageStore" data-source="dataSource"
+        allow-list="org.springframework.messaging.support.GenericMessage,
+                org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap,
+                java.lang.Boolean, com.example.model.*"/>
+----
+
+IMPORTANT: The `JdbcMessageStore(DataSource)`, `JdbcMessageStore(JdbcOperations)`, `JdbcChannelMessageStore()` and `JdbcChannelMessageStore(DataSource)` constructors are deprecated since version 7.2.0.
+For backward compatibility, a store created by them (as well as by the `<int-jdbc:message-store>` XML element without the `allow-list` attribute) still deserializes all classes until patterns are configured via the `addAllowedPatterns()` method, which is also deprecated since version 7.2.0.
 
 [[jdbc-message-store-channels]]
 == Backing Message Channels

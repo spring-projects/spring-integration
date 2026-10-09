@@ -46,10 +46,10 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 
 	/**
 	 * Create an instance which deserializes all classes until patterns are configured.
-	 * @deprecated since 7.0.7 in favor of {@link #BinaryToMessageConverter(String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #BinaryToMessageConverter(String...)}
 	 * with an explicit list of trusted packages/classes.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public BinaryToMessageConverter() {
 		this.deserializingConverter = new AllowListDeserializingConverter();
@@ -59,7 +59,7 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	 * Create an instance with simple patterns for allowable packages/classes for deserialization.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
 	 */
 	public BinaryToMessageConverter(String... allowedPatterns) {
@@ -78,7 +78,10 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #BinaryToMessageConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializingConverter.addAllowedPatterns(patterns);
 	}

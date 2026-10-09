@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JdbcMessageStoreParserTests {
 
@@ -77,6 +80,28 @@ public class JdbcMessageStoreParserTests {
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		assertThat(ReflectionTestUtils.getField(store, "region")).isEqualTo("FOO");
 		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("BAR_");
+	}
+
+	@Test
+	public void testMessageStoreWithAllowList() {
+		setUp("allowListJdbcMessageStore.xml", getClass());
+
+		MessageStore dataSourceStore = context.getBean("dataSourceStore", MessageStore.class);
+		assertThat(TestUtils.<Set<String>>getPropertyValue(dataSourceStore, "deserializer.allowedPatterns"))
+				.containsExactly("org.springframework.messaging.support.GenericMessage",
+						"org.springframework.messaging.MessageHeaders", "java.util.UUID", "java.util.HashMap");
+		Message<?> stored = dataSourceStore.addMessage(new GenericMessage<>("test"));
+		assertThat(dataSourceStore.getMessage(stored.getHeaders().getId())).isNotNull();
+
+		MessageStore jdbcOperationsStore = context.getBean("jdbcOperationsStore", MessageStore.class);
+		assertThat(TestUtils.<Set<String>>getPropertyValue(jdbcOperationsStore, "deserializer.allowedPatterns"))
+				.containsExactly("com.example.*");
+
+		MessageStore customDeserializerStore = context.getBean("customDeserializerStore", MessageStore.class);
+		assertThat(TestUtils.<Object>getPropertyValue(customDeserializerStore, "deserializer.deserializer"))
+				.isInstanceOf(EnhancedSerializer.class);
+		assertThat(TestUtils.<Set<String>>getPropertyValue(customDeserializerStore, "deserializer.allowedPatterns"))
+				.containsExactly("com.example.*");
 	}
 
 	@AfterEach

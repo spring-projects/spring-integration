@@ -166,11 +166,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Create an instance for configuration use.
-	 * @deprecated since 7.0.7 in favor of {@link #JdbcChannelMessageStore(String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public JdbcChannelMessageStore() {
 		this(new AllowListDeserializingConverter());
@@ -183,7 +183,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * for example, the message and headers classes, the header values and the payload.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
 	 */
 	public JdbcChannelMessageStore(String... allowedPatterns) {
@@ -202,11 +202,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
 	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
 	 * @param dataSource a {@link DataSource}
-	 * @deprecated since 7.0.7 in favor of {@link #JdbcChannelMessageStore(DataSource, String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(DataSource, String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public JdbcChannelMessageStore(DataSource dataSource) {
 		this();
@@ -223,7 +223,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param dataSource a {@link DataSource}
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see #JdbcChannelMessageStore(String...)
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource, String... allowedPatterns) {
@@ -268,7 +268,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
 	}

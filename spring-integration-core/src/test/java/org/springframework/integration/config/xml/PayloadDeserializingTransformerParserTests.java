@@ -190,6 +190,7 @@ public class PayloadDeserializingTransformerParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void constructorArgConfiguration() throws Exception {
 		assertThat(this.constructorConfigured.transform(new GenericMessage<>(serialize(new TestBean())))
 				.getPayload())
@@ -207,6 +208,7 @@ public class PayloadDeserializingTransformerParserTests {
 				.withRootCauseInstanceOf(SecurityException.class);
 	}
 
+	@SuppressWarnings("deprecation")
 	private static void assertPatternsRequired(MessageHandler handler) {
 		AllowListDeserializingConverter converter =
 				TestUtils.getPropertyValue(handler, "transformer.converter");

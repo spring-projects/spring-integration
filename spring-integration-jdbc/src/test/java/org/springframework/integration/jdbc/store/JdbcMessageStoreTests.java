@@ -670,6 +670,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void patternsPreservedOnSetBeanClassLoader() {
 		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, trustedPatterns());
 		store.setBeanClassLoader(getClass().getClassLoader());
@@ -687,6 +688,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void patternsPreservedOnSetDeserializer() {
 		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, "com.example.*");
 		store.setSerializer((message, outputStream) -> outputStream.write(1));
@@ -701,6 +703,7 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void addAllowedPatternsAllowsPreviouslyRejectedClass() {
 		JdbcMessageStore store = new JdbcMessageStore(this.dataSource, trustedPatterns());
 		Message<?> saved = store.addMessage(new GenericMessage<>(new UntrustedPayload()));

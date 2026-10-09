@@ -56,7 +56,7 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 		ConfigurableMongoDbMessageStore mongoDbMessageStore =
 				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY,
 						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME,
-						ConfigurableMongoDbMessageStoreTests.CONFIGURABLE_STORE_PATTERNS);
+						List.of(ConfigurableMongoDbMessageStoreTests.CONFIGURABLE_STORE_PATTERNS));
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;

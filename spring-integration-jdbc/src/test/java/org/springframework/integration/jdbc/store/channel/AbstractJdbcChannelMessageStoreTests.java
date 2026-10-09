@@ -168,7 +168,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	}
 
 	@Test
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 	public void patternsPreservedOnSetDeserializer() {
 		JdbcChannelMessageStore store = new JdbcChannelMessageStore(this.dataSource, trustedPatterns());
 		store.setDeserializer((Deserializer) new DefaultDeserializer(getClass().getClassLoader()));
@@ -179,6 +179,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void addAllowedPatternsAllowsPreviouslyRejectedClass() {
 		JdbcChannelMessageStore store = configure(new JdbcChannelMessageStore(this.dataSource, trustedPatterns()));
 		assertUnauthorized(store);

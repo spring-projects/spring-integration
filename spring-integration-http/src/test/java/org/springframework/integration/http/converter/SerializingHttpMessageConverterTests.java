@@ -79,6 +79,7 @@ public class SerializingHttpMessageConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void readsClassAddedToAllowList() throws Exception {
 		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
 		byte[] body = serialize(new TestPayload());

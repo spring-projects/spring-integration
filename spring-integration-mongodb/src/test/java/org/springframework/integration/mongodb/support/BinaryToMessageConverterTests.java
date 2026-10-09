@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 /**
  * @author Glenn Renfro
  *
- * @since 7.0.7
+ * @since 7.2.0
  */
 class BinaryToMessageConverterTests {
 
@@ -74,6 +74,7 @@ class BinaryToMessageConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	void addAllowedPatternsExtendsPatternsAndRejectsInvalid() {
 		BinaryToMessageConverter converter = new BinaryToMessageConverter(withPayloadPattern());
 		assertUnauthorized(converter);

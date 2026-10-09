@@ -54,6 +54,7 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The abstract MongoDB {@link AbstractMessageGroupStore} implementation to provide configuration for common options
@@ -108,12 +109,12 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * Create an instance with the provided {@link MongoDatabaseFactory} and collection name.
 	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
 	 * @param collectionName the collection name.
-	 * @deprecated since 7.0.7 in favor of
-	 * {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, Collection)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
@@ -124,7 +125,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * The provided {@link MappingMongoConverter} is responsible for the conversion of messages,
 	 * for example, with a {@link BinaryToMessageConverter} created with allowed patterns.
 	 * If the {@link MappingMongoConverter} is null, a default one is created which deserializes all classes;
-	 * use {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, String...)} instead.
+	 * use {@link #AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory, String, Collection)} instead.
 	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
 	 * @param mappingMongoConverter the {@link MappingMongoConverter} to use.
 	 * @param collectionName the collection name.
@@ -147,13 +148,14 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	 * @param collectionName the collection name.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see BinaryToMessageConverter#BinaryToMessageConverter(String...)
 	 */
 	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
-			String... allowedPatterns) {
+			Collection<String> allowedPatterns) {
 
-		this(mongoDbFactory, null, collectionName, new BinaryToMessageConverter(allowedPatterns));
+		this(mongoDbFactory, null, collectionName,
+				new BinaryToMessageConverter(StringUtils.toStringArray(allowedPatterns)));
 	}
 
 	private AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,

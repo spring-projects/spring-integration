@@ -394,6 +394,7 @@ public class TransformerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void deserializerWithPatternsEnforcesAndRequiresPatterns() throws IOException {
 		PayloadDeserializingTransformer transformer = Transformers.deserializer(TrustedBean.class.getName());
 		assertThat(transformer.transform(new GenericMessage<>(serialize(new TrustedBean()))).getPayload())
@@ -403,6 +404,7 @@ public class TransformerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void deserializerWithCustomDeserializerPreservesPatterns() {
 		Deserializer<Object> deserializer = inputStream -> new DeclinedBean();
 		PayloadDeserializingTransformer transformer =
@@ -412,21 +414,14 @@ public class TransformerTests {
 	}
 
 	@Test
-	public void deserializerWithoutPatternsIsUnrestrictedUntilPatternsConfigured() throws IOException {
-		PayloadDeserializingTransformer transformer = Transformers.deserializer();
-		byte[] declined = serialize(new DeclinedBean());
-		assertThat(transformer.transform(new GenericMessage<>(declined)).getPayload())
-				.isInstanceOf(DeclinedBean.class);
-		transformer.setAllowedPatterns(TrustedBean.class.getName());
-		assertDeserializationUnauthorized(transformer, declined);
-
+	public void deserializerWithoutPatternsIsRejected() {
+		assertThatIllegalArgumentException().isThrownBy(Transformers::deserializer);
 		Deserializer<Object> deserializer = inputStream -> new DeclinedBean();
-		PayloadDeserializingTransformer customTransformer = Transformers.deserializer(deserializer);
-		assertThat(customTransformer.transform(new GenericMessage<>(new byte[0])).getPayload())
-				.isInstanceOf(DeclinedBean.class);
+		assertThatIllegalArgumentException().isThrownBy(() -> Transformers.deserializer(deserializer));
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void deserializerWithWildcardIsUnrestricted() throws IOException {
 		PayloadDeserializingTransformer transformer = Transformers.deserializer("*");
 		assertThat(transformer.transform(new GenericMessage<>(serialize(new DeclinedBean()))).getPayload())

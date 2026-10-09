@@ -114,7 +114,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	/**
 	 * The default collection name for the store.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 */
 	public static final String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -149,12 +149,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory} and the default collection name.
 	 * @param mongoDbFactory The mongodb factory.
-	 * @deprecated since 7.0.7 in favor of
-	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, Collection)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
@@ -164,12 +164,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory} and collection name.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param collectionName The collection name.
-	 * @deprecated since 7.0.7 in favor of
-	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, String...)}
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #MongoDbMessageStore(MongoDatabaseFactory, String, Collection)}
 	 * with an explicit list of trusted packages/classes.
 	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("deprecation")
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName) {
 		this(mongoDbFactory, collectionName, new AllowListDeserializingConverter());
@@ -186,14 +186,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * @param collectionName The collection name, for example {@link #DEFAULT_COLLECTION_NAME}.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
 	 */
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName,
-			String... allowedPatterns) {
+			Collection<String> allowedPatterns) {
 
 		this(mongoDbFactory, assertCollectionName(collectionName),
-				new AllowListDeserializingConverter(allowedPatterns));
+				new AllowListDeserializingConverter(StringUtils.toStringArray(allowedPatterns)));
 	}
 
 	private MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName,
@@ -229,7 +229,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns to add.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #MongoDbMessageStore(MongoDatabaseFactory, String, Collection)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.errorPayloadDeserializingConverter.addAllowedPatterns(patterns);
 	}

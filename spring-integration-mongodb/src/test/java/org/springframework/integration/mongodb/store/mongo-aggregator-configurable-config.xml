@@ -31,7 +31,14 @@
 		<constructor-arg
 				value="#{T (org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests).MONGO_DATABASE_FACTORY}"/>
 		<constructor-arg value="configurableStoreMessages"/>
-		<constructor-arg value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap"/>
+		<constructor-arg>
+			<list>
+				<value>org.springframework.messaging.support.GenericMessage</value>
+				<value>org.springframework.messaging.MessageHeaders</value>
+				<value>java.util.UUID</value>
+				<value>java.util.HashMap</value>
+			</list>
+		</constructor-arg>
 	</bean>
 
 </beans>

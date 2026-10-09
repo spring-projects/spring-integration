@@ -32,6 +32,7 @@ import org.springframework.messaging.support.GenericMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 
 /**
@@ -135,6 +136,7 @@ public class PayloadDeserializingTransformerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void patternsConstructorRejectsClearingPatterns() throws Exception {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer(TestBean.class.getName());
 		assertThatIllegalArgumentException()
@@ -143,6 +145,7 @@ public class PayloadDeserializingTransformerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void setDeserializerPreservesPatternsAndConstructionMode() throws Exception {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer(TestBean.class.getName());
 		transformer.setDeserializer(new DefaultDeserializer(getClass().getClassLoader()));
@@ -151,6 +154,14 @@ public class PayloadDeserializingTransformerTests {
 		assertUnauthorized(transformer, serialize(new DeclinedBean()));
 		assertThatIllegalArgumentException()
 				.isThrownBy(transformer::setAllowedPatterns);
+	}
+
+	@Test
+	public void setDeserializerRejectsCustomConverter() {
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer(TestBean.class.getName());
+		transformer.setConverter(source -> source);
+		assertThatIllegalStateException()
+				.isThrownBy(() -> transformer.setDeserializer(new DefaultDeserializer()));
 	}
 
 	@Test
@@ -165,6 +176,7 @@ public class PayloadDeserializingTransformerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void addAllowedPatternsOnConverterAllowsPreviouslyRejectedClass() throws Exception {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer(TestBean.class.getName());
 		byte[] untrusted = serialize(new DeclinedBean());

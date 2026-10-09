@@ -291,15 +291,15 @@ A pattern is either a fully qualified class name or a name with a `pass:[*]` wil
 The patterns must cover the whole serialized object graph, including collection classes such as `java.util.ArrayList` or `java.util.HashMap`.
 Deserialization fails with a `SecurityException` (wrapped in a `SerializationFailedException`) for any other class that does not match one of the patterns.
 
-Starting with version 7.0.7, the trusted patterns should be provided when the component is created, by using one of these options:
+Starting with version 7.2.0, the trusted patterns should be provided when the component is created, by using one of these options:
 
 * the `PayloadDeserializingTransformer(String... allowedPatterns)` constructor;
 * the `AllowListDeserializingConverter(String... allowedPatterns)`, `AllowListDeserializingConverter(ClassLoader, String...)` or `AllowListDeserializingConverter(Deserializer, String...)` constructors;
-* the `Transformers.deserializer(String...)` or `Transformers.deserializer(Deserializer, String...)` Java DSL factory methods (since version 7.0.7, calling them without patterns is deprecated and logs a warning; use `"*"` to allow all classes);
+* the `Transformers.deserializer(String...)` or `Transformers.deserializer(Deserializer, String...)` Java DSL factory methods (use `"*"` to allow all classes);
 * the `allow-list` attribute of the `<int:payload-deserializing-transformer>` XML element.
 
-Except for the deprecated DSL calls without patterns, these options reject an empty pattern list and any `null`, empty, or whitespace-only pattern with an `IllegalArgumentException`.
-The patterns can be replaced (`setAllowedPatterns()`) or extended (`addAllowedPatterns()`) later, but the same validation applies: the patterns can never be cleared to restore unrestricted deserialization.
+These options reject an empty pattern list and any `null`, empty, or whitespace-only pattern with an `IllegalArgumentException`.
+The `setAllowedPatterns()` and `addAllowedPatterns()` methods are deprecated since version 7.2.0 in favor of providing the patterns via the constructor; they apply the same validation, and the patterns can never be cleared to restore unrestricted deserialization.
 The patterns are preserved when a custom `Deserializer` is configured (for example, `setDeserializer()` on the transformer or the `deserializer` XML attribute), regardless of the configuration order.
 Note that, with a custom `Deserializer` (other than the `DefaultDeserializer`), only the class of the deserialization result is checked, which does not provide the same protection as checking classes during Java deserialization.
 
@@ -331,9 +331,9 @@ XML::
 ----
 ======
 
-IMPORTANT: The constructors which do not accept patterns (for example, `PayloadDeserializingTransformer()`, `AllowListDeserializingConverter()`, `AllowListDeserializingConverter(ClassLoader)` and `AllowListDeserializingConverter(Deserializer)`) are deprecated since version 7.0.7.
+IMPORTANT: The constructors which do not accept patterns (for example, `PayloadDeserializingTransformer()`, `AllowListDeserializingConverter()`, `AllowListDeserializingConverter(ClassLoader)` and `AllowListDeserializingConverter(Deserializer)`) are deprecated since version 7.2.0.
 For backward compatibility, an instance created by them (as well as by the `<int:payload-deserializing-transformer>` without the `allow-list` attribute) still deserializes all classes until patterns are configured.
-Since version 7.0.7, setting an empty pattern list is rejected for these instances as well, so it can no longer be used to restore unrestricted deserialization; use the `"*"` pattern instead.
+Since version 7.2.0, setting an empty pattern list is rejected for these instances as well, so it can no longer be used to restore unrestricted deserialization; use the `"*"` pattern instead.
 Always configure trusted patterns when deserializing data from untrusted sources.
 
 [[object-to-map-and-map-to-object-transformers]]

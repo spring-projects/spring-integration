@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.store.MessageStore;
@@ -35,9 +37,9 @@ class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTest
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
 						MongoDbMessageStore.DEFAULT_COLLECTION_NAME,
-						"org.springframework.messaging.MessagingException",
-						"java.lang.Throwable",
-						"java.lang.StackTraceElement");
+						List.of("org.springframework.messaging.MessagingException",
+								"java.lang.Throwable",
+								"java.lang.StackTraceElement"));
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;

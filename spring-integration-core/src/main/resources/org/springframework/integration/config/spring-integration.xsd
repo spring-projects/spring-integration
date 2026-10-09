@@ -2817,7 +2817,7 @@
 					the patterns are also applied when a custom 'deserializer' is configured
 					(in that case only the class of the deserialization result is checked).
 					Use "*" to explicitly allow all classes.
-					If omitted, all classes are deserialized (deprecated since 7.0.7);
+					If omitted, all classes are deserialized (deprecated since 7.2.0);
 					always provide this if you receive data from untrusted sources.
 				</xsd:documentation>
 			</xsd:annotation>

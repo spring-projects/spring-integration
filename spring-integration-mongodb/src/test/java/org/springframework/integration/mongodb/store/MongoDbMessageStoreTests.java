@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -72,7 +74,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	protected MessageStore getMessageStore() {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, ERROR_PAYLOAD_PATTERNS);
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(ERROR_PAYLOAD_PATTERNS));
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
@@ -82,7 +84,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	void testCustomConverter() throws InterruptedException {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, ERROR_PAYLOAD_PATTERNS);
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(ERROR_PAYLOAD_PATTERNS));
 		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
 		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
@@ -118,7 +120,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Test
 	void patternsConstructorEnforcesAllowList() {
 		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, TRUSTED_PATTERNS);
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(TRUSTED_PATTERNS));
 		initialize(store);
 		assertStoresAndReads(store, new IllegalStateException("trusted"));
 		assertUnauthorized(store);
@@ -127,7 +129,7 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Test
 	void patternsConstructorRejectsEmptyCollectionName() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, " ", TRUSTED_PATTERNS))
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, " ", List.of(TRUSTED_PATTERNS)))
 				.withMessage("'collectionName' must not be empty");
 	}
 
@@ -135,21 +137,22 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	void patternsConstructorRejectsInvalidPatterns() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, (String[]) null))
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, (Collection<String>) null))
 				.withMessage("'allowedPatterns' must not be empty");
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, "collection", new String[0]))
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, "collection", List.of()))
 				.withMessage("'allowedPatterns' must not be empty");
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, "java.lang.*", " "))
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of("java.lang.*", " ")))
 				.withMessageContaining("whitespace-only");
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	void addAllowedPatternsExtendsPatternsAndRejectsInvalid() {
 		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
-				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, TRUSTED_PATTERNS);
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(TRUSTED_PATTERNS));
 		initialize(store);
 		assertUnauthorized(store);
 		assertThatIllegalArgumentException().isThrownBy(store::addAllowedPatterns);

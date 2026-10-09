@@ -38,20 +38,16 @@ import org.springframework.util.PatternMatchUtils;
  * A {@link Converter} that delegates to a
  * {@link Deserializer} to convert data in a byte
  * array to an object.
- * <p>
  * The trusted classes/packages should be provided via one of the constructors accepting
  * allowed patterns, for example:
  * <pre class="code">
  * new AllowListDeserializingConverter("com.example.model.*", "java.util.*");
  * </pre>
- * The patterns can be replaced or extended, but cannot be cleared to restore
- * unrestricted deserialization.
  * An explicit {@code "*"} pattern allows all classes.
- * <p>
  * For backward compatibility, the deprecated constructors without patterns create an instance
- * which deserializes all classes until patterns are configured via
+ * which deserializes all classes until patterns are configured via the deprecated
  * {@link #setAllowedPatterns(String...)} or {@link #addAllowedPatterns(String...)}.
- * <p>
+ * The patterns cannot be cleared to restore unrestricted deserialization.
  * If a delegate deserializer is a {@link DefaultDeserializer}, only its {@link ClassLoader}
  * is used for a {@link ConfigurableObjectInputStream} logic and every class in the
  * object graph is checked during deserialization.
@@ -79,11 +75,11 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Create a {@link AllowListDeserializingConverter} with default
 	 * {@link ObjectInputStream} configuration, using the "latest user-defined
 	 * ClassLoader".
-	 * @deprecated since 7.0.7 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter() {
 		this(new DefaultDeserializer());
 	}
@@ -94,7 +90,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * ClassLoader", and the provided simple patterns for allowable packages/classes.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see #setAllowedPatterns(String...)
 	 */
 	public AllowListDeserializingConverter(String... allowedPatterns) {
@@ -105,12 +101,12 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Create a {@link AllowListDeserializingConverter} for using an
 	 * {@link ObjectInputStream} with the given {@code ClassLoader}.
 	 * @param classLoader the class loader to use for deserialization.
-	 * @deprecated since 7.0.7 in favor of
+	 * @deprecated since 7.2.0 in favor of
 	 * {@link #AllowListDeserializingConverter(ClassLoader, String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter(ClassLoader classLoader) {
 		this(new DefaultDeserializer(classLoader));
 	}
@@ -122,7 +118,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * @param classLoader the class loader to use for deserialization.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see #setAllowedPatterns(String...)
 	 */
 	public AllowListDeserializingConverter(ClassLoader classLoader, String... allowedPatterns) {
@@ -133,12 +129,12 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Create a {@link AllowListDeserializingConverter} that delegates to the provided
 	 * {@link Deserializer}.
 	 * @param deserializer the deserializer to use.
-	 * @deprecated since 7.0.7 in favor of
+	 * @deprecated since 7.2.0 in favor of
 	 * {@link #AllowListDeserializingConverter(Deserializer, String...)}
 	 * with an explicit list of trusted packages/classes.
 	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
-	@Deprecated(since = "7.0.7")
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter(Deserializer<Object> deserializer) {
 		Assert.notNull(deserializer, "Deserializer must not be null");
 		this.deserializer = deserializer;
@@ -160,7 +156,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * @param deserializer the deserializer to use.
 	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
 	 * Use {@code "*"} to explicitly allow all classes.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 * @see #setAllowedPatterns(String...)
 	 */
 	public AllowListDeserializingConverter(Deserializer<Object> deserializer, String... allowedPatterns) {
@@ -177,11 +173,13 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * The {@code "*"} pattern explicitly allows all classes.
 	 * The basic types ({@link String}, {@link Number}, arrays and primitives) are always allowed.
-	 * <p>
 	 * The provided patterns must not be empty or contain null, empty or whitespace-only entries;
 	 * the patterns cannot be cleared to restore unrestricted deserialization.
 	 * @param allowedPatterns the patterns.
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void setAllowedPatterns(String... allowedPatterns) {
 		validatePatterns(allowedPatterns);
 		this.allowedPatterns.clear();
@@ -192,8 +190,11 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Add package/class patterns to the allowed list.
 	 * The provided patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns to add.
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 * @see #setAllowedPatterns(String...)
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		validatePatterns(patterns);
 		Collections.addAll(this.allowedPatterns, patterns);
@@ -204,7 +205,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * {@link Deserializer} with a copy of the allowed patterns of this instance.
 	 * @param deserializer the deserializer to use.
 	 * @return the new converter.
-	 * @since 7.0.7
+	 * @since 7.2.0
 	 */
 	public AllowListDeserializingConverter withDeserializer(Deserializer<Object> deserializer) {
 		AllowListDeserializingConverter converter = new AllowListDeserializingConverter(deserializer);
@@ -212,7 +213,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 		return converter;
 	}
 
-	private static void validatePatterns(String @Nullable [] patterns) {
+	private static void validatePatterns(String[] patterns) {
 		Assert.notEmpty(patterns, "'allowedPatterns' must not be empty");
 		for (String pattern : patterns) {
 			Assert.hasText(pattern, "'allowedPatterns' must not contain null, empty or whitespace-only patterns");
