@@ -40,6 +40,10 @@ import org.springframework.util.Assert;
  * if any. Otherwise, the exception is thrown to the container, which applies its error
  * handling, such as to negatively acknowledge the message so that it is redelivered.
  * <p>
+ * The adapter controls the lifecycle of the container: it disables its auto-startup and
+ * starts and stops it together with the adapter, so that the container does not receive
+ * messages before the downstream flow is ready.
+ * <p>
  * The adapter supports the record listener containers, not the batch ones.
  *
  * @author Sharang Gupta
@@ -62,6 +66,8 @@ public class PulsarMessageProducer extends MessageProducerSupport {
 	public PulsarMessageProducer(PulsarMessageListenerContainer container) {
 		Assert.notNull(container, "'container' must not be null");
 		this.container = container;
+		// The adapter starts the container, when its own downstream flow is ready.
+		this.container.setAutoStartup(false);
 	}
 
 	/**

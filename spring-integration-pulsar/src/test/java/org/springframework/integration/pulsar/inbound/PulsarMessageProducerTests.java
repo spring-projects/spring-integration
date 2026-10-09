@@ -68,6 +68,13 @@ class PulsarMessageProducerTests {
 	}
 
 	@Test
+	void theContainerIsNotStartedByItselfSoThatTheAdapterControlsItsLifecycle() {
+		new PulsarMessageProducer(this.container);
+
+		verify(this.container).setAutoStartup(false);
+	}
+
+	@Test
 	void startAndStopAreDelegatedToTheContainer() {
 		PulsarMessageProducer producer = producer();
 

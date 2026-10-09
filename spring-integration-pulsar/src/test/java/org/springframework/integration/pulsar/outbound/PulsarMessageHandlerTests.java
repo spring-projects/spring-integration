@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,10 +24,12 @@ import org.springframework.integration.test.util.TestUtils.TestApplicationContex
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.pulsar.core.ProducerBuilderCustomizer;
 import org.springframework.pulsar.core.PulsarOperations;
 import org.springframework.pulsar.core.PulsarOperations.SendMessageBuilder;
 import org.springframework.pulsar.core.TypedMessageBuilderCustomizer;
 import org.springframework.pulsar.support.PulsarHeaders;
+import org.springframework.pulsar.support.PulsarNull;
 import org.springframework.pulsar.support.header.PulsarHeaderMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,6 +132,48 @@ class PulsarMessageHandlerTests {
 		handler.handleMessage(MessageBuilder.withPayload("hello").build());
 
 		verify(this.pulsarOperations).newMessage("HELLO");
+	}
+
+	@Test
+	void pulsarNullPayloadIsSentAsNullValueSoThatTombstonesCanBeForwarded() {
+		PulsarMessageHandler<String> handler = handler();
+
+		handler.handleMessage(MessageBuilder.withPayload(PulsarNull.INSTANCE).build());
+
+		verify(this.pulsarOperations).newMessage(null);
+	}
+
+	@Test
+	void schemaIsAppliedToTheMessage() {
+		Schema<String> schema = Schema.STRING;
+		PulsarMessageHandler<String> handler = handler();
+		handler.setSchema(schema);
+
+		handler.handleMessage(MessageBuilder.withPayload("hello").build());
+
+		verify(this.sendMessageBuilder).withSchema(schema);
+	}
+
+	@Test
+	void noSchemaIsAppliedByDefaultSoThatTheTemplateResolvesIt() {
+		PulsarMessageHandler<String> handler = handler();
+
+		handler.handleMessage(MessageBuilder.withPayload("hello").build());
+
+		verify(this.sendMessageBuilder, never()).withSchema(any());
+		verify(this.sendMessageBuilder, never()).withProducerCustomizer(any());
+	}
+
+	@Test
+	void producerCustomizerIsAppliedToTheProducer() {
+		ProducerBuilderCustomizer<String> producerCustomizer = (producerBuilder) -> producerBuilder
+				.producerName("orders-producer");
+		PulsarMessageHandler<String> handler = handler();
+		handler.setProducerCustomizer(producerCustomizer);
+
+		handler.handleMessage(MessageBuilder.withPayload("hello").build());
+
+		verify(this.sendMessageBuilder).withProducerCustomizer(producerCustomizer);
 	}
 
 	@Test
@@ -329,6 +374,8 @@ class PulsarMessageHandlerTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setPayloadExpression(null));
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setMessageKeyExpression(null));
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setHeaderMapper(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> handler.setSchema(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> handler.setProducerCustomizer(null));
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setSendSuccessChannel(null));
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setSendSuccessChannelName(null));
 		assertThatIllegalArgumentException().isThrownBy(() -> handler.setSendFailureChannel(null));

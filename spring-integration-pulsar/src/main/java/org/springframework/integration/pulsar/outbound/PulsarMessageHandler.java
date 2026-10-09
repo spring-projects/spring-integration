@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Schema;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.EvaluationContext;
@@ -28,9 +29,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.pulsar.core.ProducerBuilderCustomizer;
 import org.springframework.pulsar.core.PulsarOperations;
 import org.springframework.pulsar.core.PulsarOperations.SendMessageBuilder;
 import org.springframework.pulsar.support.PulsarHeaders;
+import org.springframework.pulsar.support.PulsarNull;
 import org.springframework.pulsar.support.header.JsonPulsarHeaderMapper;
 import org.springframework.pulsar.support.header.PulsarHeaderMapper;
 import org.springframework.util.Assert;
@@ -53,6 +56,11 @@ import org.springframework.util.Assert;
  * applied when present. The other headers are converted to message properties by the
  * {@link #setHeaderMapper(PulsarHeaderMapper) header mapper}. The sequence id of a
  * received message is never reused because it is specific to the producer that sent it.
+ * <p>
+ * A {@link org.springframework.pulsar.support.PulsarNull#INSTANCE} value, which the
+ * {@link org.springframework.integration.pulsar.inbound.PulsarMessageProducer} creates
+ * for a Pulsar message without a value, is sent as a {@code null} value, so that such a
+ * message can be forwarded.
  * <p>
  * By default, the message is sent asynchronously and the result is reported to the
  * {@link #setSendSuccessChannel(MessageChannel) success channel}, if any, as the message
@@ -93,6 +101,10 @@ public class PulsarMessageHandler<T> extends AbstractMessageHandler {
 	private Expression messageKeyExpression = DEFAULT_MESSAGE_KEY_EXPRESSION;
 
 	private @Nullable Expression topicExpression;
+
+	private @Nullable Schema<T> schema;
+
+	private @Nullable ProducerBuilderCustomizer<T> producerCustomizer;
 
 	private @Nullable MessageChannel sendSuccessChannel;
 
@@ -155,6 +167,27 @@ public class PulsarMessageHandler<T> extends AbstractMessageHandler {
 	public void setMessageKeyExpression(Expression messageKeyExpression) {
 		Assert.notNull(messageKeyExpression, "'messageKeyExpression' must not be null");
 		this.messageKeyExpression = messageKeyExpression;
+	}
+
+	/**
+	 * Set the {@link Schema} to send the values with. By default, the schema is resolved
+	 * by the template from the type of the value.
+	 * @param schema the schema.
+	 */
+	public void setSchema(Schema<T> schema) {
+		Assert.notNull(schema, "'schema' must not be null");
+		this.schema = schema;
+	}
+
+	/**
+	 * Set a customizer for the producer that sends the messages, for example to set its
+	 * name, its batching or its compression, in addition to the configuration of the
+	 * producer factory of the template.
+	 * @param producerCustomizer the customizer.
+	 */
+	public void setProducerCustomizer(ProducerBuilderCustomizer<T> producerCustomizer) {
+		Assert.notNull(producerCustomizer, "'producerCustomizer' must not be null");
+		this.producerCustomizer = producerCustomizer;
 	}
 
 	/**
@@ -258,6 +291,12 @@ public class PulsarMessageHandler<T> extends AbstractMessageHandler {
 		if (topic != null) {
 			sendMessageBuilder.withTopic(topic);
 		}
+		if (this.schema != null) {
+			sendMessageBuilder.withSchema(this.schema);
+		}
+		if (this.producerCustomizer != null) {
+			sendMessageBuilder.withProducerCustomizer(this.producerCustomizer);
+		}
 		String key = this.messageKeyExpression.getValue(this.evaluationContext, message, String.class);
 		Map<String, String> properties = this.headerMapper.toPulsarHeaders(message.getHeaders());
 		byte[] orderingKey = orderingKey(message);
@@ -284,7 +323,8 @@ public class PulsarMessageHandler<T> extends AbstractMessageHandler {
 
 	@SuppressWarnings("unchecked")
 	private @Nullable T evaluatePayload(Message<?> message) {
-		return (T) this.payloadExpression.getValue(this.evaluationContext, message);
+		Object value = this.payloadExpression.getValue(this.evaluationContext, message);
+		return (value == PulsarNull.INSTANCE) ? null : (T) value;
 	}
 
 	private static byte @Nullable [] orderingKey(Message<?> message) {

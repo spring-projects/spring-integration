@@ -6,6 +6,8 @@ package org.springframework.integration.pulsar.dsl;
 
 import java.util.function.Function;
 
+import org.apache.pulsar.client.api.Schema;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -14,6 +16,7 @@ import org.springframework.integration.pulsar.outbound.PulsarMessageHandler;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.pulsar.core.ProducerBuilderCustomizer;
 import org.springframework.pulsar.core.PulsarOperations;
 import org.springframework.pulsar.support.header.PulsarHeaderMapper;
 
@@ -114,6 +117,26 @@ public class PulsarMessageHandlerSpec<T>
 	 */
 	public PulsarMessageHandlerSpec<T> messageKeyExpression(Expression messageKeyExpression) {
 		this.target.setMessageKeyExpression(messageKeyExpression);
+		return this;
+	}
+
+	/**
+	 * Configure the {@link Schema} to send the values with.
+	 * @param schema the schema.
+	 * @return the spec.
+	 */
+	public PulsarMessageHandlerSpec<T> schema(Schema<T> schema) {
+		this.target.setSchema(schema);
+		return this;
+	}
+
+	/**
+	 * Configure a customizer for the producer that sends the messages.
+	 * @param producerCustomizer the customizer.
+	 * @return the spec.
+	 */
+	public PulsarMessageHandlerSpec<T> producerCustomizer(ProducerBuilderCustomizer<T> producerCustomizer) {
+		this.target.setProducerCustomizer(producerCustomizer);
 		return this;
 	}
 

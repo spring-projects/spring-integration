@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
@@ -25,6 +26,7 @@ import org.springframework.integration.pulsar.outbound.PulsarMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.pulsar.core.ProducerBuilderCustomizer;
 import org.springframework.pulsar.core.PulsarOperations;
 import org.springframework.pulsar.core.PulsarOperations.SendMessageBuilder;
 import org.springframework.pulsar.listener.DefaultPulsarMessageListenerContainer;
@@ -96,12 +98,15 @@ class PulsarDslTests {
 	void specsConfigureTheHandlerAndTheProducer() {
 		PulsarHeaderMapper headerMapper = mock(PulsarHeaderMapper.class);
 		MessageChannel successChannel = new QueueChannel();
+		ProducerBuilderCustomizer<String> producerCustomizer = mock(ProducerBuilderCustomizer.class);
 
 		PulsarMessageHandler<String> handler = Pulsar.outboundAdapter(this.pulsarOperations)
 				.topic("static-topic")
 				.messageKey("static-key")
 				.payloadExpression("payload.toUpperCase()")
 				.headerMapper(headerMapper)
+				.schema(Schema.STRING)
+				.producerCustomizer(producerCustomizer)
 				.sync(true)
 				.sendSuccessChannel(successChannel)
 				.sendFailureChannelName("failures")
@@ -109,6 +114,8 @@ class PulsarDslTests {
 
 		assertThat(TestUtils.<Boolean>getPropertyValue(handler, "sync")).isTrue();
 		assertThat(TestUtils.<Object>getPropertyValue(handler, "headerMapper")).isSameAs(headerMapper);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "schema")).isSameAs(Schema.STRING);
+		assertThat(TestUtils.<Object>getPropertyValue(handler, "producerCustomizer")).isSameAs(producerCustomizer);
 		assertThat(TestUtils.<Object>getPropertyValue(handler, "sendSuccessChannel")).isSameAs(successChannel);
 		assertThat(TestUtils.<Object>getPropertyValue(handler, "sendFailureChannelName")).isEqualTo("failures");
 		assertThat(TestUtils.<Object>getPropertyValue(handler, "topicExpression.literalValue")).isEqualTo("static-topic");

@@ -53,6 +53,10 @@ The message is sent as follows:
 When there is none, or when the expression evaluates to `null`, the default topic of the `PulsarTemplate` is used.
 The `pulsar_message_topic_name` header, which a message that is received from Pulsar has, is deliberately not used to determine the topic, so that such a message is not sent back to the topic it came from.
 * The value of the Pulsar message is the payload of the message, or the result of the `payloadExpression`.
+A `PulsarNull.INSTANCE` value, which is the payload of a message that the message-driven channel adapter received for a `null` value, is sent as a `null` value, so that tombstone messages can be forwarded.
+* By default, the `PulsarTemplate` resolves the schema from the type of the value.
+Set the `schema` property to use a specific `Schema`, for example for a value that is not of a type with a built-in schema.
+* Set the `producerCustomizer` property to a `ProducerBuilderCustomizer` to customize the producer that sends the message, for example to enable compression or batching.
 * The key of the Pulsar message is the result of the `messageKeyExpression`, which is the `pulsar_message_key` header by default.
 * The `pulsar_message_ordering_key` and `pulsar_message_event_time` headers, when present, set the ordering key and the event time.
 The `pulsar_message_sequence_id` header is never used, because a sequence id is specific to the producer that created it.
@@ -76,7 +80,8 @@ The `PulsarMessageProducer` sends the messages that a `PulsarMessageListenerCont
 ----
 @Bean
 public DefaultPulsarMessageListenerContainer<String> container(PulsarConsumerFactory<String> consumerFactory) {
-    PulsarContainerProperties properties = new PulsarContainerProperties("orders");
+    PulsarContainerProperties properties = new PulsarContainerProperties();
+    properties.setTopics(Set.of("orders"));
     properties.setSubscriptionName("order-subscription");
     properties.setSchema(Schema.STRING);
     return new DefaultPulsarMessageListenerContainer<>(consumerFactory, properties);
@@ -89,6 +94,12 @@ public PulsarMessageProducer pulsarMessageProducer(DefaultPulsarMessageListenerC
     return producer;
 }
 ----
+
+NOTE: `new PulsarContainerProperties("orders")` with a single argument sets a topic pattern, not a topic.
+Use `setTopics()`, as in the preceding example, to consume from a topic by its name.
+
+The adapter controls the lifecycle of the container: the container does not start by itself, but when the adapter starts, so that no message is received before the flow that follows the adapter is ready.
+The adapter stops the container when it stops.
 
 The payload of the message is the value of the Pulsar message, or `PulsarNull.INSTANCE` when the value is `null`.
 The headers are created by the `PulsarHeaderMapper`, which is a `JsonPulsarHeaderMapper` by default.
@@ -114,6 +125,7 @@ public IntegrationFlow toPulsarFlow(PulsarTemplate<String> pulsarTemplate) {
     return IntegrationFlow.from("toPulsar")
             .handle(Pulsar.outboundAdapter(pulsarTemplate)
                     .topic("orders")
+                    .schema(Schema.STRING)
                     .messageKeyExpression("headers['customerId']"))
             .get();
 }
