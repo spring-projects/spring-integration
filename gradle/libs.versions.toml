@@ -7,6 +7,7 @@ springAmqpVersion = "4.2.0-SNAPSHOT"
 springDataVersion = "2026.1.0-SNAPSHOT"
 springGraphqlVersion = "2.1.0-SNAPSHOT"
 springKafkaVersion = "4.2.0-SNAPSHOT"
+springPulsarVersion = "2.0.7"
 springSecurityVersion = "7.2.0-SNAPSHOT"
 springVersion = "7.1.0-SNAPSHOT"
 springWsVersion = "5.1.0-SNAPSHOT"
@@ -151,6 +152,7 @@ spring-data-bom = { module = "org.springframework.data:spring-data-bom", version
 spring-framework-bom = { module = "org.springframework:spring-framework-bom", version.ref = "springVersion" }
 spring-graphql = { module = "org.springframework.graphql:spring-graphql", version.ref = "springGraphqlVersion" }
 spring-kafka-bom = { module = "org.springframework.kafka:spring-kafka-bom", version.ref = "springKafkaVersion" }
+spring-pulsar-bom = { module = "org.springframework.pulsar:spring-pulsar-bom", version.ref = "springPulsarVersion" }
 spring-security-bom = { module = "org.springframework.security:spring-security-bom", version.ref = "springSecurityVersion" }
 spring-ws-bom = { module = "org.springframework.ws:spring-ws-bom", version.ref = "springWsVersion" }
 tools-jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson3Version" }

@@ -1,0 +1,140 @@
+[[pulsar]]
+= Apache Pulsar Support
+
+Spring Integration provides channel adapters to send messages to, and to receive messages from, https://pulsar.apache.org/[Apache Pulsar].
+They are built on top of https://spring.io/projects/spring-pulsar[Spring for Apache Pulsar], which provides the `PulsarTemplate` to send the messages and the message listener containers to receive them.
+
+This dependency is required for the project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-pulsar</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+implementation "org.springframework.integration:spring-integration-pulsar:{project-version}"
+----
+======
+
+The adapters use the Pulsar client, its schemas, its producers and its consumers as they are configured in Spring for Apache Pulsar, for example by the Spring Boot auto-configuration.
+Refer to the https://docs.spring.io/spring-pulsar/reference/[Spring for Apache Pulsar documentation] for more information about the configuration options.
+
+[[pulsar-outbound]]
+== Outbound Channel Adapter
+
+The `PulsarMessageHandler` sends the payload of a message to a Pulsar topic using a `PulsarOperations`, typically a `PulsarTemplate`:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "toPulsar")
+public PulsarMessageHandler<String> pulsarMessageHandler(PulsarTemplate<String> pulsarTemplate) {
+    PulsarMessageHandler<String> handler = new PulsarMessageHandler<>(pulsarTemplate);
+    handler.setTopic("orders");
+    handler.setMessageKeyExpression(new SpelExpressionParser().parseExpression("headers['customerId']"));
+    return handler;
+}
+----
+
+The message is sent as follows:
+
+* The topic is the one of the `topic` or the `topicExpression` property.
+When there is none, or when the expression evaluates to `null`, the default topic of the `PulsarTemplate` is used.
+The `pulsar_message_topic_name` header, which a message that is received from Pulsar has, is deliberately not used to determine the topic, so that such a message is not sent back to the topic it came from.
+* The value of the Pulsar message is the payload of the message, or the result of the `payloadExpression`.
+A `PulsarNull.INSTANCE` value, which is the payload of a message that the message-driven channel adapter received for a `null` value, is sent as a `null` value, so that tombstone messages can be forwarded.
+* By default, the `PulsarTemplate` resolves the schema from the type of the value.
+Set the `schema` property to use a specific `Schema`, for example for a value that is not of a type with a built-in schema.
+* Set the `producerCustomizer` property to a `ProducerBuilderCustomizer` to customize the producer that sends the message, for example to enable compression or batching.
+* The key of the Pulsar message is the result of the `messageKeyExpression`, which is the `pulsar_message_key` header by default.
+* The `pulsar_message_ordering_key` and `pulsar_message_event_time` headers, when present, set the ordering key and the event time.
+The `pulsar_message_sequence_id` header is never used, because a sequence id is specific to the producer that created it.
+* The other headers are converted to the properties of the Pulsar message by the `PulsarHeaderMapper`, which is a `JsonPulsarHeaderMapper` by default.
+See the Spring for Apache Pulsar documentation for the details of the mapping, including the headers that are excluded.
+
+By default, the message is sent asynchronously.
+If a `sendSuccessChannel` (or `sendSuccessChannelName`) is provided, the message that was sent is sent to this channel after the broker has acknowledged it, with the `pulsar_message_id` header containing the `MessageId`.
+If a send fails, an `ErrorMessage` is sent to the `sendFailureChannel` (or `sendFailureChannelName`), which defaults to the `errorChannel`.
+Its payload is a `MessageHandlingException` with the `failedMessage` and the `cause` of the failure.
+You can override the `DefaultErrorMessageStrategy` by setting the `errorMessageStrategy` property.
+
+When `sync` is `true`, the handler blocks until the broker has acknowledged the message, and a failure is thrown as a `MessageHandlingException`.
+
+[[pulsar-inbound]]
+== Message-driven Channel Adapter
+
+The `PulsarMessageProducer` sends the messages that a `PulsarMessageListenerContainer` receives from Pulsar to a message channel:
+
+[source,java]
+----
+@Bean
+public DefaultPulsarMessageListenerContainer<String> container(PulsarConsumerFactory<String> consumerFactory) {
+    PulsarContainerProperties properties = new PulsarContainerProperties();
+    properties.setTopics(Set.of("orders"));
+    properties.setSubscriptionName("order-subscription");
+    properties.setSchema(Schema.STRING);
+    return new DefaultPulsarMessageListenerContainer<>(consumerFactory, properties);
+}
+
+@Bean
+public PulsarMessageProducer pulsarMessageProducer(DefaultPulsarMessageListenerContainer<String> container) {
+    PulsarMessageProducer producer = new PulsarMessageProducer(container);
+    producer.setOutputChannel(fromPulsar());
+    return producer;
+}
+----
+
+NOTE: `new PulsarContainerProperties("orders")` with a single argument sets a topic pattern, not a topic.
+Use `setTopics()`, as in the preceding example, to consume from a topic by its name.
+
+The adapter controls the lifecycle of the container: the container does not start by itself, but when the adapter starts, so that no message is received before the flow that follows the adapter is ready.
+The adapter stops the container when it stops.
+
+The payload of the message is the value of the Pulsar message, or `PulsarNull.INSTANCE` when the value is `null`.
+The headers are created by the `PulsarHeaderMapper`, which is a `JsonPulsarHeaderMapper` by default.
+They include the `PulsarHeaders` of Spring for Apache Pulsar, such as the `pulsar_message_id`, the `pulsar_message_key` and the `pulsar_message_topic_name`, and the properties of the Pulsar message.
+
+The acknowledgement is up to the container.
+With the `AckMode.MANUAL` acknowledgement mode, the `Acknowledgement` is in the `pulsar_acknowledgment` header (`PulsarIntegrationHeaders.ACKNOWLEDGMENT`), so that you can `acknowledge()` or `nack()` the message when it has been processed.
+
+If sending the message to the output channel fails and the adapter has an `errorChannel`, an `ErrorMessage` is sent to it, and the container considers the message as processed.
+Otherwise, the exception is thrown to the container, which applies its error handling, for example to negatively acknowledge the message so that Pulsar redelivers it.
+
+NOTE: The adapter supports the containers of the record listeners, not the batch ones.
+
+[[pulsar-java-dsl]]
+== Java DSL Configuration
+
+The `Pulsar` factory class of the `org.springframework.integration.pulsar.dsl` package provides specs for both adapters:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow toPulsarFlow(PulsarTemplate<String> pulsarTemplate) {
+    return IntegrationFlow.from("toPulsar")
+            .handle(Pulsar.outboundAdapter(pulsarTemplate)
+                    .topic("orders")
+                    .schema(Schema.STRING)
+                    .messageKeyExpression("headers['customerId']"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow fromPulsarFlow(DefaultPulsarMessageListenerContainer<String> container) {
+    return IntegrationFlow.from(Pulsar.messageDrivenChannelAdapter(container))
+            .<String, String>transform(String::toUpperCase)
+            .channel("fromPulsar")
+            .get();
+}
+----

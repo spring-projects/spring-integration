@@ -23,6 +23,9 @@ See xref:kafka.adoc#kafka-share-inbound[Message-driven Channel Adapter for Share
 A new `spring-integration-mqtt-client` module has been introduced to provide similar capabilities to the existing `spring-integration-mqtt`, but based on the HiveMQ MQTT client.
 See xref:mqtt.adoc[] for more information.
 
+A new `spring-integration-pulsar` module provides an outbound channel adapter (the `PulsarMessageHandler`) and a message-driven channel adapter (the `PulsarMessageProducer`) for Apache Pulsar, built on Spring for Apache Pulsar, together with the Java DSL support.
+See xref:pulsar.adoc[] for more information.
+
 [[x7.2-general-changes]]
 === General Changes
 
