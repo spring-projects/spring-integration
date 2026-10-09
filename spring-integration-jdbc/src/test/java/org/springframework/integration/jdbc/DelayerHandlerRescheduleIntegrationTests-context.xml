@@ -9,6 +9,8 @@
 	<beans:bean id="messageStore"
 				class="org.springframework.integration.jdbc.store.JdbcMessageStore">
 		<beans:constructor-arg value="#{T (org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests).dataSource}"/>
+		<beans:constructor-arg
+				value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap, java.lang.Boolean, org.springframework.integration.handler.DelayHandler$DelayedMessageWrapper"/>
 		<beans:property name="lazyLoadMessageGroups" value="false"/>
 	</beans:bean>
 

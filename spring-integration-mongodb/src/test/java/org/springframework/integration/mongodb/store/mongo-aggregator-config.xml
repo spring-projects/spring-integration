@@ -27,6 +27,14 @@
 
 	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
 		<constructor-arg value="#{T (org.springframework.integration.mongodb.store.MongoDbMessageGroupStoreTests).MONGO_DATABASE_FACTORY}"/>
+		<constructor-arg value="messages"/>
+		<constructor-arg>
+			<list>
+				<value>org.springframework.messaging.MessagingException</value>
+				<value>java.lang.Throwable</value>
+				<value>java.lang.StackTraceElement</value>
+			</list>
+		</constructor-arg>
 	</bean>
 
 </beans>

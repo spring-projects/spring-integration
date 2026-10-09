@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gunnar Hillert
  * @author Manuel Jordan
+ * @author Glenn Renfro
  * @since 4.3
  */
 @ContextConfiguration
@@ -37,7 +38,7 @@ public class H2JdbcChannelMessageStoreTests extends AbstractJdbcChannelMessageSt
 	@Test
 	void noTableThrowsExceptionOnStart() {
 		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
-			JdbcChannelMessageStore jdbcChannelMessageStore = new JdbcChannelMessageStore(this.dataSource);
+			JdbcChannelMessageStore jdbcChannelMessageStore = new JdbcChannelMessageStore(this.dataSource, MESSAGE_PATTERNS);
 			jdbcChannelMessageStore.setTablePrefix("TEST_");
 			jdbcChannelMessageStore.setRegion(REGION);
 			jdbcChannelMessageStore.setChannelMessageStoreQueryProvider(this.queryProvider);

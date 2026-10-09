@@ -16,8 +16,12 @@
 
 package org.springframework.integration.dsl.transformers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
@@ -33,6 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
@@ -48,6 +55,8 @@ import org.springframework.integration.handler.advice.ExpressionEvaluatingReques
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -59,11 +68,13 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Artem Bilan
  * @author Ian Bondoc
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -380,6 +391,90 @@ public class TransformerTests {
 				.expectNext("test async")
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void deserializerWithPatternsEnforcesAndRequiresPatterns() throws IOException {
+		PayloadDeserializingTransformer transformer = Transformers.deserializer(TrustedBean.class.getName());
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new TrustedBean()))).getPayload())
+				.isInstanceOf(TrustedBean.class);
+		assertDeserializationUnauthorized(transformer, serialize(new DeclinedBean()));
+		assertThatIllegalArgumentException().isThrownBy(transformer::setAllowedPatterns);
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void deserializerWithCustomDeserializerPreservesPatterns() {
+		Deserializer<Object> deserializer = inputStream -> new DeclinedBean();
+		PayloadDeserializingTransformer transformer =
+				Transformers.deserializer(deserializer, TrustedBean.class.getName());
+		assertDeserializationUnauthorized(transformer, new byte[0]);
+		assertThatIllegalArgumentException().isThrownBy(transformer::setAllowedPatterns);
+	}
+
+	@Test
+	public void deserializerWithoutPatternsIsRejected() {
+		assertThatIllegalArgumentException().isThrownBy(Transformers::deserializer);
+		Deserializer<Object> deserializer = inputStream -> new DeclinedBean();
+		assertThatIllegalArgumentException().isThrownBy(() -> Transformers.deserializer(deserializer));
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void deserializerWithWildcardIsUnrestricted() throws IOException {
+		PayloadDeserializingTransformer transformer = Transformers.deserializer("*");
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new DeclinedBean()))).getPayload())
+				.isInstanceOf(DeclinedBean.class);
+		assertThatIllegalArgumentException().isThrownBy(transformer::setAllowedPatterns);
+
+		Deserializer<Object> deserializer = inputStream -> new DeclinedBean();
+		PayloadDeserializingTransformer customTransformer = Transformers.deserializer(deserializer, "*");
+		assertThat(customTransformer.transform(new GenericMessage<>(new byte[0])).getPayload())
+				.isInstanceOf(DeclinedBean.class);
+	}
+
+	@Test
+	public void deserializerRejectsInvalidPatterns() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> Transformers.deserializer((String[]) null))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> Transformers.deserializer(new DefaultDeserializer(), (String[]) null))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> Transformers.deserializer(TrustedBean.class.getName(), " "));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> Transformers.deserializer(new DefaultDeserializer(), ""));
+	}
+
+	private static byte[] serialize(Object object) throws IOException {
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		try (ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
+			objectStream.writeObject(object);
+		}
+		return byteStream.toByteArray();
+	}
+
+	private static void assertDeserializationUnauthorized(PayloadDeserializingTransformer transformer,
+			byte[] bytes) {
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> transformer.transform(new GenericMessage<>(bytes)))
+				.havingCause()
+				.isInstanceOf(SerializationFailedException.class)
+				.havingCause()
+				.isInstanceOf(SecurityException.class);
+	}
+
+	@SuppressWarnings("serial")
+	private static final class TrustedBean implements Serializable {
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class DeclinedBean implements Serializable {
+
 	}
 
 	@Configuration

@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  */
 class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerTest {
 
@@ -62,7 +64,9 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 
 	@Test
 	void stringPayload() {
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+				List.of("org.springframework.messaging.MessagingException"));
 		messageStore.setApplicationContext(testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -78,7 +82,9 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 
 	@Test
 	void objectPayload() {
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+				List.of("org.springframework.messaging.MessagingException"));
 		messageStore.setApplicationContext(testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -98,7 +104,10 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 
 	@Test
 	void stringPayloadConfigurable() {
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		ConfigurableMongoDbMessageStore messageStore =
+				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+						List.of(ConfigurableMongoDbMessageStoreTests.CONFIGURABLE_STORE_PATTERNS));
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -114,7 +123,10 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 
 	@Test
 	void objectPayloadConfigurable() {
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		ConfigurableMongoDbMessageStore messageStore =
+				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						ConfigurableMongoDbMessageStore.DEFAULT_COLLECTION_NAME,
+						List.of(ConfigurableMongoDbMessageStoreTests.CONFIGURABLE_STORE_PATTERNS));
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);

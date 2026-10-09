@@ -44,6 +44,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.map;
 /**
  * @author Yoobin Yoon
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 7.0
  */
@@ -54,6 +55,14 @@ abstract class AbstractJsonChannelMessageStoreTests {
 	protected static final String TEST_MESSAGE_GROUP = "AbstractJsonChannelMessageStoreTests";
 
 	protected static final String REGION = "AbstractJsonChannelMessageStoreTests";
+
+	private static final String[] MESSAGE_PATTERNS = {
+			"org.springframework.messaging.support.GenericMessage",
+			"org.springframework.messaging.MessageHeaders",
+			"java.util.UUID",
+			"java.util.HashMap",
+			"java.lang.Boolean"
+	};
 
 	@Autowired
 	protected DataSource dataSource;
@@ -68,7 +77,7 @@ abstract class AbstractJsonChannelMessageStoreTests {
 
 	@BeforeEach
 	void init() {
-		this.messageStore = new JdbcChannelMessageStore(dataSource);
+		this.messageStore = new JdbcChannelMessageStore(dataSource, MESSAGE_PATTERNS);
 		this.messageStore.setRegion(REGION);
 		this.messageStore.setTablePrefix("JSON_");
 		this.messageStore.setChannelMessageStoreQueryProvider(queryProvider);

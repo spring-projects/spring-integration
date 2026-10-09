@@ -27,10 +27,18 @@ import org.springframework.util.Assert;
  *
  * <p>
  * The byte array payload must be a result of equivalent serialization.
+ * <p>
+ * The trusted packages/classes should be provided via the
+ * {@link #PayloadDeserializingTransformer(String...)} constructor, for example
+ * {@code new PayloadDeserializingTransformer("com.example.model.*")}.
+ * An explicit {@code "*"} pattern allows all classes.
+ * For backward compatibility, the deprecated no-argument constructor creates an instance
+ * which deserializes all classes until patterns are configured.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 1.0.1
  */
@@ -39,14 +47,42 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 	/**
 	 * Instantiate based on the {@link AllowListDeserializingConverter} with the
 	 * {@link org.springframework.core.serializer.DefaultDeserializer}.
+	 * @deprecated since 7.2.0 in favor of {@link #PayloadDeserializingTransformer(String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
 	@SuppressWarnings("this-escape")
 	public PayloadDeserializingTransformer() {
 		doSetConverter(new AllowListDeserializingConverter());
 	}
 
+	/**
+	 * Instantiate based on the {@link AllowListDeserializingConverter} with the
+	 * {@link org.springframework.core.serializer.DefaultDeserializer}
+	 * and the provided simple patterns for allowable packages/classes.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
+	 */
+	@SuppressWarnings("this-escape")
+	public PayloadDeserializingTransformer(String... allowedPatterns) {
+		doSetConverter(new AllowListDeserializingConverter(allowedPatterns));
+	}
+
+	/**
+	 * Set the {@link Deserializer} to use; the allowed patterns of the current
+	 * {@link AllowListDeserializingConverter} are preserved.
+	 * If the deserializer is not a {@link org.springframework.core.serializer.DefaultDeserializer},
+	 * only the class of the deserialization result is checked against the patterns.
+	 * @param deserializer the deserializer to use.
+	 * @throws IllegalStateException if the current converter is not an {@link AllowListDeserializingConverter}.
+	 */
 	public void setDeserializer(Deserializer<Object> deserializer) {
-		setConverter(new AllowListDeserializingConverter(deserializer));
+		Assert.state(getConverter() instanceof AllowListDeserializingConverter,
+				"A deserializer can only be provided when using an 'AllowListDeserializingConverter'");
+		setConverter(((AllowListDeserializingConverter) getConverter()).withDeserializer(deserializer));
 	}
 
 	/**
@@ -54,10 +90,15 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 	 * for packages/classes that are allowed to be deserialized.
 	 * A class can be fully qualified, or a wildcard '*' is allowed at the
 	 * beginning or end of the class name.
-	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #PayloadDeserializingTransformer(String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * @see AllowListDeserializingConverter#setAllowedPatterns(String...)
 	 */
+	@Deprecated(since = "7.2.0")
 	public void setAllowedPatterns(String... patterns) {
 		Assert.isTrue(getConverter() instanceof AllowListDeserializingConverter,
 				"Patterns can only be provided when using a 'AllowListDeserializingConverter'");

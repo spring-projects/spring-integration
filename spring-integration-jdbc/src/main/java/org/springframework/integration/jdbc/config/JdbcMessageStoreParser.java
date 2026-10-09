@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -54,6 +55,9 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 		}
 
 		builder.addConstructorArgReference(refToDataSourceSet ? dataSourceRef : simpleJdbcOperationsRef);
+		if (element.hasAttribute("allow-list")) {
+			builder.addConstructorArgValue(element.getAttribute("allow-list"));
+		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");

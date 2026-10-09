@@ -16,30 +16,65 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  */
 class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
+	private static final String[] ERROR_PAYLOAD_PATTERNS = {
+			"org.springframework.messaging.MessagingException",
+			"org.springframework.core.NestedRuntimeException",
+			"org.springframework.messaging.support.GenericMessage",
+			"org.springframework.messaging.MessageHeaders",
+			"java.util.UUID",
+			"java.util.HashMap",
+			"java.lang.RuntimeException",
+			"java.lang.Exception",
+			"java.lang.Throwable",
+			"java.lang.StackTraceElement",
+			"java.util.Collections$*",
+			Person.class.getName()
+	};
+
+	private static final String[] TRUSTED_PATTERNS = {
+			"java.lang.IllegalStateException",
+			"java.lang.RuntimeException",
+			"java.lang.Exception",
+			"java.lang.Throwable",
+			"java.lang.StackTraceElement",
+			"java.util.Collections$*"
+	};
+
 	@Override
 	protected MessageStore getMessageStore() {
-		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		MongoDbMessageStore mongoDbMessageStore =
+				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(ERROR_PAYLOAD_PATTERNS));
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
@@ -47,7 +82,9 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Test
 	void testCustomConverter() throws InterruptedException {
-		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		MongoDbMessageStore mongoDbMessageStore =
+				new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(ERROR_PAYLOAD_PATTERNS));
 		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
 		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
@@ -56,6 +93,102 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 		mongoDbMessageStore.addMessage(new GenericMessage<>(new Foo("foo")));
 
 		assertThat(fooToBytesConverter.called.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	void legacyConstructorIsUnrestricted() {
+		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		initialize(store);
+		assertStoresAndReads(store, new UntrustedException());
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	void legacyAddAllowedPatternsAddsPatterns() {
+		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		store.addAllowedPatterns(TRUSTED_PATTERNS);
+		initialize(store);
+		assertUnauthorized(store);
+		assertThatIllegalArgumentException().isThrownBy(store::addAllowedPatterns);
+		assertUnauthorized(store);
+		store.addAllowedPatterns(UntrustedException.class.getName());
+		assertStoresAndReads(store, new UntrustedException());
+		assertStoresAndReads(store, new IllegalStateException("still trusted"));
+	}
+
+	@Test
+	void patternsConstructorEnforcesAllowList() {
+		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(TRUSTED_PATTERNS));
+		initialize(store);
+		assertStoresAndReads(store, new IllegalStateException("trusted"));
+		assertUnauthorized(store);
+	}
+
+	@Test
+	void patternsConstructorRejectsEmptyCollectionName() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, " ", List.of(TRUSTED_PATTERNS)))
+				.withMessage("'collectionName' must not be empty");
+	}
+
+	@Test
+	void patternsConstructorRejectsInvalidPatterns() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, (Collection<String>) null))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY, "collection", List.of()))
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+						MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of("java.lang.*", " ")))
+				.withMessageContaining("whitespace-only");
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	void addAllowedPatternsExtendsPatternsAndRejectsInvalid() {
+		MongoDbMessageStore store = new MongoDbMessageStore(MONGO_DATABASE_FACTORY,
+				MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of(TRUSTED_PATTERNS));
+		initialize(store);
+		assertUnauthorized(store);
+		assertThatIllegalArgumentException().isThrownBy(store::addAllowedPatterns);
+		assertThatIllegalArgumentException().isThrownBy(() -> store.addAllowedPatterns(""));
+		assertUnauthorized(store);
+		store.addAllowedPatterns(UntrustedException.class.getName());
+		assertStoresAndReads(store, new UntrustedException());
+	}
+
+	private void initialize(MongoDbMessageStore store) {
+		store.setApplicationContext(testApplicationContext);
+		store.afterPropertiesSet();
+	}
+
+	private static void assertStoresAndReads(MongoDbMessageStore store, Throwable throwable) {
+		ErrorMessage errorMessage = new ErrorMessage(throwable);
+		store.addMessage(errorMessage);
+		assertThat(store.getMessage(errorMessage.getHeaders().getId()))
+				.extracting(Message::getPayload)
+				.isInstanceOf(throwable.getClass());
+	}
+
+	private static void assertUnauthorized(MongoDbMessageStore store) {
+		ErrorMessage errorMessage = new ErrorMessage(new UntrustedException());
+		store.addMessage(errorMessage);
+		assertThatExceptionOfType(ConversionFailedException.class)
+				.isThrownBy(() -> store.getMessage(errorMessage.getHeaders().getId()))
+				.havingCause()
+				.isInstanceOf(SerializationFailedException.class)
+				.havingCause()
+				.isInstanceOf(SecurityException.class);
+	}
+
+	@SuppressWarnings("serial")
+	private static final class UntrustedException extends RuntimeException {
+
 	}
 
 	private static class Foo {

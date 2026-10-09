@@ -29,6 +29,18 @@ See xref:mqtt.adoc[] for more information.
 The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
 See xref:error-handling.adoc[] for more information.
 
+The `AllowListDeserializingConverter` and `PayloadDeserializingTransformer` now have constructors that require the patterns of classes allowed for deserialization.
+An instance created with patterns rejects empty or blank patterns and cannot be reconfigured to deserialize all classes, unless the `"*"` pattern is explicitly provided.
+The constructors without patterns, as well as the `setAllowedPatterns()` and `addAllowedPatterns()` methods, are deprecated; an instance created without patterns still deserializes all classes until patterns are configured.
+Setting or adding empty or blank patterns is now rejected for all instances, so an empty list can no longer restore unrestricted deserialization; use the `"*"` pattern instead.
+The patterns are now preserved when a custom `Deserializer` is provided via `PayloadDeserializingTransformer.setDeserializer()`.
+`PayloadDeserializingTransformer.setDeserializer()` now throws an `IllegalStateException` when a custom (non-`AllowListDeserializingConverter`) converter is configured; use either a fully custom converter or a deserializer on the default restricted converter.
+The `allow-list` attribute of the `<int:payload-deserializing-transformer>` uses the new constructor when provided.
+
+Calling the `Transformers.deserializer(...)` Java DSL factory methods without patterns (for example, `Transformers.deserializer()` or `Transformers.deserializer(myDeserializer)`) is no longer supported and fails with an `IllegalArgumentException`.
+Provide trusted patterns, or the `"*"` pattern to explicitly allow all classes.
+See xref:transformer.adoc#deserialization-allow-list[Deserialization Allow List] for more information.
+
 [[x7.2-amqp-changes]]
 === AMQP Support Changes
 
@@ -44,17 +56,33 @@ The `METADATA_VALUE` column in the `JdbcMetadataStore` schema scripts is now `NO
 Existing databases created with older scripts should remove any null-valued rows and alter the column to `NOT NULL` when upgrading.
 See xref:jdbc/metadata-store.adoc[] for more information.
 
+The `JdbcMessageStore` and `JdbcChannelMessageStore` now have constructors that require the patterns of classes allowed for deserialization; the constructors without patterns and the `addAllowedPatterns()` method are deprecated.
+The patterns are now preserved when a custom `Deserializer` or the bean class loader is applied.
+The `<int-jdbc:message-store>` XML element now provides an `allow-list` attribute.
+See xref:jdbc/message-store.adoc#jdbc-message-store-allowed-patterns[Deserialization Allow List] for more information.
+
 JDBC tests and documentation no longer use Apache Derby.
 Use H2 or HSQL for embedded testing.
 `EmbeddedDatabaseType.DERBY` is deprecated in Spring Framework 7.1.
 The `DerbyChannelMessageStoreQueryProvider` and `schema-derby.sql` are deprecated for removal.
+
+[[x7.2-mongodb-changes]]
+=== MongoDB Support Changes
+
+The `MongoDbMessageStore`, `ConfigurableMongoDbMessageStore`, `MongoDbChannelMessageStore` and `BinaryToMessageConverter` now have constructors that require the patterns of classes allowed for deserialization; the constructors without patterns are deprecated.
+The store constructors take the patterns as a `Collection<String>` after the collection name, for example `new MongoDbMessageStore(mongoDbFactory, MongoDbMessageStore.DEFAULT_COLLECTION_NAME, List.of("com.example.*"))`.
+When using XML, provide the Mongo store patterns as a `<list>` of `<value>` elements; unlike the JDBC `allow-list` attribute, a single comma-delimited value is treated as one pattern.
+The `MongoDbMessageStore.addAllowedPatterns()` now adds to the existing patterns instead of replacing them, and rejects `null` or empty patterns; it is deprecated, together with `BinaryToMessageConverter.addAllowedPatterns()`, in favor of the constructors with patterns.
+The `MongoDbMessageStore.DEFAULT_COLLECTION_NAME` constant is now public.
+See xref:mongodb.adoc#mongodb-message-store-allowed-patterns[Deserialization Allow List] for more information.
 
 [[x7.2-http-changes]]
 === HTTP Support Changes
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
 The `SerializingHttpMessageConverter` now has a constructor that requires the patterns of classes allowed for deserialization.
-Its default constructor and `setAllowedPatterns()` method are deprecated.
+This constructor rejects empty or blank patterns, and the patterns of such a converter cannot be cleared.
+Its default constructor and the `setAllowedPatterns()` and `addAllowedPatterns()` methods are deprecated for removal.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
 [[x7.2-jms-changes]]

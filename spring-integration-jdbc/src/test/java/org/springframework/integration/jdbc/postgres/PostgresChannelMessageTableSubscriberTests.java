@@ -76,6 +76,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Adama Sorho
  * @author Johannes Edmeier
  * @author Norbert Schneider
+ * @author Glenn Renfro
  *
  * @since 6.0
  */
@@ -380,7 +381,11 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 		@Bean
 		public JdbcChannelMessageStore jdbcChannelMessageStore(DataSource dataSource) {
-			JdbcChannelMessageStore messageStore = new JdbcChannelMessageStore(dataSource);
+			JdbcChannelMessageStore messageStore = new JdbcChannelMessageStore(dataSource,
+					"org.springframework.messaging.support.GenericMessage",
+					"org.springframework.messaging.MessageHeaders",
+					"java.util.UUID",
+					"java.util.HashMap");
 			messageStore.setRegion("PostgresChannelMessageTableSubscriberTest");
 			messageStore.setChannelMessageStoreQueryProvider(new PostgresChannelMessageStoreQueryProvider());
 			return messageStore;

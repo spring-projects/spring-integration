@@ -26,6 +26,7 @@
 	<task:executor id="pool" pool-size="10" queue-capacity="10" rejection-policy="CALLER_RUNS" />
 
 	<bean id="store" class="org.springframework.integration.jdbc.store.JdbcChannelMessageStore">
+		<constructor-arg value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap"/>
 		<property name="dataSource" ref="dataSource"/>
 		<property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
 		<property name="region" value="TX_TIMEOUT"/>
@@ -62,6 +63,7 @@
 	<task:executor id="threadPoolTaskExecutor" pool-size="100"/>
 
 	<bean id="messageStore" class="org.springframework.integration.jdbc.store.JdbcChannelMessageStore">
+		<constructor-arg value="org.springframework.messaging.support.GenericMessage, org.springframework.messaging.MessageHeaders, java.util.UUID, java.util.HashMap"/>
 		<property name="dataSource" ref="dataSource"/>
 		<property name="region" value="CONCURRENT_POLL"/>
 		<property name="channelMessageStoreQueryProvider" ref="queryProvider"/>

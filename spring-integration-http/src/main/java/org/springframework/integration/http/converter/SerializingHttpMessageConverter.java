@@ -28,7 +28,6 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
-import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -37,16 +36,17 @@ import org.springframework.util.FileCopyUtils;
  * <p>
  * Incoming requests are deserialized through an {@link AllowListDeserializingConverter}.
  * To guard against unsafe Java deserialization, the patterns of trusted classes/packages
- * are provided via the {@link #SerializingHttpMessageConverter(String...)} constructor
- * and can be extended with {@link #addAllowedPatterns(String...)}.
+ * are provided via the {@link #SerializingHttpMessageConverter(String...)} constructor.
  * For backward compatibility, no class restriction is applied when the deprecated default
  * constructor is used and no patterns are configured.
+ * An explicit {@code "*"} pattern allows all classes.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  * @author Uwez Khan
  * @author Hyun Lee
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -55,16 +55,18 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	private static final MediaType APPLICATION_JAVA_SERIALIZED_OBJECT =
 			new MediaType("application", "x-java-serialized-object");
 
-	private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
+	private final AllowListDeserializingConverter deserializingConverter;
 
 	/**
-	 * Creates a new instance of the {@code SerializingHttpMessageConverter}.
-	 * @deprecated Since 7.2 in favor of {@link #SerializingHttpMessageConverter(String...)}
+	 * Create a new instance of the {@code SerializingHttpMessageConverter}.
+	 * @deprecated Since 7.2.0 in favor of {@link #SerializingHttpMessageConverter(String...)}
 	 * with an explicit list of allowed patterns.
 	 */
-	@Deprecated(since = "7.2", forRemoval = true)
+	@Deprecated(since = "7.2.0", forRemoval = true)
+	@SuppressWarnings("deprecation")
 	public SerializingHttpMessageConverter() {
 		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
+		this.deserializingConverter = new AllowListDeserializingConverter();
 	}
 
 	/**
@@ -75,13 +77,15 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	 * Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * The basic types ({@link String}, {@link Number}, arrays and primitives) are always
 	 * allowed.
-	 * @param allowedPatterns the patterns; must not be empty.
-	 * @since 7.2
+	 * An explicit {@code "*"} pattern allows all classes.
+	 * The patterns can be extended, but cannot be cleared to restore unrestricted deserialization.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or
+	 * whitespace-only entries.
+	 * @since 7.2.0
 	 */
 	public SerializingHttpMessageConverter(String... allowedPatterns) {
 		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
-		Assert.notEmpty(allowedPatterns, "'allowedPatterns' must not be empty");
-		this.deserializingConverter.setAllowedPatterns(allowedPatterns);
+		this.deserializingConverter = new AllowListDeserializingConverter(allowedPatterns);
 	}
 
 	/**
@@ -91,23 +95,28 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	 * beginning or end of the class name.
 	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
 	 * The basic types ({@link String}, {@link Number}, arrays and primitives) are always
-	 * allowed. When no patterns are configured, all classes are deserialized (the previous,
-	 * unrestricted behavior).
+	 * allowed. The patterns must not be empty or contain null, empty or whitespace-only entries.
+	 * For an instance created by the deprecated default constructor, all classes are deserialized
+	 * until patterns are configured (the previous, unrestricted behavior).
 	 * @param allowedPatterns the patterns.
 	 * @since 5.5.22
-	 * @deprecated Since 7.2 in favor of {@link #SerializingHttpMessageConverter(String...)}.
+	 * @deprecated Since 7.2.0 in favor of {@link #SerializingHttpMessageConverter(String...)}.
 	 */
-	@Deprecated(since = "7.2", forRemoval = true)
+	@Deprecated(since = "7.2.0", forRemoval = true)
 	public void setAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.setAllowedPatterns(allowedPatterns);
 	}
 
 	/**
 	 * Add package/class patterns to the allowed list.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param allowedPatterns the patterns to add.
 	 * @since 5.5.22
+	 * @deprecated since 7.2.0 in favor of {@link #SerializingHttpMessageConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 * @see #SerializingHttpMessageConverter(String...)
 	 */
+	@Deprecated(since = "7.2.0", forRemoval = true)
 	public void addAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.addAllowedPatterns(allowedPatterns);
 	}

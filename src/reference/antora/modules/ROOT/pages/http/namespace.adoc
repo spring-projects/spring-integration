@@ -57,13 +57,13 @@ Consider using a data format such as JSON for the endpoints exposed to untrusted
 See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html[OWASP Deserialization Cheat Sheet] for more information.
 
 The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`.
-Starting with version 7.2, use the `SerializingHttpMessageConverter(String... allowedPatterns)` constructor to specify the trusted classes.
-This constructor requires at least one pattern and rejects an empty pattern array.
+Starting with version 7.2.0, use the `SerializingHttpMessageConverter(String... allowedPatterns)` constructor to specify the trusted classes.
+This constructor requires at least one pattern: it rejects a `null` or empty pattern array, as well as any `null`, empty, or whitespace-only pattern, with an `IllegalArgumentException`.
 A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
 The basic types (`String`, `Number` and its subclasses, primitives and arrays) are always allowed.
 Deserialization fails for any other class that does not match one of the patterns.
 
-IMPORTANT: The default constructor and `setAllowedPatterns()` method are deprecated for removal since version 7.2.
+IMPORTANT: The default constructor and the `setAllowedPatterns()` and `addAllowedPatterns()` methods are deprecated for removal since version 7.2.0.
 For backward compatibility, the deprecated default constructor still allows all classes when no patterns are configured.
 Passing `"*"` to the new constructor explicitly allows all classes; use it only when all sources are trusted.
 Always restrict the allowed patterns when the converter reads requests from untrusted clients.
@@ -104,7 +104,9 @@ XML::
 ----
 ======
 
-Additional patterns can be added with the `addAllowedPatterns()` method.
+The `addAllowedPatterns()` and `setAllowedPatterns()` methods are deprecated for removal since version 7.2.0; provide all the patterns via the constructor instead.
+These methods apply the same validation, and the patterns cannot be cleared to restore unrestricted deserialization.
+See xref:transformer.adoc#deserialization-allow-list[Deserialization Allow List] for more information about the patterns.
 The same allowlist applies when the converter reads a response body for an HTTP outbound endpoint.
 
 [[http-request-mapping]]

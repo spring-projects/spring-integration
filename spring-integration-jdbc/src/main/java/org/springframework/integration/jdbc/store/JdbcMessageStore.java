@@ -35,6 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -83,6 +84,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Ngoc Nhan
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -264,12 +266,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private AllowListDeserializingConverter deserializer =
-			new AllowListDeserializingConverter(JdbcMessageStore.class.getClassLoader());
+	private AllowListDeserializingConverter deserializer;
 
 	private boolean deserializerExplicitlySet;
 
-	private MessageRowMapper mapper = new MessageRowMapper(this.deserializer);
+	private MessageRowMapper mapper;
 
 	private SerializingConverter serializer;
 
@@ -278,26 +279,73 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param dataSource a {@link DataSource}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
+	@SuppressWarnings("deprecation")
 	public JdbcMessageStore(DataSource dataSource) {
 		this(new JdbcTemplate(dataSource));
+	}
+
+	/**
+	 * Create a {@link MessageStore} with all mandatory properties and the simple patterns
+	 * for allowable packages/classes for deserialization.
+	 * The patterns must cover the whole serialized object graph of the stored messages:
+	 * for example, the message and headers classes, the header values and the payload.
+	 * @param dataSource a {@link DataSource}
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(ClassLoader, String...)
+	 */
+	public JdbcMessageStore(DataSource dataSource, String... allowedPatterns) {
+		this(new JdbcTemplate(dataSource), allowedPatterns);
 	}
 
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param jdbcOperations a {@link JdbcOperations}
 	 * @since 4.3.9
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(JdbcOperations, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
+	@SuppressWarnings("deprecation")
 	public JdbcMessageStore(JdbcOperations jdbcOperations) {
+		this(jdbcOperations, new AllowListDeserializingConverter(JdbcMessageStore.class.getClassLoader()));
+	}
+
+	/**
+	 * Create a {@link MessageStore} with all mandatory properties and the simple patterns
+	 * for allowable packages/classes for deserialization.
+	 * The patterns must cover the whole serialized object graph of the stored messages:
+	 * for example, the message and headers classes, the header values and the payload.
+	 * @param jdbcOperations a {@link JdbcOperations}
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(ClassLoader, String...)
+	 */
+	public JdbcMessageStore(JdbcOperations jdbcOperations, String... allowedPatterns) {
+		this(jdbcOperations,
+				new AllowListDeserializingConverter(JdbcMessageStore.class.getClassLoader(), allowedPatterns));
+	}
+
+	private JdbcMessageStore(JdbcOperations jdbcOperations, AllowListDeserializingConverter deserializer) {
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
 		this.jdbcTemplate = jdbcOperations;
 		this.serializer = new SerializingConverter();
+		this.deserializer = deserializer;
+		this.mapper = new MessageRowMapper(deserializer);
 	}
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		if (!this.deserializerExplicitlySet) {
-			this.deserializer = new AllowListDeserializingConverter(classLoader);
+			this.deserializer = this.deserializer.withDeserializer(new DefaultDeserializer(classLoader));
 			this.mapper = new MessageRowMapper(this.deserializer);
 		}
 	}
@@ -332,11 +380,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	/**
 	 * A converter for deserializing byte arrays to message.
+	 * The allowed patterns of this store are preserved.
+	 * If the deserializer is not a {@link DefaultDeserializer}, only the class of the
+	 * deserialization result is checked against the patterns.
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		this.deserializer = this.deserializer.withDeserializer((Deserializer) deserializer);
 		this.deserializerExplicitlySet = true;
 		this.mapper = new MessageRowMapper(this.deserializer);
 	}
@@ -344,10 +395,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
 	}

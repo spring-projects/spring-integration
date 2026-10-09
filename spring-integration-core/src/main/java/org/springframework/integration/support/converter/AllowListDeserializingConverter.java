@@ -37,18 +37,27 @@ import org.springframework.util.PatternMatchUtils;
 /**
  * A {@link Converter} that delegates to a
  * {@link Deserializer} to convert data in a byte
- * array to an object. By default, if using a {@link DefaultDeserializer} all
- * classes/packages are deserialized. If you receive data from untrusted sources, consider
- * adding trusted classes/packages using {@link #setAllowedPatterns(String...)} or
- * {@link #addAllowedPatterns(String...)}.
- * <p>
+ * array to an object.
+ * The trusted classes/packages should be provided via one of the constructors accepting
+ * allowed patterns, for example:
+ * <pre class="code">
+ * new AllowListDeserializingConverter("com.example.model.*", "java.util.*");
+ * </pre>
+ * An explicit {@code "*"} pattern allows all classes.
+ * For backward compatibility, the deprecated constructors without patterns create an instance
+ * which deserializes all classes until patterns are configured via the deprecated
+ * {@link #setAllowedPatterns(String...)} or {@link #addAllowedPatterns(String...)}.
+ * The patterns cannot be cleared to restore unrestricted deserialization.
  * If a delegate deserializer is a {@link DefaultDeserializer}, only its {@link ClassLoader}
- * is used for a {@link ConfigurableObjectInputStream} logic.
+ * is used for a {@link ConfigurableObjectInputStream} logic and every class in the
+ * object graph is checked during deserialization.
+ * For any other {@link Deserializer}, only the class of the deserialization result is checked.
  *
  * @author Gary Russell
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -66,25 +75,66 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	 * Create a {@link AllowListDeserializingConverter} with default
 	 * {@link ObjectInputStream} configuration, using the "latest user-defined
 	 * ClassLoader".
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter() {
 		this(new DefaultDeserializer());
+	}
+
+	/**
+	 * Create a {@link AllowListDeserializingConverter} with default
+	 * {@link ObjectInputStream} configuration, using the "latest user-defined
+	 * ClassLoader", and the provided simple patterns for allowable packages/classes.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see #setAllowedPatterns(String...)
+	 */
+	public AllowListDeserializingConverter(String... allowedPatterns) {
+		this(new DefaultDeserializer(), allowedPatterns);
 	}
 
 	/**
 	 * Create a {@link AllowListDeserializingConverter} for using an
 	 * {@link ObjectInputStream} with the given {@code ClassLoader}.
 	 * @param classLoader the class loader to use for deserialization.
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #AllowListDeserializingConverter(ClassLoader, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter(ClassLoader classLoader) {
 		this(new DefaultDeserializer(classLoader));
+	}
+
+	/**
+	 * Create a {@link AllowListDeserializingConverter} for using an
+	 * {@link ObjectInputStream} with the given {@code ClassLoader},
+	 * and the provided simple patterns for allowable packages/classes.
+	 * @param classLoader the class loader to use for deserialization.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see #setAllowedPatterns(String...)
+	 */
+	public AllowListDeserializingConverter(ClassLoader classLoader, String... allowedPatterns) {
+		this(new DefaultDeserializer(classLoader), allowedPatterns);
 	}
 
 	/**
 	 * Create a {@link AllowListDeserializingConverter} that delegates to the provided
 	 * {@link Deserializer}.
 	 * @param deserializer the deserializer to use.
+	 * @deprecated since 7.2.0 in favor of
+	 * {@link #AllowListDeserializingConverter(Deserializer, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * An instance created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
 	public AllowListDeserializingConverter(Deserializer<Object> deserializer) {
 		Assert.notNull(deserializer, "Deserializer must not be null");
 		this.deserializer = deserializer;
@@ -99,25 +149,75 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 	}
 
 	/**
+	 * Create a {@link AllowListDeserializingConverter} that delegates to the provided
+	 * {@link Deserializer}, and the provided simple patterns for allowable packages/classes.
+	 * If the deserializer is not a {@link DefaultDeserializer}, only the class of the
+	 * deserialization result is checked against the patterns.
+	 * @param deserializer the deserializer to use.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see #setAllowedPatterns(String...)
+	 */
+	public AllowListDeserializingConverter(Deserializer<Object> deserializer, String... allowedPatterns) {
+		this(deserializer);
+		validatePatterns(allowedPatterns);
+		Collections.addAll(this.allowedPatterns, allowedPatterns);
+	}
+
+	/**
 	 * Set simple patterns for allowable packages/classes for deserialization.
 	 * The patterns will be applied in order until a match is found.
 	 * A class can be fully qualified, or a wildcard '*' is allowed at the
 	 * beginning or end of the class name.
-	 * Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The {@code "*"} pattern explicitly allows all classes.
+	 * The basic types ({@link String}, {@link Number}, arrays and primitives) are always allowed.
+	 * The provided patterns must not be empty or contain null, empty or whitespace-only entries;
+	 * the patterns cannot be cleared to restore unrestricted deserialization.
 	 * @param allowedPatterns the patterns.
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void setAllowedPatterns(String... allowedPatterns) {
+		validatePatterns(allowedPatterns);
 		this.allowedPatterns.clear();
 		Collections.addAll(this.allowedPatterns, allowedPatterns);
 	}
 
 	/**
 	 * Add package/class patterns to the allowed list.
+	 * The provided patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns to add.
+	 * @deprecated since 7.2.0 in favor of {@link #AllowListDeserializingConverter(String...)}
+	 * with an explicit list of trusted packages/classes.
 	 * @see #setAllowedPatterns(String...)
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
+		validatePatterns(patterns);
 		Collections.addAll(this.allowedPatterns, patterns);
+	}
+
+	/**
+	 * Create a new {@link AllowListDeserializingConverter} delegating to the provided
+	 * {@link Deserializer} with a copy of the allowed patterns of this instance.
+	 * @param deserializer the deserializer to use.
+	 * @return the new converter.
+	 * @since 7.2.0
+	 */
+	public AllowListDeserializingConverter withDeserializer(Deserializer<Object> deserializer) {
+		AllowListDeserializingConverter converter = new AllowListDeserializingConverter(deserializer);
+		converter.allowedPatterns.addAll(this.allowedPatterns);
+		return converter;
+	}
+
+	private static void validatePatterns(String[] patterns) {
+		Assert.notEmpty(patterns, "'allowedPatterns' must not be empty");
+		for (String pattern : patterns) {
+			Assert.hasText(pattern, "'allowedPatterns' must not contain null, empty or whitespace-only patterns");
+		}
 	}
 
 	@Override

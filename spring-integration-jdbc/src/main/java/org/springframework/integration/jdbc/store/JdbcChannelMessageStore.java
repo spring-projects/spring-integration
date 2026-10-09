@@ -91,6 +91,7 @@ import org.springframework.util.StringUtils;
  * @author Johannes Edmeier
  * @author Ngoc Nhan
  * @author Yoobin Yoon
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -164,10 +165,33 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private boolean checkDatabaseOnStart = true;
 
 	/**
-	 * Convenient constructor for configuration use.
+	 * Create an instance for configuration use.
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
+	@SuppressWarnings("deprecation")
 	public JdbcChannelMessageStore() {
-		this.deserializer = new AllowListDeserializingConverter();
+		this(new AllowListDeserializingConverter());
+	}
+
+	/**
+	 * Create an instance for configuration use with the simple patterns
+	 * for allowable packages/classes for deserialization.
+	 * The patterns must cover the whole serialized object graph of the stored messages:
+	 * for example, the message and headers classes, the header values and the payload.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see AllowListDeserializingConverter#AllowListDeserializingConverter(String...)
+	 */
+	public JdbcChannelMessageStore(String... allowedPatterns) {
+		this(new AllowListDeserializingConverter(allowedPatterns));
+	}
+
+	private JdbcChannelMessageStore(AllowListDeserializingConverter deserializer) {
+		this.deserializer = deserializer;
 		this.serializer = new SerializingConverter();
 	}
 
@@ -178,12 +202,33 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
 	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
 	 * @param dataSource a {@link DataSource}
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
+	 * A store created by this constructor deserializes all classes until patterns are configured.
 	 */
+	@Deprecated(since = "7.2.0")
+	@SuppressWarnings("deprecation")
 	public JdbcChannelMessageStore(DataSource dataSource) {
 		this();
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-		this.jdbcTemplate.setFetchSize(1);
-		this.jdbcTemplate.setMaxRows(1);
+		this.jdbcTemplate = createJdbcTemplate(dataSource);
+	}
+
+	/**
+	 * Create a {@link org.springframework.integration.store.MessageStore}
+	 * with all mandatory properties and the simple patterns for allowable packages/classes
+	 * for deserialization. The passed-in
+	 * {@link DataSource} is used to instantiate a {@link JdbcTemplate}
+	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
+	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
+	 * @param dataSource a {@link DataSource}
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @since 7.2.0
+	 * @see #JdbcChannelMessageStore(String...)
+	 */
+	public JdbcChannelMessageStore(DataSource dataSource, String... allowedPatterns) {
+		this(allowedPatterns);
+		this.jdbcTemplate = createJdbcTemplate(dataSource);
 	}
 
 	/**
@@ -194,27 +239,39 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param dataSource a {@link DataSource}
 	 */
 	public void setDataSource(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-		this.jdbcTemplate.setFetchSize(1);
-		this.jdbcTemplate.setMaxRows(1);
+		this.jdbcTemplate = createJdbcTemplate(dataSource);
+	}
+
+	private static JdbcTemplate createJdbcTemplate(DataSource dataSource) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		jdbcTemplate.setFetchSize(1);
+		jdbcTemplate.setMaxRows(1);
+		return jdbcTemplate;
 	}
 
 	/**
 	 * A converter for deserializing byte arrays to messages.
+	 * The allowed patterns of this store are preserved.
+	 * If the deserializer is not a {@link org.springframework.core.serializer.DefaultDeserializer},
+	 * only the class of the deserialization result is checked against the patterns.
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		this.deserializer = this.deserializer.withDeserializer((Deserializer) deserializer);
 	}
 
 	/**
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
 	 * be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * The patterns must not be empty or contain null, empty or whitespace-only entries.
 	 * @param patterns the patterns.
 	 * @since 5.4
+	 * @deprecated since 7.2.0 in favor of {@link #JdbcChannelMessageStore(DataSource, String...)}
+	 * with an explicit list of trusted packages/classes.
 	 */
+	@Deprecated(since = "7.2.0")
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
 	}

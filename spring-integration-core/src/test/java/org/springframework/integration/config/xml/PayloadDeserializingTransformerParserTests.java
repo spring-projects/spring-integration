@@ -23,15 +23,20 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -43,6 +48,8 @@ import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
@@ -57,13 +64,34 @@ public class PayloadDeserializingTransformerParserTests {
 	private MessageChannel directInput;
 
 	@Autowired
+	private MessageChannel legacyDirectInput;
+
+	@Autowired
 	private MessageChannel queueInput;
 
 	@Autowired
 	private MessageChannel customDeserializerInput;
 
 	@Autowired
+	private MessageChannel allowListedInput;
+
+	@Autowired
+	private MessageChannel allowListedCustomDeserializerInput;
+
+	@Autowired
 	private PollableChannel output;
+
+	@Autowired
+	@Qualifier("allowListed.handler")
+	private MessageHandler allowListedHandler;
+
+	@Autowired
+	@Qualifier("allowListedCustomDeserializer.handler")
+	private MessageHandler allowListedCustomDeserializerHandler;
+
+	@Autowired
+	@Qualifier("constructorConfigured")
+	private PayloadDeserializingTransformer constructorConfigured;
 
 	@Autowired
 	@Qualifier("direct.handler")
@@ -129,6 +157,64 @@ public class PayloadDeserializingTransformerParserTests {
 		assertThat(result.getPayload()).isEqualTo("TEST");
 	}
 
+	@Test
+	public void legacyConfigurationWithoutAllowListIsUnrestricted() throws Exception {
+		this.legacyDirectInput.send(new GenericMessage<>(serialize(new DeclinedBean())));
+		Message<?> result = this.output.receive(0);
+		assertThat(result).extracting(Message::getPayload).isInstanceOf(DeclinedBean.class);
+	}
+
+	@Test
+	public void allowListEnforcedAndRequired() throws Exception {
+		allowListedInput.send(new GenericMessage<>(serialize(new TestBean())));
+		Message<?> result = output.receive(10000);
+		assertThat(result).extracting(Message::getPayload).isInstanceOf(TestBean.class);
+
+		allowListedInput.send(new GenericMessage<>(serialize(new HashMap<>(Map.of("key", "value")))));
+		result = output.receive(10000);
+		assertThat(result).extracting(Message::getPayload).isEqualTo(Map.of("key", "value"));
+		assertUnauthorized(allowListedInput);
+		assertPatternsRequired(this.allowListedHandler);
+	}
+
+	@Test
+	public void allowListPreservedWithCustomDeserializer() throws Exception {
+		assertThat(TestUtils.<Object>getPropertyValue(this.allowListedCustomDeserializerHandler,
+				"transformer.converter.deserializer"))
+				.isInstanceOf(DefaultDeserializer.class);
+		allowListedCustomDeserializerInput.send(new GenericMessage<>(serialize(new TestBean())));
+		Message<?> result = output.receive(10000);
+		assertThat(result).extracting(Message::getPayload).isInstanceOf(TestBean.class);
+		assertUnauthorized(allowListedCustomDeserializerInput);
+		assertPatternsRequired(this.allowListedCustomDeserializerHandler);
+	}
+
+	@Test
+	@SuppressWarnings("deprecation")
+	public void constructorArgConfiguration() throws Exception {
+		assertThat(this.constructorConfigured.transform(new GenericMessage<>(serialize(new TestBean())))
+				.getPayload())
+				.isInstanceOf(TestBean.class);
+		assertThatThrownBy(() -> this.constructorConfigured.transform(new GenericMessage<>(serialize(new DeclinedBean()))))
+				.isInstanceOf(MessageTransformationException.class)
+				.hasRootCauseInstanceOf(SecurityException.class);
+		assertThatIllegalArgumentException().isThrownBy(this.constructorConfigured::setAllowedPatterns);
+	}
+
+	private void assertUnauthorized(MessageChannel channel) throws Exception {
+		byte[] bytes = serialize(new DeclinedBean());
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> channel.send(new GenericMessage<>(bytes)))
+				.withRootCauseInstanceOf(SecurityException.class);
+	}
+
+	@SuppressWarnings("deprecation")
+	private static void assertPatternsRequired(MessageHandler handler) {
+		AllowListDeserializingConverter converter =
+				TestUtils.getPropertyValue(handler, "transformer.converter");
+		assertThatIllegalArgumentException().isThrownBy(converter::setAllowedPatterns);
+	}
+
 	private static byte[] serialize(Object object) throws Exception {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -144,6 +230,11 @@ public class PayloadDeserializingTransformerParserTests {
 		}
 
 		public final String name = "test";
+
+	}
+
+	@SuppressWarnings("serial")
+	private static class DeclinedBean implements Serializable {
 
 	}
 

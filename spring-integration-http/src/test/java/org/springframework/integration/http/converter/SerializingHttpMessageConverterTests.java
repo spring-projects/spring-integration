@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author Uwez Khan
  * @author Artem Bilan
  * @author Hyun Lee
+ * @author Glenn Renfro
  *
  * @since 5.5.22
  */
@@ -78,8 +79,14 @@ public class SerializingHttpMessageConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void readsClassAddedToAllowList() throws Exception {
 		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
+		byte[] body = serialize(new TestPayload());
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
+
 		converter.addAllowedPatterns(TestPayload.class.getName());
 
 		Serializable result = converter.readInternal(Serializable.class, message(serialize(new TestPayload())));
@@ -92,6 +99,60 @@ public class SerializingHttpMessageConverterTests {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new SerializingHttpMessageConverter(new String[0]))
 				.withMessage("'allowedPatterns' must not be empty");
+	}
+
+	@Test
+	public void requiresNonNullAllowedPatterns() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new SerializingHttpMessageConverter((String[]) null))
+				.withMessage("'allowedPatterns' must not be empty");
+	}
+
+	@Test
+	public void rejectsInvalidAllowedPatternEntries() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new SerializingHttpMessageConverter("java.util.*", " "))
+				.withMessageContaining("must not contain null, empty or whitespace-only patterns");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new SerializingHttpMessageConverter("java.util.*", null))
+				.withMessageContaining("must not contain null, empty or whitespace-only patterns");
+	}
+
+	@Test
+	@SuppressWarnings("removal")
+	public void patternsConstructorRejectsClearingOrInvalidMutation() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
+		assertThatIllegalArgumentException()
+				.isThrownBy(converter::setAllowedPatterns)
+				.withMessageContaining("must not be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> converter.addAllowedPatterns(TestPayload.class.getName(), ""))
+				.withMessageContaining("must not contain null, empty or whitespace-only patterns");
+
+		byte[] body = serialize(new TestPayload());
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	@SuppressWarnings("removal")
+	public void legacyConstructorIsUnrestrictedUntilPatternsConfigured() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
+		byte[] body = serialize(new TestPayload());
+		assertThat(converter.readInternal(Serializable.class, message(body))).isInstanceOf(TestPayload.class);
+
+		converter.setAllowedPatterns("com.example.*");
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(converter::setAllowedPatterns)
+				.withMessage("'allowedPatterns' must not be empty");
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
 	}
 
 	private static byte[] serialize(Serializable object) throws IOException {

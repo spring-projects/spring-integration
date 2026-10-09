@@ -48,6 +48,7 @@ import org.springframework.messaging.Message;
  * {@link org.springframework.integration.transformer.Transformer}s.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -209,15 +210,34 @@ public abstract class Transformers {
 		return transformer;
 	}
 
+	/**
+	 * Create a {@link PayloadDeserializingTransformer} with the provided simple patterns
+	 * for allowable packages/classes.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @return the {@link PayloadDeserializingTransformer}.
+	 * @see PayloadDeserializingTransformer#PayloadDeserializingTransformer(String...)
+	 */
 	public static PayloadDeserializingTransformer deserializer(String... allowedPatterns) {
 		return deserializer(null, allowedPatterns);
 	}
 
+	/**
+	 * Create a {@link PayloadDeserializingTransformer} with the provided {@link Deserializer}
+	 * and simple patterns for allowable packages/classes.
+	 * If the deserializer is not a {@link org.springframework.core.serializer.DefaultDeserializer},
+	 * only the class of the deserialization result is checked against the patterns.
+	 * @param deserializer the deserializer to use; if null, a
+	 * {@link org.springframework.core.serializer.DefaultDeserializer} is used.
+	 * @param allowedPatterns the patterns; must not be empty or contain null, empty or whitespace-only entries.
+	 * Use {@code "*"} to explicitly allow all classes.
+	 * @return the {@link PayloadDeserializingTransformer}.
+	 * @see PayloadDeserializingTransformer#PayloadDeserializingTransformer(String...)
+	 */
 	public static PayloadDeserializingTransformer deserializer(@Nullable Deserializer<Object> deserializer,
 			String... allowedPatterns) {
 
-		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.setAllowedPatterns(allowedPatterns);
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer(allowedPatterns);
 		if (deserializer != null) {
 			transformer.setDeserializer(deserializer);
 		}

@@ -29,7 +29,8 @@
 
 	<service-activator id="endpoint3" input-channel="channel" ref="bean" method="handle" order="3"/>
 
-	<payload-deserializing-transformer id="endpoint12" input-channel="channel" order="12"/>
+	<payload-deserializing-transformer id="endpoint12" input-channel="channel" order="12"
+		allow-list="org.springframework.integration.*"/>
 
 	<aggregator id="endpoint4" input-channel="channel" order="4"/>
 
