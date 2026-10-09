@@ -126,11 +126,12 @@ Undated entries can be emitted again when a later poll finds new dated entries.
 
 Starting with version 7.2, you can configure an `entryDateFunction`, a `BiFunction<SyndEntry, SyndFeed, Date>`, to determine the date for each entry.
 The function receives both the entry and its containing feed and is evaluated once per entry in each retrieved feed.
-Its result is used for sorting, selecting new entries, and updating the metadata store.
-A `null` result retains the undated-entry behavior described above.
+It must return a non-null date, which replaces the entry's `updatedDate` and is used for sorting, selecting new entries, and updating the metadata store.
+Returning `null` causes an `IllegalStateException`.
+When no function is configured, the default date selection and undated-entry behavior described above apply.
 Use `FeedEntryMessageSource.setEntryDateFunction(...)`, the Java DSL's `entryDateFunction(...)`, or the XML adapter's `entry-date-function` attribute referencing a `BiFunction` bean.
 
-For example, to fall back to the feed's published date when an entry has neither date:
+For example, to fall back to the feed's published date when an entry has neither date, and reject entries for which no date is available:
 
 [source, java]
 ----
@@ -140,11 +141,16 @@ Feed.inboundAdapter(feedResource, "feedReader")
             if (entryDate == null) {
                 entryDate = entry.getPublishedDate();
             }
-            return entryDate != null ? entryDate : feed.getPublishedDate();
+            if (entryDate == null) {
+                entryDate = feed.getPublishedDate();
+            }
+            Assert.state(entryDate != null, "A date is required for each feed entry");
+            return entryDate;
         });
 ----
 
 The adapter keeps one latest timestamp for the feed, so the chosen dates must be comparable across entries.
+A function that returns the current time for undated entries can cause them to be emitted on every poll, even when the feed has not changed.
 Entries that use the feed's published date can be emitted again whenever that date advances.
 For a feed without entry dates, this means that all entries can be emitted again.
 If you need to suppress these duplicates, use an xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver] downstream, keyed by `SyndEntry.getUri()` or another stable entry identifier.

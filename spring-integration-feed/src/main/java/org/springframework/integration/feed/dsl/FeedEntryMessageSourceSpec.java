@@ -23,7 +23,6 @@ import java.util.function.BiFunction;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -54,14 +53,14 @@ public class FeedEntryMessageSourceSpec extends MessageSourceSpec<FeedEntryMessa
 	}
 
 	/**
-	 * Specify a function to determine the date of an entry in a feed.
-	 * @param entryDateFunction the function to determine the entry date.
+	 * Specify a function to determine a non-null date for each entry in a feed.
+	 * @param entryDateFunction the function, which must return a non-null date.
 	 * @return the spec.
 	 * @since 7.2
 	 * @see FeedEntryMessageSource#setEntryDateFunction(BiFunction)
 	 */
 	public FeedEntryMessageSourceSpec entryDateFunction(
-			BiFunction<SyndEntry, SyndFeed, @Nullable Date> entryDateFunction) {
+			BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction) {
 
 		this.target.setEntryDateFunction(entryDateFunction);
 		return this;

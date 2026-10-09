@@ -34,6 +34,14 @@ When the message has no correlation data, the send is performed within the scope
 A warning is now logged when the option is set but the connection factory supports no publisher confirms at all.
 See xref:amqp/outbound-channel-adapter.adoc[] for more information.
 
+[[x7.2-feed-changes]]
+=== Feed Support Changes
+
+The `FeedEntryMessageSource` now supports an `entryDateFunction` to provide a non-null date for each feed entry, including entries without updated or published dates.
+The function is available through Java configuration, the Java DSL, and the XML `entry-date-function` attribute.
+Undated entries are now sorted after dated entries so that they can be emitted together with new dated entries.
+See xref:feed.adoc#duplicate-entries[Duplicate Entries] for more information.
+
 [[x7.2-jdbc-changes]]
 === JDBC Support Changes
 

@@ -73,17 +73,17 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final String metadataKey;
 
-	private final Queue<EntryWithTimestamp> entries = new ConcurrentLinkedQueue<>();
+	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<>();
 
 	private final Lock monitor = new ReentrantLock();
 
-	private final Comparator<EntryWithTimestamp> entryComparator =
-			Comparator.comparing(EntryWithTimestamp::timestamp, Comparator.nullsLast(Comparator.naturalOrder()));
+	private final Comparator<SyndEntry> syndEntryComparator =
+			Comparator.comparing(FeedEntryMessageSource::getLastModifiedDate,
+					Comparator.nullsLast(Comparator.naturalOrder()));
 
 	private final Lock feedMonitor = new ReentrantLock();
 
-	private BiFunction<SyndEntry, SyndFeed, @Nullable Date> entryDateFunction =
-			(entry, feed) -> getLastModifiedDate(entry);
+	private @Nullable BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction;
 
 	private SyndFeedInput syndFeedInput = new SyndFeedInput();
 
@@ -131,16 +131,17 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	}
 
 	/**
-	 * Specify a function to determine the date of an entry in a feed.
-	 * By default, the updated date is used, falling back to the published date.
+	 * Specify a function to determine a non-null date for each entry in a feed.
 	 * The function is evaluated once per entry in each retrieved feed, and its result
-	 * is used for sorting, selecting new entries, and updating the metadata store.
-	 * A {@code null} result retains the handling of entries without a date: they are
-	 * emitted after new dated entries, if any are present in the retrieved feed.
-	 * @param entryDateFunction the function to determine the entry date.
+	 * replaces the entry's updated date before sorting and selecting new entries.
+	 * This date is also used to update the metadata store when the entry is emitted.
+	 * When no function is configured, the entry's updated date is used, falling back
+	 * to its published date. Entries without either date are emitted after new dated
+	 * entries, if any are present in the retrieved feed.
+	 * @param entryDateFunction the function, which must return a non-null date.
 	 * @since 7.2
 	 */
-	public void setEntryDateFunction(BiFunction<SyndEntry, SyndFeed, @Nullable Date> entryDateFunction) {
+	public void setEntryDateFunction(BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction) {
 		Assert.notNull(entryDateFunction, "'entryDateFunction' must not be null");
 		this.entryDateFunction = entryDateFunction;
 	}
@@ -218,20 +219,20 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	@Nullable
 	private SyndEntry getNextEntry() {
-		EntryWithTimestamp next = this.entries.poll();
+		SyndEntry next = this.entries.poll();
 		if (next == null) {
 			return null;
 		}
 
-		Long timestamp = next.timestamp();
-		if (timestamp != null) {
-			this.lastTime = timestamp;
+		Date lastModifiedDate = FeedEntryMessageSource.getLastModifiedDate(next);
+		if (lastModifiedDate != null) {
+			this.lastTime = lastModifiedDate.getTime();
 		}
 		else {
 			this.lastTime += 1; //NOSONAR - single poller thread
 		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
-		return next.entry();
+		return next;
 	}
 
 	private void populateEntryList() {
@@ -239,18 +240,20 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
-				List<EntryWithTimestamp> entriesWithTimestamps = retrievedEntries.stream()
-						.map(entry -> {
-							Date entryDate = this.entryDateFunction.apply(entry, syndFeed);
-							return new EntryWithTimestamp(entry, entryDate != null ? entryDate.getTime() : null);
-						})
-						.sorted(this.entryComparator)
-						.toList();
+				BiFunction<SyndEntry, SyndFeed, Date> entryDateFunction = this.entryDateFunction;
+				if (entryDateFunction != null) {
+					for (SyndEntry entry : retrievedEntries) {
+						Date entryDate = entryDateFunction.apply(entry, syndFeed);
+						Assert.state(entryDate != null, "'entryDateFunction' must not return null");
+						entry.setUpdatedDate(entryDate);
+					}
+				}
 				boolean withinNewEntries = false;
-				for (EntryWithTimestamp entry : entriesWithTimestamps) {
-					Long timestamp = entry.timestamp();
-					if ((timestamp != null && timestamp > this.lastTime)
-							|| (timestamp == null && withinNewEntries)) {
+				retrievedEntries.sort(this.syndEntryComparator);
+				for (SyndEntry entry : retrievedEntries) {
+					Date entryDate = getLastModifiedDate(entry);
+					if ((entryDate != null && entryDate.getTime() > this.lastTime)
+							|| (entryDate == null && withinNewEntries)) {
 						this.entries.add(entry);
 						withinNewEntries = true;
 					}
@@ -315,10 +318,6 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private static @Nullable Date getLastModifiedDate(SyndEntry entry) {
 		return (entry.getUpdatedDate() != null) ? entry.getUpdatedDate() : entry.getPublishedDate();
-	}
-
-	private record EntryWithTimestamp(SyndEntry entry, @Nullable Long timestamp) {
-
 	}
 
 }

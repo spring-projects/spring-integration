@@ -133,7 +133,6 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle())
 				.isEqualTo("Second undated entry");
 		assertThat(source.receive()).isNull();
-		assertThat(source.receive()).isNull();
 	}
 
 	@Test
@@ -164,7 +163,8 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 			Message<SyndEntry> message = source.receive();
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload().getPublishedDate()).isNull();
-			assertThat(message.getPayload().getUpdatedDate()).isNull();
+			assertThat(message.getPayload().getUpdatedDate())
+					.isEqualTo(Date.from(Instant.parse("2026-10-07T10:00:00Z")));
 			assertThat(metadataStore.get("feedDate"))
 					.isEqualTo(Long.toString(Instant.parse("2026-10-07T10:00:00Z").toEpochMilli()));
 		}
@@ -200,30 +200,15 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 
 	@Test
 	public void testEntryDateFunctionReturningNull() {
-		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
-		SimpleMetadataStore metadataStore = new SimpleMetadataStore();
-		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "customDatelessEntries");
-		source.setMetadataStore(metadataStore);
-		source.setEntryDateFunction((entry, feed) -> "urn:entry:second".equals(entry.getUri()) ? new Date(1000) : null);
-		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		source.afterPropertiesSet();
-
-		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle()).isEqualTo("Second entry");
-		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle()).isEqualTo("First entry");
-		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle()).isEqualTo("Third entry");
-		assertThat(metadataStore.get("customDatelessEntries")).isEqualTo("1002");
-		assertThat(source.receive()).isNull();
-	}
-
-	@Test
-	public void testEntryDateFunctionReturningOnlyNull() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "nullEntryDates");
 		source.setEntryDateFunction((entry, feed) -> null);
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 
-		assertThat(source.receive()).isNull();
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(source::receive)
+				.withMessage("'entryDateFunction' must not return null");
 	}
 
 	@Test
