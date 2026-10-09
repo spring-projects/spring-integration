@@ -224,7 +224,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		if (requestMessage != null) {
 			Message<?> replyMessage = sendAndReceiveMessage(requestMessage);
 			if (replyMessage != null) {
-				@Nullable byte[] replyPayload = null;
+				byte[] replyPayload = null;
 				if (this.extractPayload) {
 					replyPayload = extractReplyPayload(replyMessage);
 				}
