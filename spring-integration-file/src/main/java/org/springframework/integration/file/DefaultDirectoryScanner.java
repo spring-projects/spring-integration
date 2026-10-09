@@ -78,7 +78,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 
 	@Override
 	public List<File> listFiles(File directory) throws IllegalArgumentException {
-		File @Nullable [] files = listEligibleFiles(directory);
+		File[] files = listEligibleFiles(directory);
 		if (files == null) {
 			throw new MessagingException("The path [" + directory
 					+ "] does not denote a properly accessible directory.");
