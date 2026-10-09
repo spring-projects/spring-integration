@@ -170,7 +170,7 @@ Protocol modules follow a consistent internal structure: `inbound`/`outbound` ad
 
 | Category | Modules |
 |---|---|
-| Messaging | `amqp`, `jms`, `kafka`, `mqtt`, `stomp`, `zeromq` |
+| Messaging | `amqp`, `jms`, `kafka`, `mqtt`, `pulsar`, `stomp`, `zeromq` |
 | File/Remote | `file`, `ftp`, `sftp`, `smb`, `zip` |
 | Data stores | `jdbc`, `jpa`, `mongodb`, `redis`, `r2dbc` |
 | Web | `http`, `webflux`, `websocket`, `ws`, `graphql` |

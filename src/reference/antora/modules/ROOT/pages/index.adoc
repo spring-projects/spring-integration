@@ -43,6 +43,7 @@ xref:kafka.adoc[Apache Kafka Support] :: Channels, adapters and gateways for Apa
 xref:mail.adoc[Mail Support] :: Channel adapters for Java Mail API
 xref:mongodb.adoc[MongoDb Support] :: Channels, adapters, gateways and message store for MongoDb
 xref:mqtt.adoc[MQTT Support] :: Channel adapters for MQTT protocol
+xref:pulsar.adoc[Apache Pulsar Support] :: Channel adapters for Apache Pulsar
 xref:r2dbc.adoc[R2DBC Support] :: Channel adapters for R2DBC API
 xref:redis.adoc[Redis Support] ::  Channels, adapters, gateways and message store for Redis
 xref:resource.adoc[Resource Support] :: Spring resource channel adapters
