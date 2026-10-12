@@ -16,6 +16,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 
 /**
@@ -30,11 +31,22 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 
 	private static final LogAccessor LOGGER = new LogAccessor(MqttHeaderMapper.class);
 
-	private final String[] inboundHeaderNames = {"*"};
+	private String[] inboundHeaderNames = {"*"};
+
+	/**
+	 * Construct a {@code MqttHeaderMapper} with the specified inbound property name patterns.
+	 * If no patterns are provided, all user properties will be mapped.
+	 * @param inboundHeaderNames inboundHeaderNames.
+	 */
+	public MqttHeaderMapper(String... inboundHeaderNames) {
+		if (!ObjectUtils.isEmpty(inboundHeaderNames)) {
+			this.inboundHeaderNames = inboundHeaderNames.clone();
+		}
+	}
 
 	@Override
 	public void fromHeaders(MessageHeaders headers, Mqtt5Publish target) {
-
+		throw new UnsupportedOperationException("Cannot populate immutable Mqtt5Publish.");
 	}
 
 	@Override
