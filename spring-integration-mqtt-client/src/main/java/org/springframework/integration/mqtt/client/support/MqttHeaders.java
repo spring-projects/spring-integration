@@ -39,6 +39,12 @@ public final class MqttHeaders {
 
 	public static final String CORRELATION_DATA = PREFIX + "correlationData";
 
+	public static final String CONTENT_TYPE = PREFIX + "contentType";
+
+	public static final String PAYLOAD_FORMAT_INDICATOR = PREFIX + "payloadFormatIndicator";
+
+	public static final String USER_PROPERTIES = PREFIX + "userProperties";
+
 	private MqttHeaders() {
 	}
 

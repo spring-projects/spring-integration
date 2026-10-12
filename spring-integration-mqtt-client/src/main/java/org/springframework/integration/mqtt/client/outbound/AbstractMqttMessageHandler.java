@@ -1,0 +1,297 @@
+/*
+ * Copyright 2026-present the original author or authors.
+ */
+
+package org.springframework.integration.mqtt.client.outbound;
+
+import java.nio.charset.StandardCharsets;
+
+import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.datatypes.MqttQos;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.integration.mqtt.client.event.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.client.event.MqttMessageNotDeliveredEvent;
+import org.springframework.integration.mqtt.client.event.MqttMessageSentEvent;
+import org.springframework.integration.mqtt.client.support.MqttHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SmartMessageConverter;
+import org.springframework.util.Assert;
+
+/**
+ * Abstract class for MQTT Outbound Adapters.
+ *
+ * @param <T> MQTT Client type
+ *
+ * @author Jiandong Ma
+ *
+ * @since 7.2
+ */
+public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends AbstractMessageHandler
+		implements ApplicationEventPublisherAware {
+
+	private final ClientManager<T> mqttClientManager;
+
+	@SuppressWarnings("NullAway.Init")
+	private T mqttClient;
+
+	@SuppressWarnings("NullAway.Init")
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	@SuppressWarnings("NullAway.Init")
+	private MessageConverter messageConverter;
+
+	private @Nullable String defaultTopic;
+
+	private @Nullable MqttQos defaultQos;
+
+	private @Nullable Boolean defaultRetained;
+
+	private MessageProcessor<String> topicProcessor = msg -> msg.getHeaders().get(MqttHeaders.TOPIC, String.class);
+
+	private MessageProcessor<MqttQos> qosProcessor = msg -> msg.getHeaders().get(MqttHeaders.QOS, MqttQos.class);
+
+	private MessageProcessor<Boolean> retainedProcessor = msg -> msg.getHeaders().get(MqttHeaders.RETAINED, Boolean.class);
+
+	private boolean async;
+
+	private boolean asyncEvents;
+
+	protected AbstractMqttMessageHandler(ClientManager<T> mqttClientManager) {
+		this.mqttClientManager = mqttClientManager;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	public ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		this.mqttClient = this.mqttClientManager.getClient();
+		if (this.messageConverter == null) {
+			String messageConverterBeanName = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME;
+			setMessageConverter(getBeanFactory().getBean(messageConverterBeanName, SmartMessageConverter.class));
+		}
+	}
+
+	protected T getClient() {
+		return this.mqttClient;
+	}
+
+	/**
+	 * Set the message converter to use; if this is provided, the adapter qos and retained
+	 * settings are ignored.
+	 * @param messageConverter the messageConverter.
+	 */
+	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.notNull(messageConverter, "'converter' cannot be null");
+		this.messageConverter = messageConverter;
+	}
+
+	/**
+	 * Set to true if you don't want to block when sending messages. Default false.
+	 * When true, message sent/delivered events will be published for reception
+	 * by a suitably configured 'ApplicationListener' or an event
+	 * inbound-channel-adapter.
+	 * @param async true for async.
+	 * @see #setAsyncEvents(boolean)
+	 */
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
+
+	protected boolean isAsync() {
+		return this.async;
+	}
+
+	/**
+	 * When {@link #setAsync(boolean)} is true, setting this to true enables
+	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
+	 * to be emitted. Default false.
+	 * @param asyncEvents the asyncEvents.
+	 */
+	public void setAsyncEvents(boolean asyncEvents) {
+		this.asyncEvents = asyncEvents;
+	}
+
+	/**
+	 * Set the topic to which the message will be published if the
+	 * {@link #setTopicExpression(Expression) topicExpression} evaluates to `null`.
+	 * @param defaultTopic the default topic.
+	 */
+	public void setDefaultTopic(String defaultTopic) {
+		Assert.hasText(defaultTopic, "'defaultTopic' must not be empty");
+		this.defaultTopic = defaultTopic;
+	}
+
+	/**
+	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * @param topicExpression the expression.
+	 */
+	public void setTopicExpression(Expression topicExpression) {
+		Assert.notNull(topicExpression, "'topicExpression' cannot be null");
+		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+	}
+
+	/**
+	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * @param topicExpression the expression.
+	 */
+	public void setTopicExpressionString(String topicExpression) {
+		Assert.hasText(topicExpression, "'topicExpression' must not be null or empty");
+		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+	}
+
+	/**
+	 * Set the qos for messages if the {@link #setQosExpression(Expression) qosExpression} evaluates to null.
+	 * @param defaultQos the default qos.
+	 */
+	public void setDefaultQos(MqttQos defaultQos) {
+		Assert.notNull(defaultQos, "'defaultQos' cannot be null");
+		this.defaultQos = defaultQos;
+	}
+
+	/**
+	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * @param qosExpression the expression.
+	 */
+	public void setQosExpression(Expression qosExpression) {
+		Assert.notNull(qosExpression, "'qosExpression' cannot be null");
+		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+	}
+
+	/**
+	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * @param qosExpression the expression.
+	 */
+	public void setQosExpressionString(String qosExpression) {
+		Assert.hasText(qosExpression, "'qosExpression' must not be null or empty");
+		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+	}
+
+	/**
+	 * Set the retained boolean for messages if the {@link #setRetainedExpression(Expression) retainedExpression}
+	 * evaluates to null.
+	 * @param defaultRetained the defaultRetained.
+	 */
+	public void setDefaultRetained(boolean defaultRetained) {
+		this.defaultRetained = defaultRetained;
+	}
+
+	/**
+	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * @param retainedExpression the expression.
+	 */
+	public void setRetainedExpression(Expression retainedExpression) {
+		Assert.notNull(retainedExpression, "'retainedExpression' cannot be null");
+		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+	}
+
+	/**
+	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * @param retainedExpression the expression.
+	 */
+	public void setRetainedExpressionString(String retainedExpression) {
+		Assert.hasText(retainedExpression, "'retainedExpression' must not be null or empty");
+		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) {
+		Object messageForPublish;
+		if (isMqttMessage(message.getPayload())) {
+			messageForPublish = message.getPayload();
+		}
+		else {
+			String topic = this.topicProcessor.processMessage(message);
+			if (topic == null) {
+				topic = this.defaultTopic;
+			}
+			Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
+
+			MqttQos qos = this.qosProcessor.processMessage(message);
+			qos = qos == null ? this.defaultQos : qos;
+
+			Boolean retained = this.retainedProcessor.processMessage(message);
+			retained = retained == null ? this.defaultRetained : retained;
+
+			messageForPublish = buildMqttMessage(topic, getPayloadAsBytes(message), qos, retained, message);
+		}
+
+		publishMqttMessage(messageForPublish, message);
+	}
+
+	private byte[] getPayloadAsBytes(Message<?> message) {
+		Object payload = message.getPayload();
+		byte[] body;
+		if (payload instanceof byte[] bytes) {
+			body = bytes;
+		}
+		else if (payload instanceof String string) {
+			body = string.getBytes(StandardCharsets.UTF_8);
+		}
+		else {
+			Message<?> convertedMessage = this.messageConverter.toMessage(payload, message.getHeaders());
+			Assert.state(convertedMessage != null,
+					() -> "The MQTT payload cannot be null. The '" + this.messageConverter + "' returned null for: " + message);
+			Object convertedPayload = convertedMessage.getPayload();
+			if (convertedPayload instanceof byte[] bytes) {
+				body = bytes;
+			}
+			else if (convertedPayload instanceof String string) {
+				body = string.getBytes(StandardCharsets.UTF_8);
+			}
+			else {
+				throw new IllegalStateException("The MQTT payload must be a 'byte[]' or 'String'. The '" + this.messageConverter +
+						"' returned a '" + convertedPayload.getClass().getSimpleName() + "' for: " + message);
+			}
+		}
+		return body;
+	}
+
+	protected abstract boolean isMqttMessage(Object payload);
+
+	protected abstract Object buildMqttMessage(String topic, byte[] body, @Nullable MqttQos qos,
+			@Nullable Boolean retained, Message<?> message);
+
+	protected abstract void publishMqttMessage(Object messageForPublish, Message<?> message);
+
+	protected void messageSentEvent(Message<?> message, Object mqttPublish) {
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(new MqttMessageSentEvent(this, message, mqttPublish));
+		}
+	}
+
+	protected void sendDeliveryCompleteEvent(Object mqttPublishResult) {
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(new MqttMessageDeliveredEvent(this, mqttPublishResult));
+		}
+	}
+
+	protected void sendFailedDeliveryEvent(Object mqttPublishResult, Throwable ex) {
+		if (this.async && this.asyncEvents) {
+			getApplicationEventPublisher().publishEvent(new MqttMessageNotDeliveredEvent(this, mqttPublishResult, ex));
+		}
+	}
+
+	@Override
+	public String getComponentType() {
+		return "mqtt:outbound-channel-adapter";
+	}
+
+}
