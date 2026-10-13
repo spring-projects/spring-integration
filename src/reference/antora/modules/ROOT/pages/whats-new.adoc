@@ -57,6 +57,13 @@ The `SerializingHttpMessageConverter` now has a constructor that requires the pa
 Its default constructor and `setAllowedPatterns()` method are deprecated.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
+[[x7.2-ftp-changes]]
+=== FTP Support Changes
+
+The FTP session factories can now connect through a proxy.
+The `proxy` property of the `AbstractFtpSessionFactory` accepts a `java.net.Proxy` (SOCKS or HTTP), and the new `FtpHttpProxySessionFactory` tunnels the connections through an HTTP proxy that requires credentials.
+See xref:ftp/session-factory.adoc#ftp-session-factory-proxy[Proxy Support] for more information.
+
 [[x7.2-jms-changes]]
 === JMS Support Changes
 
