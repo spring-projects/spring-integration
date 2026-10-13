@@ -11,7 +11,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 
 /**
  * The {@link AbstractMqttMessageHandler} implementation for MQTT v3.
@@ -32,7 +31,8 @@ public class Mqtt3MessageHandler extends AbstractMqttMessageHandler<Mqtt3Client>
 	}
 
 	@Override
-	protected Object buildMqttMessage(String topic, byte[] body, @Nullable MqttQos qos, @Nullable Boolean retained, Message<?> message) {
+	protected Object buildMqttMessage(String topic, byte[] body, @Nullable MqttQos qos,
+			@Nullable Boolean retained, Message<?> message) {
 
 		var builder = Mqtt3Publish.builder()
 				.topic(topic)
@@ -66,12 +66,7 @@ public class Mqtt3MessageHandler extends AbstractMqttMessageHandler<Mqtt3Client>
 			messageSentEvent(message, mqtt3Publish);
 		}
 		else {
-			try {
-				getClient().toBlocking().publish(mqtt3Publish);
-			}
-			catch (RuntimeException ex) {
-				throw new MessageHandlingException(message, "Failed to publish to MQTT in the [" + this + ']', ex);
-			}
+			getClient().toBlocking().publish(mqtt3Publish);
 		}
 	}
 

@@ -12,14 +12,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertyImpl;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
+import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +33,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
+import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveryEvent;
@@ -70,7 +70,10 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 
 	static MqttMessageDeliveredEvent petDeviceMessageDeliveredEvent;
 
-	static Mqtt5BlockingClient mqtt5TestClient;
+	Mqtt5AsyncClient mqtt5AsyncClient;
+
+	@Autowired
+	ClientManager<Mqtt5Client> mqtt5ClientManager;
 
 	@Autowired
 	@Qualifier("carDeviceMessageOutboundAdapter.input")
@@ -80,26 +83,17 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	@Qualifier("petDeviceMessageOutboundAdapter.input")
 	MessageChannel petDeviceInputChannel;
 
-	@BeforeAll
-	static void setUp() {
-		mqtt5TestClient = Mqtt5Client.builder()
-				.identifier("mqtt5-outbound-test-client")
-				.serverHost(MQTT_CONTAINER.getHost())
-				.serverPort(MQTT_CONTAINER.getFirstMappedPort())
-				.buildBlocking();
-		mqtt5TestClient.connect();
-	}
-
 	@BeforeEach
 	void beforeEach() throws InterruptedException {
 		assertThat(connectedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		mqtt5AsyncClient = mqtt5ClientManager.getClient().toAsync();
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_DefaultTopic_BytePayload() throws Exception {
+	void testCarDeviceMessageHandlerDefaultTopicBytePayload() throws Exception {
 		// Given
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt5TestClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt5AsyncClient.subscribeWith()
 				.topicFilter(CAR_DEVICE_DEFAULT_TOPIC)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt5Publish -> {
@@ -134,11 +128,11 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_StringPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicStringPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v5-outbound-car-header-topic";
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt5TestClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt5AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt5Publish -> {
@@ -161,7 +155,7 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_ObjectPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicObjectPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v5-outbound-car-header-topic-object-payload";
 		record CarObject(String model, String serialNumber) implements Serializable {
@@ -170,7 +164,7 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 
 		CarObject carObject = new CarObject("Tesla", "1234");
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt5TestClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt5AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt5Publish -> {
@@ -193,7 +187,7 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_Mqtt5PublishPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicMqtt5PublishPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v5-outbound-car-header-topic-mqtt5publish-payload";
 		Mqtt5Publish mqtt5Payload = Mqtt5Publish.builder()
@@ -201,7 +195,7 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 				.payload("simple-car-payload".getBytes())
 				.build();
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt5TestClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt5AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt5Publish -> {
@@ -220,7 +214,7 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testPetDeviceMessageHandler_AsyncEvent() throws Exception {
+	void testPetDeviceMessageHandlerAsyncEvent() throws Exception {
 		// Given
 		String petTopic = "mqtt-v5-outbound-pet-header-topic";
 		// When
@@ -278,6 +272,12 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 			messageHandler.setTopicExpressionString("headers['mqtt_topic']");
 			messageHandler.setQosExpressionString("headers['mqtt_qos']");
 			messageHandler.setRetainedExpressionString("headers['mqtt_retained']");
+			messageHandler.setContentTypeExpressionString("headers['mqtt_contentType']");
+			messageHandler.setCorrelationDataExpressionString("headers['mqtt_correlationData']");
+			messageHandler.setMessageExpiryIntervalExpressionString("headers['mqtt_messageExpiryInterval']");
+			messageHandler.setResponseTopicExpressionString("headers['mqtt_responseTopic']");
+			messageHandler.setPayloadFormatIndicatorExpressionString("headers['mqtt_payloadFormatIndicator']");
+			messageHandler.setUserPropertiesExpressionString("headers['mqtt_userProperties']");
 			return messageHandler;
 		}
 
@@ -290,7 +290,6 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 		Mqtt5MessageHandler petDeviceMessageHandler(Mqtt5ClientManager mqtt5ClientManager) {
 			var messageHandler = new Mqtt5MessageHandler(mqtt5ClientManager);
 			messageHandler.setAsync(true);
-			messageHandler.setAsyncEvents(true);
 			// for coverage
 			messageHandler.setTopicExpression(new FunctionExpression<Message<?>>(message -> message.getHeaders().get(MqttHeaders.TOPIC)));
 			messageHandler.setQosExpression(new FunctionExpression<Message<?>>(message -> message.getHeaders().get(MqttHeaders.QOS)));

@@ -10,13 +10,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +30,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
+import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.integration.mqtt.client.core.Mqtt3ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveryEvent;
@@ -67,7 +67,10 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 
 	static MqttMessageDeliveredEvent petDeviceMessageDeliveredEvent;
 
-	static Mqtt3BlockingClient mqtt3BlockingClient;
+	Mqtt3AsyncClient mqtt3AsyncClient;
+
+	@Autowired
+	ClientManager<Mqtt3Client> mqtt3ClientManager;
 
 	@Autowired
 	@Qualifier("carDeviceMessageOutboundAdapter.input")
@@ -77,26 +80,17 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 	@Qualifier("petDeviceMessageOutboundAdapter.input")
 	MessageChannel petDeviceInputChannel;
 
-	@BeforeAll
-	static void setUp() {
-		mqtt3BlockingClient = Mqtt3Client.builder()
-				.identifier("mqtt3-outbound-test-client")
-				.serverHost(MQTT_CONTAINER.getHost())
-				.serverPort(MQTT_CONTAINER.getFirstMappedPort())
-				.buildBlocking();
-		mqtt3BlockingClient.connect();
-	}
-
 	@BeforeEach
 	void beforeEach() throws InterruptedException {
 		assertThat(connectedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		mqtt3AsyncClient = mqtt3ClientManager.getClient().toAsync();
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_DefaultTopic_BytePayload() throws Exception {
+	void testCarDeviceMessageHandlerDefaultTopicBytePayload() throws Exception {
 		// Given
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		CompletableFuture<Mqtt3SubAck> subscribeFuture = mqtt3BlockingClient.toAsync().subscribeWith()
+		CompletableFuture<Mqtt3SubAck> subscribeFuture = mqtt3AsyncClient.subscribeWith()
 				.topicFilter(CAR_DEVICE_DEFAULT_TOPIC)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt3Publish -> {
@@ -120,11 +114,11 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_StringPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicStringPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v3-outbound-car-header-topic";
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt3BlockingClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt3AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt3Publish -> {
@@ -148,7 +142,7 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_ObjectPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicObjectPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v3-outbound-car-header-topic-object-payload";
 		record CarObject(String model, String serialNumber) implements Serializable {
@@ -157,7 +151,7 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 
 		CarObject carObject = new CarObject("Tesla", "1234");
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt3BlockingClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt3AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt3Publish -> {
@@ -180,7 +174,7 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testCarDeviceMessageHandler_HeaderTopic_Mqtt3PublishPayload() throws Exception {
+	void testCarDeviceMessageHandlerHeaderTopicMqtt3PublishPayload() throws Exception {
 		// Given
 		String carTopic = "mqtt-v3-outbound-car-header-topic-mqtt3publish-payload";
 		Mqtt3Publish mqtt3Payload = Mqtt3Publish.builder()
@@ -188,7 +182,7 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 				.payload("simple-car-payload".getBytes())
 				.build();
 		CountDownLatch callbackLatch = new CountDownLatch(1);
-		var subscribeFuture = mqtt3BlockingClient.toAsync().subscribeWith()
+		var subscribeFuture = mqtt3AsyncClient.subscribeWith()
 				.topicFilter(carTopic)
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.callback(mqtt3Publish -> {
@@ -207,7 +201,7 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testPetDeviceMessageHandler_AsyncEvent() throws Exception {
+	void testPetDeviceMessageHandlerAsyncEvent() throws Exception {
 		// Given
 		String petTopic = "mqtt-v3-outbound-pet-header-topic";
 		// When
@@ -278,7 +272,6 @@ class Mqtt3MessageHandlerTests implements MqttContainerTest {
 		Mqtt3MessageHandler petDeviceMessageHandler(Mqtt3ClientManager mqtt3ClientManager) {
 			var messageHandler = new Mqtt3MessageHandler(mqtt3ClientManager);
 			messageHandler.setAsync(true);
-			messageHandler.setAsyncEvents(true);
 			// for coverage
 			messageHandler.setTopicExpression(new FunctionExpression<Message<?>>(message -> message.getHeaders().get(MqttHeaders.TOPIC)));
 			messageHandler.setQosExpression(new FunctionExpression<Message<?>>(message -> message.getHeaders().get(MqttHeaders.QOS)));

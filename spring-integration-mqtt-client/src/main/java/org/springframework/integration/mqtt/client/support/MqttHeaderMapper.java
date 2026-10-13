@@ -4,7 +4,6 @@
 
 package org.springframework.integration.mqtt.client.support;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -17,7 +16,6 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
 /**
@@ -34,20 +32,20 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 
 	private String[] inboundHeaderNames = {"*"};
 
-	@Override
-	public void fromHeaders(MessageHeaders headers, Mqtt5Publish target) {
-		throw new UnsupportedOperationException("Cannot populate immutable Mqtt5Publish.");
+	public MqttHeaderMapper() {
+
 	}
 
 	/**
-	 * Provide a list of patterns to map MQTT message properties into message headers.
-	 * @param inboundHeaderNames the MQTT message property patterns to map.
+	 * Construct a {@code MqttHeaderMapper} with the specified inbound property name patterns.
 	 */
-	public void setInboundHeaderNames(String... inboundHeaderNames) {
-		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null");
-		String[] copy = Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length);
-		Arrays.sort(copy);
-		this.inboundHeaderNames = copy;
+	public MqttHeaderMapper(String... inboundHeaderNames) {
+		this.inboundHeaderNames = inboundHeaderNames.clone();
+	}
+
+	@Override
+	public void fromHeaders(MessageHeaders headers, Mqtt5Publish target) {
+		throw new UnsupportedOperationException("Cannot populate immutable Mqtt5Publish.");
 	}
 
 	@Override

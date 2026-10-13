@@ -64,8 +64,6 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 
 	private boolean async;
 
-	private boolean asyncEvents;
-
 	protected AbstractMqttMessageHandler(ClientManager<T> mqttClientManager) {
 		this.mqttClientManager = mqttClientManager;
 	}
@@ -73,10 +71,6 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
-	public ApplicationEventPublisher getApplicationEventPublisher() {
-		return this.applicationEventPublisher;
 	}
 
 	@Override
@@ -94,8 +88,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the message converter to use; if this is provided, the adapter qos and retained
-	 * settings are ignored.
+	 * Set the message converter to use.
 	 * @param messageConverter the messageConverter.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -109,7 +102,6 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 * by a suitably configured 'ApplicationListener' or an event
 	 * inbound-channel-adapter.
 	 * @param async true for async.
-	 * @see #setAsyncEvents(boolean)
 	 */
 	public void setAsync(boolean async) {
 		this.async = async;
@@ -117,16 +109,6 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 
 	protected boolean isAsync() {
 		return this.async;
-	}
-
-	/**
-	 * When {@link #setAsync(boolean)} is true, setting this to true enables
-	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
-	 * to be emitted. Default false.
-	 * @param asyncEvents the asyncEvents.
-	 */
-	public void setAsyncEvents(boolean asyncEvents) {
-		this.asyncEvents = asyncEvents;
 	}
 
 	/**
@@ -214,8 +196,9 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object messageForPublish;
-		if (isMqttMessage(message.getPayload())) {
-			messageForPublish = message.getPayload();
+		Object payload = message.getPayload();
+		if (isMqttMessage(payload)) {
+			messageForPublish = payload;
 		}
 		else {
 			String topic = this.topicProcessor.processMessage(message);
@@ -272,21 +255,15 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	protected abstract void publishMqttMessage(Object messageForPublish, Message<?> message);
 
 	protected void messageSentEvent(Message<?> message, Object mqttPublish) {
-		if (this.async && this.asyncEvents) {
-			getApplicationEventPublisher().publishEvent(new MqttMessageSentEvent(this, message, mqttPublish));
-		}
+		this.applicationEventPublisher.publishEvent(new MqttMessageSentEvent(this, message, mqttPublish));
 	}
 
 	protected void sendDeliveryCompleteEvent(Object mqttPublishResult) {
-		if (this.async && this.asyncEvents) {
-			getApplicationEventPublisher().publishEvent(new MqttMessageDeliveredEvent(this, mqttPublishResult));
-		}
+		this.applicationEventPublisher.publishEvent(new MqttMessageDeliveredEvent(this, mqttPublishResult));
 	}
 
 	protected void sendFailedDeliveryEvent(Object mqttPublishResult, Throwable ex) {
-		if (this.async && this.asyncEvents) {
-			getApplicationEventPublisher().publishEvent(new MqttMessageNotDeliveredEvent(this, mqttPublishResult, ex));
-		}
+		this.applicationEventPublisher.publishEvent(new MqttMessageNotDeliveredEvent(this, mqttPublishResult, ex));
 	}
 
 	@Override
