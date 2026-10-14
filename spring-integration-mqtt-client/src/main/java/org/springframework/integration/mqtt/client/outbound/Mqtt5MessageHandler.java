@@ -7,6 +7,7 @@ package org.springframework.integration.mqtt.client.outbound;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
@@ -16,6 +17,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
@@ -171,51 +173,34 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	protected Object buildMqttMessage(String topic, byte[] body, @Nullable MqttQos qos,
 			@Nullable Boolean retained, Message<?> message) {
 
-		var builder = Mqtt5Publish.builder()
+		final var builder = Mqtt5Publish.builder()
 				.topic(topic)
 				.payload(body);
 
-		if (qos != null) {
-			builder = builder.qos(qos);
-		}
-
-		if (retained != null) {
-			builder = builder.retain(retained);
-		}
-
 		String contentType = this.contentTypeExpression.getValue(getEvaluationContext(), message, String.class);
-		if (contentType != null) {
-			builder = builder.contentType(contentType);
-		}
-
 		byte[] bytes = this.correlationDataExpression.getValue(getEvaluationContext(), message, byte[].class);
-		if (!ObjectUtils.isEmpty(bytes)) {
-			builder = builder.correlationData(bytes);
-		}
-
 		String responseTopic = this.responseTopicExpression.getValue(getEvaluationContext(), message, String.class);
-		if (responseTopic != null) {
-			builder = builder.responseTopic(responseTopic);
-		}
-
-		Long messageExpiryInterval = this.messageExpiryIntervalExpression.getValue(getEvaluationContext(), message, Long.class);
-		if (messageExpiryInterval != null) {
-			builder = builder.messageExpiryInterval(messageExpiryInterval);
-		}
-
-		var mqtt5PayloadFormatIndicator = this.payloadFormatIndicatorExpression.getValue(getEvaluationContext(), message, Mqtt5PayloadFormatIndicator.class);
-		if (mqtt5PayloadFormatIndicator != null) {
-			builder = builder.payloadFormatIndicator(mqtt5PayloadFormatIndicator);
-		}
-
+		Long messageExpiryInterval = this.messageExpiryIntervalExpression
+				.getValue(getEvaluationContext(), message, Long.class);
+		var mqtt5PayloadFormatIndicator = this.payloadFormatIndicatorExpression
+				.getValue(getEvaluationContext(), message, Mqtt5PayloadFormatIndicator.class);
 		Map<?, ?> userProperties = this.userPropertiesExpression.getValue(getEvaluationContext(), message, Map.class);
-		if (userProperties != null) {
-			List<Mqtt5UserProperty> userPropertyList = new ArrayList<>();
-			userProperties.forEach((key, value) -> {
-				userPropertyList.add(Mqtt5UserProperty.of(key.toString(), value.toString()));
-			});
-			builder = builder.userProperties().addAll(userPropertyList).applyUserProperties();
-		}
+
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(qos, builder::qos)
+				.acceptIfNotNull(retained, builder::retain)
+				.acceptIfNotNull(contentType, builder::contentType)
+				.acceptIfCondition(!ObjectUtils.isEmpty(bytes), bytes, builder::correlationData)
+				.acceptIfNotNull(responseTopic, builder::responseTopic)
+				.acceptIfNotNull(messageExpiryInterval, builder::messageExpiryInterval)
+				.acceptIfNotNull(mqtt5PayloadFormatIndicator, builder::payloadFormatIndicator)
+				.acceptIfNotNull(userProperties, (Consumer<Map<?, ?>>) map -> {
+					List<Mqtt5UserProperty> userPropertyList = new ArrayList<>();
+					map.forEach((key, value) -> {
+						userPropertyList.add(Mqtt5UserProperty.of(key.toString(), value.toString()));
+					});
+					builder.userProperties().addAll(userPropertyList).applyUserProperties();
+				});
 
 		return builder.build();
 	}
