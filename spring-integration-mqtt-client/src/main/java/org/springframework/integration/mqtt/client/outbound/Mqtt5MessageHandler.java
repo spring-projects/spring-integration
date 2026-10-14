@@ -16,8 +16,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
@@ -33,23 +32,23 @@ import org.springframework.util.ObjectUtils;
  */
 public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client> {
 
-	private MessageProcessor<String> contentTypeProcessor = message -> message.getHeaders()
-			.get(MqttHeaders.CONTENT_TYPE, String.class);
+	private Expression contentTypeExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.CONTENT_TYPE));
 
-	private MessageProcessor<byte[]> correlationDataProcessor = message -> message.getHeaders()
-			.get(MqttHeaders.CORRELATION_DATA, byte[].class);
+	private Expression correlationDataExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.CORRELATION_DATA));
 
-	private MessageProcessor<String> responseTopicProcessor = message -> message.getHeaders()
-			.get(MqttHeaders.RESPONSE_TOPIC, String.class);
+	private Expression responseTopicExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.RESPONSE_TOPIC));
 
-	private MessageProcessor<Long> messageExpiryIntervalProcessor = message -> message.getHeaders()
-			.get(MqttHeaders.MESSAGE_EXPIRY_INTERVAL, Long.class);
+	private Expression messageExpiryIntervalExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.MESSAGE_EXPIRY_INTERVAL));
 
-	private MessageProcessor<Mqtt5PayloadFormatIndicator> payloadFormatIndicatorProcessor = message ->
-			message.getHeaders().get(MqttHeaders.PAYLOAD_FORMAT_INDICATOR, Mqtt5PayloadFormatIndicator.class);
+	private Expression payloadFormatIndicatorExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.PAYLOAD_FORMAT_INDICATOR));
 
-	private MessageProcessor<Map<?, ?>> userPropertiesProcessor = message -> message.getHeaders()
-			.get(MqttHeaders.USER_PROPERTIES, Map.class);
+	private Expression userPropertiesExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.USER_PROPERTIES));
 
 	public Mqtt5MessageHandler(ClientManager<Mqtt5Client> mqttClientManager) {
 		super(mqttClientManager);
@@ -61,7 +60,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setContentTypeExpression(Expression contentTypeExpression) {
 		Assert.notNull(contentTypeExpression, "'contentTypeExpression' cannot be null");
-		this.contentTypeProcessor = new ExpressionEvaluatingMessageProcessor<>(contentTypeExpression);
+		this.contentTypeExpression = contentTypeExpression;
 	}
 
 	/**
@@ -70,7 +69,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setContentTypeExpressionString(String contentTypeExpression) {
 		Assert.hasText(contentTypeExpression, "'contentTypeExpression' must not be null or empty");
-		this.contentTypeProcessor = new ExpressionEvaluatingMessageProcessor<>(contentTypeExpression);
+		setContentTypeExpression(EXPRESSION_PARSER.parseExpression(contentTypeExpression));
 	}
 
 	/**
@@ -79,7 +78,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setCorrelationDataExpression(Expression correlationDataExpression) {
 		Assert.notNull(correlationDataExpression, "'correlationDataExpression' cannot be null");
-		this.correlationDataProcessor = new ExpressionEvaluatingMessageProcessor<>(correlationDataExpression);
+		this.correlationDataExpression = correlationDataExpression;
 	}
 
 	/**
@@ -88,7 +87,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setCorrelationDataExpressionString(String correlationDataExpression) {
 		Assert.hasText(correlationDataExpression, "'correlationDataExpression' must not be null or empty");
-		this.correlationDataProcessor = new ExpressionEvaluatingMessageProcessor<>(correlationDataExpression);
+		setCorrelationDataExpression(EXPRESSION_PARSER.parseExpression(correlationDataExpression));
 	}
 
 	/**
@@ -97,7 +96,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setResponseTopicExpression(Expression responseTopicExpression) {
 		Assert.notNull(responseTopicExpression, "'responseTopicExpression' cannot be null");
-		this.responseTopicProcessor = new ExpressionEvaluatingMessageProcessor<>(responseTopicExpression);
+		this.responseTopicExpression = responseTopicExpression;
 	}
 
 	/**
@@ -106,7 +105,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setResponseTopicExpressionString(String responseTopicExpression) {
 		Assert.hasText(responseTopicExpression, "'responseTopicExpression' must not be null or empty");
-		this.responseTopicProcessor = new ExpressionEvaluatingMessageProcessor<>(responseTopicExpression);
+		setResponseTopicExpression(EXPRESSION_PARSER.parseExpression(responseTopicExpression));
 	}
 
 	/**
@@ -115,7 +114,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setMessageExpiryIntervalExpression(Expression messageExpiryIntervalExpression) {
 		Assert.notNull(messageExpiryIntervalExpression, "'messageExpiryIntervalExpression' cannot be null");
-		this.messageExpiryIntervalProcessor = new ExpressionEvaluatingMessageProcessor<>(messageExpiryIntervalExpression);
+		this.messageExpiryIntervalExpression = messageExpiryIntervalExpression;
 	}
 
 	/**
@@ -124,7 +123,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setMessageExpiryIntervalExpressionString(String messageExpiryIntervalExpression) {
 		Assert.hasText(messageExpiryIntervalExpression, "'messageExpiryIntervalExpression' must not be null or empty");
-		this.messageExpiryIntervalProcessor = new ExpressionEvaluatingMessageProcessor<>(messageExpiryIntervalExpression);
+		setMessageExpiryIntervalExpression(EXPRESSION_PARSER.parseExpression(messageExpiryIntervalExpression));
 	}
 
 	/**
@@ -133,7 +132,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setPayloadFormatIndicatorExpression(Expression payloadFormatIndicatorExpression) {
 		Assert.notNull(payloadFormatIndicatorExpression, "'payloadFormatIndicatorExpression' cannot be null");
-		this.payloadFormatIndicatorProcessor = new ExpressionEvaluatingMessageProcessor<>(payloadFormatIndicatorExpression);
+		this.payloadFormatIndicatorExpression = payloadFormatIndicatorExpression;
 	}
 
 	/**
@@ -142,7 +141,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setPayloadFormatIndicatorExpressionString(String payloadFormatIndicatorExpression) {
 		Assert.hasText(payloadFormatIndicatorExpression, "'payloadFormatIndicatorExpression' must not be null or empty");
-		this.payloadFormatIndicatorProcessor = new ExpressionEvaluatingMessageProcessor<>(payloadFormatIndicatorExpression);
+		setPayloadFormatIndicatorExpression(EXPRESSION_PARSER.parseExpression(payloadFormatIndicatorExpression));
 	}
 
 	/**
@@ -151,7 +150,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setUserPropertiesExpression(Expression userPropertiesExpression) {
 		Assert.notNull(userPropertiesExpression, "'userPropertiesExpression' cannot be null");
-		this.userPropertiesProcessor = new ExpressionEvaluatingMessageProcessor<>(userPropertiesExpression);
+		this.userPropertiesExpression = userPropertiesExpression;
 	}
 
 	/**
@@ -160,7 +159,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	 */
 	public void setUserPropertiesExpressionString(String userPropertiesExpression) {
 		Assert.hasText(userPropertiesExpression, "'userPropertiesExpression' must not be null or empty");
-		this.userPropertiesProcessor = new ExpressionEvaluatingMessageProcessor<>(userPropertiesExpression);
+		setUserPropertiesExpression(EXPRESSION_PARSER.parseExpression(userPropertiesExpression));
 	}
 
 	@Override
@@ -184,32 +183,32 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 			builder = builder.retain(retained);
 		}
 
-		String contentType = this.contentTypeProcessor.processMessage(message);
+		String contentType = this.contentTypeExpression.getValue(getEvaluationContext(), message, String.class);
 		if (contentType != null) {
 			builder = builder.contentType(contentType);
 		}
 
-		byte[] bytes = this.correlationDataProcessor.processMessage(message);
+		byte[] bytes = this.correlationDataExpression.getValue(getEvaluationContext(), message, byte[].class);
 		if (!ObjectUtils.isEmpty(bytes)) {
 			builder = builder.correlationData(bytes);
 		}
 
-		String responseTopic = this.responseTopicProcessor.processMessage(message);
+		String responseTopic = this.responseTopicExpression.getValue(getEvaluationContext(), message, String.class);
 		if (responseTopic != null) {
 			builder = builder.responseTopic(responseTopic);
 		}
 
-		Long messageExpiryInterval = this.messageExpiryIntervalProcessor.processMessage(message);
+		Long messageExpiryInterval = this.messageExpiryIntervalExpression.getValue(getEvaluationContext(), message, Long.class);
 		if (messageExpiryInterval != null) {
 			builder = builder.messageExpiryInterval(messageExpiryInterval);
 		}
 
-		var mqtt5PayloadFormatIndicator = this.payloadFormatIndicatorProcessor.processMessage(message);
+		var mqtt5PayloadFormatIndicator = this.payloadFormatIndicatorExpression.getValue(getEvaluationContext(), message, Mqtt5PayloadFormatIndicator.class);
 		if (mqtt5PayloadFormatIndicator != null) {
 			builder = builder.payloadFormatIndicator(mqtt5PayloadFormatIndicator);
 		}
 
-		Map<?, ?> userProperties = this.userPropertiesProcessor.processMessage(message);
+		Map<?, ?> userProperties = this.userPropertiesExpression.getValue(getEvaluationContext(), message, Map.class);
 		if (userProperties != null) {
 			List<Mqtt5UserProperty> userPropertyList = new ArrayList<>();
 			userProperties.forEach((key, value) -> {

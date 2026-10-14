@@ -13,10 +13,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.client.core.ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.client.event.MqttMessageNotDeliveredEvent;
@@ -50,17 +51,23 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	@SuppressWarnings("NullAway.Init")
 	private MessageConverter messageConverter;
 
+	@SuppressWarnings("NullAway.Init")
+	private StandardEvaluationContext evaluationContext;
+
 	private @Nullable String defaultTopic;
 
 	private @Nullable MqttQos defaultQos;
 
 	private @Nullable Boolean defaultRetained;
 
-	private MessageProcessor<String> topicProcessor = msg -> msg.getHeaders().get(MqttHeaders.TOPIC, String.class);
+	private Expression topicExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.TOPIC));
 
-	private MessageProcessor<MqttQos> qosProcessor = msg -> msg.getHeaders().get(MqttHeaders.QOS, MqttQos.class);
+	private Expression qosExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.QOS));
 
-	private MessageProcessor<Boolean> retainedProcessor = msg -> msg.getHeaders().get(MqttHeaders.RETAINED, Boolean.class);
+	private Expression retainedExpression = new FunctionExpression<Message<?>>(m ->
+			m.getHeaders().get(MqttHeaders.RETAINED));
 
 	private boolean async;
 
@@ -77,10 +84,15 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	protected void onInit() {
 		super.onInit();
 		this.mqttClient = this.mqttClientManager.getClient();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.messageConverter == null) {
 			String messageConverterBeanName = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME;
 			setMessageConverter(getBeanFactory().getBean(messageConverterBeanName, SmartMessageConverter.class));
 		}
+	}
+
+	protected StandardEvaluationContext getEvaluationContext() {
+		return this.evaluationContext;
 	}
 
 	protected T getClient() {
@@ -127,7 +139,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setTopicExpression(Expression topicExpression) {
 		Assert.notNull(topicExpression, "'topicExpression' cannot be null");
-		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+		this.topicExpression = topicExpression;
 	}
 
 	/**
@@ -136,7 +148,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setTopicExpressionString(String topicExpression) {
 		Assert.hasText(topicExpression, "'topicExpression' must not be null or empty");
-		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+		setTopicExpression(EXPRESSION_PARSER.parseExpression(topicExpression));
 	}
 
 	/**
@@ -154,7 +166,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setQosExpression(Expression qosExpression) {
 		Assert.notNull(qosExpression, "'qosExpression' cannot be null");
-		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+		this.qosExpression = qosExpression;
 	}
 
 	/**
@@ -163,7 +175,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setQosExpressionString(String qosExpression) {
 		Assert.hasText(qosExpression, "'qosExpression' must not be null or empty");
-		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+		setQosExpression(EXPRESSION_PARSER.parseExpression(qosExpression));
 	}
 
 	/**
@@ -181,7 +193,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setRetainedExpression(Expression retainedExpression) {
 		Assert.notNull(retainedExpression, "'retainedExpression' cannot be null");
-		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+		this.retainedExpression = retainedExpression;
 	}
 
 	/**
@@ -190,7 +202,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	 */
 	public void setRetainedExpressionString(String retainedExpression) {
 		Assert.hasText(retainedExpression, "'retainedExpression' must not be null or empty");
-		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+		setRetainedExpression(EXPRESSION_PARSER.parseExpression(retainedExpression));
 	}
 
 	@Override
@@ -201,16 +213,16 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 			messageForPublish = payload;
 		}
 		else {
-			String topic = this.topicProcessor.processMessage(message);
+			String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 			if (topic == null) {
 				topic = this.defaultTopic;
 			}
 			Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
 
-			MqttQos qos = this.qosProcessor.processMessage(message);
+			MqttQos qos = this.qosExpression.getValue(this.evaluationContext, message, MqttQos.class);
 			qos = qos == null ? this.defaultQos : qos;
 
-			Boolean retained = this.retainedProcessor.processMessage(message);
+			Boolean retained = this.retainedExpression.getValue(this.evaluationContext, message, Boolean.class);
 			retained = retained == null ? this.defaultRetained : retained;
 
 			messageForPublish = buildMqttMessage(topic, getPayloadAsBytes(message), qos, retained, message);

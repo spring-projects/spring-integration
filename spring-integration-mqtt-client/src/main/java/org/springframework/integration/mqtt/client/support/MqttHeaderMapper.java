@@ -16,6 +16,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 
 /**
@@ -32,15 +33,15 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 
 	private String[] inboundHeaderNames = {"*"};
 
-	public MqttHeaderMapper() {
-
-	}
-
 	/**
 	 * Construct a {@code MqttHeaderMapper} with the specified inbound property name patterns.
+	 * If no patterns are provided, all user properties will be mapped.
+	 * @param inboundHeaderNames inboundHeaderNames.
 	 */
 	public MqttHeaderMapper(String... inboundHeaderNames) {
-		this.inboundHeaderNames = inboundHeaderNames.clone();
+		if (!ObjectUtils.isEmpty(inboundHeaderNames)) {
+			this.inboundHeaderNames = inboundHeaderNames.clone();
+		}
 	}
 
 	@Override
