@@ -23,6 +23,9 @@ See xref:kafka.adoc#kafka-share-inbound[Message-driven Channel Adapter for Share
 A new `spring-integration-mqtt-client` module has been introduced to provide similar capabilities to the existing `spring-integration-mqtt`, but based on the HiveMQ MQTT client.
 See xref:mqtt.adoc[] for more information.
 
+A new `PayloadValidatingMessageSelector` accepts a message only if its payload passes a Spring `Validator`, such as a Bean Validation one from the `LocalValidatorFactoryBean`.
+See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more information.
+
 [[x7.2-general-changes]]
 === General Changes
 
