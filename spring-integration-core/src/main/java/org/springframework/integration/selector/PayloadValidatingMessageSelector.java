@@ -5,11 +5,24 @@
 package org.springframework.integration.selector;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.validation.SimpleErrors;
 import org.springframework.validation.SmartValidator;
 import org.springframework.validation.Validator;
@@ -29,6 +42,9 @@ import org.springframework.validation.Validator;
  * A payload the validator does not {@link Validator#supports(Class) support} is rejected
  * by default; set {@link #setAcceptUnsupportedPayloads(boolean)} to {@code true} to accept
  * such messages instead.
+ * <p>
+ * Each rejection is logged at {@code INFO} level with the ID of the message and the
+ * validation errors (the field names and the error messages, but not the rejected values).
  *
  * @author Sharang Gupta
  *
@@ -38,13 +54,23 @@ import org.springframework.validation.Validator;
  * @see SmartValidator
  * @see org.springframework.integration.filter.MessageFilter
  */
-public class PayloadValidatingMessageSelector implements MessageSelector {
+public class PayloadValidatingMessageSelector implements MessageSelector, BeanFactoryAware {
+
+	private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
+	private final LogAccessor logger = new LogAccessor(getClass());
 
 	private final Validator validator;
 
 	private Object[] validationHints = {};
 
+	private @Nullable Expression validationHintsExpression;
+
 	private boolean acceptUnsupportedPayloads;
+
+	private @Nullable BeanFactory beanFactory;
+
+	private volatile @Nullable EvaluationContext evaluationContext;
 
 	/**
 	 * Create a selector for the provided validator.
@@ -68,6 +94,31 @@ public class PayloadValidatingMessageSelector implements MessageSelector {
 	}
 
 	/**
+	 * Set an expression to resolve the validation hints against the message being selected,
+	 * for example from a header: {@code headers['validationGroups']}.
+	 * The result can be an array, a {@link Collection}, a single hint or {@code null} (no hints).
+	 * When provided, it is used instead of the {@link #setValidationHints(Object...) static hints}.
+	 * The expression is evaluated with a standard evaluation context, so that type references
+	 * such as {@code T(com.example.ValidationGroups.Strict)} can be used for Bean Validation groups.
+	 * @param validationHintsExpression the expression to resolve the validation hints.
+	 * @see SmartValidator#validate(Object, Errors, Object...)
+	 */
+	public void setValidationHintsExpression(Expression validationHintsExpression) {
+		Assert.notNull(validationHintsExpression, "'validationHintsExpression' must not be null");
+		this.validationHintsExpression = validationHintsExpression;
+	}
+
+	/**
+	 * Set a SpEL expression to resolve the validation hints against the message being selected.
+	 * @param validationHintsExpression the expression to resolve the validation hints.
+	 * @see #setValidationHintsExpression(Expression)
+	 */
+	public void setValidationHintsExpressionString(String validationHintsExpression) {
+		Assert.hasText(validationHintsExpression, "'validationHintsExpression' must not be empty");
+		setValidationHintsExpression(EXPRESSION_PARSER.parseExpression(validationHintsExpression));
+	}
+
+	/**
 	 * Whether a payload the validator does not {@link Validator#supports(Class) support} is accepted.
 	 * @param acceptUnsupportedPayloads true to accept such payloads;
 	 * false (the default) to reject them.
@@ -77,20 +128,84 @@ public class PayloadValidatingMessageSelector implements MessageSelector {
 	}
 
 	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
 	public boolean accept(Message<?> message) {
 		Assert.notNull(message, "'message' must not be null");
 		Object payload = message.getPayload();
 		if (!this.validator.supports(payload.getClass())) {
+			if (!this.acceptUnsupportedPayloads) {
+				this.logger.info(() -> "The message [" + message.getHeaders().getId()
+						+ "] has been rejected: the validator does not support the payload type "
+						+ payload.getClass().getName());
+			}
 			return this.acceptUnsupportedPayloads;
 		}
 		Errors errors = new SimpleErrors(payload);
 		if (this.validator instanceof SmartValidator smartValidator) {
-			smartValidator.validate(payload, errors, this.validationHints);
+			smartValidator.validate(payload, errors, resolveValidationHints(message));
 		}
 		else {
 			this.validator.validate(payload, errors);
 		}
-		return !errors.hasErrors();
+		if (errors.hasErrors()) {
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("The message [" + message.getHeaders().getId()
+						+ "] has been rejected by the payload validation: " + describe(errors));
+			}
+			return false;
+		}
+		return true;
+	}
+
+	private Object[] resolveValidationHints(Message<?> message) {
+		Expression expression = this.validationHintsExpression;
+		if (expression == null) {
+			return this.validationHints;
+		}
+		Object hints = expression.getValue(getEvaluationContext(), message);
+		if (hints == null) {
+			return new Object[0];
+		}
+		if (hints instanceof Object[] array) {
+			return array;
+		}
+		if (hints instanceof Collection<?> collection) {
+			return collection.toArray();
+		}
+		return new Object[] {hints};
+	}
+
+	private EvaluationContext getEvaluationContext() {
+		EvaluationContext context = this.evaluationContext;
+		if (context == null) {
+			context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+			this.evaluationContext = context;
+		}
+		return context;
+	}
+
+	/**
+	 * Describe the validation errors without the rejected values,
+	 * which may carry sensitive data.
+	 */
+	private static String describe(Errors errors) {
+		return errors.getAllErrors()
+				.stream()
+				.map(PayloadValidatingMessageSelector::describe)
+				.collect(Collectors.joining("; "));
+	}
+
+	private static String describe(ObjectError error) {
+		String defaultMessage = error.getDefaultMessage();
+		String reason = String.valueOf(defaultMessage != null ? defaultMessage : error.getCode());
+		if (error instanceof FieldError fieldError) {
+			return "'" + fieldError.getField() + "': " + reason;
+		}
+		return reason;
 	}
 
 }

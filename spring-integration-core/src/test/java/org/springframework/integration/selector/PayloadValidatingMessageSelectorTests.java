@@ -4,12 +4,18 @@
 
 package org.springframework.integration.selector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.filter.MessageFilter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.Errors;
@@ -18,6 +24,9 @@ import org.springframework.validation.Validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Sharang Gupta
@@ -70,7 +79,7 @@ class PayloadValidatingMessageSelectorTests {
 
 	@Test
 	void validationHintsArePassedToSmartValidator() {
-		List<Object> receivedHints = new java.util.ArrayList<>();
+		List<Object> receivedHints = new ArrayList<>();
 		SmartValidator smartValidator = new SmartValidator() {
 
 			@Override
@@ -97,6 +106,72 @@ class PayloadValidatingMessageSelectorTests {
 	}
 
 	@Test
+	void validationHintsExpressionIsEvaluatedAgainstTheMessage() {
+		List<Object> receivedHints = new ArrayList<>();
+		PayloadValidatingMessageSelector selector =
+				new PayloadValidatingMessageSelector(hintsCapturingValidator(receivedHints));
+		selector.setValidationHints("staticGroup");
+		selector.setValidationHintsExpressionString("headers.groups");
+
+		Message<String> message = MessageBuilder.withPayload("order")
+				.setHeader("groups", List.of("group1", "group2"))
+				.build();
+
+		assertThat(selector.accept(message)).isTrue();
+		assertThat(receivedHints).containsExactly("group1", "group2");
+	}
+
+	@Test
+	void validationHintsExpressionResultCanBeSingleValueOrNull() {
+		List<Object> receivedHints = new ArrayList<>();
+		PayloadValidatingMessageSelector selector =
+				new PayloadValidatingMessageSelector(hintsCapturingValidator(receivedHints));
+		selector.setValidationHintsExpression(new SpelExpressionParser().parseExpression("headers['group']"));
+
+		assertThat(selector.accept(MessageBuilder.withPayload("order").setHeader("group", "group1").build())).isTrue();
+		assertThat(receivedHints).containsExactly("group1");
+
+		receivedHints.clear();
+
+		assertThat(selector.accept(new GenericMessage<>("order"))).isTrue();
+		assertThat(receivedHints).isEmpty();
+	}
+
+	@Test
+	void rejectionIsLoggedWithValidationErrorsButNotRejectedValues() {
+		Validator orderValidator = new Validator() {
+
+			@Override
+			public boolean supports(Class<?> clazz) {
+				return Order.class.isAssignableFrom(clazz);
+			}
+
+			@Override
+			public void validate(Object target, Errors errors) {
+				errors.rejectValue("email", "invalid", "must be a well-formed email address");
+				errors.reject("incomplete", "The order is incomplete");
+			}
+
+		};
+		PayloadValidatingMessageSelector selector = new PayloadValidatingMessageSelector(orderValidator);
+		LogAccessor logger = mock(LogAccessor.class);
+		when(logger.isInfoEnabled()).thenReturn(true);
+		new DirectFieldAccessor(selector).setPropertyValue("logger", logger);
+
+		Message<Order> message = new GenericMessage<>(new Order("secret-value"));
+
+		assertThat(selector.accept(message)).isFalse();
+
+		ArgumentCaptor<CharSequence> logMessage = ArgumentCaptor.forClass(CharSequence.class);
+		verify(logger).info(logMessage.capture());
+		assertThat(logMessage.getValue().toString())
+				.contains(message.getHeaders().getId().toString())
+				.contains("'email': must be a well-formed email address")
+				.contains("The order is incomplete")
+				.doesNotContain("secret-value");
+	}
+
+	@Test
 	void validatorIsRequired() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new PayloadValidatingMessageSelector(null))
@@ -118,6 +193,31 @@ class PayloadValidatingMessageSelectorTests {
 
 		assertThat(outputChannel.receive(0)).isSameAs(validMessage);
 		assertThat(discardChannel.receive(0)).isSameAs(invalidMessage);
+	}
+
+	private static SmartValidator hintsCapturingValidator(List<Object> receivedHints) {
+		return new SmartValidator() {
+
+			@Override
+			public boolean supports(Class<?> clazz) {
+				return true;
+			}
+
+			@Override
+			public void validate(Object target, Errors errors) {
+				errors.reject("plainValidateMustNotBeCalled");
+			}
+
+			@Override
+			public void validate(Object target, Errors errors, Object... validationHints) {
+				receivedHints.addAll(List.of(validationHints));
+			}
+
+		};
+	}
+
+	record Order(String email) {
+
 	}
 
 }
