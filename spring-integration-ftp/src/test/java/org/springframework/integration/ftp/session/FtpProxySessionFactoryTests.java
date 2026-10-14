@@ -90,8 +90,8 @@ public class FtpProxySessionFactoryTests extends FtpTestSupport {
 		FtpHttpProxySessionFactory sessionFactory = new FtpHttpProxySessionFactory();
 		sessionFactory.setHost("localhost");
 		sessionFactory.setPort(port);
-		sessionFactory.setUsername("foo");
-		sessionFactory.setPassword("foo");
+		sessionFactory.setUsername("ftpuser");
+		sessionFactory.setPassword("ftppassword");
 		sessionFactory.setProxyHost(proxy.address().getHostString());
 		sessionFactory.setProxyPort(proxy.address().getPort());
 		return sessionFactory;

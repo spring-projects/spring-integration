@@ -57,7 +57,7 @@ class FtpHttpProxySessionFactoryTests {
 	@Test
 	void proxyHostIsRequired() {
 		FtpHttpProxySessionFactory sessionFactory = new FtpHttpProxySessionFactory();
-		sessionFactory.setUsername("foo");
+		sessionFactory.setUsername("ftpuser");
 		sessionFactory.setProxyPort(3128);
 
 		assertThatIllegalStateException()
@@ -69,7 +69,7 @@ class FtpHttpProxySessionFactoryTests {
 	@Test
 	void proxyPasswordIsRequiredWithTheProxyUsername() {
 		FtpHttpProxySessionFactory sessionFactory = new FtpHttpProxySessionFactory();
-		sessionFactory.setUsername("foo");
+		sessionFactory.setUsername("ftpuser");
 		sessionFactory.setProxyHost("proxy.example.com");
 		sessionFactory.setProxyPort(3128);
 		sessionFactory.setProxyUsername("squid");

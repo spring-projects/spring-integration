@@ -69,6 +69,8 @@ Starting with version 7.2, the session factories can connect to the FTP (or FTPS
 
 The `proxy` property of the `AbstractFtpSessionFactory` (and, therefore, of the `DefaultFtpSessionFactory` and the `DefaultFtpsSessionFactory`) accepts a `java.net.Proxy`.
 The proxy is used for the control connection and for the data connections, which requires the passive client mode (`FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE`): the server cannot connect back to the client through a proxy.
+Therefore, setting the `proxy` also switches the `clientMode` to the passive mode.
+If the `clientMode` is changed afterwards to another mode, the session factory fails to create a session.
 A `Proxy.Type.SOCKS` proxy is used as is.
 A `Proxy.Type.HTTP` proxy is used with the HTTP `CONNECT` tunneling of the JVM; the credentials for such a proxy, if any, have to be provided through a `java.net.Authenticator`.
 
@@ -82,7 +84,6 @@ DefaultFtpSessionFactory ftpSessionFactory() {
     sessionFactory.setHost("ftp.example.com");
     sessionFactory.setUsername("kermit");
     sessionFactory.setPassword("frog");
-    sessionFactory.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
     sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("proxy.example.com", 1080)));
     return sessionFactory;
 }

@@ -160,8 +160,10 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	/**
 	 * Set the proxy to connect to the server through.
 	 * The proxy is used for the control connection and for the data connections,
-	 * therefore the {@link FTPClient#PASSIVE_LOCAL_DATA_CONNECTION_MODE} is required:
+	 * therefore this setter also switches the {@code clientMode} to the
+	 * {@link FTPClient#PASSIVE_LOCAL_DATA_CONNECTION_MODE}:
 	 * the server cannot connect back to the client through a proxy.
+	 * If the {@code clientMode} is changed afterwards to another mode, the {@link #getSession()} fails.
 	 * A {@link Proxy.Type#SOCKS} proxy is used as is.
 	 * A {@link Proxy.Type#HTTP} proxy is used with the HTTP {@code CONNECT} tunneling of the JVM;
 	 * the credentials for such a proxy, if any, have to be provided through a {@link java.net.Authenticator}.
@@ -173,6 +175,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	public void setProxy(Proxy proxy) {
 		Assert.notNull(proxy, "'proxy' must not be null");
 		this.proxy = proxy;
+		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
 	}
 
 	@Override

@@ -4,6 +4,7 @@
 
 package org.springframework.integration.ftp.session;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -88,20 +89,10 @@ class SessionFactoryTests {
 	@Test
 	void proxyIsAppliedToTheClientBeforeConnecting() throws Exception {
 		FTPClient client = mock(FTPClient.class);
-		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
-
-			@Override
-			protected FTPClient createClientInstance() {
-				return client;
-			}
-		};
+		DefaultFtpSessionFactory sessionFactory = sessionFactoryFor(client);
 		sessionFactory.setHost("ftp.example.com");
-		sessionFactory.setUsername("foo");
-		sessionFactory.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
 		Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080));
 		sessionFactory.setProxy(proxy);
-		doReturn(200).when(client).getReplyCode();
-		doReturn(true).when(client).login("foo", null);
 
 		sessionFactory.getSession();
 
@@ -111,29 +102,32 @@ class SessionFactoryTests {
 	}
 
 	@Test
-	void clientIsNotProxiedByDefault() throws Exception {
+	void proxySwitchesTheClientToThePassiveMode() throws Exception {
 		FTPClient client = mock(FTPClient.class);
-		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
-
-			@Override
-			protected FTPClient createClientInstance() {
-				return client;
-			}
-		};
-		sessionFactory.setUsername("foo");
-		doReturn(200).when(client).getReplyCode();
-		doReturn(true).when(client).login("foo", null);
+		DefaultFtpSessionFactory sessionFactory = sessionFactoryFor(client);
+		sessionFactory.setClientMode(FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE);
+		sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080)));
 
 		sessionFactory.getSession();
+
+		verify(client).enterLocalPassiveMode();
+	}
+
+	@Test
+	void clientIsNotProxiedByDefault() throws Exception {
+		FTPClient client = mock(FTPClient.class);
+
+		sessionFactoryFor(client).getSession();
 
 		verify(client, never()).setProxy(any());
 	}
 
 	@Test
-	void proxyRequiresThePassiveClientMode() {
+	void activeClientModeSetAfterTheProxyIsRejected() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		sessionFactory.setUsername("foo");
+		sessionFactory.setUsername("ftpuser");
 		sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080)));
+		sessionFactory.setClientMode(FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE);
 
 		assertThatIllegalStateException()
 				.isThrownBy(sessionFactory::getSession)
@@ -276,6 +270,20 @@ class SessionFactoryTests {
 		executor.awaitTermination(10000, TimeUnit.SECONDS);
 
 		assertThat(failures.get()).isEqualTo(0);
+	}
+
+	private static DefaultFtpSessionFactory sessionFactoryFor(FTPClient client) throws IOException {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
+
+			@Override
+			protected FTPClient createClientInstance() {
+				return client;
+			}
+		};
+		sessionFactory.setUsername("ftpuser");
+		doReturn(200).when(client).getReplyCode();
+		doReturn(true).when(client).login("ftpuser", null);
+		return sessionFactory;
 	}
 
 }
