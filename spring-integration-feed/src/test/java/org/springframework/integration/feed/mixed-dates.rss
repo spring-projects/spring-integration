@@ -2,7 +2,8 @@
 	<channel>
 		<title>Feed with mixed entry dates</title>
 		<link>https://spring.io/projects/spring-integration</link>
-		<description>Entries with and without publication dates</description>
+		<description>Entries with and without publication dates in a channel with an older publication date</description>
+		<pubDate>Wed, 01 Jan 2020 00:00:00 GMT</pubDate>
 		<item>
 			<title>First undated entry</title>
 			<guid isPermaLink="false">urn:entry:first-undated</guid>

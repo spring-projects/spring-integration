@@ -35,7 +35,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
- * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -69,7 +68,6 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 				.addIndexedArgumentValue(1, element.getAttribute(ID_ATTRIBUTE));
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "entry-date-function");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "feed-input", "syndFeedInput");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(sourceBuilder, element, "preserve-wire-feed");
