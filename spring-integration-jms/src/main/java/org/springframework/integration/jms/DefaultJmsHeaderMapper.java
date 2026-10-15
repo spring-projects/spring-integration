@@ -21,6 +21,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,11 +39,15 @@ import org.springframework.util.StringUtils;
  * {@code "*mySuffix"}) and negation (e.g. {@code "!unwanted*"}).
  * Pass {@code "*"} to allow all user-defined JMS properties.
  * <p>
+ * Use {@link #setOutboundHeaderNames(String...)} to restrict the message headers
+ * that are copied outbound to JMS properties, with the same pattern syntax.
+ * <p>
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Sharang Gupta
  */
 public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
@@ -63,6 +68,8 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 	private volatile boolean mapInboundExpiration = false;
 
 	private volatile String[] propertyNames = { MessageHeaders.CONTENT_TYPE };
+
+	private volatile String[] outboundHeaderNames = { "*" };
 
 	/**
 	 * Default constructor for this mapper.
@@ -139,6 +146,24 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		this.outboundPrefix = (outboundPrefix != null) ? outboundPrefix : "";
 	}
 
+	/**
+	 * Set the patterns of the message header names to copy outbound to JMS properties.
+	 * The patterns support simple wildcards (e.g. {@code "myPrefix*"}, {@code "*mySuffix"})
+	 * and negation (e.g. {@code "!unwanted*"}); the first pattern that matches a header
+	 * name decides whether the header is mapped. The patterns are matched against the
+	 * header names, before the {@link #setOutboundPrefix(String) outbound prefix} is added.
+	 * The JMS API headers (such as {@link JmsHeaders#CORRELATION_ID},
+	 * {@link JmsHeaders#REPLY_TO} and {@link JmsHeaders#TYPE}) are not affected.
+	 * Default is {@code "*"}, which maps all the eligible headers.
+	 * @param outboundHeaderNames the header name patterns to map outbound.
+	 * @since 7.2
+	 */
+	public void setOutboundHeaderNames(String... outboundHeaderNames) {
+		Assert.notNull(outboundHeaderNames, "'outboundHeaderNames' must not be null");
+		Assert.noNullElements(outboundHeaderNames, "'outboundHeaderNames' must not contain null elements");
+		this.outboundHeaderNames = outboundHeaderNames.clone();
+	}
+
 	@Override
 	public void fromHeaders(MessageHeaders headers, Message jmsMessage) {
 		try {
@@ -151,6 +176,7 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
 				if (StringUtils.hasText(headerName) &&
 						!headerName.startsWith(JmsHeaders.PREFIX) &&
+						shouldMapOutboundHeader(headerName) &&
 						jmsMessage.getObjectProperty(headerName) == null) {
 
 					Object value = entry.getValue();
@@ -412,6 +438,14 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 			headerName = MessageHeaders.CONTENT_TYPE;
 		}
 		return headerName;
+	}
+
+	private boolean shouldMapOutboundHeader(String headerName) {
+		boolean isMatch = Boolean.TRUE.equals(PatternMatchUtils.smartMatch(headerName, this.outboundHeaderNames));
+		if (!isMatch && LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Outbound header '" + headerName + "' is not mapped to a JMS property.");
+		}
+		return isMatch;
 	}
 
 	private boolean shouldMapInboundProperty(String propertyName) {

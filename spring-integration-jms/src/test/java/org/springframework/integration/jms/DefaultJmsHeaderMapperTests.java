@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Sharang Gupta
  */
 public class DefaultJmsHeaderMapperTests {
 
@@ -559,6 +560,71 @@ public class DefaultJmsHeaderMapperTests {
 
 		Object result = converter.fromMessage(reply);
 		assertThat(result).isInstanceOf(String.class);
+	}
+
+	@Test
+	public void outboundHeaderNamesSelectTheMappedHeaders() throws JMSException {
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("orderId", 123)
+						.setHeader("orderType", "express")
+						.setHeader("customerName", "Alice")
+						.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setOutboundHeaderNames("order*");
+		jakarta.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertThat(jmsMessage.getObjectProperty("orderId")).isEqualTo(123);
+		assertThat(jmsMessage.getObjectProperty("orderType")).isEqualTo("express");
+		assertThat(jmsMessage.getObjectProperty("customerName")).isNull();
+	}
+
+	@Test
+	public void outboundHeaderNamesSupportNegation() throws JMSException {
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("orderId", 123)
+						.setHeader("internalToken", "secret")
+						.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setOutboundHeaderNames("!internal*", "*");
+		jakarta.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertThat(jmsMessage.getObjectProperty("orderId")).isEqualTo(123);
+		assertThat(jmsMessage.getObjectProperty("internalToken")).isNull();
+	}
+
+	@Test
+	public void outboundHeaderNamesDoNotApplyToJmsApiHeaders() throws JMSException {
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader(JmsHeaders.TYPE, "order")
+						.setHeader(JmsHeaders.CORRELATION_ID, "order-123")
+						.setHeader("orderId", 123)
+						.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setOutboundHeaderNames("customer*");
+		jakarta.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertThat(jmsMessage.getJMSType()).isEqualTo("order");
+		assertThat(jmsMessage.getJMSCorrelationID()).isEqualTo("order-123");
+		assertThat(jmsMessage.getObjectProperty("orderId")).isNull();
+	}
+
+	@Test
+	public void outboundHeaderNamesMatchTheHeaderNameBeforeTheOutboundPrefix() throws JMSException {
+		Message<String> message =
+				MessageBuilder.withPayload("test")
+						.setHeader("orderId", 123)
+						.setHeader("customerName", "Alice")
+						.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setOutboundPrefix("custom_");
+		mapper.setOutboundHeaderNames("orderId");
+		jakarta.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertThat(jmsMessage.getObjectProperty("custom_orderId")).isEqualTo(123);
+		assertThat(jmsMessage.getObjectProperty("custom_customerName")).isNull();
 	}
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "javatype")
