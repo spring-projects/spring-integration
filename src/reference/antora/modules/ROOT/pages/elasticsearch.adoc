@@ -36,8 +36,9 @@ The operation is set with the `type` option, or evaluated for each message with 
 With the `INDEX` type, the payload is saved as a document:
 
 * An entity is saved with its Spring Data mapping, into the index of its `@Document` annotation.
-* A `Map`, or a `String` with the JSON source of a document, is saved into the configured index, and Elasticsearch generates its id.
-Since each save gets a new id, a redelivered message is indexed again. Use an entity with a set `@Id` property when indexing must be idempotent.
+* A `Map`, or a `String` with the JSON source of a document, is saved into the configured index.
+The value of its `id` field is the id of the document, so a redelivered message replaces the document that it indexed.
+Without an `id` field, Elasticsearch generates the id, and a redelivered message is indexed again.
 * The elements of a `Collection` payload are saved like single payloads, with one bulk request.
 Without an index name, they must be entities of the same class.
 

@@ -37,7 +37,8 @@ import org.springframework.util.Assert;
  * {@link org.springframework.data.elasticsearch.annotations.Document} annotation,
  * unless an index name is configured;</li>
  * <li>a {@link Map}, or a {@link String} with the JSON source of the document, is saved into the
- * configured index, and Elasticsearch generates its id, so a redelivered message is indexed again;</li>
+ * configured index, with the value of its {@code id} field as its id, or an id that Elasticsearch
+ * generates when it has no {@code id} field;</li>
  * <li>the elements of a {@link Collection} are saved like single payloads, with one bulk request.
  * Without an index name, they must be entities of the same class.</li>
  * </ul>

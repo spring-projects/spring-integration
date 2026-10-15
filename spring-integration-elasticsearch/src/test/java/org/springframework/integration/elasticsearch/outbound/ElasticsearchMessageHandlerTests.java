@@ -103,6 +103,19 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 	}
 
 	@Test
+	void indexesAMapOrJsonDocumentWithTheValueOfItsIdFieldAsItsId() {
+		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
+		handler.setIndexName("settlements");
+		initialized(handler);
+
+		handler.handleMessage(new GenericMessage<>(Map.of("id", "s-1", "status", "settled"))).block(TIMEOUT);
+		handler.handleMessage(new GenericMessage<>("{\"id\": \"s-1\", \"status\": \"settled\"}")).block(TIMEOUT);
+
+		assertThat(countOf("settlements", "status", "settled")).isEqualTo(1);
+		assertThat(operations.exists("s-1", IndexCoordinates.of("settlements")).block(TIMEOUT)).isTrue();
+	}
+
+	@Test
 	void indexesTheMapsOfACollectionPayloadIntoTheConfiguredIndex() {
 		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
 		handler.setIndexName("refunds");
