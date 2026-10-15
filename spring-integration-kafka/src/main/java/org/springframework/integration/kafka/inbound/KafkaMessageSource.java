@@ -494,7 +494,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 					new IntegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
 
 			Pattern topicPattern = this.consumerProperties.getTopicPattern();
-			@Nullable TopicPartitionOffset @Nullable [] partitions = this.consumerProperties.getTopicPartitions();
+			TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
 			if (topicPattern != null) {
 				this.consumer.subscribe(topicPattern, rebalanceCallback);
 			}
@@ -502,8 +502,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				assignAndSeekPartitions(partitions);
 			}
 			else {
-				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), // NOSONAR
-						rebalanceCallback);
+				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), rebalanceCallback);
 			}
 		}
 		finally {
@@ -670,9 +669,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	private void stopConsumer() {
 		this.consumerLock.lock();
 		try {
-			if (this.consumer != null) {
-				this.consumer.wakeup();
-				this.consumer.close(CloseOptions.timeout(this.closeTimeout));
+			Consumer<K, V> consumerToClose = this.consumer;
+			if (consumerToClose != null) {
+				consumerToClose.wakeup();
+				consumerToClose.close(CloseOptions.timeout(this.closeTimeout));
 				this.consumer = null;
 				this.assignedPartitions.clear();
 			}
