@@ -84,7 +84,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	protected void onInit() {
 		super.onInit();
 		this.mqttClient = this.mqttClientManager.getClient();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.messageConverter == null) {
 			String messageConverterBeanName = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME;
 			setMessageConverter(getBeanFactory().getBean(messageConverterBeanName, SmartMessageConverter.class));
@@ -134,7 +134,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * Set the topic expression; default {@code headers['mqtt_topic']}.
 	 * @param topicExpression the expression.
 	 */
 	public void setTopicExpression(Expression topicExpression) {
@@ -143,7 +143,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * Set the topic expression; default {@code headers['mqtt_topic']}.
 	 * @param topicExpression the expression.
 	 */
 	public void setTopicExpressionString(String topicExpression) {
@@ -161,7 +161,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * Set the qos expression; default {@code headers['mqtt_qos']}.
 	 * @param qosExpression the expression.
 	 */
 	public void setQosExpression(Expression qosExpression) {
@@ -170,7 +170,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * Set the qos expression; default {@code headers['mqtt_qos']}.
 	 * @param qosExpression the expression.
 	 */
 	public void setQosExpressionString(String qosExpression) {
@@ -188,7 +188,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * Set the retained expression; default {@code headers['mqtt_retained']}.
 	 * @param retainedExpression the expression.
 	 */
 	public void setRetainedExpression(Expression retainedExpression) {
@@ -197,7 +197,7 @@ public abstract class AbstractMqttMessageHandler<T extends MqttClient> extends A
 	}
 
 	/**
-	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * Set the retained expression; default {@code headers['mqtt_retained']}.
 	 * @param retainedExpression the expression.
 	 */
 	public void setRetainedExpressionString(String retainedExpression) {

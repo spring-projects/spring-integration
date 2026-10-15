@@ -57,16 +57,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the contentType expression; default "headers['mqtt_contentType']".
-	 * @param contentTypeExpression the expression.
-	 */
-	public void setContentTypeExpression(Expression contentTypeExpression) {
-		Assert.notNull(contentTypeExpression, "'contentTypeExpression' cannot be null");
-		this.contentTypeExpression = contentTypeExpression;
-	}
-
-	/**
-	 * Set the contentType expression; default "headers['mqtt_contentType']".
+	 * Set the contentType expression; default {@code headers['mqtt_contentType']}.
 	 * @param contentTypeExpression the expression.
 	 */
 	public void setContentTypeExpressionString(String contentTypeExpression) {
@@ -75,16 +66,16 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the correlationData expression; default "headers['mqtt_correlationData']".
-	 * @param correlationDataExpression the expression.
+	 * Set the contentType expression; default {@code headers['mqtt_contentType']}.
+	 * @param contentTypeExpression the expression.
 	 */
-	public void setCorrelationDataExpression(Expression correlationDataExpression) {
-		Assert.notNull(correlationDataExpression, "'correlationDataExpression' cannot be null");
-		this.correlationDataExpression = correlationDataExpression;
+	public void setContentTypeExpression(Expression contentTypeExpression) {
+		Assert.notNull(contentTypeExpression, "'contentTypeExpression' cannot be null");
+		this.contentTypeExpression = contentTypeExpression;
 	}
 
 	/**
-	 * Set the correlationData expression; default "headers['mqtt_correlationData']".
+	 * Set the correlationData expression; default {@code headers['mqtt_correlationData']}.
 	 * @param correlationDataExpression the expression.
 	 */
 	public void setCorrelationDataExpressionString(String correlationDataExpression) {
@@ -93,16 +84,16 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the responseTopic expression; default "headers['mqtt_responseTopic']".
-	 * @param responseTopicExpression the expression.
+	 * Set the correlationData expression; default {@code headers['mqtt_correlationData']}.
+	 * @param correlationDataExpression the expression.
 	 */
-	public void setResponseTopicExpression(Expression responseTopicExpression) {
-		Assert.notNull(responseTopicExpression, "'responseTopicExpression' cannot be null");
-		this.responseTopicExpression = responseTopicExpression;
+	public void setCorrelationDataExpression(Expression correlationDataExpression) {
+		Assert.notNull(correlationDataExpression, "'correlationDataExpression' cannot be null");
+		this.correlationDataExpression = correlationDataExpression;
 	}
 
 	/**
-	 * Set the responseTopic expression; default "headers['mqtt_responseTopic']".
+	 * Set the responseTopic expression; default {@code headers['mqtt_responseTopic']}.
 	 * @param responseTopicExpression the expression.
 	 */
 	public void setResponseTopicExpressionString(String responseTopicExpression) {
@@ -111,16 +102,16 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the messageExpiryInterval expression; default "headers['mqtt_messageExpiryInterval']".
-	 * @param messageExpiryIntervalExpression the expression.
+	 * Set the responseTopic expression; default {@code headers['mqtt_responseTopic']}.
+	 * @param responseTopicExpression the expression.
 	 */
-	public void setMessageExpiryIntervalExpression(Expression messageExpiryIntervalExpression) {
-		Assert.notNull(messageExpiryIntervalExpression, "'messageExpiryIntervalExpression' cannot be null");
-		this.messageExpiryIntervalExpression = messageExpiryIntervalExpression;
+	public void setResponseTopicExpression(Expression responseTopicExpression) {
+		Assert.notNull(responseTopicExpression, "'responseTopicExpression' cannot be null");
+		this.responseTopicExpression = responseTopicExpression;
 	}
 
 	/**
-	 * Set the messageExpiryInterval expression; default "headers['mqtt_messageExpiryInterval']".
+	 * Set the messageExpiryInterval expression; default {@code headers['mqtt_messageExpiryInterval']}.
 	 * @param messageExpiryIntervalExpression the expression.
 	 */
 	public void setMessageExpiryIntervalExpressionString(String messageExpiryIntervalExpression) {
@@ -129,16 +120,16 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the payloadFormatIndicator expression; default "headers['mqtt_payloadFormatIndicator']".
-	 * @param payloadFormatIndicatorExpression the expression.
+	 * Set the messageExpiryInterval expression; default {@code headers['mqtt_messageExpiryInterval']}.
+	 * @param messageExpiryIntervalExpression the expression.
 	 */
-	public void setPayloadFormatIndicatorExpression(Expression payloadFormatIndicatorExpression) {
-		Assert.notNull(payloadFormatIndicatorExpression, "'payloadFormatIndicatorExpression' cannot be null");
-		this.payloadFormatIndicatorExpression = payloadFormatIndicatorExpression;
+	public void setMessageExpiryIntervalExpression(Expression messageExpiryIntervalExpression) {
+		Assert.notNull(messageExpiryIntervalExpression, "'messageExpiryIntervalExpression' cannot be null");
+		this.messageExpiryIntervalExpression = messageExpiryIntervalExpression;
 	}
 
 	/**
-	 * Set the payloadFormatIndicator expression; default "headers['mqtt_payloadFormatIndicator']".
+	 * Set the payloadFormatIndicator expression; default {@code headers['mqtt_payloadFormatIndicator']}.
 	 * @param payloadFormatIndicatorExpression the expression.
 	 */
 	public void setPayloadFormatIndicatorExpressionString(String payloadFormatIndicatorExpression) {
@@ -147,21 +138,30 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	}
 
 	/**
-	 * Set the userProperties expression; default "headers['mqtt_userProperties']".
-	 * @param userPropertiesExpression the expression.
+	 * Set the payloadFormatIndicator expression; default {@code headers['mqtt_payloadFormatIndicator']}.
+	 * @param payloadFormatIndicatorExpression the expression.
 	 */
-	public void setUserPropertiesExpression(Expression userPropertiesExpression) {
-		Assert.notNull(userPropertiesExpression, "'userPropertiesExpression' cannot be null");
-		this.userPropertiesExpression = userPropertiesExpression;
+	public void setPayloadFormatIndicatorExpression(Expression payloadFormatIndicatorExpression) {
+		Assert.notNull(payloadFormatIndicatorExpression, "'payloadFormatIndicatorExpression' cannot be null");
+		this.payloadFormatIndicatorExpression = payloadFormatIndicatorExpression;
 	}
 
 	/**
-	 * Set the userProperties expression; default "headers['mqtt_userProperties']".
+	 * Set the userProperties expression; default {@code headers['mqtt_userProperties']}.
 	 * @param userPropertiesExpression the expression.
 	 */
 	public void setUserPropertiesExpressionString(String userPropertiesExpression) {
 		Assert.hasText(userPropertiesExpression, "'userPropertiesExpression' must not be null or empty");
 		setUserPropertiesExpression(EXPRESSION_PARSER.parseExpression(userPropertiesExpression));
+	}
+
+	/**
+	 * Set the userProperties expression; default {@code headers['mqtt_userProperties']}.
+	 * @param userPropertiesExpression the expression.
+	 */
+	public void setUserPropertiesExpression(Expression userPropertiesExpression) {
+		Assert.notNull(userPropertiesExpression, "'userPropertiesExpression' cannot be null");
+		this.userPropertiesExpression = userPropertiesExpression;
 	}
 
 	@Override
@@ -173,7 +173,7 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	protected Object buildMqttMessage(String topic, byte[] body, @Nullable MqttQos qos,
 			@Nullable Boolean retained, Message<?> message) {
 
-		final var builder = Mqtt5Publish.builder()
+		var builder = Mqtt5Publish.builder()
 				.topic(topic)
 				.payload(body);
 
