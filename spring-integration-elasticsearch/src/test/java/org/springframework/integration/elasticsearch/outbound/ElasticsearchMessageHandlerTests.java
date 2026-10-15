@@ -26,7 +26,6 @@ import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Sharang Gupta
@@ -146,8 +145,7 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 
 	@Test
 	void signalsAnErrorForACollectionPayloadToDelete() {
-		ElasticsearchMessageHandler handler = initialized(
-				new ElasticsearchMessageHandler(operations, ElasticsearchMessageHandler.Type.DELETE));
+		ElasticsearchMessageHandler handler = initialized(deletingHandler());
 
 		StepVerifier.create(handler.handleMessage(new GenericMessage<>(List.of(new Book("dune", "Dune")))))
 				.expectErrorSatisfies(error -> assertThat(error).hasMessageContaining("Collection payload is not supported"))
@@ -164,9 +162,19 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 	}
 
 	@Test
+	void signalsAnErrorForAMapPayloadWithKeysThatAreNotStrings() {
+		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
+		handler.setIndexName("payments");
+		initialized(handler);
+
+		StepVerifier.create(handler.handleMessage(new GenericMessage<>(Map.of(1, "paid"))))
+				.expectErrorSatisfies(error -> assertThat(error).hasMessageContaining("must be String field names"))
+				.verify(TIMEOUT);
+	}
+
+	@Test
 	void signalsAnErrorWhenTheIdExpressionEvaluatesToNull() {
-		ElasticsearchMessageHandler handler =
-				new ElasticsearchMessageHandler(operations, ElasticsearchMessageHandler.Type.DELETE);
+		ElasticsearchMessageHandler handler = deletingHandler();
 		handler.setIndexName("books");
 		handler.setIdExpression(PARSER.parseExpression("headers['bookId']"));
 		initialized(handler);
@@ -177,20 +185,9 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 	}
 
 	@Test
-	void rejectsAnIdExpressionForTheIndexType() {
-		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
-		handler.setIdExpression(PARSER.parseExpression("headers.id"));
-		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-
-		assertThatIllegalStateException().isThrownBy(handler::afterPropertiesSet)
-				.withMessageContaining("'idExpression' only applies to the DELETE type");
-	}
-
-	@Test
 	void deletesTheDocumentWithTheIdOfTheIdExpression() {
 		operations.save(new Book("dp", "Design Patterns")).block(TIMEOUT);
-		ElasticsearchMessageHandler handler =
-				new ElasticsearchMessageHandler(operations, ElasticsearchMessageHandler.Type.DELETE);
+		ElasticsearchMessageHandler handler = deletingHandler();
 		handler.setIndexName("books");
 		handler.setIdExpression(PARSER.parseExpression("headers.bookId"));
 		initialized(handler);
@@ -203,8 +200,7 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 	@Test
 	void deletesTheEntityOfThePayload() {
 		operations.save(new Book("tdd", "Test-Driven Development")).block(TIMEOUT);
-		ElasticsearchMessageHandler handler = initialized(
-				new ElasticsearchMessageHandler(operations, ElasticsearchMessageHandler.Type.DELETE));
+		ElasticsearchMessageHandler handler = initialized(deletingHandler());
 
 		handler.handleMessage(new GenericMessage<>(new Book("tdd", "Test-Driven Development"))).block(TIMEOUT);
 
@@ -212,11 +208,11 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 	}
 
 	@Test
-	void deletesTheDocumentWithTheIdOfThePayload() {
+	void deletesTheDocumentWithTheIdOfAStringPayload() {
 		operations.save(new Book("goos", "Growing Object-Oriented Software")).block(TIMEOUT);
-		ElasticsearchMessageHandler handler =
-				new ElasticsearchMessageHandler(operations, ElasticsearchMessageHandler.Type.DELETE);
+		ElasticsearchMessageHandler handler = deletingHandler();
 		handler.setIndexName("books");
+		handler.setIdExpression(PARSER.parseExpression("payload"));
 		initialized(handler);
 
 		handler.handleMessage(new GenericMessage<>("goos")).block(TIMEOUT);
@@ -224,11 +220,46 @@ class ElasticsearchMessageHandlerTests implements ElasticsearchContainerTest, Te
 		assertThat(operations.exists("goos", Book.class).block(TIMEOUT)).isFalse();
 	}
 
+	@Test
+	void signalsAnErrorForAStringPayloadToDeleteWithoutAnIdExpression() {
+		ElasticsearchMessageHandler handler = deletingHandler();
+		handler.setIndexName("books");
+		initialized(handler);
+
+		StepVerifier.create(handler.handleMessage(new GenericMessage<>("goos")))
+				.expectErrorSatisfies(error -> assertThat(error).hasMessageContaining("Set an 'idExpression'"))
+				.verify(TIMEOUT);
+	}
+
+	@Test
+	void indexesOrDeletesWithTheTypeOfTheTypeExpression() {
+		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
+		handler.setTypeExpression(PARSER.parseExpression("headers['deleted'] == true ? 'DELETE' : 'INDEX'"));
+		handler.setIndexName("books");
+		handler.setIdExpression(PARSER.parseExpression("headers['bookId']"));
+		initialized(handler);
+
+		handler.handleMessage(new GenericMessage<>(new Book("pragprog", "The Pragmatic Programmer"))).block(TIMEOUT);
+		assertThat(operations.exists("pragprog", Book.class).block(TIMEOUT)).isTrue();
+
+		handler.handleMessage(MessageBuilder.withPayload("{}")
+				.setHeader("deleted", true)
+				.setHeader("bookId", "pragprog")
+				.build()).block(TIMEOUT);
+		assertThat(operations.exists("pragprog", Book.class).block(TIMEOUT)).isFalse();
+	}
+
 	private static long countOf(String index, String field, String value) {
 		IndexCoordinates coordinates = IndexCoordinates.of(index);
 		operations.indexOps(coordinates).refresh().block(TIMEOUT);
 		return operations.count(new CriteriaQuery(Criteria.where(field).is(value)), Map.class, coordinates)
 				.block(TIMEOUT);
+	}
+
+	private static ElasticsearchMessageHandler deletingHandler() {
+		ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(operations);
+		handler.setType(ElasticsearchMessageHandler.Type.DELETE);
+		return handler;
 	}
 
 	private static ElasticsearchMessageHandler initialized(ElasticsearchMessageHandler handler) {

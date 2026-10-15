@@ -6,7 +6,6 @@ package org.springframework.integration.elasticsearch.outbound;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +19,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
  * message into Elasticsearch, or deletes the document it refers to, with
  * {@link ReactiveElasticsearchOperations}.
  * <p>
+ * The {@link #setType(Type) type} or the {@link #setTypeExpression(Expression) type expression}
+ * selects the operation for each message.
  * With the {@link Type#INDEX} type (the default), the payload is saved as a document:
  * <ul>
  * <li>an entity is saved with its mapping, into the index of its
@@ -40,9 +42,8 @@ import org.springframework.util.Assert;
  * Without an index name, they must be entities of the same class.</li>
  * </ul>
  * With the {@link Type#DELETE} type, the document with the id of the
- * {@link #setIdExpression(Expression) id expression} is deleted. Without an id expression, a
- * {@link String} payload is the id of the document to delete, and any other payload is the entity
- * to delete.
+ * {@link #setIdExpression(Expression) id expression} is deleted. Without an id expression, the
+ * payload is the entity to delete.
  * <p>
  * In an imperative flow, the framework subscribes to the returned {@link Mono} without waiting
  * for it, as for any {@link org.springframework.messaging.ReactiveMessageHandler}.
@@ -55,7 +56,7 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 
 	private final ReactiveElasticsearchOperations elasticsearchOperations;
 
-	private final Type type;
+	private Expression typeExpression = new ValueExpression<>(Type.INDEX);
 
 	private @Nullable Expression indexNameExpression;
 
@@ -65,23 +66,33 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 	private EvaluationContext evaluationContext;
 
 	/**
-	 * Create a handler that indexes the payload of each message.
-	 * @param elasticsearchOperations the operations to save the documents with
+	 * Create a handler that indexes the payload of each message, unless another
+	 * {@link #setType(Type) type} is set.
+	 * @param elasticsearchOperations the operations to save or delete the documents with
 	 */
 	public ElasticsearchMessageHandler(ReactiveElasticsearchOperations elasticsearchOperations) {
-		this(elasticsearchOperations, Type.INDEX);
+		Assert.notNull(elasticsearchOperations, "'elasticsearchOperations' must not be null");
+		this.elasticsearchOperations = elasticsearchOperations;
 	}
 
 	/**
-	 * Create a handler that performs the given operation for each message.
-	 * @param elasticsearchOperations the operations to save or delete the documents with
+	 * Set the operation to perform for each message. Defaults to {@link Type#INDEX}.
 	 * @param type the operation to perform
 	 */
-	public ElasticsearchMessageHandler(ReactiveElasticsearchOperations elasticsearchOperations, Type type) {
-		Assert.notNull(elasticsearchOperations, "'elasticsearchOperations' must not be null");
+	public void setType(Type type) {
 		Assert.notNull(type, "'type' must not be null");
-		this.elasticsearchOperations = elasticsearchOperations;
-		this.type = type;
+		setTypeExpression(new ValueExpression<>(type));
+	}
+
+	/**
+	 * Set an expression that evaluates the operation to perform for each message, so that the
+	 * same handler can index some messages and delete others. The result can be a {@link Type}
+	 * or its name.
+	 * @param typeExpression the expression for the operation to perform
+	 */
+	public void setTypeExpression(Expression typeExpression) {
+		Assert.notNull(typeExpression, "'typeExpression' must not be null");
+		this.typeExpression = typeExpression;
 	}
 
 	/**
@@ -105,8 +116,8 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 	}
 
 	/**
-	 * Set an expression that evaluates the id of the document to delete for each message. It only
-	 * applies to the {@link Type#DELETE} type.
+	 * Set an expression that evaluates the id of the document to delete for each message. It is
+	 * only evaluated for the {@link Type#DELETE} operation.
 	 * @param idExpression the expression for the id of the document to delete
 	 */
 	public void setIdExpression(Expression idExpression) {
@@ -122,16 +133,18 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(this.idExpression == null || this.type == Type.DELETE,
-				"The 'idExpression' only applies to the DELETE type");
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
-		return Mono.defer(() -> switch (this.type) {
-			case INDEX -> index(message);
-			case DELETE -> delete(message);
+		return Mono.defer(() -> {
+			Type type = this.typeExpression.getValue(this.evaluationContext, message, Type.class);
+			Assert.state(type != null, "'typeExpression' must not evaluate to null");
+			return switch (type) {
+				case INDEX -> index(message);
+				case DELETE -> delete(message);
+			};
 		});
 	}
 
@@ -178,7 +191,7 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 		}
 		if (payload instanceof Map<?, ?> map) {
 			assertIndexForDocument(index);
-			return Document.from(asStringKeyedMap(map));
+			return documentOf(map);
 		}
 		return payload;
 	}
@@ -192,13 +205,12 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 		Object payload = message.getPayload();
 		Assert.state(!(payload instanceof Collection<?>), "Deleting the documents of a Collection payload is not supported");
 		String id = evaluateId(message);
-		if (id == null && payload instanceof String payloadId) {
-			id = payloadId;
-		}
 		if (id != null) {
 			Assert.state(index != null, "An index name is required to delete a document by its id");
 			return this.elasticsearchOperations.delete(id, index).then();
 		}
+		Assert.state(!(payload instanceof String) && !(payload instanceof Map<?, ?>),
+				"Set an 'idExpression' to delete a document by its id: a String or Map payload is not an entity");
 		Mono<String> deleted = (index != null)
 				? this.elasticsearchOperations.delete(payload, index)
 				: this.elasticsearchOperations.delete(payload);
@@ -223,10 +235,11 @@ public class ElasticsearchMessageHandler extends AbstractReactiveMessageHandler 
 		return id;
 	}
 
-	private static Map<String, Object> asStringKeyedMap(Map<?, ?> map) {
-		Map<String, Object> result = new LinkedHashMap<>();
-		map.forEach((key, value) -> result.put(String.valueOf(key), value));
-		return result;
+	@SuppressWarnings("unchecked")
+	private static Document documentOf(Map<?, ?> map) {
+		Assert.state(map.keySet().stream().allMatch(String.class::isInstance),
+				"The keys of a Map payload must be String field names");
+		return Document.from((Map<String, ?>) map);
 	}
 
 	/**

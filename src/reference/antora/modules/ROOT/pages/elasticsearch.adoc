@@ -2,7 +2,7 @@
 = Elasticsearch Support
 
 Spring Integration provides a channel adapter (starting with version 7.3) for indexing documents into, and deleting documents from, Elasticsearch.
-It is based on the https://spring.io/projects/spring-data-elasticsearch[Spring Data Elasticsearch] project.
+It is based on the https://spring.io/projects/spring-data-elasticsearch[Spring Data Elasticsearch] project, and works with the entities that are mapped as described in the https://docs.spring.io/spring-data/elasticsearch/reference/elasticsearch/object-mapping.html[Spring Data Elasticsearch Object Mapping] chapter.
 
 This dependency is required for the project:
 
@@ -31,7 +31,7 @@ implementation "org.springframework.integration:spring-integration-elasticsearch
 == Elasticsearch Outbound Channel Adapter
 
 The `ElasticsearchMessageHandler` is an `AbstractReactiveMessageHandler` implementation that performs an `INDEX` (the default) or a `DELETE` operation for each message against the provided `ReactiveElasticsearchOperations`.
-The type of operation is set with the `ElasticsearchMessageHandler.Type` constructor argument.
+The operation is set with the `type` option, or evaluated for each message with the `typeExpression` option, so that the same handler can index some messages and delete others.
 
 With the `INDEX` type, the payload is saved as a document:
 
@@ -42,7 +42,7 @@ Since each save gets a new id, a redelivered message is indexed again. Use an en
 Without an index name, they must be entities of the same class.
 
 With the `DELETE` type, the document with the id of the `idExpression` is deleted.
-Without an `idExpression`, a `String` payload is the id of the document to delete, and any other payload is the entity to delete.
+Without an `idExpression`, the payload is the entity to delete, so a `String` or `Map` payload needs an `idExpression`.
 A `Collection` payload is not supported for deletion.
 
 The `indexName` and `indexNameExpression` options set the index of the documents.
@@ -69,10 +69,24 @@ The following example deletes the document with the `orderId` of the payload fro
 @Bean
 @ServiceActivator(inputChannel = "cancelledOrdersChannel")
 ElasticsearchMessageHandler elasticsearchDeletingHandler(ReactiveElasticsearchOperations elasticsearchOperations) {
-    ElasticsearchMessageHandler handler =
-            new ElasticsearchMessageHandler(elasticsearchOperations, ElasticsearchMessageHandler.Type.DELETE);
+    ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(elasticsearchOperations);
+    handler.setType(ElasticsearchMessageHandler.Type.DELETE);
     handler.setIndexName("orders");
     handler.setIdExpression(new SpelExpressionParser().parseExpression("payload.orderId"));
+    return handler;
+}
+----
+
+The following example indexes the `Order` entities, and deletes the ones whose `cancelled` property is `true`:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "orderEventsChannel")
+ElasticsearchMessageHandler elasticsearchOrdersHandler(ReactiveElasticsearchOperations elasticsearchOperations) {
+    ElasticsearchMessageHandler handler = new ElasticsearchMessageHandler(elasticsearchOperations);
+    handler.setTypeExpression(
+            new SpelExpressionParser().parseExpression("payload.cancelled ? 'DELETE' : 'INDEX'"));
     return handler;
 }
 ----
