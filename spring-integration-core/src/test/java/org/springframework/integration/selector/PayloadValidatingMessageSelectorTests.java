@@ -12,10 +12,8 @@ import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.Errors;
@@ -106,38 +104,6 @@ class PayloadValidatingMessageSelectorTests {
 	}
 
 	@Test
-	void validationHintsExpressionIsEvaluatedAgainstTheMessage() {
-		List<Object> receivedHints = new ArrayList<>();
-		PayloadValidatingMessageSelector selector =
-				new PayloadValidatingMessageSelector(hintsCapturingValidator(receivedHints));
-		selector.setValidationHints("staticGroup");
-		selector.setValidationHintsExpressionString("headers.groups");
-
-		Message<String> message = MessageBuilder.withPayload("order")
-				.setHeader("groups", List.of("group1", "group2"))
-				.build();
-
-		assertThat(selector.accept(message)).isTrue();
-		assertThat(receivedHints).containsExactly("group1", "group2");
-	}
-
-	@Test
-	void validationHintsExpressionResultCanBeSingleValueOrNull() {
-		List<Object> receivedHints = new ArrayList<>();
-		PayloadValidatingMessageSelector selector =
-				new PayloadValidatingMessageSelector(hintsCapturingValidator(receivedHints));
-		selector.setValidationHintsExpression(new SpelExpressionParser().parseExpression("headers['group']"));
-
-		assertThat(selector.accept(MessageBuilder.withPayload("order").setHeader("group", "group1").build())).isTrue();
-		assertThat(receivedHints).containsExactly("group1");
-
-		receivedHints.clear();
-
-		assertThat(selector.accept(new GenericMessage<>("order"))).isTrue();
-		assertThat(receivedHints).isEmpty();
-	}
-
-	@Test
 	void rejectionIsLoggedWithValidationErrorsButNotRejectedValues() {
 		Validator orderValidator = new Validator() {
 
@@ -193,27 +159,6 @@ class PayloadValidatingMessageSelectorTests {
 
 		assertThat(outputChannel.receive(0)).isSameAs(validMessage);
 		assertThat(discardChannel.receive(0)).isSameAs(invalidMessage);
-	}
-
-	private static SmartValidator hintsCapturingValidator(List<Object> receivedHints) {
-		return new SmartValidator() {
-
-			@Override
-			public boolean supports(Class<?> clazz) {
-				return true;
-			}
-
-			@Override
-			public void validate(Object target, Errors errors) {
-				errors.reject("plainValidateMustNotBeCalled");
-			}
-
-			@Override
-			public void validate(Object target, Errors errors, Object... validationHints) {
-				receivedHints.addAll(List.of(validationHints));
-			}
-
-		};
 	}
 
 	record Order(String email) {

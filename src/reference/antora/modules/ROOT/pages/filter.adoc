@@ -270,7 +270,6 @@ XML::
 ======
 
 Validation hints, such as Bean Validation groups, can be provided with the `setValidationHints(Object...)` option; they are passed to a `SmartValidator` (which the `LocalValidatorFactoryBean` is).
-To select the hints per message, use the `setValidationHintsExpression(Expression)` (or `setValidationHintsExpressionString(String)`) option instead: the expression is evaluated against the message, for example `headers['validationGroups']`, and its result can be an array, a collection, a single hint, or `null` for no hints.
 A payload whose type the validator does not support is rejected by default; set the `acceptUnsupportedPayloads` option to `true` to accept such messages instead.
 
 Each rejection is logged at `INFO` level with the ID of the message and the validation errors: the field names and the error messages, but not the rejected values, which may carry sensitive data.
