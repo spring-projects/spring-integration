@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
+import org.springframework.integration.redis.support.AllowListJdkSerializationRedisSerializer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.MessageChannel;
@@ -86,7 +86,7 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "taskExecutor"))
 				.isInstanceOf(ErrorHandlingTaskExecutor.class);
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializer"))
-				.isInstanceOf(JdkSerializationRedisSerializer.class);
+				.isInstanceOf(AllowListJdkSerializationRedisSerializer.class);
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "phase")).isEqualTo(Integer.MAX_VALUE / 2);
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "outputChannel"))
