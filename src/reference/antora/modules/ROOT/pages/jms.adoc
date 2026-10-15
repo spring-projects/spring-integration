@@ -829,6 +829,23 @@ public DefaultJmsHeaderMapper jmsHeaderMapper() {
 
 These JMS properties are mapped to the `JmsHeaders.DELIVERY_MODE` and `JmsHeaders.EXPIRATION` Spring Message headers respectively.
 
+Starting with version 7.2, the `DefaultJmsHeaderMapper` can be configured with the patterns of the message header names that are copied outbound to JMS properties:
+
+[source,java]
+----
+@Bean
+public DefaultJmsHeaderMapper jmsHeaderMapper() {
+    DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+    mapper.setOutboundHeaderNames("!internal*", "*");
+    return mapper;
+}
+----
+
+The patterns support simple wildcards (such as `order*`) and negation (such as `!internal*`), and the first pattern that matches a header name decides whether the header is mapped.
+They are matched against the header names, before the `outboundPrefix` is added, and do not affect the JMS API headers (such as `jms_correlationId`, `jms_replyTo` and `jms_type`).
+By default, all the eligible headers are mapped.
+On the inbound side, the JMS properties to map are selected by the patterns passed to the `DefaultJmsHeaderMapper(String...)` constructor.
+
 [[jms-conversion-and-marshalling]]
 == Message Conversion, Marshalling, and Unmarshalling
 
