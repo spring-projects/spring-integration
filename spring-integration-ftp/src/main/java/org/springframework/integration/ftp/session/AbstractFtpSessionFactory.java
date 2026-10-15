@@ -5,6 +5,7 @@
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.time.Duration;
 
 import org.apache.commons.logging.Log;
@@ -28,6 +29,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Sharang Gupta
  *
  * @since 2.0
  */
@@ -58,6 +60,8 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	private @Nullable Integer defaultTimeout;
 
 	private @Nullable Integer dataTimeout;
+
+	private @Nullable Proxy proxy;
 
 	/**
 	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants:
@@ -153,8 +157,32 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.dataTimeout = dataTimeout;
 	}
 
+	/**
+	 * Set the proxy to connect to the server through.
+	 * The proxy is used for the control connection and for the data connections,
+	 * therefore this setter also switches the {@code clientMode} to the
+	 * {@link FTPClient#PASSIVE_LOCAL_DATA_CONNECTION_MODE}:
+	 * the server cannot connect back to the client through a proxy.
+	 * If the {@code clientMode} is changed afterwards to another mode, the {@link #getSession()} fails.
+	 * A {@link Proxy.Type#SOCKS} proxy is used as is.
+	 * A {@link Proxy.Type#HTTP} proxy is used with the HTTP {@code CONNECT} tunneling of the JVM;
+	 * the credentials for such a proxy, if any, have to be provided through a {@link java.net.Authenticator}.
+	 * See the {@link FtpHttpProxySessionFactory} for an HTTP proxy with credentials.
+	 * @param proxy the proxy.
+	 * @since 7.2
+	 * @see FTPClient#setProxy(Proxy)
+	 */
+	public void setProxy(Proxy proxy) {
+		Assert.notNull(proxy, "'proxy' must not be null");
+		this.proxy = proxy;
+		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
+	}
+
 	@Override
 	public FtpSession getSession() {
+		Assert.state(this.proxy == null || this.clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE,
+				"The 'clientMode' must be 'FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE' when a proxy is used, " +
+						"because the server cannot connect back to the client through a proxy");
 		try {
 			return new FtpSession(this.createClient());
 		}
@@ -178,6 +206,9 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 			client.setDataTimeout(Duration.ofMillis(this.dataTimeout));
 		}
 		client.setControlEncoding(this.controlEncoding);
+		if (this.proxy != null) {
+			client.setProxy(this.proxy);
+		}
 
 		this.postProcessClientBeforeConnect(client);
 

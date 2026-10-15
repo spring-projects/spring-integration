@@ -62,3 +62,53 @@ The protocol (FTP or FTPS) that an adapter uses depends on the type of session f
 
 NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer).
 
+[[ftp-session-factory-proxy]]
+== Proxy Support
+
+Starting with version 7.2, the session factories can connect to the FTP (or FTPS) server through a proxy.
+
+The `proxy` property of the `AbstractFtpSessionFactory` (and, therefore, of the `DefaultFtpSessionFactory` and the `DefaultFtpsSessionFactory`) accepts a `java.net.Proxy`.
+The proxy is used for the control connection and for the data connections, which requires the passive client mode (`FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE`): the server cannot connect back to the client through a proxy.
+Therefore, setting the `proxy` also switches the `clientMode` to the passive mode.
+If the `clientMode` is changed afterwards to another mode, the session factory fails to create a session.
+A `Proxy.Type.SOCKS` proxy is used as is.
+A `Proxy.Type.HTTP` proxy is used with the HTTP `CONNECT` tunneling of the JVM; the credentials for such a proxy, if any, have to be provided through a `java.net.Authenticator`.
+
+The following example shows a session factory that connects through a SOCKS proxy:
+
+[source,java]
+----
+@Bean
+DefaultFtpSessionFactory ftpSessionFactory() {
+    DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+    sessionFactory.setHost("ftp.example.com");
+    sessionFactory.setUsername("kermit");
+    sessionFactory.setPassword("frog");
+    sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("proxy.example.com", 1080)));
+    return sessionFactory;
+}
+----
+
+When the HTTP proxy requires credentials, use the `FtpHttpProxySessionFactory` instead.
+It tunnels the connections through the proxy with the `CONNECT` method and sends the credentials to the proxy with the basic authentication scheme.
+This factory supports only the passive client mode, which is its default.
+The following example shows its configuration:
+
+[source,xml]
+----
+<bean id="ftpClientFactory"
+    class="org.springframework.integration.ftp.session.FtpHttpProxySessionFactory">
+    <property name="host" value="ftp.example.com"/>
+    <property name="username" value="kermit"/>
+    <property name="password" value="frog"/>
+    <property name="proxyHost" value="proxy.example.com"/>
+    <property name="proxyPort" value="3128"/>
+    <property name="proxyUsername" value="kermit"/>
+    <property name="proxyPassword" value="frog"/>
+</bean>
+----
+
+NOTE: The `FtpHttpProxySessionFactory` supports only plain FTP connections.
+For FTPS connections through a proxy, use the `proxy` property of the `DefaultFtpsSessionFactory`.
+
+Unlike the proxy system properties of the JVM (such as `socksProxyHost`), these options apply only to the sessions of the configured factory, not to all the connections of the application.
