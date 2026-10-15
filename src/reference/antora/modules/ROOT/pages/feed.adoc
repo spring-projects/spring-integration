@@ -123,9 +123,8 @@ Subsequent reads select entries with a date later than that timestamp.
 Entries without either date are sorted last and emitted only if the retrieved feed also contains new dated entries.
 Undated entries can be emitted again when a later poll finds new dated entries.
 
-If none of the retrieved entries has a date, the feed's published date is used for all of them instead.
+If none of the retrieved entries has a date, the feed's published date is used for all of them instead and is set as their updated date.
 For RSS, this is the channel's `pubDate`, falling back to its `lastBuildDate`; for Atom, it is the feed's `updated` date.
-The entries themselves are not modified.
 All these entries are emitted again whenever the feed's date advances, and on every poll if the feed sets this date to the time it was generated.
 If the feed has no date either, no entries are emitted.
 

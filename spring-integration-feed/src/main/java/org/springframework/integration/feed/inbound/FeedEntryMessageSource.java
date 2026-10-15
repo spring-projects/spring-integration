@@ -91,8 +91,6 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private volatile long lastTime = -1;
 
-	private @Nullable Date fallbackDate;
-
 	private volatile boolean initialized;
 
 	/**
@@ -207,7 +205,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			return null;
 		}
 
-		Date lastModifiedDate = getEntryDate(next);
+		Date lastModifiedDate = FeedEntryMessageSource.getLastModifiedDate(next);
 		if (lastModifiedDate != null) {
 			this.lastTime = lastModifiedDate.getTime();
 		}
@@ -223,14 +221,17 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
-				this.fallbackDate =
-						retrievedEntries.stream().allMatch(entry -> getLastModifiedDate(entry) == null)
-								? syndFeed.getPublishedDate()
-								: null;
 				boolean withinNewEntries = false;
 				retrievedEntries.sort(this.syndEntryComparator);
+				// Undated entries are sorted last, so the feed date is used only if none of the entries has a date
+				Date feedDate =
+						(getLastModifiedDate(retrievedEntries.get(0)) == null) ? syndFeed.getPublishedDate() : null;
 				for (SyndEntry entry : retrievedEntries) {
-					Date entryDate = getEntryDate(entry);
+					Date entryDate = getLastModifiedDate(entry);
+					if (entryDate == null && feedDate != null) {
+						entry.setUpdatedDate(feedDate);
+						entryDate = feedDate;
+					}
 					if ((entryDate != null && entryDate.getTime() > this.lastTime)
 							|| (entryDate == null && withinNewEntries)) {
 						this.entries.add(entry);
@@ -293,11 +294,6 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 				", metadataKey='" + this.metadataKey + '\'' +
 				", lastTime=" + this.lastTime +
 				'}';
-	}
-
-	private @Nullable Date getEntryDate(SyndEntry entry) {
-		Date entryDate = getLastModifiedDate(entry);
-		return (entryDate != null) ? entryDate : this.fallbackDate;
 	}
 
 	private static @Nullable Date getLastModifiedDate(SyndEntry entry) {

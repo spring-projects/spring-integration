@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Date;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import org.junit.jupiter.api.AfterAll;
@@ -146,14 +147,14 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 
+		Instant feedDate = Instant.parse("2026-10-07T10:00:00Z");
 		for (int i = 0; i < 3; i++) {
 			Message<SyndEntry> message = source.receive();
 			assertThat(message).isNotNull();
-			assertThat(message.getPayload().getPublishedDate()).isNull();
+			assertThat(message.getPayload().getUpdatedDate()).isEqualTo(Date.from(feedDate));
 		}
 		assertThat(source.receive()).isNull();
-		assertThat(metadataStore.get("datelessEntries"))
-				.isEqualTo(Long.toString(Instant.parse("2026-10-07T10:00:00Z").toEpochMilli()));
+		assertThat(metadataStore.get("datelessEntries")).isEqualTo(Long.toString(feedDate.toEpochMilli()));
 
 		source = new FeedEntryMessageSource(new FileSystemResource(feedFile), "datelessEntries");
 		source.setMetadataStore(metadataStore);
