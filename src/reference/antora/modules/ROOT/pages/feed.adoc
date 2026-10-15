@@ -115,9 +115,20 @@ Otherwise, the next attempt to poll for a feed is determined by the trigger of t
 
 Polling for a feed can result in entries that have already been processed ("`I already read that news item, why are you showing it to me again?`").
 Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
-Each feed entry has a "`published date`" field.
-Every time a new `Message` is generated and sent, Spring Integration stores the value of the latest published date in an instance of the `MetadataStore` strategy (see xref:meta-data-store.adoc[Metadata Store]).
-The `metadataKey` is used to persist the latest published date.
+By default, the adapter uses each entry's updated date, falling back to its published date.
+Entries are emitted in chronological order.
+Every time a new `Message` is generated, Spring Integration stores the latest timestamp under the `metadataKey` in a `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store]).
+Subsequent reads select entries with a date later than that timestamp.
+
+Entries without either date are sorted last and emitted only if the retrieved feed also contains new dated entries.
+Undated entries can be emitted again when a later poll finds new dated entries.
+
+If none of the retrieved entries has a date, the feed's published date is used for all of them instead and is set as their updated date.
+For RSS, this is the channel's `pubDate`, falling back to its `lastBuildDate`; for Atom, it is the feed's `updated` date.
+All these entries are emitted again whenever the feed's date advances, and on every poll if the feed sets this date to the time it was generated.
+If the feed has no date either, no entries are emitted.
+
+If you need to suppress these duplicates, use an xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver] downstream, keyed by `SyndEntry.getUri()` or another stable entry identifier.
 
 [[other-options]]
 == Other Options

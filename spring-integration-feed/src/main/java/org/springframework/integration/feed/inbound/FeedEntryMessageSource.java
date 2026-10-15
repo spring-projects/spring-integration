@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Aaron Loes
  * @author Christian Tzolov
+ * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -63,9 +64,11 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final Lock monitor = new ReentrantLock();
 
+	private final HttpClient httpClient = HttpClient.newHttpClient();
+
 	private final Comparator<SyndEntry> syndEntryComparator =
 			Comparator.comparing(FeedEntryMessageSource::getLastModifiedDate,
-					Comparator.nullsFirst(Comparator.naturalOrder()));
+					Comparator.nullsLast(Comparator.naturalOrder()));
 
 	private final Lock feedMonitor = new ReentrantLock();
 
@@ -81,7 +84,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	private volatile boolean initialized;
 
 	/**
-	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
+	 * Create a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
 	 * {@link Resource} via the alternate constructor.
 	 * @param feedUrl The URL.
@@ -96,7 +99,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	}
 
 	/**
-	 * Creates a FeedEntryMessageSource that will read feeds from the given {@link Resource}.
+	 * Create a FeedEntryMessageSource that will read feeds from the given {@link Resource}.
 	 * @param feedResource the {@link Resource} to use.
 	 * @param metadataKey the metadata key.
 	 * @since 5.0
@@ -142,19 +145,20 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return "feed:inbound-channel-adapter";
 	}
 
-	@SuppressWarnings("NullAway")
 	@Override
 	protected void onInit() {
 		if (this.metadataStore == null) {
+			MetadataStore newMetadataStore = null;
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = getBeanFactory();
 			if (beanFactory != null) {
-				this.metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
+				newMetadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
 			}
 			// if no 'messageStore' in context, fall back to in-memory Map-based default
-			if (this.metadataStore == null) {
-				this.metadataStore = new SimpleMetadataStore();
+			if (newMetadataStore == null) {
+				newMetadataStore = new SimpleMetadataStore();
 			}
+			this.metadataStore = newMetadataStore;
 		}
 
 		String lastTimeValue = this.metadataStore.get(this.metadataKey);
@@ -164,9 +168,14 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		this.initialized = true;
 	}
 
-	@Nullable
 	@Override
-	protected SyndEntry doReceive() {
+	public void destroy() {
+		this.httpClient.close();
+		super.destroy();
+	}
+
+	@Override
+	protected @Nullable SyndEntry doReceive() {
 		Assert.isTrue(this.initialized,
 				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry nextEntry;
@@ -185,8 +194,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		return nextEntry;
 	}
 
-	@Nullable
-	private SyndEntry getNextEntry() {
+	private @Nullable SyndEntry getNextEntry() {
 		SyndEntry next = this.entries.poll();
 		if (next == null) {
 			return null;
@@ -197,7 +205,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			this.lastTime = lastModifiedDate.getTime();
 		}
 		else {
-			this.lastTime += 1; //NOSONAR - single poller thread
+			this.lastTime++;
 		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;
@@ -210,10 +218,18 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
 				boolean withinNewEntries = false;
 				retrievedEntries.sort(this.syndEntryComparator);
+				// Undated entries are sorted last, so the feed date is used only if none of the entries has a date
+				Date feedDate =
+						(getLastModifiedDate(retrievedEntries.get(0)) == null) ? syndFeed.getPublishedDate() : null;
 				for (SyndEntry entry : retrievedEntries) {
 					Date entryDate = getLastModifiedDate(entry);
+					if (entryDate == null && feedDate != null) {
+						entry.setUpdatedDate(feedDate);
+						entryDate = feedDate;
+					}
 					if ((entryDate != null && entryDate.getTime() > this.lastTime)
 							|| (entryDate == null && withinNewEntries)) {
+
 						this.entries.add(entry);
 						withinNewEntries = true;
 					}
@@ -255,10 +271,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 							.uri(this.feedUrl.toURI())
 							.build();
 
-			inputStream =
-					HttpClient.newHttpClient()
-							.send(request, HttpResponse.BodyHandlers.ofInputStream())
-							.body();
+			inputStream = this.httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream()).body();
 		}
 
 		try (inputStream) {
@@ -276,7 +289,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 				'}';
 	}
 
-	private static Date getLastModifiedDate(SyndEntry entry) {
+	private static @Nullable Date getLastModifiedDate(SyndEntry entry) {
 		return (entry.getUpdatedDate() != null) ? entry.getUpdatedDate() : entry.getPublishedDate();
 	}
 

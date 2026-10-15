@@ -26,6 +26,9 @@ See xref:mqtt.adoc[] for more information.
 A new `spring-integration-pulsar` module provides an outbound channel adapter (the `PulsarMessageHandler`) and a message-driven channel adapter (the `PulsarMessageProducer`) for Apache Pulsar, built on Spring for Apache Pulsar, together with the Java DSL support.
 See xref:pulsar.adoc[] for more information.
 
+A new `PayloadValidatingMessageSelector` accepts a message only if its payload passes a Spring `Validator`, such as a Bean Validation one from the `LocalValidatorFactoryBean`.
+See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more information.
+
 [[x7.2-general-changes]]
 === General Changes
 
@@ -39,6 +42,13 @@ The `wait-for-confirm` option on the outbound channel adapter now also works wit
 When the message has no correlation data, the send is performed within the scope of a `RabbitTemplate.invoke()` operation and `waitForConfirmsOrDie()` is used.
 A warning is now logged when the option is set but the connection factory supports no publisher confirms at all.
 See xref:amqp/outbound-channel-adapter.adoc[] for more information.
+
+[[x7.2-feed-changes]]
+=== Feed Support Changes
+
+The `FeedEntryMessageSource` now uses the feed's published date when none of the retrieved entries has an updated or published date.
+Undated entries are again sorted after dated entries, so they are emitted together with new dated entries.
+See xref:feed.adoc#duplicate-entries[Duplicate Entries] for more information.
 
 [[x7.2-jdbc-changes]]
 === JDBC Support Changes
@@ -60,6 +70,13 @@ The `SerializingHttpMessageConverter` now has a constructor that requires the pa
 Its default constructor and `setAllowedPatterns()` method are deprecated.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
+[[x7.2-ftp-changes]]
+=== FTP Support Changes
+
+The FTP session factories can now connect through a proxy.
+The `proxy` property of the `AbstractFtpSessionFactory` accepts a `java.net.Proxy` (SOCKS or HTTP), and the new `FtpHttpProxySessionFactory` tunnels the connections through an HTTP proxy that requires credentials.
+See xref:ftp/session-factory.adoc#ftp-session-factory-proxy[Proxy Support] for more information.
+
 [[x7.2-jms-changes]]
 === JMS Support Changes
 
@@ -67,3 +84,6 @@ Spring Framework's JMS `MessageConverter` implementations may now return `null` 
 A `null` payload conversion is treated as a conversion failure, a `MessageConversionException` is then thrown.
 This affects `AbstractJmsChannel`, `JmsDestinationPollingSource`, `ChannelPublishingJmsMessageListener`, and `JmsOutboundGateway`.
 See xref:jms.adoc[JMS Support] for more information.
+
+The `DefaultJmsHeaderMapper` can now be configured with the patterns of the message header names to map outbound to JMS properties, through its `setOutboundHeaderNames()` method.
+See xref:jms.adoc#jms-header-mapping[Mapping Message Headers to and from JMS Message] for more information.

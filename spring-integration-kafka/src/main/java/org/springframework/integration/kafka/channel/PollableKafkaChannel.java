@@ -186,7 +186,7 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 
 	private static String topic(KafkaMessageSource<?, ?> source) {
 		Assert.notNull(source, "'source' cannot be null");
-		@Nullable String @Nullable [] topics = source.getConsumerProperties().getTopics();
+		String[] topics = source.getConsumerProperties().getTopics();
 		Assert.isTrue(topics != null && topics.length == 1 && topics[0] != null, "Only one topic is allowed");
 		return topics[0];
 	}

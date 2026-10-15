@@ -227,3 +227,49 @@ All the configuration options provided by the XML element are also available for
 The filter can be either referenced explicitly from XML or, if the `@MessageEndpoint` annotation is defined on the class, detected automatically through classpath scanning.
 
 See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations] and xref:security.adoc[].
+
+[[filter-payload-validation]]
+== Validating Payloads
+
+Starting with version 7.2, the `PayloadValidatingMessageSelector` accepts a message only if its payload passes the validation of a Spring `org.springframework.validation.Validator`.
+See the Spring Framework https://docs.spring.io/spring-framework/reference/core/validation.html[Reference Manual] about validation for more information about validators.
+A Bean Validation (JSR-303) provider, such as Hibernate Validator, can be plugged in through the `LocalValidatorFactoryBean` from Spring Framework, which exposes it as such a `Validator`.
+Used with a message filter, messages with an invalid payload are discarded, sent to the discard channel, or rejected with an exception, depending on the filter configuration.
+
+The following example validates the payload with Bean Validation and sends invalid messages to the `invalidOrders` channel:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow orderFlow(LocalValidatorFactoryBean validator) {
+    return IntegrationFlow.from("orders")
+            .filter(new PayloadValidatingMessageSelector(validator),
+                    e -> e.discardChannel("invalidOrders"))
+            .channel("validOrders")
+            .get();
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+
+<bean id="payloadValidator" class="org.springframework.integration.selector.PayloadValidatingMessageSelector">
+    <constructor-arg ref="validator"/>
+</bean>
+
+<int:filter input-channel="orders" output-channel="validOrders"
+            discard-channel="invalidOrders" ref="payloadValidator"/>
+----
+======
+
+Validation hints, such as Bean Validation groups, can be provided with the `setValidationHints(Object...)` option; they are passed to a `SmartValidator` (which the `LocalValidatorFactoryBean` is).
+A payload whose type the validator does not support is rejected by default; set the `acceptUnsupportedPayloads` option to `true` to accept such messages instead.
+
+Each rejection is logged at `INFO` level with the ID of the message and the validation errors: the field names and the error messages, but not the rejected values, which may carry sensitive data.

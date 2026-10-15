@@ -8,15 +8,24 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Date;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
@@ -29,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gary Russell
  * @author Aaron Loes
  * @author Artem Bilan
+ * @author Jialin Chen
  *
  * @since 2.0
  */
@@ -55,7 +65,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 	@Test
 	public void testFailureWhenNotInitialized() throws Exception {
 		URL url = new ClassPathResource("org/springframework/integration/feed/sample.rss").getURL();
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "key");
 		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(feedEntrySource::receive);
 	}
@@ -73,7 +83,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 						connection.setReadTimeout(5000);
 					}
 				};
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(urlResource, "foo");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(urlResource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
@@ -83,7 +93,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 	@Test
 	public void testReceiveFeedWithEntriesSorted() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "foo");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "key");
 		source.setBeanName("feedReader");
 		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
@@ -98,12 +108,75 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		assertThat(source.receive()).isNull();
 	}
 
-	// verifies that when entry has been updated since publish, that is taken into
+	@Test
+	public void testReceiveFeedWithDatelessEntriesSortedLast() {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/mixed-dates.rss");
+		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "mixedDates");
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle()).isEqualTo("Dated entry");
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle())
+				.isEqualTo("First undated entry");
+		assertThat(source.receive()).extracting(message -> message.getPayload().getTitle())
+				.isEqualTo("Second undated entry");
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testReceiveFeedWithoutEntryDatesUsesFeedDate(@TempDir Path directory) throws IOException {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		String feedContent = resource.getContentAsString(StandardCharsets.UTF_8);
+		Path feedFile = directory.resolve("feed.rss");
+		Files.writeString(feedFile, feedContent);
+		SimpleMetadataStore metadataStore = new SimpleMetadataStore();
+		FeedEntryMessageSource source = new FeedEntryMessageSource(new FileSystemResource(feedFile), "datelessEntries");
+		source.setMetadataStore(metadataStore);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		Instant feedDate = Instant.parse("2026-10-07T10:00:00Z");
+		for (int i = 0; i < 3; i++) {
+			Message<SyndEntry> message = source.receive();
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload().getUpdatedDate()).isEqualTo(Date.from(feedDate));
+		}
+		assertThat(source.receive()).isNull();
+		assertThat(metadataStore.get("datelessEntries")).isEqualTo(Long.toString(feedDate.toEpochMilli()));
+
+		source = new FeedEntryMessageSource(new FileSystemResource(feedFile), "datelessEntries");
+		source.setMetadataStore(metadataStore);
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+		assertThat(source.receive()).isNull();
+
+		Files.writeString(feedFile,
+				feedContent.replace("Wed, 07 Oct 2026 10:00:00 GMT", "Thu, 08 Oct 2026 10:00:00 GMT"));
+		for (int i = 0; i < 3; i++) {
+			assertThat(source.receive()).isNotNull();
+		}
+		assertThat(source.receive()).isNull();
+	}
+
+	@Test
+	public void testReceiveFeedWithoutAnyDates() throws IOException {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/dateless.rss");
+		String feedContent = resource.getContentAsString(StandardCharsets.UTF_8)
+				.replace("<pubDate>Wed, 07 Oct 2026 10:00:00 GMT</pubDate>", "");
+		FeedEntryMessageSource source =
+				new FeedEntryMessageSource(new ByteArrayResource(feedContent.getBytes()), "noDates");
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		source.afterPropertiesSet();
+
+		assertThat(source.receive()).isNull();
+	}
+
+	// verifies that when entry has been updated since publication that is taken into
 	// account when determining if the feed entry has been seen before
 	@Test
 	public void testEntryHavingBeenUpdatedAfterPublishAndRepeat() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/atom.xml");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -112,7 +185,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		feedEntrySource.afterPropertiesSet();
 
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
-		assertThat(feedEntrySource.receive()).isNull(); // only 1 entries in the test feed
+		assertThat(feedEntrySource.receive()).isNull(); // only 1 entry in the test feed
 
 		assertThat(entry1.getTitle().trim()).isEqualTo("Atom draft-07 snapshot");
 		assertThat(entry1.getPublishedDate().getTime()).isEqualTo(1071318569000L);
@@ -122,7 +195,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		metadataStore.afterPropertiesSet();
 
 		// now test that what's been read is no longer retrieved
-		feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -137,7 +210,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -162,7 +235,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 		metadataStore.afterPropertiesSet();
 
 		// now test that what's been read is no longer retrieved
-		feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -179,7 +252,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();
@@ -199,7 +272,7 @@ public class FeedEntryMessageSourceTests implements TestApplicationContextAware 
 
 		// UNLIKE the previous test
 		// now test that what's been read is read AGAIN
-		feedEntrySource = new FeedEntryMessageSource(resource, "foo");
+		feedEntrySource = new FeedEntryMessageSource(resource, "key");
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		feedEntrySource.afterPropertiesSet();

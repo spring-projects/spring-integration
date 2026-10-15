@@ -191,7 +191,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		Object value = headers.get(key);
 		String[] returnedHeaders = null;
 		if (value != null) {
-			if (value instanceof @Nullable String[] strArr) {
+			if (value instanceof String[] strArr) {
 				returnedHeaders = Arrays.stream(strArr)
 						.filter(Objects::nonNull)
 						.toArray(String[]::new);

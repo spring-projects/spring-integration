@@ -256,7 +256,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		List<Object> mergedEntities = new ArrayList<>();
 
 		EntityManager entityManager = getEntityManager();
-		for (@Nullable Object iteratedEntity : entities) {
+		for (Object iteratedEntity : entities) {
 			if (iteratedEntity == null) {
 				nullEntities.incrementAndGet();
 			}

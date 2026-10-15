@@ -4,7 +4,10 @@
 
 package org.springframework.integration.ftp.session;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +19,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -27,10 +31,14 @@ import org.springframework.integration.util.PoolItemNotAvailableException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -76,6 +84,54 @@ class SessionFactoryTests {
 
 		verify(client).logout();
 		verify(client, times(2)).disconnect();
+	}
+
+	@Test
+	void proxyIsAppliedToTheClientBeforeConnecting() throws Exception {
+		FTPClient client = mock(FTPClient.class);
+		DefaultFtpSessionFactory sessionFactory = sessionFactoryFor(client);
+		sessionFactory.setHost("ftp.example.com");
+		Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080));
+		sessionFactory.setProxy(proxy);
+
+		sessionFactory.getSession();
+
+		InOrder inOrder = inOrder(client);
+		inOrder.verify(client).setProxy(proxy);
+		inOrder.verify(client).connect("ftp.example.com", 21);
+	}
+
+	@Test
+	void proxySwitchesTheClientToThePassiveMode() throws Exception {
+		FTPClient client = mock(FTPClient.class);
+		DefaultFtpSessionFactory sessionFactory = sessionFactoryFor(client);
+		sessionFactory.setClientMode(FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE);
+		sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080)));
+
+		sessionFactory.getSession();
+
+		verify(client).enterLocalPassiveMode();
+	}
+
+	@Test
+	void clientIsNotProxiedByDefault() throws Exception {
+		FTPClient client = mock(FTPClient.class);
+
+		sessionFactoryFor(client).getSession();
+
+		verify(client, never()).setProxy(any());
+	}
+
+	@Test
+	void activeClientModeSetAfterTheProxyIsRejected() {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		sessionFactory.setUsername("ftpuser");
+		sessionFactory.setProxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", 1080)));
+		sessionFactory.setClientMode(FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE);
+
+		assertThatIllegalStateException()
+				.isThrownBy(sessionFactory::getSession)
+				.withMessageContaining("PASSIVE_LOCAL_DATA_CONNECTION_MODE");
 	}
 
 	@Test
@@ -214,6 +270,20 @@ class SessionFactoryTests {
 		executor.awaitTermination(10000, TimeUnit.SECONDS);
 
 		assertThat(failures.get()).isEqualTo(0);
+	}
+
+	private static DefaultFtpSessionFactory sessionFactoryFor(FTPClient client) throws IOException {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
+
+			@Override
+			protected FTPClient createClientInstance() {
+				return client;
+			}
+		};
+		sessionFactory.setUsername("ftpuser");
+		doReturn(200).when(client).getReplyCode();
+		doReturn(true).when(client).login("ftpuser", null);
+		return sessionFactory;
 	}
 
 }
