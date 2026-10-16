@@ -4,5 +4,5 @@
         api 'io.cloudevents:cloudevents-core'
 
         testImplementation 'io.cloudevents:cloudevents-json-jackson'
-		testImplementation libs.io.cloudevents.xml
+		testImplementation 'io.cloudevents:cloudevents-xml'
     }

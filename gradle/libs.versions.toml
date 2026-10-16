@@ -102,7 +102,6 @@ com-willowtreeapps-assertk = { module = "com.willowtreeapps.assertk:assertk-jvm"
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIoVersion" }
 commons-net = { module = "commons-net:commons-net", version.ref = "commonsNetVersion" }
 io-cloudevents-bom = { module = "io.cloudevents:cloudevents-bom", version.ref = "cloudEventsVersion" }
-io-cloudevents-xml = { module = "io.cloudevents:cloudevents-xml", version.ref = "cloudEventsVersion" }
 io-debezium-connector-mysql = { module = "io.debezium:debezium-connector-mysql", version.ref = "debeziumVersion" }
 io-debezium-embedded = { module = "io.debezium:debezium-embedded", version.ref = "debeziumVersion" }
 io-github-resilience4j-ratelimiter = { module = "io.github.resilience4j:resilience4j-ratelimiter", version.ref = "resilience4jVersion" }
