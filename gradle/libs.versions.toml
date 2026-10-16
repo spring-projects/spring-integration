@@ -8,7 +8,7 @@ springDataVersion = "2025.1.8-SNAPSHOT"
 springGraphqlVersion = "2.0.6-SNAPSHOT"
 springKafkaVersion = "4.0.8-SNAPSHOT"
 springSecurityVersion = "7.0.8-SNAPSHOT"
-springVersion = "7.0.10-SNAPSHOT"
+springVersion = "7.0.11-SNAPSHOT"
 springWsVersion = "5.0.3-SNAPSHOT"
 
 # Third-party dependencies
