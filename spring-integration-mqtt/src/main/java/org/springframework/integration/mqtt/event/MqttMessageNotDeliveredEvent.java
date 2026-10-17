@@ -11,10 +11,12 @@ import java.io.Serial;
  * was not delivered on publish operation.
  *
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 6.4
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 public class MqttMessageNotDeliveredEvent extends MqttMessageDeliveryEvent {
 
 	@Serial

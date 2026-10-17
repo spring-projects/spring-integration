@@ -19,9 +19,12 @@ import org.springframework.util.ReflectionUtils;
  * {@link RuntimeHintsRegistrar} for Spring Integration MQTT module.
  *
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 6.1.9
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 class MqttRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
