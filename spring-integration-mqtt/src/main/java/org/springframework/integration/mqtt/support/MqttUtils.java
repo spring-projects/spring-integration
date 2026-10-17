@@ -19,10 +19,12 @@ import org.springframework.util.ReflectionUtils;
  * MQTT Utilities.
  *
  * @author Gary Russell
+ * @author Jaehong Park
  *
  * @since 5.4
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 public final class MqttUtils {
 
 	private static final boolean PAHO_MQTTV3_PRESENT =

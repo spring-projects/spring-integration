@@ -38,10 +38,12 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Jaehong Park
  *
  * @since 4.0
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHandler
 		implements ManageableLifecycle, ApplicationEventPublisherAware {
 

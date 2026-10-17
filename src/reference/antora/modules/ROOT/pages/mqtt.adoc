@@ -3,6 +3,10 @@
 
 Spring Integration provides inbound and outbound channel adapters to support the Message Queueing Telemetry Transport (MQTT) protocol.
 
+IMPORTANT: Starting with version 7.2, the Paho-based `spring-integration-mqtt` module is deprecated for removal in favor of the HiveMQ-based `spring-integration-mqtt-client` module.
+The following sections describe the deprecated Paho-based adapters.
+To migrate, use the `spring-integration-mqtt-client` dependency and the components in the `org.springframework.integration.mqtt.client` packages, and adapt your client configuration to the HiveMQ MQTT client API.
+
 This dependency is required for the project:
 
 [tabs]

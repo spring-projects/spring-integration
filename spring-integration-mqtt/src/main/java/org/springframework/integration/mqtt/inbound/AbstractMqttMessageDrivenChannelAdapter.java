@@ -40,10 +40,12 @@ import org.springframework.util.Assert;
  * @author Artem Vozhdayenko
  * @author Jiri Soucek
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 4.0
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 @ManagedResource
 @IntegrationManagedResource
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport

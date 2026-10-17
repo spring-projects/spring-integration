@@ -9,9 +9,11 @@ package org.springframework.integration.mqtt.event;
  * {@link #clientId} and {@link #clientInstance} can be used to correlate events.
  *
  * @author Gary Russell
+ * @author Jaehong Park
  * @since 4.1
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 @SuppressWarnings("serial")
 public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 

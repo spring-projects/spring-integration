@@ -12,9 +12,11 @@ import org.springframework.messaging.Message;
  * Helper for typed access to incoming MQTT message headers.
  *
  * @author Gary Russell
+ * @author Jaehong Park
  * @since 5.3
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
 public final class MqttHeaderAccessor {
 
 	private MqttHeaderAccessor() {
