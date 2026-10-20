@@ -18,7 +18,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "removal"})
 public class MqttProtocolErrorEvent extends MqttIntegrationEvent {
 
 	public MqttProtocolErrorEvent(Object source, MqttException exception) {

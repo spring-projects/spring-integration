@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "removal"})
 public class MqttConnectionFailedEvent extends MqttIntegrationEvent {
 
 	public MqttConnectionFailedEvent(Object source) {

@@ -17,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public interface MqttPahoClientFactory {
 
 	/**

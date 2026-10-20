@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
 @Deprecated(since = "7.2", forRemoval = true)
 @ManagedResource
 @IntegrationManagedResource
+@SuppressWarnings("removal")
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 

@@ -16,10 +16,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * started only once per JVM, therefore the target Docker container is reused automatically.
  *
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 5.5.5
  */
 @Testcontainers(disabledWithoutDocker = true)
+@SuppressWarnings("removal")
 public interface MosquittoContainerTest {
 
 	GenericContainer<?> MOSQUITTO_CONTAINER =

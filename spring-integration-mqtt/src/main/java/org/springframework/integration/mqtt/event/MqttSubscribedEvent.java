@@ -11,7 +11,7 @@ package org.springframework.integration.mqtt.event;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "removal"})
 public class MqttSubscribedEvent extends MqttIntegrationEvent {
 
 	private final String message;

@@ -14,6 +14,7 @@ package org.springframework.integration.mqtt.support;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public final class MqttHeaders {
 
 	public static final String PREFIX = "mqtt_";

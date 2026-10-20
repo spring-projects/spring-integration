@@ -16,7 +16,7 @@ import org.springframework.messaging.Message;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "removal"})
 public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 
 	private final Message<?> message;

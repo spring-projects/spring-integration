@@ -41,11 +41,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 5.1.2
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class MqttDslTests implements MosquittoContainerTest, TestApplicationContextAware {
 
 	@Autowired

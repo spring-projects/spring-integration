@@ -34,9 +34,11 @@ import static org.mockito.Mockito.verify;
  * conversion path.
  *
  * @author Deng Pan
+ * @author Jaehong Park
  *
  * @since 7.1
  */
+@SuppressWarnings("removal")
 class Mqttv5HandlerTests {
 
 	@Test

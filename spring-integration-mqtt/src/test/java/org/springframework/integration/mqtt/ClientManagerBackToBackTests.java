@@ -47,9 +47,11 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 6.0
  */
+@SuppressWarnings("removal")
 class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 	static final long QUIESCENT_TIMEOUT = 1L;

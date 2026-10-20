@@ -15,6 +15,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public interface MqttPahoComponent extends MqttComponent<MqttConnectOptions> {
 
 	@Override

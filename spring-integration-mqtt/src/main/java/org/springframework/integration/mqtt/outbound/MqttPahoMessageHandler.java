@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallback, MqttPahoComponent {
 

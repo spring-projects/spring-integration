@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private MqttConnectOptions options = new MqttConnectOptions();
@@ -69,10 +70,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	/**
 	 * An MQTT will message.
-	 *
-	 * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
 	 */
-	@Deprecated(since = "7.2", forRemoval = true)
 	public static class Will {
 
 		private final String topic;

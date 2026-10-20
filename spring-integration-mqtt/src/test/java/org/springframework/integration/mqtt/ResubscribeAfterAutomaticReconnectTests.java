@@ -33,11 +33,13 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 6.0.3
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContainerTest {
 
 	@Autowired

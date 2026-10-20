@@ -16,6 +16,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class MqttNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	@Override

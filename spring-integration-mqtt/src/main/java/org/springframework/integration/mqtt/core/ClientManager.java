@@ -26,6 +26,7 @@ import org.springframework.context.SmartLifecycle;
  * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
 @Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 
 	/**
@@ -106,9 +107,7 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 *
 	 * @see org.eclipse.paho.mqttv5.client.MqttCallback#connectComplete
 	 * @see org.eclipse.paho.client.mqttv3.MqttCallbackExtended#connectComplete
-	 * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
 	 */
-	@Deprecated(since = "7.2", forRemoval = true)
 	@FunctionalInterface
 	interface ConnectCallback {
 
@@ -129,9 +128,7 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 *
 	 * @see org.eclipse.paho.mqttv5.client.MqttCallback#messageArrived(String, org.eclipse.paho.mqttv5.common.MqttMessage)
 	 * @see org.eclipse.paho.client.mqttv3.MqttCallback#messageArrived(String, org.eclipse.paho.client.mqttv3.MqttMessage)
-	 * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
 	 */
-	@Deprecated(since = "7.2", forRemoval = true)
 	@FunctionalInterface
 	interface DefaultMessageHandler<M> {
 
