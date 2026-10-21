@@ -44,6 +44,7 @@ The Spring Integration components are in the `org.springframework.integration.mq
 |===
 
 Configure these components as Spring beans or use them directly with `IntegrationFlow.from()` and `.handle()`.
+For protocol-specific Java DSL factories, see <<mqtt-hivemq-java-dsl>>.
 The `int-mqtt` XML namespace and the `Mqtt` Java DSL factory from the deprecated module configure Paho components, not these HiveMQ components.
 
 [[mqtt-client-manager]]
@@ -226,6 +227,89 @@ The new module publishes application events in `org.springframework.integration.
 Consume these events with an `ApplicationListener`, `@EventListener`, or an xref:event.adoc[Application Event inbound channel adapter].
 Completion callbacks can run before the sent event is published, so do not assume event ordering.
 
+[[mqtt-hivemq-java-dsl]]
+=== Configuring with the Java DSL
+
+Starting with version 7.3, the `spring-integration-mqtt-client` module provides Java DSL factories for its HiveMQ-based MQTT 3 and MQTT 5 adapters.
+Add the `org.springframework.integration:spring-integration-mqtt-client` dependency to your application.
+The factories are `org.springframework.integration.mqtt.client.dsl.Mqtt3` and `org.springframework.integration.mqtt.client.dsl.Mqtt5`.
+They accept an existing `org.springframework.integration.mqtt.client.core.ClientManager` bean, which manages the connection independently and can be shared by inbound and outbound adapters.
+
+For example, the following MQTT 5 configuration receives messages as strings and publishes messages using a destination header:
+
+[source,java]
+----
+@Bean
+Mqtt5ClientManager mqtt5ClientManager() {
+    return new Mqtt5ClientManager(Mqtt5Client.builder()
+            .identifier("integration-client")
+            .serverHost("localhost")
+            .serverPort(1883)
+            .build()
+            .getConfig());
+}
+
+@Bean
+IntegrationFlow mqttInbound(Mqtt5ClientManager clientManager) {
+    return IntegrationFlow.from(Mqtt5.inboundAdapter(clientManager, "devices/+/telemetry")
+                    .qos(MqttQos.AT_LEAST_ONCE)
+                    .payloadType(String.class)
+                    .noLocal(true))
+            .channel("telemetry")
+            .get();
+}
+
+@Bean
+IntegrationFlow mqttOutbound(Mqtt5ClientManager clientManager) {
+    return flow -> flow.handle(Mqtt5.outboundAdapter(clientManager)
+            .defaultTopic("devices/default/commands")
+            .defaultQos(MqttQos.AT_LEAST_ONCE)
+            .topicExpression("headers['destination']")
+            .retainedFunction(message -> false)
+            .contentTypeFunction(message -> "text/plain")
+            .messageExpiryIntervalExpression("60L"));
+}
+----
+
+Enable Spring Integration infrastructure with `@EnableIntegration` in a Spring configuration class.
+The flow registers and initializes the adapter targets; keep the supplied client manager as a separate bean.
+For MQTT 3, declare an `Mqtt3ClientManager` using an `Mqtt3Client` configuration and use `Mqtt3.inboundAdapter(clientManager, topics)` and `Mqtt3.outboundAdapter(clientManager)` in the same way.
+
+For outgoing payloads other than native MQTT publishes, topic, QoS and retained settings each accept a SpEL string, an `Expression`, or a typed `Function<Message<P>, R>` through the corresponding `...Expression` or `...Function` method.
+When an expression or function evaluates to `null`, the handler uses the configured default.
+By default these expressions read the `MqttHeaders.TOPIC`, `MqttHeaders.QOS` and `MqttHeaders.RETAINED` headers from `org.springframework.integration.mqtt.client.support.MqttHeaders`.
+The default QoS is `AT_MOST_ONCE` and the default retained flag is `false`; supply a default topic if a message might not provide one.
+MQTT 5 also offers these expression and function alternatives for content type, correlation data (`byte[]`), response topic, message expiry interval (`Long`), payload format indicator (`Mqtt5PayloadFormatIndicator`) and user properties (`Map<?, ?>`).
+
+When the outgoing Spring message payload is already an `Mqtt3Publish` or `Mqtt5Publish` matching the handler protocol, the handler publishes that native object unchanged.
+The native publish supplies its own topic, QoS, retained flag and MQTT 5 properties; expressions, functions, defaults and payload conversion are bypassed.
+
+Both inbound factories also accept native `Mqtt3Subscription` or `Mqtt5Subscription` objects for per-subscription settings:
+
+[source,java]
+----
+@Bean
+IntegrationFlow mqttSubscriptions(Mqtt5ClientManager clientManager) {
+    Mqtt5Subscription subscription = Mqtt5Subscription.builder()
+            .topicFilter("devices/+/status")
+            .qos(MqttQos.EXACTLY_ONCE)
+            .noLocal(true)
+            .retainHandling(Mqtt5RetainHandling.DO_NOT_SEND)
+            .build();
+    return IntegrationFlow.from(Mqtt5.inboundAdapter(clientManager, subscription)
+                    .manualAck(true)
+                    .payloadType(Mqtt5Publish.class))
+            .channel("deviceStatus")
+            .get();
+}
+----
+
+Inbound `qos`, and MQTT 5 `noLocal`, `retainHandling` and `retainAsPublished`, apply only to subscriptions derived from topic strings.
+Explicit subscriptions retain their own QoS and options regardless of these fluent defaults.
+Inbound payloads default to `byte[]`; use `payloadType`, `messageConverter`, `executor` and, for MQTT 5, `headerMapper` to customize delivery.
+With `manualAck(true)`, acknowledge the received message using the `SimpleAcknowledgment` in the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header.
+With outbound `async(true)`, the existing sent and delivery events remain available through Spring application event listeners.
+
 [[mqtt-client-migration]]
 === Migrating from Paho
 
@@ -251,7 +335,8 @@ The new `ClientManager` has one type parameter: the HiveMQ client type.
 * Replace integer QoS configuration and headers with `MqttQos` values.
 * Review payload conversion: the new inbound default is `byte[]`, and conversion uses Spring Messaging converters rather than `MqttMessageConverter`.
 * Use `setManualAck(true)` instead of Paho's `setManualAcks(true)`.
-* Replace Paho XML namespace and dedicated MQTT DSL configuration with bean definitions or generic Java DSL flows as shown above.
+* Replace Paho XML namespace and dedicated MQTT DSL configuration with HiveMQ-based components.
+Configure them as bean definitions or use the `Mqtt3` and `Mqtt5` factories described in <<mqtt-hivemq-java-dsl>>.
 * Review MQTT v5 property mapping and asynchronous event handling against the new contracts described above.
 There is no separate `asyncEvents` switch: enabling `async` also enables delivery events.
 * The new inbound adapters do not expose Paho's `addTopic()` and `removeTopic()` methods.
