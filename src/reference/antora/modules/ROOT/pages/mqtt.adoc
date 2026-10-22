@@ -617,7 +617,7 @@ For MQTT 3, declare an `Mqtt3ClientManager` using an `Mqtt3Client` configuration
 
 For outgoing payloads other than native MQTT publishes, topic, QoS and retained settings each accept a SpEL string, an `Expression`, or a typed `Function<Message<P>, R>` through the corresponding `...Expression` or `...Function` method.
 When an expression or function evaluates to `null`, the handler uses the configured default.
-By default these expressions read the `MqttHeaders.TOPIC`, `MqttHeaders.QOS` and `MqttHeaders.RETAINED` headers from `org.springframework.integration.mqtt.client.support.MqttHeaders`.
+By default, these expressions read `MessageHeaders` entries whose keys are defined by the `MqttHeaders.TOPIC`, `MqttHeaders.QOS` and `MqttHeaders.RETAINED` constants in `org.springframework.integration.mqtt.client.support.MqttHeaders`.
 The default QoS is `AT_MOST_ONCE` and the default retained flag is `false`; supply a default topic if a message might not provide one.
 MQTT 5 also offers these expression and function alternatives for content type, correlation data (`byte[]`), response topic, message expiry interval (`Long`), payload format indicator (`Mqtt5PayloadFormatIndicator`) and user properties (`Map<?, ?>`).
 

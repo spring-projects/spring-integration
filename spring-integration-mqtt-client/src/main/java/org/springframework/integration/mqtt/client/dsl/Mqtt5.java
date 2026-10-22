@@ -24,7 +24,6 @@ public final class Mqtt5 {
 	 * @param clientManager the client manager.
 	 * @param topics the topic filters.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt5MessageDrivenChannelAdapterSpec inboundAdapter(ClientManager<Mqtt5Client> clientManager,
 			String... topics) {
@@ -38,7 +37,6 @@ public final class Mqtt5 {
 	 * @param clientManager the client manager.
 	 * @param subscriptions the native subscriptions.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt5MessageDrivenChannelAdapterSpec inboundAdapter(ClientManager<Mqtt5Client> clientManager,
 			Mqtt5Subscription... subscriptions) {
@@ -51,7 +49,6 @@ public final class Mqtt5 {
 	 * The client manager must be managed independently as a Spring bean.
 	 * @param clientManager the client manager.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt5MessageHandlerSpec outboundAdapter(ClientManager<Mqtt5Client> clientManager) {
 		return new Mqtt5MessageHandlerSpec(clientManager);

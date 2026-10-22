@@ -24,7 +24,6 @@ public final class Mqtt3 {
 	 * @param clientManager the client manager.
 	 * @param topics the topic filters.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt3MessageDrivenChannelAdapterSpec inboundAdapter(ClientManager<Mqtt3Client> clientManager,
 			String... topics) {
@@ -38,7 +37,6 @@ public final class Mqtt3 {
 	 * @param clientManager the client manager.
 	 * @param subscriptions the native subscriptions.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt3MessageDrivenChannelAdapterSpec inboundAdapter(ClientManager<Mqtt3Client> clientManager,
 			Mqtt3Subscription... subscriptions) {
@@ -51,7 +49,6 @@ public final class Mqtt3 {
 	 * The client manager must be managed independently as a Spring bean.
 	 * @param clientManager the client manager.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public static Mqtt3MessageHandlerSpec outboundAdapter(ClientManager<Mqtt3Client> clientManager) {
 		return new Mqtt3MessageHandlerSpec(clientManager);

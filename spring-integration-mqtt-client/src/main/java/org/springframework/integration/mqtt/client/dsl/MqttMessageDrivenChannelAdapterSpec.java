@@ -29,7 +29,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	/**
 	 * Construct a spec for the provided adapter.
 	 * @param adapter the adapter.
-	 * @since 7.3
 	 */
 	protected MqttMessageDrivenChannelAdapterSpec(A adapter) {
 		super(adapter);
@@ -40,7 +39,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	 * Explicit subscriptions retain their own QoS.
 	 * @param qos the qos.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S qos(MqttQos qos) {
 		this.target.setQos(qos);
@@ -51,7 +49,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	 * Set whether incoming publishes are acknowledged manually.
 	 * @param manualAck the manualAck.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S manualAck(boolean manualAck) {
 		this.target.setManualAck(manualAck);
@@ -62,7 +59,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	 * Set the executor for incoming message callbacks.
 	 * @param executor the executor.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S executor(Executor executor) {
 		this.target.setExecutor(executor);
@@ -74,7 +70,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	 * Use the native publish type to receive the entire MQTT publish.
 	 * @param payloadType the payloadType.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S payloadType(Class<?> payloadType) {
 		this.target.setPayloadType(payloadType);
@@ -85,7 +80,6 @@ public abstract class MqttMessageDrivenChannelAdapterSpec<
 	 * Set the converter for incoming payloads.
 	 * @param messageConverter the messageConverter.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S messageConverter(SmartMessageConverter messageConverter) {
 		this.target.setMessageConverter(messageConverter);

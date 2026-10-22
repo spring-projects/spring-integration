@@ -26,7 +26,7 @@ import org.springframework.messaging.Message;
  */
 public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5MessageHandlerSpec, Mqtt5MessageHandler> {
 
-	Mqtt5MessageHandlerSpec(ClientManager<Mqtt5Client> clientManager) {
+	protected Mqtt5MessageHandlerSpec(ClientManager<Mqtt5Client> clientManager) {
 		super(new Mqtt5MessageHandler(clientManager));
 	}
 
@@ -34,7 +34,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for contentType.
 	 * @param contentTypeExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec contentTypeExpression(String contentTypeExpression) {
 		this.target.setContentTypeExpressionString(contentTypeExpression);
@@ -45,7 +44,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for contentType.
 	 * @param contentTypeExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec contentTypeExpression(Expression contentTypeExpression) {
 		this.target.setContentTypeExpression(contentTypeExpression);
@@ -57,7 +55,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param contentTypeFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec contentTypeFunction(
 			Function<Message<P>, ? extends @Nullable String> contentTypeFunction) {
@@ -69,7 +66,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for correlationData.
 	 * @param correlationDataExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec correlationDataExpression(String correlationDataExpression) {
 		this.target.setCorrelationDataExpressionString(correlationDataExpression);
@@ -80,7 +76,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for correlationData.
 	 * @param correlationDataExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec correlationDataExpression(Expression correlationDataExpression) {
 		this.target.setCorrelationDataExpression(correlationDataExpression);
@@ -92,7 +87,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param correlationDataFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec correlationDataFunction(
 			Function<Message<P>, ? extends byte @Nullable []> correlationDataFunction) {
@@ -104,7 +98,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for responseTopic.
 	 * @param responseTopicExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec responseTopicExpression(String responseTopicExpression) {
 		this.target.setResponseTopicExpressionString(responseTopicExpression);
@@ -115,7 +108,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for responseTopic.
 	 * @param responseTopicExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec responseTopicExpression(Expression responseTopicExpression) {
 		this.target.setResponseTopicExpression(responseTopicExpression);
@@ -127,7 +119,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param responseTopicFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec responseTopicFunction(
 			Function<Message<P>, ? extends @Nullable String> responseTopicFunction) {
@@ -139,7 +130,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for messageExpiryInterval.
 	 * @param messageExpiryIntervalExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec messageExpiryIntervalExpression(String messageExpiryIntervalExpression) {
 		this.target.setMessageExpiryIntervalExpressionString(messageExpiryIntervalExpression);
@@ -150,7 +140,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for messageExpiryInterval.
 	 * @param messageExpiryIntervalExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec messageExpiryIntervalExpression(Expression messageExpiryIntervalExpression) {
 		this.target.setMessageExpiryIntervalExpression(messageExpiryIntervalExpression);
@@ -162,7 +151,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param messageExpiryIntervalFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec messageExpiryIntervalFunction(
 			Function<Message<P>, ? extends @Nullable Long> messageExpiryIntervalFunction) {
@@ -174,7 +162,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for payloadFormatIndicator.
 	 * @param payloadFormatIndicatorExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec payloadFormatIndicatorExpression(String payloadFormatIndicatorExpression) {
 		this.target.setPayloadFormatIndicatorExpressionString(payloadFormatIndicatorExpression);
@@ -185,7 +172,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for payloadFormatIndicator.
 	 * @param payloadFormatIndicatorExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec payloadFormatIndicatorExpression(Expression payloadFormatIndicatorExpression) {
 		this.target.setPayloadFormatIndicatorExpression(payloadFormatIndicatorExpression);
@@ -197,7 +183,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param payloadFormatIndicatorFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec payloadFormatIndicatorFunction(
 			Function<Message<P>, ? extends @Nullable Mqtt5PayloadFormatIndicator> payloadFormatIndicatorFunction) {
@@ -209,7 +194,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for userProperties.
 	 * @param userPropertiesExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec userPropertiesExpression(String userPropertiesExpression) {
 		this.target.setUserPropertiesExpressionString(userPropertiesExpression);
@@ -220,7 +204,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * Set the expression evaluated against each outgoing message for userProperties.
 	 * @param userPropertiesExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageHandlerSpec userPropertiesExpression(Expression userPropertiesExpression) {
 		this.target.setUserPropertiesExpression(userPropertiesExpression);
@@ -232,7 +215,6 @@ public class Mqtt5MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt5Message
 	 * @param <P> the message payload type.
 	 * @param userPropertiesFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> Mqtt5MessageHandlerSpec userPropertiesFunction(
 			Function<Message<P>, ? extends @Nullable Map<?, ?>> userPropertiesFunction) {
