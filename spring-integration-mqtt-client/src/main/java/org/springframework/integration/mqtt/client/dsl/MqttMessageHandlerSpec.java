@@ -32,7 +32,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	/**
 	 * Construct a spec for the provided handler.
 	 * @param handler the handler.
-	 * @since 7.3
 	 */
 	protected MqttMessageHandlerSpec(H handler) {
 		this.target = handler;
@@ -42,7 +41,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the topic used when the topic expression evaluates to null.
 	 * @param defaultTopic the defaultTopic.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S defaultTopic(String defaultTopic) {
 		this.target.setDefaultTopic(defaultTopic);
@@ -54,7 +52,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * The default is {@code MqttQos.AT_MOST_ONCE}.
 	 * @param defaultQos the defaultQos.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S defaultQos(MqttQos defaultQos) {
 		this.target.setDefaultQos(defaultQos);
@@ -66,7 +63,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * The default is false.
 	 * @param defaultRetained the defaultRetained.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S defaultRetained(boolean defaultRetained) {
 		this.target.setDefaultRetained(defaultRetained);
@@ -78,7 +74,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Asynchronous publishing emits sent and delivery events.
 	 * @param async the async.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S async(boolean async) {
 		this.target.setAsync(async);
@@ -89,7 +84,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the converter for outgoing payloads.
 	 * @param messageConverter the messageConverter.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S messageConverter(MessageConverter messageConverter) {
 		this.target.setMessageConverter(messageConverter);
@@ -100,7 +94,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for topic.
 	 * @param topicExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S topicExpression(String topicExpression) {
 		this.target.setTopicExpressionString(topicExpression);
@@ -111,7 +104,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for topic.
 	 * @param topicExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S topicExpression(Expression topicExpression) {
 		this.target.setTopicExpression(topicExpression);
@@ -123,7 +115,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * @param <P> the message payload type.
 	 * @param topicFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> S topicFunction(Function<Message<P>, ? extends @Nullable String> topicFunction) {
 		return topicExpression(new FunctionExpression<>(topicFunction));
@@ -133,7 +124,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for qos.
 	 * @param qosExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S qosExpression(String qosExpression) {
 		this.target.setQosExpressionString(qosExpression);
@@ -144,7 +134,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for qos.
 	 * @param qosExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S qosExpression(Expression qosExpression) {
 		this.target.setQosExpression(qosExpression);
@@ -156,7 +145,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * @param <P> the message payload type.
 	 * @param qosFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> S qosFunction(Function<Message<P>, ? extends @Nullable MqttQos> qosFunction) {
 		return qosExpression(new FunctionExpression<>(qosFunction));
@@ -166,7 +154,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for retained.
 	 * @param retainedExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S retainedExpression(String retainedExpression) {
 		this.target.setRetainedExpressionString(retainedExpression);
@@ -177,7 +164,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * Set the expression evaluated against each outgoing message for retained.
 	 * @param retainedExpression the expression.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public S retainedExpression(Expression retainedExpression) {
 		this.target.setRetainedExpression(retainedExpression);
@@ -189,7 +175,6 @@ public abstract class MqttMessageHandlerSpec<S extends MqttMessageHandlerSpec<S,
 	 * @param <P> the message payload type.
 	 * @param retainedFunction the function.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public <P> S retainedFunction(Function<Message<P>, ? extends @Nullable Boolean> retainedFunction) {
 		return retainedExpression(new FunctionExpression<>(retainedFunction));

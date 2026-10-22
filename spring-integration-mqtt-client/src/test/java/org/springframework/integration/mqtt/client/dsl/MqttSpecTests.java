@@ -38,7 +38,6 @@ import org.springframework.integration.mqtt.client.outbound.AbstractMqttMessageH
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 
@@ -59,13 +58,13 @@ class MqttSpecTests {
 
 	@Test
 	void mqtt3ExpressionsFunctionsFallbacksAndConverter() {
-		Mqtt3ClientManager manager = mock(Mqtt3ClientManager.class);
-		Mqtt3Client client = mock(Mqtt3Client.class);
-		Mqtt3BlockingClient blockingClient = mock(Mqtt3BlockingClient.class);
+		Mqtt3ClientManager manager = mock();
+		Mqtt3Client client = mock();
+		Mqtt3BlockingClient blockingClient = mock();
 		given(manager.getClient()).willReturn(client);
 		given(client.toBlocking()).willReturn(blockingClient);
-		MessageConverter converter = mock(MessageConverter.class);
-		given(converter.toMessage(any(), any(MessageHeaders.class)))
+		MessageConverter converter = mock();
+		given(converter.toMessage(any(), any()))
 				.willAnswer(invocation -> MessageBuilder.withPayload("converted").build());
 		var parser = new SpelExpressionParser();
 		var spec = Mqtt3.outboundAdapter(manager)
@@ -97,9 +96,9 @@ class MqttSpecTests {
 	@ValueSource(booleans = {true, false})
 	void mqtt5StringAndExpressionProperties(boolean stringExpressions) {
 		var parser = new SpelExpressionParser();
-		Mqtt5ClientManager manager = mock(Mqtt5ClientManager.class);
-		Mqtt5Client client = mock(Mqtt5Client.class);
-		Mqtt5BlockingClient blockingClient = mock(Mqtt5BlockingClient.class);
+		Mqtt5ClientManager manager = mock();
+		Mqtt5Client client = mock();
+		Mqtt5BlockingClient blockingClient = mock();
 		given(manager.getClient()).willReturn(client);
 		given(client.toBlocking()).willReturn(blockingClient);
 		var spec = Mqtt5.outboundAdapter(manager)
@@ -155,11 +154,11 @@ class MqttSpecTests {
 
 	@Test
 	void nativePublishesBypassExpressionsDefaultsAndConversion() {
-		Expression expression = mock(Expression.class);
-		MessageConverter converter = mock(MessageConverter.class);
-		var manager3 = mock(Mqtt3ClientManager.class);
-		var client3 = mock(Mqtt3Client.class);
-		var blocking3 = mock(Mqtt3BlockingClient.class);
+		Expression expression = mock();
+		MessageConverter converter = mock();
+		Mqtt3ClientManager manager3 = mock();
+		Mqtt3Client client3 = mock();
+		Mqtt3BlockingClient blocking3 = mock();
 		given(manager3.getClient()).willReturn(client3);
 		given(client3.toBlocking()).willReturn(blocking3);
 		var handler3 = Mqtt3.outboundAdapter(manager3)
@@ -174,9 +173,9 @@ class MqttSpecTests {
 		verify(blocking3).publish(captured3.capture());
 		assertThat(captured3.getValue()).isSameAs(publish3);
 
-		var manager5 = mock(Mqtt5ClientManager.class);
-		var client5 = mock(Mqtt5Client.class);
-		var blocking5 = mock(Mqtt5BlockingClient.class);
+		Mqtt5ClientManager manager5 = mock();
+		Mqtt5Client client5 = mock();
+		Mqtt5BlockingClient blocking5 = mock();
 		given(manager5.getClient()).willReturn(client5);
 		given(client5.toBlocking()).willReturn(blocking5);
 		var handler5 = Mqtt5.outboundAdapter(manager5)
@@ -199,16 +198,16 @@ class MqttSpecTests {
 
 	@Test
 	void explicitSubscriptionsRemainAuthoritative() {
-		var manager3 = mock(Mqtt3ClientManager.class);
-		given(manager3.getClient()).willReturn(mock(Mqtt3Client.class));
+		Mqtt3ClientManager manager3 = mock();
+		given(manager3.getClient()).willReturn(mock());
 		Mqtt3Subscription subscription3 = Mqtt3Subscription.builder()
 				.topicFilter("dsl/explicit/v3").qos(MqttQos.AT_MOST_ONCE).build();
 		var adapter3 = Mqtt3.inboundAdapter(manager3, subscription3).qos(MqttQos.EXACTLY_ONCE).getObject();
 		initialize(adapter3);
 		assertThat(TestUtils.<List<?>>getPropertyValue(adapter3, "subscriptions")).isEqualTo(List.of(subscription3));
 
-		var manager5 = mock(Mqtt5ClientManager.class);
-		given(manager5.getClient()).willReturn(mock(Mqtt5Client.class));
+		Mqtt5ClientManager manager5 = mock();
+		given(manager5.getClient()).willReturn(mock());
 		Mqtt5Subscription subscription5 = Mqtt5Subscription.builder().topicFilter("dsl/explicit/v5")
 				.qos(MqttQos.EXACTLY_ONCE).noLocal(true).retainHandling(Mqtt5RetainHandling.SEND)
 				.retainAsPublished(false).build();
@@ -220,8 +219,8 @@ class MqttSpecTests {
 
 	@Test
 	void topicSubscriptionsUseFluentOptions() {
-		var manager = mock(Mqtt5ClientManager.class);
-		given(manager.getClient()).willReturn(mock(Mqtt5Client.class));
+		Mqtt5ClientManager manager = mock();
+		given(manager.getClient()).willReturn(mock());
 		var adapter = Mqtt5.inboundAdapter(manager, "dsl/topics").qos(MqttQos.EXACTLY_ONCE)
 				.noLocal(true).retainHandling(Mqtt5RetainHandling.DO_NOT_SEND).retainAsPublished(true).getObject();
 		initialize(adapter);

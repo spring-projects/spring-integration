@@ -23,13 +23,13 @@ import org.springframework.integration.mqtt.client.inbound.Mqtt5MessageDrivenCha
 public class Mqtt5MessageDrivenChannelAdapterSpec
 		extends MqttMessageDrivenChannelAdapterSpec<Mqtt5MessageDrivenChannelAdapterSpec, Mqtt5MessageDrivenChannelAdapter> {
 
-	Mqtt5MessageDrivenChannelAdapterSpec(ClientManager<Mqtt5Client> clientManager,
+	protected Mqtt5MessageDrivenChannelAdapterSpec(ClientManager<Mqtt5Client> clientManager,
 			String... topics) {
 
 		super(new Mqtt5MessageDrivenChannelAdapter(clientManager, topics));
 	}
 
-	Mqtt5MessageDrivenChannelAdapterSpec(ClientManager<Mqtt5Client> clientManager,
+	protected Mqtt5MessageDrivenChannelAdapterSpec(ClientManager<Mqtt5Client> clientManager,
 			Mqtt5Subscription... subscriptions) {
 
 		super(new Mqtt5MessageDrivenChannelAdapter(clientManager, subscriptions));
@@ -39,7 +39,6 @@ public class Mqtt5MessageDrivenChannelAdapterSpec
 	 * Set the mapper for incoming MQTT 5 publish properties.
 	 * @param headerMapper the headerMapper.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageDrivenChannelAdapterSpec headerMapper(HeaderMapper<Mqtt5Publish> headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
@@ -51,7 +50,6 @@ public class Mqtt5MessageDrivenChannelAdapterSpec
 	 * Explicit subscriptions retain their own options.
 	 * @param noLocal the noLocal.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageDrivenChannelAdapterSpec noLocal(boolean noLocal) {
 		this.target.setNoLocal(noLocal);
@@ -63,7 +61,6 @@ public class Mqtt5MessageDrivenChannelAdapterSpec
 	 * Explicit subscriptions retain their own options.
 	 * @param retainHandling the retainHandling.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageDrivenChannelAdapterSpec retainHandling(Mqtt5RetainHandling retainHandling) {
 		this.target.setRetainHandling(retainHandling);
@@ -75,7 +72,6 @@ public class Mqtt5MessageDrivenChannelAdapterSpec
 	 * Explicit subscriptions retain their own options.
 	 * @param retainAsPublished the retainAsPublished.
 	 * @return the spec.
-	 * @since 7.3
 	 */
 	public Mqtt5MessageDrivenChannelAdapterSpec retainAsPublished(boolean retainAsPublished) {
 		this.target.setRetainAsPublished(retainAsPublished);

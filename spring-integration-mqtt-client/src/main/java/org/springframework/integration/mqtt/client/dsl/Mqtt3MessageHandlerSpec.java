@@ -18,7 +18,7 @@ import org.springframework.integration.mqtt.client.outbound.Mqtt3MessageHandler;
  */
 public class Mqtt3MessageHandlerSpec extends MqttMessageHandlerSpec<Mqtt3MessageHandlerSpec, Mqtt3MessageHandler> {
 
-	Mqtt3MessageHandlerSpec(ClientManager<Mqtt3Client> clientManager) {
+	protected Mqtt3MessageHandlerSpec(ClientManager<Mqtt3Client> clientManager) {
 		super(new Mqtt3MessageHandler(clientManager));
 	}
 

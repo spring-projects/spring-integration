@@ -149,6 +149,7 @@ class MqttDslTests implements MqttContainerTest {
 					.containsEntry(MqttHeaders.RECEIVED_RETAINED, true);
 		}
 		finally {
+			// Clear the retained record so it cannot leak into tests using the shared broker.
 			this.context.getBean(Mqtt5ClientManager.class).getClient().toBlocking().publishWith()
 					.topic("dsl/v5/topics").payload(new byte[0]).retain(true).qos(MqttQos.AT_LEAST_ONCE).send();
 		}

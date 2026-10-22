@@ -20,13 +20,13 @@ import org.springframework.integration.mqtt.client.inbound.Mqtt3MessageDrivenCha
 public class Mqtt3MessageDrivenChannelAdapterSpec
 		extends MqttMessageDrivenChannelAdapterSpec<Mqtt3MessageDrivenChannelAdapterSpec, Mqtt3MessageDrivenChannelAdapter> {
 
-	Mqtt3MessageDrivenChannelAdapterSpec(ClientManager<Mqtt3Client> clientManager,
+	protected Mqtt3MessageDrivenChannelAdapterSpec(ClientManager<Mqtt3Client> clientManager,
 			String... topics) {
 
 		super(new Mqtt3MessageDrivenChannelAdapter(clientManager, topics));
 	}
 
-	Mqtt3MessageDrivenChannelAdapterSpec(ClientManager<Mqtt3Client> clientManager,
+	protected Mqtt3MessageDrivenChannelAdapterSpec(ClientManager<Mqtt3Client> clientManager,
 			Mqtt3Subscription... subscriptions) {
 
 		super(new Mqtt3MessageDrivenChannelAdapter(clientManager, subscriptions));
