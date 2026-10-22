@@ -86,10 +86,12 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Artem Vozhdayenko
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 4.0
  *
  */
+@SuppressWarnings("removal")
 public class MqttAdapterTests implements TestApplicationContextAware {
 
 	private final IMqttToken alwaysComplete;

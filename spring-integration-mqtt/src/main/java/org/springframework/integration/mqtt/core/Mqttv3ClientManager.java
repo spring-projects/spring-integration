@@ -28,9 +28,13 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Jiri Soucek
+ * @author Jaehong Park
  *
  * @since 6.0
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class Mqttv3ClientManager
 		extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended {

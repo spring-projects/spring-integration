@@ -30,9 +30,13 @@ import org.springframework.util.Assert;
  * @author Artem Vozhdayenko
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Jaehong Park
  *
  * @since 6.0
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T, C>, ApplicationEventPublisherAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR

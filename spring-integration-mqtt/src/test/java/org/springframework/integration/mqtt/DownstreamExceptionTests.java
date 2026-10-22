@@ -35,12 +35,14 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 4.0
  *
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class DownstreamExceptionTests implements MosquittoContainerTest {
 
 	@Autowired

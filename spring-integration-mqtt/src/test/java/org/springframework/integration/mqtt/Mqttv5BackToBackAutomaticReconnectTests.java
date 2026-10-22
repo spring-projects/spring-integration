@@ -38,11 +38,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Lucas Bowler
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 5.5.13
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContainerTest {
 
 	@Autowired

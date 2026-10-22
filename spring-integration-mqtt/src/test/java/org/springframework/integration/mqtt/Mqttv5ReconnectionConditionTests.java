@@ -39,9 +39,11 @@ import static org.mockito.Mockito.verify;
  * in {@link Mqttv5PahoMessageHandler}.
  *
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 7.1
  */
+@SuppressWarnings("removal")
 public class Mqttv5ReconnectionConditionTests {
 
 	@Test

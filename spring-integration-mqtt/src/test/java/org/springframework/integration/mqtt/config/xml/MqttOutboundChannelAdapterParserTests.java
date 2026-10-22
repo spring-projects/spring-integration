@@ -29,11 +29,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 4.0
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class MqttOutboundChannelAdapterParserTests {
 
 	@Autowired
