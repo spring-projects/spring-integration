@@ -64,6 +64,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Adama Sorho
  * @author Johannes Edmeier
  * @author Norbert Schneider
+ * @author Tanishq Choudhary
  *
  * @since 6.0
  */
@@ -233,6 +234,25 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		assertThat(exceptionReference.get())
 				.isInstanceOf(MessagingException.class)
 				.hasStackTraceContaining("An error has occurred");
+	}
+
+	@Test
+	void noRetryByDefault() throws InterruptedException {
+		AtomicInteger actualTries = new AtomicInteger();
+		CountDownLatch errorHandlerLatch = new CountDownLatch(1);
+		postgresSubscribableChannel.setErrorHandler(ex -> errorHandlerLatch.countDown());
+
+		postgresChannelMessageTableSubscriber.start();
+
+		postgresSubscribableChannel.subscribe(message -> {
+			actualTries.incrementAndGet();
+			throw new RuntimeException("An error has occurred");
+		});
+
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+
+		assertThat(errorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(actualTries.get()).isEqualTo(1);
 	}
 
 	@ParameterizedTest
