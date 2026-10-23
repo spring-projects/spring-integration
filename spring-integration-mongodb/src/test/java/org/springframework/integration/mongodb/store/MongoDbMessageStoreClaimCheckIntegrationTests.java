@@ -103,6 +103,7 @@ class MongoDbMessageStoreClaimCheckIntegrationTests implements MongoDbContainerT
 	@Test
 	void objectPayloadConfigurable() {
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		messageStore.addAllowedPatterns(Beverage.class.getName());
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);

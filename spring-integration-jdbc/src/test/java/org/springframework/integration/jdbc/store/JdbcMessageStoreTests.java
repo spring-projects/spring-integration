@@ -6,6 +6,7 @@ package org.springframework.integration.jdbc.store;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
@@ -66,11 +69,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Will Schipp
+ * @author Glenn Renfro
  */
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
 public class JdbcMessageStoreTests  implements TestApplicationContextAware {
+
+	private static final String CUSTOM_PAYLOAD_PATTERN = "org.springframework.integration.jdbc.store.*";
 
 	@Autowired
 	private DataSource dataSource;
@@ -144,17 +150,57 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	@Test
-	public void testAllowedPatternsAppliedAfterSetBeanClassLoader() {
-		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
-		this.messageStore.addAllowedPatterns("com.example.*");
-
-		Message<String> message = MessageBuilder.withPayload("malicious data").build();
-		Message<String> saved = this.messageStore.addMessage(message);
+	public void testCustomTypeIsRejectedByDefault() {
+		Message<?> saved = this.messageStore.addMessage(new GenericMessage<>(new CustomPayload("test")));
 
 		assertThatExceptionOfType(SerializationFailedException.class)
 				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
-				.withCauseInstanceOf(SecurityException.class)
+				.withRootCauseInstanceOf(SecurityException.class)
 				.withStackTraceContaining("Attempt to deserialize unauthorized");
+	}
+
+	@Test
+	public void testAllowedPatternsAppliedAfterSetBeanClassLoader() {
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+		this.messageStore.addAllowedPatterns(CUSTOM_PAYLOAD_PATTERN);
+
+		assertCustomPayloadRoundTrips();
+	}
+
+	@Test
+	public void testAllowedPatternsAddedBeforeSetBeanClassLoaderAreKept() {
+		this.messageStore.addAllowedPatterns(CUSTOM_PAYLOAD_PATTERN);
+		this.messageStore.setBeanClassLoader(getClass().getClassLoader());
+
+		assertCustomPayloadRoundTrips();
+	}
+
+	@Test
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public void testSetDeserializerKeepsAllowedPatterns() {
+		this.messageStore.addAllowedPatterns(CUSTOM_PAYLOAD_PATTERN);
+		this.messageStore.setDeserializer((Deserializer) new DefaultDeserializer());
+
+		assertCustomPayloadRoundTrips();
+	}
+
+	@Test
+	public void testSetAllowedPatternsReplacesDefaults() {
+		this.messageStore.setAllowedPatterns(CUSTOM_PAYLOAD_PATTERN);
+		Message<?> saved = this.messageStore.addMessage(new GenericMessage<>(new CustomPayload("test")));
+
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> this.messageStore.getMessage(saved.getHeaders().getId()))
+				.withRootCauseInstanceOf(SecurityException.class)
+				.withStackTraceContaining(GenericMessage.class.getName());
+	}
+
+	private void assertCustomPayloadRoundTrips() {
+		Message<?> saved = this.messageStore.addMessage(new GenericMessage<>(new CustomPayload("test")));
+
+		assertThat(this.messageStore.getMessage(saved.getHeaders().getId()))
+				.extracting(Message::getPayload)
+				.isEqualTo(new CustomPayload("test"));
 	}
 
 	@Test
@@ -602,6 +648,10 @@ public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 	}
 
 	public void methodForCollectionOfPayloads(Collection<String> payloads) {
+	}
+
+	record CustomPayload(String name) implements Serializable {
+
 	}
 
 }

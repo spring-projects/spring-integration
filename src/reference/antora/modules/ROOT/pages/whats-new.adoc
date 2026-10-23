@@ -30,6 +30,26 @@ See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more inf
 [[x7.2-general-changes]]
 === General Changes
 
+The `AllowListDeserializingConverter` now allows only a default list of framework and JDK types for Java deserialization, instead of allowing all classes when no patterns are configured.
+The list is exposed as `AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS` and names each class explicitly.
+`Number` subclasses are no longer allowed implicitly; only the listed number types are.
+Common JDK exceptions, such as `IllegalStateException`, `IllegalArgumentException` and `IOException`, are included, so an `ErrorMessage` whose cause is one of them can still be deserialized.
+This applies to every component built on the converter, such as the `PayloadDeserializingTransformer`, the `JdbcMessageStore`, the `JdbcChannelMessageStore`, the MongoDB message stores and the `SerializingHttpMessageConverter`.
+
+IMPORTANT: This is a breaking change.
+Applications that deserialize their own types (payloads, header values or custom exception types in stored `ErrorMessage` instances), including messages already in a store, get a `SecurityException` on read until those types are allowed.
+
+Use `addAllowedPatterns()` to allow your own types in addition to the defaults, for example:
+
+[source, java]
+----
+JdbcMessageStore store = new JdbcMessageStore(dataSource);
+store.addAllowedPatterns("com.example.model.*");
+----
+
+Use `setAllowedPatterns()` to replace the defaults with your own list, or `"*"` to allow all classes again; use the latter only when all sources are trusted.
+The `PayloadDeserializingTransformer` and the configurable MongoDB message stores now also provide `addAllowedPatterns()`.
+
 The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
 See xref:error-handling.adoc[] for more information.
 
@@ -63,12 +83,16 @@ Use H2 or HSQL for embedded testing.
 `EmbeddedDatabaseType.DERBY` is deprecated in Spring Framework 7.1.
 The `DerbyChannelMessageStoreQueryProvider` and `schema-derby.sql` are deprecated for removal.
 
+The `<int-jdbc:message-store>` element has a new `allowed-patterns` attribute.
+The comma-delimited patterns are added to the default allow-list, the same way as `addAllowedPatterns()`.
+The mutually exclusive `allowed-patterns-override` attribute replaces the default allow-list instead, the same way as `setAllowedPatterns()`.
+The `JdbcMessageStore` and `JdbcChannelMessageStore` now also provide `setAllowedPatterns()` to replace the defaults.
+
 [[x7.2-http-changes]]
 === HTTP Support Changes
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
-The `SerializingHttpMessageConverter` now has a constructor that requires the patterns of classes allowed for deserialization.
-Its default constructor and `setAllowedPatterns()` method are deprecated.
+The `SerializingHttpMessageConverter` now allows only the default framework and JDK types for deserialization, and has a new constructor that replaces these defaults with the given patterns of allowed classes.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
 [[x7.2-ftp-changes]]

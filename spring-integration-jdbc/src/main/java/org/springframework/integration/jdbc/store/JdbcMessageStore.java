@@ -71,6 +71,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Ngoc Nhan
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 2.0
  */
@@ -285,7 +286,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		if (!this.deserializerExplicitlySet) {
-			this.deserializer = new AllowListDeserializingConverter(classLoader);
+			this.deserializer = copyAllowedPatterns(new AllowListDeserializingConverter(classLoader));
 			this.mapper = new MessageRowMapper(this.deserializer);
 		}
 	}
@@ -320,24 +321,44 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	/**
 	 * A converter for deserializing byte arrays to message.
+	 * The allowed patterns configured so far are carried over.
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		this.deserializer = copyAllowedPatterns(new AllowListDeserializingConverter((Deserializer) deserializer));
 		this.deserializerExplicitlySet = true;
 		this.mapper = new MessageRowMapper(this.deserializer);
 	}
 
 	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * Set patterns for packages/classes that are allowed to be deserialized,
+	 * replacing all the existing ones, including the
+	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}.
+	 * Use {@link #addAllowedPatterns(String...)} to keep the defaults.
+	 * @param patterns the patterns.
+	 * @since 7.2
+	 */
+	public void setAllowedPatterns(String... patterns) {
+		this.deserializer.setAllowedPatterns(patterns);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized,
+	 * in addition to the existing ones (by default the
+	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}). A class can
+	 * be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
+	}
+
+	private AllowListDeserializingConverter copyAllowedPatterns(AllowListDeserializingConverter newDeserializer) {
+		newDeserializer.setAllowedPatterns(this.deserializer.getAllowedPatterns().toArray(new String[0]));
+		return newDeserializer;
 	}
 
 	/**

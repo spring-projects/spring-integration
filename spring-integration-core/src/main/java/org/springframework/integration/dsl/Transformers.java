@@ -36,6 +36,7 @@ import org.springframework.messaging.Message;
  * {@link org.springframework.integration.transformer.Transformer}s.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.0
  */
@@ -205,7 +206,9 @@ public abstract class Transformers {
 			String... allowedPatterns) {
 
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.setAllowedPatterns(allowedPatterns);
+		if (allowedPatterns.length > 0) {
+			transformer.setAllowedPatterns(allowedPatterns);
+		}
 		if (deserializer != null) {
 			transformer.setDeserializer(deserializer);
 		}

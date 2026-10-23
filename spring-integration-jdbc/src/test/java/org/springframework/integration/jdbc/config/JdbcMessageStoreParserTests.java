@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
@@ -19,17 +20,20 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.jdbc.store.JdbcMessageStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.AllowListDeserializingConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class JdbcMessageStoreParserTests {
 
@@ -65,6 +69,32 @@ public class JdbcMessageStoreParserTests {
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		assertThat(ReflectionTestUtils.getField(store, "region")).isEqualTo("FOO");
 		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("BAR_");
+	}
+
+	@Test
+	public void testMessageStoreWithAllowedPatterns() {
+		setUp("allowedPatternsJdbcMessageStore.xml", getClass());
+		MessageStore store = context.getBean("messageStore", MessageStore.class);
+		AllowListDeserializingConverter deserializer = TestUtils.getPropertyValue(store, "deserializer");
+		assertThat(deserializer.getAllowedPatterns())
+				.containsAll(AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS)
+				.contains("com.example.model.*", "org.example.Payload");
+	}
+
+	@Test
+	public void testMessageStoreWithAllowedPatternsOverride() {
+		setUp("allowedPatternsOverrideJdbcMessageStore.xml", getClass());
+		MessageStore store = context.getBean("messageStore", MessageStore.class);
+		AllowListDeserializingConverter deserializer = TestUtils.getPropertyValue(store, "deserializer");
+		assertThat(deserializer.getAllowedPatterns())
+				.containsExactly("org.springframework.messaging.*", "com.example.model.*");
+	}
+
+	@Test
+	public void testMessageStoreWithBothAllowedPatternsAttributesFails() {
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> setUp("allowedPatternsBothJdbcMessageStore.xml", getClass()))
+				.withMessageContaining("allowed-patterns-override");
 	}
 
 	@AfterEach

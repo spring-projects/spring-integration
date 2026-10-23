@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @author Uwez Khan
  * @author Artem Bilan
  * @author Hyun Lee
+ * @author Glenn Renfro
  *
  * @since 5.5.22
  */
@@ -73,6 +74,39 @@ public class SerializingHttpMessageConverterTests {
 		Serializable result = converter.readInternal(Serializable.class, message(serialize(new TestPayload())));
 
 		assertThat(result).isInstanceOf(TestPayload.class);
+	}
+
+	@Test
+	public void defaultConstructorAppliesDefaultAllowList() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
+
+		assertThat(converter.readInternal(Serializable.class, message(serialize(new HashMap<>()))))
+				.isInstanceOf(HashMap.class);
+		byte[] body = serialize(new TestPayload());
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	public void constructorPatternsReplaceDefaultAllowList() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter("com.example.*");
+
+		byte[] body = serialize(new HashMap<>());
+		assertThatExceptionOfType(SerializationFailedException.class)
+				.isThrownBy(() -> converter.readInternal(Serializable.class, message(body)))
+				.withRootCauseInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	public void addAllowedPatternsKeepsDefaultAllowList() throws Exception {
+		SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
+		converter.addAllowedPatterns(TestPayload.class.getName());
+
+		assertThat(converter.readInternal(Serializable.class, message(serialize(new TestPayload()))))
+				.isInstanceOf(TestPayload.class);
+		assertThat(converter.readInternal(Serializable.class, message(serialize(new HashMap<>()))))
+				.isInstanceOf(HashMap.class);
 	}
 
 	@Test

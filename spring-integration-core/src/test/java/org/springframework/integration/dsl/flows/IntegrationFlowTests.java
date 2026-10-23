@@ -766,11 +766,12 @@ public class IntegrationFlowTests {
 					.channel("foo")
 					.fixedSubscriberChannel()
 					.<String, Integer>transform(Integer::parseInt)
-					.transform(Foo::new)
+					.transform(TestSample::new)
 					.transformWith(this::payloadSerializingTransformer)
 					.channel(MessageChannels.queue(new SimpleMessageStore(), "fooQueue"))
-					.transform(Transformers.deserializer(Foo.class.getName()))
-					.<Foo, Integer>transform(f -> f.value)
+					.transform(Transformers.deserializer(TestSample.class.getName(), Integer.class.getName(),
+							Number.class.getName()))
+					.<TestSample, Integer>transform(f -> f.value)
 					.filter("true", e -> e.id("expressionFilter"))
 					.channel(publishSubscribeChannel())
 					.transformWith(t -> t
@@ -1148,11 +1149,11 @@ public class IntegrationFlowTests {
 	}
 
 	@SuppressWarnings("serial")
-	public static class Foo implements Serializable {
+	public static class TestSample implements Serializable {
 
 		private final Integer value;
 
-		public Foo(Integer value) {
+		public TestSample(Integer value) {
 			this.value = value;
 		}
 

@@ -57,15 +57,14 @@ Consider using a data format such as JSON for the endpoints exposed to untrusted
 See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html[OWASP Deserialization Cheat Sheet] for more information.
 
 The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`.
-Starting with version 7.2, use the `SerializingHttpMessageConverter(String... allowedPatterns)` constructor to specify the trusted classes.
-This constructor requires at least one pattern and rejects an empty pattern array.
+Starting with version 7.2, the default constructor allows only the framework and JDK types listed in `AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS`.
+Use `addAllowedPatterns()` to trust your own classes in addition to these defaults.
+The `SerializingHttpMessageConverter(String... allowedPatterns)` constructor (or the `setAllowedPatterns()` method) replaces the defaults with the given patterns; the constructor requires at least one pattern.
 A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
-The basic types (`String`, `Number` and its subclasses, primitives and arrays) are always allowed.
+Primitives, `String` and arrays of allowed types are always allowed.
 Deserialization fails for any other class that does not match one of the patterns.
 
-IMPORTANT: The default constructor and `setAllowedPatterns()` method are deprecated for removal since version 7.2.
-For backward compatibility, the deprecated default constructor still allows all classes when no patterns are configured.
-Passing `"*"` to the new constructor explicitly allows all classes; use it only when all sources are trusted.
+IMPORTANT: Passing `"*"` explicitly allows all classes; use it only when all sources are trusted.
 Always restrict the allowed patterns when the converter reads requests from untrusted clients.
 
 The following example configures an inbound channel adapter to deserialize only classes from the `com.example.model` package:
