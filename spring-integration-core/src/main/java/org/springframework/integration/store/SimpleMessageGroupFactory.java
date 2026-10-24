@@ -18,6 +18,7 @@ import org.springframework.messaging.Message;
  * The {@link GroupType#HASH_SET} is the default type.
  *
  * @author Artem Bilan
+ * @author 樊孔缘
  *
  * @since 4.3
  */
@@ -52,6 +53,11 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	@Override
 	public MessageGroup create(MessageGroupStore messageGroupStore, Object groupId) {
+		return create((BasicMessageGroupStore) messageGroupStore, groupId);
+	}
+
+	@Override
+	public MessageGroup create(BasicMessageGroupStore messageGroupStore, Object groupId) {
 		if (GroupType.PERSISTENT.equals(this.type)) {
 			return new PersistentMessageGroup(messageGroupStore, new SimpleMessageGroup(groupId));
 		}

@@ -7,7 +7,6 @@ package org.springframework.integration.store;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
@@ -22,6 +21,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author 樊孔缘
  *
  * @since 2.0
  *
@@ -163,27 +163,6 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @since 4.3
 	 */
 	void addMessagesToGroup(Object groupId, Message<?>... messages);
-
-	/**
-	 * Retrieve messages for the provided group id.
-	 * @param groupId The group id to retrieve messages for.
-	 * @return the messages for group.
-	 * @since 4.3
-	 */
-	Collection<Message<?>> getMessagesForGroup(Object groupId);
-
-	/**
-	 * Return a stream for messages stored in the provided group.
-	 * The persistent implementations return a Stream which has
-	 * to be closed once fully processed (e.g. through a try-with-resources clause).
-	 * By default, it streams a result of {@link #getMessagesForGroup(Object)}.
-	 * @param groupId the group id to retrieve messages.
-	 * @return the {@link Stream} for messages in this group.
-	 * @since 5.5
-	 */
-	default Stream<Message<?>> streamMessagesForGroup(Object groupId) {
-		return getMessagesForGroup(groupId).stream();
-	}
 
 	/**
 	 * Invoked when a MessageGroupStore expires a group.

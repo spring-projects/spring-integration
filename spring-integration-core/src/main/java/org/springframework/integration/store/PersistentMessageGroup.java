@@ -23,6 +23,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author 樊孔缘
  *
  * @since 4.3
  */
@@ -32,7 +33,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 	private final Lock lock = new ReentrantLock();
 
-	private final MessageGroupStore messageGroupStore;
+	private final BasicMessageGroupStore messageGroupStore;
 
 	private final Collection<Message<?>> messages = new PersistentCollection();
 
@@ -42,7 +43,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 	private volatile int size;
 
-	PersistentMessageGroup(MessageGroupStore messageGroupStore, MessageGroup original) {
+	PersistentMessageGroup(BasicMessageGroupStore messageGroupStore, MessageGroup original) {
 		this.messageGroupStore = messageGroupStore;
 		this.original = original;
 	}
@@ -76,7 +77,14 @@ class PersistentMessageGroup implements MessageGroup {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Lazy loading of one message for messageGroup: " + this.original.getGroupId());
 					}
-					this.oneMessage = this.messageGroupStore.getOneMessageFromGroup(this.original.getGroupId());
+					if (this.messageGroupStore instanceof MessageGroupStore store) {
+						this.oneMessage = store.getOneMessageFromGroup(this.original.getGroupId());
+					}
+					else {
+						try (Stream<Message<?>> stream = streamMessages()) {
+							this.oneMessage = stream.findFirst().orElse(null);
+						}
+					}
 				}
 			}
 			finally {
