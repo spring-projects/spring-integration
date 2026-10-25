@@ -4,6 +4,7 @@
 
 package org.springframework.integration.redis.store;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -66,15 +67,20 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.isInstanceOf(String.class, groupId);
-		List<Message<?>> allMessages = new LinkedList<Message<?>>();
-		List<String> list = sortedKeys((String) groupId);
-		for (String key : list) {
+		return getMessageGroupFactory().create(this, groupId);
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		Assert.isInstanceOf(String.class, groupId);
+		List<Message<?>> allMessages = new LinkedList<>();
+		for (String key : sortedKeys((String) groupId)) {
 			List<Message<?>> messages = this.getRedisTemplate().boundListOps(key).range(0, -1);
 			if (messages != null) {
 				allMessages.addAll(messages);
 			}
 		}
-		return getMessageGroupFactory().create(allMessages, groupId);
+		return allMessages;
 	}
 
 	@Override
