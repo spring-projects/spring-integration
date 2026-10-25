@@ -211,6 +211,24 @@ Each property has corresponding expression and expression-string setters, such a
 When forwarding inbound messages, explicitly adapt properties where needed: inbound content type uses `contentType`, whereas the outbound default uses `mqtt_contentType`; inbound correlation data is a `ByteBuffer`, whereas outbound expects `byte[]`; inbound user properties are individual headers, whereas outbound expects a map.
 For full control over MQTT v5 publish properties, supply an `Mqtt5Publish` payload.
 
+[[mqtt-hivemq-observation]]
+== Observing HiveMQ MQTT 5 Publishes
+
+Starting with version 7.2, the `Mqtt5MessageHandler` in the `spring-integration-mqtt-client` module creates a `spring.integration.mqtt.publish` observation for each publish when observation is enabled for the handler.
+See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for enabling observations.
+With a propagating tracing observation handler registered, this observation creates a `PRODUCER` span and injects the configured tracing headers into MQTT 5 user properties.
+The existing message-handler observation remains the parent of the publish observation.
+
+The `Mqtt5PublishSenderContext` carries a builder for the outgoing publish.
+Tracing properties are injected into a copy of the publish, including when the message payload is already an `Mqtt5Publish`.
+Other user properties are preserved, and existing values for an injected propagation key are replaced.
+There is no need to copy tracing headers into `mqtt_userProperties` manually.
+The inbound `MqttHeaderMapper` maps these user properties back to message headers.
+
+The observation ends when the blocking publish returns or the asynchronous publish future completes.
+Publish failures are recorded on the observation.
+The default convention, `DefaultMqtt5PublishObservationConvention`, provides the `spring.integration.name` and `spring.integration.type` low-cardinality tags.
+
 [[mqtt-client-events]]
 === Events
 
