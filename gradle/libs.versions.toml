@@ -7,14 +7,14 @@ springAmqpVersion = "4.2.0-SNAPSHOT"
 springDataVersion = "2026.1.0-SNAPSHOT"
 springGraphqlVersion = "2.1.0-SNAPSHOT"
 springKafkaVersion = "4.2.0-SNAPSHOT"
-springSecurityVersion = "7.2.0-RC1"
+springSecurityVersion = "7.2.0-SNAPSHOT"
 springVersion = "7.1.0-RC1"
 springWsVersion = "5.1.0-SNAPSHOT"
 
 # Third-party dependencies
 apacheSshdVersion = "2.20.0"
 artemisVersion = "2.57.0"
-aspectjVersion = "1.9.25.1"
+aspectjVersion = "1.9.26"
 assertjVersion = "3.27.7"
 assertkVersion = "0.28.1"
 avroVersion = "1.12.2"
@@ -34,7 +34,7 @@ grpcVersion = "1.85.1"
 h2Version = "2.5.252"
 hamcrestVersion = "3.0"
 hazelcastVersion = "5.7.0"
-hibernateVersion = "7.4.13.Final"
+hibernateVersion = "7.4.14.Final"
 hivemqMqttClientVersion="1.4.1"
 hsqldbVersion = "2.7.4"
 jackson3Version = "3.2.4"
@@ -55,7 +55,7 @@ log4jVersion = "2.26.1"
 mailVersion = "2.0.5"
 mockitoVersion = "5.24.0"
 mongoDriverVersion = "5.13.0"
-mysqlVersion = "26.7.0"
+mysqlVersion = "26.10.0"
 oracleVersion = "23.26.3.0.0"
 pahoMqttClientVersion = "1.2.5"
 postgresVersion = "42.7.14"
@@ -160,4 +160,4 @@ antora = { id = "org.antora", version = "1.0.0" }
 io-spring-antora-generate-yml = { id = "io.spring.antora.generate-antora-yml", version = "0.0.1" }
 protobuf = { id = "com.google.protobuf", version = "0.10.0" }
 aggregate-javadoc = { id = "io.freefair.aggregate-javadoc", version = "9.8.2" }
-nullability = { id = "io.spring.nullability", version = "0.0.17" }
+nullability = { id = "io.spring.nullability", version = "0.0.18" }
