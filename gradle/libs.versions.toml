@@ -70,7 +70,7 @@ testcontainersVersion = "2.0.5"
 tomcatVersion = "11.0.27"
 xmlUnitVersion = "2.14.0"
 xstreamVersion = "1.4.21"
-ztZipVersion = "1.18.2"
+ztZipVersion = "1.18.3"
 
 [libraries]
 apache-sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "apacheSshdVersion" }
