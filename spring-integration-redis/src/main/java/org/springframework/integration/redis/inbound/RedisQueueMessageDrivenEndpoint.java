@@ -340,15 +340,21 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 				}
 			}
 			finally {
-				if (isActive()) {
-					restart();
-				}
-				else {
-					Runnable callback = RedisQueueMessageDrivenEndpoint.this.stopCallback;
-					if (callback != null) {
-						callback.run();
-						RedisQueueMessageDrivenEndpoint.this.stopCallback = null;
+				RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
+				try {
+					if (isActive()) {
+						restart();
 					}
+					else {
+						Runnable callback = RedisQueueMessageDrivenEndpoint.this.stopCallback;
+						if (callback != null) {
+							callback.run();
+							RedisQueueMessageDrivenEndpoint.this.stopCallback = null;
+						}
+					}
+				}
+				finally {
+					RedisQueueMessageDrivenEndpoint.this.lifecycleLock.unlock();
 				}
 			}
 		}
