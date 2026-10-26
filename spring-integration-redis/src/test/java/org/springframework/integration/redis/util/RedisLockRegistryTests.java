@@ -5,6 +5,7 @@
 package org.springframework.integration.redis.util;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +50,7 @@ import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockTyp
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +74,7 @@ import static org.mockito.Mockito.mock;
  * @author Glenn Renfro
  * @author Jiandong Ma
  * @author Yordan Tsintsov
+ * @author Yingzi Zhang
  *
  * @since 4.0
  *
@@ -479,6 +483,36 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		Thread.sleep(expireAfter * 2);
 		lock1.unlock();
 		registry.destroy();
+	}
+
+	@Test
+	void testReentrantLockKeepsOneRenewalTask() throws InterruptedException {
+		List<ScheduledFuture<?>> renewalTasks = new ArrayList<>();
+		ThreadPoolTaskScheduler renewalTaskScheduler = new ThreadPoolTaskScheduler() {
+
+			@Override
+			public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Duration delay) {
+				ScheduledFuture<?> renewalTask = super.scheduleWithFixedDelay(task, delay);
+				renewalTasks.add(renewalTask);
+				return renewalTask;
+			}
+
+		};
+		renewalTaskScheduler.initialize();
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRenewalTaskScheduler(renewalTaskScheduler);
+		registry.setRedisLockType(testRedisLockType);
+		Lock lock = registry.obtain("reentrant");
+		lock.lock();
+		assertThat(lock.tryLock(1, TimeUnit.SECONDS)).isTrue();
+		assertThat(renewalTasks).hasSize(2);
+		assertThat(renewalTasks.get(0).isCancelled()).isTrue();
+		assertThat(renewalTasks.get(1).isCancelled()).isFalse();
+		lock.unlock();
+		lock.unlock();
+		assertThat(renewalTasks).allMatch(Future::isCancelled);
+		registry.destroy();
+		renewalTaskScheduler.destroy();
 	}
 
 	@Test
