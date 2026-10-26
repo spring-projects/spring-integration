@@ -169,8 +169,10 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 
 	@RetryingTest(10)
 	public void concurrentPolling() throws InterruptedException {
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		for (int i = 0; i < 10; i++) {
-			this.first.send(new GenericMessage<Object>("test"));
+			// Obtain a connection before the queue lock, just as the transactional pollers do.
+			transactionTemplate.executeWithoutResult(status -> this.first.send(new GenericMessage<>("test")));
 		}
 
 		assertThat(this.successfulLatch.await(20, TimeUnit.SECONDS)).isTrue();
