@@ -99,6 +99,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Severin Kistler
  * @author Glenn Renfro
  * @author Jiwoo Lee
+ * @author Yingzi Zhang
  *
  * @since 4.0
  *
@@ -577,6 +578,12 @@ public final class RedisLockRegistry
 				}
 				this.lockedAt = System.currentTimeMillis();
 				if (RedisLockRegistry.this.renewalTaskScheduler != null) {
+					ScheduledFuture<?> outerRenewFuture = this.renewFuture;
+					if (outerRenewFuture != null) {
+						// A reentrant acquisition replaces the renewal task of the outer one.
+						// Don't interrupt a renewal in progress: the task starts right away when scheduled.
+						outerRenewFuture.cancel(false);
+					}
 					Duration delay = Duration.ofMillis(expireAfter / 3);
 					this.renewFuture =
 							RedisLockRegistry.this.renewalTaskScheduler.scheduleWithFixedDelay(() ->

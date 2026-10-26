@@ -60,6 +60,7 @@ import static org.mockito.Mockito.mock;
  * @author Anton Gabov
  * @author Eddie Cho
  * @author Youbin Wu
+ * @author Yingzi Zhang
  *
  * @since 4.0
  *
