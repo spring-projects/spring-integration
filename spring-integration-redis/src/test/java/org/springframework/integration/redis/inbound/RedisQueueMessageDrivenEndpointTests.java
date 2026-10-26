@@ -4,6 +4,7 @@
 
 package org.springframework.integration.redis.inbound;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,8 +51,10 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -247,9 +250,20 @@ class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(TEST_QUEUE,
 				this.connectionFactory);
-		BoundListOperations<String, byte[]> boundListOperations =
+		BoundListOperations<String, byte[]> actualListOperations =
 				TestUtils.getPropertyValue(endpoint, "boundListOperations");
-		boundListOperations = Mockito.spy(boundListOperations);
+		BoundListOperations<String, byte[]> boundListOperations =
+				Mockito.mock(BoundListOperations.class, delegatesTo(actualListOperations));
+		CountDownLatch messagePopped = new CountDownLatch(1);
+		CountDownLatch releaseMessage = new CountDownLatch(1);
+		doAnswer(invocation -> {
+			byte[] value = actualListOperations.rightPop(invocation.getArgument(0, Duration.class));
+			if (value != null) {
+				messagePopped.countDown();
+				assertThat(releaseMessage.await(10, TimeUnit.SECONDS)).isTrue();
+			}
+			return value;
+		}).when(boundListOperations).rightPop(any(Duration.class));
 		DirectFieldAccessor dfa = new DirectFieldAccessor(endpoint);
 		dfa.setPropertyValue("boundListOperations", boundListOperations);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
@@ -260,23 +274,27 @@ class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 		endpoint.setTaskExecutor(executorService);
 
 		endpoint.afterPropertiesSet();
-		endpoint.start();
+		try {
+			endpoint.start();
+			redisTemplate.boundListOps(TEST_QUEUE).leftPush("stoppedMessage");
+			assertThat(messagePopped.await(10, TimeUnit.SECONDS)).isTrue();
 
-		waitListening(endpoint);
-		dfa.setPropertyValue("listening", false);
+			CountDownLatch stopLatch = new CountDownLatch(1);
+			endpoint.stop(stopLatch::countDown);
+			releaseMessage.countDown();
 
-		redisTemplate.boundListOps(TEST_QUEUE).leftPush("foo");
+			executorService.shutdown();
+			assertThat(executorService.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
+			assertThat(stopLatch.await(21, TimeUnit.SECONDS)).isTrue();
 
-		CountDownLatch stopLatch = new CountDownLatch(1);
-
-		endpoint.stop(stopLatch::countDown);
-
-		executorService.shutdown();
-		assertThat(executorService.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
-
-		assertThat(stopLatch.await(21, TimeUnit.SECONDS)).isTrue();
-
-		verify(boundListOperations, atLeastOnce()).rightPush(any(byte[].class));
+			verify(boundListOperations, atLeastOnce()).rightPush(any(byte[].class));
+			assertThat(redisTemplate.boundListOps(TEST_QUEUE).rightPop()).isEqualTo("stoppedMessage");
+		}
+		finally {
+			endpoint.stop();
+			releaseMessage.countDown();
+			executorService.shutdownNow();
+		}
 	}
 
 	@Test
