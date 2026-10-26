@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
  * @author Gregory Bragg
  * @author Artem Bilan
  * @author Daniel Frey
+ * @author Paolo Fosser
  *
  * @since 6.0
  */
@@ -63,8 +64,8 @@ public class SmbSessionFactory extends SmbConfig implements SessionFactory<SmbFi
 		}
 		else {
 			Properties props = new Properties();
-			props.setProperty("jcifs.smb.client.minVersion", this.getSmbMinVersion().name());
-			props.setProperty("jcifs.smb.client.maxVersion", this.getSmbMaxVersion().name());
+			props.setProperty("jcifs.client.minVersion", this.getSmbMinVersion().name());
+			props.setProperty("jcifs.client.maxVersion", this.getSmbMaxVersion().name());
 
 			smbShare = new SmbShare(this, props);
 		}
