@@ -18,10 +18,13 @@ import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannel
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 4.0
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class MqttMessageDrivenChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override

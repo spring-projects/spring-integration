@@ -43,10 +43,12 @@ import static org.mockito.Mockito.verify;
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
  * @author Goutam Adwant
+ * @author Jaehong Park
  *
  * @since 5.5.16
  *
  */
+@SuppressWarnings("removal")
 public class Mqttv5AdapterTests {
 
 	@Test

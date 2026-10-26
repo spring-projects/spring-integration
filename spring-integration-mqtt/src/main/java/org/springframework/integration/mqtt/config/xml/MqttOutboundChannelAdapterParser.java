@@ -18,9 +18,12 @@ import org.springframework.util.StringUtils;
  * The parser for the MqttAdapter Outbound Channel Adapter.
  *
  * @author Gary Russell
+ * @author Jaehong Park
  * @since 4.0
- *
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
+@Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings("removal")
 public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override

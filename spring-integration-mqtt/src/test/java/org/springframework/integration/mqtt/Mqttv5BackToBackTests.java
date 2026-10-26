@@ -48,12 +48,14 @@ import static org.awaitility.Awaitility.await;
  * @author Mikhail Polivakha
  * @author Glenn Renfro
  * @author Goutam Adwant
+ * @author Jaehong Park
  *
  * @since 5.5.5
  *
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	private static final long QUIESCENT_TIMEOUT = 1;

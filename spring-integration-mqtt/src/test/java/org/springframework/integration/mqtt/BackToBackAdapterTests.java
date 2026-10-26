@@ -52,12 +52,14 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jaehong Park
  *
  * @since 4.0
  *
  */
 @SpringJUnitConfig
 @DirtiesContext
+@SuppressWarnings("removal")
 public class BackToBackAdapterTests implements MosquittoContainerTest {
 
 	private static final long QUIESCENT_TIMEOUT = 1;

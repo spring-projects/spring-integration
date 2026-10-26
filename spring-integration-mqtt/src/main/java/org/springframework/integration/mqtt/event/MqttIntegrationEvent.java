@@ -15,10 +15,13 @@ import org.springframework.integration.events.IntegrationEvent;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jaehong Park
  *
  * @since 4.1
+ * @deprecated since 7.2 in favor of the {@code spring-integration-mqtt-client} module.
  */
-@SuppressWarnings("serial")
+@Deprecated(since = "7.2", forRemoval = true)
+@SuppressWarnings({"serial", "removal"})
 public abstract class MqttIntegrationEvent extends IntegrationEvent {
 
 	public MqttIntegrationEvent(Object source) {
