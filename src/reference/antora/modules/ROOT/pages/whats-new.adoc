@@ -55,6 +55,9 @@ The `METADATA_VALUE` column in the `JdbcMetadataStore` schema scripts is now `NO
 Existing databases created with older scripts should remove any null-valued rows and alter the column to `NOT NULL` when upgrading.
 See xref:jdbc/metadata-store.adoc[] for more information.
 
+On PostgreSQL, the `DefaultLockRepository` now adds `ON CONFLICT DO NOTHING` to its default insert query.
+See xref:jdbc/lock-registry.adoc[] for more information.
+
 JDBC tests and documentation no longer use Apache Derby.
 Use H2 or HSQL for embedded testing.
 `EmbeddedDatabaseType.DERBY` is deprecated in Spring Framework 7.1.

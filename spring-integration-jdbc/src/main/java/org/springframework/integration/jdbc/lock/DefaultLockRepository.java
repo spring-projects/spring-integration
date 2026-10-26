@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -50,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Alexandre Strubel
  * @author Ruslan Stelmachenko
  * @author Eddie Cho
+ * @author Gabriel Hall
  *
  * @since 4.3
  */
@@ -132,6 +134,8 @@ public class DefaultLockRepository
 	private TransactionTemplate readCommittedTransactionTemplate;
 
 	private boolean checkDatabaseOnStart = true;
+
+	private boolean customInsertQuery;
 
 	/**
 	 * Constructor that initializes the client id that will be associated for
@@ -226,12 +230,8 @@ public class DefaultLockRepository
 	 * The {@link #getInsertQuery()} can be used as a template for customization.
 	 * The default query is
 	 * {@code INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE, EXPIRED_AFTER) VALUES (?, ?, ?, ?, ?)}.
-	 * For example, a PostgreSQL {@code ON CONFLICT DO NOTHING} hint can be provided like this:
-	 * <pre class="code">
-	 * {@code
-	 *  lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
-	 * }
-	 * </pre>
+	 * On PostgreSQL, the default query gets an {@code ON CONFLICT DO NOTHING} hint;
+	 * a custom query is used as is.
 	 * @param insertQuery the insert query for a lock record.
 	 * @since 6.1
 	 * @see #getInsertQuery()
@@ -239,6 +239,7 @@ public class DefaultLockRepository
 	 */
 	public void setInsertQuery(String insertQuery) {
 		this.insertQuery = insertQuery;
+		this.customInsertQuery = true;
 	}
 
 	/**
@@ -303,6 +304,14 @@ public class DefaultLockRepository
 		this.deleteAllQuery = String.format(this.deleteAllQuery, this.prefix);
 		this.updateQuery = String.format(this.updateQuery, this.prefix);
 		this.insertQuery = String.format(this.insertQuery, this.prefix);
+		if (!this.customInsertQuery) {
+			String databaseVendor =
+					this.template.execute((ConnectionCallback<String>) connection ->
+							connection.getMetaData().getDatabaseProductName());
+			if ("PostgreSQL".equals(databaseVendor)) {
+				this.insertQuery += " ON CONFLICT DO NOTHING";
+			}
+		}
 		this.countQuery = String.format(this.countQuery, this.prefix);
 		this.renewQuery = String.format(this.renewQuery, this.prefix);
 		this.countAllQuery = String.format(this.countAllQuery, this.prefix);
