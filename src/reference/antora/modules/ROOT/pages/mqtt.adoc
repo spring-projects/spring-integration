@@ -4,8 +4,264 @@
 Spring Integration provides inbound and outbound channel adapters to support the Message Queueing Telemetry Transport (MQTT) protocol.
 
 IMPORTANT: Starting with version 7.2, the Paho-based `spring-integration-mqtt` module is deprecated for removal in favor of the HiveMQ-based `spring-integration-mqtt-client` module.
-The following sections describe the deprecated Paho-based adapters.
-To migrate, use the `spring-integration-mqtt-client` dependency and the components in the `org.springframework.integration.mqtt.client` packages, and adapt your client configuration to the HiveMQ MQTT client API.
+Use the new module for new applications; see <<mqtt-client-migration>> for migration guidance and <<mqtt-paho>> for the deprecated adapters.
+
+[[mqtt-client]]
+== HiveMQ MQTT Client Support
+
+Starting with version 7.2, the `spring-integration-mqtt-client` module provides MQTT v3.1.1 and v5 support using the https://github.com/hivemq/hivemq-mqtt-client[HiveMQ MQTT Client].
+Both protocols are supported by the same dependency:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-mqtt-client</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+implementation "org.springframework.integration:spring-integration-mqtt-client:{project-version}"
+----
+======
+
+The Spring Integration components are in the `org.springframework.integration.mqtt.client` packages:
+
+[cols="1,2,2", options="header"]
+|===
+|Component |MQTT v3.1.1 |MQTT v5
+|Client manager |`core.Mqtt3ClientManager` |`core.Mqtt5ClientManager`
+|Inbound adapter |`inbound.Mqtt3MessageDrivenChannelAdapter` |`inbound.Mqtt5MessageDrivenChannelAdapter`
+|Outbound handler |`outbound.Mqtt3MessageHandler` |`outbound.Mqtt5MessageHandler`
+|===
+
+Configure these components as Spring beans or use them directly with `IntegrationFlow.from()` and `.handle()`.
+The `int-mqtt` XML namespace and the `Mqtt` Java DSL factory from the deprecated module configure Paho components, not these HiveMQ components.
+
+[[mqtt-client-manager]]
+=== Client Configuration and Lifecycle
+
+Both inbound and outbound components require a `org.springframework.integration.mqtt.client.core.ClientManager`.
+Declare an `Mqtt3ClientManager` or `Mqtt5ClientManager` bean with the corresponding HiveMQ client configuration.
+The manager builds and owns the client and manages its connection lifecycle.
+Multiple adapters and handlers can share the same manager, using a single connection and client identifier instead of opening competing connections with the same identifier.
+
+The following MQTT v5 configuration is shared by the inbound and outbound examples below:
+
+[source, java]
+----
+@Bean
+public Mqtt5ClientManager mqttClientManager() {
+    var config = Mqtt5Client.builder()
+            .identifier("spring-integration-client")
+            .serverHost("localhost")
+            .serverPort(1883)
+            .automaticReconnectWithDefaultConfig()
+            .build()
+            .getConfig();
+    var manager = new Mqtt5ClientManager(config);
+    manager.setMqttConnect(Mqtt5Connect.builder()
+            .cleanStart(true)
+            .keepAlive(60)
+            .build());
+    return manager;
+}
+----
+
+Use HiveMQ's client builder to configure transport options such as TLS, WebSocket, authentication, executors, and automatic reconnect.
+Use `setMqttConnect(Mqtt3Connect)` or `setMqttConnect(Mqtt5Connect)` on the manager for connection options such as keep-alive and session settings.
+The MQTT v5 manager also accepts an `Mqtt5Disconnect` through `setMqttDisconnect()`.
+For MQTT v3.1.1, use `Mqtt3Client.builder()`, `Mqtt3ClientManager`, and `Mqtt3Connect` instead.
+
+Enable automatic reconnect on the HiveMQ client configuration to recover from connection loss.
+Without it, the application must handle reconnection itself.
+The manager's default lifecycle phase is `0`.
+If customizing lifecycle phases, start the manager before the inbound adapters by giving it a lower phase.
+Stopping an inbound adapter unsubscribes its topics; stopping the manager disconnects the shared client.
+
+[[mqtt-client-inbound]]
+=== Inbound Channel Adapters
+
+Use `Mqtt3MessageDrivenChannelAdapter` or `Mqtt5MessageDrivenChannelAdapter` to subscribe to MQTT topics and produce Spring messages.
+Each constructor accepts a client manager and either topic filters or protocol-specific `Mqtt3Subscription` or `Mqtt5Subscription` objects.
+For topic filters, `setQos()` configures the subscription QoS, defaulting to `MqttQos.AT_LEAST_ONCE`.
+For subscription objects, configure QoS on each subscription instead.
+The MQTT v5 adapter also exposes `setNoLocal()`, `setRetainHandling()`, and `setRetainAsPublished()` for subscriptions built from topic filters.
+When supplying `Mqtt5Subscription` objects, configure those options on the subscriptions themselves.
+
+The following flow receives messages as strings:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow mqttInbound(Mqtt5ClientManager mqttClientManager) {
+    var adapter = new Mqtt5MessageDrivenChannelAdapter(mqttClientManager, "sensors/+/temperature");
+    adapter.setQos(MqttQos.AT_LEAST_ONCE);
+    adapter.setPayloadType(String.class);
+    return IntegrationFlow.from(adapter)
+            .channel(c -> c.queue("mqttInputChannel"))
+            .get();
+}
+----
+
+These bean definitions require Spring Integration infrastructure, for example through `@EnableIntegration` on the configuration class.
+The default inbound payload type is `byte[]`.
+For another payload type, set `payloadType` and, if necessary, provide a `SmartMessageConverter` with `setMessageConverter()`.
+By default, the adapter uses Spring Integration's `integrationArgumentResolverMessageConverter` bean.
+Set `payloadType` to `Mqtt3Publish.class` or `Mqtt5Publish.class` to receive the complete HiveMQ publish object without payload conversion.
+Use `setExecutor()` to select the executor on which the message callback runs.
+As with other message producers, an `errorChannel` can handle downstream message delivery failures.
+
+Both adapters populate the following headers from `org.springframework.integration.mqtt.client.support.MqttHeaders`:
+
+* `RECEIVED_TOPIC`: the received topic as a `String`.
+* `RECEIVED_QOS`: a HiveMQ `MqttQos` value.
+* `RECEIVED_RETAINED`: the received retained flag.
+
+Received headers are distinct from outbound `TOPIC`, `QOS`, and `RETAINED` headers so forwarding a message does not implicitly reuse its received publishing options.
+
+[[mqtt-client-manual-acks]]
+==== Manual Acknowledgment
+
+Set `manualAck` to `true` to defer acknowledgment until downstream processing is complete.
+The adapter adds a `SimpleAcknowledgment` to the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header.
+For example, after processing a message:
+
+[source, java]
+----
+StaticMessageHeaderAccessor.getAcknowledgment(message).acknowledge();
+----
+
+The callback delegates to the HiveMQ publish object's `acknowledge()` method.
+
+[[mqtt-client-outbound]]
+=== Outbound Channel Adapters
+
+Use `Mqtt3MessageHandler` or `Mqtt5MessageHandler` to publish messages through the shared client manager.
+For example:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow mqttOutbound(Mqtt5ClientManager mqttClientManager) {
+    var handler = new Mqtt5MessageHandler(mqttClientManager);
+    handler.setDefaultTopic("sensors/temperature");
+    handler.setDefaultQos(MqttQos.AT_LEAST_ONCE);
+    return IntegrationFlow.from("mqttOutputChannel")
+            .handle(handler)
+            .get();
+}
+----
+
+Alternatively, declare the handler as a bean annotated with `@ServiceActivator(inputChannel = "mqttOutputChannel")`.
+Both handlers accept `byte[]` and `String` payloads directly; strings are encoded as UTF-8.
+Other payloads are converted with a `MessageConverter`, which must produce a `byte[]` or `String` payload.
+By default, the handler uses the `integrationArgumentResolverMessageConverter` bean.
+Use `setMessageConverter()` to provide a custom converter.
+
+The publishing options are resolved as follows:
+
+[cols="1,2,2", options="header"]
+|===
+|Option |Default expression |Fallback when the expression returns `null`
+|Topic |`headers['mqtt_topic']` |`defaultTopic`; required if no topic header is supplied
+|QoS |`headers['mqtt_qos']` |`defaultQos`, initially `MqttQos.AT_MOST_ONCE`
+|Retained |`headers['mqtt_retained']` |`defaultRetained`, initially `false`
+|===
+
+Use `setTopicExpressionString()`, `setQosExpressionString()`, and `setRetainedExpressionString()` to customize these expressions, or the corresponding setters accepting `Expression` objects.
+Use HiveMQ `MqttQos` values for QoS headers and configuration.
+A payload that is already an `Mqtt3Publish` or `Mqtt5Publish`, respectively, is published directly, bypassing payload conversion and publishing-option expressions.
+
+Publishing is blocking by default.
+Set `async` to `true` for asynchronous publishing and delivery events (see <<mqtt-client-events>>).
+
+[[mqtt-client-v5-properties]]
+=== MQTT v5 Properties
+
+The inbound `Mqtt5MessageDrivenChannelAdapter` uses `org.springframework.integration.mqtt.client.support.MqttHeaderMapper` by default.
+It maps content type to `MessageHeaders.CONTENT_TYPE`, response topic to `MqttHeaders.RESPONSE_TOPIC`, correlation data to `MqttHeaders.CORRELATION_DATA`, and user properties to individual headers with their property names.
+Inbound correlation data is a `ByteBuffer`.
+The mapper accepts header name patterns in its constructor, defaulting to `*`.
+Use `setHeaderMapper()` to provide a custom mapper.
+The received topic, QoS, and retained headers are populated independently of the mapper.
+
+The outbound `Mqtt5MessageHandler` uses expressions, not this inbound header mapper, to populate MQTT v5 properties:
+
+[cols="2,2", options="header"]
+|===
+|Header constant in `MqttHeaders` |Expected value
+|`CONTENT_TYPE` |`String`
+|`RESPONSE_TOPIC` |`String`
+|`CORRELATION_DATA` |`byte[]`
+|`MESSAGE_EXPIRY_INTERVAL` |`Long` (seconds)
+|`PAYLOAD_FORMAT_INDICATOR` |`Mqtt5PayloadFormatIndicator`
+|`USER_PROPERTIES` |`Map` whose keys and values are converted to strings
+|===
+
+Each property has corresponding expression and expression-string setters, such as `setResponseTopicExpressionString()`.
+When forwarding inbound messages, explicitly adapt properties where needed: inbound content type uses `contentType`, whereas the outbound default uses `mqtt_contentType`; inbound correlation data is a `ByteBuffer`, whereas outbound expects `byte[]`; inbound user properties are individual headers, whereas outbound expects a map.
+For full control over MQTT v5 publish properties, supply an `Mqtt5Publish` payload.
+
+[[mqtt-client-events]]
+=== Events
+
+The new module publishes application events in `org.springframework.integration.mqtt.client.event`:
+
+* `MqttConnectionFailedEvent`: a client manager failed to connect.
+* `MqttSubscribedEvent`: an inbound subscription completed successfully.
+* `MqttProtocolErrorEvent`: an inbound subscription failed.
+* `MqttMessageSentEvent`: an asynchronous publish was submitted; contains the Spring message and HiveMQ publish object.
+* `MqttMessageDeliveredEvent`: an asynchronous publish completed successfully; contains the HiveMQ publish result.
+* `MqttMessageNotDeliveredEvent`: an asynchronous publish failed; contains the failure and publish result, which may be absent.
+
+Consume these events with an `ApplicationListener`, `@EventListener`, or an xref:event.adoc[Application Event inbound channel adapter].
+Completion callbacks can run before the sent event is published, so do not assume event ordering.
+
+[[mqtt-client-migration]]
+=== Migrating from Paho
+
+Replace the `spring-integration-mqtt` dependency with `spring-integration-mqtt-client` and update the component imports:
+
+[cols="1,1", options="header"]
+|===
+|Deprecated Paho component |HiveMQ-based replacement
+|`MqttPahoMessageDrivenChannelAdapter` |`Mqtt3MessageDrivenChannelAdapter`
+|`Mqttv5PahoMessageDrivenChannelAdapter` |`Mqtt5MessageDrivenChannelAdapter`
+|`MqttPahoMessageHandler` |`Mqtt3MessageHandler`
+|`Mqttv5PahoMessageHandler` |`Mqtt5MessageHandler`
+|`Mqttv3ClientManager` |`Mqtt3ClientManager`
+|`Mqttv5ClientManager` |`Mqtt5ClientManager`
+|===
+
+This is not a drop-in client library substitution:
+
+* Replace Paho client factories, connection options, and persistence configuration with HiveMQ client configuration and a client manager bean.
+All new adapters and handlers require a manager; URL/client-ID constructors are not available.
+* Change imports for headers, events, and client managers to the `org.springframework.integration.mqtt.client` packages.
+The new `ClientManager` has one type parameter: the HiveMQ client type.
+* Replace integer QoS configuration and headers with `MqttQos` values.
+* Review payload conversion: the new inbound default is `byte[]`, and conversion uses Spring Messaging converters rather than `MqttMessageConverter`.
+* Use `setManualAck(true)` instead of Paho's `setManualAcks(true)`.
+* Replace Paho XML namespace and dedicated MQTT DSL configuration with bean definitions or generic Java DSL flows as shown above.
+* Review MQTT v5 property mapping and asynchronous event handling against the new contracts described above.
+There is no separate `asyncEvents` switch: enabling `async` also enables delivery events.
+* The new inbound adapters do not expose Paho's `addTopic()` and `removeTopic()` methods.
+For dynamically configured subscriptions, register and remove flows containing adapters with the desired subscriptions through `IntegrationFlowContext`, reusing the client manager.
+
+[[mqtt-paho]]
+== Deprecated Paho Support
+
+The remaining sections describe the deprecated `spring-integration-mqtt` module for existing applications.
+The configuration and defaults in these sections do not apply to `spring-integration-mqtt-client`.
 
 This dependency is required for the project:
 
@@ -30,7 +286,7 @@ implementation "org.springframework.integration:spring-integration-mqtt:{project
 ----
 ======
 
-The current implementation uses the https://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
+This deprecated implementation uses the https://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
 Starting with version 6.5, the `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency is an `optional` dependency, so has to be included explicitly in the target project for MQTT v3 support.
 
 IMPORTANT: The XML configuration and most of this chapter are about MQTT v3.1 protocol support and the respective Paho Client.
@@ -42,7 +298,7 @@ Refer to the Paho documentation for more information about configuration options
 NOTE: We recommend configuring an `MqttConnectOptions` object and injecting it into the factory, instead of setting the (deprecated) options on the factory itself.
 
 [[mqtt-inbound]]
-== Inbound (Message-driven) Channel Adapter
+=== Inbound (Message-driven) Channel Adapter
 
 The inbound channel adapter is implemented by the `MqttPahoMessageDrivenChannelAdapter`.
 For convenience, you can configure it by using the namespace.
@@ -142,7 +398,7 @@ Starting with version 5.0, the `topic`, `qos`, and `retained` properties are map
 ====
 
 [[adding-and-removing-topics-at-runtime]]
-=== Adding and Removing Topics at Runtime
+==== Adding and Removing Topics at Runtime
 
 Starting with version 4.1, you can programmatically change the topics to which the adapter is subscribed.
 Spring Integration provides the  `addTopic()` and `removeTopic()` methods.
@@ -156,7 +412,7 @@ A new application context reverts to the configured settings.
 Changing the topics while the adapter is stopped (or disconnected from the broker) takes effect the next time a connection is established.
 
 [[mqtt-ack-mode]]
-=== Manual Acks
+==== Manual Acks
 
 Starting with version 5.3, you can set the `manualAcks` property to true.
 Often used to asynchronously acknowledge delivery.
@@ -167,14 +423,14 @@ For convenience a header accessor is provided:
 
 [source, java]
 ----
-StaticMessageHeaderAccessor.acknowledgment(someMessage).acknowledge();
+StaticMessageHeaderAccessor.getAcknowledgment(someMessage).acknowledge();
 ----
 
 Starting with version `5.2.11`, when the message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the `errorChannel`, if provided.
 Re-throws this conversion error otherwise into an MQTT client callback.
 
 [[mqtt-ack-mode-java-configuration]]
-=== Configuring with Java Configuration
+==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
@@ -223,7 +479,7 @@ public class MqttJavaApplication {
 ----
 
 [[mqtt-ack-mode-java-dsl]]
-=== Configuring with the Java DSL
+==== Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
 
@@ -251,7 +507,7 @@ public class MqttJavaApplication {
 ----
 
 [[mqtt-outbound]]
-== Outbound Channel Adapter
+=== Outbound Channel Adapter
 
 The outbound channel adapter is implemented by the `MqttPahoMessageHandler`, which is wrapped in a `ConsumerEndpoint`.
 For convenience, you can configure it by using the namespace.
@@ -316,7 +572,7 @@ Instead, the server URIs can be provided in the `serverURIs` property of the `De
 This enables, for example, connection to a highly available (HA) cluster.
 
 [[mqtt-outbound-java-configuration]]
-=== Configuring with Java Configuration
+==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
@@ -372,7 +628,7 @@ public class MqttJavaApplication {
 ----
 
 [[mqtt-outbound-java-dsl]]
-=== Configuring with the Java DSL
+==== Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the outbound adapter with the Java DSL:
 
@@ -396,7 +652,7 @@ public class MqttJavaApplication {
 ----
 
 [[mqtt-events]]
-== Events
+=== Events
 
 Certain application events are published by the adapters.
 
@@ -419,7 +675,7 @@ MqttConnectOptions options = source.getConnectionInfo();
 ----
 
 [[mqtt-v5]]
-== MQTT v5 Support
+=== MQTT v5 Support
 
 Starting with version 5.5.5, the `spring-integration-mqtt` module provides channel adapter implementations for the MQTT v5 protocol.
 The `org.eclipse.paho:org.eclipse.paho.mqttv5.client` is an `optional` dependency, so has to be included explicitly in the target project.
@@ -500,7 +756,7 @@ IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReco
 Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnecting, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
 
 [[mqtt-shared-client]]
-== Shared MQTT Client Support
+=== Shared MQTT Client Support
 
 If a single MQTT ClientID is required for several integrations, multiple MQTT client instances cannot be used because MQTT brokers may have a limitation on a number of connections per ClientID (typically, a single connection is allowed).
 For having a single client reused for different channel adapters, a `org.springframework.integration.mqtt.core.ClientManager` component may be used and passed to any channel adapter needed.
