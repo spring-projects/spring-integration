@@ -133,7 +133,7 @@ public class HttpInboundGatewayParserTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		SerializingHttpMessageConverter serializingHttpMessageConverter =
-				new SerializingHttpMessageConverter("java.util.*");
+				new SerializingHttpMessageConverter();
 		serializingHttpMessageConverter.setSupportedMediaTypes(
 				Collections.singletonList(new MediaType("application", "my-serialized")));
 		converters.add(serializingHttpMessageConverter);

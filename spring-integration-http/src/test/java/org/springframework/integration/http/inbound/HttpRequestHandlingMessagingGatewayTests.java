@@ -239,7 +239,9 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestChannel(channel);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter(TestBean.class.getName()));
+		SerializingHttpMessageConverter serializingConverter = new SerializingHttpMessageConverter();
+		serializingConverter.addAllowedPatterns(TestBean.class.getName());
+		converters.add(serializingConverter);
 		gateway.setMessageConverters(converters);
 		gateway.afterPropertiesSet();
 		gateway.start();

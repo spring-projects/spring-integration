@@ -30,25 +30,8 @@ See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more inf
 [[x7.2-general-changes]]
 === General Changes
 
-The `AllowListDeserializingConverter` now allows only a default list of framework and JDK types for Java deserialization, instead of allowing all classes when no patterns are configured.
-The list is exposed as `AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS` and names each class explicitly.
-`Number` subclasses are no longer allowed implicitly; only the listed number types are.
-Common JDK exceptions, such as `IllegalStateException`, `IllegalArgumentException` and `IOException`, are included, so an `ErrorMessage` whose cause is one of them can still be deserialized.
-This applies to every component built on the converter, such as the `PayloadDeserializingTransformer`, the `JdbcMessageStore`, the `JdbcChannelMessageStore`, the MongoDB message stores and the `SerializingHttpMessageConverter`.
-
-IMPORTANT: This is a breaking change.
-Applications that deserialize their own types (payloads, header values or custom exception types in stored `ErrorMessage` instances), including messages already in a store, get a `SecurityException` on read until those types are allowed.
-
-Use `addAllowedPatterns()` to allow your own types in addition to the defaults, for example:
-
-[source, java]
-----
-JdbcMessageStore store = new JdbcMessageStore(dataSource);
-store.addAllowedPatterns("com.example.model.*");
-----
-
-Use `setAllowedPatterns()` to replace the defaults with your own list, or `"*"` to allow all classes again; use the latter only when all sources are trusted.
-The `PayloadDeserializingTransformer` and the configurable MongoDB message stores now also provide `addAllowedPatterns()`.
+The `AllowListDeserializingConverter` (and every component built on it) now supports a default list of framework and JDK types for Java deserialization, instead of all classes; use `addAllowedPatterns()` to trust your own types.
+See xref:security.adoc#java-deserialization[Java Deserialization] for more information.
 
 The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
 See xref:error-handling.adoc[] for more information.
@@ -92,7 +75,7 @@ The `JdbcMessageStore` and `JdbcChannelMessageStore` now also provide `setAllowe
 === HTTP Support Changes
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
-The `SerializingHttpMessageConverter` now allows only the default framework and JDK types for deserialization, and has a new constructor that replaces these defaults with the given patterns of allowed classes.
+The `SerializingHttpMessageConverter` now allows only the default framework and JDK types for deserialization; use `addAllowedPatterns()` to trust additional classes.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
 [[x7.2-ftp-changes]]

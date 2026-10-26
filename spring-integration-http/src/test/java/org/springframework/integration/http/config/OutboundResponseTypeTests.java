@@ -106,7 +106,7 @@ public class OutboundResponseTypeTests {
 					.configureMessageConverters((builder) ->
 							builder.configureMessageConvertersList((converters) -> {
 								converters.clear();
-								converters.add(new SerializingHttpMessageConverter("java.util.*"));
+								converters.add(new SerializingHttpMessageConverter());
 								converters.add(new StringHttpMessageConverter());
 							}));
 		}

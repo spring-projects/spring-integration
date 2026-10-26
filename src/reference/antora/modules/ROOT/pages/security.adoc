@@ -145,6 +145,29 @@ In the example above only values starting with `test` would be accepted for `Mqt
 And those with `malicious` sub-string (even if they start with `test`) won't be accepted.
 See `AllowListMessageHeaderSelector` Javadocs for more information.
 
+[[java-deserialization]]
+=== Java Deserialization
+
+Components that read Java-serialized data, such as the `PayloadDeserializingTransformer`, the `JdbcMessageStore`, the `JdbcChannelMessageStore`, the MongoDB message stores and the `SerializingHttpMessageConverter`, deserialize through an `AllowListDeserializingConverter`.
+Starting with version 7.2, the converter allows only the framework and JDK types listed in `AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS`, instead of all classes when no patterns are configured.
+The list names each class explicitly; for example, `Number` subclasses are not allowed implicitly, only the listed number types are.
+Primitives, `String` and arrays of allowed types are always allowed.
+Common JDK exceptions, such as `IllegalStateException`, `IllegalArgumentException` and `IOException`, are included, so an `ErrorMessage` whose cause is one of them can still be deserialized.
+
+IMPORTANT: Applications that deserialize their own types (payloads, header values or custom exception types in stored `ErrorMessage` instances), including messages already in a store, get a `SecurityException` on read until those types are allowed.
+
+Use `addAllowedPatterns()` to allow your own types in addition to the defaults, for example:
+
+[source, java]
+----
+JdbcMessageStore store = new JdbcMessageStore(dataSource);
+store.addAllowedPatterns("com.example.model.*");
+----
+
+A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
+Use `setAllowedPatterns()` to replace the defaults with your own list.
+The `"*"` pattern allows all classes; use it only when all sources are trusted.
+
 [[sensitive-metadata]]
 === Sensitive Metadata
 

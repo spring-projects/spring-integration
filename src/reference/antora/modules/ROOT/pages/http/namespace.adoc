@@ -59,7 +59,7 @@ See the https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_She
 The `SerializingHttpMessageConverter` deserializes request bodies through an `AllowListDeserializingConverter`.
 Starting with version 7.2, the default constructor allows only the framework and JDK types listed in `AllowListDeserializingConverter.DEFAULT_ALLOWED_PATTERNS`.
 Use `addAllowedPatterns()` to trust your own classes in addition to these defaults.
-The `SerializingHttpMessageConverter(String... allowedPatterns)` constructor (or the `setAllowedPatterns()` method) replaces the defaults with the given patterns; the constructor requires at least one pattern.
+The `setAllowedPatterns()` method replaces the defaults with the given patterns.
 A pattern is either a fully qualified class name or a name with a `pass:[*]` wildcard at the beginning or at the end (for example, `pass:[com.example.model.*]` or `pass:[*.OrderDto]`).
 Primitives, `String` and arrays of allowed types are always allowed.
 Deserialization fails for any other class that does not match one of the patterns.
@@ -77,8 +77,8 @@ Java DSL::
 ----
 @Bean
 public IntegrationFlow httpInboundFlow() {
-    SerializingHttpMessageConverter converter =
-            new SerializingHttpMessageConverter("com.example.model.*");
+    SerializingHttpMessageConverter converter = new SerializingHttpMessageConverter();
+    converter.setAllowedPatterns("com.example.model.*");
     return IntegrationFlow
             .from(Http.inboundChannelAdapter("/orders")
                     .messageConverters(converter))
@@ -97,7 +97,7 @@ XML::
 
 <util:list id="converters">
     <bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter">
-        <constructor-arg value="com.example.model.*"/>
+        <property name="allowedPatterns" value="com.example.model.*"/>
     </bean>
 </util:list>
 ----

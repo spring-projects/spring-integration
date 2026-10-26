@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  */
 
 package org.springframework.integration.support.converter;

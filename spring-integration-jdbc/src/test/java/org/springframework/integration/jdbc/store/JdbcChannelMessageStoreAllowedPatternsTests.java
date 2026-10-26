@@ -4,8 +4,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import javax.sql.DataSource;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -23,7 +21,7 @@ import static org.mockito.Mockito.mock;
  */
 class JdbcChannelMessageStoreAllowedPatternsTests {
 
-	private final JdbcChannelMessageStore messageStore = new JdbcChannelMessageStore(mock(DataSource.class));
+	private final JdbcChannelMessageStore messageStore = new JdbcChannelMessageStore(mock());
 
 	@Test
 	void defaultsAreApplied() {
@@ -56,8 +54,7 @@ class JdbcChannelMessageStoreAllowedPatternsTests {
 	}
 
 	private Iterable<String> allowedPatterns() {
-		AllowListDeserializingConverter deserializer = TestUtils.getPropertyValue(this.messageStore, "deserializer");
-		return deserializer.getAllowedPatterns();
+		return TestUtils.getPropertyValue(this.messageStore, "deserializer.allowedPatterns");
 	}
 
 }

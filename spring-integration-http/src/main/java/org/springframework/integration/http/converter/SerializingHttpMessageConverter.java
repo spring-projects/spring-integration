@@ -16,7 +16,6 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.integration.support.converter.AllowListDeserializingConverter;
-import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -25,9 +24,8 @@ import org.springframework.util.FileCopyUtils;
  * <p>
  * Incoming requests are deserialized through an {@link AllowListDeserializingConverter}.
  * By default, only the {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS} are allowed.
- * Use {@link #addAllowedPatterns(String...)} to trust additional classes/packages, or the
- * {@link #SerializingHttpMessageConverter(String...)} constructor
- * (or {@link #setAllowedPatterns(String...)}) to replace the defaults.
+ * Use {@link #addAllowedPatterns(String...)} to trust additional classes/packages,
+ * or {@link #setAllowedPatterns(String...)} to replace the defaults.
  *
  * @author Mark Fisher
  * @author Gary Russell
@@ -54,24 +52,6 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	}
 
 	/**
-	 * Create a new instance with simple patterns for allowable packages/classes for deserialization.
-	 * The patterns will be applied in order until a match is found.
-	 * A class can be fully qualified, or a wildcard {@code '*'} is allowed at the
-	 * beginning or end of the class name.
-	 * Examples: {@code com.example.*}, {@code *.MyClass}.
-	 * The provided patterns replace the
-	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}.
-	 * Primitives, {@link String} and arrays of allowed types are always allowed.
-	 * @param allowedPatterns the patterns; must not be empty.
-	 * @since 7.2
-	 */
-	public SerializingHttpMessageConverter(String... allowedPatterns) {
-		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
-		Assert.notEmpty(allowedPatterns, "'allowedPatterns' must not be empty");
-		this.deserializingConverter.setAllowedPatterns(allowedPatterns);
-	}
-
-	/**
 	 * Set simple patterns for allowable packages/classes for deserialization.
 	 * The patterns will be applied in order until a match is found.
 	 * A class can be fully qualified, or a wildcard {@code '*'} is allowed at the
@@ -92,7 +72,6 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	 * (by default the {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}).
 	 * @param allowedPatterns the patterns to add.
 	 * @since 5.5.22
-	 * @see #SerializingHttpMessageConverter(String...)
 	 */
 	public void addAllowedPatterns(String... allowedPatterns) {
 		this.deserializingConverter.addAllowedPatterns(allowedPatterns);
