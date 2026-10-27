@@ -199,6 +199,26 @@ To configure that scenario, you can extend one message store bean from the other
 </int:channel>
 ----
 
+[[jdbc-channel-message-store-inspection]]
+== Inspecting Stored Channel Messages
+
+Starting with version 7.3, `getMessagesForGroup(groupId)` and `streamMessagesForGroup(groupId)` are available through `BasicMessageGroupStore`, including `ChannelMessageStore`.
+These operations inspect messages without consuming them.
+For `JdbcChannelMessageStore`, both queries use the configured table prefix, region, and message row mapper.
+The inspection order is creation date followed by message sequence, including when priority polling is enabled.
+Inspection does not reserve messages or change subsequent FIFO or priority polling.
+Concurrent producers and consumers can change the messages visible to a query according to the database transaction isolation level.
+The default JDBC message group factory now returns lazily loaded groups, so obtaining a group or adding a message does not read all its messages.
+Accessing the group's messages loads them on demand.
+Close JDBC streams after use, including when processing only part of a group:
+
+[source,java]
+----
+try (Stream<Message<?>> messages = store.streamMessagesForGroup(channelId)) {
+    messages.limit(10).forEach(this::inspect);
+}
+----
+
 [[partitioning-a-message-store]]
 == Partitioning a Message Store
 

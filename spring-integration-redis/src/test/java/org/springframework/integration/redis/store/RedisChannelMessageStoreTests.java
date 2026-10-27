@@ -168,6 +168,41 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 	}
 
 	@Test
+	void testMessageGroupLoadsMessagesLazily() {
+		String groupId = "cms:lazyGroup";
+		try {
+			MessageGroup group = this.cms.getMessageGroup(groupId);
+			Message<String> message = new GenericMessage<>("lazy");
+			this.cms.addMessageToGroup(groupId, message);
+
+			assertThat(group.getMessages()).containsExactly(message);
+		}
+		finally {
+			this.cms.removeMessageGroup(groupId);
+		}
+	}
+
+	@Test
+	void testPriorityMessageGroupLoadsMessagesLazilyWithoutPolling() {
+		String groupId = "priorityCms:lazyGroup";
+		try {
+			MessageGroup group = this.priorityCms.getMessageGroup(groupId);
+			Message<?> lowPriority = MessageBuilder.withPayload("low").setPriority(1).build();
+			Message<?> highPriority = MessageBuilder.withPayload("high").setPriority(8).build();
+			this.priorityCms.addMessageToGroup(groupId, lowPriority);
+			this.priorityCms.addMessageToGroup(groupId, highPriority);
+
+			assertThat(group.getMessages()).containsExactly(highPriority, lowPriority);
+			assertThat(this.priorityCms.messageGroupSize(groupId)).isEqualTo(2);
+			assertThat(this.priorityCms.pollMessageFromGroup(groupId)).isEqualTo(highPriority);
+			assertThat(this.priorityCms.pollMessageFromGroup(groupId)).isEqualTo(lowPriority);
+		}
+		finally {
+			this.priorityCms.removeMessageGroup(groupId);
+		}
+	}
+
+	@Test
 	void testJsonSerialization() {
 		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
 		JsonMapper mapper = JacksonMessagingUtils.messagingAwareMapper();

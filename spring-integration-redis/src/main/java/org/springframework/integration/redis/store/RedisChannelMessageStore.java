@@ -4,6 +4,7 @@
 
 package org.springframework.integration.redis.store;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +45,8 @@ public class RedisChannelMessageStore
 	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
-	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
+	private MessageGroupFactory messageGroupFactory =
+			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
 
 	private boolean valueSerializerExplicitlySet;
 
@@ -124,8 +126,13 @@ public class RedisChannelMessageStore
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
+		return getMessageGroupFactory().create(this, groupId);
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		List<Message<?>> messages = this.redisTemplate.boundListOps(groupId).range(0, -1);
-		return getMessageGroupFactory().create(messages, groupId);
+		return messages == null ? List.of() : messages;
 	}
 
 	@Override

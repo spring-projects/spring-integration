@@ -5,6 +5,7 @@
 package org.springframework.integration.jdbc.store.channel;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -32,6 +33,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.map;
 /**
  * @author Yoobin Yoon
  * @author Artem Bilan
+ * @author Fan Kongyuan
  *
  * @since 7.0
  */
@@ -92,6 +94,11 @@ abstract class AbstractJsonChannelMessageStoreTests {
 
 		transactionTemplate.executeWithoutResult((status) ->
 				this.messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message));
+
+		assertThat(this.messageStore.getMessagesForGroup(TEST_MESSAGE_GROUP)).containsExactly(message);
+		try (Stream<Message<?>> messages = this.messageStore.streamMessagesForGroup(TEST_MESSAGE_GROUP)) {
+			assertThat(messages).containsExactly(message);
+		}
 
 		Message<?> retrievedMessage = this.messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 

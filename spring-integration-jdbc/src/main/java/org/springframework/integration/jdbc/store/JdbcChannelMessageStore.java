@@ -5,6 +5,7 @@
 package org.springframework.integration.jdbc.store;
 
 import java.sql.Types;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -79,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Johannes Edmeier
  * @author Ngoc Nhan
  * @author Yoobin Yoon
+ * @author Fan Kongyuan
  *
  * @since 2.2
  */
@@ -104,6 +107,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		COUNT_GROUPS,
 		GROUP_SIZE,
 		DELETE_GROUP,
+		LIST_GROUP,
 		POLL,
 		POLL_WITH_EXCLUSIONS,
 		PRIORITY,
@@ -143,7 +147,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@SuppressWarnings("NullAway.Init")
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
 
-	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
+	private MessageGroupFactory messageGroupFactory =
+			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
 
 	private boolean usingIdCache = false;
 
@@ -357,7 +362,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup} object where
 	 * it is necessary.
-	 * Defaults to {@link SimpleMessageGroupFactory}.
+	 * Defaults to a {@link SimpleMessageGroupFactory} with persistent, lazily loaded groups.
 	 * @param messageGroupFactory the {@link MessageGroupFactory} to use.
 	 * @since 4.3
 	 */
@@ -475,11 +480,34 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Not fully used. Only wraps the provided group id.
+	 * Return a group whose messages are loaded lazily by the default factory.
 	 */
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		return getMessageGroupFactory().create(groupId);
+		return getMessageGroupFactory().create(this, groupId);
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		return getInspectionJdbcTemplate().query(getMessagesForGroupQuery(), this.messageRowMapper,
+				getKey(groupId), this.region);
+	}
+
+	@Override
+	public Stream<Message<?>> streamMessagesForGroup(Object groupId) {
+		return getInspectionJdbcTemplate().queryForStream(getMessagesForGroupQuery(), this.messageRowMapper,
+				getKey(groupId), this.region);
+	}
+
+	private String getMessagesForGroupQuery() {
+		return getQuery(Query.LIST_GROUP, () -> this.channelMessageStoreQueryProvider.getMessagesForGroupQuery());
+	}
+
+	private JdbcTemplate getInspectionJdbcTemplate() {
+		// Preserve the configured template's settings without changing the polling row limit.
+		JdbcTemplate inspectionTemplate = new JdbcTemplate(this.jdbcTemplate);
+		inspectionTemplate.setMaxRows(-1);
+		return inspectionTemplate;
 	}
 
 	/**
