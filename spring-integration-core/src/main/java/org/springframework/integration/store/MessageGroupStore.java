@@ -21,7 +21,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 2.0
  *

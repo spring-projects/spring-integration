@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Gunnar Hillert
  * @author Manuel Jordan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  * @since 4.3
  */
 @ContextConfiguration

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Meherzad Lahewala
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  */
 
 @SpringJUnitConfig

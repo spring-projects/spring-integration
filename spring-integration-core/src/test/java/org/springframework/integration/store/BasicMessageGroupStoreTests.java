@@ -22,7 +22,9 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for non-destructive access through the basic store contract.
  *
- * @author 樊孔缘
+ * @author Fan Kongyuan
+ *
+ * @since 7.3
  */
 class BasicMessageGroupStoreTests {
 

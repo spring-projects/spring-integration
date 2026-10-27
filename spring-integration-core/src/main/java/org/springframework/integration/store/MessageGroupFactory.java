@@ -13,7 +13,7 @@ import org.springframework.messaging.Message;
  * This strategy is used from the {@link MessageGroup}-aware components, e.g. {@code MessageGroupStore}.
  *
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  * @since 4.3
  */
 public interface MessageGroupFactory {
@@ -63,7 +63,7 @@ public interface MessageGroupFactory {
 	 * @param messageGroupStore the store for the messages.
 	 * @param groupId the group id to use.
 	 * @return the message group instance.
-	 * @since 7.2
+	 * @since 7.3
 	 */
 	default MessageGroup create(BasicMessageGroupStore messageGroupStore, Object groupId) {
 		return create(messageGroupStore.getMessagesForGroup(groupId), groupId);

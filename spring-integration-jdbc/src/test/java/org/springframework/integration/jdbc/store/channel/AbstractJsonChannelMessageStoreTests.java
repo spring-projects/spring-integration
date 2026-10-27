@@ -33,7 +33,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.map;
 /**
  * @author Yoobin Yoon
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 7.0
  */

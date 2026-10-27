@@ -81,7 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Johannes Edmeier
  * @author Ngoc Nhan
  * @author Yoobin Yoon
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 2.2
  */

@@ -14,7 +14,7 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gary Russell
  * @author Adama Sorho
  * @author Johannes Edmeier
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 2.2
  */
@@ -52,7 +52,7 @@ public interface ChannelMessageStoreQueryProvider {
 	 * Query to inspect all messages in a channel and region without consuming them.
 	 * The parameters are the group key followed by the region.
 	 * @return query string.
-	 * @since 7.2
+	 * @since 7.3
 	 */
 	default String getMessagesForGroupQuery() {
 		return """

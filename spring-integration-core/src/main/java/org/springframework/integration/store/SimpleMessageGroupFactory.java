@@ -18,7 +18,7 @@ import org.springframework.messaging.Message;
  * The {@link GroupType#HASH_SET} is the default type.
  *
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 4.3
  */

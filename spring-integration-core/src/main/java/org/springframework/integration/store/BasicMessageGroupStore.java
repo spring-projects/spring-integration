@@ -17,7 +17,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @author Artem Bilan
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 4.0
  *
@@ -45,7 +45,7 @@ public interface BasicMessageGroupStore {
 	 * By default, obtains the messages from {@link #getMessageGroup(Object)}.
 	 * @param groupId the group id to retrieve messages for.
 	 * @return the messages for the group, empty if none exists.
-	 * @since 7.2
+	 * @since 7.3
 	 */
 	default Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		return getMessageGroup(groupId).getMessages();
@@ -58,7 +58,7 @@ public interface BasicMessageGroupStore {
 	 * By default, streams the result of {@link #getMessagesForGroup(Object)}.
 	 * @param groupId the group id to retrieve messages for.
 	 * @return the stream for messages in this group.
-	 * @since 7.2
+	 * @since 7.3
 	 */
 	default Stream<Message<?>> streamMessagesForGroup(Object groupId) {
 		return getMessagesForGroup(groupId).stream();

@@ -23,7 +23,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Artem Bilan
  * @author Christian Tzolov
- * @author 樊孔缘
+ * @author Fan Kongyuan
  *
  * @since 4.3
  */
