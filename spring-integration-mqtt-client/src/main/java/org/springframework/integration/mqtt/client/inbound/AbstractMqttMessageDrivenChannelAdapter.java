@@ -6,9 +6,11 @@ package org.springframework.integration.mqtt.client.inbound;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.mqtt.datatypes.MqttTopic;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -16,6 +18,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.util.Assert;
 
@@ -25,6 +28,7 @@ import org.springframework.util.Assert;
  * @param <T> MQTT Client type
  *
  * @author Jiandong Ma
+ * @author WooSeung Kim
  *
  * @since 7.2
  */
@@ -171,6 +175,32 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	 */
 	public boolean isConnected() {
 		return this.mqttClient.getState().isConnected();
+	}
+
+	/**
+	 * Send a message built from a received MQTT publish.
+	 * An exception must not be thrown into the MQTT client callback since it terminates the subscription.
+	 * A failure is sent to the error channel, if any; otherwise, or if the error flow fails, it is logged.
+	 * @param messageSupplier the supplier for the message to send.
+	 * @param topic the topic of the received MQTT publish.
+	 */
+	protected void sendReceivedMessage(Supplier<Message<?>> messageSupplier, MqttTopic topic) {
+		try {
+			Message<?> message;
+			try {
+				message = messageSupplier.get();
+			}
+			catch (RuntimeException ex) {
+				if (sendErrorMessageIfNecessary(null, ex)) {
+					return;
+				}
+				throw ex;
+			}
+			sendMessage(message);
+		}
+		catch (RuntimeException ex) {
+			logger.error(ex, () -> "Failed to process MQTT message from topic '" + topic + "'");
+		}
 	}
 
 	@Override

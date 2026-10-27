@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v3.
  *
  * @author Jiandong Ma
+ * @author WooSeung Kim
  *
  * @since 7.2
  */
@@ -126,6 +127,10 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	}
 
 	private void processMessage(Mqtt3Publish mqtt3Publish) {
+		sendReceivedMessage(() -> toMessage(mqtt3Publish), mqtt3Publish.getTopic());
+	}
+
+	private Message<?> toMessage(Mqtt3Publish mqtt3Publish) {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(MqttHeaders.RECEIVED_QOS, mqtt3Publish.getQos());
 		headers.put(MqttHeaders.RECEIVED_RETAINED, mqtt3Publish.isRetain());
@@ -160,7 +165,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 					.build();
 		}
 
-		sendMessage(message);
+		return message;
 	}
 
 	private void unsubscribe() {

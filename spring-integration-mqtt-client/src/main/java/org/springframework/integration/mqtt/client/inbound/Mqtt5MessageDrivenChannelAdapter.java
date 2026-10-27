@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v5.
  *
  * @author Jiandong Ma
+ * @author WooSeung Kim
  *
  * @since 7.2
  */
@@ -173,6 +174,10 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	}
 
 	private void processMessage(Mqtt5Publish mqtt5Publish) {
+		sendReceivedMessage(() -> toMessage(mqtt5Publish), mqtt5Publish.getTopic());
+	}
+
+	private Message<?> toMessage(Mqtt5Publish mqtt5Publish) {
 		Map<String, Object> headers = this.headerMapper.toHeaders(mqtt5Publish);
 
 		headers.put(MqttHeaders.RECEIVED_QOS, mqtt5Publish.getQos());
@@ -208,7 +213,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 					.build();
 		}
 
-		sendMessage(message);
+		return message;
 	}
 
 	private void unsubscribe() {

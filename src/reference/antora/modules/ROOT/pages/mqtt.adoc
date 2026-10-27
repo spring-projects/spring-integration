@@ -119,6 +119,9 @@ By default, the adapter uses Spring Integration's `integrationArgumentResolverMe
 Set `payloadType` to `Mqtt3Publish.class` or `Mqtt5Publish.class` to receive the complete HiveMQ publish object without payload conversion.
 Use `setExecutor()` to select the executor on which the message callback runs.
 As with other message producers, an `errorChannel` can handle downstream message delivery failures.
+A payload conversion failure is also sent to the `errorChannel`.
+Without an `errorChannel`, a failure is logged and the adapter keeps receiving messages.
+With `manualAck`, the error flow has to acknowledge a failed message; otherwise, the HiveMQ client holds back acknowledgments for later QoS 1 and 2 messages.
 
 Both adapters populate the following headers from `org.springframework.integration.mqtt.client.support.MqttHeaders`:
 

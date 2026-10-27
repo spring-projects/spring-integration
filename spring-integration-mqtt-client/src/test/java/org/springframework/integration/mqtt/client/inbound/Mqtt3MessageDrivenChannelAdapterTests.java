@@ -39,6 +39,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 /**
  * @author Jiandong Ma
+ * @author WooSeung Kim
  *
  * @since 7.2
  */
@@ -58,11 +59,18 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	static final CountDownLatch petDeviceTopicSubscribedLatch = new CountDownLatch(1);
 
+	static final String ALARM_DEVICE_TOPIC = "mqtt-v3-inbound-alarm-device";
+
+	static final CountDownLatch alarmDeviceTopicSubscribedLatch = new CountDownLatch(1);
+
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
 
 	@Autowired
 	QueueChannel petDeviceOutputChannel;
+
+	@Autowired
+	QueueChannel alarmDeviceOutputChannel;
 
 	static Mqtt3BlockingClient mqtt3TestClient;
 
@@ -128,6 +136,28 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.satisfies(SimpleAcknowledgment::acknowledge); // manual ack
 	}
 
+	@Test
+	void testSubscriptionSurvivesUnhandledException() throws InterruptedException {
+		// Ensure subscription done first.
+		boolean subscribed = alarmDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS);
+		assertThat(subscribed).isTrue();
+		// Given
+		mqtt3TestClient.publishWith().topic(ALARM_DEVICE_TOPIC)
+				.payload("rejected-alarm".getBytes())
+				.qos(MqttQos.AT_LEAST_ONCE)
+				.send();
+		mqtt3TestClient.publishWith().topic(ALARM_DEVICE_TOPIC)
+				.payload("accepted-alarm".getBytes())
+				.qos(MqttQos.AT_LEAST_ONCE)
+				.send();
+		// When
+		Message<?> alarmDeviceMessage = alarmDeviceOutputChannel.receive(10000);
+		// Then
+		assertThat(alarmDeviceMessage)
+				.extracting(Message::getPayload)
+				.isEqualTo("accepted-alarm");
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -174,6 +204,26 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			return adapter;
 		}
 
+		@Bean
+		QueueChannel alarmDeviceOutputChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		Mqtt3MessageDrivenChannelAdapter alarmDeviceInboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager,
+				QueueChannel alarmDeviceOutputChannel) {
+
+			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, ALARM_DEVICE_TOPIC);
+			adapter.setPayloadType(String.class);
+			adapter.setOutputChannel((message, timeout) -> {
+				if ("rejected-alarm".equals(message.getPayload())) {
+					throw new IllegalStateException("The alarm is rejected");
+				}
+				return alarmDeviceOutputChannel.send(message, timeout);
+			});
+			return adapter;
+		}
+
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
 			String beanName = ((Mqtt3MessageDrivenChannelAdapter) event.getSource()).getBeanName();
@@ -182,6 +232,9 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			}
 			else if (beanName.equals("petDeviceInboundChannelAdapter")) {
 				petDeviceTopicSubscribedLatch.countDown();
+			}
+			else if (beanName.equals("alarmDeviceInboundChannelAdapter")) {
+				alarmDeviceTopicSubscribedLatch.countDown();
 			}
 		}
 
