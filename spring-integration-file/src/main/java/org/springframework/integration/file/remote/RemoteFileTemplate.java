@@ -52,6 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Alen Turkovic
  * @author Jooyoung Pyoung
+ * @author WooSeung Kim
  *
  * @since 3.0
  *
@@ -592,7 +593,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			session.write(stream, tempFilePath);
 		}
 		else if (FileExistsMode.APPEND.equals(mode)) {
-			session.append(stream, tempFilePath);
+			session.append(stream, remoteFilePath);
+			rename = false;
 		}
 		else {
 			if (session.exists(remoteFilePath)) {
