@@ -164,7 +164,7 @@ class ToCloudEventTransformerTests {
 		assertThat(result.getHeaders())
 				.containsKeys(TRACE_HEADER, SPAN_HEADER)
 				.doesNotContainKeys(CloudEventHeaders.PREFIX + TRACE_HEADER, CloudEventHeaders.PREFIX + SPAN_HEADER)
-				.containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
+				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain");
 		assertThat(result.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
@@ -222,7 +222,7 @@ class ToCloudEventTransformerTests {
 	void noContentType() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
 		Message<?> result = this.transformerWithNoExtensionsNoFormat.transform(message);
-		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
+		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/octet-stream");
 		assertThat(message.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
