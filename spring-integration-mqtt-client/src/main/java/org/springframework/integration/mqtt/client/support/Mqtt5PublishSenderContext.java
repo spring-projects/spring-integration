@@ -18,7 +18,7 @@ import io.micrometer.observation.transport.SenderContext;
  *
  * @author Hyunah Oh
  *
- * @since 7.2
+ * @since 7.3
  */
 public class Mqtt5PublishSenderContext extends SenderContext<Mqtt5PublishBuilder.Complete> {
 

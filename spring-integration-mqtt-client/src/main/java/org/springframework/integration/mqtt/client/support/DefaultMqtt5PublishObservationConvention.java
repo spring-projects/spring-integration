@@ -13,7 +13,7 @@ import io.micrometer.observation.ObservationConvention;
  *
  * @author Hyunah Oh
  *
- * @since 7.2
+ * @since 7.3
  */
 public class DefaultMqtt5PublishObservationConvention implements ObservationConvention<Mqtt5PublishSenderContext> {
 

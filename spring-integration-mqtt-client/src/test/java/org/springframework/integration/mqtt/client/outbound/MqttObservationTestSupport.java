@@ -28,7 +28,7 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 /**
  * @author Hyunah Oh
  *
- * @since 7.2
+ * @since 7.3
  */
 final class MqttObservationTestSupport implements AutoCloseable {
 

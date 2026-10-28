@@ -212,9 +212,9 @@ When forwarding inbound messages, explicitly adapt properties where needed: inbo
 For full control over MQTT v5 publish properties, supply an `Mqtt5Publish` payload.
 
 [[mqtt-hivemq-observation]]
-== Observing HiveMQ MQTT 5 Publishes
+=== Observing HiveMQ MQTT 5 Publishes
 
-Starting with version 7.2, the `Mqtt5MessageHandler` in the `spring-integration-mqtt-client` module creates a `spring.integration.mqtt.publish` observation for each publish when observation is enabled for the handler.
+Starting with version 7.3, the `Mqtt5MessageHandler` in the `spring-integration-mqtt-client` module creates a `spring.integration.mqtt.publish` observation for each publish when observation is enabled for the handler.
 See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for enabling observations.
 With a propagating tracing observation handler registered, this observation creates a `PRODUCER` span and injects the configured tracing headers into MQTT 5 user properties.
 The existing message-handler observation remains the parent of the publish observation.

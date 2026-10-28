@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Hyunah Oh
  *
- * @since 7.2
+ * @since 7.3
  */
 class Mqtt5MessageHandlerObservationTests {
 
