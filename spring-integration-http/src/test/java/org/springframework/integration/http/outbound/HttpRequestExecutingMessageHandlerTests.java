@@ -501,7 +501,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
 		form.put("a", null);
-		form.put("b", "foo");
+		form.put("b", "test");
 		form.put("c", null);
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -517,7 +517,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		assertThat(map.get("a").size() == 1).isTrue();
 		assertThat(map.get("a").get(0)).isNull();
 		List<?> entryB = map.get("b");
-		assertThat(entryB.get(0)).isEqualTo("foo");
+		assertThat(entryB.get(0)).isEqualTo("test");
 		assertThat(map.containsKey("c")).isTrue();
 		assertThat(map.get("c").size() == 1).isTrue();
 		assertThat(map.get("c").get(0)).isNull();
@@ -765,15 +765,15 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	public void testUriExpression() {
 		AtomicReference<URI> actualUri = new AtomicReference<>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
-				new SpelExpressionParser().parseExpression("headers['foo']"));
+				new SpelExpressionParser().parseExpression("headers['test']"));
 		handler.setRequestFactory((uri, httpMethod) -> {
 			actualUri.set(uri);
 			throw new RuntimeException("intentional");
 		});
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-		String theURL = "https://bar/baz?foo#bar";
-		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
+		String theURL = "https://domain/val?test#var";
+		Message<?> message = MessageBuilder.withPayload("").setHeader("test", theURL).build();
 
 		assertThatException()
 				.isThrownBy(() -> handler.handleMessage(message));
@@ -839,9 +839,9 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.afterPropertiesSet();
 
 		assertThatException()
-				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("queues/%2f/si.test.queue?foo#bar")));
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("queues/%2f/si.test.queue?test#var")));
 
-		assertThat(actualUri.get()).hasToString("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
+		assertThat(actualUri.get()).hasToString("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?test#var");
 	}
 
 	@Test
@@ -849,10 +849,12 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		handler.setHttpMethod(HttpMethod.GET);
-		handler.setExpectedResponseType(Foo.class);
+		handler.setExpectedResponseType(TestImpl.class);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter(Foo.class.getName()));
+		SerializingHttpMessageConverter serializingConverter = new SerializingHttpMessageConverter();
+		serializingConverter.addAllowedPatterns(TestImpl.class.getName());
+		converters.add(serializingConverter);
 		handler.setMessageConverters(converters);
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);
@@ -862,7 +864,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 				.anyMatch(SerializingHttpMessageConverter.class::isInstance);
 
 		assertThatException()
-				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")))
 				.withStackTraceContaining("404 Not Found");
 
 		assertThat(requestHeaders.getAccept()).isEmpty();
@@ -878,7 +880,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.setExpectedResponseType(GenericMessage.class);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SerializingHttpMessageConverter("org.springframework.messaging.*", "java.util.*"));
+		converters.add(new SerializingHttpMessageConverter());
 		handler.setMessageConverters(converters);
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);
@@ -888,7 +890,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 				.anyMatch(SerializingHttpMessageConverter.class::isInstance);
 
 		assertThatException()
-				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")))
 				.withStackTraceContaining("404 Not Found");
 
 		assertThat(requestHeaders.getAccept()).isEmpty();
@@ -1011,7 +1013,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 	}
 
-	private static class Foo implements Serializable {
+	private static class TestImpl implements Serializable {
 
 		private static final long serialVersionUID = 1L;
 

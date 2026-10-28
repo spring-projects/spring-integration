@@ -30,6 +30,9 @@ See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more inf
 [[x7.2-general-changes]]
 === General Changes
 
+The `AllowListDeserializingConverter` (and every component built on it) now supports a default list of framework and JDK types for Java deserialization, instead of all classes; use `addAllowedPatterns()` to trust your own types.
+See xref:security.adoc#java-deserialization[Java Deserialization] for more information.
+
 The `DefaultErrorMessageStrategy` now preserves the original headers when building the `ErrorMessage`.
 See xref:error-handling.adoc[] for more information.
 
@@ -63,12 +66,16 @@ Use H2 or HSQL for embedded testing.
 `EmbeddedDatabaseType.DERBY` is deprecated in Spring Framework 7.1.
 The `DerbyChannelMessageStoreQueryProvider` and `schema-derby.sql` are deprecated for removal.
 
+The `<int-jdbc:message-store>` element has a new `allowed-patterns` attribute.
+The comma-delimited patterns are added to the default allow-list, the same way as `addAllowedPatterns()`.
+The mutually exclusive `allowed-patterns-override` attribute replaces the default allow-list instead, the same way as `setAllowedPatterns()`.
+The `JdbcMessageStore` and `JdbcChannelMessageStore` now also provide `setAllowedPatterns()` to replace the defaults.
+
 [[x7.2-http-changes]]
 === HTTP Support Changes
 
 The `RestTemplate`-based configuration for the HTTP outbound gateway and outbound channel adapter (the `rest-template` attribute, and the respective Java DSL and constructor options) is now deprecated in favor of `RestClient`-based configuration, which also gains new options for configuring error handling.
-The `SerializingHttpMessageConverter` now has a constructor that requires the patterns of classes allowed for deserialization.
-Its default constructor and `setAllowedPatterns()` method are deprecated.
+The `SerializingHttpMessageConverter` now allows only the default framework and JDK types for deserialization; use `addAllowedPatterns()` to trust additional classes.
 See the xref:http.adoc[HTTP Support] chapter for more information about these and other changes.
 
 [[x7.2-ftp-changes]]

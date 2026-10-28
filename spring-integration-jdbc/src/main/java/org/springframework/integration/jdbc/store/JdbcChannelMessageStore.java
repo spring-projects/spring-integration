@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Johannes Edmeier
  * @author Ngoc Nhan
  * @author Yoobin Yoon
+ * @author Glenn Renfro
  *
  * @since 2.2
  */
@@ -189,17 +190,34 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * A converter for deserializing byte arrays to messages.
+	 * The allowed patterns configured so far are carried over.
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		AllowListDeserializingConverter newDeserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
+		newDeserializer.setAllowedPatterns(this.deserializer.getAllowedPatterns().toArray(new String[0]));
+		this.deserializer = newDeserializer;
 	}
 
 	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * Set patterns for packages/classes that are allowed to be deserialized,
+	 * replacing all the existing ones, including the
+	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}.
+	 * Use {@link #addAllowedPatterns(String...)} to keep the defaults.
+	 * @param patterns the patterns.
+	 * @since 7.2
+	 */
+	public void setAllowedPatterns(String... patterns) {
+		this.deserializer.setAllowedPatterns(patterns);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized,
+	 * in addition to the existing ones (by default the
+	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}). A class can
 	 * be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */

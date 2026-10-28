@@ -161,14 +161,21 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * Add patterns for packages/classes that are allowed to be deserialized,
+	 * in addition to the existing ones (by default the
+	 * {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}). A class can
+	 * be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String @Nullable ... patterns) {
-		this.allowedPatterns = patterns != null ? Arrays.copyOf(patterns, patterns.length) : null;
+		if (patterns != null) {
+			this.allowedPatterns =
+					this.allowedPatterns == null
+							? Arrays.copyOf(patterns, patterns.length)
+							: StringUtils.concatenateStringArrays(this.allowedPatterns, patterns);
+		}
 	}
 
 	/**

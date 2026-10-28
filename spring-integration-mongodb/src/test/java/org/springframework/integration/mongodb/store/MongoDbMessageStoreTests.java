@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Glenn Renfro
  *
  */
 class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
@@ -28,9 +30,20 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Override
 	protected MessageStore getMessageStore() {
 		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		mongoDbMessageStore.addAllowedPatterns("org.springframework.integration.mongodb.store.*");
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
+	}
+
+	@Test
+	void addAllowedPatternsAccumulates() {
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
+		mongoDbMessageStore.addAllowedPatterns("com.example.model.*");
+		mongoDbMessageStore.addAllowedPatterns("com.example.other.*");
+
+		String[] allowedPatterns = TestUtils.getPropertyValue(mongoDbMessageStore, "allowedPatterns");
+		assertThat(allowedPatterns).containsExactly("com.example.model.*", "com.example.other.*");
 	}
 
 	@Test

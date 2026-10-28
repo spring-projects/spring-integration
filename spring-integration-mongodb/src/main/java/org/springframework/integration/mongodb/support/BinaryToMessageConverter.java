@@ -14,6 +14,8 @@ import org.springframework.messaging.Message;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
+ *
  * @since 5.0
  */
 @ReadingConverter
@@ -27,9 +29,10 @@ public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 	}
 
 	/**
-	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
-	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
-	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * Add patterns for packages/classes that are allowed to be deserialized,
+	 * in addition to the {@link AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}.
+	 * A class can be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */

@@ -5,9 +5,12 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
@@ -50,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Adama Sorho
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 4.0
  */
@@ -79,6 +83,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private boolean createIndexes = true;
+
+	private final Set<String> allowedPatterns = new LinkedHashSet<>();
 
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
@@ -131,15 +137,45 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		return this.messageBuilderFactory;
 	}
 
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized by the
+	 * internal {@link BinaryToMessageConverter}, in addition to the
+	 * {@link org.springframework.integration.support.converter.AllowListDeserializingConverter#DEFAULT_ALLOWED_PATTERNS}.
+	 * A class can be fully qualified, or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.example.*}, {@code *.MyClass}.
+	 * Not applied when a {@link MongoTemplate} or {@link MappingMongoConverter} is provided:
+	 * the {@link BinaryToMessageConverter} has to be configured on the provided
+	 * {@link MappingMongoConverter} instead.
+	 * Must be called before {@link #afterPropertiesSet()}.
+	 * @param patterns the patterns.
+	 * @since 7.2
+	 */
+	public void addAllowedPatterns(String... patterns) {
+		Assert.notNull(patterns, "'patterns' must not be null");
+		for (String pattern : patterns) {
+			Assert.hasText(pattern, "'patterns' must not contain null, empty or blank elements");
+		}
+		Collections.addAll(this.allowedPatterns, patterns);
+	}
+
 	@Override
 	public void afterPropertiesSet() {
+		if (!this.allowedPatterns.isEmpty() && (this.mongoTemplate != null || this.mappingMongoConverter != null)) {
+			this.logger.warn("The 'allowedPatterns' " + this.allowedPatterns + " are ignored because a " +
+					"'MongoTemplate' or 'MappingMongoConverter' is provided; configure the patterns on the " +
+					"'BinaryToMessageConverter' of the provided 'MappingMongoConverter' instead.");
+		}
 		if (this.mongoTemplate == null) {
 			Assert.state(this.mongoDbFactory != null, "'mongoDbFactory' must not be null if 'mongoTemplate' is null.");
 			if (this.mappingMongoConverter == null) {
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
-				List<Object> customConverters = List.of(new MessageToBinaryConverter(), new BinaryToMessageConverter());
+				BinaryToMessageConverter binaryToMessageConverter = new BinaryToMessageConverter();
+				if (!this.allowedPatterns.isEmpty()) {
+					binaryToMessageConverter.addAllowedPatterns(this.allowedPatterns.toArray(new String[0]));
+				}
+				List<Object> customConverters = List.of(new MessageToBinaryConverter(), binaryToMessageConverter);
 				this.mappingMongoConverter.setCustomConversions(new MongoCustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}

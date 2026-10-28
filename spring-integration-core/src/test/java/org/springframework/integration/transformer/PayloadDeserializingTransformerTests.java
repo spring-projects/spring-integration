@@ -7,9 +7,13 @@ package org.springframework.integration.transformer;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -21,8 +25,11 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class PayloadDeserializingTransformerTests {
+
+	private static final String TEST_BEAN_PATTERN = "org.springframework.integration.transformer.*";
 
 	@Test
 	public void deserializeString() throws Exception {
@@ -46,6 +53,7 @@ public class PayloadDeserializingTransformerTests {
 		objectStream.writeObject(testBean);
 		byte[] serialized = byteStream.toByteArray();
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		transformer.addAllowedPatterns(TEST_BEAN_PATTERN);
 		Message<?> result = transformer.transform(new GenericMessage<>(serialized));
 		Object payload = result.getPayload();
 		assertThat(payload).isNotNull();
@@ -92,6 +100,70 @@ public class PayloadDeserializingTransformerTests {
 		transformer.setConverter(source -> "Converted");
 		Message<?> message = transformer.transform(MessageBuilder.withPayload("Test".getBytes()).build());
 		assertThat(message.getPayload()).isEqualTo("Converted");
+	}
+
+	@Test
+	public void customTypeIsRejectedByDefault() throws Exception {
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		byte[] serialized = serialize(new TestBean("test"));
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> transformer.transform(new GenericMessage<>(serialized)))
+				.havingRootCause()
+				.isInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	public void addAllowedPatternsKeepsDefaults() throws Exception {
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		transformer.addAllowedPatterns(TEST_BEAN_PATTERN);
+
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new TestBean("test")))).getPayload())
+				.isInstanceOf(TestBean.class);
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new HashMap<>(Map.of("key", "value")))))
+				.getPayload())
+				.isEqualTo(Map.of("key", "value"));
+	}
+
+	@Test
+	public void setDeserializerKeepsAllowedPatterns() throws Exception {
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		transformer.setAllowedPatterns(TEST_BEAN_PATTERN);
+		transformer.setDeserializer(new DefaultDeserializer());
+
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new TestBean("test")))).getPayload())
+				.isInstanceOf(TestBean.class);
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> transformer.transform(
+						new GenericMessage<>(serialize(new HashMap<>(Map.of("key", "value"))))))
+				.havingRootCause()
+				.isInstanceOf(SecurityException.class);
+	}
+
+	@Test
+	public void dslDeserializerWithoutPatternsUsesDefaults() throws Exception {
+		PayloadDeserializingTransformer transformer = Transformers.deserializer();
+
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new HashMap<>(Map.of("key", "value")))))
+				.getPayload())
+				.isEqualTo(Map.of("key", "value"));
+	}
+
+	@Test
+	public void dslDeserializerWithCustomDeserializerKeepsPatterns() throws Exception {
+		PayloadDeserializingTransformer transformer =
+				Transformers.deserializer(new DefaultDeserializer(), TEST_BEAN_PATTERN);
+
+		assertThat(transformer.transform(new GenericMessage<>(serialize(new TestBean("test")))).getPayload())
+				.isInstanceOf(TestBean.class);
+	}
+
+	private static byte[] serialize(Object value) throws Exception {
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		try (ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
+			objectStream.writeObject(value);
+		}
+		return byteStream.toByteArray();
 	}
 
 	@SuppressWarnings("serial")
