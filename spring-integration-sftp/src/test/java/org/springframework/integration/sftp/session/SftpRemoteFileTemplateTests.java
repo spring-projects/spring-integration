@@ -193,14 +193,17 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport implements Test
 		template.afterPropertiesSet();
 		assertThat(template.isUseTemporaryFileName()).isTrue();
 
-		template.append(new GenericMessage<>("abc"));
-		template.append(new GenericMessage<>("def"));
+		try {
+			template.append(new GenericMessage<>("abc"));
+			template.append(new GenericMessage<>("def"));
 
-		SftpClient.DirEntry[] files = template.list("sftpTarget/appended.txt");
-		assertThat(files).hasSize(1);
-		assertThat(files[0].getAttributes().getSize()).isEqualTo(6);
-
-		factory.destroy();
+			SftpClient.DirEntry[] files = template.list("sftpTarget/appended.txt");
+			assertThat(files).hasSize(1);
+			assertThat(files[0].getAttributes().getSize()).isEqualTo(6);
+		}
+		finally {
+			factory.destroy();
+		}
 	}
 
 	@Test

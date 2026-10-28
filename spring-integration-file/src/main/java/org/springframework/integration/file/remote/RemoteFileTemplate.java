@@ -333,7 +333,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				}
 			}
 			String temporaryRemoteDirectory = remoteDirectory;
-			if (this.temporaryDirectoryExpressionProcessor != null) {
+			if (this.temporaryDirectoryExpressionProcessor != null && !FileExistsMode.APPEND.equals(mode)) {
 				temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor.processMessage(message);
 			}
 			fileName = this.fileNameGenerator.generateFileName(message);

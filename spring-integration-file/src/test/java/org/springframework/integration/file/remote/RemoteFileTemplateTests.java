@@ -85,15 +85,18 @@ public class RemoteFileTemplateTests implements TestApplicationContextAware {
 	}
 
 	@Test
-	public void testAppendIgnoresTemporaryFileName() throws Exception {
+	public void testAppendIgnoresTemporaryFileNameAndDirectory() throws Exception {
 		this.template.setRemoteDirectoryExpression(new LiteralExpression("/remote"));
 		this.template.setTemporaryRemoteDirectoryExpression(new LiteralExpression("/temporary"));
+		this.template.setAutoCreateDirectory(true);
 		this.template.afterPropertiesSet();
+		when(this.session.mkdir(anyString())).thenReturn(true);
 		this.template.send(MessageBuilder.withPayload("appended content")
 				.setHeader(FileHeaders.FILENAME, "appended.txt")
 				.build(), FileExistsMode.APPEND);
 		verify(this.session).append(any(InputStream.class), eq("/remote/appended.txt"));
 		verify(this.session, never()).rename(anyString(), anyString());
+		verify(this.session, never()).mkdir("/temporary");
 	}
 
 	@Test
