@@ -6,6 +6,8 @@ package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
 import java.util.Random;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
@@ -20,9 +23,13 @@ import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.TransactionTimedOutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -31,6 +38,7 @@ import static org.mockito.Mockito.when;
  * @author Eddie Cho
  * @author Glenn Renfro
  * @author Jiwoo Lee
+ * @author Li Yifan
  *
  * @since 5.2.11
  */
@@ -46,6 +54,45 @@ class JdbcLockRegistryDelegateTests {
 		registry = new JdbcLockRegistry(repository);
 
 		when(repository.acquire(anyString(), any())).thenReturn(true);
+	}
+
+	@Test
+	void cacheCheckWaitsForRegistryLock() throws Exception {
+		DistributedLock lock = this.registry.obtain("order");
+		ReentrantLock registryLock = TestUtils.getPropertyValue(this.registry, "lock");
+		when(this.repository.acquire(anyString(), any())).thenAnswer(invocation -> {
+			assertThat(registryLock.isHeldByCurrentThread()).isFalse();
+			return false;
+		});
+		FutureTask<Boolean> acquisition = new FutureTask<>(lock::tryLock);
+		Thread worker = new Thread(acquisition, "jdbc-cache-check");
+		registryLock.lock();
+		try {
+			worker.start();
+			await().until(() -> registryLock.hasQueuedThread(worker) || acquisition.isDone());
+			assertThat(registryLock.hasQueuedThread(worker)).isTrue();
+			verify(this.repository, never()).acquire(anyString(), any());
+		}
+		finally {
+			registryLock.unlock();
+			worker.join(10_000);
+		}
+		assertThat(acquisition.get(10, TimeUnit.SECONDS)).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
+	}
+
+	@Test
+	void evictedLockIsRejectedBeforeAccessingRepository() {
+		this.registry.setCacheCapacity(1);
+		DistributedLock lock = this.registry.obtain("order");
+		this.registry.obtain("shipment");
+		assertThatThrownBy(lock::tryLock)
+				.isInstanceOf(CannotAcquireLockException.class)
+				.hasCauseInstanceOf(IllegalStateException.class)
+				.rootCause().hasMessageStartingWith("The lock 'order' was evicted from the exhausted cache");
+		verify(this.repository, never()).acquire(anyString(), any());
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(this.registry, "lock").isLocked()).isFalse();
+		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 
 	@Test
