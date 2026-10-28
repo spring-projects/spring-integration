@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  * @author Darryl Smith
  * @author Glenn Renfro
  * @author Adam Yang
+ * @author WooSeung Kim
  *
  * @since 4.1
  */
@@ -171,6 +172,38 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport implements Test
 		oldVersionSession.close();
 
 		factory.destroy();
+	}
+
+	@Test
+	public void appendWithTemporaryFileNameAndOldSftpVersion() {
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
+		factory.setHost("localhost");
+		factory.setPort(port);
+		factory.setUser("user");
+		factory.setPassword("password");
+		factory.setAllowUnknownKeys(true);
+		factory.setSftpVersionSelector(SftpVersionSelector.MINIMUM);
+		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(factory);
+		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+		fileNameGenerator.setExpression("'appended.txt'");
+		fileNameGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		template.setFileNameGenerator(fileNameGenerator);
+		template.setRemoteDirectoryExpression(new LiteralExpression("sftpTarget/"));
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		template.afterPropertiesSet();
+		assertThat(template.isUseTemporaryFileName()).isTrue();
+
+		try {
+			template.append(new GenericMessage<>("abc"));
+			template.append(new GenericMessage<>("def"));
+
+			SftpClient.DirEntry[] files = template.list("sftpTarget/appended.txt");
+			assertThat(files).hasSize(1);
+			assertThat(files[0].getAttributes().getSize()).isEqualTo(6);
+		}
+		finally {
+			factory.destroy();
+		}
 	}
 
 	@Test

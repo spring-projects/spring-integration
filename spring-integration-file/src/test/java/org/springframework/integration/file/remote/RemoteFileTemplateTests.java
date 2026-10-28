@@ -18,9 +18,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -40,6 +42,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author WooSeung Kim
  *
  * @since 4.1.7
  *
@@ -79,6 +82,21 @@ public class RemoteFileTemplateTests implements TestApplicationContextAware {
 		this.template.setUseTemporaryFileName(false);
 		this.template.send(new GenericMessage<>(this.file), FileExistsMode.APPEND);
 		verify(this.session).append(any(InputStream.class), anyString());
+	}
+
+	@Test
+	public void testAppendIgnoresTemporaryFileNameAndDirectory() throws Exception {
+		this.template.setRemoteDirectoryExpression(new LiteralExpression("/remote"));
+		this.template.setTemporaryRemoteDirectoryExpression(new LiteralExpression("/temporary"));
+		this.template.setAutoCreateDirectory(true);
+		this.template.afterPropertiesSet();
+		when(this.session.mkdir(anyString())).thenReturn(true);
+		this.template.send(MessageBuilder.withPayload("appended content")
+				.setHeader(FileHeaders.FILENAME, "appended.txt")
+				.build(), FileExistsMode.APPEND);
+		verify(this.session).append(any(InputStream.class), eq("/remote/appended.txt"));
+		verify(this.session, never()).rename(anyString(), anyString());
+		verify(this.session, never()).mkdir("/temporary");
 	}
 
 	@Test
