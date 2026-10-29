@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Myeonghyeon Lee
  * @author Eddie Cho
  * @author Jiwoo Lee
+ * @author Li Yifan
  *
  * @since 4.3
  */
@@ -352,10 +353,16 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		}
 
 		private boolean doLock(Duration ttl) {
-			if (!JdbcLockRegistry.this.locks.containsKey(this.key)) {
-				throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache " +
-						"due to its unused period for " + (System.currentTimeMillis() - this.lastUsed) +
-						" milliseconds. Obtain a fresh one from " + JdbcLockRegistry.this);
+			JdbcLockRegistry.this.lock.lock();
+			try {
+				if (!JdbcLockRegistry.this.locks.containsKey(this.key)) {
+					throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache " +
+							"due to its unused period for " + (System.currentTimeMillis() - this.lastUsed) +
+							" milliseconds. Obtain a fresh one from " + JdbcLockRegistry.this);
+				}
+			}
+			finally {
+				JdbcLockRegistry.this.lock.unlock();
 			}
 			boolean acquired = JdbcLockRegistry.this.client.acquire(this.path, ttl);
 			if (acquired) {
