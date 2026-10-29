@@ -7,19 +7,25 @@ package org.springframework.integration.mqtt.client.outbound;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperty;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
+import io.micrometer.observation.Observation;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.integration.mqtt.client.support.DefaultMqtt5PublishObservationConvention;
+import org.springframework.integration.mqtt.client.support.Mqtt5PublishSenderContext;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -30,6 +36,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Jiandong Ma
  * @author Artem Bilan
+ * @author Hyunah Oh
  *
  * @since 7.2
  */
@@ -209,23 +216,53 @@ public class Mqtt5MessageHandler extends AbstractMqttMessageHandler<Mqtt5Client>
 	@Override
 	protected void publishMqttMessage(Object messageForPublish, Message<?> message) {
 		Mqtt5Publish mqtt5Publish = (Mqtt5Publish) messageForPublish;
-		if (isAsync()) {
-			getClient().toAsync()
-					.publish(mqtt5Publish)
-					.whenComplete((mqtt5PublishResult, throwable) -> {
-						if (throwable != null) {
-							sendFailedDeliveryEvent(mqtt5PublishResult, throwable);
-						}
-						else {
-							sendDeliveryCompleteEvent(mqtt5PublishResult);
-						}
-					});
-			messageSentEvent(message, mqtt5Publish);
+		if (isObserved()) {
+			var context = new Mqtt5PublishSenderContext(mqtt5Publish, getComponentName());
+			Observation observation = Observation.createNotStarted(
+					DefaultMqtt5PublishObservationConvention.INSTANCE, () -> context, getObservationRegistry());
+			publish(() -> context.getCarrier().build(), message, observation);
 		}
 		else {
-			getClient().toBlocking().publish(mqtt5Publish);
+			publish(() -> mqtt5Publish, message, Observation.NOOP);
 		}
+	}
 
+	private void publish(Supplier<Mqtt5Publish> publishSupplier, Message<?> message, Observation observation) {
+		if (isAsync()) {
+			publishAsync(publishSupplier, message, observation);
+		}
+		else {
+			observation.observe(() -> getClient().toBlocking().publish(publishSupplier.get()));
+		}
+	}
+
+	@SuppressWarnings("try")
+	private void publishAsync(Supplier<Mqtt5Publish> publishSupplier, Message<?> message, Observation observation) {
+		observation.start();
+		Mqtt5Publish mqtt5Publish;
+		CompletableFuture<Mqtt5PublishResult> publishFuture;
+		try (Observation.Scope ignored = observation.openScope()) {
+			mqtt5Publish = publishSupplier.get();
+			publishFuture = getClient().toAsync().publish(mqtt5Publish);
+		}
+		catch (RuntimeException | Error ex) {
+			observation.error(ex);
+			observation.stop();
+			throw ex;
+		}
+		publishFuture.whenComplete((mqtt5PublishResult, throwable) -> {
+			if (throwable != null) {
+				observation.error(throwable);
+			}
+			observation.stop();
+			if (throwable != null) {
+				sendFailedDeliveryEvent(mqtt5PublishResult, throwable);
+			}
+			else {
+				sendDeliveryCompleteEvent(mqtt5PublishResult);
+			}
+		});
+		messageSentEvent(message, mqtt5Publish);
 	}
 
 }
