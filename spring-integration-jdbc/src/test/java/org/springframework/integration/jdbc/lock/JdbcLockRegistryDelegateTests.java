@@ -7,7 +7,6 @@ package org.springframework.integration.jdbc.lock;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -75,9 +74,9 @@ class JdbcLockRegistryDelegateTests {
 		}
 		finally {
 			registryLock.unlock();
-			worker.join(10_000);
+			await().until(acquisition::isDone);
 		}
-		assertThat(acquisition.get(10, TimeUnit.SECONDS)).isFalse();
+		assertThat(acquisition.get()).isFalse();
 		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
 	}
 

@@ -5,7 +5,6 @@
 package org.springframework.integration.redis.util;
 
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,13 +28,15 @@ import static org.mockito.Mockito.when;
  * Offline concurrency tests for the local Redis lock cache.
  *
  * @author Li Yifan
+ *
+ * @since 7.0.8
  */
 class RedisLockRegistryConcurrencyTests {
 
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)
 	void cacheCheckWaitsForRegistryLock(RedisLockType lockType) throws Exception {
-		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class);
+		RedisConnectionFactory connectionFactory = mock();
 		RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, "cacheCheck");
 		registry.setRedisLockType(lockType);
 		DistributedLock lock = registry.obtain("order");
@@ -57,13 +58,13 @@ class RedisLockRegistryConcurrencyTests {
 			}
 			finally {
 				registryLock.unlock();
+				await().until(acquisition::isDone);
 			}
-			assertThatThrownBy(() -> acquisition.get(10, TimeUnit.SECONDS))
+			assertThatThrownBy(acquisition::get)
 					.hasCauseInstanceOf(CannotAcquireLockException.class)
 					.rootCause().isSameAs(connectionFailure);
 		}
 		finally {
-			worker.join(10_000);
 			registry.destroy();
 		}
 	}
@@ -71,7 +72,7 @@ class RedisLockRegistryConcurrencyTests {
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)
 	void evictedLockIsRejectedBeforeAccessingRedis(RedisLockType lockType) {
-		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class);
+		RedisConnectionFactory connectionFactory = mock();
 		RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, "cacheEviction");
 		registry.setRedisLockType(lockType);
 		registry.setCacheCapacity(1);
