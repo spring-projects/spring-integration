@@ -104,6 +104,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Glenn Renfro
  * @author Jiwoo Lee
  * @author Yingzi Zhang
+ * @author Li Yifan
  *
  * @since 4.0
  *
@@ -586,9 +587,15 @@ public final class RedisLockRegistry
 		}
 
 		private boolean tryRedisLock(long time, long expireAfter) throws ExecutionException, InterruptedException {
-			if (!RedisLockRegistry.this.locks.containsKey(this.key)) {
-				throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache. " +
-						"Obtain a fresh one from " + RedisLockRegistry.this);
+			RedisLockRegistry.this.lock.lock();
+			try {
+				if (!RedisLockRegistry.this.locks.containsKey(this.key)) {
+					throw new IllegalStateException("The lock '" + this.key + "' was evicted from the exhausted cache. " +
+							"Obtain a fresh one from " + RedisLockRegistry.this);
+				}
+			}
+			finally {
+				RedisLockRegistry.this.lock.unlock();
 			}
 			final boolean acquired = tryRedisLockInner(time, expireAfter);
 			if (acquired) {
