@@ -40,7 +40,7 @@ class RedisLockRegistryConcurrencyTests {
 		RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, "cacheCheck");
 		registry.setRedisLockType(lockType);
 		DistributedLock lock = registry.obtain("order");
-		ReentrantLock registryLock = TestUtils.getPropertyValue(registry, "lock");
+		ReentrantLock registryLock = TestUtils.getPropertyValue(registry, "lock", ReentrantLock.class);
 		IllegalStateException connectionFailure = new IllegalStateException("Redis connection unavailable");
 		when(connectionFactory.getConnection()).thenAnswer(invocation -> {
 			assertThat(registryLock.isHeldByCurrentThread()).isFalse();
@@ -84,7 +84,7 @@ class RedisLockRegistryConcurrencyTests {
 					.hasCauseInstanceOf(IllegalStateException.class)
 					.rootCause().hasMessageStartingWith("The lock 'order' was evicted from the exhausted cache.");
 			verify(connectionFactory, never()).getConnection();
-			assertThat(TestUtils.<ReentrantLock>getPropertyValue(registry, "lock").isLocked()).isFalse();
+			assertThat(TestUtils.getPropertyValue(registry, "lock", ReentrantLock.class).isLocked()).isFalse();
 		}
 		finally {
 			registry.destroy();

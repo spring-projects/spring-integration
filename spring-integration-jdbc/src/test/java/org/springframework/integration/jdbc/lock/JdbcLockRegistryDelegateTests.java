@@ -57,7 +57,7 @@ class JdbcLockRegistryDelegateTests {
 	@Test
 	void cacheCheckWaitsForRegistryLock() throws Exception {
 		DistributedLock lock = this.registry.obtain("order");
-		ReentrantLock registryLock = TestUtils.getPropertyValue(this.registry, "lock");
+		ReentrantLock registryLock = TestUtils.getPropertyValue(this.registry, "lock", ReentrantLock.class);
 		when(this.repository.acquire(anyString(), any())).thenAnswer(invocation -> {
 			assertThat(registryLock.isHeldByCurrentThread()).isFalse();
 			return false;
@@ -76,7 +76,7 @@ class JdbcLockRegistryDelegateTests {
 			await().until(acquisition::isDone);
 		}
 		assertThat(acquisition.get()).isFalse();
-		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
+		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
 	}
 
 	@Test
@@ -89,8 +89,8 @@ class JdbcLockRegistryDelegateTests {
 				.hasCauseInstanceOf(IllegalStateException.class)
 				.rootCause().hasMessageStartingWith("The lock 'order' was evicted from the exhausted cache");
 		verify(this.repository, never()).acquire(anyString(), any());
-		assertThat(TestUtils.<ReentrantLock>getPropertyValue(this.registry, "lock").isLocked()).isFalse();
-		assertThat(TestUtils.<ReentrantLock>getPropertyValue(lock, "delegate").isLocked()).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.registry, "lock", ReentrantLock.class).isLocked()).isFalse();
+		assertThat(TestUtils.getPropertyValue(lock, "delegate", ReentrantLock.class).isLocked()).isFalse();
 	}
 
 	@Test
