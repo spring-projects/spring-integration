@@ -167,6 +167,18 @@ The following example shows how to do so:
 ----
 ====
 
+[IMPORTANT]
+====
+When using MySQL, configure the transactions of the pollers and producers of a JDBC-backed channel with the `READ_COMMITTED` isolation level (for example, `isolation="READ_COMMITTED"` on `<int:transactional>`).
+With the MySQL default `REPEATABLE READ` isolation level, the `SELECT ... FOR UPDATE SKIP LOCKED` poll query takes next-key (gap) locks, which are held until the poller's transaction completes.
+These locks block `INSERT` statements from producers, which can lead to `Lock wait timeout exceeded` errors, or to a deadlock between a producer holding the queue lock and pollers waiting for that lock to commit their transactions.
+In addition, a transactional producer waiting on a full bounded queue never observes messages removed by other transactions, because its reads use the snapshot established by its first read.
+
+Instead of configuring each transaction, the `READ_COMMITTED` isolation level can be set as a default for all connections of the application, for example, via the `defaultTransactionIsolation` property of a DBCP `BasicDataSource` or the `transactionIsolation` property of a HikariCP `HikariDataSource`.
+It can also be set as a server-wide default with the MySQL `transaction_isolation` system variable (for example, `transaction-isolation = READ-COMMITTED` in the `[mysqld]` section of the server configuration file).
+Keep in mind that the server-wide setting affects all the applications using that MySQL server, and that MySQL requires row-based binary logging (`binlog_format=ROW`, the default since MySQL 8.0) with the `READ COMMITTED` isolation level.
+====
+
 [[priority-channel]]
 === Priority Channel
 
