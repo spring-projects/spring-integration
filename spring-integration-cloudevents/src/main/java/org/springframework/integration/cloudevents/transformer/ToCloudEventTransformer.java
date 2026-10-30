@@ -21,6 +21,7 @@ import io.cloudevents.core.CloudEventUtils;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.provider.EventFormatProvider;
+import io.cloudevents.core.v1.CloudEventV1;
 import io.cloudevents.rw.CloudEventContextWriter;
 import io.cloudevents.rw.CloudEventRWException;
 import io.cloudevents.rw.CloudEventWriter;
@@ -61,11 +62,13 @@ import org.springframework.util.StringUtils;
  *   into a message where {@link CloudEvent} attributes are mapped to headers with a configurable
  *   prefix (default: {@link CloudEventHeaders#PREFIX}), and the {@link CloudEvent} data becomes the payload.
  *   The output message contains the original data as payload with
- *   {@link MessageHeaders#CONTENT_TYPE} set to {@code application/cloudevents}.</li>
+ *   {@link MessageHeaders#CONTENT_TYPE} set to the {@link CloudEvent} {@code datacontenttype}:
+ *   the input message content type, or {@code application/octet-stream} if absent.</li>
  * </ul>
  *
  * @author Glenn Renfro
  * @author Artem Bilan
+ * @author Gabriel Hall
  *
  * @since 7.1
  */
@@ -344,7 +347,6 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		@Override
 		public MessageBuilderMessageWriter create(SpecVersion version) {
 			this.headers.put(this.cloudEventPrefix + "specversion", version.toString());
-			this.headers.put(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
 			return this;
 		}
 
@@ -352,6 +354,7 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 * Add a {@link CloudEvent} context attribute to the message headers.
 		 * Map the {@link CloudEvent} attribute to a message header by prepending the configured prefix
 		 * to the attribute name (e.g., "id" becomes "ce-id" with the default prefix).
+		 * Also map the {@code datacontenttype} attribute to {@link MessageHeaders#CONTENT_TYPE}.
 		 * @param name the {@link CloudEvent} attribute name
 		 * @param value the {@link CloudEvent} attribute value
 		 * @return this writer for method chaining
@@ -360,6 +363,9 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		@Override
 		public CloudEventContextWriter withContextAttribute(String name, String value) throws CloudEventRWException {
 			this.headers.put(this.cloudEventPrefix + name, value);
+			if (CloudEventV1.DATACONTENTTYPE.equals(name)) {
+				this.headers.put(MessageHeaders.CONTENT_TYPE, value);
+			}
 			return this;
 		}
 
