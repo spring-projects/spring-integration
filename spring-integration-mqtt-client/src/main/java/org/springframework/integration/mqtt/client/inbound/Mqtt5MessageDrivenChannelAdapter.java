@@ -174,7 +174,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	}
 
 	private void processMessage(Mqtt5Publish mqtt5Publish) {
-		sendReceivedMessage(() -> toMessage(mqtt5Publish), mqtt5Publish.getTopic());
+		sendReceivedMessage(mqtt5Publish, () -> toMessage(mqtt5Publish), mqtt5Publish::acknowledge);
 	}
 
 	private Message<?> toMessage(Mqtt5Publish mqtt5Publish) {

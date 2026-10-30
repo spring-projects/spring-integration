@@ -4,8 +4,10 @@
 
 package org.springframework.integration.mqtt.client.inbound;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.hivemq.client.internal.mqtt.message.publish.mqtt3.Mqtt3PublishViewBuilder;
@@ -28,13 +30,16 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt3ClientManager;
+import org.springframework.integration.mqtt.client.event.MqttMessageConversionFailedEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 /**
@@ -62,6 +67,13 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 	static final String ALARM_DEVICE_TOPIC = "mqtt-v3-inbound-alarm-device";
 
 	static final CountDownLatch alarmDeviceTopicSubscribedLatch = new CountDownLatch(1);
+
+	static final String LAMP_DEVICE_TOPIC = "mqtt-v3-inbound-lamp-device";
+
+	static final CountDownLatch lampDeviceTopicSubscribedLatch = new CountDownLatch(1);
+
+	static final BlockingQueue<MqttMessageConversionFailedEvent> lampDeviceConversionFailedEvents =
+			new LinkedBlockingQueue<>();
 
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
@@ -158,6 +170,35 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.isEqualTo("accepted-alarm");
 	}
 
+	@Test
+	void testConversionFailureIsAcknowledgedAndEmitted() throws InterruptedException {
+		// Ensure subscription done first.
+		boolean subscribed = lampDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS);
+		assertThat(subscribed).isTrue();
+		// Given
+		mqtt3TestClient.publishWith().topic(LAMP_DEVICE_TOPIC)
+				.payload("lamp-payload".getBytes())
+				.qos(MqttQos.AT_LEAST_ONCE)
+				.send();
+		// When
+		MqttMessageConversionFailedEvent event = lampDeviceConversionFailedEvents.poll(10, TimeUnit.SECONDS);
+		// Then
+		assertThat(event)
+				.extracting(MqttMessageConversionFailedEvent::getCause)
+				.isInstanceOf(MessageConversionException.class);
+		assertThat(event)
+				.extracting(MqttMessageConversionFailedEvent::getMqttPublish)
+				.asInstanceOf(InstanceOfAssertFactories.type(Mqtt3Publish.class))
+				.returns("lamp-payload".getBytes(), Mqtt3Publish::getPayloadAsBytes)
+				// already acknowledged by the adapter
+				.satisfies(mqttPublish -> assertThatIllegalStateException().isThrownBy(mqttPublish::acknowledge));
+	}
+
+	// No message converter in this test can produce this type from the MQTT payload
+	record LampState(String state) {
+
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
@@ -224,6 +265,15 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			return adapter;
 		}
 
+		@Bean
+		Mqtt3MessageDrivenChannelAdapter lampDeviceInboundChannelAdapter(Mqtt3ClientManager mqtt3ClientManager) {
+			var adapter = new Mqtt3MessageDrivenChannelAdapter(mqtt3ClientManager, LAMP_DEVICE_TOPIC);
+			adapter.setPayloadType(LampState.class);
+			adapter.setManualAck(true);
+			adapter.setOutputChannel(new QueueChannel());
+			return adapter;
+		}
+
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
 			String beanName = ((Mqtt3MessageDrivenChannelAdapter) event.getSource()).getBeanName();
@@ -236,6 +286,14 @@ class Mqtt3MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			else if (beanName.equals("alarmDeviceInboundChannelAdapter")) {
 				alarmDeviceTopicSubscribedLatch.countDown();
 			}
+			else if (beanName.equals("lampDeviceInboundChannelAdapter")) {
+				lampDeviceTopicSubscribedLatch.countDown();
+			}
+		}
+
+		@EventListener
+		void conversionFailedEvents(MqttMessageConversionFailedEvent event) {
+			lampDeviceConversionFailedEvents.add(event);
 		}
 
 	}

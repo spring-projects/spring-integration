@@ -10,14 +10,15 @@ import java.util.function.Supplier;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.datatypes.MqttTopic;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.integration.mqtt.client.event.MqttMessageConversionFailedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.util.Assert;
@@ -180,26 +181,33 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	/**
 	 * Send a message built from a received MQTT publish.
 	 * An exception must not be thrown into the MQTT client callback since it terminates the subscription.
-	 * A failure is sent to the error channel, if any; otherwise, or if the error flow fails, it is logged.
+	 * If the message cannot be built, the failure is logged, the publish is acknowledged
+	 * in manual acknowledgment mode, and a {@link MqttMessageConversionFailedEvent} is emitted.
+	 * A downstream failure is sent to the error channel, if any; otherwise, or if the error flow fails, it is logged.
+	 * @param mqttPublish the received MQTT publish.
 	 * @param messageSupplier the supplier for the message to send.
-	 * @param topic the topic of the received MQTT publish.
+	 * @param acknowledgment the acknowledgment for the received MQTT publish.
 	 */
-	protected void sendReceivedMessage(Supplier<Message<?>> messageSupplier, MqttTopic topic) {
+	protected void sendReceivedMessage(Object mqttPublish, Supplier<Message<?>> messageSupplier,
+			SimpleAcknowledgment acknowledgment) {
+
 		try {
 			Message<?> message;
 			try {
 				message = messageSupplier.get();
 			}
 			catch (RuntimeException ex) {
-				if (sendErrorMessageIfNecessary(null, ex)) {
-					return;
+				logger.error(ex, () -> "Failed to convert " + mqttPublish);
+				if (this.manualAck) {
+					acknowledgment.acknowledge();
 				}
-				throw ex;
+				this.applicationEventPublisher.publishEvent(new MqttMessageConversionFailedEvent(this, mqttPublish, ex));
+				return;
 			}
 			sendMessage(message);
 		}
 		catch (RuntimeException ex) {
-			logger.error(ex, () -> "Failed to process MQTT message from topic '" + topic + "'");
+			logger.error(ex, () -> "Failed to process " + mqttPublish);
 		}
 	}
 

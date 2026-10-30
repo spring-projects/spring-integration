@@ -127,7 +127,7 @@ public class Mqtt3MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	}
 
 	private void processMessage(Mqtt3Publish mqtt3Publish) {
-		sendReceivedMessage(() -> toMessage(mqtt3Publish), mqtt3Publish.getTopic());
+		sendReceivedMessage(mqtt3Publish, () -> toMessage(mqtt3Publish), mqtt3Publish::acknowledge);
 	}
 
 	private Message<?> toMessage(Mqtt3Publish mqtt3Publish) {

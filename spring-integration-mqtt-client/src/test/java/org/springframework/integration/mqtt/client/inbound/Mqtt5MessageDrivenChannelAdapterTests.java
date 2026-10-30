@@ -5,8 +5,10 @@
 package org.springframework.integration.mqtt.client.inbound;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertyImpl;
@@ -31,6 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
+import org.springframework.integration.mqtt.client.event.MqttMessageConversionFailedEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
@@ -40,6 +43,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 /**
@@ -72,6 +76,9 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	static final CountDownLatch lampDeviceTopicSubscribedLatch = new CountDownLatch(1);
 
+	static final BlockingQueue<MqttMessageConversionFailedEvent> lampDeviceConversionFailedEvents =
+			new LinkedBlockingQueue<>();
+
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
 
@@ -80,9 +87,6 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	@Autowired
 	QueueChannel alarmDeviceOutputChannel;
-
-	@Autowired
-	QueueChannel lampDeviceErrorChannel;
 
 	static Mqtt5BlockingClient mqtt5TestClient;
 
@@ -177,39 +181,27 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 	}
 
 	@Test
-	void testConversionFailureIsSentToErrorChannel() throws InterruptedException {
+	void testConversionFailureIsAcknowledgedAndEmitted() throws InterruptedException {
 		// Ensure subscription done first.
 		boolean subscribed = lampDeviceTopicSubscribedLatch.await(10000, TimeUnit.MILLISECONDS);
 		assertThat(subscribed).isTrue();
 		// Given
 		mqtt5TestClient.publishWith().topic(LAMP_DEVICE_TOPIC)
-				.payload("lamp-payload-1".getBytes())
-				.qos(MqttQos.AT_LEAST_ONCE)
-				.send();
-		mqtt5TestClient.publishWith().topic(LAMP_DEVICE_TOPIC)
-				.payload("lamp-payload-2".getBytes())
+				.payload("lamp-payload".getBytes())
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.send();
 		// When
-		Message<?> firstErrorMessage = lampDeviceErrorChannel.receive(10000);
-		Message<?> secondErrorMessage = lampDeviceErrorChannel.receive(10000);
+		MqttMessageConversionFailedEvent event = lampDeviceConversionFailedEvents.poll(10, TimeUnit.SECONDS);
 		// Then
-		assertThat(firstErrorMessage)
-				.extracting(Message::getPayload)
-				.asInstanceOf(InstanceOfAssertFactories.type(MessageConversionException.class))
-				.extracting(MessageConversionException::getFailedMessage)
-				.returns("lamp-payload-1".getBytes(), Message::getPayload)
-				.extracting(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK))
-				.asInstanceOf(InstanceOfAssertFactories.type(SimpleAcknowledgment.class))
-				.satisfies(SimpleAcknowledgment::acknowledge);  // manual ack in the error flow
-		assertThat(secondErrorMessage)
-				.extracting(Message::getPayload)
-				.asInstanceOf(InstanceOfAssertFactories.type(MessageConversionException.class))
-				.extracting(MessageConversionException::getFailedMessage)
-				.returns("lamp-payload-2".getBytes(), Message::getPayload)
-				.extracting(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK))
-				.asInstanceOf(InstanceOfAssertFactories.type(SimpleAcknowledgment.class))
-				.satisfies(SimpleAcknowledgment::acknowledge);
+		assertThat(event)
+				.extracting(MqttMessageConversionFailedEvent::getCause)
+				.isInstanceOf(MessageConversionException.class);
+		assertThat(event)
+				.extracting(MqttMessageConversionFailedEvent::getMqttPublish)
+				.asInstanceOf(InstanceOfAssertFactories.type(Mqtt5Publish.class))
+				.returns("lamp-payload".getBytes(), Mqtt5Publish::getPayloadAsBytes)
+				// already acknowledged by the adapter
+				.satisfies(mqttPublish -> assertThatIllegalStateException().isThrownBy(mqttPublish::acknowledge));
 	}
 
 	// No message converter in this test can produce this type from the MQTT payload
@@ -284,19 +276,11 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		}
 
 		@Bean
-		QueueChannel lampDeviceErrorChannel() {
-			return new QueueChannel();
-		}
-
-		@Bean
-		Mqtt5MessageDrivenChannelAdapter lampDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
-				QueueChannel lampDeviceErrorChannel) {
-
+		Mqtt5MessageDrivenChannelAdapter lampDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager) {
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, LAMP_DEVICE_TOPIC);
 			adapter.setPayloadType(LampState.class);
 			adapter.setManualAck(true);
 			adapter.setOutputChannel(new QueueChannel());
-			adapter.setErrorChannel(lampDeviceErrorChannel);
 			return adapter;
 		}
 
@@ -315,6 +299,11 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			else if (beanName.equals("lampDeviceInboundChannelAdapter")) {
 				lampDeviceTopicSubscribedLatch.countDown();
 			}
+		}
+
+		@EventListener
+		void conversionFailedEvents(MqttMessageConversionFailedEvent event) {
+			lampDeviceConversionFailedEvents.add(event);
 		}
 
 	}
