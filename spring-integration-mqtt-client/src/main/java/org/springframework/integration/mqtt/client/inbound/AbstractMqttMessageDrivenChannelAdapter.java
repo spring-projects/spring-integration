@@ -6,6 +6,8 @@ package org.springframework.integration.mqtt.client.inbound;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
@@ -13,9 +15,12 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.integration.mqtt.client.event.MqttIntegrationEvent;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.util.Assert;
 
@@ -25,6 +30,7 @@ import org.springframework.util.Assert;
  * @param <T> MQTT Client type
  *
  * @author Jiandong Ma
+ * @author WooSeung Kim
  *
  * @since 7.2
  */
@@ -171,6 +177,41 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	 */
 	public boolean isConnected() {
 		return this.mqttClient.getState().isConnected();
+	}
+
+	/**
+	 * Send a message built from a received MQTT publish.
+	 * An exception must not be thrown into the MQTT client callback since it terminates the subscription.
+	 * If the message cannot be built, the failure is logged, the publish is acknowledged
+	 * in manual acknowledgment mode, and a conversion failure event is emitted.
+	 * A downstream failure is sent to the error channel, if any; otherwise, or if the error flow fails, it is logged.
+	 * @param mqttPublish the received MQTT publish.
+	 * @param messageSupplier the supplier for the message to send.
+	 * @param acknowledgment the acknowledgment for the received MQTT publish.
+	 * @param conversionFailedEventFactory the factory for the event to emit when the message cannot be built.
+	 */
+	protected void sendReceivedMessage(Object mqttPublish, Supplier<Message<?>> messageSupplier,
+			SimpleAcknowledgment acknowledgment,
+			Function<RuntimeException, MqttIntegrationEvent> conversionFailedEventFactory) {
+
+		try {
+			Message<?> message;
+			try {
+				message = messageSupplier.get();
+			}
+			catch (RuntimeException ex) {
+				logger.error(ex, () -> "Failed to convert " + mqttPublish);
+				if (this.manualAck) {
+					acknowledgment.acknowledge();
+				}
+				this.applicationEventPublisher.publishEvent(conversionFailedEventFactory.apply(ex));
+				return;
+			}
+			sendMessage(message);
+		}
+		catch (RuntimeException ex) {
+			logger.error(ex, () -> "Failed to process " + mqttPublish);
+		}
 	}
 
 	@Override
