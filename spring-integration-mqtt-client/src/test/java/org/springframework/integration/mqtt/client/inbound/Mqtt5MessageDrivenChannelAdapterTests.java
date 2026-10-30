@@ -33,7 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
-import org.springframework.integration.mqtt.client.event.MqttMessageConversionFailedEvent;
+import org.springframework.integration.mqtt.client.event.Mqtt5MessageConversionFailedEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
@@ -76,7 +76,7 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	static final CountDownLatch lampDeviceTopicSubscribedLatch = new CountDownLatch(1);
 
-	static final BlockingQueue<MqttMessageConversionFailedEvent> lampDeviceConversionFailedEvents =
+	static final BlockingQueue<Mqtt5MessageConversionFailedEvent> lampDeviceConversionFailedEvents =
 			new LinkedBlockingQueue<>();
 
 	@Autowired
@@ -191,14 +191,13 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.send();
 		// When
-		MqttMessageConversionFailedEvent event = lampDeviceConversionFailedEvents.poll(10, TimeUnit.SECONDS);
+		Mqtt5MessageConversionFailedEvent event = lampDeviceConversionFailedEvents.poll(10, TimeUnit.SECONDS);
 		// Then
 		assertThat(event)
-				.extracting(MqttMessageConversionFailedEvent::getCause)
+				.extracting(Mqtt5MessageConversionFailedEvent::getCause)
 				.isInstanceOf(MessageConversionException.class);
 		assertThat(event)
-				.extracting(MqttMessageConversionFailedEvent::getMqttPublish)
-				.asInstanceOf(InstanceOfAssertFactories.type(Mqtt5Publish.class))
+				.extracting(Mqtt5MessageConversionFailedEvent::getMqttPublish)
 				.returns("lamp-payload".getBytes(), Mqtt5Publish::getPayloadAsBytes)
 				// already acknowledged by the adapter
 				.satisfies(mqttPublish -> assertThatIllegalStateException().isThrownBy(mqttPublish::acknowledge));
@@ -302,7 +301,7 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 		}
 
 		@EventListener
-		void conversionFailedEvents(MqttMessageConversionFailedEvent event) {
+		void conversionFailedEvents(Mqtt5MessageConversionFailedEvent event) {
 			lampDeviceConversionFailedEvents.add(event);
 		}
 

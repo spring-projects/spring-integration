@@ -23,6 +23,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.client.core.ClientManager;
+import org.springframework.integration.mqtt.client.event.Mqtt5MessageConversionFailedEvent;
 import org.springframework.integration.mqtt.client.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.client.support.MqttHeaderMapper;
@@ -174,7 +175,8 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	}
 
 	private void processMessage(Mqtt5Publish mqtt5Publish) {
-		sendReceivedMessage(mqtt5Publish, () -> toMessage(mqtt5Publish), mqtt5Publish::acknowledge);
+		sendReceivedMessage(mqtt5Publish, () -> toMessage(mqtt5Publish), mqtt5Publish::acknowledge,
+				(ex) -> new Mqtt5MessageConversionFailedEvent(this, mqtt5Publish, ex));
 	}
 
 	private Message<?> toMessage(Mqtt5Publish mqtt5Publish) {

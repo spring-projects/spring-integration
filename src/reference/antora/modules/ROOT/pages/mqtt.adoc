@@ -120,7 +120,7 @@ Set `payloadType` to `Mqtt3Publish.class` or `Mqtt5Publish.class` to receive the
 Use `setExecutor()` to select the executor on which the message callback runs.
 As with other message producers, an `errorChannel` can handle downstream message delivery failures.
 Without an `errorChannel`, such a failure is logged and the adapter keeps receiving messages.
-If a received publish cannot be converted to a message, the failure is logged and an `MqttMessageConversionFailedEvent` is emitted (see <<mqtt-client-events>>).
+If a received publish cannot be converted to a message, the failure is logged and an `Mqtt3MessageConversionFailedEvent` or `Mqtt5MessageConversionFailedEvent` is emitted (see <<mqtt-client-events>>).
 
 Both adapters populate the following headers from `org.springframework.integration.mqtt.client.support.MqttHeaders`:
 
@@ -222,7 +222,7 @@ The new module publishes application events in `org.springframework.integration.
 * `MqttConnectionFailedEvent`: a client manager failed to connect.
 * `MqttSubscribedEvent`: an inbound subscription completed successfully.
 * `MqttProtocolErrorEvent`: an inbound subscription failed.
-* `MqttMessageConversionFailedEvent`: an inbound adapter failed to convert a received publish to a message; contains the failure and the HiveMQ publish object.
+* `Mqtt3MessageConversionFailedEvent` and `Mqtt5MessageConversionFailedEvent`: an MQTT v3 or v5 inbound adapter failed to convert a received publish to a message; contains the failure and the `Mqtt3Publish` or `Mqtt5Publish`.
 * `MqttMessageSentEvent`: an asynchronous publish was submitted; contains the Spring message and HiveMQ publish object.
 * `MqttMessageDeliveredEvent`: an asynchronous publish completed successfully; contains the HiveMQ publish result.
 * `MqttMessageNotDeliveredEvent`: an asynchronous publish failed; contains the failure and publish result, which may be absent.
@@ -254,6 +254,7 @@ All new adapters and handlers require a manager; URL/client-ID constructors are 
 The new `ClientManager` has one type parameter: the HiveMQ client type.
 * Replace integer QoS configuration and headers with `MqttQos` values.
 * Review payload conversion: the new inbound default is `byte[]`, and conversion uses Spring Messaging converters rather than `MqttMessageConverter`.
+A conversion failure is reported with an `Mqtt3MessageConversionFailedEvent` or `Mqtt5MessageConversionFailedEvent` and is not sent to the `errorChannel`.
 * Use `setManualAck(true)` instead of Paho's `setManualAcks(true)`.
 * Replace Paho XML namespace and dedicated MQTT DSL configuration with bean definitions or generic Java DSL flows as shown above.
 * Review MQTT v5 property mapping and asynchronous event handling against the new contracts described above.
