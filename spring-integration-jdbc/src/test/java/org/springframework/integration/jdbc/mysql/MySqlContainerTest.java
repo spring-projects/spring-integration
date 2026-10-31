@@ -4,6 +4,8 @@
 
 package org.springframework.integration.jdbc.mysql;
 
+import java.sql.Connection;
+
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -19,13 +21,14 @@ import org.testcontainers.mysql.MySQLContainer;
  * started only once per JVM; therefore, the target Docker container is reused automatically.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.5.7
  */
 @Testcontainers(disabledWithoutDocker = true)
 public interface MySqlContainerTest {
 
-	MySQLContainer MY_SQL_CONTAINER = new MySQLContainer("mysql:8.0.29-oracle");
+	MySQLContainer MY_SQL_CONTAINER = new MySQLContainer("mysql:9.7.4-oracle");
 
 	@BeforeAll
 	static void startContainer() {
@@ -54,6 +57,7 @@ public interface MySqlContainerTest {
 		dataSource.setUrl(getJdbcUrl());
 		dataSource.setUsername(getUsername());
 		dataSource.setPassword(getPassword());
+		dataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		return dataSource;
 	}
 
