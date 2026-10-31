@@ -92,6 +92,7 @@ allprojects {
 		dependencyManagement(platform(libs.spring.amqp.bom))
 		dependencyManagement(platform(libs.spring.data.bom))
 		dependencyManagement(platform(libs.spring.kafka.bom))
+		dependencyManagement(platform(libs.spring.pulsar.bom))
 		dependencyManagement(platform(libs.spring.security.bom))
 		dependencyManagement(platform(libs.spring.ws.bom))
 		dependencyManagement(platform(libs.org.testcontainers.bom))

@@ -24,6 +24,9 @@ A new `spring-integration-mqtt-client` module has been introduced to provide sim
 The Paho-based `spring-integration-mqtt` module is deprecated for removal in favor of this new module.
 See xref:mqtt.adoc[] for more information.
 
+A new `spring-integration-pulsar` module provides an outbound channel adapter (the `PulsarMessageHandler`) and a message-driven channel adapter (the `PulsarMessageProducer`) for Apache Pulsar, built on Spring for Apache Pulsar, together with the Java DSL support.
+See xref:pulsar.adoc[] for more information.
+
 A new `PayloadValidatingMessageSelector` accepts a message only if its payload passes a Spring `Validator`, such as a Bean Validation one from the `LocalValidatorFactoryBean`.
 See xref:filter.adoc#filter-payload-validation[Validating Payloads] for more information.
 
