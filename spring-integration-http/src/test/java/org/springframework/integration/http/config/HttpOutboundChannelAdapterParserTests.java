@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
  * @author Burak Kalayci
+ * @author WooSeung Kim
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -69,6 +70,10 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Autowired
 	@Qualifier("customRestClient")
 	private RestClient customRestClient;
+
+	@Autowired
+	@Qualifier("responseErrorHandlerConfig")
+	private AbstractEndpoint responseErrorHandlerConfig;
 
 	@Autowired
 	@Qualifier("withUrlAndTemplate")
@@ -167,11 +172,18 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void responseErrorHandlerConfig() {
+		assertThat(TestUtils.<List<?>>getPropertyValue(this.responseErrorHandlerConfig,
+				"handler.restClient.defaultStatusHandlers")).hasSize(1);
+	}
+
+	@Test
 	public void failWithRestTemplateAndRestAttributes() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml",
-								getClass()));
+								getClass()))
+				.withMessageContaining("the 'default-status-handler' attribute is not allowed");
 	}
 
 	@Test

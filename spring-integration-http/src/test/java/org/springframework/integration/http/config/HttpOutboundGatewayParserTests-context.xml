@@ -21,6 +21,11 @@
 
 	<beans:bean id="customRestClient" class="org.springframework.web.client.RestClient" factory-method="create"/>
 
+	<outbound-gateway id="responseErrorHandlerConfig" url="http://localhost/test1" request-channel="requests"
+					  error-handler="responseErrorHandler"/>
+
+	<beans:bean id="responseErrorHandler" class="org.springframework.web.client.DefaultResponseErrorHandler"/>
+
 	<si:channel id="replies">
 		<si:queue/>
 	</si:channel>
@@ -36,7 +41,7 @@
 					  expected-response-type="java.lang.String"
 					  mapped-request-headers="requestHeader1, requestHeader2"
 					  mapped-response-headers="responseHeader"
-					  error-handler="testErrorHandler"
+					  default-status-handler="testErrorHandler"
 					  reply-channel="replies"
 					  charset="UTF-8"
 					  order="77"
