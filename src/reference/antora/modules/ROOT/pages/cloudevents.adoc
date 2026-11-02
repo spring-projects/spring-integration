@@ -147,6 +147,8 @@ Examples of content types that the `eventFormatContentTypeExpression` can resolv
 - `application/cloudevents+xml`
 
 If the `EventFormat` and the `eventFormatContentTypeExpression` are not set, the transformer adds cloud event attributes and extensions to the message headers with the cloud event prefix (default is `ce-`) and leaves the payload unchanged (Binary Format Mode).
+In Binary Format Mode, the transformer sets the `contentType` header to the `datacontenttype` attribute: the input message content type, or `application/octet-stream` if the input message has no content type.
+Content types that start with `application/cloudevents` identify Structured Format Mode, so the transformer throws a `MessageTransformationException` if the input message has such a content type in Binary Format Mode.
 
 To utilize a specific `EventFormat`, add the associated dependency.
 For example, to add the XML `EventFormat`, add the following dependency: `io.cloudevents:cloudevents-xml`.

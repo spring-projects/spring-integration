@@ -359,11 +359,17 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 * @param value the {@link CloudEvent} attribute value
 		 * @return this writer for method chaining
 		 * @throws CloudEventRWException if an error occurs while setting the attribute
+		 * @throws IllegalStateException if the {@code datacontenttype} is reserved for structured content mode
 		 */
 		@Override
 		public CloudEventContextWriter withContextAttribute(String name, String value) throws CloudEventRWException {
 			this.headers.put(this.cloudEventPrefix + name, value);
 			if (CloudEventV1.DATACONTENTTYPE.equals(name)) {
+				if (value.startsWith("application/cloudevents")) {
+					throw new IllegalStateException("The '" + value + "' content type is reserved for " +
+							"structured content mode and cannot be used as 'datacontenttype' in binary mode. " +
+							"Configure an 'EventFormat' or change the input message content type.");
+				}
 				this.headers.put(MessageHeaders.CONTENT_TYPE, value);
 			}
 			return this;
