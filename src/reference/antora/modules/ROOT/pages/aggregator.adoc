@@ -915,6 +915,16 @@ By default, a window size is calculated from the first message in group and its 
 * `setWindowTimespan(Duration)` - is propagated to the `Flux.window(Duration)` or `windowTimeout(int, Duration)` depending on the window size configuration.
 * `setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>>)` - a function to apply a transformation into the grouped fluxes for any custom window operation not covered by the exposed options.
 
+With the default window size from the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header (and no `setWindowTimespan(Duration)`), a group is completed and its resources are released as soon as its window is closed.
+A later message with the same correlation key starts a new group.
+With all other window options, a group stays active for the whole lifetime of the `FluxAggregatorMessageHandler`, so they are better suited for a limited set of correlation keys.
+
+A group failure (e.g. a missing or non-positive window size) is logged and only this group is discarded; the aggregation for other groups continues.
+A message for which the `CorrelationStrategy` returns `null` is rejected with an exception from the `handleMessage()` call.
+
+IMPORTANT: The `IntegrationMessageHeaderAccessor.CORRELATION_ID` and `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` headers are trusted by the `FluxAggregatorMessageHandler`.
+If messages come from untrusted sources, make sure such headers are not mapped from external messages, or configure an explicit `CorrelationStrategy` and window options.
+
 Since this component is a `MessageHandler` implementation it can simply be used as a `@Bean` definition together with a `@ServiceActivator` messaging annotation.
 With Java DSL it can be used from the `.handle()` EIP-method.
 The sample below demonstrates how we can register an `IntegrationFlow` at runtime and how a `FluxAggregatorMessageHandler` can be correlated with a splitter upstream:
