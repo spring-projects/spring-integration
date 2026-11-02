@@ -13,7 +13,7 @@ Also see xref:event.adoc#appevent-inbound[an event inbound channel adapter].
 * `source`: The `TcpConnection`.
 You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
 
-Available ``TcpConnectionEvent``s, related to a specific connection include:
+Available ``TcpConnectionEvent``s related to a specific connection include:
 
 * `TcpConnectionOpenEvent`
 * `TcpConnectionCloseEvent`
