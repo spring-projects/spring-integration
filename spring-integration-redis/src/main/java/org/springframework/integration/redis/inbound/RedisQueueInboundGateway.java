@@ -293,7 +293,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	protected void doStart() {
 		super.doStart();
-		restart();
+		scheduleListenerTask();
 	}
 
 	/**
@@ -316,7 +316,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 		this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
 	}
 
-	private void restart() {
+	private void scheduleListenerTask() {
 		this.taskExecutor.execute(new ListenerTask());
 	}
 
@@ -376,7 +376,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 			}
 			finally {
 				if (isActive()) {
-					restart();
+					scheduleListenerTask();
 				}
 				else {
 					Runnable callback = RedisQueueInboundGateway.this.stopCallback;
