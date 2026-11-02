@@ -47,6 +47,7 @@ import static org.mockito.Mockito.mock;
  * @author Biju Kunjummen
  * @author Glenn Renfro
  * @author Arun Sethumadhavan
+ * @author WooSeung Kim
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -77,6 +78,10 @@ public class HttpOutboundGatewayParserTests {
 	@Autowired
 	@Qualifier("customRestClient")
 	private RestClient customRestClient;
+
+	@Autowired
+	@Qualifier("responseErrorHandlerConfig")
+	private EventDrivenConsumer responseErrorHandlerConfig;
 
 	@Autowired
 	@Qualifier("withPoller1")
@@ -161,6 +166,12 @@ public class HttpOutboundGatewayParserTests {
 		HttpRequestExecutingMessageHandler handler =
 				(HttpRequestExecutingMessageHandler) this.restClientConfig.getHandler();
 		assertThatObject(TestUtils.getPropertyValue(handler, "restClient")).isSameAs(this.customRestClient);
+	}
+
+	@Test
+	public void responseErrorHandlerConfig() {
+		assertThat(TestUtils.<List<?>>getPropertyValue(this.responseErrorHandlerConfig,
+				"handler.restClient.defaultStatusHandlers")).hasSize(1);
 	}
 
 	@Test

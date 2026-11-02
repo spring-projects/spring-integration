@@ -19,6 +19,11 @@
 
 	<beans:bean id="customRestClient" class="org.springframework.web.client.RestClient" factory-method="create"/>
 
+	<outbound-channel-adapter id="responseErrorHandlerConfig" url="http://localhost/test1" channel="requests"
+							  error-handler="responseErrorHandler"/>
+
+	<beans:bean id="responseErrorHandler" class="org.springframework.web.client.DefaultResponseErrorHandler"/>
+
 	<outbound-channel-adapter id="fullConfig"
 							  url="http://localhost/test2/{foo}"
 							  http-method="GET"
@@ -29,7 +34,7 @@
 							  expected-response-type="java.lang.Boolean"
 							  mapped-request-headers="requestHeader1, requestHeader2"
 							  request-factory="testRequestFactory"
-							  error-handler="testErrorHandler"
+							  default-status-handler="testErrorHandler"
 							  order="77"
 							  encoding-mode="VALUES_ONLY"
 							  auto-startup="false">

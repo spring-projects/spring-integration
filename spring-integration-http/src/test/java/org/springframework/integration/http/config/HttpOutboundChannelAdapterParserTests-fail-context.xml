@@ -11,7 +11,7 @@
 	<si:channel id="requests"/>
 
 	<outbound-channel-adapter id="minimalConfig" url="http://localhost/test1"
-							  error-handler="testErrorHandler" rest-template="restTemplate" channel="requests"/>
+							  default-status-handler="testErrorHandler" rest-template="restTemplate" channel="requests"/>
 
 	<beans:bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
 

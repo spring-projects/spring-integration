@@ -27,13 +27,14 @@ import org.springframework.util.xml.DomUtils;
  * @author Shiliang Li
  * @author Arun Sethumadhavan
  * @author Burak Kalayci
+ * @author WooSeung Kim
  *
  * @since 2.0.2
  */
 final class HttpAdapterParsingUtils {
 
 	static final String[] LOCAL_CLIENT_REFERENCE_ATTRIBUTES = {
-			"request-factory", "error-handler", "message-converters"
+			"request-factory", "error-handler", "default-status-handler", "message-converters"
 	};
 
 	private static final LocalClientKind REST_TEMPLATE_KIND =
@@ -44,13 +45,7 @@ final class HttpAdapterParsingUtils {
 
 	static void configureLocalClientAttributes(BeanDefinitionBuilder builder, Element element) {
 		for (String referenceAttributeName : LOCAL_CLIENT_REFERENCE_ATTRIBUTES) {
-			if ("error-handler".equals(referenceAttributeName)) {
-				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName,
-						"defaultStatusHandler");
-			}
-			else {
-				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
-			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
 	}

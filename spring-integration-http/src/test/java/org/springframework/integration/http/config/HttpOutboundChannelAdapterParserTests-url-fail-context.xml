@@ -14,7 +14,7 @@
 
 	<!-- Can't have both url and url-expression -->
 	<outbound-channel-adapter id="minimalConfig" url="http://localhost/test1" url-expression="'foo'"
-				error-handler="testErrorHandler" rest-template="restTemplate" channel="requests"/>
+				default-status-handler="testErrorHandler" rest-template="restTemplate" channel="requests"/>
 
 	<beans:bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
 
