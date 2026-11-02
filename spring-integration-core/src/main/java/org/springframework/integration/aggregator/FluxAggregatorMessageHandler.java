@@ -14,7 +14,10 @@ import org.jspecify.annotations.Nullable;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.GroupedFlux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.IntegrationPatternType;
@@ -38,6 +41,22 @@ import org.springframework.util.Assert;
  * If the {@link #getOutputChannel()} is not a {@link ReactiveStreamsSubscribableChannel}
  * instance, a subscription for the whole aggregating {@link Flux} is performed in the
  * {@link #start()} method.
+ * <p>
+ * With the default window size from the {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE}
+ * header (and no {@link #setWindowTimespan(Duration)}), a group is completed and its resources
+ * are released as soon as its window is closed.
+ * A later message with the same correlation key starts a new group.
+ * With all other window options, a group stays active for the whole lifetime of this handler,
+ * so they are better suited for a limited set of correlation keys.
+ * <p>
+ * A group failure (e.g. a missing or non-positive window size) is logged and only this group
+ * is discarded.
+ * A message for which the {@link CorrelationStrategy} returns {@code null} is rejected.
+ * <p>
+ * <b>IMPORTANT:</b> The {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} and
+ * {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} headers are trusted by this handler.
+ * If messages come from untrusted sources, make sure such headers are not mapped from external
+ * messages, or configure an explicit {@link CorrelationStrategy} and window options.
  *
  * @author Artem Bilan
  * @author Glenn Renfro
@@ -58,6 +77,8 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	private Function<Message<?>, @Nullable Integer> windowSizeFunction = FluxAggregatorMessageHandler::sequenceSizeHeader;
 
+	private boolean sequenceSizeWindow = true;
+
 	@Nullable
 	private Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer;
 
@@ -67,7 +88,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	private Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction = this::messageForWindowFlux;
 
 	@SuppressWarnings("NullAway.Init")
-	private FluxSink<Message<?>> sink;
+	private FluxSink<Tuple2<Object, Message<?>>> sink;
 
 	@Nullable
 	private volatile Disposable subscription;
@@ -78,23 +99,23 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 */
 	public FluxAggregatorMessageHandler() {
 		this.aggregatorFlux =
-				Flux.<Message<?>>create(emitter -> this.sink = emitter, FluxSink.OverflowStrategy.BUFFER)
-						.groupBy(this::groupBy)
-						.flatMap((group) -> group.transform(this::releaseBy))
+				Flux.<Tuple2<Object, Message<?>>>create(emitter -> this.sink = emitter,
+								FluxSink.OverflowStrategy.BUFFER)
+						.groupBy(Tuple2::getT1, Tuple2::getT2)
+						.flatMap(this::releaseBy, Integer.MAX_VALUE)
 						.publish()
 						.autoConnect();
 	}
 
-	private Object groupBy(Message<?> message) {
-		Object result = this.correlationStrategy.getCorrelationKey(message);
-		Assert.notNull(result, "Correlation key cannot be null");
-		return result;
-	}
-
-	private Flux<Message<?>> releaseBy(Flux<Message<?>> groupFlux) {
+	private Flux<Message<?>> releaseBy(GroupedFlux<Object, Message<?>> groupFlux) {
 		return groupFlux
 				.transform(this.windowConfigurer != null ? this.windowConfigurer : this::applyWindowOptions)
-				.flatMap((windowFlux) -> windowFlux.transform(this.combineFunction));
+				.flatMap((windowFlux) -> windowFlux.transform(this.combineFunction))
+				.onErrorResume((ex) -> {
+					this.logger.error(ex, () ->
+							"The group for correlation key '" + groupFlux.key() + "' has failed and is discarded.");
+					return Mono.empty();
+				});
 	}
 
 	private Flux<Flux<Message<?>>> applyWindowOptions(Flux<Message<?>> groupFlux) {
@@ -106,8 +127,20 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 					if (signal.hasValue()) {
 						Integer maxSize = this.windowSizeFunction.apply(Objects.requireNonNull(signal.get()));
 						if (maxSize != null) {
+							if (maxSize <= 0) {
+								return Flux.error(
+										new IllegalStateException("The window size must be positive, but was: " +
+												maxSize));
+							}
 							if (this.windowTimespan != null) {
 								return group.windowTimeout(maxSize, this.windowTimespan);
+							}
+							else if (this.sequenceSizeWindow) {
+								// A sequence is complete when its last message arrives:
+								// complete the group to release its resources.
+								// The buffer keeps the group demand unbounded, so the group never holds messages
+								// which would be discarded on its completion.
+								return Flux.just(group.take(maxSize).onBackpressureBuffer());
 							}
 							else {
 								return group.window(maxSize);
@@ -130,7 +163,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 					else {
 						return Flux.just(group);
 					}
-				});
+				}, false);
 	}
 
 	/**
@@ -192,6 +225,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	public void setWindowSizeFunction(Function<Message<?>, @Nullable Integer> windowSizeFunction) {
 		Assert.notNull(windowSizeFunction, "'windowSizeFunction' must not be null");
 		this.windowSizeFunction = windowSizeFunction;
+		this.sequenceSizeWindow = false;
 	}
 
 	/**
@@ -257,7 +291,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 		Assert.state(isRunning(),
 				"The 'FluxAggregatorMessageHandler' has not been started to accept incoming messages");
 
-		this.sink.next(message);
+		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
+		Assert.state(correlationKey != null, "Correlation key cannot be null");
+		this.sink.next(Tuples.of(correlationKey, message));
 	}
 
 	@Override
