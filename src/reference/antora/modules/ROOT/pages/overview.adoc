@@ -57,7 +57,7 @@ Spring Integration is guided by the following principles:
 
 === Architectural Positioning: Application-Centric vs. Centralized ESB
 
-For developers familiar with traditional Enterprise Integration architectures, it is helpful to distinguish Spring Integration design philosophy from that of a centralized Enterprise Service Bus (ESB) such as Mule ESB, TIBCO, or BizTalk.
+For developers familiar with traditional Enterprise Integration architectures, it is helpful to distinguish the Spring Integration design philosophy from that of a centralized Enterprise Service Bus (ESB) such as Mule ESB, TIBCO, or BizTalk.
 
 ==== Centralized ESB Topology (Bus-Centric)
 
@@ -77,7 +77,7 @@ Spring Integration takes an application-centric and embedded approach to Enterpr
 Its components (channels, endpoints, transformers) live directly within the `ApplicationContext` as standard Spring beans.
 There is no external server or broker platform to administer or configure specifically for the framework itself;
 * *Decentralized and Distributed*: integration logic scales naturally alongside your application instances.
-Whether the  deployment is a monolithic system or a set of distributed cloud-native microservices, the integration rules are packaged and executed in-process;
+Whether the deployment is a monolithic system or a set of distributed cloud-native microservices, the integration rules are packaged and executed in-process;
 * *POJO-Based Programming Model*: rather than forcing developers into proprietary graphical tooling, heavy SDKs, or complex vendor-specific XML formats, Spring Integration promotes standard POJOs.
 If a custom protocol or transformation is required, it can be implemented with a simple Java method invocation or a custom bean, making the framework exceptionally easy to extend and unit-test;
 * *Simplicity & Testability*: since everything is "just Spring beans," integration flows can be fully unit-tested using standard Spring test utilities without spinning up a massive integration container environment.

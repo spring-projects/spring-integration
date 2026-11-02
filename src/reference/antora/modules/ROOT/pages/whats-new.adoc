@@ -89,7 +89,7 @@ See xref:ftp/session-factory.adoc#ftp-session-factory-proxy[Proxy Support] for m
 === JMS Support Changes
 
 Spring Framework's JMS `MessageConverter` implementations may now return `null` from `fromMessage()` when a JMS `Message` has no payload.
-A `null` payload conversion is treated as a conversion failure, a `MessageConversionException` is then thrown.
+A `null` payload conversion is treated as a conversion failure, and a `MessageConversionException` is then thrown.
 This affects `AbstractJmsChannel`, `JmsDestinationPollingSource`, `ChannelPublishingJmsMessageListener`, and `JmsOutboundGateway`.
 See xref:jms.adoc[JMS Support] for more information.
 

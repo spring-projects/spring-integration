@@ -18,10 +18,10 @@ In general, the following references have been migrated:
 There is no `RecoveryCallback` abstraction in the Spring Framework, since regular `try..catch` on the `RetryException` is enough.
 For Spring Integration, the `RecoveryCallback` makes sense as a dead-letter publisher to an error channel;
 - `org.springframework.retry.backoff.BackOffPolicy` -> `org.springframework.util.backoff.BackOff`.
-However, it is not exposed directly as a `RetryTemplate` options: rather as an internal API backed by the configuration via `RetryPolicy.Builder`;
-- The `RetryContext` in AMPQ, JMS and Apache Kafka channel adapters is replaced with an internal `AttributeAccessor` implementation.
+However, it is not exposed directly as a `RetryTemplate` option, but rather as an internal API backed by the configuration via `RetryPolicy.Builder`;
+- The `RetryContext` in AMQP, JMS and Apache Kafka channel adapters is replaced with an internal `AttributeAccessor` implementation.
 
-Therefore, the following project classes have suffered breaking changes:
+Therefore, the following project classes have undergone breaking changes:
 
 - `AmqpBaseInboundChannelAdapterSpec`
 - `AmqpBaseInboundGatewaySpec`
@@ -38,7 +38,7 @@ Therefore, the following project classes have suffered breaking changes:
 - `KafkaMessageDrivenChannelAdapter`
 
 The `RequestHandlerRetryAdvice` was rebuilt to avoid external API as much as possible.
-For the stateless retry logic, there is just enough to provide a `org.springframework.core.retry.RetryPolicy`.
+For the stateless retry logic, there is just enough to provide an `org.springframework.core.retry.RetryPolicy`.
 The stateful retry logic is activated by the `Function<Message<?>, Object> stateKeyFunction`.
 The `RetryStateGenerator` abstraction and its `SpelExpressionRetryStateGenerator` implementation have been removed due to dependency on the `spring-retry` API.
 
@@ -48,10 +48,10 @@ See xref:handler-advice/classes.adoc#retry-advice[Retry Advice] for more informa
 
 All the modules now follow the standard package structure.
 The inbound and outbound components are declared in the `inbound` and `outbound` packages, respectively.
-The `MessageChannel` implementations in the `channel` package.
+The `MessageChannel` implementations are in the `channel` package.
 Most of the modules have followed this rule from day one.
 The refactoring for package structure in this version includes the rest of modules: `spring-integration-file`, `spring-integration-ftp`, `spring-integration-ip`, `spring-integration-jdbc`, `spring-integration-jms`, `spring-integration-jmx`, `spring-integration-mail`, `spring-integration-sftp`, `spring-integration-stream` and `spring-integration-ws`.
-The classes which were in root packages are marked now as deprecated.
+The classes which were in root packages are now marked as deprecated.
 
 [[x7.0-new-components]]
 == New Components
@@ -115,7 +115,7 @@ So, later synchronizations deal with the cache only by the `maxFetchSize` until 
 See xref:sftp/max-fetch.adoc[] for more information.
 
 All the `AbstractPersistentAcceptOnceFileListFilter` implementations now use a "long file name" for the metadata entry key.
-Previously, just a file name may cause the metadata overriding problem when the same filter is used for different directories with same file names.
+Previously, using just a file name could cause the metadata overriding problem when the same filter is used for different directories with the same file names.
 For example, the `RotatingServerAdvice` may switch to directories based on the timestamp, but files are placed there with the same name according to business logic.
 See xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters] for more information.
 

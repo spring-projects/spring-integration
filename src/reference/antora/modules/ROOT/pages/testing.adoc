@@ -62,7 +62,7 @@ public void loadBalancerRef() {
 
 `TestUtils.getPropertyValue()` is based on Spring's `DirectFieldAccessor` and provides the ability to get a value from the target private property.
 As shown in the preceding example, it also supports nested properties access by using dotted notation.
-This method also comes with a generic argument for flexible casting of the extracted value to the expected type in tests logic.
+This method also comes with a generic argument for flexible casting of the extracted value to the expected type in test logic.
 
 The `createTestApplicationContext()` factory method produces a `TestApplicationContext` instance with the supplied Spring Integration environment.
 
