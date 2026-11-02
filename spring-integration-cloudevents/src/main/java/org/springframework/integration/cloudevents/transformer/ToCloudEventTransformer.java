@@ -21,7 +21,6 @@ import io.cloudevents.core.CloudEventUtils;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.provider.EventFormatProvider;
-import io.cloudevents.core.v1.CloudEventV1;
 import io.cloudevents.rw.CloudEventContextWriter;
 import io.cloudevents.rw.CloudEventRWException;
 import io.cloudevents.rw.CloudEventWriter;
@@ -267,8 +266,13 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 					.build();
 		}
 
+		Assert.state(!contentType.startsWith("application/cloudevents"), () ->
+				"The '" + contentType + "' content type is reserved for structured content mode " +
+						"and cannot be used as 'datacontenttype' in binary mode. " +
+						"Configure an 'EventFormat' or change the input message content type.");
+
 		return CloudEventUtils.toReader(cloudEvent)
-				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, headers));
+				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, headers, contentType));
 	}
 
 	@Override
@@ -333,20 +337,25 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 		private final Map<String, Object> headers;
 
-		MessageBuilderMessageWriter(String cloudEventPrefix, Map<String, Object> headers) {
+		private final String contentType;
+
+		MessageBuilderMessageWriter(String cloudEventPrefix, Map<String, Object> headers, String contentType) {
 			this.headers = new HashMap<>(headers);
 			this.cloudEventPrefix = cloudEventPrefix;
+			this.contentType = contentType;
 		}
 
 		/**
 		 * Initialize the writer with the {@link CloudEvent} specification version.
-		 * Set the specification version as a message header using the configured version key.
+		 * Set the specification version as a message header using the configured version key,
+		 * and set {@link MessageHeaders#CONTENT_TYPE} to the {@link CloudEvent} {@code datacontenttype}.
 		 * @param version the {@link CloudEvent} specification version
 		 * @return this writer for method chaining
 		 */
 		@Override
 		public MessageBuilderMessageWriter create(SpecVersion version) {
 			this.headers.put(this.cloudEventPrefix + "specversion", version.toString());
+			this.headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 			return this;
 		}
 
@@ -354,24 +363,14 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 		 * Add a {@link CloudEvent} context attribute to the message headers.
 		 * Map the {@link CloudEvent} attribute to a message header by prepending the configured prefix
 		 * to the attribute name (e.g., "id" becomes "ce-id" with the default prefix).
-		 * Also map the {@code datacontenttype} attribute to {@link MessageHeaders#CONTENT_TYPE}.
 		 * @param name the {@link CloudEvent} attribute name
 		 * @param value the {@link CloudEvent} attribute value
 		 * @return this writer for method chaining
 		 * @throws CloudEventRWException if an error occurs while setting the attribute
-		 * @throws IllegalStateException if the {@code datacontenttype} is reserved for structured content mode
 		 */
 		@Override
 		public CloudEventContextWriter withContextAttribute(String name, String value) throws CloudEventRWException {
 			this.headers.put(this.cloudEventPrefix + name, value);
-			if (CloudEventV1.DATACONTENTTYPE.equals(name)) {
-				if (value.startsWith("application/cloudevents")) {
-					throw new IllegalStateException("The '" + value + "' content type is reserved for " +
-							"structured content mode and cannot be used as 'datacontenttype' in binary mode. " +
-							"Configure an 'EventFormat' or change the input message content type.");
-				}
-				this.headers.put(MessageHeaders.CONTENT_TYPE, value);
-			}
 			return this;
 		}
 
