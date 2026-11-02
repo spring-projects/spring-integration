@@ -276,7 +276,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		restart();
+		scheduleListenerTask();
 	}
 
 	/**
@@ -304,7 +304,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 		}
 	}
 
-	private void restart() {
+	private void scheduleListenerTask() {
 		this.taskExecutor.execute(new ListenerTask());
 	}
 
@@ -366,7 +366,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 				RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
 				try {
 					if (isActive()) {
-						restart();
+						scheduleListenerTask();
 					}
 					else {
 						Runnable callback = RedisQueueMessageDrivenEndpoint.this.stopCallback;
