@@ -22,9 +22,11 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -278,6 +280,72 @@ class FluxAggregatorMessageHandlerTests {
 								.cast(Integer.class))
 				.expectNext(0, 1, 2)
 				.verifyComplete();
+
+		fluxAggregatorMessageHandler.stop();
+	}
+
+	@Test
+	void testInvalidMessagesDoNotStopAggregation() {
+		QueueChannel resultChannel = new QueueChannel();
+		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
+		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
+		fluxAggregatorMessageHandler.start();
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> fluxAggregatorMessageHandler.handleMessage(new GenericMessage<>("no correlation")))
+				.withStackTraceContaining("Correlation key cannot be null");
+
+		fluxAggregatorMessageHandler.handleMessage(
+				MessageBuilder.withPayload("no sequence size")
+						.setCorrelationId("1")
+						.build());
+
+		fluxAggregatorMessageHandler.handleMessage(
+				MessageBuilder.withPayload("zero sequence size")
+						.setCorrelationId("2")
+						.setSequenceSize(0)
+						.build());
+
+		for (int i = 0; i < 2; i++) {
+			fluxAggregatorMessageHandler.handleMessage(
+					MessageBuilder.withPayload(i)
+							.setCorrelationId("2")
+							.setSequenceSize(2)
+							.build());
+		}
+
+		Message<?> result = resultChannel.receive(10_000);
+		assertThat(result).isNotNull();
+
+		Flux<Message<?>> window = (Flux<Message<?>>) result.getPayload();
+
+		StepVerifier.create(
+						window.map(Message::getPayload)
+								.cast(Integer.class))
+				.expectNext(0, 1)
+				.verifyComplete();
+
+		fluxAggregatorMessageHandler.stop();
+	}
+
+	@Test
+	void testManyCorrelationKeys() {
+		QueueChannel resultChannel = new QueueChannel();
+		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
+		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
+		fluxAggregatorMessageHandler.start();
+
+		for (int i = 0; i < 300; i++) {
+			fluxAggregatorMessageHandler.handleMessage(
+					MessageBuilder.withPayload(i)
+							.setCorrelationId(i)
+							.setSequenceSize(1)
+							.build());
+		}
+
+		for (int i = 0; i < 300; i++) {
+			assertThat(resultChannel.receive(10_000)).isNotNull();
+		}
 
 		fluxAggregatorMessageHandler.stop();
 	}
