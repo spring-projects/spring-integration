@@ -183,6 +183,15 @@ The preceding example is a simple bean configuration, and it expects a `MongoDbF
 The `MongoDbMessageStore` expands the `Message` as a Mongo document with all nested properties by using the Spring Data Mongo mapping mechanism.
 It is useful when you need to have access to the `payload` or `headers` for auditing or analytics -- for example, against stored messages.
 
+`MongoDbMessageStore` uses Java deserialization for stored `ErrorMessage` payloads.
+Use `addAllowedPatterns(String... patterns)` to restrict the classes accepted on this path.
+Patterns can be fully qualified class names or use `*` at the beginning or end, such as `com.example.errors.*`.
+Include the exception types and other serialized classes required by your error payloads.
+Once patterns are configured, only the matching classes, plus arrays, primitives, `String`, and `Number` types, are accepted.
+Repeated calls add patterns, and patterns added after initialization also take effect for subsequent reads.
+Configure the patterns before processing messages to avoid a race with concurrent reads.
+These patterns apply to the Java-deserialized error payload, not to all MongoDB document mapping or to `ConfigurableMongoDbMessageStore`.
+
 IMPORTANT: The `MongoDbMessageStore` uses a custom `MappingMongoConverter` implementation to store `Message` instances as MongoDB documents, and there are some limitations for the properties (`payload` and `header` values) of the `Message`.
 
 Starting with version 5.1.6, the `MongoDbMessageStore` can be configured with custom converters which are propagated into an internal `MappingMongoConverter` implementation.
