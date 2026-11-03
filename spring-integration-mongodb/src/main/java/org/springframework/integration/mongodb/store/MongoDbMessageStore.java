@@ -128,7 +128,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
-	private String @Nullable [] allowedPatterns;
+	private final AllowListDeserializingConverter errorPayloadDeserializingConverter;
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory}.and the default collection name.
@@ -145,6 +145,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
+		this.errorPayloadDeserializingConverter = new AllowListDeserializingConverter();
 		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
@@ -172,15 +173,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * They do not apply to the rest of the MongoDB document mapping
 	 * (for example, the {@code _class} type information for payloads and headers),
 	 * nor to the {@link ConfigurableMongoDbMessageStore}.
+	 * The patterns are applied to the deserializer used by this store, so they take effect
+	 * even when added after the store has been initialized.
+	 * Configure the patterns before processing messages to avoid a race with concurrent reads.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
 	public void addAllowedPatterns(String @Nullable ... patterns) {
 		if (patterns != null) {
-			this.allowedPatterns =
-					this.allowedPatterns == null
-							? Arrays.copyOf(patterns, patterns.length)
-							: StringUtils.concatenateStringArrays(this.allowedPatterns, patterns);
+			this.errorPayloadDeserializingConverter.addAllowedPatterns(patterns);
 		}
 	}
 
@@ -559,12 +560,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			converters.add(new DocumentToMessageHistoryConverter());
 			converters.add(new DocumentToGenericMessageConverter());
 			converters.add(new DocumentToMutableMessageConverter());
-			DocumentToErrorMessageConverter docToErrorMessageConverter = new DocumentToErrorMessageConverter();
-			if (MongoDbMessageStore.this.allowedPatterns != null) {
-				docToErrorMessageConverter.deserializingConverter
-						.addAllowedPatterns(MongoDbMessageStore.this.allowedPatterns);
-			}
-			converters.add(docToErrorMessageConverter);
+			converters.add(new DocumentToErrorMessageConverter());
 			converters.add(new DocumentToAdviceMessageConverter());
 			converters.add(new ThrowableToBytesConverter());
 
@@ -835,8 +831,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@ReadingConverter
 	private final class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
 
-		private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
-
 		DocumentToErrorMessageConverter() {
 		}
 
@@ -848,7 +842,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					MongoDbMessageStore.this.converter.normalizeHeaders(messageHeaders);
 
 			Binary binary = (Binary) source.get("payload");
-			Object payload = this.deserializingConverter.convert(Objects.requireNonNull(binary).getData());
+			Object payload = MongoDbMessageStore.this.errorPayloadDeserializingConverter
+					.convert(Objects.requireNonNull(binary).getData());
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers); // NOSONAR not null
 			enhanceHeaders(message.getHeaders(), headers);
 
