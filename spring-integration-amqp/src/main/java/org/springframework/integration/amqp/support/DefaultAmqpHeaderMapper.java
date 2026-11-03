@@ -117,7 +117,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					.acceptIfHasText(AmqpHeaders.MESSAGE_ID, amqpMessageProperties.getMessageId(), headers::put);
 			Integer priority = amqpMessageProperties.getPriority();
 			JavaUtils.INSTANCE
-					.acceptIfCondition(priority > 0, IntegrationMessageHeaderAccessor.PRIORITY, priority, headers::put)
+					.acceptIfCondition(priority != null && priority > 0,
+							IntegrationMessageHeaderAccessor.PRIORITY, priority, headers::put)
 					.acceptIfNotNull(AmqpHeaders.RECEIVED_EXCHANGE, amqpMessageProperties.getReceivedExchange(),
 							headers::put)
 					.acceptIfHasText(AmqpHeaders.RECEIVED_ROUTING_KEY, amqpMessageProperties.getReceivedRoutingKey(),
@@ -344,6 +345,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	/**
 	 * Construct a default inbound header mapper.
+	 * Only standard AMQP headers are mapped from inbound requests;
 	 * @return the mapper.
 	 * @since 4.3
 	 * @see #inboundRequestHeaders()
@@ -365,11 +367,16 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	/**
+	 * Return the default request header patterns for an inbound mapper.
+	 * <p>Starting with version 5.5.23, only standard AMQP headers are mapped
+	 * ({@link #STANDARD_REQUEST_HEADER_NAME_PATTERN}); user-defined headers are
+	 * supplied by the remote producer and are not trusted. Opt in explicitly via
+	 * {@link #setRequestHeaderNames(String...)}, e.g.{@code STANDARD_REQUEST_HEADERS, myHeader*}.
 	 * @return the default request headers for an inbound mapper.
 	 * @since 4.3
 	 */
 	public static String[] inboundRequestHeaders() {
-		return new String[] {"*"};
+		return new String[] {STANDARD_REQUEST_HEADER_NAME_PATTERN};
 	}
 
 	/**

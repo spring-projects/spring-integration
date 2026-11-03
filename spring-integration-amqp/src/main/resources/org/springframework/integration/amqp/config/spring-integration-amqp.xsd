@@ -467,7 +467,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					The header mapper to use when receiving and 'extract-payload' is true. The default mapper is
-					DefaultAmqpHeaderMapper.inboundMapper() which maps all headers.
+					DefaultAmqpHeaderMapper.inboundMapper() which maps only standard AMQP headers.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

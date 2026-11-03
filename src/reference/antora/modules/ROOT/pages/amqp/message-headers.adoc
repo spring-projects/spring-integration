@@ -4,22 +4,37 @@
 [[overview]]
 == Overview
 
-The Spring Integration AMQP Adapters automatically map all AMQP properties and headers.
-(This is a change from 4.3 - previously, only standard headers were mapped).
+The Spring Integration AMQP adapters map standard AMQP properties automatically.
+The default inbound request mapper uses `STANDARD_REQUEST_HEADERS`, so user-defined AMQP application headers require an explicit opt-in.
 By default, these properties are copied to and from Spring Integration `MessageHeaders` by using the
 https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[`DefaultAmqpHeaderMapper`].
 
 You can pass in your own implementation of AMQP-specific header mappers, as the adapters have properties to support doing so.
 
-Any user-defined headers within the AMQP https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`] are copied to or from an AMQP message, unless explicitly negated by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultAmqpHeaderMapper`.
+To receive selected user-defined headers from AMQP https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`], configure `request-header-names` on the inbound adapter or gateway, or `setRequestHeaderNames()` on its `DefaultAmqpHeaderMapper`.
+The inbound default preserves standard AMQP metadata, such as `contentType` and `amqp_deliveryTag`, as well as the JSON type headers recognized by the mapper.
+Once you configure request header patterns explicitly, include `STANDARD_REQUEST_HEADERS` to retain the standard headers:
+
+[source,java]
+----
+DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+headerMapper.setRequestHeaderNames("STANDARD_REQUEST_HEADERS", "orderId", "tenantId");
+----
+
+For XML configuration, the equivalent is `request-header-names="STANDARD_REQUEST_HEADERS,orderId,tenantId"`.
+Inbound reply mapping and outbound mapper defaults are unchanged.
 By default, for an outbound mapper, no `x-*` headers are mapped.
 See the xref:amqp/message-headers.adoc#header-copy-caution[caution] that appears later in this section for why.
 
-To override the default and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
-`STANDARD_REPLY_HEADERS` in the properties.
+To map only standard headers explicitly, use `STANDARD_REQUEST_HEADERS` and
+`STANDARD_REPLY_HEADERS` in the corresponding properties.
 
 TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as `thing*` or `\*thing`) to be matched.
 The `*` matches all headers.
+
+IMPORTANT: Only opt in to headers your application needs from external publishers.
+Mapping all application headers with `*` or `NON_STANDARD_HEADERS` can admit framework-significant names such as `replyChannel` and `errorChannel`, allowing the publisher to influence downstream routing.
+Custom header mappers must also enforce the application's inbound header policy.
 
 Starting with version 4.1, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) lets the `NON_STANDARD_HEADERS` token be configured for the `requestHeaderNames` and `replyHeaderNames` properties (in addition to the existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
 
@@ -63,7 +78,7 @@ This reply message may be federated back to the sending broker, which may think 
 If you wish to use the convenience of wildcard header mapping, you may need to filter out some headers in the downstream flow.
 For example, to avoid copying the `x-received-from` header back to the reply you can use `<int:header-filter ... header-names="x-received-from">` before sending the reply to the AMQP inbound gateway.
 Alternatively, you can explicitly list those properties that you actually want mapped, instead of using wildcards.
-For these reasons, for inbound messages, the mapper (by default) does not map any `x-*` headers.
+The default inbound request mapper maps only recognized standard headers and excludes `x-*` application headers.
 It also does not map the `deliveryMode` to the `amqp_deliveryMode` header, to avoid propagation of that header from an inbound message to an outbound message.
 Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapped on output.
 
