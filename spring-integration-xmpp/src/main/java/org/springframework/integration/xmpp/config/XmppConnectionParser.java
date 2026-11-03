@@ -41,7 +41,7 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 			parserContext.getReaderContext().error("One of 'service-name' or 'user' attributes is required", element);
 		}
 
-		String[] attributes = {"user", "password", "resource", "host", "port", "service-name",
+		String[] attributes = {"user", "password", "resource", "host", "port", "service-name", "security-mode",
 				IntegrationNamespaceUtils.AUTO_STARTUP, IntegrationNamespaceUtils.PHASE};
 
 		for (String attribute : attributes) {
