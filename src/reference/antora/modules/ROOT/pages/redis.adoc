@@ -314,6 +314,35 @@ These attributes are mutually exclusive.
 [[redis-queue-inbound-channel-adapter]]
 === Redis Queue Inbound Channel Adapter
 
+[[redis-queue-deserialization]]
+==== Queue Deserialization
+
+`RedisQueueMessageDrivenEndpoint`, `RedisQueueInboundGateway`, and `RedisQueueOutboundGateway` use `AllowListJdkSerializationRedisSerializer` by default.
+For the outbound gateway, the restriction applies when deserializing replies.
+The serializer uses the Java serialization wire format and permits these class patterns by default:
+
+* `java.lang.*`
+* `java.util.*`
+* `java.time.*`
+* `org.springframework.messaging.MessageHeaders`
+* `org.springframework.messaging.support.*`
+* `org.springframework.integration.message.*`
+* `org.springframework.integration.support.MutableMessage*`
+
+The underlying converter also always permits arrays, primitives, `String`, and `Number` types.
+Other payload or header classes must be explicitly allowed with `addAllowedPatterns(String... patterns)` on the endpoint before processing messages.
+
+Patterns can name a class or use `*` at the beginning or end of a class name.
+Allow only trusted types, including the types nested in payloads and headers; an unrestricted `*` removes the protection.
+An unlisted class causes deserialization to fail with a `SerializationException`.
+
+Endpoint allowed patterns apply only to the default serializer.
+When supplying a custom `RedisSerializer` through `setSerializer()` or the XML `serializer` attribute, configure its restrictions directly.
+For example, a `StringRedisSerializer` is suitable when both producers and consumers exchange strings rather than Java-serialized messages.
+The queue outbound channel adapter and the Redis message stores retain their existing serializer defaults.
+
+==== Inbound Adapter Configuration
+
 Spring Integration 3.0 introduced a queue inbound channel adapter to "`pop`" messages from a Redis list.
 By default, it uses "`right pop`", but can be configured to use "`left pop`" instead.
 The adapter is message-driven.

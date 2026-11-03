@@ -4,6 +4,7 @@
 
 package org.springframework.integration.redis.inbound;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -397,6 +398,56 @@ class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	void defaultSerializerRejectsNotAllowedClasses() throws InterruptedException {
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.setEnableDefaultSerializer(false);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
+
+		redisTemplate.boundListOps(TEST_QUEUE).leftPush(new NotAllowedPayload("rejected"));
+		redisTemplate.boundListOps(TEST_QUEUE).leftPush("testing");
+
+		PollableChannel channel = new QueueChannel();
+		PollableChannel errorChannel = new QueueChannel();
+
+		RedisQueueMessageDrivenEndpoint endpoint =
+				new RedisQueueMessageDrivenEndpoint(TEST_QUEUE, this.connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
+		endpoint.setOutputChannel(channel);
+		endpoint.setErrorChannel(errorChannel);
+		endpoint.setReceiveTimeout(10);
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+
+		Message<Object> receive = (Message<Object>) errorChannel.receive(10000);
+		assertThat(receive).isInstanceOf(ErrorMessage.class);
+		assertThat((Throwable) receive.getPayload())
+				.rootCause()
+				.isInstanceOf(SecurityException.class)
+				.hasMessageContaining(NotAllowedPayload.class.getName());
+
+		receive = (Message<Object>) channel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("testing");
+
+		endpoint.addAllowedPatterns(NotAllowedPayload.class.getName());
+
+		redisTemplate.boundListOps(TEST_QUEUE).leftPush(new NotAllowedPayload("allowed"));
+
+		receive = (Message<Object>) channel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(new NotAllowedPayload("allowed"));
+
+		CountDownLatch stopLatch = new CountDownLatch(1);
+		endpoint.stop(stopLatch::countDown);
+		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
 	private void waitListening(RedisQueueMessageDrivenEndpoint endpoint) throws InterruptedException {
 		int n = 0;
 		do {
@@ -409,6 +460,28 @@ class RedisQueueMessageDrivenEndpointTests implements RedisContainerTest {
 		while (!endpoint.isListening());
 
 		assertThat(n < 100).isTrue();
+	}
+
+	static class NotAllowedPayload implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		private final String value;
+
+		NotAllowedPayload(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			return o instanceof NotAllowedPayload && this.value.equals(((NotAllowedPayload) o).value);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.value.hashCode();
+		}
+
 	}
 
 }
