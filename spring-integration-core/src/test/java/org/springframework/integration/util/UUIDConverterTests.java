@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Dave Syer
@@ -40,14 +39,9 @@ public class UUIDConverterTests {
 	@Test
 	public void testConvertAlmostUUIDString() {
 		String name = "1-2-3-4";
-		try {
-			UUID.fromString(name);
-			fail("IllegalArgumentException expected");
-		}
-		catch (IllegalArgumentException e) {
-			String message = e.getMessage();
-			assertThat(message.contains("Invalid UUID string")).as("Wrong message: " + message).isTrue();
-		}
+		assertThatThrownBy(() -> UUID.fromString(name))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Invalid UUID string");
 		assertThat(UUIDConverter.getUUID(name)).isNotNull();
 	}
 

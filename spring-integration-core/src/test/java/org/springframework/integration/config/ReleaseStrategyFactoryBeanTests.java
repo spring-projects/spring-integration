@@ -15,7 +15,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Gary Russell
@@ -32,16 +32,11 @@ public class ReleaseStrategyFactoryBeanTests {
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.setTarget(foo);
 		factory.setMethodName("doRelease");
-		try {
-			factory.afterPropertiesSet();
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("Target object of type " +
-					"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
-					"has no eligible methods for handling Messages.");
-		}
+		assertThatThrownBy(factory::afterPropertiesSet)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("Target object of type " +
+						"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
+						"has no eligible methods for handling Messages.");
 	}
 
 	@Test
