@@ -76,6 +76,18 @@
 					<xsd:union memberTypes="subscriptionModeEnumeration xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="security-mode" default="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The TLS security mode for the XMPP connection.
+						Values can be "required" (default), "ifpossible" or "disabled".
+						"ifpossible" must only be used in trusted environments.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="securityModeEnumeration xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -91,6 +103,14 @@
 			<xsd:enumeration value="accept_all"/>
 			<xsd:enumeration value="manual"/>
 			<xsd:enumeration value="reject_all"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="securityModeEnumeration">
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="required"/>
+			<xsd:enumeration value="ifpossible"/>
+			<xsd:enumeration value="disabled"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 

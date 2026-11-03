@@ -71,6 +71,14 @@ To create a basic XMPP connection, you can use the convenience of the namespace,
 NOTE: For added convenience, you can rely on the default naming convention and omit the `id` attribute.
 The default name (`xmppConnection`) is used for this connection bean.
 
+The connection requires TLS by default and fails if TLS cannot be negotiated.
+Use the `security-mode` attribute of `<int-xmpp:xmpp-connection>` or `XmppConnectionFactoryBean.setSecurityMode(ConnectionConfiguration.SecurityMode)` to configure this behavior.
+The supported values are `required` (the default), `ifpossible`, and `disabled`.
+Use `ifpossible` or `disabled` only in trusted environments, such as isolated tests: `ifpossible` permits plaintext when the server does not advertise STARTTLS and does not protect against STARTTLS stripping.
+
+When supplying an `XMPPTCPConnectionConfiguration` through `setConnectionConfiguration()`, configure its security mode directly on its builder.
+The factory's `securityMode` property does not override a supplied connection configuration.
+
 If the XMPP connection goes stale, reconnection attempts are made with an automatic login as long as the previous connection state was logged (authenticated).
 We also register a `ConnectionListener`, which logs connection events if the `DEBUG` logging level is enabled.
 

@@ -4,16 +4,20 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.junit.jupiter.api.Test;
+import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatObject;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -21,22 +25,60 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Philipp Etschel
+ * @author Glenn Renfro
  */
-public class XmppConnectionFactoryBeanTests {
+class XmppConnectionFactoryBeanTests {
 
 	@Test
-	public void testXmppConnectionFactoryBean() throws Exception {
+	void testXmppConnectionFactoryBean() throws XmppStringprepException {
 		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
 		xmppConnectionFactoryBean.setConnectionConfiguration(
 				XMPPTCPConnectionConfiguration.builder()
-						.setXmppDomain("foo")
+						.setXmppDomain("testDomain")
 						.build());
 		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
 		assertThat(connection).isNotNull();
 	}
 
 	@Test
-	public void testXmppConnectionFactoryBeanViaConfig() {
+	void testSecurityModeRequiredByDefault() throws XmppStringprepException {
+		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
+		xmppConnectionFactoryBean.setHost("localhost");
+		xmppConnectionFactoryBean.setUser("happy.user@my.domain");
+		xmppConnectionFactoryBean.setPassword("testpass");
+		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
+		assertThatObject(TestUtils.getPropertyValue(connection, "config.securityMode"))
+				.isEqualTo(SecurityMode.required);
+	}
+
+	@Test
+	void testSecurityModeExplicitlyConfigured() throws XmppStringprepException {
+		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
+		xmppConnectionFactoryBean.setHost("localhost");
+		xmppConnectionFactoryBean.setUser("happy.user@my.domain");
+		xmppConnectionFactoryBean.setPassword("testpass");
+		xmppConnectionFactoryBean.setSecurityMode(SecurityMode.disabled);
+		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
+		assertThatObject(TestUtils.getPropertyValue(connection, "config.securityMode"))
+				.isEqualTo(SecurityMode.disabled);
+	}
+
+	@Test
+	void testSecurityModeNotAppliedToProvidedConnectionConfiguration() throws XmppStringprepException {
+		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
+		xmppConnectionFactoryBean.setSecurityMode(SecurityMode.required);
+		xmppConnectionFactoryBean.setConnectionConfiguration(
+				XMPPTCPConnectionConfiguration.builder()
+						.setXmppDomain("testDomain")
+						.setSecurityMode(SecurityMode.ifpossible)
+						.build());
+		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
+		assertThatObject(TestUtils.getPropertyValue(connection, "config.securityMode"))
+				.isEqualTo(SecurityMode.ifpossible);
+	}
+
+	@Test
+	void testXmppConnectionFactoryBeanViaConfig() {
 		assertThatNoException()
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml",
@@ -45,7 +87,7 @@ public class XmppConnectionFactoryBeanTests {
 	}
 
 	@Test
-	public void testXmppConnectionFactoryBeanNoRoster() throws Exception {
+	void testXmppConnectionFactoryBeanNoRoster() throws Exception {
 		XmppConnectionFactoryBean xmppConnectionFactoryBean =
 				new XmppConnectionFactoryBean() {
 
@@ -65,7 +107,7 @@ public class XmppConnectionFactoryBeanTests {
 	}
 
 	@Test
-	public void testXmppConnectionFactoryBeanWithRoster() throws Exception {
+	void testXmppConnectionFactoryBeanWithRoster() throws Exception {
 		XmppConnectionFactoryBean xmppConnectionFactoryBean =
 				new XmppConnectionFactoryBean() {
 
