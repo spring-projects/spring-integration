@@ -22,6 +22,7 @@ import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.Ba
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -183,14 +184,15 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setContentEncoding("test.contentEncoding");
 		amqpProperties.setContentLength(99L);
 		amqpProperties.setContentType("test.contentType");
-		amqpProperties.setHeader("foo", "foo");
-		amqpProperties.setHeader("bar", "bar");
+		amqpProperties.setHeader("test1", "test1");
+		amqpProperties.setHeader("test2", "test2");
+		amqpProperties.setHeader(MessageHeaders.REPLY_CHANNEL, "testChannel");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage, mock());
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertThat(siMessage.getHeaders().get("bar")).isNotNull();
-		assertThat(siMessage.getHeaders().get("foo")).isNotNull();
+		assertThat(siMessage.getHeaders())
+				.doesNotContainKeys("test1", "test2", MessageHeaders.REPLY_CHANNEL);
 		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING)).isNotNull();
 		assertThat(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID)).isNotNull();
 		assertThat(siMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNotNull();

@@ -215,25 +215,25 @@ public class ChannelTests implements RabbitTestContainer {
 
 	@Test
 	public void extractPayloadTests() {
-		Foo foo = new Foo("bar");
-		Message<?> message = MessageBuilder.withPayload(foo).setHeader("baz", "qux").build();
+		Foo testPayload = new Foo("testPayload");
+		Message<?> message = MessageBuilder.withPayload(testPayload).setHeader("testKey", "testValue").build();
 		this.pollableWithEP.send(message);
 		Message<?> received = this.pollableWithEP.receive(10000);
 		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo(foo);
-		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
+		assertThat(received.getPayload()).isEqualTo(testPayload);
+		assertThat(received.getHeaders()).doesNotContainKey("testKey");
 
 		this.withEP.send(message);
 		received = this.out.receive(10000);
 		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo(foo);
-		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
+		assertThat(received.getPayload()).isEqualTo(testPayload);
+		assertThat(received.getHeaders()).doesNotContainKey("testKey");
 
 		this.pubSubWithEP.send(message);
 		received = this.out.receive(10000);
 		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo(foo);
-		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
+		assertThat(received.getPayload()).isEqualTo(testPayload);
+		assertThat(received.getHeaders()).doesNotContainKey("testKey");
 
 		assertThat(TestUtils.<AmqpHeaderMapper>getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"))
 				.isSameAs(this.mapperIn);

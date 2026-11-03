@@ -21,6 +21,8 @@ import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -39,6 +41,7 @@ import static org.mockito.Mockito.mock;
  * @author Stephane Nicoll
  * @author Artem Bilan
  * @author Steve Singer
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -270,34 +273,35 @@ public class DefaultAmqpHeaderMapperTests {
 		DefaultAmqpHeaderMapper mapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setReceivedDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
-		amqpProperties.getHeaders().put("foo", "bar");
-		amqpProperties.getHeaders().put("x-foo", "bar");
+		amqpProperties.getHeaders().put("test", "testVal");
+		amqpProperties.getHeaders().put("x-test", "xTestVal");
 		Map<String, Object> headers = mapper.toHeadersFromRequest(amqpProperties);
 		assertThat(headers.get(AmqpHeaders.DELIVERY_MODE)).isNull();
 		assertThat(headers.get(AmqpHeaders.RECEIVED_DELIVERY_MODE)).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
-		assertThat(headers.get("foo")).isEqualTo("bar");
-		assertThat(headers.get("x-foo")).isEqualTo("bar");
+		assertThat(headers).doesNotContainKeys("test", "x-test");
 
+		headers.put("test", "testVal");
+		headers.put("x-test", "xTestVal");
 		amqpProperties = new MessageProperties();
 		headers.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		mapper.fromHeadersToReply(new MessageHeaders(headers), amqpProperties);
 		assertThat(amqpProperties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
-		assertThat(amqpProperties.getHeaders().get("foo")).isEqualTo("bar");
-		assertThat(amqpProperties.getHeaders().get("x-foo")).isNull();
+		assertThat(amqpProperties.getHeaders().get("test")).isEqualTo("testVal");
+		assertThat(amqpProperties.getHeaders().get("x-test")).isNull();
 
 		mapper = DefaultAmqpHeaderMapper.outboundMapper();
 		mapper.fromHeadersToRequest(new MessageHeaders(headers), amqpProperties);
 		assertThat(amqpProperties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
-		assertThat(amqpProperties.getHeaders().get("foo")).isEqualTo("bar");
-		assertThat(amqpProperties.getHeaders().get("x-foo")).isNull();
+		assertThat(amqpProperties.getHeaders().get("test")).isEqualTo("testVal");
+		assertThat(amqpProperties.getHeaders().get("x-test")).isNull();
 
 		amqpProperties.setReceivedDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
-		amqpProperties.setHeader("x-death", "foo");
+		amqpProperties.setHeader("x-death", "testDeath");
 		headers = mapper.toHeadersFromReply(amqpProperties);
 		assertThat(headers.get(AmqpHeaders.RECEIVED_DELIVERY_MODE)).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
 		assertThat(headers.get(AmqpHeaders.DELIVERY_MODE)).isNull();
-		assertThat(headers.get("foo")).isEqualTo("bar");
-		assertThat(headers.get("x-death")).isEqualTo("foo");
+		assertThat(headers.get("test")).isEqualTo("testVal");
+		assertThat(headers.get("x-death")).isEqualTo("testDeath");
 	}
 
 	@Test
@@ -322,6 +326,130 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(headers)
 				.doesNotContainKeys(JsonHeaders.RESOLVABLE_TYPE, JsonHeaders.TYPE_ID)
 				.containsKey(DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME);
+	}
+
+	@Test
+	void inboundMapperDoesNotMapUserDefinedHeadersByDefault() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setHeader(MessageHeaders.REPLY_CHANNEL, "outboundFtpChannel");
+		amqpProperties.setHeader(MessageHeaders.ERROR_CHANNEL, "outboundFtpChannel");
+		amqpProperties.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP, "outboundFtpChannel");
+		amqpProperties.setHeader("legitimate", "value");
+		amqpProperties.setContentType("test.contentType");
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders)
+				.doesNotContainKeys(MessageHeaders.REPLY_CHANNEL, MessageHeaders.ERROR_CHANNEL,
+						IntegrationMessageHeaderAccessor.ROUTING_SLIP, "legitimate")
+				.containsEntry(AmqpHeaders.CONTENT_TYPE, "test.contentType");
+	}
+
+	@Test
+	void inboundMapperMapsUserDefinedHeadersWhenOptedIn() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		headerMapper.setRequestHeaderNames("*");
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setHeader("legitimate", "value");
+		amqpProperties.setContentType("test.contentType");
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders)
+				.containsEntry("legitimate", "value")
+				.containsEntry(AmqpHeaders.CONTENT_TYPE, "test.contentType");
+	}
+
+	@Test
+	void inboundMapperMapsStandardHeadersByDefault() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setReceivedExchange("test.exchange");
+		amqpProperties.setReceivedRoutingKey("test.routingKey");
+		amqpProperties.setDeliveryTag(1L);
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setReplyTo("test.replyTo");
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders).contains(
+				Map.entry(AmqpHeaders.RECEIVED_EXCHANGE, "test.exchange"),
+				Map.entry(AmqpHeaders.RECEIVED_ROUTING_KEY, "test.routingKey"),
+				Map.entry(AmqpHeaders.DELIVERY_TAG, 1L),
+				Map.entry(AmqpHeaders.CONTENT_TYPE, "test.contentType"),
+				Map.entry(AmqpHeaders.REPLY_TO, "test.replyTo"));
+	}
+
+	@Test
+	void inboundMapperWithOnlyNamedUserHeaderDropsStandardHeaders() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		headerMapper.setRequestHeaderNames("test");
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setHeader("test", "value");
+		amqpProperties.setHeader("other", "otherValue");
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setDeliveryTag(1L);
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders)
+				.containsEntry("test", "value")
+				.doesNotContainKeys("other", AmqpHeaders.CONTENT_TYPE, AmqpHeaders.DELIVERY_TAG);
+	}
+
+	@Test
+	void inboundMapperMapsStandardHeadersPlusNamedUserHeaders() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		headerMapper.setRequestHeaderNames(AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN, "test");
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setReceivedRoutingKey("test.routingKey");
+		amqpProperties.setHeader("test", "value");
+		amqpProperties.setHeader("other", "otherValue");
+		amqpProperties.setHeader(MessageHeaders.REPLY_CHANNEL, "outboundFtpChannel");
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders)
+				.containsEntry(AmqpHeaders.CONTENT_TYPE, "test.contentType")
+				.containsEntry(AmqpHeaders.RECEIVED_ROUTING_KEY, "test.routingKey")
+				.containsEntry("test", "value")
+				.doesNotContainKeys("other", MessageHeaders.REPLY_CHANNEL);
+	}
+
+	@Test
+	void inboundMapperMapsStandardHeadersPlusWildcardUserHeaders() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		headerMapper.setRequestHeaderNames(AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN, "test*");
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("test1", "value1");
+		amqpProperties.setHeader("test2", "value2");
+		amqpProperties.setHeader("other", "otherValue");
+		amqpProperties.setHeader(MessageHeaders.ERROR_CHANNEL, "outboundFtpChannel");
+
+		Map<String, Object> requestHeaders = headerMapper.toHeadersFromRequest(amqpProperties);
+
+		assertThat(requestHeaders)
+				.containsEntry(AmqpHeaders.CONTENT_TYPE, "test.contentType")
+				.containsEntry("test1", "value1")
+				.containsEntry("test2", "value2")
+				.doesNotContainKeys("other", MessageHeaders.ERROR_CHANNEL);
+	}
+
+	@Test
+	void inboundMapperReplyPathMapsUserHeadersButExcludesXPrefixed() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setHeader("test", "value");
+		amqpProperties.setHeader("x-other", "otherValue");
+
+		Map<String, Object> replyHeaders = headerMapper.toHeadersFromReply(amqpProperties);
+
+		assertThat(replyHeaders)
+				.containsEntry("test", "value")
+				.doesNotContainKey("x-other");
 	}
 
 }
