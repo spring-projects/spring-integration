@@ -7,6 +7,7 @@ package org.springframework.integration.xmpp.config;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
@@ -34,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Philipp Etschel
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 2.0
  *
@@ -58,6 +60,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	private int port = 5222; // NOSONAR magic number
 
 	private Roster.@Nullable SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
+
+	private ConnectionConfiguration.SecurityMode securityMode = ConnectionConfiguration.SecurityMode.required;
 
 	private boolean autoStartup = true;
 
@@ -122,6 +126,20 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		this.subscriptionMode = subscriptionMode;
 	}
 
+	/**
+	 * Set the TLS security mode for the connection.
+	 * The default is {@link ConnectionConfiguration.SecurityMode#required}:
+	 * the connection fails if TLS cannot be negotiated.
+	 * Use {@link ConnectionConfiguration.SecurityMode#disabled} or
+	 * {@link ConnectionConfiguration.SecurityMode#ifpossible} only for trusted environments, e.g. tests.
+	 * <p>Ignored when {@link #setConnectionConfiguration(XMPPTCPConnectionConfiguration)} is provided.
+	 * @param securityMode the {@link ConnectionConfiguration.SecurityMode} to use.
+	 * @since 5.5.23
+	 */
+	public void setSecurityMode(ConnectionConfiguration.SecurityMode securityMode) {
+		this.securityMode = securityMode;
+	}
+
 	@Override
 	public Class<? extends XMPPConnection> getObjectType() {
 		return XMPPConnection.class;
@@ -135,7 +153,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			XMPPTCPConnectionConfiguration.Builder builder =
 					XMPPTCPConnectionConfiguration.builder()
 							.setHost(this.host)
-							.setPort(this.port);
+							.setPort(this.port)
+							.setSecurityMode(this.securityMode);
 
 			if (StringUtils.hasText(this.resource)) {
 				builder.setResource(this.resource);

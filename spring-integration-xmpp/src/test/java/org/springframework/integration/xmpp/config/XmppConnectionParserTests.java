@@ -4,15 +4,18 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -22,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Glenn Renfro
  */
-public class XmppConnectionParserTests {
+class XmppConnectionParserTests {
 
 	@Test
-	public void testSimpleConfiguration() {
+	void testSimpleConfiguration() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
 		XMPPConnection connection = ac.getBean("connection", XMPPConnection.class);
@@ -37,6 +40,8 @@ public class XmppConnectionParserTests {
 		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "resource")).isNull();
 		assertThat(TestUtils.<Roster.SubscriptionMode>getPropertyValue(xmppFb, "subscriptionMode").toString())
 				.isEqualTo("accept_all");
+		assertThat(TestUtils.<SecurityMode>getPropertyValue(connection, "config.securityMode"))
+				.isEqualTo(SecurityMode.required);
 
 		xmppFb = ac.getBean("&connectionWithResource", XmppConnectionFactoryBean.class);
 		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "resource")).isEqualTo("Smack");
@@ -45,7 +50,7 @@ public class XmppConnectionParserTests {
 	}
 
 	@Test
-	public void testCompleteConfiguration() {
+	void testCompleteConfiguration() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-complete.xml", this.getClass());
 		XMPPConnection connection = ac.getBean("connection", XMPPConnection.class);
@@ -53,10 +58,21 @@ public class XmppConnectionParserTests {
 		assertThat(connection.isConnected()).isFalse();
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
 		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "user")).isEqualTo("happy.user");
-		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "password")).isEqualTo("blah");
+		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "password")).isEqualTo("testPassword");
 		assertThat(TestUtils.<String>getPropertyValue(xmppFb, "resource")).isEqualTo("SpringSource");
 		assertThat(TestUtils.getPropertyValue(xmppFb, "subscriptionMode").toString()).isEqualTo("reject_all");
+		assertThat(TestUtils.<SecurityMode>getPropertyValue(connection, "config.securityMode"))
+				.isEqualTo(SecurityMode.ifpossible);
 		ac.close();
+	}
+
+	@Test
+	void testInvalidSecurityMode() {
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("XmppConnectionParserTests-invalidSecurityMode.xml",
+								getClass()))
+				.withMessageContaining("securityMode");
 	}
 
 }

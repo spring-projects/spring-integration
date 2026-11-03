@@ -17,12 +17,13 @@
 
 	<int-xmpp:xmpp-connection id="connection"
 							  user="happy.user"
-							  password="blah"
+							  password="testPassword"
 							  host="localhost"
 							  auto-startup="false"
 							  resource="SpringSource"
 							  port="6222"
 							  service-name="foogle.com"
-							  subscription-mode="${sub.mode}"/>
+							  subscription-mode="${sub.mode}"
+							  security-mode="ifpossible"/>
 
 </beans>
