@@ -62,6 +62,20 @@ The protocol (FTP or FTPS) that an adapter uses depends on the type of session f
 
 NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer).
 
+[[ftps-server-certificate-validation]]
+== FTPS Server Certificate Validation
+
+The `DefaultFtpsSessionFactory` fully validates the certificate of the FTPS server by default.
+
+When no `trustManager` is configured, the JRE default `TrustManagerFactory` is used, so the server certificate chain must pass the PKIX validation against the trust store of the JVM (by default, the `cacerts` of the JRE, or the one set by the `javax.net.ssl.trustStore` system property).
+A `trustManager` set on the session factory is used as is.
+
+In addition, the `endpointCheckingEnabled` property (`true` by default) requires the server certificate to match the host name the client connects to.
+
+IMPORTANT: An application that connects to an FTPS server with a self-signed certificate, a certificate issued by a private certificate authority, or a certificate that does not match the configured `host` fails to create a session.
+For such a server, provide a `trustManager` that trusts its certificate, or add that certificate (or its certificate authority) to the trust store of the JVM.
+Set `endpointCheckingEnabled` to `false` only when connecting to a trusted internal server that cannot present a certificate matching its host name.
+
 [[ftp-session-factory-proxy]]
 == Proxy Support
 
