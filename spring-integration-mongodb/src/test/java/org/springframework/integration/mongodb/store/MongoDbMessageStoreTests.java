@@ -72,7 +72,8 @@ class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
-		mongoDbMessageStore.addAllowedPatterns("org.springframework.integration.mongodb.store.*");
+		mongoDbMessageStore.addAllowedPatterns(
+				"java.lang.*", "java.util.*", "org.springframework.integration.mongodb.store.*");
 
 		ErrorMessage errorMessage = new ErrorMessage(new StoreFailureException("trusted failure"));
 		mongoDbMessageStore.addMessage(errorMessage);
