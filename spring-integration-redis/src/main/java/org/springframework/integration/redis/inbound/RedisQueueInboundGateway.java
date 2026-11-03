@@ -5,6 +5,9 @@
 package org.springframework.integration.redis.inbound;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import org.jspecify.annotations.Nullable;
@@ -16,12 +19,12 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
+import org.springframework.integration.redis.support.AllowListJdkSerializationRedisSerializer;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -60,6 +63,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean serializerExplicitlySet;
+
+	private final Set<String> allowedPatterns = new LinkedHashSet<>();
 
 	@SuppressWarnings("NullAway.Init")
 	private Executor taskExecutor;
@@ -103,7 +108,27 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	@Override
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		if (!this.serializerExplicitlySet) {
-			this.serializer = new JdkSerializationRedisSerializer(beanClassLoader);
+			AllowListJdkSerializationRedisSerializer allowListSerializer =
+					new AllowListJdkSerializationRedisSerializer(beanClassLoader);
+			allowListSerializer.addAllowedPatterns(this.allowedPatterns.toArray(new String[0]));
+			this.serializer = allowListSerializer;
+		}
+	}
+
+	/**
+	 * Add package/class patterns to the allowed list for the default
+	 * {@link AllowListJdkSerializationRedisSerializer}.
+	 * Ignored if a custom {@link #setSerializer(RedisSerializer)} is provided.
+	 * @param patterns the patterns to add.
+	 * @since 5.5.23
+	 * @see AllowListJdkSerializationRedisSerializer#addAllowedPatterns(String...)
+	 */
+	public void addAllowedPatterns(String... patterns) {
+		Collections.addAll(this.allowedPatterns, patterns);
+		if (!this.serializerExplicitlySet
+				&& this.serializer instanceof AllowListJdkSerializationRedisSerializer) {
+
+			((AllowListJdkSerializationRedisSerializer) this.serializer).addAllowedPatterns(patterns);
 		}
 	}
 
