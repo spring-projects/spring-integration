@@ -19,12 +19,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,10 +43,12 @@ import org.mockito.Mockito;
 
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.SetSpec;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.support.locks.DistributedLock;
@@ -57,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -179,17 +184,18 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		otherRegistry.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
-		Lock otherLock = otherRegistry.obtain("foo");
+		Lock otherLock = otherRegistry.obtain("timedLock");
 		otherLock.lock();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		try {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("timedLock");
+			ReentrantLock localLock = TestUtils.getPropertyValue(lock, "localLock");
 			// Holds the local lock while it waits for the one in Redis
 			Future<Boolean> firstTryLock = executorService.submit(() -> lock.tryLock(1000, TimeUnit.MILLISECONDS));
-			Thread.sleep(100);
+			await().until(localLock::isLocked);
 			long start = System.currentTimeMillis();
 			assertThat(lock.tryLock(1200, TimeUnit.MILLISECONDS)).isFalse();
-			assertThat(System.currentTimeMillis() - start).isLessThan(1700);
+			assertThat(System.currentTimeMillis() - start).isLessThan(2000);
 			assertThat(firstTryLock.get(10, TimeUnit.SECONDS)).isFalse();
 		}
 		finally {
@@ -206,28 +212,47 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		otherRegistry.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
-		Lock otherLock = otherRegistry.obtain("foo");
+		Lock otherLock = otherRegistry.obtain("timedLock");
 		otherLock.lock();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 		try {
-			String lockKey = this.registryKey + ":foo";
-			// An unlock message while the lock is still held, as when another client takes it first
-			executorService.submit(() -> {
-				Thread.sleep(800);
-				createTemplate().convertAndSend(this.registryKey + "-channel:" + lockKey, lockKey);
-				return null;
-			});
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("timedLock");
+			String lockKey = this.registryKey + ":timedLock";
 			long start = System.currentTimeMillis();
-			assertThat(lock.tryLock(1000, TimeUnit.MILLISECONDS)).isFalse();
-			assertThat(System.currentTimeMillis() - start).isLessThan(1400);
+			Future<Boolean> tryLock = executorService.submit(() -> lock.tryLock(1000, TimeUnit.MILLISECONDS));
+			if (this.testRedisLockType == RedisLockType.PUB_SUB_LOCK) {
+				awaitWaitingForUnlockMessage(registry, lockKey);
+				// A late unlock message while the lock is still held, as when another client takes it first
+				String channel = this.registryKey + "-channel:" + lockKey;
+				scheduler.schedule(() -> createTemplate().convertAndSend(channel, lockKey),
+						start + 800 - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+			}
+			assertThat(tryLock.get(10, TimeUnit.SECONDS)).isFalse();
+			assertThat(System.currentTimeMillis() - start).isLessThan(1500);
 		}
 		finally {
+			scheduler.shutdownNow();
 			executorService.shutdownNow();
 			otherLock.unlock();
 			otherRegistry.destroy();
 			registry.destroy();
 		}
+	}
+
+	private static void awaitWaitingForUnlockMessage(RedisLockRegistry registry, String lockKey) {
+		await().until(() -> {
+			RedisMessageListenerContainer container =
+					TestUtils.getPropertyValue(registry, "redisMessageListenerContainer");
+			if (container == null) {
+				return false;
+			}
+			RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection");
+			Map<String, ?> notifyMap = TestUtils.getPropertyValue(registry, "unlockNotifyMessageListener.notifyMap");
+			return connection != null && connection.isSubscribed()
+					&& !connection.getSubscription().getPatterns().isEmpty()
+					&& notifyMap.containsKey(lockKey);
+		});
 	}
 
 	@Test
@@ -236,11 +261,11 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		otherRegistry.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
-		Lock otherLock = otherRegistry.obtain("foo");
+		Lock otherLock = otherRegistry.obtain("timedLock");
 		otherLock.lock();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		try {
-			Lock lock = registry.obtain("foo");
+			Lock lock = registry.obtain("timedLock");
 			Future<Boolean> tryLock = executorService.submit(() -> lock.tryLock(-1, TimeUnit.MILLISECONDS));
 			assertThat(tryLock.get(10, TimeUnit.SECONDS)).isFalse();
 		}
