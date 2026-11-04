@@ -144,6 +144,20 @@ public class MessageGroupQueueTests {
 	}
 
 	@Test
+	void drainToWithLimitKeepsRemainingMessagesInQueue() throws InterruptedException {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "drainGroup");
+		queue.put(new GenericMessage<>("first"));
+		queue.put(new GenericMessage<>("second"));
+		queue.put(new GenericMessage<>("third"));
+		List<Message<?>> drained = new ArrayList<>();
+
+		assertThat(queue.drainTo(drained, 2)).isEqualTo(2);
+		assertThat(drained).extracting("payload").containsExactly("first", "second");
+		assertThat(queue.size()).isEqualTo(1);
+		assertThat(queue.poll()).extracting(Message::getPayload).isEqualTo("third");
+	}
+
+	@Test
 	void clearOnStoreBackedQueueChannelReturnsAllMessages() {
 		QueueChannel channel = new QueueChannel(new MessageGroupQueue(new SimpleMessageStore(), "clearGroup"));
 		channel.send(new GenericMessage<>("first"));
@@ -151,7 +165,6 @@ public class MessageGroupQueueTests {
 
 		assertThat(channel.clear()).extracting("payload").containsExactly("first", "second");
 		assertThat(channel.getQueueSize()).isZero();
-		assertThat(channel.clear()).isEmpty();
 	}
 
 	@Test

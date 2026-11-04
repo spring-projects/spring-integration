@@ -223,10 +223,12 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		try {
 			lock.lockInterruptibly();
 			try {
-				Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
-				for (int i = 0; i < maxElements && message != null; i++) {
+				while (list.size() < maxElements) {
+					Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
+					if (message == null) {
+						break;
+					}
 					list.add(message);
-					message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 				}
 				this.messageStoreNotFull.signal();
 			}
