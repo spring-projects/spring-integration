@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author I-Chung Wang
  *
  * @since 2.0
  *
@@ -217,7 +218,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	@Override
 	public int drainTo(Collection<? super Message<?>> collection, int maxElements) {
 		int originalSize = collection.size();
-		ArrayList<Message<?>> list = new ArrayList<>(maxElements);
+		ArrayList<Message<?>> list = new ArrayList<>();
 		final Lock lock = this.storeLock;
 		try {
 			lock.lockInterruptibly();
