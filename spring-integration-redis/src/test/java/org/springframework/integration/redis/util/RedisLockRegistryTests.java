@@ -174,6 +174,85 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	}
 
 	@Test
+	void testTryLockWaitTimeIncludesWaitingForTheLocalLock() throws Exception {
+		RedisLockRegistry otherRegistry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		otherRegistry.setRedisLockType(testRedisLockType);
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		Lock otherLock = otherRegistry.obtain("foo");
+		otherLock.lock();
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		try {
+			Lock lock = registry.obtain("foo");
+			// Holds the local lock while it waits for the one in Redis
+			Future<Boolean> firstTryLock = executorService.submit(() -> lock.tryLock(1000, TimeUnit.MILLISECONDS));
+			Thread.sleep(100);
+			long start = System.currentTimeMillis();
+			assertThat(lock.tryLock(1200, TimeUnit.MILLISECONDS)).isFalse();
+			assertThat(System.currentTimeMillis() - start).isLessThan(1700);
+			assertThat(firstTryLock.get(10, TimeUnit.SECONDS)).isFalse();
+		}
+		finally {
+			executorService.shutdownNow();
+			otherLock.unlock();
+			otherRegistry.destroy();
+			registry.destroy();
+		}
+	}
+
+	@Test
+	void testTryLockWaitTimeIsKeptAfterAnUnlockMessage() throws Exception {
+		RedisLockRegistry otherRegistry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		otherRegistry.setRedisLockType(testRedisLockType);
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		Lock otherLock = otherRegistry.obtain("foo");
+		otherLock.lock();
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		try {
+			String lockKey = this.registryKey + ":foo";
+			// An unlock message while the lock is still held, as when another client takes it first
+			executorService.submit(() -> {
+				Thread.sleep(800);
+				createTemplate().convertAndSend(this.registryKey + "-channel:" + lockKey, lockKey);
+				return null;
+			});
+			Lock lock = registry.obtain("foo");
+			long start = System.currentTimeMillis();
+			assertThat(lock.tryLock(1000, TimeUnit.MILLISECONDS)).isFalse();
+			assertThat(System.currentTimeMillis() - start).isLessThan(1400);
+		}
+		finally {
+			executorService.shutdownNow();
+			otherLock.unlock();
+			otherRegistry.destroy();
+			registry.destroy();
+		}
+	}
+
+	@Test
+	void testTryLockWithNegativeWaitTimeDoesNotWait() throws Exception {
+		RedisLockRegistry otherRegistry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		otherRegistry.setRedisLockType(testRedisLockType);
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+		Lock otherLock = otherRegistry.obtain("foo");
+		otherLock.lock();
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		try {
+			Lock lock = registry.obtain("foo");
+			Future<Boolean> tryLock = executorService.submit(() -> lock.tryLock(-1, TimeUnit.MILLISECONDS));
+			assertThat(tryLock.get(10, TimeUnit.SECONDS)).isFalse();
+		}
+		finally {
+			executorService.shutdownNow();
+			otherLock.unlock();
+			otherRegistry.destroy();
+			registry.destroy();
+		}
+	}
+
+	@Test
 	void testUnlockAfterLockStatusHasBeenExpired() throws InterruptedException {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry.setRedisLockType(testRedisLockType);
