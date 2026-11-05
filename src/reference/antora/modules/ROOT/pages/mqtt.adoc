@@ -191,10 +191,19 @@ Set `async` to `true` for asynchronous publishing and delivery events (see <<mqt
 === MQTT v5 Properties
 
 The inbound `Mqtt5MessageDrivenChannelAdapter` uses `org.springframework.integration.mqtt.client.support.MqttHeaderMapper` by default.
-It maps content type to `MessageHeaders.CONTENT_TYPE`, response topic to `MqttHeaders.RESPONSE_TOPIC`, correlation data to `MqttHeaders.CORRELATION_DATA`, and user properties to individual headers with their property names.
+It always maps content type to `MessageHeaders.CONTENT_TYPE`, response topic to `MqttHeaders.RESPONSE_TOPIC`, and correlation data to `MqttHeaders.CORRELATION_DATA` when present.
 Inbound correlation data is a `ByteBuffer`.
-The mapper accepts header name patterns in its constructor, defaulting to `*`.
-Use `setHeaderMapper()` to provide a custom mapper.
+User properties are mapped to individual headers with their property names only when they match the user-property name patterns supplied to the mapper constructor.
+By default, no inbound user properties are mapped.
+To map selected user properties, supply a configured mapper to the inbound adapter with `setHeaderMapper()`:
+
+[source,java]
+----
+adapter.setHeaderMapper(new MqttHeaderMapper("orderId", "tenantId"));
+----
+
+Use explicit application header names when receiving messages from untrusted publishers.
+The `*` pattern opts in to all user properties, including names such as `replyChannel` and `errorChannel` that can affect message routing; use it only when publishers are trusted.
 The received topic, QoS, and retained headers are populated independently of the mapper.
 
 The outbound `Mqtt5MessageHandler` uses expressions, not this inbound header mapper, to populate MQTT v5 properties:
@@ -258,6 +267,7 @@ A conversion failure is reported with an `Mqtt3MessageConversionFailedEvent` or 
 * Use `setManualAck(true)` instead of Paho's `setManualAcks(true)`.
 * Replace Paho XML namespace and dedicated MQTT DSL configuration with bean definitions or generic Java DSL flows as shown above.
 * Review MQTT v5 property mapping and asynchronous event handling against the new contracts described above.
+Inbound user properties are not mapped by default; configure explicit patterns on the `MqttHeaderMapper` (see <<mqtt-client-v5-properties>>).
 There is no separate `asyncEvents` switch: enabling `async` also enables delivery events.
 * The new inbound adapters do not expose Paho's `addTopic()` and `removeTopic()` methods.
 For dynamically configured subscriptions, register and remove flows containing adapters with the desired subscriptions through `IntegrationFlowContext`, reusing the client manager.
@@ -686,7 +696,19 @@ Starting with version 5.5.5, the `spring-integration-mqtt` module provides chann
 The `org.eclipse.paho:org.eclipse.paho.mqttv5.client` is an `optional` dependency, so has to be included explicitly in the target project.
 
 Since the MQTT v5 protocol supports extra arbitrary properties in an MQTT message, the `MqttHeaderMapper` implementation has been introduced to map to/from headers on publish and receive operations.
-By default, (via the `*` pattern) it maps all the received `PUBLISH` frame properties (including user properties).
+By default, no inbound user properties are mapped.
+Native `PUBLISH` properties (`contentType`, when the payload format indicates text, `mqtt_topicAlias`, `mqtt_responseTopic`, and `mqtt_correlationData`) are mapped when present, independently of the inbound user-property patterns.
+To map selected user properties, configure `MqttHeaderMapper.setInboundHeaderNames()` and supply the mapper to the inbound adapter with `setHeaderMapper()`:
+
+[source,java]
+----
+MqttHeaderMapper headerMapper = new MqttHeaderMapper();
+headerMapper.setInboundHeaderNames("orderId", "tenantId");
+adapter.setHeaderMapper(headerMapper);
+----
+
+Use explicit application header names when receiving messages from untrusted publishers.
+The `*` pattern opts in to all user properties, including names such as `replyChannel` and `errorChannel` that can affect message routing; use it only when publishers are trusted.
 On the outbound side it maps this subset of headers for `PUBLISH` frame: `contentType`, `mqtt_messageExpiryInterval`, `mqtt_responseTopic`, `mqtt_correlationData`.
 
 The outbound channel adapter for the MQTT v5 protocol is present as an `Mqttv5PahoMessageHandler`.

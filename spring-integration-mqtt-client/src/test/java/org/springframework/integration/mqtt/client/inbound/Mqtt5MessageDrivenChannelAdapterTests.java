@@ -35,6 +35,7 @@ import org.springframework.integration.mqtt.client.MqttContainerTest;
 import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
 import org.springframework.integration.mqtt.client.event.Mqtt5MessageConversionFailedEvent;
 import org.springframework.integration.mqtt.client.event.MqttSubscribedEvent;
+import org.springframework.integration.mqtt.client.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 /**
  * @author Jiandong Ma
  * @author WooSeung Kim
+ * @author Glenn Renfro
  *
  * @since 7.2
  */
@@ -111,7 +113,8 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.qos(MqttQos.AT_LEAST_ONCE)
 				.contentType("text/plain")
 				.correlationData("correlation-id".getBytes())
-				.userProperties(Mqtt5UserProperties.of(MqttUserPropertyImpl.of("custom-prop", "custom-val")))
+				.userProperties(Mqtt5UserProperties.of(MqttUserPropertyImpl.of("custom-prop", "custom-val"),
+						MqttUserPropertyImpl.of("other-prop", "other-val")))
 				.send();
 		mqtt5TestClient.publishWith().topic(CAR_DEVICE_TOPIC_2)
 				.payload("car-payload-2".getBytes())
@@ -128,7 +131,8 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.containsEntry(MqttHeaders.RECEIVED_TOPIC, CAR_DEVICE_TOPIC_1)
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
 				.containsEntry(MqttHeaders.CORRELATION_DATA, ByteBuffer.wrap("correlation-id".getBytes()))
-				.containsEntry("custom-prop", "custom-val");
+				.containsEntry("custom-prop", "custom-val")
+				.doesNotContainKey("other-prop");
 		assertThat(secondCarMessage)
 				.returns("car-payload-2", Message::getPayload)
 				.extracting(Message::getHeaders, MAP)
@@ -231,6 +235,7 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				QueueChannel carDeviceOutputChannel) {
 
 			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, CAR_DEVICE_TOPIC_WILDCARD);
+			adapter.setHeaderMapper(new MqttHeaderMapper("custom-prop"));
 			adapter.setOutputChannel(carDeviceOutputChannel);
 			adapter.setQos(MqttQos.AT_LEAST_ONCE);
 			adapter.setPayloadType(String.class);

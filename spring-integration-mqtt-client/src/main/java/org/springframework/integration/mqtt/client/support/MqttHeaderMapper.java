@@ -10,10 +10,10 @@ import java.util.Objects;
 
 import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperty;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.ObjectUtils;
@@ -24,6 +24,7 @@ import org.springframework.util.PatternMatchUtils;
  *
  * @author Artem Bilan
  * @author Jiandong Ma
+ * @author Glenn Renfro
  *
  * @since 7.2
  */
@@ -31,12 +32,15 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 
 	private static final LogAccessor LOGGER = new LogAccessor(MqttHeaderMapper.class);
 
-	private String[] inboundHeaderNames = {"*"};
+	private String[] inboundHeaderNames = {};
 
 	/**
-	 * Construct a {@code MqttHeaderMapper} with the specified inbound property name patterns.
-	 * If no patterns are provided, all user properties will be mapped.
-	 * @param inboundHeaderNames inboundHeaderNames.
+	 * Construct a {@code MqttHeaderMapper} with the specified inbound user property name patterns.
+	 * The native PUBLISH properties ({@link MessageHeaders#CONTENT_TYPE}, {@link MqttHeaders#RESPONSE_TOPIC},
+	 * {@link MqttHeaders#CORRELATION_DATA}) are always mapped.
+	 * By default, no user properties are mapped; opt in explicitly, e.g. {@code "*"} to map all of them,
+	 * only when the publisher is trusted, since user properties may override framework headers.
+	 * @param inboundHeaderNames the MQTT user property patterns to map.
 	 */
 	public MqttHeaderMapper(String... inboundHeaderNames) {
 		if (!ObjectUtils.isEmpty(inboundHeaderNames)) {
@@ -53,12 +57,13 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 	public Map<String, Object> toHeaders(Mqtt5Publish mqtt5Publish) {
 		Map<String, Object> headers = new HashMap<>();
 
-		headers.compute(MessageHeaders.CONTENT_TYPE, (k, v) ->
-				mapPropertyIfMatch(k, mqtt5Publish.getContentType().map(Object::toString).orElse(null)));
-		headers.compute(MqttHeaders.RESPONSE_TOPIC, (k, v) ->
-				mapPropertyIfMatch(k, mqtt5Publish.getResponseTopic().map(Objects::toString).orElse(null)));
-		headers.compute(MqttHeaders.CORRELATION_DATA, (k, v) ->
-				mapPropertyIfMatch(k, mqtt5Publish.getCorrelationData().orElse(null)));
+		JavaUtils.INSTANCE
+				.acceptIfHasText(MessageHeaders.CONTENT_TYPE,
+						mqtt5Publish.getContentType().map(Objects::toString).orElse(null), headers::put)
+				.acceptIfHasText(MqttHeaders.RESPONSE_TOPIC,
+						mqtt5Publish.getResponseTopic().map(Objects::toString).orElse(null), headers::put)
+				.acceptIfNotNull(MqttHeaders.CORRELATION_DATA,
+						mqtt5Publish.getCorrelationData().orElse(null), headers::put);
 
 		var userProperties = mqtt5Publish.getUserProperties().asList();
 		for (Mqtt5UserProperty userProperty : userProperties) {
@@ -68,10 +73,6 @@ public class MqttHeaderMapper implements HeaderMapper<Mqtt5Publish> {
 			}
 		}
 		return headers;
-	}
-
-	private @Nullable Object mapPropertyIfMatch(String headerName, @Nullable Object value) {
-		return (value != null && shouldMapHeader(headerName, this.inboundHeaderNames)) ? value : null;
 	}
 
 	private static boolean shouldMapHeader(String headerName, String[] patterns) {

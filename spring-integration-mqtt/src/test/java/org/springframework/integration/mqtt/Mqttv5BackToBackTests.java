@@ -96,7 +96,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		this.mqttOutFlowInput.send(
 				MessageBuilder.withPayload(testPayload)
 						.setHeader(MqttHeaders.TOPIC, "siTest")
-						.setHeader("foo", "bar")
+						.setHeader("test", "value")
 						.setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
 						.build());
 
@@ -105,7 +105,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
 		assertThat(receive.getHeaders())
-				.containsEntry("foo", "bar")
+				.containsEntry("test", "value")
 				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain")
 				.containsKey(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK);
 
@@ -193,7 +193,7 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			Mqttv5PahoMessageHandler messageHandler =
 					new Mqttv5PahoMessageHandler(MosquittoContainerTest.mqttUrl(), "mqttv5SIout");
 			MqttHeaderMapper mqttHeaderMapper = new MqttHeaderMapper();
-			mqttHeaderMapper.setOutboundHeaderNames("foo", MessageHeaders.CONTENT_TYPE);
+			mqttHeaderMapper.setOutboundHeaderNames("test", MessageHeaders.CONTENT_TYPE);
 			messageHandler.setHeaderMapper(mqttHeaderMapper);
 			messageHandler.setAsync(true);
 			messageHandler.setAsyncEvents(true);
@@ -215,6 +215,9 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 			messageProducer.setDisconnectCompletionTimeout(DISCONNECT_COMPLETION_TIMEOUT);
 			messageProducer.setMessageConverter(mqttBytesToStringConverter());
 			messageProducer.setManualAcks(true);
+			MqttHeaderMapper mqttHeaderMapper = new MqttHeaderMapper();
+			mqttHeaderMapper.setInboundHeaderNames("test");
+			messageProducer.setHeaderMapper(mqttHeaderMapper);
 
 			return IntegrationFlow.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
