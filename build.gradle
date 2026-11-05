@@ -418,6 +418,7 @@ project('spring-integration-cloudevents') {
 
         testImplementation 'io.cloudevents:cloudevents-json-jackson'
 		testImplementation libs.io.cloudevents.xml
+		testImplementation 'io.cloudevents:cloudevents-spring'
     }
 }
 

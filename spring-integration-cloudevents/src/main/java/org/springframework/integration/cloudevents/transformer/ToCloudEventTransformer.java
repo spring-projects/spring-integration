@@ -61,11 +61,13 @@ import org.springframework.util.StringUtils;
  *   into a message where {@link CloudEvent} attributes are mapped to headers with a configurable
  *   prefix (default: {@link CloudEventHeaders#PREFIX}), and the {@link CloudEvent} data becomes the payload.
  *   The output message contains the original data as payload with
- *   {@link MessageHeaders#CONTENT_TYPE} set to {@code application/cloudevents}.</li>
+ *   {@link MessageHeaders#CONTENT_TYPE} set to the {@link CloudEvent} {@code datacontenttype}:
+ *   the input message content type, or {@code application/octet-stream} if absent.</li>
  * </ul>
  *
  * @author Glenn Renfro
  * @author Artem Bilan
+ * @author Gabriel Hall
  *
  * @since 7.1
  */
@@ -264,8 +266,13 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 					.build();
 		}
 
+		Assert.state(!contentType.startsWith("application/cloudevents"), () ->
+				"The '" + contentType + "' content type is reserved for structured content mode " +
+						"and cannot be used as 'datacontenttype' in binary mode. " +
+						"Configure an 'EventFormat' or change the input message content type.");
+
 		return CloudEventUtils.toReader(cloudEvent)
-				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, headers));
+				.read(new MessageBuilderMessageWriter(this.cloudEventPrefix, headers, contentType));
 	}
 
 	@Override
@@ -330,21 +337,25 @@ public class ToCloudEventTransformer extends AbstractTransformer {
 
 		private final Map<String, Object> headers;
 
-		MessageBuilderMessageWriter(String cloudEventPrefix, Map<String, Object> headers) {
+		private final String contentType;
+
+		MessageBuilderMessageWriter(String cloudEventPrefix, Map<String, Object> headers, String contentType) {
 			this.headers = new HashMap<>(headers);
 			this.cloudEventPrefix = cloudEventPrefix;
+			this.contentType = contentType;
 		}
 
 		/**
 		 * Initialize the writer with the {@link CloudEvent} specification version.
-		 * Set the specification version as a message header using the configured version key.
+		 * Set the specification version as a message header using the configured version key,
+		 * and set {@link MessageHeaders#CONTENT_TYPE} to the {@link CloudEvent} {@code datacontenttype}.
 		 * @param version the {@link CloudEvent} specification version
 		 * @return this writer for method chaining
 		 */
 		@Override
 		public MessageBuilderMessageWriter create(SpecVersion version) {
 			this.headers.put(this.cloudEventPrefix + "specversion", version.toString());
-			this.headers.put(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
+			this.headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 			return this;
 		}
 
