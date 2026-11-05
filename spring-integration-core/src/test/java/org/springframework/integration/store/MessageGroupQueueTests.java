@@ -4,7 +4,9 @@
 
 package org.springframework.integration.store;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.CountDownLatch;
@@ -18,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.spy;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author I-Chung Wang
  *
  * @since 2.0
  */
@@ -115,6 +119,52 @@ public class MessageGroupQueueTests {
 		queue.put(new GenericMessage<>("foo"));
 		Message<?> result = queue.take();
 		assertThat(result).isNotNull();
+	}
+
+	@Test
+	void drainToWithoutLimitOnEmptyQueueReturnsNothing() {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "drainGroup");
+		List<Message<?>> drained = new ArrayList<>();
+
+		assertThat(queue.drainTo(drained)).isZero();
+		assertThat(drained).isEmpty();
+	}
+
+	@Test
+	void drainToWithoutLimitDrainsAllMessagesInOrder() throws InterruptedException {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "drainGroup");
+		queue.put(new GenericMessage<>("first"));
+		queue.put(new GenericMessage<>("second"));
+		queue.put(new GenericMessage<>("third"));
+		List<Message<?>> drained = new ArrayList<>();
+
+		assertThat(queue.drainTo(drained)).isEqualTo(3);
+		assertThat(drained).extracting("payload").containsExactly("first", "second", "third");
+		assertThat(queue.size()).isZero();
+	}
+
+	@Test
+	void drainToWithLimitKeepsRemainingMessagesInQueue() throws InterruptedException {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "drainGroup");
+		queue.put(new GenericMessage<>("first"));
+		queue.put(new GenericMessage<>("second"));
+		queue.put(new GenericMessage<>("third"));
+		List<Message<?>> drained = new ArrayList<>();
+
+		assertThat(queue.drainTo(drained, 2)).isEqualTo(2);
+		assertThat(drained).extracting("payload").containsExactly("first", "second");
+		assertThat(queue.size()).isEqualTo(1);
+		assertThat(queue.poll()).extracting(Message::getPayload).isEqualTo("third");
+	}
+
+	@Test
+	void clearOnStoreBackedQueueChannelReturnsAllMessages() {
+		QueueChannel channel = new QueueChannel(new MessageGroupQueue(new SimpleMessageStore(), "clearGroup"));
+		channel.send(new GenericMessage<>("first"));
+		channel.send(new GenericMessage<>("second"));
+
+		assertThat(channel.clear()).extracting("payload").containsExactly("first", "second");
+		assertThat(channel.getQueueSize()).isZero();
 	}
 
 	@Test
