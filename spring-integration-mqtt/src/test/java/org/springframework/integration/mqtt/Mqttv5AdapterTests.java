@@ -4,6 +4,8 @@
 
 package org.springframework.integration.mqtt;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.eclipse.paho.mqttv5.common.packet.UserProperty;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -25,6 +28,7 @@ import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChann
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
@@ -43,6 +47,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
  * @author Goutam Adwant
+ * @author Glenn Renfro
  *
  * @since 5.5.16
  *
@@ -115,6 +120,25 @@ public class Mqttv5AdapterTests {
 
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("test payload");
+	}
+
+	@Test
+	void userPropertiesAreNotMappedToHeadersByDefault() throws Exception {
+		IMqttAsyncClient client = mock();
+		QueueChannel outputChannel = new QueueChannel();
+		Mqttv5PahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false, outputChannel);
+
+		MqttMessage mqttMessage = new MqttMessage("test payload".getBytes(StandardCharsets.UTF_8));
+		MqttProperties properties = new MqttProperties();
+		properties.setUserProperties(
+				Collections.singletonList(new UserProperty(MessageHeaders.ERROR_CHANNEL, "fakeChannel")));
+		mqttMessage.setProperties(properties);
+
+		adapter.messageArrived("testTopic", mqttMessage);
+
+		Message<?> message = outputChannel.receive(0);
+		assertThat(message).isNotNull();
+		assertThat(message.getHeaders()).doesNotContainKey(MessageHeaders.ERROR_CHANNEL);
 	}
 
 	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client,

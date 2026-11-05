@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -26,6 +27,7 @@ import org.springframework.util.PatternMatchUtils;
  * The default {@link HeaderMapper} implementation for MQTT v5 message properties mapping.
  *
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.5.5
  */
@@ -33,7 +35,7 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 
 	private static final LogAccessor LOGGER = new LogAccessor(MqttHeaderMapper.class);
 
-	private String[] inboundHeaderNames = {"*"};
+	private String[] inboundHeaderNames = {};
 
 	private String[] outboundHeaderNames = {
 			MessageHeaders.CONTENT_TYPE,
@@ -43,10 +45,12 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 	};
 
 	/**
-	 * Provide a list of patterns to map MQTT message properties into message headers.
-	 * By default, it maps all valid MQTT PUBLISH packet headers
-	 * (see {@link org.eclipse.paho.mqttv5.common.packet.MqttPublish}), including all the user properties.
-	 * @param inboundHeaderNames the MQTT message property patterns to map.
+	 * Provide a list of patterns to map MQTT message user properties into message headers.
+	 * The native PUBLISH properties ({@link MessageHeaders#CONTENT_TYPE}, {@link MqttHeaders#TOPIC_ALIAS},
+	 * {@link MqttHeaders#RESPONSE_TOPIC}, {@link MqttHeaders#CORRELATION_DATA}) are always mapped.
+	 * By default, no user properties are mapped; opt in explicitly, e.g. {@code "*"} to map all of them,
+	 * only when the publisher is trusted, since user properties may override framework headers.
+	 * @param inboundHeaderNames the MQTT user property patterns to map.
 	 */
 	public void setInboundHeaderNames(String... inboundHeaderNames) {
 		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null");
@@ -86,11 +90,13 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 	public Map<String, Object> toHeaders(MqttProperties source) {
 		Map<String, Object> headers = new HashMap<>();
 		if (source.getPayloadFormat()) {
-			headers.compute(MessageHeaders.CONTENT_TYPE, (k, v) -> mapPropertyIfMatch(k, source.getContentType()));
+			JavaUtils.INSTANCE
+					.acceptIfHasText(MessageHeaders.CONTENT_TYPE, source.getContentType(), headers::put);
 		}
-		headers.compute(MqttHeaders.TOPIC_ALIAS, (k, v) -> mapPropertyIfMatch(k, source.getTopicAlias()));
-		headers.compute(MqttHeaders.RESPONSE_TOPIC, (k, v) -> mapPropertyIfMatch(k, source.getResponseTopic()));
-		headers.compute(MqttHeaders.CORRELATION_DATA, (k, v) -> mapPropertyIfMatch(k, source.getCorrelationData()));
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(MqttHeaders.TOPIC_ALIAS, source.getTopicAlias(), headers::put)
+				.acceptIfHasText(MqttHeaders.RESPONSE_TOPIC, source.getResponseTopic(), headers::put)
+				.acceptIfNotNull(MqttHeaders.CORRELATION_DATA, source.getCorrelationData(), headers::put);
 
 		List<UserProperty> userProperties = source.getUserProperties();
 		for (UserProperty userProperty : userProperties) {
