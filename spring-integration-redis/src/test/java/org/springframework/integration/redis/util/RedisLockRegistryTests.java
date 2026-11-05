@@ -182,6 +182,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		otherRegistry.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
+		registry.setIdleBetweenTries(Duration.ofMillis(10));
 		Lock otherLock = otherRegistry.obtain("timedLock");
 		otherLock.lock();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -189,11 +190,11 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Lock lock = registry.obtain("timedLock");
 			ReentrantLock localLock = TestUtils.getPropertyValue(lock, "localLock");
 			// Holds the local lock while it waits for the one in Redis
-			Future<Boolean> firstTryLock = executorService.submit(() -> lock.tryLock(1000, TimeUnit.MILLISECONDS));
-			await().until(localLock::isLocked);
+			Future<Boolean> firstTryLock = executorService.submit(() -> lock.tryLock(300, TimeUnit.MILLISECONDS));
+			await().pollInterval(Duration.ofMillis(10)).until(localLock::isLocked);
 			long start = System.currentTimeMillis();
-			assertThat(lock.tryLock(1200, TimeUnit.MILLISECONDS)).isFalse();
-			assertThat(System.currentTimeMillis() - start).isLessThan(2000);
+			assertThat(lock.tryLock(400, TimeUnit.MILLISECONDS)).isFalse();
+			assertThat(System.currentTimeMillis() - start).isLessThan(600);
 			assertThat(firstTryLock.get(10, TimeUnit.SECONDS)).isFalse();
 		}
 		finally {
@@ -210,6 +211,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		otherRegistry.setRedisLockType(testRedisLockType);
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
 		registry.setRedisLockType(testRedisLockType);
+		registry.setIdleBetweenTries(Duration.ofMillis(10));
 		Lock otherLock = otherRegistry.obtain("timedLock");
 		otherLock.lock();
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -218,16 +220,16 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Lock lock = registry.obtain("timedLock");
 			String lockKey = this.registryKey + ":timedLock";
 			long start = System.currentTimeMillis();
-			Future<Boolean> tryLock = executorService.submit(() -> lock.tryLock(1000, TimeUnit.MILLISECONDS));
+			Future<Boolean> tryLock = executorService.submit(() -> lock.tryLock(400, TimeUnit.MILLISECONDS));
 			if (this.testRedisLockType == RedisLockType.PUB_SUB_LOCK) {
 				awaitWaitingForUnlockMessage(registry, lockKey);
 				// A late unlock message while the lock is still held, as when another client takes it first
 				String channel = this.registryKey + "-channel:" + lockKey;
 				scheduler.schedule(() -> createTemplate().convertAndSend(channel, lockKey),
-						start + 800 - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+						start + 300 - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 			}
 			assertThat(tryLock.get(10, TimeUnit.SECONDS)).isFalse();
-			assertThat(System.currentTimeMillis() - start).isLessThan(1500);
+			assertThat(System.currentTimeMillis() - start).isLessThan(600);
 		}
 		finally {
 			scheduler.shutdownNow();
@@ -239,13 +241,11 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	}
 
 	private static void awaitWaitingForUnlockMessage(RedisLockRegistry registry, String lockKey) {
-		// The waiter adds its key to the notify map only after the listener container has started,
-		// and the container starts only once it is subscribed
-		await().until(() -> {
-			Object listener = TestUtils.getPropertyValue(registry, "unlockNotifyMessageListener");
-			return listener != null
-					&& TestUtils.<Map<String, ?>>getPropertyValue(listener, "notifyMap").containsKey(lockKey);
-		});
+		// The waiter adds its key only once the listener container has started, which waits for the subscription.
+		// The listener is created by the first waiter, so the nested path can still be missing at the first polls.
+		await().ignoreException(IllegalArgumentException.class)
+				.until(() -> TestUtils.<Map<String, ?>>getPropertyValue(registry, "unlockNotifyMessageListener.notifyMap")
+						.containsKey(lockKey));
 	}
 
 	@Test
