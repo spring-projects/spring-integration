@@ -1,5 +1,4 @@
 /*
- * Copyright 2026 Broadcom Inc. and/or its subsidiaries. All Rights Reserved.
  * Copyright 2026-present the original author or authors.
  */
 
