@@ -43,12 +43,10 @@ import org.mockito.Mockito;
 
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.SetSpec;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.support.locks.DistributedLock;
@@ -241,17 +239,12 @@ class RedisLockRegistryTests implements RedisContainerTest {
 	}
 
 	private static void awaitWaitingForUnlockMessage(RedisLockRegistry registry, String lockKey) {
+		// The waiter adds its key to the notify map only after the listener container has started,
+		// and the container starts only once it is subscribed
 		await().until(() -> {
-			RedisMessageListenerContainer container =
-					TestUtils.getPropertyValue(registry, "redisMessageListenerContainer");
-			if (container == null) {
-				return false;
-			}
-			RedisConnection connection = TestUtils.getPropertyValue(container, "subscriber.connection");
-			Map<String, ?> notifyMap = TestUtils.getPropertyValue(registry, "unlockNotifyMessageListener.notifyMap");
-			return connection != null && connection.isSubscribed()
-					&& !connection.getSubscription().getPatterns().isEmpty()
-					&& notifyMap.containsKey(lockKey);
+			Object listener = TestUtils.getPropertyValue(registry, "unlockNotifyMessageListener");
+			return listener != null
+					&& TestUtils.<Map<String, ?>>getPropertyValue(listener, "notifyMap").containsKey(lockKey);
 		});
 	}
 
