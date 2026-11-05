@@ -5,10 +5,12 @@
 package org.springframework.integration.cloudevents.transformer;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.jackson.JsonCloudEventData;
 import io.cloudevents.jackson.JsonFormat;
+import io.cloudevents.spring.messaging.CloudEventMessageConverter;
 import io.cloudevents.xml.XMLFormat;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.type;
  *
  * @author Glenn Renfro
  * @author Artem Bilan
+ * @author Gabriel Hall
  *
  * @since 7.1
  */
@@ -164,7 +167,7 @@ class ToCloudEventTransformerTests {
 		assertThat(result.getHeaders())
 				.containsKeys(TRACE_HEADER, SPAN_HEADER)
 				.doesNotContainKeys(CloudEventHeaders.PREFIX + TRACE_HEADER, CloudEventHeaders.PREFIX + SPAN_HEADER)
-				.containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
+				.containsEntry(MessageHeaders.CONTENT_TYPE, "text/plain");
 		assertThat(result.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
 	}
 
@@ -222,8 +225,32 @@ class ToCloudEventTransformerTests {
 	void noContentType() {
 		Message<byte[]> message = MessageBuilder.withPayload(TEXT_PLAIN_PAYLOAD).build();
 		Message<?> result = this.transformerWithNoExtensionsNoFormat.transform(message);
-		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/cloudevents");
+		assertThat(result.getHeaders()).containsEntry(MessageHeaders.CONTENT_TYPE, "application/octet-stream");
 		assertThat(message.getPayload()).isEqualTo(TEXT_PLAIN_PAYLOAD);
+	}
+
+	@Test
+	void binaryModeOutputIsReadableByCloudEventsSdk() {
+		byte[] payload = "{\"order\":42}".getBytes(StandardCharsets.UTF_8);
+		Message<byte[]> message = createBaseMessage(payload, "application/json").build();
+
+		Message<?> result = this.transformerWithNoExtensionsNoFormat.transform(message);
+		CloudEvent cloudEvent = (CloudEvent) new CloudEventMessageConverter().fromMessage(result, CloudEvent.class);
+
+		assertThat(cloudEvent)
+				.returns("application/json", CloudEvent::getDataContentType)
+				.returns(payload, event -> event.getData().toBytes());
+	}
+
+	@Test
+	void binaryModeRejectsStructuredModeContentType() {
+		Message<byte[]> message = createBaseMessage(JSON_PAYLOAD, JsonFormat.CONTENT_TYPE).build();
+		assertThatThrownBy(() -> this.transformerWithNoExtensionsNoFormat.transform(message))
+				.isInstanceOf(MessageTransformationException.class)
+				.cause()
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("The 'application/cloudevents+json' content type is reserved for " +
+						"structured content mode");
 	}
 
 	@Test

@@ -5,4 +5,5 @@
 
         testImplementation 'io.cloudevents:cloudevents-json-jackson'
 		testImplementation 'io.cloudevents:cloudevents-xml'
+		testImplementation 'io.cloudevents:cloudevents-spring'
     }
