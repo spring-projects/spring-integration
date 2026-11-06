@@ -569,11 +569,14 @@ public final class RedisLockRegistry
 
 		@Override
 		public boolean tryLock(Duration waitTime, Duration ttl) throws InterruptedException {
+			long start = System.currentTimeMillis();
 			if (!this.localLock.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS)) {
 				return false;
 			}
 			try {
-				boolean acquired = tryRedisLock(waitTime.toMillis(), ttl.toMillis());
+				// The wait for the local lock counts toward the wait time, and a time of -1 would mean waiting forever
+				long remainingTime = Math.max(0, waitTime.toMillis() - (System.currentTimeMillis() - start));
+				boolean acquired = tryRedisLock(remainingTime, ttl.toMillis());
 				if (!acquired) {
 					this.localLock.unlock();
 				}
@@ -850,7 +853,9 @@ public final class RedisLockRegistry
 					}
 					try {
 						//if short expireAfter key expire for ttl, no received unlock msg
-						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter.toMillis();
+						long waitTime = time >= 0
+								? Math.max(0, expiredTime - System.currentTimeMillis())
+								: RedisLockRegistry.this.expireAfter.toMillis();
 						future.get(waitTime, TimeUnit.MILLISECONDS);
 					}
 					catch (TimeoutException ignore) {
