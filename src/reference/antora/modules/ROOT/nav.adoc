@@ -205,6 +205,7 @@
 * xref:mail.adoc[]
 * xref:mongodb.adoc[]
 * xref:mqtt.adoc[]
+* xref:pulsar.adoc[]
 * xref:r2dbc.adoc[]
 * xref:redis.adoc[]
 * xref:resource.adoc[]
