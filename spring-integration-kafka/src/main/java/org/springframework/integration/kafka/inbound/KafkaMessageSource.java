@@ -692,6 +692,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		if (suppliedConsumerFactory.getValueDeserializer() != null) {
 			fixedConsumerFactory.setValueDeserializer(suppliedConsumerFactory.getValueDeserializer());
 		}
+		suppliedConsumerFactory.getListeners().forEach(fixedConsumerFactory::addListener);
 		return fixedConsumerFactory;
 	}
 
