@@ -612,14 +612,22 @@ class MessageSourceTests {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testMaxPollRecords() {
-		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
-				new ConsumerProperties("topic"));
+		DefaultKafkaConsumerFactory consumerFactory = new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
+		ConsumerFactory.Listener listener = mock(ConsumerFactory.Listener.class);
+		consumerFactory.addListener(listener);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
-		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
-				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getListeners())
+				.containsExactly(listener);
+		consumerFactory = new DefaultKafkaConsumerFactory<>(
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2));
+		consumerFactory.addListener(listener);
+		source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getListeners())
+				.containsExactly(listener);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() ->
