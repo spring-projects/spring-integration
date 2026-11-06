@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Yingzi Zhang
  *
  * @since 4.0
  *
@@ -187,6 +188,31 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
 		assertThat(messages.get(0)).isEqualTo(genericMessage);
 		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
+	}
+
+	@Test
+	void testPriorityGroupsWhoseIdsShareAPrefix() {
+		String group = "priorityCms:queue1";
+		String otherGroup = "priorityCms:queue10";
+		try {
+			this.priorityCms.addMessageToGroup(group, new GenericMessage<>("mine"));
+			this.priorityCms.addMessageToGroup(otherGroup, new GenericMessage<>("other"));
+			this.priorityCms.addMessageToGroup(otherGroup,
+					MessageBuilder.withPayload("otherWithPriority").setPriority(5).build());
+			assertThat(this.priorityCms.messageGroupSize(group)).isEqualTo(1);
+			assertThat(this.priorityCms.getMessageGroup(group).size()).isEqualTo(1);
+			assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isEqualTo(3);
+			Message<?> message = this.priorityCms.pollMessageFromGroup(group);
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload()).isEqualTo("mine");
+			assertThat(this.priorityCms.pollMessageFromGroup(group)).isNull();
+			this.priorityCms.removeMessageGroup(group);
+			assertThat(this.priorityCms.messageGroupSize(otherGroup)).isEqualTo(2);
+		}
+		finally {
+			this.priorityCms.removeMessageGroup(group);
+			this.priorityCms.removeMessageGroup(otherGroup);
+		}
 	}
 
 }
