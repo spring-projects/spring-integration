@@ -4,8 +4,7 @@
 
 package org.springframework.integration.redis.store;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,13 +30,12 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yingzi Zhang
  * @since 4.0
  *
  */
 public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		implements PriorityCapableChannelMessageStore {
-
-	private final Comparator<String> keysComparator = (s1, s2) -> s2.compareTo(s1);
 
 	public RedisChannelPriorityMessageStore(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory);
@@ -102,17 +100,18 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		return null;
 	}
 
-	private List<String> sortedKeys(String groupId) {
-		Set<Object> keys = this.getRedisTemplate().keys(groupId == null ? (this.getBeanName() + ":*") : (groupId + "*"));
-		List<String> list = new LinkedList<>();
-		if (keys != null) {
-			for (Object key : keys) {
-				Assert.isInstanceOf(String.class, key);
-				list.add((String) key);
-			}
-			Collections.sort(list, this.keysComparator);
+	/**
+	 * The keys of a group in the order its messages are polled: priority 9 down to 0, then the messages
+	 * without a valid priority. Listing them, rather than matching {@code groupId*}, leaves out the keys
+	 * of other groups whose ids start with this one.
+	 */
+	private static List<String> sortedKeys(String groupId) {
+		List<String> keys = new ArrayList<>(11); // NOSONAR magic number
+		for (int priority = 9; priority >= 0; priority--) { // NOSONAR magic number
+			keys.add(groupId + ":" + priority);
 		}
-		return list;
+		keys.add(groupId);
+		return keys;
 	}
 
 	@Override
