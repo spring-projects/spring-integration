@@ -84,7 +84,7 @@ public interface JpaOperations {
 	/**
 	 *
 	 * @param  selectNamedQuery The select named query.
-	 * @param  jpaQLParameterSource The paramter source.
+	 * @param  jpaQLParameterSource The parameter source.
 	 * @param  firstResult The index of the first result to return.
 	 * @param  maxNumberOfResults The number of objects to return.
 	 * @return The list of found entities.
