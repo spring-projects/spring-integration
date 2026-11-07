@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.syslog.SyslogHeaders;
@@ -145,13 +146,12 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(NIL_TIMESTAMP_ENTRY.getBytes()));
 
-		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
-		assertThat(map.get(SyslogHeaders.TIMESTAMP)).isNull();
-		assertThat(map.get(SyslogHeaders.HOST)).isEqualTo("loggregator");
-		assertThat(map.get(SyslogHeaders.APP_NAME)).isEqualTo("d0602076-b14a-4c55-852a-981e7afeed38");
-		assertThat(map.get(SyslogHeaders.PROCID)).isEqualTo("DEA");
-		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("-");
-		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
+		assertThat(map)
+				.doesNotContainKey(SyslogHeaders.TIMESTAMP)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.HOST, SyslogHeaders.APP_NAME,
+						SyslogHeaders.PROCID, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "loggregator", "d0602076-b14a-4c55-852a-981e7afeed38", "DEA", "-",
+						"Removing instance");
 	}
 
 	@Test
@@ -162,17 +162,19 @@ public class SyslogDeserializerTests {
 		Map<String, ?> map = deserializer.deserialize(
 				new ByteArrayInputStream((SD_ONLY_ENTRY.length() + " " + SD_ONLY_ENTRY).getBytes()));
 
-		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
-		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("ID47");
-		assertThat(((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size()).isEqualTo(2);
-		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("");
+		assertThat(map)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "ID47", "");
+		assertThat(map)
+				.extractingByKey(SyslogHeaders.STRUCTURED_DATA, InstanceOfAssertFactories.LIST)
+				.hasSize(2);
 
 		map = deserializer.deserialize(new ByteArrayInputStream(NO_SD_NO_MESSAGE_ENTRY.getBytes()));
 
-		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
-		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("-");
-		assertThat(map.get(SyslogHeaders.STRUCTURED_DATA)).isNull();
-		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("");
+		assertThat(map)
+				.doesNotContainKey(SyslogHeaders.STRUCTURED_DATA)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "-", "");
 	}
 
 	@Test
