@@ -106,8 +106,8 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 	 * of other groups whose ids start with this one.
 	 */
 	private static List<String> sortedKeys(String groupId) {
-		List<String> keys = new ArrayList<>(11); // NOSONAR magic number
-		for (int priority = 9; priority >= 0; priority--) { // NOSONAR magic number
+		List<String> keys = new ArrayList<>(11);
+		for (int priority = 9; priority >= 0; priority--) {
 			keys.add(groupId + ":" + priority);
 		}
 		keys.add(groupId);
