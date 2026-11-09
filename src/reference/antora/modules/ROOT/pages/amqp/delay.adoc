@@ -1,10 +1,31 @@
 [[amqp-delay]]
-= Delayed Message Exchange
+= Delayed Message Delivery
 :page-section-summary-toc: 1
+
+Starting with RabbitMQ 4.4, quorum queues support native delayed delivery via the `x-opt-delivery-time` message header (`MessageProperties.DELIVERY_TIME`).
+Its value is an absolute Unix timestamp in milliseconds, not a relative delay.
+See the https://docs.spring.io/spring-amqp/reference/amqp/delayed-message-exchange.html[Spring AMQP documentation] for more information.
+
+Starting with version 7.2, the AMQP outbound endpoints provide a `deliveryTimeExpression` property (`delivery-time-expression` when using XML configuration).
+The expression must evaluate to a `java.time.Instant`, a `java.util.Date`, or a `Number` of epoch milliseconds, which is set as the `x-opt-delivery-time` header on the outbound AMQP message.
+With the Java DSL, a `Function<Message<?>, ?>` variant is also available:
+
+[source,java]
+----
+Amqp.outboundAdapter(amqpTemplate)
+        .routingKey("quorumQueue")
+        .deliveryTimeExpression(m -> Instant.now().plusSeconds(10))
+----
+
+NOTE: Since the default outbound header mapper does not map `x-*` headers, the `x-opt-delivery-time` header from a Spring Integration message is not mapped unless it is explicitly included in the `mappedRequestHeaders`.
+
+[[amqp-delayed-message-exchange]]
+== Delayed Message Exchange Plugin
+
+IMPORTANT: The RabbitMQ Delayed Message Exchange Plugin is not maintained anymore, and its support is deprecated for removal since version 7.2, aligned with Spring AMQP 4.2.
 
 Spring AMQP supports the https://docs.spring.io/spring-amqp/reference/html/#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
 For inbound messages, the `x-delay` header is mapped to the `AmqpHeaders.RECEIVED_DELAY` header.
 Setting the `AMQPHeaders.DELAY` header causes the corresponding `x-delay` header to be set in outbound messages.
 You can also specify the `delay` and `delayExpression` properties on outbound endpoints (`delay-expression` when using XML configuration).
 These properties take precedence over the `AmqpHeaders.DELAY` header.
-

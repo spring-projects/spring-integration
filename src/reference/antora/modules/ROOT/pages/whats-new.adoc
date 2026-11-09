@@ -44,6 +44,10 @@ When the message has no correlation data, the send is performed within the scope
 A warning is now logged when the option is set but the connection factory supports no publisher confirms at all.
 See xref:amqp/outbound-channel-adapter.adoc[] for more information.
 
+The AMQP outbound endpoints now provide a `deliveryTimeExpression` option to set the RabbitMQ 4.4 native `x-opt-delivery-time` header for delayed delivery to quorum queues.
+The `delay` and `delayExpression` options and the `AmqpHeaders.DELAY` and `AmqpHeaders.RECEIVED_DELAY` header mappings for the RabbitMQ Delayed Message Exchange Plugin are deprecated for removal.
+See xref:amqp/delay.adoc[] for more information.
+
 [[x7.2-feed-changes]]
 === Feed Support Changes
 

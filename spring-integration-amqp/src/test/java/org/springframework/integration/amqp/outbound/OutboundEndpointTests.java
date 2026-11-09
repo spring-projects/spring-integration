@@ -4,6 +4,8 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,11 +28,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.TestApplicationContextAware;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,6 +55,7 @@ import static org.mockito.Mockito.verify;
 public class OutboundEndpointTests implements TestApplicationContextAware {
 
 	@Test
+	@SuppressWarnings("removal")
 	public void testDelayExpression() {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		RabbitTemplate amqpTemplate = spy(new RabbitTemplate(connectionFactory));
@@ -85,6 +90,7 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void testAsyncDelayExpression() {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		AsyncRabbitTemplate amqpTemplate = spy(new AsyncRabbitTemplate(new RabbitTemplate(connectionFactory),
@@ -106,6 +112,50 @@ public class OutboundEndpointTests implements TestApplicationContextAware {
 		gateway.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture());
 		assertThat(captor.getValue().getMessageProperties().getDelayLong()).isEqualTo(42);
+	}
+
+	@Test
+	public void testDeliveryTimeExpression() {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		RabbitTemplate amqpTemplate = spy(new RabbitTemplate(connectionFactory));
+		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
+		willDoNothing()
+				.given(amqpTemplate).send(anyString(), anyString(), any(Message.class), isNull());
+		endpoint.setExchangeName("testExchange");
+		endpoint.setRoutingKey("testRoutingKey");
+		endpoint.setDeliveryTimeExpressionString("headers.deliveryTime");
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		endpoint.afterPropertiesSet();
+
+		Instant deliveryTime = Instant.now().plusSeconds(10).truncatedTo(ChronoUnit.MILLIS);
+		endpoint.handleMessage(MessageBuilder.withPayload("test")
+				.setHeader("deliveryTime", deliveryTime)
+				.build());
+		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+		verify(amqpTemplate).send(eq("testExchange"), eq("testRoutingKey"), captor.capture(), isNull());
+		assertThat(captor.getValue().getMessageProperties().getDeliveryTime()).isEqualTo(deliveryTime);
+
+		endpoint.setRoutingKey("dateRoutingKey");
+		endpoint.handleMessage(MessageBuilder.withPayload("test")
+				.setHeader("deliveryTime", Date.from(deliveryTime))
+				.build());
+		verify(amqpTemplate).send(eq("testExchange"), eq("dateRoutingKey"), captor.capture(), isNull());
+		assertThat(captor.getValue().getMessageProperties().getDeliveryTimeEpochMillis())
+				.isEqualTo(deliveryTime.toEpochMilli());
+
+		endpoint.setRoutingKey("epochRoutingKey");
+		endpoint.handleMessage(MessageBuilder.withPayload("test")
+				.setHeader("deliveryTime", 1234)
+				.build());
+		verify(amqpTemplate).send(eq("testExchange"), eq("epochRoutingKey"), captor.capture(), isNull());
+		assertThat(captor.getValue().getMessageProperties().getDeliveryTimeEpochMillis()).isEqualTo(1234L);
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> endpoint.handleMessage(MessageBuilder.withPayload("test")
+						.setHeader("deliveryTime", "tomorrow")
+						.build()))
+				.withRootCauseInstanceOf(IllegalArgumentException.class)
+				.withStackTraceContaining("must evaluate to an 'Instant'");
 	}
 
 	@Test

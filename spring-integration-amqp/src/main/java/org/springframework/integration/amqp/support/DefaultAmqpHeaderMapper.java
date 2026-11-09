@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
+	@SuppressWarnings("removal")
 	private static final List<String> STANDARD_HEADER_NAMES =
 			List.of(AmqpHeaders.APP_ID,
 					AmqpHeaders.CLUSTER_ID,
@@ -92,6 +93,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract "standard" headers from an AMQP MessageProperties instance.
 	 */
 	@Override
+	@SuppressWarnings("removal")
 	protected Map<String, @Nullable Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, @Nullable Object> headers = new HashMap<>();
 		try {
@@ -169,6 +171,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * of an AMQP Message.
 	 */
 	@Override
+	@SuppressWarnings("removal")
 	protected void populateStandardHeaders(@Nullable Map<String, Object> allHeaders, Map<String, Object> headers,
 			MessageProperties amqpMessageProperties) {
 

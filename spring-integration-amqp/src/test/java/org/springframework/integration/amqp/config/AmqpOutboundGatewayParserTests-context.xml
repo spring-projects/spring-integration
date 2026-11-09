@@ -16,6 +16,7 @@
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate"
 		delay-expression="42"
+		delivery-time-expression="1234"
 		auto-startup="false"
 		order="5"
 		return-channel="returnChannel"
@@ -98,6 +99,7 @@
 		routing-key="si.test.binding"
 		async-template="asyncTemplate"
 		delay-expression="42"
+		delivery-time-expression="1234"
 		auto-startup="false"
 		order="5"
 		return-channel="returnChannel">

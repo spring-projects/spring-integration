@@ -5,7 +5,9 @@
 package org.springframework.integration.amqp.outbound;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -100,6 +103,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	private @Nullable Expression delayExpression;
 
 	private @Nullable ExpressionEvaluatingMessageProcessor<Long> delayGenerator;
+
+	private @Nullable Expression deliveryTimeExpression;
+
+	private @Nullable ExpressionEvaluatingMessageProcessor<Object> deliveryTimeGenerator;
 
 	private boolean headersMappedLast;
 
@@ -278,7 +285,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * header (if present) is mapped; setting the delay here overrides that value.
 	 * @param delay the delay.
 	 * @since 4.3.5
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #setDeliveryTimeExpression(Expression)} for the RabbitMQ 4.4 native delivery time instead.
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public void setDelay(int delay) {
 		this.delayExpression = new ValueExpression<>(delay);
 	}
@@ -289,7 +299,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
 	 * @since 4.3.5
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #setDeliveryTimeExpression(Expression)} for the RabbitMQ 4.4 native delivery time instead.
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
 	}
@@ -300,7 +313,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
 	 * @since 4.3.5
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #setDeliveryTimeExpressionString(String)} for the RabbitMQ 4.4 native delivery time instead.
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
 	public void setDelayExpressionString(@Nullable String delayExpression) {
 		if (delayExpression == null) {
 			this.delayExpression = null;
@@ -308,6 +324,31 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		else {
 			this.delayExpression = EXPRESSION_PARSER.parseExpression(delayExpression);
 		}
+	}
+
+	/**
+	 * Set the SpEL expression to calculate the RabbitMQ 4.4 native {@code x-opt-delivery-time} header
+	 * (see {@link MessageProperties#DELIVERY_TIME}), honored by quorum queues.
+	 * The expression must evaluate to an absolute time: an {@link Instant}, a {@link Date},
+	 * or a {@link Number} of Unix epoch milliseconds.
+	 * A {@code null} result leaves the message properties as is.
+	 * @param deliveryTimeExpression the expression.
+	 * @since 7.2
+	 */
+	public void setDeliveryTimeExpression(Expression deliveryTimeExpression) {
+		this.deliveryTimeExpression = deliveryTimeExpression;
+	}
+
+	/**
+	 * Set the SpEL expression to calculate the RabbitMQ 4.4 native {@code x-opt-delivery-time} header
+	 * (see {@link MessageProperties#DELIVERY_TIME}), honored by quorum queues.
+	 * @param deliveryTimeExpression the expression.
+	 * @since 7.2
+	 * @see #setDeliveryTimeExpression(Expression)
+	 */
+	public void setDeliveryTimeExpressionString(@Nullable String deliveryTimeExpression) {
+		this.deliveryTimeExpression =
+				deliveryTimeExpression != null ? EXPRESSION_PARSER.parseExpression(deliveryTimeExpression) : null;
 	}
 
 	/**
@@ -470,6 +511,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			this.delayGenerator = new ExpressionEvaluatingMessageProcessor<>(this.delayExpression, Long.class);
 			this.delayGenerator.setBeanFactory(beanFactory);
 		}
+		if (this.deliveryTimeExpression != null) {
+			this.deliveryTimeGenerator = new ExpressionEvaluatingMessageProcessor<>(this.deliveryTimeExpression);
+			this.deliveryTimeGenerator.setBeanFactory(beanFactory);
+		}
 	}
 
 	/**
@@ -602,9 +647,33 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return key;
 	}
 
+	/**
+	 * Populate the legacy {@code x-delay} and native {@code x-opt-delivery-time} headers
+	 * from the configured expressions, if any.
+	 * @param message the request message.
+	 * @param amqpMessage the AMQP message to populate.
+	 */
+	@SuppressWarnings("removal")
 	protected void addDelayProperty(Message<?> message, org.springframework.amqp.core.Message amqpMessage) {
+		MessageProperties messageProperties = amqpMessage.getMessageProperties();
 		if (this.delayGenerator != null) {
-			amqpMessage.getMessageProperties().setDelayLong(this.delayGenerator.processMessage(message));
+			messageProperties.setDelayLong(this.delayGenerator.processMessage(message));
+		}
+		if (this.deliveryTimeGenerator != null) {
+			Object deliveryTime = this.deliveryTimeGenerator.processMessage(message);
+			if (deliveryTime instanceof Instant instant) {
+				messageProperties.setDeliveryTime(instant);
+			}
+			else if (deliveryTime instanceof Date date) {
+				messageProperties.setDeliveryTime(date.getTime());
+			}
+			else if (deliveryTime instanceof Number number) {
+				messageProperties.setDeliveryTime(number.longValue());
+			}
+			else if (deliveryTime != null) {
+				throw new IllegalArgumentException("The 'deliveryTimeExpression' must evaluate to an 'Instant', "
+						+ "a 'Date' or a 'Number' of epoch milliseconds, but got: " + deliveryTime);
+			}
 		}
 	}
 

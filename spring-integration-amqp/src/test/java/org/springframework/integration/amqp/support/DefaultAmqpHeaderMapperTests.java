@@ -55,6 +55,7 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 		Map<String, Object> headerMap = new HashMap<>();
@@ -154,6 +155,7 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
