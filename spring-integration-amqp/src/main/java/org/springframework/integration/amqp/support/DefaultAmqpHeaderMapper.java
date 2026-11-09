@@ -4,6 +4,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -232,6 +233,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				amqpMessageProperties.setTimestamp(new Date(ts));
 			}
 		}
+		populateDeliveryTime(allHeaders != null ? allHeaders : headers, amqpMessageProperties);
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.TYPE, String.class),
 						amqpMessageProperties::setType)
@@ -246,6 +248,24 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 								.setHeader("spring_reply_correlation", replyCorrelation))
 				.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_TO_STACK, String.class),
 						replyToStack -> amqpMessageProperties.setHeader("spring_reply_to", replyToStack));
+	}
+
+	/**
+	 * Map the RabbitMQ 4.4 native {@link MessageProperties#DELIVERY_TIME} header regardless of the outbound
+	 * header name patterns, which exclude {@code x-*} headers by default.
+	 * The header value can be a {@link Number} of epoch milliseconds, an {@link Instant}, or a {@link Date}.
+	 */
+	private static void populateDeliveryTime(Map<String, Object> headers, MessageProperties amqpMessageProperties) {
+		Object deliveryTime = headers.get(MessageProperties.DELIVERY_TIME);
+		if (deliveryTime instanceof Number number) {
+			amqpMessageProperties.setDeliveryTime(number.longValue());
+		}
+		else if (deliveryTime instanceof Instant instant) {
+			amqpMessageProperties.setDeliveryTime(instant);
+		}
+		else if (deliveryTime instanceof Date date) {
+			amqpMessageProperties.setDeliveryTime(date.getTime());
+		}
 	}
 
 	private void mapJsonHeaders(Map<String, Object> headers, MessageProperties amqpMessageProperties) {

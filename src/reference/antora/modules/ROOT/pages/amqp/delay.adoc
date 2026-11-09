@@ -17,7 +17,9 @@ Amqp.outboundAdapter(amqpTemplate)
         .deliveryTimeExpression(m -> Instant.now().plusSeconds(10))
 ----
 
-NOTE: Since the default outbound header mapper does not map `x-*` headers, the `x-opt-delivery-time` header from a Spring Integration message is not mapped unless it is explicitly included in the `mappedRequestHeaders`.
+The `DefaultAmqpHeaderMapper` also maps an `x-opt-delivery-time` (`MessageProperties.DELIVERY_TIME`) message header to the AMQP message by default, even though other `x-*` headers are not mapped.
+The header value can be a `Number` of epoch milliseconds, an `Instant`, or a `Date`.
+The `deliveryTimeExpression` takes precedence over this header.
 
 [[amqp-delayed-message-exchange]]
 == Delayed Message Exchange Plugin
