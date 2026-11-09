@@ -221,7 +221,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			catch (Exception ex) {
 				// If it cannot send, then no reply for this connection.
 				// Therefor release resources for subsequent requests.
-				if (async && reply.claim()) {
+				if (async) {
+					if (!reply.claim()) {
+						// The remote timeout has fired during the send and force-closed the connection.
+						// The timeout has already released the resources and completed the future.
+						return reply.getFuture();
+					}
 					cleanUp(haveSemaphore, connection, connectionId);
 				}
 				throw ex;
