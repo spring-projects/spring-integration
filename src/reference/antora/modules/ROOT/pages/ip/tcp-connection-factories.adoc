@@ -289,7 +289,7 @@ Also see xref:ip/testing-connections.adoc[Testing Connections].
 
 Spring Integration version 5.0 introduced this connection factory.
 It binds a connection to the calling thread, and the same connection is reused each time that thread sends a message.
-This continues until the connection is closed (by the server or the network) or until the thread calls the `releaseConnection()` method.
+This continues until the connection is closed (by the server, the network, or an outbound gateway after a remote timeout) or until the thread calls the `releaseConnection()` method.
 The connections themselves are provided by another client factory implementation, which must be configured to provide non-shared (single-use) connections so that each thread gets a connection.
 
 The following example shows how to configure a TCP thread affinity connection factory:
