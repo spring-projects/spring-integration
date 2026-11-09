@@ -240,8 +240,12 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	 * @param delay the delay.
 	 * @return the spec.
 	 * @since 5.0.2
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #deliveryTimeExpression(Function)} for the RabbitMQ 4.4 native delivery time instead.
 	 * @see AbstractAmqpOutboundEndpoint#setDelay(int)
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public S delay(int delay) {
 		this.target.setDelay(delay);
 		return _this();
@@ -253,8 +257,12 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	 * @param delayFunction the function to evaluate the value for the {@code x-delay} header.
 	 * @return the spec.
 	 * @since 5.0.2
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #deliveryTimeExpression(Function)} for the RabbitMQ 4.4 native delivery time instead.
 	 * @see #delayExpression(Expression)
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public S delayFunction(Function<Message<?>, Integer> delayFunction) {
 		return delayExpression(new FunctionExpression<>(delayFunction));
 	}
@@ -265,8 +273,12 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	 * @param delayExpression the expression.
 	 * @return the spec.
 	 * @since 5.0.2
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #deliveryTimeExpression(Expression)} for the RabbitMQ 4.4 native delivery time instead.
 	 * @see AbstractAmqpOutboundEndpoint#setDelayExpression(Expression)
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public S delayExpression(Expression delayExpression) {
 		this.target.setDelayExpression(delayExpression);
 		return _this();
@@ -278,10 +290,51 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	 * @param delayExpression the expression.
 	 * @return the spec.
 	 * @since 5.0.2
+	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
+	 * use {@link #deliveryTimeExpression(String)} for the RabbitMQ 4.4 native delivery time instead.
 	 * @see AbstractAmqpOutboundEndpoint#setDelayExpressionString(String)
 	 */
+	@Deprecated(since = "7.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public S delayExpression(String delayExpression) {
 		this.target.setDelayExpressionString(delayExpression);
+		return _this();
+	}
+
+	/**
+	 * Set the function to calculate the RabbitMQ 4.4 native {@code x-opt-delivery-time} header.
+	 * The function must return an absolute time: an {@link java.time.Instant}, a {@link java.util.Date},
+	 * or a {@link Number} of Unix epoch milliseconds.
+	 * @param deliveryTimeFunction the function to evaluate the delivery time.
+	 * @return the spec.
+	 * @since 7.2
+	 * @see AbstractAmqpOutboundEndpoint#setDeliveryTimeExpression(Expression)
+	 */
+	public S deliveryTimeExpression(Function<Message<?>, ?> deliveryTimeFunction) {
+		return deliveryTimeExpression(new FunctionExpression<>(deliveryTimeFunction));
+	}
+
+	/**
+	 * Set the SpEL expression to calculate the RabbitMQ 4.4 native {@code x-opt-delivery-time} header.
+	 * @param deliveryTimeExpression the expression.
+	 * @return the spec.
+	 * @since 7.2
+	 * @see AbstractAmqpOutboundEndpoint#setDeliveryTimeExpression(Expression)
+	 */
+	public S deliveryTimeExpression(Expression deliveryTimeExpression) {
+		this.target.setDeliveryTimeExpression(deliveryTimeExpression);
+		return _this();
+	}
+
+	/**
+	 * Set the SpEL expression to calculate the RabbitMQ 4.4 native {@code x-opt-delivery-time} header.
+	 * @param deliveryTimeExpression the expression.
+	 * @return the spec.
+	 * @since 7.2
+	 * @see AbstractAmqpOutboundEndpoint#setDeliveryTimeExpressionString(String)
+	 */
+	public S deliveryTimeExpression(String deliveryTimeExpression) {
+		this.target.setDeliveryTimeExpressionString(deliveryTimeExpression);
 		return _this();
 	}
 

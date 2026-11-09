@@ -31,13 +31,11 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_contentLength`
 * `content-type` (see xref:amqp/message-headers.adoc#amqp-content-type[The `contentType` Header])
 * `amqp_correlationId`
-* `amqp_delay`
 * `amqp_deliveryMode`
 * `amqp_deliveryTag`
 * `amqp_expiration`
 * `amqp_messageCount`
 * `amqp_messageId`
-* `amqp_receivedDelay`
 * `amqp_receivedDeliveryMode`
 * `amqp_receivedExchange`
 * `amqp_receivedRoutingKey`

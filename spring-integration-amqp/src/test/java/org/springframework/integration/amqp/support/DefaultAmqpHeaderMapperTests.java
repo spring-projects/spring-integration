@@ -4,12 +4,14 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.Message;
@@ -65,8 +67,9 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
 		String testCorrelationId = "foo";
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
-		headerMap.put(AmqpHeaders.DELAY, 1234L);
+		headerMap.put("amqp_delay", 1234L);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
+		headerMap.put(MessageProperties.DELIVERY_TIME, 5678L);
 		headerMap.put(AmqpHeaders.DELIVERY_TAG, 1234L);
 		headerMap.put(AmqpHeaders.EXPIRATION, "test.expiration");
 		headerMap.put(AmqpHeaders.MESSAGE_COUNT, 42);
@@ -99,8 +102,9 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(amqpProperties.getContentLength()).isEqualTo(99L);
 		assertThat(amqpProperties.getContentType()).isEqualTo("test.contentType");
 		assertThat(amqpProperties.getCorrelationId()).isEqualTo(testCorrelationId);
-		assertThat(amqpProperties.getDelayLong()).isEqualTo(1234L);
+		assertThat(amqpProperties.getHeaders()).doesNotContainKey("x-delay");
 		assertThat(amqpProperties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
+		assertThat(amqpProperties.getDeliveryTimeEpochMillis()).isEqualTo(5678L);
 		assertThat(amqpProperties.getDeliveryTag()).isEqualTo(1234L);
 		assertThat(amqpProperties.getExpiration()).isEqualTo("test.expiration");
 		assertThat(amqpProperties.getMessageCount()).isEqualTo(42);
@@ -114,6 +118,20 @@ public class DefaultAmqpHeaderMapperTests {
 
 		assertThat(amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL)).isNull();
 		assertThat(amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL)).isNull();
+	}
+
+	@Test
+	public void deliveryTimeMappedBothWays() {
+		Instant deliveryTime = Instant.ofEpochMilli(1234L);
+		MessageProperties amqpProperties = new MessageProperties();
+		DefaultAmqpHeaderMapper.outboundMapper()
+				.fromHeadersToRequest(new MessageHeaders(Map.of(MessageProperties.DELIVERY_TIME, deliveryTime)),
+						amqpProperties);
+		assertThat(amqpProperties.getDeliveryTime()).isEqualTo(deliveryTime);
+
+		Map<String, @Nullable Object> headers = DefaultAmqpHeaderMapper.inboundMapper()
+				.toHeadersFromRequest(amqpProperties);
+		assertThat(headers).containsEntry(MessageProperties.DELIVERY_TIME, 1234L);
 	}
 
 	@Test
@@ -154,6 +172,7 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
@@ -193,7 +212,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(headerMap.get(AmqpHeaders.EXPIRATION)).isEqualTo("test.expiration");
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_COUNT)).isEqualTo(42);
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_ID)).isEqualTo("test.messageId");
-		assertThat(headerMap.get(AmqpHeaders.RECEIVED_DELAY)).isEqualTo(4567L);
+		assertThat(headerMap).doesNotContainKey(AmqpHeaders.RECEIVED_DELAY);
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_EXCHANGE)).isEqualTo("test.receivedExchange");
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_ROUTING_KEY)).isEqualTo("test.receivedRoutingKey");
 		assertThat(headerMap.get(AmqpHeaders.REPLY_TO)).isEqualTo("test.replyTo");

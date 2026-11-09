@@ -88,6 +88,8 @@ public class AmqpOutboundGatewayParserTests {
 		assertThat(TestUtils.<Boolean>getPropertyValue(gateway, "lazyConnect")).isTrue();
 		assertThat(TestUtils.<Expression>getPropertyValue(gateway, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
+		assertThat(TestUtils.<Expression>getPropertyValue(gateway, "deliveryTimeExpression")
+				.getExpressionString()).isEqualTo("1234");
 	}
 
 	@Test

@@ -109,6 +109,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "lazyConnect")).isFalse();
 		assertThat(TestUtils.<Expression>getPropertyValue(endpoint, "delayExpression")
 				.getExpressionString()).isEqualTo("42");
+		assertThat(TestUtils.<Expression>getPropertyValue(endpoint, "deliveryTimeExpression")
+				.getExpressionString()).isEqualTo("1234");
 		assertThat(TestUtils.<Boolean>getPropertyValue(endpoint, "headersMappedLast")).isFalse();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");

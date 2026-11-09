@@ -92,6 +92,8 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				null);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-expression",
 				"delayExpressionString");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-time-expression",
+				"deliveryTimeExpressionString");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "headers-last", "headersMappedLast");
 
 		return builder;
