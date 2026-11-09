@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
@@ -19,7 +18,6 @@ import java.util.stream.Stream;
 
 import javax.net.ServerSocketFactory;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -252,8 +250,7 @@ public class TcpOutboundGatewayTimeoutTests implements TestApplicationContextAwa
 			gateway.afterPropertiesSet();
 			assertThatExceptionOfType(MessagingException.class)
 					.isThrownBy(() -> gateway.handleMessage(MessageBuilder.withPayload(SLOW_REQUEST).build()));
-			Awaitility.await().atMost(Duration.ofSeconds(10)).until(() ->
-					scheduler.getScheduledThreadPoolExecutor().getCompletedTaskCount() == 1);
+			assertThat(scheduler.getScheduledThreadPoolExecutor().getTaskCount()).isZero();
 			assertThat(availablePermits(gateway)).isEqualTo(1);
 		}
 		finally {
