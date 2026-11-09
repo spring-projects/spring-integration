@@ -665,8 +665,7 @@ property set to TRUE.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 			A SpEL expression that evaluates to the value that will be set on the 'x-delay' header
-			when using the RabbitMQ Delayed Message Exchange plugin. Takes precedence over any
-			'AmqpHeaders.DELAY' set on the outbound message.
+			when using the RabbitMQ Delayed Message Exchange plugin.
 			Deprecated since 7.2 for removal with the RabbitMQ Delayed Message Exchange plugin support;
 			use 'delivery-time-expression' for the RabbitMQ 4.4 native delivery time instead.
 				]]></xsd:documentation>

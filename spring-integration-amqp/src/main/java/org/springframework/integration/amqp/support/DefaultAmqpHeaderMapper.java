@@ -50,7 +50,6 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
-	@SuppressWarnings("removal")
 	private static final List<String> STANDARD_HEADER_NAMES =
 			List.of(AmqpHeaders.APP_ID,
 					AmqpHeaders.CLUSTER_ID,
@@ -58,7 +57,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					AmqpHeaders.CONTENT_LENGTH,
 					AmqpHeaders.CONTENT_TYPE,
 					AmqpHeaders.CORRELATION_ID,
-					AmqpHeaders.DELAY,
 					AmqpHeaders.DELIVERY_MODE,
 					AmqpHeaders.DELIVERY_TAG,
 					AmqpHeaders.EXPIRATION,
@@ -93,7 +91,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract "standard" headers from an AMQP MessageProperties instance.
 	 */
 	@Override
-	@SuppressWarnings("removal")
 	protected Map<String, @Nullable Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, @Nullable Object> headers = new HashMap<>();
 		try {
@@ -169,7 +166,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * of an AMQP Message.
 	 */
 	@Override
-	@SuppressWarnings("removal")
 	protected void populateStandardHeaders(@Nullable Map<String, Object> allHeaders, Map<String, Object> headers,
 			MessageProperties amqpMessageProperties) {
 
@@ -186,8 +182,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 						amqpMessageProperties::setContentType)
 				.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.CORRELATION_ID, String.class),
 						amqpMessageProperties::setCorrelationId)
-				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELAY, Long.class),
-						amqpMessageProperties::setDelayLong)
 				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class),
 						amqpMessageProperties::setDeliveryMode)
 				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_TAG, Long.class),

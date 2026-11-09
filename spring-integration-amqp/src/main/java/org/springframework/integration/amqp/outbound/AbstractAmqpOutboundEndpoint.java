@@ -281,8 +281,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	/**
 	 * Set the value to set in the {@code x-delay} header when using the
-	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
-	 * header (if present) is mapped; setting the delay here overrides that value.
+	 * RabbitMQ delayed message exchange plugin.
 	 * @param delay the delay.
 	 * @since 4.3.5
 	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
@@ -295,8 +294,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	/**
 	 * Set the SpEL expression to calculate the {@code x-delay} header when using the
-	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
-	 * header (if present) is mapped; setting the expression here overrides that value.
+	 * RabbitMQ delayed message exchange plugin.
 	 * @param delayExpression the expression.
 	 * @since 4.3.5
 	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;
@@ -309,8 +307,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	/**
 	 * Set the SpEL expression to calculate the {@code x-delay} header when using the
-	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
-	 * header (if present) is mapped; setting the expression here overrides that value.
+	 * RabbitMQ delayed message exchange plugin.
 	 * @param delayExpression the expression.
 	 * @since 4.3.5
 	 * @deprecated since 7.2 for removal with the RabbitMQ delayed message exchange plugin support;

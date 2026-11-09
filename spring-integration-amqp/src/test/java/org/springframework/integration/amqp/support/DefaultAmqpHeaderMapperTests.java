@@ -57,7 +57,6 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("removal")
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 		Map<String, Object> headerMap = new HashMap<>();
@@ -68,7 +67,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
 		String testCorrelationId = "foo";
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
-		headerMap.put(AmqpHeaders.DELAY, 1234L);
+		headerMap.put("amqp_delay", 1234L);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		headerMap.put(MessageProperties.DELIVERY_TIME, 5678L);
 		headerMap.put(AmqpHeaders.DELIVERY_TAG, 1234L);
@@ -103,7 +102,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(amqpProperties.getContentLength()).isEqualTo(99L);
 		assertThat(amqpProperties.getContentType()).isEqualTo("test.contentType");
 		assertThat(amqpProperties.getCorrelationId()).isEqualTo(testCorrelationId);
-		assertThat(amqpProperties.getDelayLong()).isEqualTo(1234L);
+		assertThat(amqpProperties.getHeaders()).doesNotContainKey("x-delay");
 		assertThat(amqpProperties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
 		assertThat(amqpProperties.getDeliveryTimeEpochMillis()).isEqualTo(5678L);
 		assertThat(amqpProperties.getDeliveryTag()).isEqualTo(1234L);
