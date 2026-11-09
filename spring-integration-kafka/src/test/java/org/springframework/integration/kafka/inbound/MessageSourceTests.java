@@ -39,6 +39,7 @@ import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -50,6 +51,7 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.ConsumerPostProcessor;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
@@ -80,6 +82,7 @@ import static org.mockito.Mockito.times;
  * @author Gary Russell
  * @author Anshul Mehra
  * @author Artem Bilan
+ * @author Fernando Blanch Calvete
  *
  * @since 5.4
  *
@@ -611,14 +614,33 @@ class MessageSourceTests {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testMaxPollRecords() {
-		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
-				new ConsumerProperties("topic"));
+		DefaultKafkaConsumerFactory consumerFactory = new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
+		ConsumerFactory.Listener listener = mock();
+		ConsumerPostProcessor postProcessor = mock();
+		consumerFactory.addListener(listener);
+		consumerFactory.addPostProcessor(postProcessor);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
-		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
-				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.listeners")))
+				.asInstanceOf(InstanceOfAssertFactories.list(ConsumerFactory.Listener.class))
+				.containsExactly(listener);
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.postProcessors")))
+				.asInstanceOf(InstanceOfAssertFactories.list(ConsumerPostProcessor.class))
+				.containsExactly(postProcessor);
+		consumerFactory = new DefaultKafkaConsumerFactory<>(
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2));
+		consumerFactory.addListener(listener);
+		consumerFactory.addPostProcessor(postProcessor);
+		source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.listeners")))
+				.asInstanceOf(InstanceOfAssertFactories.list(ConsumerFactory.Listener.class))
+				.containsExactly(listener);
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.postProcessors")))
+				.asInstanceOf(InstanceOfAssertFactories.list(ConsumerPostProcessor.class))
+				.containsExactly(postProcessor);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() ->
