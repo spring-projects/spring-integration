@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.syslog.SyslogHeaders;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Duncan McIntyre
  * @author Gary Russell
  * @author Uwez Khan
+ * @author Yingzi Zhang
  * @since 4.1.1
  *
  */
@@ -46,6 +48,18 @@ public class SyslogDeserializerTests {
 	static final String SD_ENTRY_3 = "275 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 			"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"][exampleSDID@32473 " +
 			"iut=\\\"3\\\" eventSource=\\\"Application\\\" escapedBracket=\\\"\\]\\\" eventID=\\\"1011\\\"] Removing instance";
+
+	static final String NIL_TIMESTAMP_ENTRY =
+			"<14>1 - loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - - Removing instance\n";
+
+	// RFC 5424, section 6.5, example 4: structured data and no MSG
+	static final String SD_ONLY_ENTRY =
+			"<165>1 2003-10-11T22:14:15.003Z mymachine.example.com evntslog - ID47 " +
+					"[exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]" +
+					"[examplePriority@32473 class=\"high\"]";
+
+	static final String NO_SD_NO_MESSAGE_ENTRY =
+			"<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - -\n";
 
 	@Test
 	public void shouldParseAValidFramedEntry() throws Exception {
@@ -123,6 +137,44 @@ public class SyslogDeserializerTests {
 
 		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
 		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
+	}
+
+	@Test
+	public void shouldParseANilTimestamp() throws Exception {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(NIL_TIMESTAMP_ENTRY.getBytes()));
+
+		assertThat(map)
+				.doesNotContainKey(SyslogHeaders.TIMESTAMP)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.HOST, SyslogHeaders.APP_NAME,
+						SyslogHeaders.PROCID, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "loggregator", "d0602076-b14a-4c55-852a-981e7afeed38", "DEA", "-",
+						"Removing instance");
+	}
+
+	@Test
+	public void shouldParseEntriesWithoutMessage() throws Exception {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		Map<String, ?> map = deserializer.deserialize(
+				new ByteArrayInputStream((SD_ONLY_ENTRY.length() + " " + SD_ONLY_ENTRY).getBytes()));
+
+		assertThat(map)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "ID47", "");
+		assertThat(map)
+				.extractingByKey(SyslogHeaders.STRUCTURED_DATA, InstanceOfAssertFactories.LIST)
+				.hasSize(2);
+
+		map = deserializer.deserialize(new ByteArrayInputStream(NO_SD_NO_MESSAGE_ENTRY.getBytes()));
+
+		assertThat(map)
+				.doesNotContainKey(SyslogHeaders.STRUCTURED_DATA)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
+				.containsExactly("false", "-", "");
 	}
 
 	@Test

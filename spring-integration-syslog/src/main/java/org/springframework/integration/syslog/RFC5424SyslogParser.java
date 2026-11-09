@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
  * @author Duncan McIntyre
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yingzi Zhang
  *
  * @since 4.1.1
  *
@@ -126,6 +127,7 @@ public class RFC5424SyslogParser {
 		int c = r.getc();
 
 		if (c == NILVALUE) {
+			r.expect(SPACE);
 			return null;
 		}
 
@@ -245,7 +247,7 @@ public class RFC5424SyslogParser {
 		}
 
 		public boolean is(char c) {
-			return this.line.charAt(this.idx) == c;
+			return this.idx < this.line.length() && this.line.charAt(this.idx) == c;
 		}
 
 		public boolean was(char c) {
