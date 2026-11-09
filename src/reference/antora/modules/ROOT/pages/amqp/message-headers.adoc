@@ -37,7 +37,6 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_expiration`
 * `amqp_messageCount`
 * `amqp_messageId`
-* `amqp_receivedDelay`
 * `amqp_receivedDeliveryMode`
 * `amqp_receivedExchange`
 * `amqp_receivedRoutingKey`

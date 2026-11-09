@@ -64,7 +64,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					AmqpHeaders.EXPIRATION,
 					AmqpHeaders.MESSAGE_COUNT,
 					AmqpHeaders.MESSAGE_ID,
-					AmqpHeaders.RECEIVED_DELAY,
 					AmqpHeaders.RECEIVED_DELIVERY_MODE,
 					AmqpHeaders.RECEIVED_EXCHANGE,
 					AmqpHeaders.RECEIVED_ROUTING_KEY,
@@ -122,8 +121,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			Integer priority = amqpMessageProperties.getPriority();
 			JavaUtils.INSTANCE
 					.acceptIfCondition(priority > 0, IntegrationMessageHeaderAccessor.PRIORITY, priority, headers::put)
-					.acceptIfNotNull(AmqpHeaders.RECEIVED_DELAY, amqpMessageProperties.getReceivedDelayLong(),
-							headers::put)
 					.acceptIfNotNull(AmqpHeaders.RECEIVED_EXCHANGE, amqpMessageProperties.getReceivedExchange(),
 							headers::put)
 					.acceptIfHasText(AmqpHeaders.RECEIVED_ROUTING_KEY, amqpMessageProperties.getReceivedRoutingKey(),

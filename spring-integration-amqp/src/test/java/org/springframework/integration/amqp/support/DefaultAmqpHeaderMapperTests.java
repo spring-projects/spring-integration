@@ -213,7 +213,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(headerMap.get(AmqpHeaders.EXPIRATION)).isEqualTo("test.expiration");
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_COUNT)).isEqualTo(42);
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_ID)).isEqualTo("test.messageId");
-		assertThat(headerMap.get(AmqpHeaders.RECEIVED_DELAY)).isEqualTo(4567L);
+		assertThat(headerMap).doesNotContainKey(AmqpHeaders.RECEIVED_DELAY);
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_EXCHANGE)).isEqualTo("test.receivedExchange");
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_ROUTING_KEY)).isEqualTo("test.receivedRoutingKey");
 		assertThat(headerMap.get(AmqpHeaders.REPLY_TO)).isEqualTo("test.replyTo");

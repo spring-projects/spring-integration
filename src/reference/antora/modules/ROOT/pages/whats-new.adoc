@@ -46,7 +46,8 @@ See xref:amqp/outbound-channel-adapter.adoc[] for more information.
 
 The AMQP outbound endpoints now provide a `deliveryTimeExpression` option to set the RabbitMQ 4.4 native `x-opt-delivery-time` header for delayed delivery to quorum queues.
 The `DefaultAmqpHeaderMapper` now maps the `x-opt-delivery-time` header by default.
-The `delay` and `delayExpression` options and the `AmqpHeaders.DELAY` and `AmqpHeaders.RECEIVED_DELAY` header mappings for the RabbitMQ Delayed Message Exchange Plugin are deprecated for removal.
+The `delay` and `delayExpression` options and the `AmqpHeaders.DELAY` header mapping for the RabbitMQ Delayed Message Exchange Plugin are deprecated for removal.
+The `AmqpHeaders.RECEIVED_DELAY` header is not mapped by default anymore.
 See xref:amqp/delay.adoc[] for more information.
 
 [[x7.2-feed-changes]]
