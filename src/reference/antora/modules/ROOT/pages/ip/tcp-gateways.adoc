@@ -69,8 +69,10 @@ This only applies when using the `TcpNetClientConnectionFactory`, it is ignored 
 IMPORTANT: When using a shared connection (`singleUse=false`), a new request, while another is in process, will be blocked until the current reply is received.
 Consider using the `CachingClientConnectionFactory` if you wish to support concurrent requests on a pool of long-lived connections.
 
+When the remote timeout elapses, the gateway closes the connection, in both the blocking and `async` modes, so that a late reply cannot be read as the reply to the next request.
+
 Starting with version 5.4, the inbound can be configured with an `unsolicitedMessageChannel`.
-Unsolicited inbound messages will be sent to this channel, as well as late replies (where the client timed out).
+Unsolicited inbound messages will be sent to this channel, as well as a late reply (where an `async` gateway timed out) that is read before the gateway closes the connection.
 To support this on the server side, you can now register multiple ``TcpSender``s with the connection factory.
 Gateways and Channel Adapters automatically register themselves.
 When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
