@@ -74,7 +74,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					JsonHeaders.CONTENT_TYPE_ID,
 					JsonHeaders.KEY_TYPE_ID,
 					AmqpHeaders.SPRING_REPLY_CORRELATION,
-					AmqpHeaders.SPRING_REPLY_TO_STACK);
+					AmqpHeaders.SPRING_REPLY_TO_STACK,
+					MessageProperties.DELIVERY_TIME);
 
 	@SuppressWarnings("this-escape")
 	protected DefaultAmqpHeaderMapper(String @Nullable [] requestHeaderNames, String @Nullable [] replyHeaderNames) {
