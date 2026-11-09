@@ -50,6 +50,7 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.ConsumerPostProcessor;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
@@ -81,6 +82,7 @@ import static org.mockito.Mockito.times;
  * @author Anshul Mehra
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Fernando Blanch Calvete
  *
  * @since 5.4
  *
@@ -612,14 +614,29 @@ class MessageSourceTests {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testMaxPollRecords() {
-		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
-				new ConsumerProperties("topic"));
+		DefaultKafkaConsumerFactory consumerFactory = new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
+		ConsumerFactory.Listener listener = mock();
+		ConsumerPostProcessor postProcessor = mock();
+		consumerFactory.addListener(listener);
+		consumerFactory.addPostProcessor(postProcessor);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
-		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
-				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getListeners())
+				.containsExactly(listener);
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getPostProcessors())
+				.containsExactly(postProcessor);
+		consumerFactory = new DefaultKafkaConsumerFactory<>(
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2));
+		consumerFactory.addListener(listener);
+		consumerFactory.addPostProcessor(postProcessor);
+		source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("topic"));
 		assertThat((TestUtils.<Map>getPropertyValue(source, "consumerFactory.configs")
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getListeners())
+				.containsExactly(listener);
+		assertThat((TestUtils.<ConsumerFactory>getPropertyValue(source, "consumerFactory")).getPostProcessors())
+				.containsExactly(postProcessor);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() ->

@@ -96,6 +96,7 @@ import org.springframework.util.StringUtils;
  * @author Christian Tzolov
  * @author Ngoc Nhan
  * @author Jooyoung Pyoung
+ * @author Fernando Blanch Calvete
  *
  * @since 5.4
  *
@@ -692,6 +693,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		if (suppliedConsumerFactory.getValueDeserializer() != null) {
 			fixedConsumerFactory.setValueDeserializer(suppliedConsumerFactory.getValueDeserializer());
 		}
+		suppliedConsumerFactory.getListeners().forEach(fixedConsumerFactory::addListener);
+		suppliedConsumerFactory.getPostProcessors().forEach(fixedConsumerFactory::addPostProcessor);
 		return fixedConsumerFactory;
 	}
 
