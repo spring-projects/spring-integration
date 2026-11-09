@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.Nullable;
 
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author WooSeung Kim
  *
  * @since 2.0
  */
@@ -219,7 +221,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			catch (Exception ex) {
 				// If it cannot send, then no reply for this connection.
 				// Therefor release resources for subsequent requests.
-				if (async) {
+				if (async && reply.claim()) {
 					cleanUp(haveSemaphore, connection, connectionId);
 				}
 				throw ex;
@@ -323,7 +325,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		logger.trace(() -> "onMessage: " + connectionId + "(" + message + ")");
 		AsyncReply reply = this.pendingReplies.get(connectionId);
-		if (reply == null) {
+		if (reply == null || (isAsync() && !reply.claim())) {
 			/*
 			 * Socket errors are sent here, so they can be conveyed to any waiting thread.
 			 * If there's not one, simply ignore.
@@ -423,6 +425,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final @Nullable ScheduledFuture<?> noResponseFuture;
 
+		private final AtomicBoolean settled = new AtomicBoolean();
+
 		private final CompletableFuture<Message<?>> future =
 				new CompletableFuture<Message<?>>()
 						.thenApply(this::cancelNoResponseFutureIfAny);
@@ -441,11 +445,18 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				this.noResponseFuture =
 						getTaskScheduler()
 								.schedule(() -> {
-									if (this.future.completeExceptionally(
-											new MessageTimeoutException(requestMessage,
-													"Timed out waiting for response"))) {
-
-										cleanUp(this.haveSemaphore, this.connection, this.connection.getConnectionId());
+									if (claim()) {
+										// The connection is dirty - force it closed.
+										try {
+											TcpOutboundGateway.this.connectionFactory.forceClose(this.connection);
+										}
+										finally {
+											cleanUp(this.haveSemaphore, this.connection,
+													this.connection.getConnectionId());
+											this.future.completeExceptionally(
+													new MessageTimeoutException(requestMessage,
+															"Timed out waiting for response"));
+										}
 									}
 								}, Instant.now().plusMillis(remoteTimeout));
 			}
@@ -459,6 +470,15 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				this.noResponseFuture.cancel(true);
 			}
 			return message;
+		}
+
+		/**
+		 * Whichever of the reply, a send failure or the remote timeout comes first
+		 * releases the connection and the semaphore.
+		 * @return true if the caller is the first.
+		 */
+		boolean claim() {
+			return this.settled.compareAndSet(false, true);
 		}
 
 		TcpConnection getConnection() {

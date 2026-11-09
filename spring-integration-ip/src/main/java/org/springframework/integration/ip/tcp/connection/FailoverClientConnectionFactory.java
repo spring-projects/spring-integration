@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Christian Tzolov
  * @author Artem Bilan
+ * @author WooSeung Kim
  *
  * @since 2.2
  *
@@ -183,6 +184,14 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	}
 
 	@Override
+	public void forceClose(TcpConnection connection) {
+		if (connection instanceof FailoverTcpConnection failoverConnection) {
+			failoverConnection.forceCloseDelegate();
+		}
+		super.forceClose(connection);
+	}
+
+	@Override
 	public void start() {
 		for (AbstractClientConnectionFactory factory : this.factories) {
 			factory.enableManualListenerRegistration();
@@ -307,6 +316,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		public void close() {
 			this.delegate.close();
 			this.open = false;
+		}
+
+		void forceCloseDelegate() {
+			this.currentFactory.forceClose(this.delegate);
 		}
 
 		@Override

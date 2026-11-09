@@ -27,10 +27,12 @@ import org.springframework.util.Assert;
 
 /**
  * A client connection factory that binds a connection to a thread. Close operations
- * are ignored; to physically close a connection and release the thread local, invoke
+ * are ignored, except {@link #forceClose(TcpConnection)}, which closes the underlying
+ * connection; to physically close a connection and release the thread local, invoke
  * {@link #releaseConnection()}.
  *
  * @author Gary Russell
+ * @author WooSeung Kim
  * @since 5.0
  *
  */
@@ -126,7 +128,12 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 
 	@Override
 	public void forceClose(TcpConnection connection) {
-		this.connectionFactory.forceClose(connection);
+		if (connection instanceof TcpThreadConnection threadConnection) {
+			this.connectionFactory.forceClose(threadConnection.connection);
+		}
+		else {
+			this.connectionFactory.forceClose(connection);
+		}
 	}
 
 	@Override
