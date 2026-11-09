@@ -210,7 +210,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			connection = this.connectionFactory.getConnection();
 			checkAsync(connection, async);
 			Long remoteTimeout = getRemoteTimeout(requestMessage);
-			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage, async);
+			AsyncReply reply = new AsyncReply(remoteTimeout, connection, haveSemaphore, requestMessage);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
 			String connectionIdToLog = connectionId;
@@ -221,15 +221,15 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			catch (Exception ex) {
 				// If it cannot send, then no reply for this connection.
 				// Therefor release resources for subsequent requests.
-				if (async) {
-					if (!reply.claim()) {
-						// The remote timeout has fired during the send and force-closed the connection.
-						// The timeout has already released the resources and completed the future.
-						return reply.getFuture();
-					}
+				if (async && reply.claim()) {
 					cleanUp(haveSemaphore, connection, connectionId);
 				}
 				throw ex;
+			}
+			if (async) {
+				// Start waiting for the response only after the request is sent:
+				// otherwise the timeout may force-close the connection in the middle of the send.
+				reply.scheduleNoResponseTimeout();
 			}
 			if (this.closeStreamAfterSend) {
 				connection.shutdownOutput();
@@ -428,7 +428,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final boolean haveSemaphore;
 
-		private final @Nullable ScheduledFuture<?> noResponseFuture;
+		private final Message<?> requestMessage;
+
+		private volatile @Nullable ScheduledFuture<?> noResponseFuture;
 
 		private final AtomicBoolean settled = new AtomicBoolean();
 
@@ -438,15 +440,18 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private volatile @Nullable Message<?> reply;
 
-		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage,
-				boolean async) {
+		AsyncReply(long remoteTimeout, TcpConnection connection, boolean haveSemaphore, Message<?> requestMessage) {
 
 			this.latch = new CountDownLatch(1);
 			this.secondChanceLatch = new CountDownLatch(1);
 			this.remoteTimeout = remoteTimeout;
 			this.connection = connection;
 			this.haveSemaphore = haveSemaphore;
-			if (async && remoteTimeout > 0) {
+			this.requestMessage = requestMessage;
+		}
+
+		void scheduleNoResponseTimeout() {
+			if (this.remoteTimeout > 0 && !this.future.isDone()) {
 				this.noResponseFuture =
 						getTaskScheduler()
 								.schedule(() -> {
@@ -459,20 +464,18 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 											cleanUp(this.haveSemaphore, this.connection,
 													this.connection.getConnectionId());
 											this.future.completeExceptionally(
-													new MessageTimeoutException(requestMessage,
+													new MessageTimeoutException(this.requestMessage,
 															"Timed out waiting for response"));
 										}
 									}
-								}, Instant.now().plusMillis(remoteTimeout));
-			}
-			else {
-				this.noResponseFuture = null;
+								}, Instant.now().plusMillis(this.remoteTimeout));
 			}
 		}
 
 		private Message<?> cancelNoResponseFutureIfAny(Message<?> message) {
-			if (this.noResponseFuture != null) {
-				this.noResponseFuture.cancel(true);
+			ScheduledFuture<?> noResponseFutureToCancel = this.noResponseFuture;
+			if (noResponseFutureToCancel != null) {
+				noResponseFutureToCancel.cancel(true);
 			}
 			return message;
 		}
