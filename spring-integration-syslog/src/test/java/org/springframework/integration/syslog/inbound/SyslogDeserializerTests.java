@@ -184,7 +184,22 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SHORT_FRAMED_ENTRY.getBytes()));
 
-		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("true");
+		assertThat(map)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.ERRORS, SyslogHeaders.UNDECODED)
+				.containsExactly("true", "Insufficient data; expected 107 got 106",
+						SHORT_FRAMED_ENTRY.substring("107 ".length()));
+	}
+
+	@Test
+	public void shouldErrorOnFramedDataThatEndsAfterTheOctetCount() throws Exception {
+
+		RFC6587SyslogDeserializer deserializer = new RFC6587SyslogDeserializer();
+
+		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream("107 ".getBytes()));
+
+		assertThat(map)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.ERRORS, SyslogHeaders.UNDECODED)
+				.containsExactly("true", "Insufficient data; expected 107 got 0", "");
 	}
 
 	@Test
