@@ -113,3 +113,12 @@ With Java DSL a configuration for this channel adapter is like this:
         .criteria((message) -> Criteria.where("id").is(message.getHeaders().get("personId")))
         .values("{age:36}"))
 ----
+
+IMPORTANT: SQL identifiers cannot be bound as parameters.
+The table name and the keys of the `valuesExpression` map are rendered into the SQL statement as is, without validation or escaping; only the map values are bound as parameters.
+The same applies to column names in a `Criteria` built from message data.
+For example, with the `valuesExpression` in the first configuration above, every key of the payload `Map` becomes a column name in the SQL statement.
+If the table name, the map keys or the criteria column names are derived from message data which comes from an untrusted source (for example, a JSON payload converted to a `Map`), the application must validate them before the message reaches the `R2dbcMessageHandler`.
+For example, use a `MessageFilter` (or a `MessageSelectingInterceptor`) which accepts only known table and column names, or a transformer which copies only an expected set of keys into the values map.
+Header values can be checked with an `AllowListMessageHeaderSelector`.
+See xref:security.adoc#trusting-data[Trusting Data] for more information.

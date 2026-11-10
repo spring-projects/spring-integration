@@ -31,9 +31,23 @@ import org.springframework.util.Assert;
 /**
  * Implementation of {@link org.springframework.messaging.ReactiveMessageHandler} which writes
  * Message payload into a Relational Database, using reactive r2dbc support.
+ * <p>
+ * <b>Security note:</b> SQL identifiers cannot be bound as parameters.
+ * The table name (see {@link #setTableNameExpression(Expression)}) and the keys of the {@link Map}
+ * produced by {@link #setValuesExpression(Expression)} are rendered into the SQL statement as is,
+ * without validation or escaping; only the values of that map are bound as parameters.
+ * The same applies to column names in a {@link Criteria} built from message data.
+ * If these identifiers are derived from message data which comes from an untrusted source
+ * (for example, a payload converted from JSON into a {@link Map}), the application is responsible
+ * for validating them before the message reaches this handler.
+ * For example, use a {@link org.springframework.integration.filter.MessageFilter}
+ * (or a {@link org.springframework.integration.channel.interceptor.MessageSelectingInterceptor})
+ * which accepts only known table and column names, or a transformer which copies only
+ * an expected set of keys into the values map.
  *
  * @author Rohan Mukesh
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 5.4
  */
@@ -97,6 +111,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	/**
 	 * Set a SpEL expression to evaluate a table name at runtime against request message.
+	 * The result is rendered into the SQL statement as is; it must not come from untrusted
+	 * message data without prior validation.
 	 * @param tableNameExpression the expression to use.
 	 */
 	public void setTableNameExpression(Expression tableNameExpression) {
@@ -106,6 +122,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	/**
 	 * Set a SpEL expression to evaluate a {@link Map} for name-value pairs to bind as parameters
 	 * into a query.
+	 * Only the values are bound as parameters: the keys are rendered into the SQL statement
+	 * as column names as is, so they must not come from untrusted message data without prior validation.
 	 * @param valuesExpression the expression to use.
 	 */
 	public void setValuesExpression(Expression valuesExpression) {
