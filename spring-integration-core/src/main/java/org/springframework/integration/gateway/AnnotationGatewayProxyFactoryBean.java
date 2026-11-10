@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  *
  * @since 5.0
  */
@@ -100,17 +101,20 @@ public class AnnotationGatewayProxyFactoryBean<T> extends GatewayProxyFactoryBea
 
 		String defaultRequestTimeout = resolveAttribute("defaultRequestTimeout");
 		String defaultReplyTimeout = resolveAttribute("defaultReplyTimeout");
+		String defaultRequestChannel = resolveAttribute("defaultRequestChannel");
+		String defaultReplyChannel = resolveAttribute("defaultReplyChannel");
+		String errorChannel = resolveAttribute("errorChannel");
 
 		JavaUtils.INSTANCE
-				.acceptIfCondition(getDefaultRequestChannel() == null && getDefaultRequestChannelName() == null,
-						resolveAttribute("defaultRequestChannel"),
-						this::setDefaultRequestChannelName)
-				.acceptIfCondition(getDefaultReplyChannel() == null && getDefaultReplyChannelName() == null,
-						resolveAttribute("defaultReplyChannel"),
-						this::setDefaultReplyChannelName)
-				.acceptIfCondition(getErrorChannel() == null && getErrorChannelName() == null,
-						resolveAttribute("errorChannel"),
-						this::setErrorChannelName)
+				.acceptIfCondition(getDefaultRequestChannel() == null && getDefaultRequestChannelName() == null
+								&& StringUtils.hasText(defaultRequestChannel),
+						defaultRequestChannel, this::setDefaultRequestChannelName)
+				.acceptIfCondition(getDefaultReplyChannel() == null && getDefaultReplyChannelName() == null
+								&& StringUtils.hasText(defaultReplyChannel),
+						defaultReplyChannel, this::setDefaultReplyChannelName)
+				.acceptIfCondition(getErrorChannel() == null && getErrorChannelName() == null
+								&& StringUtils.hasText(errorChannel),
+						errorChannel, this::setErrorChannelName)
 				.acceptIfCondition(getDefaultRequestTimeout() == null && StringUtils.hasText(defaultRequestTimeout),
 						evaluateExpression(defaultRequestTimeout, Long.class),
 						this::setDefaultRequestTimeout)
