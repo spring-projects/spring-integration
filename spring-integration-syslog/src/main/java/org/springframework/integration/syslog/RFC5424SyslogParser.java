@@ -61,7 +61,7 @@ public class RFC5424SyslogParser {
 				while (n >= 0 && line.charAt(n) == 0x00) {
 					n--;
 				}
-				line = line.substring(0, n);
+				line = line.substring(0, n + 1);
 				throw new IllegalStateException("Insufficient data; expected " + octetCount + " got " + (n + 1));
 			}
 			r.expect('<');
