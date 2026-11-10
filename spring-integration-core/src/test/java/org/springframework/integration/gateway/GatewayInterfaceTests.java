@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -71,6 +72,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -98,6 +100,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Jiandong Ma
  */
 @SpringJUnitConfig(classes = GatewayInterfaceTests.TestConfig.class)
 @DirtiesContext
@@ -152,7 +155,13 @@ public class GatewayInterfaceTests {
 	private MessageChannel errorChannel;
 
 	@Autowired
+	private QueueChannel noErrorChannelRequests;
+
+	@Autowired
 	private IgnoredHeaderGateway ignoredHeaderGateway;
+
+	@Autowired
+	private NoErrorChannelGateway noErrorChannelGateway;
 
 	@Autowired(required = false)
 	private NotActivatedByProfileGateway notActivatedByProfileGateway;
@@ -508,6 +517,17 @@ public class GatewayInterfaceTests {
 	}
 
 	@Test
+	public void testNoErrorChannelHeader() {
+		this.noErrorChannelGateway.send("payload");
+
+		Message<?> message = this.noErrorChannelRequests.receive(0);
+
+		assertThat(message)
+				.extracting(Message::getHeaders).asInstanceOf(InstanceOfAssertFactories.MAP)
+				.doesNotContainKey(MessageHeaders.ERROR_CHANNEL);
+	}
+
+	@Test
 	public void testGatewayWithNoArgsMethod() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
@@ -671,6 +691,11 @@ public class GatewayInterfaceTests {
 		}
 
 		@Bean
+		public QueueChannel noErrorChannelRequests() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		@BridgeTo
 		public MessageChannel gatewayThreadChannel() {
 			DirectChannel channel = new DirectChannel();
@@ -795,6 +820,14 @@ public class GatewayInterfaceTests {
 	public interface IgnoredHeaderGateway {
 
 		void service(String payload, @Header(IGNORE_HEADER) String myHeader);
+
+	}
+
+	@MessagingGateway(defaultRequestChannel = "noErrorChannelRequests")
+	@TestMessagingGateway
+	public interface NoErrorChannelGateway {
+
+		void send(String payload);
 
 	}
 
