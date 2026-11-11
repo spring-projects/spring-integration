@@ -5,6 +5,7 @@
 package org.springframework.integration.kafka.inbound;
 
 import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -14,6 +15,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -36,7 +38,10 @@ import org.springframework.kafka.event.ConsumerPausedEvent;
 import org.springframework.kafka.event.ConsumerResumedEvent;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.requestreply.RequestReplyFuture;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
@@ -58,6 +63,7 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Urs Keller
+ * @author Dongmin Kim
  *
  * @since 5.4
  *
@@ -69,7 +75,9 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 				InboundGatewayTests.topic4,
 				InboundGatewayTests.topic5,
 				InboundGatewayTests.topic6,
-				InboundGatewayTests.topic7})
+				InboundGatewayTests.topic7,
+				InboundGatewayTests.topic8,
+				InboundGatewayTests.topic9})
 class InboundGatewayTests {
 
 	static final String topic1 = "testTopic1";
@@ -85,6 +93,10 @@ class InboundGatewayTests {
 	static final String topic6 = "testTopic6";
 
 	static final String topic7 = "testTopic7";
+
+	static final String topic8 = "testTopic8";
+
+	static final String topic9 = "testTopic9";
 
 	@Test
 	void testInbound(EmbeddedKafkaBroker embeddedKafka) throws Exception {
@@ -391,6 +403,70 @@ class InboundGatewayTests {
 		gateway.stop();
 		consumer.close();
 		pf.reset();
+	}
+
+	@Test
+	void testInboundReplyToReplyingKafkaTemplateWithReplyPartition(EmbeddedKafkaBroker embeddedKafka)
+			throws Exception {
+
+		Map<String, Object> replyConsumerProps =
+				KafkaTestUtils.consumerProps(embeddedKafka, "replyHandler5", false);
+		DefaultKafkaConsumerFactory<Integer, String> replyCf =
+				new DefaultKafkaConsumerFactory<>(replyConsumerProps);
+		ContainerProperties replyContainerProps =
+				new ContainerProperties(new TopicPartitionOffset(topic9, 1));
+		KafkaMessageListenerContainer<Integer, String> replyContainer =
+				new KafkaMessageListenerContainer<>(replyCf, replyContainerProps);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		senderProps.put(ProducerConfig.LINGER_MS_CONFIG, 0);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
+		ReplyingKafkaTemplate<Integer, String, String> replyingTemplate =
+				new ReplyingKafkaTemplate<>(pf, replyContainer);
+		replyingTemplate.setDefaultReplyTimeout(Duration.ofSeconds(30));
+
+		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test5", false);
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic8);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		KafkaInboundGateway<Integer, String, String> gateway = new KafkaInboundGateway<>(container, template);
+		QueueChannel out = new QueueChannel();
+		DirectChannel reply = new DirectChannel();
+		gateway.setRequestChannel(out);
+		gateway.setReplyChannel(reply);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setReplyTimeout(30_000);
+		gateway.afterPropertiesSet();
+
+		try {
+			replyingTemplate.start();
+			assertThat(replyingTemplate.waitForAssignment(Duration.ofSeconds(30))).isTrue();
+			gateway.start();
+			ContainerTestUtils.waitForAssignment(container, 2);
+
+			RequestReplyFuture<Integer, String, String> replyFuture =
+					replyingTemplate.sendAndReceive(new ProducerRecord<>(topic8, "request"));
+
+			Message<?> received = out.receive(30_000);
+			assertThat(received).isNotNull();
+			MessageHeaders headers = received.getHeaders();
+			// The ReplyingKafkaTemplate sends the reply partition as a raw 4-byte header
+			assertThat(headers.get(KafkaHeaders.REPLY_PARTITION))
+					.isEqualTo(ByteBuffer.allocate(4).putInt(1).array());
+
+			reply.send(MessageBuilder.withPayload("REPLY").copyHeaders(headers).build());
+
+			ConsumerRecord<Integer, String> replyRecord = replyFuture.get(30, TimeUnit.SECONDS);
+			assertThat(replyRecord).has(partition(1));
+			assertThat(replyRecord).has(value("REPLY"));
+		}
+		finally {
+			gateway.stop();
+			replyingTemplate.stop();
+			pf.reset();
+		}
 	}
 
 }
