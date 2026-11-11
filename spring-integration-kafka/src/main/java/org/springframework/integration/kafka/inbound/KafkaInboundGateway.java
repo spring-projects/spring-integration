@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Urs Keller
  * @author Jooyoung Pyoung
+ * @author Dongmin Kim
  *
  * @since 5.4
  *
@@ -405,12 +406,19 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				}
 				builder.setHeader(KafkaHeaders.TOPIC, requestHeaders.get(KafkaHeaders.REPLY_TOPIC));
 			}
-			if (replyHeaders.get(KafkaHeaders.PARTITION) == null &&
-					requestHeaders.get(KafkaHeaders.REPLY_PARTITION) != null) {
+			Object replyPartition = requestHeaders.get(KafkaHeaders.REPLY_PARTITION);
+			if (replyHeaders.get(KafkaHeaders.PARTITION) == null && replyPartition != null) {
 				if (builder == null) {
 					builder = getMessageBuilderFactory().fromMessage(reply);
 				}
-				builder.setHeader(KafkaHeaders.PARTITION, requestHeaders.get(KafkaHeaders.REPLY_PARTITION));
+				if (replyPartition instanceof byte[] replyPartitionBytes) {
+					// The ReplyingKafkaTemplate sends the reply partition as an int in a raw byte[]
+					Assert.state(replyPartitionBytes.length == Integer.BYTES,
+							() -> "The '" + KafkaHeaders.REPLY_PARTITION + "' header must be a 4-byte int, but has "
+									+ replyPartitionBytes.length + " bytes");
+					replyPartition = ByteBuffer.wrap(replyPartitionBytes).getInt();
+				}
+				builder.setHeader(KafkaHeaders.PARTITION, replyPartition);
 			}
 			if (builder != null) {
 				return builder.build();
