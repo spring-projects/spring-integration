@@ -44,6 +44,8 @@ import org.springframework.util.Assert;
  * (or a {@link org.springframework.integration.channel.interceptor.MessageSelectingInterceptor})
  * which accepts only known table and column names, or a transformer which copies only
  * an expected set of keys into the values map.
+ * Header values can be checked with an
+ * {@link org.springframework.integration.selector.AllowListMessageHeaderSelector}.
  *
  * @author Rohan Mukesh
  * @author Artem Bilan
