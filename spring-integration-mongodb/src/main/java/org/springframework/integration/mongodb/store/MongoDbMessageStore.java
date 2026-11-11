@@ -87,6 +87,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Youbin Wu
+ * @author Glenn Renfro
  *
  * @since 2.1
  */
@@ -164,6 +165,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
 	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
 	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * These patterns apply only to the Java deserialization of stored
+	 * {@link org.springframework.messaging.support.ErrorMessage} payloads.
+	 * They do not apply to the rest of the MongoDB document mapping
+	 * (for example, the {@code _class} type information for payloads and headers),
+	 * nor to the {@link ConfigurableMongoDbMessageStore}.
 	 * @param patterns the patterns.
 	 * @since 5.4
 	 */
