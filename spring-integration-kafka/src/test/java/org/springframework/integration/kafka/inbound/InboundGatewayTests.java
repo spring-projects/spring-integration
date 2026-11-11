@@ -423,8 +423,6 @@ class InboundGatewayTests {
 		ReplyingKafkaTemplate<Integer, String, String> replyingTemplate =
 				new ReplyingKafkaTemplate<>(pf, replyContainer);
 		replyingTemplate.setDefaultReplyTimeout(Duration.ofSeconds(30));
-		replyingTemplate.start();
-		assertThat(replyingTemplate.waitForAssignment(Duration.ofSeconds(30))).isTrue();
 
 		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test5", false);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -441,28 +439,34 @@ class InboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setReplyTimeout(30_000);
 		gateway.afterPropertiesSet();
-		gateway.start();
-		ContainerTestUtils.waitForAssignment(container, 2);
 
-		RequestReplyFuture<Integer, String, String> replyFuture =
-				replyingTemplate.sendAndReceive(new ProducerRecord<>(topic8, "request"));
+		try {
+			replyingTemplate.start();
+			assertThat(replyingTemplate.waitForAssignment(Duration.ofSeconds(30))).isTrue();
+			gateway.start();
+			ContainerTestUtils.waitForAssignment(container, 2);
 
-		Message<?> received = out.receive(30_000);
-		assertThat(received).isNotNull();
-		MessageHeaders headers = received.getHeaders();
-		// The ReplyingKafkaTemplate sends the reply partition as a raw 4-byte header
-		assertThat(headers.get(KafkaHeaders.REPLY_PARTITION))
-				.isEqualTo(ByteBuffer.allocate(4).putInt(1).array());
+			RequestReplyFuture<Integer, String, String> replyFuture =
+					replyingTemplate.sendAndReceive(new ProducerRecord<>(topic8, "request"));
 
-		reply.send(MessageBuilder.withPayload("REPLY").copyHeaders(headers).build());
+			Message<?> received = out.receive(30_000);
+			assertThat(received).isNotNull();
+			MessageHeaders headers = received.getHeaders();
+			// The ReplyingKafkaTemplate sends the reply partition as a raw 4-byte header
+			assertThat(headers.get(KafkaHeaders.REPLY_PARTITION))
+					.isEqualTo(ByteBuffer.allocate(4).putInt(1).array());
 
-		ConsumerRecord<Integer, String> replyRecord = replyFuture.get(30, TimeUnit.SECONDS);
-		assertThat(replyRecord).has(partition(1));
-		assertThat(replyRecord).has(value("REPLY"));
+			reply.send(MessageBuilder.withPayload("REPLY").copyHeaders(headers).build());
 
-		gateway.stop();
-		replyingTemplate.stop();
-		pf.reset();
+			ConsumerRecord<Integer, String> replyRecord = replyFuture.get(30, TimeUnit.SECONDS);
+			assertThat(replyRecord).has(partition(1));
+			assertThat(replyRecord).has(value("REPLY"));
+		}
+		finally {
+			gateway.stop();
+			replyingTemplate.stop();
+			pf.reset();
+		}
 	}
 
 }

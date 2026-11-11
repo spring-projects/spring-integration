@@ -413,6 +413,9 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				}
 				if (replyPartition instanceof byte[] replyPartitionBytes) {
 					// The ReplyingKafkaTemplate sends the reply partition as an int in a raw byte[]
+					Assert.state(replyPartitionBytes.length == Integer.BYTES,
+							() -> "The '" + KafkaHeaders.REPLY_PARTITION + "' header must be a 4-byte int, but has "
+									+ replyPartitionBytes.length + " bytes");
 					replyPartition = ByteBuffer.wrap(replyPartitionBytes).getInt();
 				}
 				builder.setHeader(KafkaHeaders.PARTITION, replyPartition);
