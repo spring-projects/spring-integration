@@ -237,7 +237,7 @@ public class RFC5424SyslogParser {
 
 		public double readFraction() {
 			int val = 0;
-			int order = 0;
+			int order = 1;
 			while (isDigit()) {
 				val = (val * 10) + getInt(); // NOSONAR magic number
 				order *= 10; // NOSONAR magic number
