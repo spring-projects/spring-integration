@@ -12,6 +12,7 @@ import java.util.Map;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.syslog.RFC5424SyslogParser;
 import org.springframework.integration.syslog.SyslogHeaders;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -175,6 +176,30 @@ public class SyslogDeserializerTests {
 				.doesNotContainKey(SyslogHeaders.STRUCTURED_DATA)
 				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.MSGID, SyslogHeaders.MESSAGE)
 				.containsExactly("false", "-", "");
+	}
+
+	@Test
+	public void shouldReadTheFractionOfASecondInAParserSubclass() {
+
+		RFC5424SyslogParser parser = new RFC5424SyslogParser() {
+
+			@Override
+			protected Object getTimestamp(Reader r) {
+				// The fraction of a second of a timestamp such as 2003-10-11T22:14:15.003Z
+				r.skipTo('.');
+				double fraction = r.readFraction();
+				r.skipTo(SPACE);
+				return fraction;
+			}
+
+		};
+
+		Map<String, ?> map = parser.parse(
+				"<34>1 2003-10-11T22:14:15.003Z mymachine.example.com su - ID47 - 'su root' failed", 0, false);
+
+		assertThat(map)
+				.extracting(SyslogHeaders.DECODE_ERRORS, SyslogHeaders.TIMESTAMP, SyslogHeaders.HOST)
+				.containsExactly("false", 0.003, "mymachine.example.com");
 	}
 
 	@Test
