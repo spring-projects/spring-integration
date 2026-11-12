@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ruslan Stelmachenko
+ * @author Yingzi Zhang
  *
  * @since 4.1.2
  */
@@ -160,7 +161,12 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		if (payload instanceof String stringPayload) {
 			try {
-				reader = new FileReader(stringPayload);
+				if (this.charset == null) {
+					reader = new FileReader(stringPayload);
+				}
+				else {
+					reader = new InputStreamReader(new FileInputStream(stringPayload), this.charset);
+				}
 				filePath = stringPayload;
 			}
 			catch (FileNotFoundException e) {
