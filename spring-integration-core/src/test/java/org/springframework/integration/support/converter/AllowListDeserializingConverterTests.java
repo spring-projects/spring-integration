@@ -328,10 +328,12 @@ class AllowListDeserializingConverterTests {
 
 	}
 
+	@SuppressWarnings("serial")
 	static final class CustomException extends RuntimeException {
 
 	}
 
+	@SuppressWarnings("serial")
 	static final class CustomNumber extends Number {
 
 		@Override
