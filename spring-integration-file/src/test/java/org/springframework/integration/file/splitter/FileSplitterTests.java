@@ -60,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ruslan Stelmachenko
+ * @author Yingzi Zhang
  *
  * @since 4.1.2
  */
@@ -383,6 +384,23 @@ public class FileSplitterTests {
 			// ignore
 		}
 		assertThat(closeCalled.get()).isTrue();
+	}
+
+	@Test
+	void charsetIsUsedForFileAndFilePathPayloads(@TempDir File tempDir) throws IOException {
+		File latin1File = new File(tempDir, "latin1.txt");
+		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(StandardCharsets.ISO_8859_1), latin1File);
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter();
+		splitter.setCharset(StandardCharsets.ISO_8859_1);
+		splitter.setOutputChannel(outputChannel);
+
+		splitter.handleMessage(new GenericMessage<>(latin1File));
+		splitter.handleMessage(new GenericMessage<>(latin1File.getAbsolutePath()));
+
+		assertThat(outputChannel.clear())
+				.extracting("payload")
+				.containsExactly("HelloWorld", "äöüß", "HelloWorld", "äöüß");
 	}
 
 	@Configuration
