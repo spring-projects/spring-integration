@@ -86,8 +86,8 @@ RequestHandlerRetryAdvice retryAdvice(MessageChannel recoveryChannel) {
 
 Stateless Retry with Customized Policies, and Recovery::
 For more sophistication, a customized `RetryPolicy` can be provided for the `RequestHandlerRetryAdvice`.
-This example continues to use the simple `RetryPolicy` but increases the attempts to four.
-It also adds an `ExponentialBackoff` where the first retry waits one second, the second waits five seconds, and the third waits 25 (for four attempts in all).
+This example continues to use the simple `RetryPolicy` but increases the retries to four.
+It also adds an `ExponentialBackoff` where the first retry waits one second, the second waits five seconds, the third waits 25, and the fourth waits one minute, the `maxDelay` (for five attempts in all).
 The following listing shows the example of such a configuration:
 +
 [source,java]
