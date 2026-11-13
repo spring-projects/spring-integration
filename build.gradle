@@ -37,6 +37,11 @@ ext {
     javaProjects = subprojects - project(':spring-integration-bom')
 }
 
+// Applied before the main repositories so that commercial repos are consulted first
+if (System.getenv('ARTIFACTORY_USERNAME')) {
+	apply from: "${rootProject.projectDir}/commercial-settings.gradle"
+}
+
 allprojects {
     group = 'org.springframework.integration'
 
@@ -100,10 +105,6 @@ allprojects {
 }
 
 apply from: "${rootProject.projectDir}/publish-maven.gradle"
-
-if (System.getenv('ARTIFACTORY_USERNAME')) {
-	apply from: "${rootProject.projectDir}/commercial-settings.gradle"
-}
 
 subprojects { subproject ->
     if (subproject.name == 'spring-integration-bom') {
