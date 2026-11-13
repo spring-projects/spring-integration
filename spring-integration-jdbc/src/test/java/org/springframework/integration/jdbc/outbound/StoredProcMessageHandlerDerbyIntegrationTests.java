@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplicationContextAware {
 
