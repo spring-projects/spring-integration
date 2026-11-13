@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author WooSeung Kim
  */
 public class ResequencerTests implements TestApplicationContextAware {
 
@@ -384,6 +385,94 @@ public class ResequencerTests implements TestApplicationContextAware {
 		assertThat(out3).isNotNull();
 
 		taskScheduler.destroy();
+	}
+
+	@Test
+	public void testPartialReleaseDiscardsAlreadyReleasedSequenceNumbers() {
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		this.resequencer.setReleasePartialSequences(true);
+		this.resequencer.setOutputChannel(replyChannel);
+		this.resequencer.setDiscardChannel(discardChannel);
+
+		this.resequencer.handleMessage(createMessage("alpha", "ABC", 4, 1, null));
+		this.resequencer.handleMessage(createMessage("bravo", "ABC", 4, 2, null));
+		this.resequencer.handleMessage(createMessage("alpha-redelivered", "ABC", 4, 1, null));
+		this.resequencer.handleMessage(createMessage("bravo-redelivered", "ABC", 4, 2, null));
+		this.resequencer.handleMessage(createMessage("charlie", "ABC", 4, 3, null));
+		this.resequencer.handleMessage(createMessage("delta", "ABC", 4, 4, null));
+
+		assertThat(replyChannel.clear()).extracting("payload").containsExactly("alpha", "bravo", "charlie", "delta");
+		assertThat(discardChannel.clear()).extracting("payload")
+				.containsExactly("alpha-redelivered", "bravo-redelivered");
+	}
+
+	@Test
+	public void testPartialReleaseDiscardKeepsGroupTimeout() {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		try {
+			QueueChannel replyChannel = new QueueChannel();
+			QueueChannel discardChannel = new QueueChannel();
+			this.resequencer.setReleasePartialSequences(true);
+			this.resequencer.setSendPartialResultOnExpiry(true);
+			this.resequencer.setOutputChannel(replyChannel);
+			this.resequencer.setDiscardChannel(discardChannel);
+			this.resequencer.setTaskScheduler(taskScheduler);
+			this.resequencer.setGroupTimeoutExpression(new SpelExpressionParser().parseExpression("500"));
+
+			this.resequencer.handleMessage(createMessage("alpha", "ABC", 4, 1, null));
+			this.resequencer.handleMessage(createMessage("charlie", "ABC", 4, 3, null));
+			this.resequencer.handleMessage(createMessage("alpha-redelivered", "ABC", 4, 1, null));
+			this.resequencer.handleMessage(createMessage("charlie-redelivered", "ABC", 4, 3, null));
+
+			assertThat(replyChannel.receive(0)).extracting("payload").isEqualTo("alpha");
+			assertThat(replyChannel.receive(10_000)).extracting("payload").isEqualTo("charlie");
+			assertThat(discardChannel.clear()).extracting("payload")
+					.containsExactly("alpha-redelivered", "charlie-redelivered");
+		}
+		finally {
+			taskScheduler.destroy();
+		}
+	}
+
+	@Test
+	public void testPartialReleaseWithGroupCondition() {
+		QueueChannel replyChannel = new QueueChannel();
+		this.resequencer.setReleasePartialSequences(true);
+		this.resequencer.setOutputChannel(replyChannel);
+		this.resequencer.setGroupConditionSupplier((message, existing) -> "open");
+
+		this.resequencer.handleMessage(createMessage("alpha", "ABC", 4, 1, null));
+		this.resequencer.handleMessage(createMessage("bravo", "ABC", 4, 2, null));
+		this.resequencer.handleMessage(createMessage("charlie", "ABC", 4, 3, null));
+
+		assertThat(replyChannel.clear()).extracting("payload").containsExactly("alpha", "bravo", "charlie");
+	}
+
+	@Test
+	public void testPartialReleaseWithGroupConditionKeepsGroupTimeout() {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		try {
+			QueueChannel replyChannel = new QueueChannel();
+			this.resequencer.setReleasePartialSequences(true);
+			this.resequencer.setSendPartialResultOnExpiry(true);
+			this.resequencer.setOutputChannel(replyChannel);
+			this.resequencer.setTaskScheduler(taskScheduler);
+			this.resequencer.setGroupTimeoutExpression(
+					new SpelExpressionParser().parseExpression("condition == 'open' ? 500 : null"));
+			this.resequencer.setGroupConditionSupplier((message, existing) -> "open");
+
+			this.resequencer.handleMessage(createMessage("alpha", "ABC", 4, 1, null));
+			this.resequencer.handleMessage(createMessage("charlie", "ABC", 4, 3, null));
+
+			assertThat(replyChannel.receive(0)).extracting("payload").isEqualTo("alpha");
+			assertThat(replyChannel.receive(10_000)).extracting("payload").isEqualTo("charlie");
+		}
+		finally {
+			taskScheduler.destroy();
+		}
 	}
 
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,
