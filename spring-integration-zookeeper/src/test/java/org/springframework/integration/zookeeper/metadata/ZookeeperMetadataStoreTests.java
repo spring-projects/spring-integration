@@ -341,11 +341,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	public void testEnsureStarted() {
 		ZookeeperMetadataStore zookeeperMetadataStore = new ZookeeperMetadataStore(this.client);
 		assertThatIllegalStateException()
-				.isThrownBy(() -> zookeeperMetadataStore.get("foo"))
+				.isThrownBy(() -> zookeeperMetadataStore.get("test"))
 				.withMessageContaining("ZookeeperMetadataStore has to be started before using.");
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testUpdateMapEvictedAfterCacheConfirmsWrites() {
 		this.metadataStore.put("put-key", "put-value");
 		this.metadataStore.putIfAbsent("put-if-absent-key", "put-if-absent-value");
@@ -353,7 +354,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertThat(this.metadataStore.replace("replace-key", "original-value", "replaced-value")).isTrue();
 
 		await().untilAsserted(() ->
-				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.metadataStore, "updateMap")).isEmpty());
+				assertThat(TestUtils.getPropertyValue(this.metadataStore, "updateMap", Map.class)).isEmpty());
 
 		assertThat(this.metadataStore.get("put-key")).isEqualTo("put-value");
 		assertThat(this.metadataStore.get("put-if-absent-key")).isEqualTo("put-if-absent-value");
@@ -362,11 +363,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		this.metadataStore.remove("put-key");
 
 		await().untilAsserted(() ->
-				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.metadataStore, "updateMap")).isEmpty());
+				assertThat(TestUtils.getPropertyValue(this.metadataStore, "updateMap", Map.class)).isEmpty());
 		assertThat(this.metadataStore.get("put-key")).isNull();
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testStaleCacheEventDoesNotEvictNewerLocalUpdate() throws Exception {
 		String testKey = "stale-event-key";
 		ZookeeperMetadataStore notStartedStore = new ZookeeperMetadataStore(this.client);
@@ -379,7 +381,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		listenerConstructor.setAccessible(true);
 		CuratorCacheListener listener = (CuratorCacheListener) listenerConstructor.newInstance(notStartedStore);
 
-		Map<String, ?> updateMap = TestUtils.getPropertyValue(notStartedStore, "updateMap");
+		Map<String, ?> updateMap = (Map<String, ?>) TestUtils.getPropertyValue(notStartedStore, "updateMap", Map.class);
 
 		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, childData(notStartedStore, testKey, "v1", 0));
 		assertThat(updateMap).containsKey(testKey);
