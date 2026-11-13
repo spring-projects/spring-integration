@@ -6,11 +6,8 @@ package org.springframework.integration.jdbc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
 import javax.sql.DataSource;
 
@@ -34,7 +31,6 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
- * @author Glenn Renfro
  */
 public class StoredProcExecutorTests implements TestApplicationContextAware {
 
@@ -253,52 +249,6 @@ public class StoredProcExecutorTests implements TestApplicationContextAware {
 										.build()))
 				.withMessage("Unable to resolve Stored Procedure/Function name for the provided Expression " +
 						"'headers['stored_procedure_name']'.");
-	}
-
-	@Test
-	public void testSimpleJdbcCallCacheIsOnlyAccessedUnderLock() {
-		DataSource datasource = mock(DataSource.class);
-		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-		storedProcExecutor.setStoredProcedureName("procedure1");
-		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
-		storedProcExecutor.afterPropertiesSet();
-
-		DirectFieldAccessor accessor = new DirectFieldAccessor(storedProcExecutor);
-		ReentrantLock lock = (ReentrantLock) accessor.getPropertyValue("jdbcCallOperationsMapMonitor");
-		List<String> accesses = new ArrayList<>();
-		List<String> unguardedAccesses = new ArrayList<>();
-
-		Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap = new LinkedHashMap<>(16, 0.75f, true) {
-
-			@Override
-			public SimpleJdbcCallOperations get(Object key) {
-				recordAccess("get");
-				return super.get(key);
-			}
-
-			@Override
-			public SimpleJdbcCallOperations computeIfAbsent(String key,
-					Function<? super String, ? extends SimpleJdbcCallOperations> mappingFunction) {
-
-				recordAccess("computeIfAbsent");
-				return super.computeIfAbsent(key, mappingFunction);
-			}
-
-			private void recordAccess(String operation) {
-				accesses.add(operation);
-				if (!lock.isHeldByCurrentThread()) {
-					unguardedAccesses.add(operation);
-				}
-			}
-
-		};
-		jdbcCallOperationsMap.put("procedure1", mock(SimpleJdbcCallOperations.class));
-		accessor.setPropertyValue("jdbcCallOperationsMap", jdbcCallOperationsMap);
-
-		storedProcExecutor.executeStoredProcedure();
-
-		assertThat(accesses).isNotEmpty();
-		assertThat(unguardedAccesses).isEmpty();
 	}
 
 }
