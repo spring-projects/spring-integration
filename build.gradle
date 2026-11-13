@@ -515,7 +515,7 @@ project('spring-integration-file') {
         optionalApi 'com.fasterxml.jackson.core:jackson-annotations'
 
         testImplementation project(':spring-integration-redis')
-        testImplementation project(':spring-integration-redis').sourceSets.test.output
+        testImplementation rootProject.project(':spring-integration-redis').sourceSets.test.output
         testImplementation project(':spring-integration-jdbc')
         testImplementation libs.com.h2database.h2
         testImplementation libs.io.lettuce.core
@@ -532,7 +532,7 @@ project('spring-integration-ftp') {
         api 'org.springframework:spring-context-support'
         optionalApi libs.apache.ftpserver.core
 
-        testImplementation project(':spring-integration-file').sourceSets.test.output
+        testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
     }
 }
 
@@ -811,7 +811,7 @@ project('spring-integration-sftp') {
         api libs.apache.sshd.sftp
 
         testImplementation project(':spring-integration-event')
-        testImplementation project(':spring-integration-file').sourceSets.test.output
+        testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
 
         testRuntimeOnly 'net.i2p.crypto:eddsa:0.3.0'
     }
@@ -823,7 +823,7 @@ project('spring-integration-smb') {
         api project(':spring-integration-file')
         api libs.org.codelibs.jcifs
 
-        testImplementation project(':spring-integration-file').sourceSets.test.output
+        testImplementation rootProject.project(':spring-integration-file').sourceSets.test.output
     }
 }
 
@@ -833,7 +833,7 @@ project('spring-integration-stomp') {
         optionalApi 'org.springframework:spring-websocket'
 
         testImplementation project(':spring-integration-websocket')
-        testImplementation project(':spring-integration-websocket').sourceSets.test.output
+        testImplementation rootProject.project(':spring-integration-websocket').sourceSets.test.output
         testImplementation project(':spring-integration-event')
         testImplementation 'org.apache.artemis:artemis-stomp-protocol'
         testImplementation libs.apache.tomcat.embed.websocket
