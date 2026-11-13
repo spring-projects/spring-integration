@@ -18,7 +18,8 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 == Retry Advice
 
 The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://docs.spring.io/spring-framework/reference/core/resilience.html#resilience-programmatic-retry[Retry Support] in Spring Framework.
-The core component of this advice is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
+The core component of this advice is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios with a `RetryPolicy`.
+The advice can also be supplied with a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
 
 Stateless Retry::
 Stateless retry is the case where the retry activity is handled entirely within the advice.
@@ -29,9 +30,9 @@ Stateful retry is the case where the retry state is managed within the advice bu
 An example for stateful retry is when we want the message originator, (for example, JMS) to be responsible for resubmitting, rather than performing it on the current thread.
 Stateful retry needs some mechanism to detect a retried submission.
 For this purpose, the `RequestHandlerRetryAdvice` expose the `stateKeyFunction`, `newMessagePredicate` and `stateCacheSize` properties.
-Where later two of them make sense only if the first is provided.
+The latter two make sense only if the first one is provided.
 Essentially, the `stateKeyFunction` is an indicator to switch `RequestHandlerRetryAdvice` logic from stateless to stateful.
-The meaning of the `newMessagePredicate` is two refresh an existing retry state for the key based on the message to handle.
+The meaning of the `newMessagePredicate` is to refresh an existing retry state for the key based on the message to handle.
 The `stateCacheSize` is `100` by default, where elder entries are removed from the cache when more new retry states are coming.
 Perhaps those old messages are not redelivered anymore from the upstream flow, e.g., the message broker dead-lettered those messages according to its redelivery policy.
 
