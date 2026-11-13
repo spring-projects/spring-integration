@@ -8,6 +8,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Pratap Chandra Deo
+ * @author Glenn Renfro
  */
 public class StoredProcMessageHandlerH2IntegrationTests implements TestApplicationContextAware {
 
@@ -204,6 +209,51 @@ public class StoredProcMessageHandlerH2IntegrationTests implements TestApplicati
 		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("1234_Eric.Cartman");
 		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("static_password");
 		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("static_email");
+	}
+
+	@Test
+	public void testConcurrentStoredProcInsertsWithDynamicProcName() throws Exception {
+		String createUserMethod = "org.springframework.integration.jdbc.storedproc.h2.H2StoredProcedures.createUser";
+		List<String> procedureNames = List.of("CREATE_USER", "CREATE_ADMIN", "CREATE_GUEST", "CREATE_MEMBER");
+		for (String procedureName : procedureNames.subList(1, procedureNames.size())) {
+			jdbcTemplate.execute("CREATE ALIAS IF NOT EXISTS " + procedureName + " FOR \"" + createUserMethod + "\"");
+		}
+
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
+
+		ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+
+		storedProcExecutor.setStoredProcedureNameExpression(efb.getObject());
+		configureCreateUserCall(storedProcExecutor);
+		// Fewer cache slots than procedure names, so concurrent calls keep creating and evicting cache entries
+		storedProcExecutor.setJdbcCallOperationsCacheSize(2);
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+
+		storedProcExecutor.afterPropertiesSet();
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		messageHandler.afterPropertiesSet();
+
+		int messageCount = 5000;
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		try {
+			List<CompletableFuture<Void>> futures = new ArrayList<>(messageCount);
+			for (int i = 0; i < messageCount; i++) {
+				Message<User> message =
+						MessageBuilder.withPayload(new User("user" + i, "password", "email"))
+								.setHeader("stored_procedure_name", procedureNames.get(i % procedureNames.size()))
+								.build();
+				futures.add(CompletableFuture.runAsync(() -> messageHandler.handleMessage(message), executorService));
+			}
+			assertThat(CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)))
+					.succeedsWithin(30, TimeUnit.SECONDS);
+		}
+		finally {
+			executorService.shutdownNow();
+		}
+
+		assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM USERS", Integer.class)).isEqualTo(messageCount);
 	}
 
 	private static void configureCreateUserCall(StoredProcExecutor storedProcExecutor) {

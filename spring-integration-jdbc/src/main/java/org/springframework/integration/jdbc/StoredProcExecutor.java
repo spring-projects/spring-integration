@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 2.1
  *
@@ -295,18 +296,14 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
-		SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
-		if (operations == null) {
-			this.jdbcCallOperationsMapMonitor.lock();
-			try {
-				operations =
-						this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);
-			}
-			finally {
-				this.jdbcCallOperationsMapMonitor.unlock();
-			}
+		// The access-ordered LinkedHashMap mutates on every get(), so all access must be guarded.
+		this.jdbcCallOperationsMapMonitor.lock();
+		try {
+			return this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);
 		}
-		return operations;
+		finally {
+			this.jdbcCallOperationsMapMonitor.unlock();
+		}
 	}
 
 	//~~~~~Setters for Properties~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
