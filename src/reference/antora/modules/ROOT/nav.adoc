@@ -126,6 +126,7 @@
 * xref:cassandra.adoc[]
 * xref:cloudevents.adoc[]
 * xref:debezium.adoc[]
+* xref:elasticsearch.adoc[]
 * xref:event.adoc[]
 * xref:feed.adoc[]
 * xref:file.adoc[]
