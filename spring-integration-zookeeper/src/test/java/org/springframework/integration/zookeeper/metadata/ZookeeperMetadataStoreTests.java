@@ -4,6 +4,7 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +14,10 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.utils.CloseableUtils;
+import org.apache.zookeeper.data.Stat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +27,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +38,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Glenn Renfro
  *
  * @since 4.2
  */
@@ -337,6 +343,55 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> zookeeperMetadataStore.get("foo"))
 				.withMessageContaining("ZookeeperMetadataStore has to be started before using.");
+	}
+
+	@Test
+	public void testUpdateMapEvictedAfterCacheConfirmsWrites() {
+		this.metadataStore.put("put-key", "put-value");
+		this.metadataStore.putIfAbsent("put-if-absent-key", "put-if-absent-value");
+		this.metadataStore.put("replace-key", "original-value");
+		assertThat(this.metadataStore.replace("replace-key", "original-value", "replaced-value")).isTrue();
+
+		await().untilAsserted(() ->
+				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.metadataStore, "updateMap")).isEmpty());
+
+		assertThat(this.metadataStore.get("put-key")).isEqualTo("put-value");
+		assertThat(this.metadataStore.get("put-if-absent-key")).isEqualTo("put-if-absent-value");
+		assertThat(this.metadataStore.get("replace-key")).isEqualTo("replaced-value");
+
+		this.metadataStore.remove("put-key");
+
+		await().untilAsserted(() ->
+				assertThat(TestUtils.<Map<?, ?>>getPropertyValue(this.metadataStore, "updateMap")).isEmpty());
+		assertThat(this.metadataStore.get("put-key")).isNull();
+	}
+
+	@Test
+	public void testStaleCacheEventDoesNotEvictNewerLocalUpdate() throws Exception {
+		String testKey = "stale-event-key";
+		ZookeeperMetadataStore notStartedStore = new ZookeeperMetadataStore(this.client);
+		notStartedStore.put(testKey, "v1");
+		notStartedStore.put(testKey, "v2");
+
+		Class<?> listenerClass =
+				Class.forName(ZookeeperMetadataStore.class.getName() + "$MetadataStoreCacheListener");
+		Constructor<?> listenerConstructor = listenerClass.getDeclaredConstructor(ZookeeperMetadataStore.class);
+		listenerConstructor.setAccessible(true);
+		CuratorCacheListener listener = (CuratorCacheListener) listenerConstructor.newInstance(notStartedStore);
+
+		Map<String, ?> updateMap = TestUtils.getPropertyValue(notStartedStore, "updateMap");
+
+		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, childData(notStartedStore, testKey, "v1", 0));
+		assertThat(updateMap).containsKey(testKey);
+
+		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, childData(notStartedStore, testKey, "v2", 1));
+		assertThat(updateMap).isEmpty();
+	}
+
+	private static ChildData childData(ZookeeperMetadataStore store, String key, String value, int version) {
+		Stat stat = new Stat();
+		stat.setVersion(version);
+		return new ChildData(store.getPath(key), stat, IntegrationUtils.stringToBytes(value, "UTF-8"));
 	}
 
 	private void waitAtBarrier(String barrierName, Map<String, CyclicBarrier> barriers) {

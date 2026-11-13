@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  *
  * @since 4.2
  */
@@ -203,27 +204,23 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
+			// Read the local update once and before the cache: the listener evicts it concurrently,
+			// but only after the cache has been updated with a version at least as recent.
+			LocalChildData localData = this.updateMap.get(key);
 			return Objects.requireNonNull(this.cache)
 					.get(getPath(key))
 					.map(currentData -> {
 						// our version is more recent than the cache
-						if (this.updateMap.containsKey(key) &&
-								this.updateMap.get(key).version() >= currentData.getStat().getVersion()) {
-
-							return this.updateMap.get(key).value();
+						if (localData != null && localData.version() >= currentData.getStat().getVersion()) {
+							return localData.value();
 						}
 						return IntegrationUtils.bytesToString(currentData.getData(), this.encoding); // NOSONAR
 					})
 					.orElseGet(() -> {
-						if (this.updateMap.containsKey(key)) {
-							// we have saved the value, but the cache hasn't updated yet
-							// if the value had changed via replication, we would have been notified by the listener
-							return this.updateMap.get(key).value();
-						}
-						else {
-							// the value just doesn't exist
-							return null;
-						}
+						// we have saved the value, but the cache hasn't updated yet
+						// if the value had changed via replication, we would have been notified by the listener
+						// otherwise, the value just doesn't exist
+						return localData != null ? localData.value() : null;
 					});
 		}
 		finally {
@@ -358,21 +355,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 			switch (type) {
 				case NODE_CREATED -> {
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
-							data.getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
-
-						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
-					}
+					evictConfirmedUpdate(eventKey, data.getStat().getVersion());
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onAdd(eventKey, value));
 				}
 				case NODE_CHANGED -> {
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey) &&
-							data.getStat().getVersion() >=
-									ZookeeperMetadataStore.this.updateMap.get(eventKey).version()) {
-
-						ZookeeperMetadataStore.this.updateMap.remove(eventPath);
-					}
+					evictConfirmedUpdate(eventKey, data.getStat().getVersion());
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onUpdate(eventKey, value));
 				}
 				case NODE_DELETED -> {
@@ -380,6 +367,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onRemove(eventKey, value));
 				}
 			}
+		}
+
+		private void evictConfirmedUpdate(String key, int eventVersion) {
+			ZookeeperMetadataStore.this.updateMap.computeIfPresent(key,
+					(k, localData) -> eventVersion >= localData.version() ? null : localData);
 		}
 
 	}
