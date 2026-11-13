@@ -508,6 +508,12 @@ Otherwise, the whole message will be written by converting both message headers 
 By setting the distributed object name in the header, messages can be written to different distributed objects via the same channel.
 If `cache` or `cache-expression` attributes are not defined, a `HazelcastHeaders.CACHE_NAME` header has to be set in a request `Message`.
 
+IMPORTANT: The value of the `HazelcastHeaders.CACHE_NAME` header (and of the `cache-expression`, if it is derived from message data) is resolved as a `DistributedObject` bean name in the application context.
+Therefore, it must be set by trusted application code and must not be mapped from an external untrusted source, such as AMQP, Kafka or HTTP headers.
+Otherwise, a message could be written to any `DistributedObject` bean in the application context.
+Validate or strip such a header before it reaches the Hazelcast Outbound Channel Adapter, for example, with an `AllowListMessageHeaderSelector`.
+See xref:security.adoc#sensitive-metadata[Sensitive Metadata] for more information.
+
 [[hazelcast-message-store]]
 == Hazelcast Message Store
 
