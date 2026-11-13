@@ -1,0 +1,7 @@
+description = 'Spring Integration for Apache Pulsar'
+
+dependencies {
+	api 'org.springframework.pulsar:spring-pulsar'
+
+	testImplementation 'org.testcontainers:testcontainers-pulsar'
+}
