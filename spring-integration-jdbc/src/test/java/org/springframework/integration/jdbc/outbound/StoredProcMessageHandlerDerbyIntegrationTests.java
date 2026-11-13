@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 @EnabledForJreRange(min = JRE.JAVA_21, disabledReason = "Derby 10.17")
 public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplicationContextAware {
