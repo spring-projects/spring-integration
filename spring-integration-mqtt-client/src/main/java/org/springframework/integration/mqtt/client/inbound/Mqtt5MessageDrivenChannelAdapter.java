@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Jiandong Ma
  * @author WooSeung Kim
+ * @author Akshit Khandelwal
  *
  * @since 7.2
  */
@@ -129,7 +130,7 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (isConnected() && this.isSubscribed.get()) {
+		if (isConnected() && this.isSubscribed.get() && this.isUnsubscribing.compareAndSet(false, true)) {
 			unsubscribe();
 		}
 	}
@@ -165,6 +166,10 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 				this.isSubscribed.set(true);
 				String msg = "MQTT client subscribe to: " + this.subscriptions;
 				getApplicationEventPublisher().publishEvent(new MqttSubscribedEvent(this, msg));
+				// The adapter may have been stopped before the subscription was acknowledged.
+				if (!isActive() && this.isUnsubscribing.compareAndSet(false, true)) {
+					unsubscribe();
+				}
 			}
 			else {
 				this.isSubscribed.set(false);
@@ -227,9 +232,15 @@ public class Mqtt5MessageDrivenChannelAdapter extends AbstractMqttMessageDrivenC
 				.whenComplete((mqtt5UnsubAck, throwable) -> {
 					if (throwable == null) {
 						this.isSubscribed.set(false);
+						this.isUnsubscribing.set(false);
+						// The adapter may have been started again before the unsubscription was acknowledged.
+						if (isActive() && this.isSubscribing.compareAndSet(false, true)) {
+							subscribe();
+						}
 					}
 					else {
 						this.isSubscribed.set(true);
+						this.isUnsubscribing.set(false);
 						logger.error(throwable, () -> "Error unsubscribing from " + this.subscriptions);
 					}
 				});
