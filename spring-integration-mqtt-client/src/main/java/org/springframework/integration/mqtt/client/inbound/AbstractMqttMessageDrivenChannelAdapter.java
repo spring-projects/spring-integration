@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Jiandong Ma
  * @author WooSeung Kim
+ * @author Akshit Khandelwal
  *
  * @since 7.2
  */
@@ -45,6 +46,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T extends MqttClie
 	protected final AtomicBoolean isSubscribing = new AtomicBoolean();
 
 	protected final AtomicBoolean isSubscribed = new AtomicBoolean();
+
+	protected final AtomicBoolean isUnsubscribing = new AtomicBoolean();
 
 	private String @Nullable [] topics;
 

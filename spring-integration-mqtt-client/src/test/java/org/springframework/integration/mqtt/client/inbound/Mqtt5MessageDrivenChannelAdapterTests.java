@@ -45,10 +45,12 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Jiandong Ma
  * @author WooSeung Kim
+ * @author Akshit Khandelwal
  *
  * @since 7.2
  */
@@ -79,6 +81,14 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 	static final BlockingQueue<Mqtt5MessageConversionFailedEvent> lampDeviceConversionFailedEvents =
 			new LinkedBlockingQueue<>();
 
+	static final String DOOR_DEVICE_TOPIC = "mqtt-v5-inbound-door-device";
+
+	static final BlockingQueue<MqttSubscribedEvent> doorDeviceSubscribedEvents = new LinkedBlockingQueue<>();
+
+	static final String WINDOW_DEVICE_TOPIC = "mqtt-v5-inbound-window-device";
+
+	static final BlockingQueue<MqttSubscribedEvent> windowDeviceSubscribedEvents = new LinkedBlockingQueue<>();
+
 	@Autowired
 	QueueChannel carDeviceOutputChannel;
 
@@ -87,6 +97,18 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 
 	@Autowired
 	QueueChannel alarmDeviceOutputChannel;
+
+	@Autowired
+	Mqtt5MessageDrivenChannelAdapter doorDeviceInboundChannelAdapter;
+
+	@Autowired
+	QueueChannel doorDeviceOutputChannel;
+
+	@Autowired
+	Mqtt5MessageDrivenChannelAdapter windowDeviceInboundChannelAdapter;
+
+	@Autowired
+	QueueChannel windowDeviceOutputChannel;
 
 	static Mqtt5BlockingClient mqtt5TestClient;
 
@@ -203,6 +225,41 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 				.satisfies(mqttPublish -> assertThatIllegalStateException().isThrownBy(mqttPublish::acknowledge));
 	}
 
+	@Test
+	void testStartRightAfterStopSubscribesAgain() throws InterruptedException {
+		// Ensure subscription done first.
+		assertThat(doorDeviceSubscribedEvents.poll(10, TimeUnit.SECONDS)).isNotNull();
+		// Given: started again before the broker acknowledges the unsubscribe
+		this.doorDeviceInboundChannelAdapter.stop();
+		this.doorDeviceInboundChannelAdapter.start();
+		assertThat(doorDeviceSubscribedEvents.poll(10, TimeUnit.SECONDS)).isNotNull();
+		// When
+		mqtt5TestClient.publishWith().topic(DOOR_DEVICE_TOPIC)
+				.payload("door-opened".getBytes())
+				.qos(MqttQos.AT_LEAST_ONCE)
+				.send();
+		// Then
+		assertThat(this.doorDeviceOutputChannel.receive(10000))
+				.extracting(Message::getPayload)
+				.isEqualTo("door-opened");
+	}
+
+	@Test
+	void testStopRightAfterStartUnsubscribes() throws InterruptedException {
+		// Given: stopped before the broker acknowledges the subscribe
+		this.windowDeviceInboundChannelAdapter.start();
+		this.windowDeviceInboundChannelAdapter.stop();
+		assertThat(windowDeviceSubscribedEvents.poll(10, TimeUnit.SECONDS)).isNotNull();
+		await().untilFalse(this.windowDeviceInboundChannelAdapter.isSubscribed);
+		// When
+		mqtt5TestClient.publishWith().topic(WINDOW_DEVICE_TOPIC)
+				.payload("window-opened".getBytes())
+				.qos(MqttQos.AT_LEAST_ONCE)
+				.send();
+		// Then
+		assertThat(this.windowDeviceOutputChannel.receive(1000)).isNull();
+	}
+
 	// No message converter in this test can produce this type from the MQTT payload
 	record LampState(String state) {
 
@@ -283,6 +340,36 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			return adapter;
 		}
 
+		@Bean
+		QueueChannel doorDeviceOutputChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		Mqtt5MessageDrivenChannelAdapter doorDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
+				QueueChannel doorDeviceOutputChannel) {
+
+			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, DOOR_DEVICE_TOPIC);
+			adapter.setPayloadType(String.class);
+			adapter.setOutputChannel(doorDeviceOutputChannel);
+			return adapter;
+		}
+
+		@Bean
+		QueueChannel windowDeviceOutputChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		Mqtt5MessageDrivenChannelAdapter windowDeviceInboundChannelAdapter(Mqtt5ClientManager mqtt5ClientManager,
+				QueueChannel windowDeviceOutputChannel) {
+
+			var adapter = new Mqtt5MessageDrivenChannelAdapter(mqtt5ClientManager, WINDOW_DEVICE_TOPIC);
+			adapter.setAutoStartup(false);
+			adapter.setOutputChannel(windowDeviceOutputChannel);
+			return adapter;
+		}
+
 		@EventListener
 		void mqttEvents(MqttSubscribedEvent event) {
 			String beanName = ((Mqtt5MessageDrivenChannelAdapter) event.getSource()).getBeanName();
@@ -297,6 +384,12 @@ class Mqtt5MessageDrivenChannelAdapterTests implements MqttContainerTest {
 			}
 			else if (beanName.equals("lampDeviceInboundChannelAdapter")) {
 				lampDeviceTopicSubscribedLatch.countDown();
+			}
+			else if (beanName.equals("doorDeviceInboundChannelAdapter")) {
+				doorDeviceSubscribedEvents.add(event);
+			}
+			else if (beanName.equals("windowDeviceInboundChannelAdapter")) {
+				windowDeviceSubscribedEvents.add(event);
 			}
 		}
 
