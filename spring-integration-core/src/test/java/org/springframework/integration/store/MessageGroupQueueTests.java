@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +26,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -33,6 +35,7 @@ import static org.mockito.Mockito.spy;
  * @author Gary Russell
  * @author Artem Bilan
  * @author I-Chung Wang
+ * @author Yingzi Zhang
  *
  * @since 2.0
  */
@@ -114,6 +117,14 @@ public class MessageGroupQueueTests {
 	}
 
 	@Test
+	void timedOfferWithoutTimeToWaitAddsMessageIfThereIsRoom() throws InterruptedException {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO", 1);
+		assertThat(queue.offer(new GenericMessage<>("foo"), 0, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(queue.offer(new GenericMessage<>("bar"), 0, TimeUnit.MILLISECONDS)).isFalse();
+		assertThat(queue.size()).isEqualTo(1);
+	}
+
+	@Test
 	public void testPutAndTake() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
 		queue.put(new GenericMessage<>("foo"));
@@ -165,6 +176,37 @@ public class MessageGroupQueueTests {
 
 		assertThat(channel.clear()).extracting("payload").containsExactly("first", "second");
 		assertThat(channel.getQueueSize()).isZero();
+	}
+
+	@Test
+	void clearOnFullStoreBackedQueueChannelLetsInAllWaitingSenders() {
+		ReentrantLock lock = new ReentrantLock();
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "clearGroup", 2, lock);
+		QueueChannel channel = new QueueChannel(queue);
+		channel.send(new GenericMessage<>("first"));
+		channel.send(new GenericMessage<>("second"));
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		try {
+			exec.execute(() -> channel.send(new GenericMessage<>("third")));
+			exec.execute(() -> channel.send(new GenericMessage<>("fourth")));
+			await().until(() -> waitingForRoom(queue, lock) == 2);
+
+			assertThat(channel.clear()).extracting("payload").containsExactly("first", "second");
+			await().untilAsserted(() -> assertThat(channel.getQueueSize()).isEqualTo(2));
+		}
+		finally {
+			exec.shutdownNow();
+		}
+	}
+
+	private static int waitingForRoom(MessageGroupQueue queue, ReentrantLock lock) {
+		lock.lock();
+		try {
+			return lock.getWaitQueueLength(queue.getMessageStoreNotFull());
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Test

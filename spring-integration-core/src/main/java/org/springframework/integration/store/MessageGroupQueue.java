@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author I-Chung Wang
+ * @author Yingzi Zhang
  *
  * @since 2.0
  *
@@ -230,7 +231,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 					}
 					list.add(message);
 				}
-				this.messageStoreNotFull.signal();
+				this.messageStoreNotFull.signalAll();
 			}
 			finally {
 				lock.unlock();
@@ -276,9 +277,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 					timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
 				}
 			}
-			if (timeoutInNanos > 0) {
-				offered = this.doOffer(message);
-			}
+			offered = this.doOffer(message);
 		}
 		finally {
 			lock.unlock();
