@@ -94,7 +94,7 @@ To exclude specific headers, put the negated patterns first: `"!custominternal",
 [[configuration-with-dsl]]
 === Configuration with DSL
 
-Use the `CloudEvents` factory to add the `ToCloudEventTransformer` to flows using the xref:dsl.adoc[].
+Add the `ToCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
@@ -107,7 +107,7 @@ public ToCloudEventTransformer cloudEventTransformer() {
 public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEventTransformer) {
     return IntegrationFlow
         .from("inputChannel")
-        .transform(CloudEvents.toCloudEventTransformer().get())
+        .transform(toCloudEventTransformer)
         .channel("outputChannel")
         .get();
 }
@@ -331,7 +331,7 @@ NOTE: The `contentType` header in the output message is always set to the CloudE
 
 === Configuration with DSL
 
-Use the `CloudEvents` factory to add the `FromCloudEventTransformer` to flows using the xref:dsl.adoc[].
+Add the `FromCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
@@ -344,7 +344,7 @@ public FromCloudEventTransformer fromCloudEventTransformer() {
 public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEventTransformer) {
     return IntegrationFlow
         .from("cloudEventInputChannel")
-        .transform(CloudEvents.fromCloudEventTransformer())
+        .transform(fromCloudEventTransformer)
         .channel("messageOutputChannel")
         .get();
 }
