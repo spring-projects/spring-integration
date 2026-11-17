@@ -277,7 +277,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 					timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
 				}
 			}
-			offered = this.doOffer(message);
+			offered = doOffer(message);
 		}
 		finally {
 			lock.unlock();

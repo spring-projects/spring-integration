@@ -118,9 +118,16 @@ public class MessageGroupQueueTests {
 
 	@Test
 	void timedOfferWithoutTimeToWaitAddsMessageIfThereIsRoom() throws InterruptedException {
-		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO", 1);
-		assertThat(queue.offer(new GenericMessage<>("foo"), 0, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(queue.offer(new GenericMessage<>("bar"), 0, TimeUnit.MILLISECONDS)).isFalse();
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "offerGroup", 1);
+		assertThat(queue.offer(new GenericMessage<>("accepted"), 0, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(queue.offer(new GenericMessage<>("rejected"), 0, TimeUnit.MILLISECONDS)).isFalse();
+		assertThat(queue.size()).isEqualTo(1);
+	}
+
+	@Test
+	void timedOfferWithoutTimeToWaitAddsMessageToUnboundedQueue() throws InterruptedException {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "offerGroup");
+		assertThat(queue.offer(new GenericMessage<>("accepted"), 0, TimeUnit.MILLISECONDS)).isTrue();
 		assertThat(queue.size()).isEqualTo(1);
 	}
 
