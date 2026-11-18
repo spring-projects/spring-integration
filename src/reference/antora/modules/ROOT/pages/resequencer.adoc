@@ -17,6 +17,9 @@ With respect to that, you can opt to release all messages at once (after the who
 IMPORTANT: The resequencer is intended to resequence relatively short sequences of messages with small gaps.
 If you have a large number of disjoint sequences with many gaps, you may experience performance issues.
 
+WARNING: Because the resequencer keeps a message group for every unique correlation key, the correlation key should not be taken from untrusted data without validation.
+See xref:aggregator.adoc#untrusted-correlation-keys[Untrusted Correlation Keys] for more information.
+
 [[configuring-a-resequencer]]
 == Configuring a Resequencer
 

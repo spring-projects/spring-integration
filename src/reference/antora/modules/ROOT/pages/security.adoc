@@ -145,6 +145,10 @@ In the example above only values starting with `test` would be accepted for `Mqt
 And those with `malicious` sub-string (even if they start with `test`) won't be accepted.
 See `AllowListMessageHeaderSelector` Javadocs for more information.
 
+The same care applies to the data used as a correlation key.
+A correlation key taken from an untrusted source lets a client control how much state correlating endpoints, such as the aggregator and resequencer, retain.
+See xref:aggregator.adoc#untrusted-correlation-keys[Untrusted Correlation Keys] for more information.
+
 [[java-deserialization]]
 === Java Deserialization
 
