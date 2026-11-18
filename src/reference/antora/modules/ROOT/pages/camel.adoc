@@ -56,6 +56,11 @@ Instead of specifying the endpoint, an in-line, explicit `LambdaRouteBuilder` ca
 In addition, a `HeaderMapper<org.apache.camel.Message>` (the `CamelHeaderMapper` is a default implementation) can be provided, to determine which headers to map between the Spring Integration and Apache Camel messages.
 By default, all headers are mapped.
 
+IMPORTANT: Apache Camel components treat headers in the `pass:[Camel*]` and `pass:[org.apache.camel.*]` namespaces (for example, `CamelFileName`, `CamelHttpUri`, `CamelSqlQuery` or `CamelExecCommandArgs`) as control inputs that can override the endpoint configuration.
+If message headers can come from an untrusted source (for example, an inbound channel adapter that maps all external message properties), do not rely on the default mapping.
+Either configure `CamelHeaderMapper.setOutboundHeaderNames()` with an explicit list of the headers to map, or remove these headers before the `CamelMessageHandler`, for example with `pass:[.headerFilter("Camel*", "org.apache.camel.*")]` in the Java DSL.
+See xref:security.adoc#sensitive-metadata[Sensitive Metadata] for more information.
+
 The `CamelMessageHandler` supports an `async` mode calling `ProducerTemplate.asyncSend()` and producing a `CompletableFuture` for reply processing (if any).
 
 The `exchangeProperties` can be customized via a SpEL expression, which must evaluate to a `Map`.
