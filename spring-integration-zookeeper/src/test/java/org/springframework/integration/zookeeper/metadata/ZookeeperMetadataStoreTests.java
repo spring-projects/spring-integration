@@ -4,7 +4,6 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
@@ -373,26 +373,61 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String testKey = "stale-event-key";
 		ZookeeperMetadataStore notStartedStore = new ZookeeperMetadataStore(this.client);
 		notStartedStore.put(testKey, "v1");
+		ChildData v1Data = childData(notStartedStore, testKey, "v1");
 		notStartedStore.put(testKey, "v2");
+		ChildData v2Data = childData(notStartedStore, testKey, "v2");
 
-		Class<?> listenerClass =
-				Class.forName(ZookeeperMetadataStore.class.getName() + "$MetadataStoreCacheListener");
-		Constructor<?> listenerConstructor = listenerClass.getDeclaredConstructor(ZookeeperMetadataStore.class);
-		listenerConstructor.setAccessible(true);
-		CuratorCacheListener listener = (CuratorCacheListener) listenerConstructor.newInstance(notStartedStore);
+		CuratorCacheListener listener = cacheListener(notStartedStore);
+		Map<String, ?> updateMap = TestUtils.getPropertyValue(notStartedStore, "updateMap", Map.class);
 
-		Map<String, ?> updateMap = (Map<String, ?>) TestUtils.getPropertyValue(notStartedStore, "updateMap", Map.class);
-
-		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, childData(notStartedStore, testKey, "v1", 0));
+		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, v1Data);
 		assertThat(updateMap).containsKey(testKey);
 
-		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, childData(notStartedStore, testKey, "v2", 1));
+		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, v2Data);
 		assertThat(updateMap).isEmpty();
 	}
 
-	private static ChildData childData(ZookeeperMetadataStore store, String key, String value, int version) {
-		Stat stat = new Stat();
-		stat.setVersion(version);
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testStaleCacheEventsAcrossNodeRecreation() throws Exception {
+		String testKey = "recreated-key";
+		ZookeeperMetadataStore notStartedStore = new ZookeeperMetadataStore(this.client);
+		CuratorCacheListener listener = cacheListener(notStartedStore);
+		Map<String, ?> updateMap = TestUtils.getPropertyValue(notStartedStore, "updateMap", Map.class);
+
+		notStartedStore.put(testKey, "first-incarnation");
+		ChildData firstIncarnation = childData(notStartedStore, testKey, "first-incarnation");
+		notStartedStore.remove(testKey);
+		notStartedStore.put(testKey, "second-incarnation");
+		ChildData secondIncarnation = childData(notStartedStore, testKey, "second-incarnation");
+
+		// Versions restart for a recreated node: an event for the old incarnation must not evict the new one
+		listener.event(CuratorCacheListener.Type.NODE_CHANGED, null, firstIncarnation);
+		assertThat(updateMap).containsKey(testKey);
+		listener.event(CuratorCacheListener.Type.NODE_DELETED, firstIncarnation, null);
+		assertThat(updateMap).containsKey(testKey);
+
+		listener.event(CuratorCacheListener.Type.NODE_CREATED, null, secondIncarnation);
+		assertThat(updateMap).isEmpty();
+
+		notStartedStore.remove(testKey);
+		assertThat(updateMap).containsKey(testKey);
+
+		// The deletion marker is superseded by the node recreated by another client
+		this.client.create().forPath(notStartedStore.getPath(testKey), "external".getBytes());
+		listener.event(CuratorCacheListener.Type.NODE_CREATED, null, childData(notStartedStore, testKey, "external"));
+		assertThat(updateMap).isEmpty();
+	}
+
+	private static CuratorCacheListener cacheListener(ZookeeperMetadataStore store) throws Exception {
+		Class<?> listenerClass =
+				Class.forName(ZookeeperMetadataStore.class.getName() + "$MetadataStoreCacheListener");
+		return (CuratorCacheListener) BeanUtils.instantiateClass(
+				listenerClass.getDeclaredConstructor(ZookeeperMetadataStore.class), store);
+	}
+
+	private ChildData childData(ZookeeperMetadataStore store, String key, String value) throws Exception {
+		Stat stat = this.client.checkExists().forPath(store.getPath(key));
 		return new ChildData(store.getPath(key), stat, IntegrationUtils.stringToBytes(value, "UTF-8"));
 	}
 

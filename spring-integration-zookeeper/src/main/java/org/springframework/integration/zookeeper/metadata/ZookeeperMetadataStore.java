@@ -7,6 +7,7 @@ package org.springframework.integration.zookeeper.metadata;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -205,23 +206,16 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
 			// Read the local update once and before the cache: the listener evicts it concurrently,
-			// but only after the cache has been updated with a version at least as recent.
+			// but only after the cache has been updated with data at least as recent.
 			LocalChildData localData = this.updateMap.get(key);
-			return Objects.requireNonNull(this.cache)
-					.get(getPath(key))
-					.map(currentData -> {
-						// our version is more recent than the cache
-						if (localData != null && localData.version() >= currentData.getStat().getVersion()) {
-							return localData.value();
-						}
-						return IntegrationUtils.bytesToString(currentData.getData(), this.encoding); // NOSONAR
-					})
-					.orElseGet(() -> {
-						// we have saved the value, but the cache hasn't updated yet
-						// if the value had changed via replication, we would have been notified by the listener
-						// otherwise, the value just doesn't exist
-						return localData != null ? localData.value() : null;
-					});
+			Optional<ChildData> cachedData = Objects.requireNonNull(this.cache).get(getPath(key));
+			if (localData != null && !localData.isConfirmedBy(cachedData)) {
+				// our local update is more recent than the cache
+				return localData.value();
+			}
+			return cachedData
+					.map(currentData -> IntegrationUtils.bytesToString(currentData.getData(), this.encoding)) // NOSONAR
+					.orElse(null);
 		}
 		finally {
 			this.lock.unlock();
@@ -234,10 +228,11 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			try {
-				byte[] bytes = this.client.getData().forPath(getPath(key));
+				Stat stat = new Stat();
+				byte[] bytes = this.client.getData().storingStatIn(stat).forPath(getPath(key));
 				this.client.delete().forPath(getPath(key));
-				// we guarantee that the deletion will supersede the existing data
-				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
+				// the deletion supersedes the existing data until the cache confirms it
+				storeLocalUpdate(key, new LocalChildData(null, stat.getCzxid(), stat.getMzxid()));
 				return IntegrationUtils.bytesToString(bytes, this.encoding);
 			}
 			catch (KeeperException.NoNodeException ex) {
@@ -256,12 +251,30 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	private void updateNode(String key, String value, int version) throws Exception { // NOSONAR external lib throws
 		Stat stat = this.client.setData().withVersion(version).forPath(getPath(key),
 				IntegrationUtils.stringToBytes(value, this.encoding));
-		this.updateMap.put(key, new LocalChildData(value, stat.getVersion()));
+		storeLocalUpdate(key, new LocalChildData(value, stat.getCzxid(), stat.getMzxid()));
 	}
 
 	private void createNode(String key, String value) throws Exception { // NOSONAR external lib throws
-		this.client.create().forPath(getPath(key), IntegrationUtils.stringToBytes(value, this.encoding));
-		this.updateMap.put(key, new LocalChildData(value, 0));
+		Stat stat = new Stat();
+		this.client.create().storingStatIn(stat)
+				.forPath(getPath(key), IntegrationUtils.stringToBytes(value, this.encoding));
+		storeLocalUpdate(key, new LocalChildData(value, stat.getCzxid(), stat.getMzxid()));
+	}
+
+	/**
+	 * Store a local update and evict it right away if the cache has already caught up with it.
+	 * The cache listener is called after the cache storage is updated and might process the event
+	 * for this write before the entry is put into the {@link #updateMap}.
+	 * Without this check such an entry would never be evicted.
+	 * @param key the key for the local update.
+	 * @param localData the local update data.
+	 */
+	private void storeLocalUpdate(String key, LocalChildData localData) {
+		this.updateMap.put(key, localData);
+		CuratorCache curatorCache = this.cache;
+		if (curatorCache != null && localData.isConfirmedBy(curatorCache.get(getPath(key)))) {
+			this.updateMap.remove(key, localData);
+		}
 	}
 
 	public String getPath(String key) {
@@ -333,7 +346,41 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		return path.replace(this.root + '/', "");
 	}
 
-	private record LocalChildData(@Nullable String value, int version) {
+	/**
+	 * The local update data.
+	 * The ZooKeeper {@code czxid} identifies the node incarnation (versions restart when a node is recreated),
+	 * and the {@code mzxid} orders modifications globally.
+	 * @param value the stored value; {@code null} for a deletion.
+	 * @param czxid the zxid of the node creation.
+	 * @param mzxid the zxid of the node last modification.
+	 */
+	private record LocalChildData(@Nullable String value, long czxid, long mzxid) {
+
+		/**
+		 * Whether the node state (e.g. from the cache) is at least as recent as this local update.
+		 * @param nodeData the current node data; empty if the node does not exist.
+		 * @return true if the local update is superseded by the node data.
+		 */
+		boolean isConfirmedBy(Optional<ChildData> nodeData) {
+			if (value() == null) {
+				// the deletion is confirmed by the node absence or by its newer incarnation
+				return nodeData.map(data -> data.getStat().getCzxid() > czxid()).orElse(true);
+			}
+			return nodeData
+					.map(ChildData::getStat)
+					.filter(stat ->
+							stat.getCzxid() > czxid() || (stat.getCzxid() == czxid() && stat.getMzxid() >= mzxid()))
+					.isPresent();
+		}
+
+		/**
+		 * Whether the deletion of the node is at least as recent as this local update.
+		 * @param deletedData the last known data of the deleted node.
+		 * @return true if the local update is superseded by the node deletion.
+		 */
+		boolean isConfirmedByDeletionOf(ChildData deletedData) {
+			return deletedData.getStat().getCzxid() >= czxid();
+		}
 
 	}
 
@@ -355,23 +402,24 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 			switch (type) {
 				case NODE_CREATED -> {
-					evictConfirmedUpdate(eventKey, data.getStat().getVersion());
+					evictConfirmedUpdate(eventKey, data);
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onAdd(eventKey, value));
 				}
 				case NODE_CHANGED -> {
-					evictConfirmedUpdate(eventKey, data.getStat().getVersion());
+					evictConfirmedUpdate(eventKey, data);
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onUpdate(eventKey, value));
 				}
 				case NODE_DELETED -> {
-					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
+					ZookeeperMetadataStore.this.updateMap.computeIfPresent(eventKey,
+							(k, localData) -> localData.isConfirmedByDeletionOf(data) ? null : localData);
 					ZookeeperMetadataStore.this.listeners.forEach((listener) -> listener.onRemove(eventKey, value));
 				}
 			}
 		}
 
-		private void evictConfirmedUpdate(String key, int eventVersion) {
+		private void evictConfirmedUpdate(String key, ChildData eventData) {
 			ZookeeperMetadataStore.this.updateMap.computeIfPresent(key,
-					(k, localData) -> eventVersion >= localData.version() ? null : localData);
+					(k, localData) -> localData.isConfirmedBy(Optional.of(eventData)) ? null : localData);
 		}
 
 	}
