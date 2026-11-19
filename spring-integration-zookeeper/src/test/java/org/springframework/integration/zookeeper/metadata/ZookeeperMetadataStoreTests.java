@@ -4,7 +4,6 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
@@ -419,9 +419,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	private static CuratorCacheListener cacheListener(ZookeeperMetadataStore store) throws Exception {
 		Class<?> listenerClass =
 				Class.forName(ZookeeperMetadataStore.class.getName() + "$MetadataStoreCacheListener");
-		Constructor<?> listenerConstructor = listenerClass.getDeclaredConstructor(ZookeeperMetadataStore.class);
-		listenerConstructor.setAccessible(true);
-		return (CuratorCacheListener) listenerConstructor.newInstance(store);
+		return (CuratorCacheListener) BeanUtils.instantiateClass(
+				listenerClass.getDeclaredConstructor(ZookeeperMetadataStore.class), store);
 	}
 
 	private ChildData childData(ZookeeperMetadataStore store, String key, String value) throws Exception {
