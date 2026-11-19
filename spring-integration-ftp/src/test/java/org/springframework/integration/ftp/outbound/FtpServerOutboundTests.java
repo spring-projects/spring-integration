@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -198,8 +199,12 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
 		assertThatCode(() -> this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt")))
-				.hasRootCauseInstanceOf(IOException.class)
-				.hasStackTraceContaining("Failed to make local directory");
+				.hasStackTraceContaining("java.lang.IllegalArgumentException: Failed to make local directory: ")
+				.rootCause()
+				// On Windows, the invalid '?' and ':' characters are rejected by File.toPath()
+				// itself (InvalidPathException) before any file system access is attempted;
+				// on other platforms the failure comes from the actual directory creation attempt.
+				.isInstanceOfAny(IOException.class, InvalidPathException.class);
 	}
 
 	@Test
