@@ -80,29 +80,34 @@ The transformer includes message headers with keys matching any pattern as Cloud
 Use a `!` prefix to explicitly exclude headers through negation.
 Note that the first matching pattern wins (whether positive or negative).
 
-For example, configure the patterns `"trace*", "span-id", "user-id"` to:
-- Include headers starting with `trace` (e.g., `trace-id`, `traceparent`) - Include headers with exact keys `span-id` and `user-id`
+The header keys become the extension names, so they must be valid CloudEvents attribute names, which consist of lower-case ASCII letters and digits only.
+The CloudEvents SDK rejects other names when it reads an event: for example, the `FromCloudEventTransformer` cannot read a JSON event with a `trace-id` extension.
+
+For example, configure the patterns `"trace*", "spanid", "userid"` to:
+
+- Include headers starting with `trace` (e.g., `traceid`, `traceparent`)
+- Include headers with exact keys `spanid` and `userid`
 - Add all matching headers as extensions to the CloudEvent
 
-To exclude specific headers, use negated patterns: `"custom-*", "!custom-internal"` includes all headers starting with `custom-` except `custom-internal`.
+To exclude specific headers, put the negated patterns first: `"!custominternal", "custom*"` includes all headers starting with `custom` except `custominternal`.
 
 [[configuration-with-dsl]]
 === Configuration with DSL
 
-Use the `CloudEvents` factory to add the `ToCloudEventTransformer` to flows using the xref:dsl.adoc[].
+Add the `ToCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
 @Bean
 public ToCloudEventTransformer cloudEventTransformer() {
-    return new ToCloudEventTransformer("trace*", "correlation-id");
+    return new ToCloudEventTransformer("trace*", "correlationid");
 }
 
 @Bean
 public IntegrationFlow cloudEventTransformFlow(ToCloudEventTransformer toCloudEventTransformer) {
-    return IntegrationFlows
+    return IntegrationFlow
         .from("inputChannel")
-        .transform(CloudEvents.toCloudEventTransformer().get())
+        .transform(toCloudEventTransformer)
         .channel("outputChannel")
         .get();
 }
@@ -124,7 +129,7 @@ A basic transformation may have the following pattern:
 // Input message with headers
 Message<byte[]> inputMessage = MessageBuilder
     .withPayload("Hello CloudEvents".getBytes(StandardCharsets.UTF_8))
-    .withHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
+    .setHeader(MessageHeaders.CONTENT_TYPE, "text/plain")
     .build();
 
 ToCloudEventTransformer transformer = new ToCloudEventTransformer();
@@ -249,7 +254,7 @@ byte[] serializedCloudEvent = """
 					"traceid": "trace-123",
 					"data": "Hello, World!"
 				}
-				""";
+				""".getBytes(StandardCharsets.UTF_8);
 
 Message<byte[]> inputMessage = MessageBuilder
     .withPayload(serializedCloudEvent)
@@ -326,7 +331,7 @@ NOTE: The `contentType` header in the output message is always set to the CloudE
 
 === Configuration with DSL
 
-Use the `CloudEvents` factory to add the `FromCloudEventTransformer` to flows using the xref:dsl.adoc[].
+Add the `FromCloudEventTransformer` to flows using the xref:dsl.adoc[].
 
 [source,java]
 ----
@@ -337,9 +342,9 @@ public FromCloudEventTransformer fromCloudEventTransformer() {
 
 @Bean
 public IntegrationFlow fromCloudEventFlow(FromCloudEventTransformer fromCloudEventTransformer) {
-    return IntegrationFlows
+    return IntegrationFlow
         .from("cloudEventInputChannel")
-        .transform(CloudEvents.fromCloudEventTransformer())
+        .transform(fromCloudEventTransformer)
         .channel("messageOutputChannel")
         .get();
 }
@@ -370,7 +375,6 @@ public IntegrationFlow cloudEventFlow() {
             .sourceFunction(msg -> URI.create("https://example.com/" + msg.getHeaders().get("action")))
             .type("order.created")
             .subject("order-processing"))
-        .transform(CloudEvents.toCloudEventTransformer())
         .channel("outputChannel")
         .get();
 }
