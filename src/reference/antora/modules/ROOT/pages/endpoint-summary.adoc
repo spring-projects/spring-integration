@@ -70,6 +70,12 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 | N
 
+| *Elasticsearch*
+| N
+| xref:elasticsearch.adoc#elasticsearch-outbound[Outbound Channel Adapter]
+| N
+| N
+
 | *Events*
 | xref:event.adoc#appevent-inbound[Receiving Spring Application Events]
 | xref:event.adoc#appevent-outbound[Sending Spring Application Events]
