@@ -7,6 +7,7 @@ package org.springframework.integration.mqtt.client.outbound;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -17,11 +18,16 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
+import io.micrometer.observation.Observation;
+import io.opentelemetry.api.trace.SpanKind;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -38,19 +44,24 @@ import org.springframework.integration.mqtt.client.core.Mqtt5ClientManager;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.client.event.MqttMessageDeliveryEvent;
 import org.springframework.integration.mqtt.client.event.MqttMessageSentEvent;
+import org.springframework.integration.mqtt.client.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.client.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.AbstractMessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Jiandong Ma
+ * @author Hyunah Oh
  *
  * @since 7.2
  */
@@ -71,6 +82,9 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 	static MqttMessageDeliveredEvent petDeviceMessageDeliveredEvent;
 
 	Mqtt5AsyncClient mqtt5AsyncClient;
+
+	@Autowired
+	BeanFactory beanFactory;
 
 	@Autowired
 	ClientManager<Mqtt5Client> mqtt5ClientManager;
@@ -236,6 +250,53 @@ class Mqtt5MessageHandlerTests implements MqttContainerTest {
 		assertThat(petDeviceMessageDeliveredEvent)
 				.extracting(MqttMessageDeliveryEvent::getMqttPublishResult)
 				.isInstanceOf(Mqtt5PublishResult.class);
+	}
+
+	@ParameterizedTest
+	@ValueSource(booleans = {false, true})
+	void propagatesTraceThroughBroker(boolean async) throws Exception {
+		String topic = "mqtt-observation-" + async;
+		try (var tracing = new MqttObservationTestSupport()) {
+			CompletableFuture<Message<?>> received = new CompletableFuture<>();
+			this.mqtt5AsyncClient.subscribeWith().topicFilter(topic).callback(publish -> {
+				Message<?> message = MessageBuilder.withPayload(publish.getPayloadAsBytes())
+						.copyHeaders(new MqttHeaderMapper().toHeaders(publish)).build();
+				Observation.createNotStarted("mqtt.receive",
+						() -> new MessageReceiverContext(message, "temperatureConsumer"), tracing.registry)
+						.observe(() -> { });
+				received.complete(message);
+			}).send().get(10, TimeUnit.SECONDS);
+			try {
+				var handler = new Mqtt5MessageHandler(this.mqtt5ClientManager);
+				handler.setBeanName("temperaturePublisher");
+				handler.setBeanFactory(this.beanFactory);
+				handler.setApplicationEventPublisher(event -> { });
+				handler.setMessageConverter(new SimpleMessageConverter());
+				handler.setAsync(async);
+				handler.registerObservationRegistry(tracing.registry);
+				handler.afterPropertiesSet();
+				handler.handleMessage(MessageBuilder.withPayload("temperature=21")
+						.setHeader(MqttHeaders.TOPIC, topic)
+						.setHeader(MqttHeaders.QOS, MqttQos.AT_LEAST_ONCE)
+						.setHeader(MqttHeaders.USER_PROPERTIES, Map.of("sensor-id", "sensor-42")).build());
+				assertThat(received.get(10, TimeUnit.SECONDS).getHeaders()).containsEntry("sensor-id", "sensor-42");
+				await().untilAsserted(() -> {
+					var producers = tracing.spans.stream().filter(span -> span.getKind() == SpanKind.PRODUCER)
+							.toList();
+					assertThat(producers).hasSize(1);
+					var producer = producers.get(0);
+					assertThat(tracing.spans).filteredOn(span -> span.getName().equals("mqtt.receive"))
+							.singleElement().satisfies(consumer -> {
+								assertThat(consumer.getKind()).isEqualTo(SpanKind.CONSUMER);
+								assertThat(consumer.getTraceId()).isEqualTo(producer.getTraceId());
+								assertThat(consumer.getParentSpanId()).isEqualTo(producer.getSpanId());
+							});
+				});
+			}
+			finally {
+				this.mqtt5AsyncClient.unsubscribeWith().topicFilter(topic).send().get(10, TimeUnit.SECONDS);
+			}
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
