@@ -473,9 +473,10 @@ By default, an internal `DefaultLockRegistry` is used.
 Use of a distributed `LockRegistry`, such as the `ZookeeperLockRegistry`, ensures only one instance of the aggregator can operate on a group concurrently.
 See xref:redis.adoc#redis-lock-registry[Redis Lock Registry] or xref:zookeeper.adoc#zk-lock-registry[Zookeeper Lock Registry] for more information.
 <21> A timeout (in milliseconds) to force the `MessageGroup` complete when the `ReleaseStrategy` does not release the group when the current message arrives.
-This attribute provides a built-in time-based release strategy for the aggregator when there is a need to emit a partial result (or discard the group) if a new message does not arrive for the `MessageGroup` within the timeout which counts from the time the last message arrived.
+This attribute provides a built-in time-based release strategy for the aggregator when there is a need to emit a partial result (or discard the group) if no new message is added to the `MessageGroup` within the timeout, counted from the time the last message was added.
 To set up a timeout which counts from the time the `MessageGroup` was created see `group-timeout-expression` information.
-When a new message arrives at the aggregator, any existing `ScheduledFuture<?>` for its `MessageGroup` is canceled.
+When a new message is added to its `MessageGroup`, any existing `ScheduledFuture<?>` for that group is canceled.
+A discarded message (for example, a late-arriving one) does not cancel it.
 If the `ReleaseStrategy` returns `false` (meaning do not release) and `groupTimeout > 0`, a new task is scheduled to expire the group.
 We do not advise setting this attribute to zero (or a negative value).
 Doing so effectively disables the aggregator because every message group is immediately completed.
@@ -498,7 +499,7 @@ Late arriving messages start a new group.
 You can set this to `false` to complete the group but have its metadata remain so that late arriving messages are discarded.
 Empty groups can be expired later using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
 It defaults to 'true'.
-<24> A `TaskScheduler` bean reference to schedule the `MessageGroup` to be forced complete if no new message arrives for the `MessageGroup` within the `groupTimeout`.
+<24> A `TaskScheduler` bean reference to schedule the `MessageGroup` to be forced complete if no new message is added to the `MessageGroup` within the `groupTimeout`.
 If not provided, the default scheduler (`taskScheduler`) registered in the `ApplicationContext` (`ThreadPoolTaskScheduler`) is used.
 This attribute does not apply if `group-timeout` or `group-timeout-expression` is not specified.
 <25> Since version 4.1.
