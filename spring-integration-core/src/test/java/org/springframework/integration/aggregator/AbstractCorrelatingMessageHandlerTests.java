@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  * @author Meherzad Lahewala
  * @author Youbin Wu
+ * @author WooSeung Kim
  *
  * @since 2.2
  *
@@ -421,6 +423,34 @@ public class AbstractCorrelatingMessageHandlerTests implements TestApplicationCo
 		assertThat(n < 200).isTrue();
 		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
 				.isEqualTo(0);
+	}
+
+	@Test
+	public void testDiscardedLateMessageDoesNotCancelEmptyGroupRemoval() {
+		MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler =
+				new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor(), groupStore);
+		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+		handler.setDiscardChannel(discardChannel);
+		handler.setReleaseStrategy(group -> group.size() == 1);
+		handler.setMinimumTimeoutForEmptyGroups(1000);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+		try {
+			UUID correlationId = UUID.randomUUID();
+			handler.handleMessage(MessageBuilder.withPayload("first").setCorrelationId(correlationId).build());
+			handler.handleMessage(MessageBuilder.withPayload("late").setCorrelationId(correlationId).build());
+
+			assertThat(outputChannel.receive(0)).isNotNull();
+			assertThat(discardChannel.receive(0)).extracting("payload").isEqualTo("late");
+			await().until(groupStore::getMessageGroupCount, (count) -> count == 0);
+		}
+		finally {
+			taskScheduler.destroy();
+		}
 	}
 
 	@Test

@@ -93,6 +93,7 @@ import org.springframework.util.ObjectUtils;
  * @author Meherzad Lahewala
  * @author Jayadev Sirimamilla
  * @author Ngoc Nhan
+ * @author WooSeung Kim
  *
  * @since 2.0
  */
@@ -571,13 +572,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean processMessageForGroup(Message<?> message, Object correlationKey, UUID groupIdUuid, Lock lock) {
 		boolean noOutput = true;
-		cancelScheduledFutureIfAny(correlationKey, groupIdUuid, true);
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(correlationKey);
 		if (this.sequenceAware) {
 			messageGroup = new SequenceAwareMessageGroup(messageGroup);
 		}
 
 		if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
+			cancelScheduledFutureIfAny(correlationKey, groupIdUuid, true);
 			MessageGroup messageGroupToLog = messageGroup;
 			this.logger.trace(() -> "Adding message to group [ " + messageGroupToLog + "]");
 			messageGroup = store(correlationKey, message);
@@ -628,9 +629,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			String condition = this.groupConditionSupplier.apply(message, messageGroupToUse.getCondition());
 			this.messageStore.setGroupCondition(messageGroupToUse.getGroupId(), condition);
 			messageGroupToUse = this.messageStore.getMessageGroup(messageGroupToUse.getGroupId());
-			if (this.sequenceAware) {
-				messageGroupToUse = new SequenceAwareMessageGroup(messageGroupToUse);
-			}
 		}
 
 		return messageGroupToUse;
@@ -1061,6 +1059,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			 */
 			super(messageGroup.getMessages(), null, messageGroup.getGroupId(), messageGroup.getTimestamp(),
 					messageGroup.isComplete(), true);
+			setLastReleasedMessageSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
 			if (messageGroup instanceof SimpleMessageGroup simpleMessageGroup) {
 				this.sourceGroup = simpleMessageGroup;
 			}
@@ -1074,9 +1073,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 * supersede the given message based on its sequence id. This can be helpful to
 		 * avoid ending up with sequences larger than their required sequence size or
 		 * sequences that are missing certain sequence numbers.
+		 * Released messages are no longer in the group, so a sequence number at or below
+		 * the last released one is rejected as well.
 		 */
 		@Override
 		public boolean canAdd(Message<?> message) {
+			int sequenceNumber = StaticMessageHeaderAccessor.getSequenceNumber(message);
+			if (sequenceNumber > 0 && sequenceNumber <= getLastReleasedMessageSequenceNumber()) {
+				return false;
+			}
 			if (this.size() == 0) {
 				return true;
 			}

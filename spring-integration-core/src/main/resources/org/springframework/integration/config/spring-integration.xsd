@@ -3931,7 +3931,7 @@
 						<xsd:documentation>
 							Provide a reference to the TaskScheduler instance to schedule 'forceComplete' on
 							the MessageGroup
-							when no new message arrives for the MessageGroup within the
+							when no new message is added to the MessageGroup within the
 							'group-timeout' or 'group-timeout-expression'. If it isn't
 							provided, the default scheduler 'taskScheduler',
 							registered in the ApplicationContext {ThreadPoolTaskScheduler} will be
