@@ -61,7 +61,7 @@ The following example shows a resequencer configuration:
 Required.
 <3> The channel to which the resequencer sends the reordered messages.
 Optional.
-<4> The channel to which the resequencer  sends the messages that timed out (if `send-partial-result-on-timeout` is set to `false`).
+<4> The channel to which the resequencer sends the messages that timed out (if `send-partial-result-on-expiry` is set to `false`), and late or duplicate messages, including those whose sequence number is at or below the last released one when `release-partial-sequences` is `true`.
 Optional.
 <5> Whether to send out ordered sequences as soon as they are available or only after the whole message group arrives.
 Optional.
