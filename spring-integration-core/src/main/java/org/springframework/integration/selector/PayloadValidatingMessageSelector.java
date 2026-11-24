@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.validation.SimpleErrors;
 import org.springframework.validation.SmartValidator;
 import org.springframework.validation.Validator;
 
@@ -37,6 +37,7 @@ import org.springframework.validation.Validator;
  *
  * @author Sharang Gupta
  * @author Artem Bilan
+ * @author Yingzi Zhang
  *
  * @since 7.2
  *
@@ -93,7 +94,7 @@ public class PayloadValidatingMessageSelector implements MessageSelector {
 			}
 			return this.acceptUnsupportedPayloads;
 		}
-		Errors errors = new SimpleErrors(payload);
+		Errors errors = new BeanPropertyBindingResult(payload, "payload");
 		if (this.validator instanceof SmartValidator smartValidator) {
 			smartValidator.validate(payload, errors, this.validationHints);
 		}
