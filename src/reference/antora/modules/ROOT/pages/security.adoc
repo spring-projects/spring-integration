@@ -160,6 +160,15 @@ The mentioned above validation and filtering might be applied to them before the
  * `avro_type`
  * `proto_type`
 
+- `spring-integration-camel`
+ * `Camel*`
+ * `org.apache.camel.*`
+
+NOTE: Unlike the other entries in this list, these are name patterns for header namespaces owned by Apache Camel, not individual Spring Integration headers.
+Apache Camel components treat headers in these namespaces, such as `CamelFileName`, `CamelHttpUri` or `CamelSqlQuery`, as control inputs that can override the endpoint configuration.
+The `CamelMessageHandler` maps all message headers into the Apache Camel message by default.
+See xref:camel.adoc#camel-channel-adapter[Outbound Channel Adapter for Apache Camel] for how to exclude them.
+
 - `spring-integration-file`
  * `file_name`
  * `file_originalFile`
