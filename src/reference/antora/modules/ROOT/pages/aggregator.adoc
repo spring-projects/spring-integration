@@ -290,6 +290,28 @@ This implementation returns the value of one of the message headers (whose name 
 By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` that returns the value of the `CORRELATION_ID` header attribute.
 If you have a custom header name you would like to use for correlation, you can configure it on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the aggregator's correlation strategy.
 
+[[untrusted-correlation-keys]]
+[IMPORTANT]
+====
+The correlation key should not be taken from untrusted data without validation.
+Correlating endpoints, such as the aggregator and resequencer, keep a `MessageGroup` for every unique correlation key.
+By default, the key is the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header, or whatever a custom `CorrelationStrategy` reads from the message.
+When `group-timeout` (`group-timeout-expression`) or `empty-group-min-timeout` is configured, each group also has a task scheduled on the `TaskScheduler`.
+Therefore, if the correlation key is copied from an untrusted client, that client controls how much state the application retains.
+
+Such a value should not be mapped by the `HeaderMapper` (or should be removed with a `HeaderFilter`), or it should be replaced with a value from trusted data (for example, with a header enricher) before the message reaches the correlating endpoint.
+If the key must come from the client, it should be checked against a known, finite set of values (for example, with a `MessageFilter`).
+A pattern match, such as an `AllowListMessageHeaderSelector`, verifies only the format of the key and does not limit the number of distinct keys a client can send.
+See xref:security.adoc#trusting-data[Trusting Data] for more information about filtering and validating headers from untrusted sources.
+
+By default, a group is never removed on its own: an incomplete group waits for release, and a released aggregator group is kept (empty) to discard late messages.
+The lifetime of incomplete groups can be limited with `group-timeout` (`group-timeout-expression`), `expire-timeout` (`expire-duration`), or a `MessageGroupStoreReaper`, and released aggregator groups can be removed with `expire-groups-upon-completion`.
+These options limit how long a group is kept, not how many groups exist at once; only rejecting or replacing an untrusted key limits the number of groups.
+See xref:aggregator.adoc#agg-and-group-to[Aggregator and Group Timeout] and xref:aggregator.adoc#reaper[Managing State in an Aggregator] for more information.
+A persistent `MessageGroupStore` (for example, JDBC, Redis, or MongoDB) keeps the messages off the heap, but the scheduled group timeout tasks still remain in memory.
+See xref:message-store.adoc[Message Store] for more information.
+====
+
 [[lock-registry]]
 === Lock Registry
 
