@@ -19,6 +19,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.Errors;
 import org.springframework.validation.SmartValidator;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Sharang Gupta
+ * @author Yingzi Zhang
  *
  * @since 7.2
  */
@@ -139,6 +141,74 @@ class PayloadValidatingMessageSelectorTests {
 	}
 
 	@Test
+	void payloadWithInvalidNestedObjectIsRejected() {
+		Validator addressValidator = new Validator() {
+
+			@Override
+			public boolean supports(Class<?> clazz) {
+				return Address.class.isAssignableFrom(clazz);
+			}
+
+			@Override
+			public void validate(Object target, Errors errors) {
+				ValidationUtils.rejectIfEmpty(errors, "city", "empty", "must not be empty");
+			}
+
+		};
+		Validator shipmentValidator = new Validator() {
+
+			@Override
+			public boolean supports(Class<?> clazz) {
+				return Shipment.class.isAssignableFrom(clazz);
+			}
+
+			@Override
+			public void validate(Object target, Errors errors) {
+				errors.pushNestedPath("address");
+				try {
+					ValidationUtils.invokeValidator(addressValidator, ((Shipment) target).address(), errors);
+				}
+				finally {
+					errors.popNestedPath();
+				}
+			}
+
+		};
+		PayloadValidatingMessageSelector selector = new PayloadValidatingMessageSelector(shipmentValidator);
+
+		assertThat(selector.accept(new GenericMessage<>(new Shipment(new Address("Lisbon"))))).isTrue();
+		assertThat(selector.accept(new GenericMessage<>(new Shipment(new Address(""))))).isFalse();
+	}
+
+	@Test
+	void rejectionIsLoggedWithNestedPropertyPath() {
+		// A nested property path, as Bean Validation reports for a violation in a @Valid object
+		Validator shipmentValidator = new Validator() {
+
+			@Override
+			public boolean supports(Class<?> clazz) {
+				return Shipment.class.isAssignableFrom(clazz);
+			}
+
+			@Override
+			public void validate(Object target, Errors errors) {
+				errors.rejectValue("address.city", "NotBlank", "must not be blank");
+			}
+
+		};
+		PayloadValidatingMessageSelector selector = new PayloadValidatingMessageSelector(shipmentValidator);
+		LogAccessor logger = mock();
+		when(logger.isInfoEnabled()).thenReturn(true);
+		new DirectFieldAccessor(selector).setPropertyValue("logger", logger);
+
+		assertThat(selector.accept(new GenericMessage<>(new Shipment(new Address(""))))).isFalse();
+
+		ArgumentCaptor<Supplier<CharSequence>> logMessage = ArgumentCaptor.captor();
+		verify(logger).info(logMessage.capture());
+		assertThat(logMessage.getValue().get().toString()).contains("'address.city': must not be blank");
+	}
+
+	@Test
 	void invalidPayloadIsDiscardedByMessageFilter() {
 		QueueChannel outputChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
@@ -156,6 +226,14 @@ class PayloadValidatingMessageSelectorTests {
 	}
 
 	record Order(String email) {
+
+	}
+
+	record Shipment(Address address) {
+
+	}
+
+	record Address(String city) {
 
 	}
 
