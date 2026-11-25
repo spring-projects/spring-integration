@@ -15,30 +15,62 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stax.StAXSource;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.xml.StaxUtils;
 import org.springframework.xml.DocumentBuilderFactoryUtils;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Default implementation of {@link XmlPayloadConverter}. Supports
- * {@link Document}, {@link File}, {@link String}, {@link Node} and
- * {@link DOMSource} payloads.
+ * {@link Document}, {@link Node}, {@link DOMSource}, {@link SAXSource},
+ * {@link javax.xml.transform.stream.StreamSource}, {@link StAXSource}, {@link File},
+ * {@link String}, {@link InputStream} and {@code byte[]} payloads.
+ * A {@link StAXSource} wraps a reader that the application has already created,
+ * so this converter cannot change how that reader parses its input.
+ * DTD processing and external entity resolution are controlled by the {@code XMLInputFactory}
+ * that created the reader: for untrusted input, create the reader from a factory with
+ * {@code XMLInputFactory.SUPPORT_DTD} and {@code XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES}
+ * set to {@code false}.
+ * The {@link StAXSource} conversion obtains its {@link TransformerFactory} from
+ * {@link TransformerFactoryUtils#newInstance()}, which blocks external DTD and stylesheet access.
+ * That blocking is defense in depth only: it cannot protect a {@link StAXSource},
+ * because the transformer just copies the events that the application's reader has already parsed.
+ * Any other {@link Source}, or one that only carries a system ID, is resolved from that system ID URI,
+ * so such a {@link Source} must not be built from untrusted input.
  *
  * @author Jonas Partner
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Glenn Renfro
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
+	private static final String CONSUMED_STAX_SOURCE =
+			"The 'StAXSource' reader is not at a document or element start; it may have been consumed already";
+
 	private final DocumentBuilderFactory documentBuilderFactory;
+
+	private @Nullable TransformerFactory transformerFactory;
 
 	private final Lock lock = new ReentrantLock();
 
@@ -64,6 +96,9 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 			else if (object instanceof DOMSource) {
 				Node node = ((DOMSource) object).getNode();
 				return nodeToDocument(node);
+			}
+			else if (object instanceof StAXSource staxSource) {
+				return staxSourceToDocument(staxSource);
 			}
 			else if (object instanceof Source) {
 				InputSource inputSource = sourceToInputSource((Source) object);
@@ -95,6 +130,37 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 			inputSource = new InputSource(source.getSystemId());
 		}
 		return inputSource;
+	}
+
+	private Document staxSourceToDocument(StAXSource source) throws TransformerException, XMLStreamException {
+		StAXSource staxSource = source;
+		XMLEventReader eventReader = source.getXMLEventReader();
+		if (eventReader != null) {
+			XMLEvent next = eventReader.hasNext() ? eventReader.peek() : null;
+			Assert.state(next != null && (next.isStartDocument() || next.isStartElement()), CONSUMED_STAX_SOURCE);
+			// The JDK's XMLEventReader bridge mishandles a reader positioned at START_ELEMENT
+			XMLStreamReader streamReader = StaxUtils.createEventStreamReader(eventReader);
+			staxSource = new StAXSource(streamReader);
+		}
+		else {
+			int eventType = source.getXMLStreamReader().getEventType();
+			Assert.state(eventType == XMLStreamConstants.START_DOCUMENT
+					|| eventType == XMLStreamConstants.START_ELEMENT, CONSUMED_STAX_SOURCE);
+		}
+		Transformer transformer;
+		this.lock.lock();
+		try {
+			if (this.transformerFactory == null) {
+				this.transformerFactory = TransformerFactoryUtils.newInstance();
+			}
+			transformer = this.transformerFactory.newTransformer();
+		}
+		finally {
+			this.lock.unlock();
+		}
+		DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
+		transformer.transform(staxSource, result);
+		return (Document) result.getNode();
 	}
 
 	protected Document nodeToDocument(Node node) {
