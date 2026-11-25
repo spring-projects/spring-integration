@@ -1,0 +1,7 @@
+description = 'Spring Integration Support for Elasticsearch'
+
+dependencies {
+    api 'org.springframework.data:spring-data-elasticsearch'
+
+    testImplementation 'org.testcontainers:testcontainers-elasticsearch'
+}
