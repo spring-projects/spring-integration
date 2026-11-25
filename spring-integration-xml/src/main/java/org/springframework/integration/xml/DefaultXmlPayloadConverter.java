@@ -12,7 +12,6 @@ import java.io.StringReader;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,6 +38,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.StaxUtils;
 import org.springframework.xml.DocumentBuilderFactoryUtils;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Default implementation of {@link XmlPayloadConverter}. Supports
@@ -51,9 +51,10 @@ import org.springframework.xml.DocumentBuilderFactoryUtils;
  * that created the reader: for untrusted input, create the reader from a factory with
  * {@code XMLInputFactory.SUPPORT_DTD} and {@code XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES}
  * set to {@code false}.
- * The {@link StAXSource} conversion always uses the JDK's built-in {@link TransformerFactory},
- * so it is not affected by the {@code javax.xml.transform.TransformerFactory} system property
- * or a {@code META-INF/services} entry on the classpath.
+ * The {@link StAXSource} conversion obtains its {@link TransformerFactory} from
+ * {@link TransformerFactoryUtils#newInstance()}, which blocks external DTD and stylesheet access.
+ * That blocking is defense in depth only: it cannot protect a {@link StAXSource},
+ * because the transformer just copies the events that the application's reader has already parsed.
  * Any other {@link Source}, or one that only carries a system ID, is resolved from that system ID URI,
  * so such a {@link Source} must not be built from untrusted input.
  *
@@ -150,7 +151,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		this.lock.lock();
 		try {
 			if (this.transformerFactory == null) {
-				this.transformerFactory = createTransformerFactory();
+				this.transformerFactory = TransformerFactoryUtils.newInstance();
 			}
 			transformer = this.transformerFactory.newTransformer();
 		}
@@ -160,19 +161,6 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
 		transformer.transform(staxSource, result);
 		return (Document) result.getNode();
-	}
-
-	/**
-	 * Use the JDK's built-in factory, so the StAX conversion does not depend on the classpath.
-	 * The external access attributes are defense in depth: they do not affect a {@link StAXSource},
-	 * whose reader is already configured by the application, but they replace the JDK default of
-	 * {@code "all"} should this factory ever parse a source itself.
-	 */
-	private static TransformerFactory createTransformerFactory() {
-		TransformerFactory factory = TransformerFactory.newDefaultInstance();
-		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-		return factory;
 	}
 
 	protected Document nodeToDocument(Node node) {

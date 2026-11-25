@@ -25,7 +25,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junitpioneer.jupiter.SetSystemProperty;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -233,16 +232,6 @@ public class DefaultXmlPayloadConverterTests {
 				.createXMLEventReader(new StringReader(TEST_DOCUMENT_AS_STRING)));
 		assertConvertsToTestDocument(source);
 		assertConsumedStaxSourceIsRejected(source);
-	}
-
-	@Test
-	@SetSystemProperty(key = "javax.xml.transform.TransformerFactory",
-			value = "org.springframework.integration.xml.MissingTransformerFactory")
-	void testStaxSourceConversionUsesJdkTransformerFactory() throws Exception {
-		XMLStreamReader reader = XMLInputFactory.newFactory()
-				.createXMLStreamReader(new StringReader(TEST_DOCUMENT_AS_STRING));
-		Document doc = new DefaultXmlPayloadConverter().convertToDocument(new StAXSource(reader));
-		assertThat(doc).and(TEST_DOCUMENT_AS_STRING).areSimilar();
 	}
 
 	@Test
