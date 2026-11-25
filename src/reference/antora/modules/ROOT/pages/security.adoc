@@ -187,6 +187,10 @@ The mentioned above validation and filtering might be applied to them before the
  * `avro_type`
  * `proto_type`
 
+NOTE: The `delayExpression` of the `DelayHandler` is also sensitive when it reads message data, such as a header mapped from an inbound request.
+The evaluated delay determines how long the message is held in the delayer's `MessageStore`, and the `DelayHandler` has no setting to limit it.
+Validate the value before the delayer, or limit it in the expression itself; see xref:delayer.adoc#delayer-namespace[Configuring a Delayer] for more information.
+
 - `spring-integration-camel`
  * `Camel*`
  * `org.apache.camel.*`
