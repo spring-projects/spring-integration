@@ -95,6 +95,12 @@ A value that equates to a non-positive delay or a Date in the past results in no
 Instead, it is sent directly to the output channel on the original sender's thread.
 If the expression evaluation result is not a `Date` and cannot be parsed as a `Long`, the default delay (if any -- the default is `0`) is applied.
 
+IMPORTANT: The delayer does not limit the delay, and each delayed message stays in the delayer's `MessageStore` until it is released.
+If the expression reads message data that can come from an untrusted source, such as a header mapped from an inbound HTTP request, the sender can keep messages in the store for an arbitrarily long time.
+With the default in-memory `SimpleMessageStore`, repeated messages like that eventually exhaust the heap.
+Validate the value before the delayer, or limit it in the expression itself.
+See xref:security.adoc#sensitive-metadata[Sensitive Metadata] for more information.
+
 IMPORTANT: The expression evaluation may throw an evaluation exception for various reasons, including an invalid expression or other conditions.
 By default, such exceptions are ignored (though logged at the DEBUG level), and the delayer falls back to the default delay (if any).
 You can modify this behavior by setting the `ignore-expression-failures` attribute.
