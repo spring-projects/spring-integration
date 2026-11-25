@@ -172,6 +172,16 @@ A pattern is either a fully qualified class name or a name with a `pass:[*]` wil
 Use `setAllowedPatterns()` to replace the defaults with your own list.
 The `"*"` pattern allows all classes; use it only when all sources are trusted.
 
+[[xml-payloads]]
+=== XML Payloads
+
+The XPath-based components (router, splitter, transformer, header enricher and filter) convert a `javax.xml.transform.Source` payload with the `DefaultXmlPayloadConverter` by default.
+A `Source` that only carries a system ID, such as `new StreamSource(uri)`, is resolved from that URI, so the application must not build it from untrusted data.
+A `StAXSource` wraps a reader that the application has already created, so the `DefaultXmlPayloadConverter` cannot change how that reader parses its input.
+DTD processing and external entity resolution are controlled by the `XMLInputFactory` that created the reader: for untrusted input, create the reader from a factory with `XMLInputFactory.SUPPORT_DTD` and `XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES` set to `false`.
+A `StAXSource` can be converted only once, because the conversion consumes its reader; to evaluate several XPath expressions on the same payload (for example, in an XPath header enricher), convert the payload to a `Document` first.
+See xref:xml/xpath-routing.adoc#xpath-routing-converter[XML Payload Converter] for more information.
+
 [[sensitive-metadata]]
 === Sensitive Metadata
 

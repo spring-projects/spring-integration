@@ -108,6 +108,12 @@ For XPath Routers, you can also specify the Converter to use when converting pay
 As such, the XPath Router supports custom implementations of the `XmlPayloadConverter` strategy, and when configuring an `xpath-router` element in XML, a reference to such an implementation may be provided via the `converter` attribute.
 
 If this reference is not explicitly provided, the `DefaultXmlPayloadConverter` is used.
-It should be sufficient in most cases, since it can convert from Node, Document, Source, File, and String typed payloads.
+It should be sufficient in most cases, since it can convert from `Node`, `Document`, `Source`, `File`, `String`, `InputStream` and `byte[]` payloads.
 If you need to extend beyond the capabilities of that default implementation, then an upstream Transformer is generally a better option in most cases, rather than providing a reference to a custom implementation of this strategy here.
+
+NOTE: A `DOMSource`, `SAXSource`, `StreamSource` or `StAXSource` payload is converted from the node, input source, stream or reader that it wraps.
+A `StAXSource` wraps a reader that the application has already created, so the `DefaultXmlPayloadConverter` cannot change how that reader parses its input.
+DTD processing and external entity resolution are controlled by the `XMLInputFactory` that created the reader: for untrusted input, create the reader from a factory with `XMLInputFactory.SUPPORT_DTD` and `XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES` set to `false`.
+A `StAXSource` can be converted only once, because the conversion consumes its reader; to evaluate several XPath expressions on the same payload (for example, in an XPath header enricher), convert the payload to a `Document` first.
+Any other `Source`, or one that only carries a system ID, is resolved from that system ID URI, so such a `Source` must not be built from untrusted input.
 
