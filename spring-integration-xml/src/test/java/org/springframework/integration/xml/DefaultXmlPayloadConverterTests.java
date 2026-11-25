@@ -9,15 +9,22 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -34,6 +41,7 @@ import static org.xmlunit.assertj3.XmlAssert.assertThat;
  * @author Jonas Partner
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Glenn Renfro
  */
 public class DefaultXmlPayloadConverterTests {
 
@@ -166,9 +174,89 @@ public class DefaultXmlPayloadConverterTests {
 	}
 
 	@Test
+	void testStaxSourceIsConvertedFromItsContent(@TempDir Path tempDir) throws Exception {
+		XMLStreamReader reader = XMLInputFactory.newFactory()
+				.createXMLStreamReader(decoySystemId(tempDir), new StringReader(TEST_DOCUMENT_AS_STRING));
+		assertConvertsToTestDocument(new StAXSource(reader));
+	}
+
+	@Test
+	void testStaxSourceAtStartElementIsConvertedFromItsContent(@TempDir Path tempDir) throws Exception {
+		XMLStreamReader reader = XMLInputFactory.newFactory()
+				.createXMLStreamReader(decoySystemId(tempDir), new StringReader(TEST_DOCUMENT_AS_STRING));
+		reader.nextTag();
+		assertConvertsToTestDocument(new StAXSource(reader));
+	}
+
+	@Test
+	void testStaxEventSourceIsConvertedFromItsContent(@TempDir Path tempDir) throws Exception {
+		XMLEventReader eventReader = XMLInputFactory.newFactory()
+				.createXMLEventReader(decoySystemId(tempDir), new StringReader(TEST_DOCUMENT_AS_STRING));
+		assertConvertsToTestDocument(new StAXSource(eventReader));
+	}
+
+	@Test
+	void testStaxSourceWithoutSystemIdIsConvertedFromItsContent() throws Exception {
+		XMLStreamReader reader = XMLInputFactory.newFactory()
+				.createXMLStreamReader(new StringReader(TEST_DOCUMENT_AS_STRING));
+		assertConvertsToTestDocument(new StAXSource(reader));
+	}
+
+	@Test
+	void testStaxSourceKeepsNamespaces() throws Exception {
+		String xml = "<ns:test xmlns:ns=\"urn:si:test\">hello</ns:test>";
+		Document doc = converter.convertToDocument(new StAXSource(XMLInputFactory.newFactory()
+				.createXMLStreamReader(new StringReader(xml))));
+		assertThat(doc).and(xml).areIdentical();
+	}
+
+	@Test
+	void testStaxEventSourceAtStartElementIsConvertedFromItsContent() throws Exception {
+		XMLEventReader eventReader = XMLInputFactory.newFactory()
+				.createXMLEventReader(new StringReader(TEST_DOCUMENT_AS_STRING));
+		eventReader.nextEvent();
+		assertConvertsToTestDocument(new StAXSource(eventReader));
+	}
+
+	@Test
+	void testConsumedStaxSourceIsRejected() throws Exception {
+		StAXSource source = new StAXSource(XMLInputFactory.newFactory()
+				.createXMLStreamReader(new StringReader(TEST_DOCUMENT_AS_STRING)));
+		assertConvertsToTestDocument(source);
+		assertConsumedStaxSourceIsRejected(source);
+	}
+
+	@Test
+	void testConsumedStaxEventSourceIsRejected() throws Exception {
+		StAXSource source = new StAXSource(XMLInputFactory.newFactory()
+				.createXMLEventReader(new StringReader(TEST_DOCUMENT_AS_STRING)));
+		assertConvertsToTestDocument(source);
+		assertConsumedStaxSourceIsRejected(source);
+	}
+
+	@Test
 	public void testConvertCustomSourceToDocument() {
 		Document doc = converter.convertToDocument(new MySource());
 		assertThat(doc).and(TEST_DOCUMENT_AS_STRING).areSimilar();
+	}
+
+	private static String decoySystemId(Path tempDir) throws IOException {
+		Path decoy = tempDir.resolve("decoy.xml");
+		Files.writeString(decoy, "<test>fetched</test>");
+		return decoy.toUri().toString();
+	}
+
+	private static void assertConvertsToTestDocument(StAXSource source) {
+		Document doc = converter.convertToDocument(source);
+		assertThat(doc).and(TEST_DOCUMENT_AS_STRING).areSimilar();
+	}
+
+	private static void assertConsumedStaxSourceIsRejected(StAXSource source) {
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> converter.convertToDocument(source))
+				.withRootCauseInstanceOf(IllegalStateException.class)
+				.havingRootCause()
+				.withMessageContaining("consumed");
 	}
 
 	private static class MySource implements Source {
