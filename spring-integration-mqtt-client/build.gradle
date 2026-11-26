@@ -3,4 +3,5 @@ dependencies {
 	api libs.com.hivemq.mqtt.client
 
 	testImplementation 'org.testcontainers:testcontainers-toxiproxy'
+	testImplementation 'io.micrometer:micrometer-tracing-bridge-otel'
 }
